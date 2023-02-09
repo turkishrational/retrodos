@@ -1,3 +1,22 @@
+*Retro DOS Versions by Erdogan Tan (04/08/2019)
+
+Erdogan Tan	Microsoft
+-------------   ----------------------
+ready:
+Retro DOS 1.0 - MSDOS 1.25 (PCDOS 1.1)
+Retro DOS 2.0 - MSDOS 2.11 (PCDOS 2.10)
+Retro DOS 3.0 - MSDOS 3.3  (PCDOS 3.3)
+Retro DOS 3.1 - MSDOS 3.3 optimized source code (compact kernel, 49KB)
+Retro DOS 3.2 - MSDOS 3.3 (>32MB disk access, FAT 16 Partition ID 6, MSDOS 6.0 code)
+in progress:
+Retro DOS 3.3 - Fake MSDOS 5.0 (MSDOS 6.0 system calls on Retro DOS 3.2 construction)
+***
+in sequence: 
+Retro DOS 4.0 - MSDOS 6.0 (without DoubleSpace, it will report itself as MSDOS 6.22.) 
+***
+future (final):
+Retro DOS 5.0 - PCDOS 7.1 (by IBM, FAT 32 support)
+
 *****
 
 MSDOS assembly source code syntax & assembler: MASM (version 1.0 to 6.14)
