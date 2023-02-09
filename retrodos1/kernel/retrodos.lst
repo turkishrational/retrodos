@@ -1,0 +1,1277 @@
+     1                                  ; ****************************************************************************
+     2                                  ; RETRODOS.SYS (MSDOS 1.25 Kernel) - RETRO DOS v1.0 by ERDOGAN TAN
+     3                                  ; ----------------------------------------------------------------------------
+     4                                  ; Last Update: 20/04/2018
+     5                                  ; ----------------------------------------------------------------------------
+     6                                  ; Beginning: 04/02/2018 
+     7                                  ; ----------------------------------------------------------------------------
+     8                                  ; Assembler: NASM version 2.11  
+     9                                  ; ----------------------------------------------------------------------------
+    10                                  ;	    ((nasm retrodos.s -l retrodos.lst -o MSDOS.SYS)) 	
+    11                                  ; ----------------------------------------------------------------------------
+    12                                  ; This assembly file has two parts: (MSDOS BIOS+KERNEL in one kernel file)
+    13                                  ; 1) 'ibmbio.s' (IBMBIO.COM) part from beginning to '%incbin MSDOS.BIN'
+    14                                  ; 2) MSDOS.BIN (MSDOS 1.25 Kernel) as included binary file.
+    15                                  ;
+    16                                  ; (Note: RETRO DOS boot sector code will load 'MSDOS.SYS' at 0060h:0000h)
+    17                                  
+    18                                  ;=============================================================================
+    19                                  ; ibmbio.s
+    20                                  ;=============================================================================
+    21                                  ; Derived from (PCDOS 1.0) 'ibmbio.s' file which is disassembled from
+    22                                  ; 'IBMBIO.COM' by Michael Steil (06/01/2015). (IBM PCDOS v1.0) source code
+    23                                  ; ****************************************************************************
+    24                                  ; Modified by using disassembly of 'IBMBIO.COM' file of PCDOS 1.1 disk image
+    25                                  ;(Disassembler: Hex-Rays IDA Pro Free)
+    26                                  ; 05/02/2018, Erdogan Tan.
+    27                                  ; Modified by using 'Programming Guide to the AMIBIOS', 1993.
+    28                                  ; 10/02/2018, Erdogan Tan.
+    29                                  ; ----------------------------------------------------------------------------
+    30                                  
+    31                                  ;-----------------------------------------------------------------------------
+    32                                  ; DOS 1.0 IBMBIO.COM (disk image MD5 73c919cecadf002a7124b7e8bfe3b5ba)
+    33                                  ;   http://www.pagetable.com/
+    34                                  ;-----------------------------------------------------------------------------
+    35                                  
+    36                                  SECTOR_SIZE     equ     0200h		; size of a sector
+    37                                  PAUSE_KEY       equ     7200h		; scancode + charcode of PAUSE key
+    38                                  KEYBUF_NEXT     equ     041Ah		; next character in keyboard buffer
+    39                                  KEYBUF_FREE     equ     041Ch		; next free slot in keyboard buffer
+    40                                  KEYBUF          equ     041Eh		; keyboard buffer data
+    41                                  LOGICAL_DRIVE   equ     0504h		; linear address of logical drive byte
+    42                                  ;DOS_SEGMENT	equ     00BFh ; v1.1	; segment in which DOS will run
+    43                                  DOS_SEGMENT	equ     00C4h		; Retro DOS v1.0 - 13/02/2018
+    44                                  BIO_SEGMENT     equ     0060h		; segment in which BIO is running
+    45                                  
+    46                                  ;-----------------------------------------------------------------------------
+    47                                  ; Start of code
+    48                                  ;-----------------------------------------------------------------------------
+    49                                  
+    50                                          	[ORG 0]			; segment 0x0060
+    51                                  
+    52 00000000 E93D06                                  jmp     INIT		; 0x0060:0x0000 entry point
+    53 00000003 E9C300                                  jmp     STATUS		; 0x0060:0x0003 check for keypress
+    54 00000006 E9E600                                  jmp     INP		; 0x0060:0x0006 get key from keyboard
+    55 00000009 E90C01                                  jmp     OUTP		; 0x0060:0x0009 send character to screen
+    56 0000000C E91B01                                  jmp     PRINT		; 0x0060:0x000C send character to printer
+    57 0000000F E94501                                  jmp     AUXIN		; 0x0060:0x000F get character from serial
+    58 00000012 E95B01                                  jmp     AUXOUT		; 0x0060:0x0012 send character to serial
+    59 00000015 E93402                                  jmp     READ		; 0x0060:0x0015 read sector(s) from disk (INT 0x25)
+    60 00000018 E93C02                                  jmp     WRITE		; 0x0060:0x0018 write sector(s) to disk  (INT 0x26)
+    61 0000001B E96501                                  jmp     DSKCHG		; 0x0060:0x001B check for disk change
+    62                                  		; PCDOS v1.1
+    63 0000001E E96501                  		jmp	SETDATE
+    64 00000021 E96B01                  		jmp	SETTIME
+    65 00000024 E9B101                  		jmp	GETTIME
+    66 00000027 E90102                  		jmp	FLUSH
+    67 0000002A E91702                  		jmp	MAPDEV
+    68                                  
+    69                                  ;-----------------------------------------------------------------------------
+    70                                  ; print zero-terminated string at DS:DX
+    71                                  ;-----------------------------------------------------------------------------
+    72                                  print_string:
+    73 0000002D 87F2                    		xchg    si, dx
+    74                                  prints1:
+    75 0000002F 2EAC                    		cs	lodsb
+    76 00000031 247F                                    and     al, 7Fh		; clear bit 7 (XXX why?)
+    77 00000033 7407                                    jz      short prints2	; zero-terminated
+    78 00000035 9A[1801]6000                            call    BIO_SEGMENT:OUTP ; print character
+    79 0000003A EBF3                                    jmp     short prints1	; loop
+    80                                  prints2:
+    81 0000003C 87F2                    		xchg    si, dx
+    82 0000003E C3                                      retn
+    83                                  	
+    84                                  ;-----------------------------------------------------------------------------
+    85                                  
+    86 0000003F 0D0A496E7365727420-     TXT_INSERTDISK: db 13,10,'Insert diskette for drive '
+    87 00000048 6469736B6574746520-
+    88 00000051 666F72206472697665-
+    89 0000005A 20                 
+    90 0000005B 413A20616E64207374-     TXT_DRIVE:      db 'A: and strike', 13,10
+    91 00000064 72696B650D0A       
+    92 0000006A 616E79206B65792077-                     db 'any key when ready',13,10,10,0
+    93 00000073 68656E207265616479-
+    94 0000007C 0D0A0A00           
+    95                                  
+    96                                  ;-----------------------------------------------------------------------------
+    97                                  
+    98 00000080 0D0A4F7574206F6620-     ERR_PAPER:	db 13,10,'Out of paper',13,10,0
+    99 00000089 70617065720D0A00   
+   100 00000091 0D0A5072696E746572-     ERR_PRINTER:	db 13,10,'Printer fault',13,10,0
+   101 0000009A 206661756C740D0A00 
+   102 000000A3 0D0A41757820492F4F-     ERR_AUX:	db 13,10,'Aux I/O error',13,10,0
+   103 000000AC 206572726F720D0A00 
+   104                                  
+   105                                  ;-----------------------------------------------------------------------------
+   106                                  
+   107 000000B5 804020100908040302-     conv_status:    db 80h,40h,20h,10h,09h,08h,04h,03h,02h,01h ; BIOS error codes
+   108 000000BE 01                 
+   109 000000BF 02060C040C0408000C-                     db 02h,06h,0Ch,04h,0Ch,04h,08h,00h,0Ch,0Ch ; IBMBIO err codes
+   110 000000C8 0C                 
+   111                                  
+   112                                  ;-----------------------------------------------------------------------------
+   113                                  
+   114                                  ;-----------------------------------------------------------------------------
+   115                                  ; check for keypress
+   116                                  ;  AL = character
+   117                                  ;  ZF = set if no character
+   118                                  ;  all other registers preserved
+   119                                  ;-----------------------------------------------------------------------------
+   120 000000C9 2EA0[0504]              STATUS:		mov     al, [cs:next_char]; check for waiting character
+   121 000000CD 08C0                                    or      al, al
+   122 000000CF 7514                                    jnz     short char_avail ; yes, return it
+   123 000000D1 52                                      push    dx
+   124 000000D2 92                                      xchg    ax, dx
+   125 000000D3 B401                                    mov     ah, 1
+   126 000000D5 CD16                                    int     16h		; otherwise get key (don't clear)
+   127 000000D7 7409                                    jz      short status_exit ; no key
+   128 000000D9 3D0072                                  cmp     ax, PAUSE_KEY   ; PAUSE key?
+   129 000000DC 7504                                    jnz     short status_exit
+   130 000000DE B010                                    mov     al, 10h		; convert into Ctrl+P
+   131 000000E0 08C0                                    or      al, al
+   132                                  status_exit:
+   133 000000E2 88F4                    		mov     ah, dh          ; restore original AH
+   134 000000E4 5A                                      pop     dx
+   135                                  char_avail:
+   136 000000E5 CB                      		retf
+   137                                  
+   138                                  ;-----------------------------------------------------------------------------
+   139                                  ; Interrupt 0x1B handler: Control+Break handler
+   140                                  ;-----------------------------------------------------------------------------
+   141                                  int_1B:		
+   142 000000E6 2EC606[0504]03          		mov     byte [cs:next_char], 3	; put code for Ctrl+C
+   143                                  iret1:
+   144 000000EC CF                                      iret                    	; into keyboard queue
+   145                                  
+   146                                  
+   147                                  ;-----------------------------------------------------------------------------
+   148                                  ; Interrupt 0x00 handler: Division by Zero
+   149                                  ;-----------------------------------------------------------------------------
+   150                                  ;int_00:
+   151                                  ;		sti
+   152                                  ;               push    ax
+   153                                  ;               push    dx
+   154                                  ;               mov     dx, ERR_DIVIDE
+   155                                  ;               call    print_string
+   156                                  ;               pop     dx
+   157                                  ;               pop     ax
+   158                                  ;               int     23h		; exit program through Ctrl+C path
+   159                                  
+   160                                  ;-----------------------------------------------------------------------------
+   161                                  ; Interrupt 0x00 handler: Single Step
+   162                                  ; Interrupt 0x03 handler: Breakpoint
+   163                                  ; Interrupt 0x04 handler: Overflow
+   164                                  ;-----------------------------------------------------------------------------
+   165                                  ;iret1:
+   166                                  ;		iret                    ; empty interrupt handler
+   167                                  
+   168                                  
+   169                                  ;-----------------------------------------------------------------------------
+   170                                  
+   171                                  
+   172                                  ;ERR_DIVIDE:	db 13,10,'Divide overflow',13,10,0
+   173                                  
+   174                                  
+   175                                  ;-----------------------------------------------------------------------------
+   176                                  ; get key from keyboard
+   177                                  ;  AL = character
+   178                                  ;  all other registers preserved
+   179                                  ;-----------------------------------------------------------------------------
+   180                                  again:		
+   181 000000ED 92                      		xchg    ax, dx
+   182 000000EE 5A                                      pop     dx
+   183                                  INP:
+   184 000000EF B000                    		mov     al, 0
+   185 000000F1 2E8606[0504]                            xchg    al, [cs:next_char]; get and clear waiting character
+   186 000000F6 08C0                                    or      al, al
+   187 000000F8 751D                                    jnz     short inp_exit	; there is no character waiting
+   188 000000FA 52                                      push    dx
+   189 000000FB 92                                      xchg    ax, dx
+   190 000000FC B400                                    mov     ah, 0
+   191 000000FE CD16                                    int	16h		; then read character from keyboard
+   192 00000100 09C0                                    or      ax, ax
+   193 00000102 74E9                                    jz      short again
+   194 00000104 3D0072                                  cmp     ax, PAUSE_KEY
+   195 00000107 7502                                    jnz     short not_pause
+   196 00000109 B010                                    mov     al, 10h		; Ctrl+P
+   197                                  not_pause:
+   198 0000010B 3C00                    		cmp     al, 0
+   199 0000010D 7505                                    jnz     short skip1	; key with ASCII representation
+   200 0000010F 2E8826[0504]                            mov     [cs:next_char], ah; return scancode next time
+   201                                  skip1:
+   202 00000114 88F4                    		mov     ah, dh          ; restore AH
+   203 00000116 5A                                      pop     dx
+   204                                  inp_exit:
+   205 00000117 CB                      		retf
+   206                                  
+   207                                  
+   208                                  ;-----------------------------------------------------------------------------
+   209                                  ; send character to screen
+   210                                  ;  AL = character
+   211                                  ;  all registers preserved
+   212                                  ;-----------------------------------------------------------------------------
+   213                                  OUTP:
+   214 00000118 55                      		push    bp
+   215 00000119 50                                      push    ax
+   216 0000011A 53                                      push    bx
+   217 0000011B 56                                      push    si
+   218 0000011C 57                                      push    di
+   219 0000011D B40E                                    mov     ah, 0Eh
+   220 0000011F BB0700                                  mov     bx, 7
+   221 00000122 CD10                                    int	10h            ; print character
+   222 00000124 5F                                      pop     di
+   223 00000125 5E                                      pop     si
+   224 00000126 5B                                      pop     bx
+   225 00000127 58                                      pop     ax
+   226 00000128 5D                                      pop     bp
+   227 00000129 CB                                      retf
+   228                                  
+   229                                  ;-----------------------------------------------------------------------------
+   230                                  ; send character to printer
+   231                                  ;  AL = character
+   232                                  ;  all registers preserved
+   233                                  ;-----------------------------------------------------------------------------
+   234                                  PRINT:
+   235 0000012A 50                      		push    ax
+   236 0000012B 52                                      push    dx
+   237 0000012C 2EC606[0404]00                          mov     byte [cs:printer_retry], 0
+   238                                  printer_again:
+   239 00000132 BA0000                  		mov     dx, 0           ; printer port #0
+   240 00000135 B400                                    mov     ah, 0
+   241 00000137 CD17                                    int     17h		; send character to printer
+   242 00000139 BA[8000]                                mov     dx, ERR_PAPER
+   243 0000013C F6C420                                  test    ah, 20h
+   244 0000013F 7510                                    jnz	short printer_error ; out of paper error
+   245 00000141 BA[9100]                                mov     dx, ERR_PRINTER
+   246 00000144 F6C405                                  test    ah, 5
+   247 00000147 740B                                    jz	short pop_dx_ax_retf  ; no timeout error, return
+   248 00000149 2E8036[0404]01                          xor     byte [cs:printer_retry], 1
+   249 0000014F 75E1                                    jnz     short printer_again   ; on a timeout, try twice
+   250                                  printer_error:
+   251 00000151 E8D9FE                  		call    print_string
+   252                                  pop_dx_ax_retf:
+   253 00000154 5A                      		pop     dx
+   254 00000155 58                                      pop     ax
+   255 00000156 CB                                      retf
+   256                                  
+   257                                  ;-----------------------------------------------------------------------------
+   258                                  ; get character from serial port
+   259                                  ;  AL = character
+   260                                  ;  all other registers preserved
+   261                                  ;-----------------------------------------------------------------------------
+   262                                  AUXIN:
+   263 00000157 52                      		push    dx
+   264 00000158 50                                      push    ax
+   265 00000159 BA0000                                  mov     dx, 0           ; serial port #0
+   266 0000015C B402                                    mov     ah, 2
+   267 0000015E CD14                                    int     14h		; get character from serial port
+   268 00000160 BA[A300]                                mov     dx, ERR_AUX
+   269 00000163 F6C40E                                  test    ah, 0Eh		; framing, parity or overrun?
+   270 00000166 7403                                    jz      short aux_noerr ; no error
+   271 00000168 E8C2FE                                  call    print_string
+   272                                  aux_noerr:
+   273 0000016B 5A                      		pop     dx
+   274 0000016C 88F4                                    mov     ah, dh          ; restore AH
+   275 0000016E 5A                                      pop     dx
+   276 0000016F CB                                      retf
+   277                                  
+   278                                  ;-----------------------------------------------------------------------------
+   279                                  ; send character to serial
+   280                                  ;  AL = character
+   281                                  ;  all registers preserved
+   282                                  ;-----------------------------------------------------------------------------
+   283                                  AUXOUT:
+   284 00000170 50                      		push    ax
+   285 00000171 52                                      push    dx
+   286 00000172 B401                                    mov     ah, 1
+   287 00000174 BA0000                                  mov     dx, 0
+   288 00000177 CD14                                    int     14h		; send character to serial port
+   289 00000179 F6C480                                  test    ah, 80h		; timeout error?
+   290 0000017C 74D6                                    jz      short pop_dx_ax_retf  ; no all fine
+   291 0000017E BA[A300]                                mov     dx, ERR_AUX
+   292 00000181 EBCE                                    jmp     short printer_error
+   293                                  
+   294                                  ;-----------------------------------------------------------------------------
+   295                                  ; check for disk change
+   296                                  ;  AH = flag (1=changed)
+   297                                  ;-----------------------------------------------------------------------------
+   298                                  DSKCHG:
+   299                                  		;mov	ah, 0		; the IBM PC can't detect disk change
+   300 00000183 D0E0                                    shl	al, 1		; PCDOS 1.1
+   301 00000185 CB                      		retf
+   302                                  
+   303                                  ; ----------------------------------------------------------------------------
+   304                                  ; Set date of the day
+   305                                  ; ----------------------------------------------------------------------------
+   306                                  SETDATE:	
+   307 00000186 2EA3[1404]              		mov	[cs:day_count], ax
+   308 0000018A 31C0                    		xor	ax, ax
+   309 0000018C CD1A                    		int	1Ah		; CLOCK	- GET TIME OF DAY
+   310                                  					; Return: CX:DX	= clock	count
+   311                                  					; AL = 00h if clock was	read or	written	
+   312                                  					; (via AH=0,1) since the previous
+   313                                  					; midnight 
+   314                                  					; Otherwise, AL	> 0
+   315 0000018E CB                      		retf
+   316                                  
+   317                                  ; ----------------------------------------------------------------------------
+   318                                  ; Set time of the day
+   319                                  ; ----------------------------------------------------------------------------
+   320                                  SETTIME:	; CH = Hour
+   321                                  		; CL = Minute
+   322                                  		; DH = Second
+   323                                  		; DL = 10 milli second (1/100 second)
+   324                                  
+   325 0000018F B03C                    		mov	al, 60 ; 3Ch 
+   326 00000191 F6E5                    		mul	ch	
+   327 00000193 B500                    		mov	ch, 0
+   328 00000195 01C8                    		add	ax, cx	
+   329 00000197 B97017                  		mov	cx, 6000 ; 1770h	
+   330 0000019A 89D3                    		mov	bx, dx
+   331 0000019C F7E1                    		mul	cx
+   332 0000019E 89C1                    		mov	cx, ax	
+   333 000001A0 B064                    		mov	al, 100 ; 64h
+   334 000001A2 F6E7                    		mul	bh	
+   335 000001A4 01C1                    		add	cx, ax	
+   336 000001A6 83D200                  		adc	dx, 0	
+   337 000001A9 B700                    		mov	bh, 0
+   338 000001AB 01D9                    		add	cx, bx	
+   339 000001AD 83D200                  		adc	dx, 0	
+   340 000001B0 92                      		xchg	ax, dx
+   341 000001B1 91                      		xchg	ax, cx	
+   342 000001B2 BB0BE9                  		mov	bx, 59659 ; 0E90Bh
+   343 000001B5 F7E3                    		mul	bx
+   344 000001B7 87D1                    		xchg	dx, cx	
+   345 000001B9 92                      		xchg	ax, dx	
+   346 000001BA F7E3                    		mul	bx
+   347 000001BC 01C8                    		add	ax, cx
+   348 000001BE 83D200                  		adc	dx, 0
+   349 000001C1 92                      		xchg	ax, dx	
+   350 000001C2 BB0500                  		mov	bx, 5
+   351 000001C5 F6F3                    		div	bl
+   352 000001C7 88C1                    		mov	cl, al
+   353 000001C9 B500                    		mov	ch, 0
+   354 000001CB 88E0                    		mov	al, ah
+   355 000001CD 98                      		cbw
+   356 000001CE 92                      		xchg	ax, dx
+   357 000001CF F7F3                    		div	bx
+   358 000001D1 89C2                    		mov	dx, ax
+   359 000001D3 B401                    		mov	ah, 1
+   360 000001D5 CD1A                    		int	1Ah		; CLOCK	- SET TIME OF DAY
+   361                                  					; CX:DX	= clock	count
+   362                                  					; Return: time of day set
+   363 000001D7 CB                      		retf
+   364                                  
+   365                                  ; ----------------------------------------------------------------------------
+   366                                  ; Get time of the day
+   367                                  ; ----------------------------------------------------------------------------
+   368                                  GETTIME:
+   369 000001D8 53                      		push	bx
+   370 000001D9 B80000                  		mov	ax, 0
+   371 000001DC CD1A                    		int	1Ah		; CLOCK	- GET TIME OF DAY
+   372                                  					; Return: CX:DX	= clock	count
+   373                                  					; AL = 00h if clock was	read or	written
+   374                                  					; (via AH=0,1) since the previous
+   375                                  					; midnight
+   376                                  					; Otherwise, AL	> 0
+   377 000001DE 2E0106[1404]            		add	[cs:day_count], ax
+   378 000001E3 89C8                    		mov	ax, cx
+   379 000001E5 89D3                    		mov	bx, dx
+   380 000001E7 D1E2                    		shl	dx, 1
+   381 000001E9 D1D1                    		rcl	cx, 1
+   382 000001EB D1E2                    		shl	dx, 1
+   383 000001ED D1D1                    		rcl	cx, 1
+   384 000001EF 01DA                    		add	dx, bx
+   385 000001F1 11C8                    		adc	ax, cx
+   386 000001F3 92                      		xchg	ax, dx
+   387 000001F4 B90BE9                  		mov	cx, 59659 ; 0E90Bh
+   388 000001F7 F7F1                    		div	cx
+   389 000001F9 89C3                    		mov	bx, ax
+   390 000001FB 31C0                    		xor	ax, ax
+   391 000001FD F7F1                    		div	cx
+   392 000001FF 89DA                    		mov	dx, bx
+   393 00000201 B9C800                  		mov	cx, 200 ; 0C8h
+   394 00000204 F7F1                    		div	cx
+   395 00000206 80FA64                  		cmp	dl, 100 ; 64h
+   396 00000209 7203                    		jb	short gettime1
+   397 0000020B 80EA64                  		sub	dl, 100 ; 64h
+   398                                  gettime1:
+   399 0000020E F5                      		cmc
+   400 0000020F 88D3                    		mov	bl, dl
+   401 00000211 D1D0                    		rcl	ax, 1
+   402 00000213 B200                    		mov	dl, 0
+   403 00000215 D1D2                    		rcl	dx, 1
+   404 00000217 B93C00                  		mov	cx, 60 ; 3Ch
+   405 0000021A F7F1                    		div	cx
+   406 0000021C 88D7                    		mov	bh, dl
+   407 0000021E F6F1                    		div	cl
+   408 00000220 86C4                    		xchg	al, ah
+   409 00000222 89DA                    		mov	dx, bx
+   410 00000224 91                      		xchg	ax, cx
+   411 00000225 2EA1[1404]              		mov	ax, [cs:day_count]
+   412 00000229 5B                      		pop	bx
+   413 0000022A CB                      		retf
+   414                                  
+   415                                  ; ----------------------------------------------------------------------------
+   416                                  ; Clear keyboard buffer
+   417                                  ; ----------------------------------------------------------------------------
+   418                                  FLUSH:
+   419 0000022B 2EC606[0504]00          		mov	byte [cs:next_char], 0 
+   420 00000231 1E                      		push	ds
+   421 00000232 31ED                    		xor	bp,bp
+   422 00000234 8EDD                    		mov	ds,bp
+   423 00000236 C7061A041E00            		mov	word [KEYBUF_NEXT], KEYBUF & 0xFF ; 1Eh
+   424 0000023C C7061C041E00            		mov	word [KEYBUF_FREE], KEYBUF & 0xFF ; 1Eh
+   425 00000242 1F                      		pop	ds
+   426 00000243 CB                      		retf
+   427                                  
+   428                                  ; ----------------------------------------------------------------------------
+   429                                  ;
+   430                                  ; ----------------------------------------------------------------------------
+   431                                  MAPDEV:	
+   432 00000244 80E401                  		and	ah, 1
+   433 00000247 08E0                    		or	al, ah
+   434 00000249 CB                      		retf
+   435                                  
+   436                                  ;-----------------------------------------------------------------------------
+   437                                  ; READ  - read sector(s) from disk
+   438                                  ; WRITE - write sector(s) to disk
+   439                                  ;  al     drive number (0-3)
+   440                                  ;  ds:bx  buffer
+   441                                  ;  cx     count
+   442                                  ;  dx     logical block number
+   443                                  ;-----------------------------------------------------------------------------
+   444                                  
+   445                                  ;-----------------------------------------------------------------------------
+   446                                  INT25h_vector:
+   447 0000024A D0E0                    		shl	al, 1 ; 19/02/2018
+   448                                  ;-----------------------------------------------------------------------------
+   449                                  READ:
+   450                                  		; AL = Drive number (0,1)
+   451                                  		; DS:BX = Buffer address
+   452                                  		; CX = Sector count
+   453                                  		; DX = (Absolute) Sector number (LBA)
+   454                                  
+   455 0000024C B402                    		mov     ah, 2           ; BIOS code "read"
+   456 0000024E EB0E                                    jmp     short read_write
+   457                                  
+   458                                  ;-----------------------------------------------------------------------------
+   459                                  rw_return:
+   460 00000250 F8                      		clc
+   461                                  rw_err_return:
+   462 00000251 1F                      		pop	ds ; *
+   463 00000252 B008                    		mov	al, 8
+   464 00000254 CB                      		retf
+   465                                  
+   466                                  ;-----------------------------------------------------------------------------
+   467                                  INT26h_vector:
+   468 00000255 D0E0                    		shl	al, 1 ; 19/02/2018
+   469                                  ;-----------------------------------------------------------------------------
+   470                                  WRITE:
+   471                                  		; AL = Drive number (0-3)
+   472                                  		; AH = Verify flag
+   473                                  		; DS:BX = Buffer address
+   474                                  		; CX = Sector count
+   475                                  		; DX = (Absolute) Sector number (LBA)
+   476                                  
+   477 00000257 2E8826[0704]            		mov	[cs:int_13h_cmd+1], ah
+   478 0000025C B403                    		mov     ah, 3           ; BIOS code "write"
+   479                                  read_write:
+   480                                  		; 19/02/2018
+   481                                  		; (2 disk drives -> 4 disks, MSDOS 1.25 feature!)
+   482                                  		
+   483                                  		; Retro DOS v1.0 - 11/02/2018
+   484 0000025E 3C03                    		cmp	al, 3 ; 19/02/2018 (1->3)
+   485 00000260 7605                    		jna	short valid_drv_num
+   486                                  		; invalid drive number
+   487 00000262 B80280                  		mov	ax, 8002h ; Drive not ready !
+   488 00000265 F9                      		stc	
+   489 00000266 CB                      		retf	; return with error code	
+   490                                  valid_drv_num:
+   491 00000267 1E                      		push	ds ; *				
+   492 00000268 0E                      		push	cs
+   493 00000269 1F                      		pop	ds
+   494 0000026A 3A06[0904]              		cmp	al, [drv_num]
+   495 0000026E 742F                    		je	short rw2
+   496 00000270 50                      		push	ax
+   497 00000271 A2[0904]                		mov	[drv_num], al
+   498                                  		; 19/02/2018
+   499                                  		;and	al, al
+   500                                  		;jz	short rw0
+   501                                  		; 20/02/2018
+   502 00000274 803E[0804]01            		cmp     byte [single_floppy], 1
+   503 00000279 7409                    		je	short rw0
+   504                                  		; 19/02/2018	
+   505 0000027B 3C01                    		cmp	al, 1  ; Disks 0,1
+   506 0000027D 7605                    		jna	short rw0 
+   507 0000027F BE[2904]                		mov	si, fd1_dos_parameters
+   508 00000282 EB03                    		jmp	short rw1		
+   509                                  rw0:		
+   510 00000284 BE[1804]                		mov	si, fd0_dos_parameters
+   511                                  rw1:	
+   512 00000287 8B04                    		mov	ax, [si]		  ; [si+0]
+   513 00000289 A3[0C04]                		mov	[BytesPerSec], ax
+   514 0000028C 8B4408                  		mov	ax, [si+bsSectors-11]	  ; [si+8]
+   515 0000028F A3[1204]                		mov	[TotalSectors], ax
+   516 00000292 8B440D                  		mov	ax, [si+bsSecPerTrack-11] ; [si+13]
+   517 00000295 A3[0E04]                		mov	[SecPerTrack], ax		
+   518 00000298 8B440F                  		mov	ax, [si+bsHeads-11]	  ; [si+15]
+   519 0000029B A3[1004]                		mov	[Heads], ax
+   520 0000029E 58                      		pop	ax
+   521                                  rw2:
+   522 0000029F D0E8                    		shr	al, 1 ; 19/02/2018 (3->1,2->1,1->0,0->0)
+   523 000002A1 E3AD                    		jcxz	rw_return
+   524 000002A3 89D6                    		mov	si, dx
+   525 000002A5 01CE                    		add	si, cx
+   526 000002A7 3B36[1204]              		cmp	si, [TotalSectors] ; 720, 2400, 1440, 2880, 5760	
+   527 000002AB F5                      		cmc
+   528 000002AC 72A3                    		jc	short rw_err_return
+   529 000002AE 5E                      		pop	si ; * 
+   530 000002AF 06                      		push    es
+   531 000002B0 56                      		push	si ; ds
+   532 000002B1 8EC6                    		mov	es, si
+   533 000002B3 8926[1604]                              mov     [temp_sp], sp   ; save sp for function abort
+   534 000002B7 8826[0604]                              mov     [int_13h_cmd], ah; save whether it was read or write
+   535                                  ; logic to emulate a "logical" drive B: by prompting the user to change disk
+   536                                  ; when the currently used drive is changed
+   537 000002BB 803E[0804]01                            cmp     byte [single_floppy], 1
+   538 000002C0 7528                                    jne	short multi_drive ; more than one drive
+   539 000002C2 1E                                      push    ds
+   540 000002C3 31F6                                    xor     si, si
+   541 000002C5 8EDE                                    mov     ds, si          ; DS := 0x0000
+   542 000002C7 88C4                                    mov     ah, al
+   543 000002C9 86260405                                xchg    ah, [LOGICAL_DRIVE]; current logical drive
+   544 000002CD 1F                                      pop     ds
+   545 000002CE 38E0                                    cmp     al, ah
+   546 000002D0 7416                                    jz      short drive_unchanged
+   547 000002D2 52                                      push    dx              ; save sector number
+   548 000002D3 0441                                    add     al, 'A'
+   549 000002D5 A2[5B00]                                mov     [TXT_DRIVE], al
+   550 000002D8 BA[3F00]                                mov     dx, TXT_INSERTDISK
+   551 000002DB E84FFD                                  call    print_string    ; prompt for disk change
+   552 000002DE 9A[2B02]6000                           	call	BIO_SEGMENT:FLUSH ; Clear keyboard buffer
+   553 000002E3 B400                                    mov     ah, 0
+   554 000002E5 CD16                                    int     16h		; wait for any key
+   555 000002E7 5A                                      pop     dx              ; block number
+   556                                  drive_unchanged:
+   557 000002E8 B000                    		mov     al, 0           ; for both logical A: or B: use drive A:
+   558                                  multi_drive:
+   559                                  		; Retro DOS v1.0 - 10/02/2018
+   560 000002EA 92                      		xchg    ax, dx		; dl = drive number (0 or 1)
+   561                                  		; AX = Sector number (LBA)
+   562 000002EB F636[0E04]                              div	byte [SecPerTrack] ; convert LBA to CHS
+   563                                  		; AL = track*heads
+   564                                  		; AH = sector
+   565                                  		; 18/02/2018
+   566 000002EF FEC4                                    inc     ah              ; ah = sector (starts at 1)
+   567 000002F1 30F6                    		xor	dh, dh ; 0
+   568                                  		;test	byte [Heads], 2
+   569                                  		;jz	short skip2
+   570 000002F3 D0E8                    		shr	al, 1 		; Track
+   571 000002F5 D0D6                    		rcl	dh, 1		; Head
+   572                                  skip2:
+   573 000002F7 86C4                    		xchg	al, ah 		; ah = track, al = sector, dh = head
+   574 000002F9 91                                      xchg    ax, cx          ; ch = track, cl = sector, ax = count
+   575 000002FA A3[0A04]                                mov     [num_sectors], ax ; count
+   576                                  ; work around DMA hardware bug in case I/O spans a 64 KB boundary
+   577                                  ; by using a temporary buffer
+   578 000002FD 8CC7                                    mov     di, es          ; destination segment
+   579 000002FF D1E7                                    shl     di, 1
+   580 00000301 D1E7                                    shl     di, 1           ; make es:bx a linear address
+   581 00000303 D1E7                                    shl     di, 1           ; (discard upper bits)
+   582 00000305 D1E7                                    shl     di, 1
+   583 00000307 01DF                                    add     di, bx
+   584                                                  ;add	di, SECTOR_SIZE-1; last byte of sector (linear)
+   585 00000309 8B36[0C04]              		mov	si, [BytesPerSec]
+   586 0000030D 4E                      		dec	si ; 512-1                
+   587 0000030E 01F7                    		add	di, si
+   588 00000310 721B                    		jc      short across_64k ; sector overflows it
+   589 00000312 87DF                                    xchg    bx, di          ; bx = last byte, di = buffer
+   590 00000314 D0EF                                    shr     bh, 1           ; sector index in memory
+   591 00000316 B480                    		mov     ah, 128		; 0x80 sectors fit into 64 KB
+   592 00000318 28FC                                    sub     ah, bh          ; sectors until 64 KB boundary
+   593 0000031A 89FB                    		mov     bx, di          ; bx = buffer
+   594 0000031C 38C4                    		cmp     ah, al		; compare to number of sectors
+   595 0000031E 7602                                    jbe     short skip3	; they fit into 64 KB, cap num
+   596 00000320 88C4                                    mov     ah, al          ; don't cap number of sectors
+   597                                  skip3:
+   598 00000322 50                      		push    ax
+   599 00000323 88E0                    		mov	al, ah
+   600 00000325 E85200                  		call    rw_tracks
+   601 00000328 58                                      pop	ax
+   602 00000329 28E0                                    sub     al, ah		; requested = done?
+   603 0000032B 744A                                    jz      short rw_done	; yes, exit
+   604                                  across_64k:
+   605 0000032D FEC8                    		dec     al		; one sector less
+   606 0000032F 50                                      push    ax
+   607 00000330 FC                                      cld
+   608 00000331 53                                      push    bx
+   609 00000332 06                                      push    es              ; save data pointer
+   610 00000333 803E[0604]02                            cmp     byte [int_13h_cmd], 2
+   611 00000338 741E                                    je      short across_64k_read ; write case follows
+   612 0000033A 89DE                                    mov     si, bx
+   613 0000033C 51                                      push    cx
+   614                                                  ;mov	cx, SECTOR_SIZE/2 ; copy first sector
+   615 0000033D 8B0E[0C04]                              mov	cx, [BytesPerSec]
+   616 00000341 D1E9                    		shr	cx, 1
+   617 00000343 06                      		push    es
+   618 00000344 1F                                      pop     ds
+   619 00000345 0E                                      push    cs
+   620 00000346 07                                      pop     es
+   621 00000347 BF[4004]                                mov     di, temp_sector
+   622 0000034A 89FB                                    mov     bx, di
+   623 0000034C F3A5                                    rep	movsw		; copy into IBMBIO local data
+   624 0000034E 59                                      pop     cx
+   625 0000034F 0E                                      push    cs
+   626 00000350 1F                                      pop     ds
+   627 00000351 E87800                                  call    rw_one_sector   ; write last sector
+   628 00000354 07                                      pop     es
+   629 00000355 5B                                      pop     bx
+   630 00000356 EB18                                    jmp     short across_64k_end
+   631                                  across_64k_read:
+   632 00000358 BB[4004]                		mov     bx, temp_sector
+   633 0000035B 0E                                      push    cs
+   634 0000035C 07                                      pop     es
+   635 0000035D E86C00                                  call    rw_one_sector   ; read last sector into temp buffer
+   636 00000360 89DE                                    mov     si, bx
+   637 00000362 07                                      pop     es
+   638 00000363 5B                                      pop     bx
+   639 00000364 89DF                                    mov     di, bx
+   640 00000366 51                                      push    cx
+   641                                                  ;mov	cx, SECTOR_SIZE/2
+   642 00000367 8B0E[0C04]              		mov	cx, [BytesPerSec]
+   643 0000036B D1E9                    		shr	cx, 1
+   644 0000036D F3A5                                    rep	movsw		; copy out
+   645 0000036F 59                                      pop     cx
+   646                                  across_64k_end:
+   647 00000370 80C702                  		add     bh, 2           ; continue 0x0200 after that
+   648 00000373 58                                      pop     ax
+   649 00000374 E80300                  		call	rw_tracks
+   650                                  rw_done:
+   651 00000377 1F                      	        pop     ds
+   652 00000378 07                                      pop     es
+   653                                                  ;clc			; success
+   654 00000379 CB                                      retf
+   655                                  
+   656                                  ;-----------------------------------------------------------------------------
+   657                                  ; read/write an arbitrary number of sectors
+   658                                  ;-----------------------------------------------------------------------------
+   659                                  rw_tracks:
+   660                                  		; 18/02/2018
+   661 0000037A 08C0                    		or      al, al
+   662 0000037C 741E                                    jz      short ret3	; nothing to read
+   663                                  		; Retro DOS v1.0 - 11/02/2018		
+   664 0000037E 8A26[0E04]                              mov     ah, [SecPerTrack]
+   665 00000382 FEC4                                    inc	ah
+   666 00000384 28CC                    		sub     ah, cl
+   667 00000386 38C4                                    cmp     ah, al          ; more sectors than left in track?
+   668 00000388 7602                                    jbe     short skip4	; no
+   669 0000038A 88C4                                    mov     ah, al          ; otherwise, read up to end of track
+   670                                  skip4:
+   671 0000038C 50                      		push    ax
+   672 0000038D 88E0                                    mov     al, ah
+   673 0000038F E83C00                                  call    rw_sectors	; r/w up to [SecPerTrack] sectors
+   674 00000392 58                                      pop     ax
+   675 00000393 28E0                                    sub     al, ah          ; decrease sectors to read
+   676 00000395 D0E4                                    shl     ah, 1
+   677 00000397 00E7                                    add     bh, ah          ; advance pointer by sectors * 0x0200
+   678 00000399 EBDF                    		jmp     short rw_tracks ; continue
+   679                                  ret2:
+   680 0000039B F8                      		clc
+   681                                  ret3:
+   682 0000039C C3                      		retn
+   683                                  
+   684                                  ;-----------------------------------------------------------------------------
+   685                                  
+   686                                  int_13h_err:
+   687 0000039D 97                      		xchg    ax, di
+   688 0000039E B400                                    mov     ah, 0
+   689 000003A0 CD13                                    int	13h		; disk reset
+   690 000003A2 4E                                      dec     si
+   691 000003A3 740A                                    jz      short translate	; retries exhausted
+   692 000003A5 89F8                                    mov     ax, di
+   693 000003A7 80FC80                                  cmp     ah, 80h		; in the "timeout (not ready)" case,
+   694 000003AA 7403                                    jz      short translate ; we don't retry 
+   695                                  					; (this would take forever)
+   696 000003AC 58                                      pop     ax
+   697 000003AD EB26                                    jmp     short retry
+   698                                  translate:				; Translate rombios err codes for DOS
+   699 000003AF 0E                      		push    cs
+   700 000003B0 07                                      pop     es
+   701 000003B1 89F8                                    mov     ax, di
+   702 000003B3 88E0                                    mov     al, ah          ; status
+   703 000003B5 B90A00                                  mov     cx, 10
+   704 000003B8 BF[B500]                                mov     di, conv_status
+   705 000003BB F2AE                                    repne	scasb
+   706 000003BD 8A4509                                  mov     al, [di+9]
+   707 000003C0 8B0E[0A04]                              mov     cx, [num_sectors]
+   708 000003C4 8B26[1604]                              mov     sp, [temp_sp]   ; clean up stack
+   709 000003C8 1F                                      pop     ds
+   710 000003C9 07                                      pop     es
+   711 000003CA F9                                      stc                     ; error
+   712 000003CB CB                                      retf
+   713                                  
+   714                                  ;-----------------------------------------------------------------------------
+   715                                  rw_one_sector:
+   716 000003CC B001                    		mov     al, 1
+   717                                  ;-----------------------------------------------------------------------------
+   718                                  ; reads/writes one or more sectors that are on the same track
+   719                                  
+   720                                  rw_sectors:	
+   721 000003CE BE0500                  		mov     si, 5           ; number of retries
+   722 000003D1 8A26[0604]                              mov     ah, [int_13h_cmd]
+   723                                  retry:
+   724                                  		; Retro DOS v1.0 - 11/02/2018
+   725 000003D5 50                      		push    ax
+   726 000003D6 CD13                    		int     13h		; perform the read/write
+   727 000003D8 72C3                                    jc      short int_13h_err
+   728 000003DA 58                                      pop     ax
+   729 000003DB 50                      		push	ax
+   730 000003DC 813E[0604]0301          		cmp	word [int_13h_cmd], 103h ; write and (then) verify ?
+   731 000003E2 7506                    		jnz	short skip5
+   732 000003E4 B404                    		mov	ah, 4
+   733 000003E6 CD13                    		int	13h		; DISK - VERIFY	SECTORS
+   734                                  					; AL = number of sectors to verify
+   735                                  					; CH = track, CL = sector
+   736                                  					; DH = head, DL	= drive
+   737                                  					; Return: CF set on error, AH =	status
+   738                                  					; AL = number of sectors verified
+   739 000003E8 72B3                    		jb	short int_13h_err
+   740                                  skip5:
+   741 000003EA 58                      		pop	ax
+   742                                  		;mov	ah, 0
+   743 000003EB 30E4                                    xor	ah, ah
+   744 000003ED 2906[0A04]              		sub     [num_sectors], ax
+   745 000003F1 00C1                                    add     cl, al          ; calculate next sector number
+   746 000003F3 3A0E[0E04]                              cmp     cl, [SecPerTrack] ; exceeds track?
+   747 000003F7 76A2                                    jbe     short ret2      ; no
+   748 000003F9 B101                                    mov     cl, 1           ; sector 1
+   749                                  		;test	byte [Heads], 2
+   750                                  		;jz	short skip6
+   751 000003FB 80F601                  		xor	dh, 1
+   752 000003FE 7502                    		jnz	short ret4
+   753                                  skip6:
+   754 00000400 FEC5                                    inc     ch              ; next track
+   755                                  ret4:
+   756 00000402 C3                      		retn
+   757                                  
+   758 00000403 90                      align 2
+   759                                  
+   760 00000404 00                      printer_retry:	db 0		; count for printer retries
+   761 00000405 00                      next_char:	db 0		; extra character in keyboard queue
+   762 00000406 0200                    int_13h_cmd:	dw 2
+   763 00000408 01                      single_floppy:	db 1		; true if we emulate a 2nd logical floppy
+   764 00000409 FF                      drv_num:	db 0FFh ; 14/02/2018
+   765 0000040A 0000                    num_sectors:	dw 0
+   766 0000040C 0000                    BytesPerSec:	dw 0
+   767 0000040E 0000                    SecPerTrack:	dw 0
+   768 00000410 0000                    Heads:		dw 0
+   769 00000412 0000                    TotalSectors:	dw 0
+   770 00000414 0000                    day_count:	dw 0
+   771 00000416 0000                    temp_sp:	dw 0
+   772                                  
+   773                                  ;-----------------------------------------------------------------------------
+   774                                  
+   775                                  align 2
+   776                                  
+   777                                  fd0_dos_parameters:
+   778 00000418 00<rept>                		times	17 db 0
+   779                                  fd1_dos_parameters:
+   780 00000429 00<rept>                		times	17 db 0
+   781                                  
+   782                                  ;-----------------------------------------------------------------------------
+   783                                  
+   784 0000043A 90<rept>                align 16
+   785                                  
+   786                                  temp_sector: ; 13/02/2018
+   787                                  
+   788                                  fd0_drv_parameters:
+   789 00000440 00<rept>                		times	11 db 0
+   790                                  fd1_drv_parameters:
+   791 0000044B 00<rept>                		times	11 db 0
+   792                                  
+   793                                  ; this is passed to IBMDOS.COM
+   794                                  num_floppies:	
+   795 00000456 04                      		db 4                    ; if there's 1 physical drive, this says 2
+   796 00000457 00                      		db 0			; physical drive number	
+   797                                  floppy_list:    
+   798 00000458 [1804]                  		dw fd0_dos_parameters	; point to params for every floppy installed
+   799 0000045A 00                      		db 0						; 0-terminated
+   800 0000045B [1804]                                  dw fd0_dos_parameters
+   801 0000045D 01                      		db 1
+   802 0000045E [2904]                                  dw fd1_dos_parameters
+   803 00000460 01                      		db 1
+   804 00000461 [2904]                  		dw fd1_dos_parameters
+   805 00000463 000000                  		db 0,0,0
+   806                                  
+   807                                  fd_dos_parameters:
+   808                                  		; This is the IBM Personal Computer
+   809                                  	 	; disk format. (86-DOS IO.ASM, 8-02-82)
+   810                                  		; Default Floppy drive Type is 1
+   811                                  		;	INT 13h (INT 40h) Function 08h
+   812                                  		;		1 - 360KB, 40 track, 5 1/4"
+   813                                  		;		2 - 1.2MB, 80 track, 5 1/4"
+   814                                  		;		3 - 720KB, 80 track, 3 1/2"
+   815                                  		;		4 - 1.44MB, 80 track, 3 1/2"
+   816                                  		;		5 - 2.88MB, 80 track, 3 1/2"	
+   817                                  		;		(AMIBIOS 1993)
+   818                                  
+   819                                  		; Retro DOS v1.0 - 10/02/2018
+   820                                  		; 17 bytes of DOS disk parameters
+   821                                  _360K_parameters:
+   822                                  		; 360KB
+   823 00000466 0002                    		dw 512		; Sector size in bytes.
+   824 00000468 02                      		db 2		; Sector per allocation unit.
+   825 00000469 0100                    		dw 1		; Reserved sectors.
+   826 0000046B 02                      		db 2		; Number of allocation tables.
+   827 0000046C 7000                    		dw 112		; Number of directory entrys.
+   828 0000046E D002                    		dw 720		; Number of sectors on the disk.
+   829                                  		; Retro Dos v1.0 - 10/02/2018
+   830 00000470 FD                      		db 0FDh		; Media descriptor
+   831 00000471 0200                    		dw 2		; FAT size in sectors
+   832 00000473 0900                    		dw 9		; Sectors per track
+   833 00000475 0200                    		dw 2		; Number of heads	
+   834                                  _1200K_parameters:
+   835                                  		; 1.2MB
+   836 00000477 0002                    		dw 512
+   837 00000479 01                                      db 1
+   838 0000047A 0100                                    dw 1	
+   839 0000047C 02                                      db 2
+   840 0000047D E000                                    dw 224
+   841 0000047F 6009                    		dw 2400
+   842                                  		; Retro DOS v1.0 - 10/02/2018
+   843 00000481 F9                      		db 0F9h		; Media Descriptor
+   844 00000482 0700                    		dw 7		; FAT size in sectors
+   845 00000484 0F00                    		dw 15		; Sectors per track
+   846 00000486 0200                    		dw 2		; Number of heads
+   847                                  _720K_paramaters:
+   848                                  		; 720KB
+   849 00000488 0002                    		dw 512		; Sector size in bytes.
+   850 0000048A 02                      		db 2		; Sector per allocation unit.
+   851 0000048B 0100                    		dw 1		; Reserved sectors.
+   852 0000048D 02                      		db 2		; Number of allocation tables.
+   853 0000048E 7000                    		dw 112		; Number of directory entrys.
+   854 00000490 A005                    		dw 1440		; Number of sectors on the disk.
+   855                                  		; Retro DOS v1.0 - 10/02/2018
+   856 00000492 F9                      		db 0F9h		; Media descriptor
+   857 00000493 0300                    		dw 3		; FAT size in sectors
+   858 00000495 0900                    		dw 9		; Sectors per track
+   859 00000497 0200                    		dw 2		; Number of heads
+   860                                  _1440K_parameters:
+   861                                  		; 1.44MB
+   862 00000499 0002                    		dw 512
+   863 0000049B 01                                      db 1
+   864 0000049C 0100                                    dw 1	
+   865 0000049E 02                                      db 2
+   866 0000049F E000                                    dw 224
+   867 000004A1 400B                    		dw 2880
+   868                                  		; Retro DOS v1.0 - 10/02/2018
+   869 000004A3 F0                      		db 0F0h		; Media descriptor
+   870 000004A4 0900                    		dw 9		; FAT size in sectors
+   871 000004A6 1200                    		dw 18		; Sectors per track
+   872 000004A8 0200                    		dw 2		; Number of heads
+   873                                  _2880K_parameters:
+   874                                  		; 2.88MB
+   875 000004AA 0002                    		dw 512
+   876 000004AC 02                                      db 2
+   877 000004AD 0100                                    dw 1	
+   878 000004AF 02                                      db 2
+   879 000004B0 F000                                    dw 240
+   880 000004B2 8016                    		dw 5760
+   881                                  		; Retro DOS v1.0 - 10/02/2018
+   882 000004B4 F0                      		db 0F0h		; Media descriptor
+   883 000004B5 0900                    		dw 9		; FAT size in sectors
+   884 000004B7 2400                    		dw 36		; Sectors per track
+   885 000004B9 0200                    		dw 2		; Number of heads	
+   886                                  
+   887                                  fd_drv_parameters:
+   888                                  		; Floppy drive parameters (AMIBIOS 1993)
+   889                                  		; (11 bytes)
+   890                                  
+   891                                  _360K_drv_parms: ; 360KB, 5 1/4" drive
+   892 000004BB E2                      		db 0E2h	; Head unload time & step rate
+   893 000004BC 00                      		db 0	; Head load time
+   894 000004BD 25                      		db 25h	; Motor wait timer
+   895 000004BE 02                      		db 02h	; Number of bytes per sector
+   896 000004BF 09                      		db 09h	; Number of sectors per track
+   897 000004C0 2A                      		db 2Ah	; Gap length
+   898 000004C1 FF                      		db 0FFh	; Data length (always FFh)
+   899 000004C2 50                      		db 50h	; Gap length for format 
+   900 000004C3 F6                      		db 0F6h	; Fill byte for formatting (always F6h)
+   901 000004C4 0F                      		db 0Fh	; Head settle time
+   902 000004C5 08                      		db 08h	; Motor start time
+   903                                  		
+   904                                  _1200K_drv_parms: ; 1.2MB, 5 1/4" drive
+   905 000004C6 60                      		db 60h	; Head unload time & step rate
+   906 000004C7 00                      		db 0	; Head load time
+   907 000004C8 25                      		db 25h	; Motor wait timer
+   908 000004C9 02                      		db 02h	; Number of bytes per sector
+   909 000004CA 0F                      		db 0Fh	; Number of sectors per track
+   910 000004CB 1B                      		db 1Bh	; Gap length
+   911 000004CC FF                      		db 0FFh	; Data length (always FFh)
+   912 000004CD 51                      		db 51h	; Gap length for format 
+   913 000004CE F6                      		db 0F6h	; Fill byte for formatting (always F6h)
+   914 000004CF 0F                      		db 0Fh	; Head settle time
+   915 000004D0 08                      		db 08h	; Motor start time
+   916                                  			
+   917                                  _720K_drv_parms: ; 720KB, 3 1/2" drive
+   918 000004D1 E2                      		db 0E2h	; Head unload time & step rate
+   919 000004D2 00                      		db 0	; Head load time
+   920 000004D3 25                      		db 25h	; Motor wait timer
+   921 000004D4 02                      		db 02h	; Number of bytes per sector
+   922 000004D5 09                      		db 09h	; Number of sectors per track
+   923 000004D6 2A                      		db 2Ah	; Gap length
+   924 000004D7 FF                      		db 0FFh	; Data length (always FFh)
+   925 000004D8 50                      		db 50h	; Gap length for format 
+   926 000004D9 F6                      		db 0F6h	; Fill byte for formatting (always F6h)
+   927 000004DA 0F                      		db 0Fh	; Head settle time
+   928 000004DB 08                      		db 08h	; Motor start time
+   929                                  		
+   930                                  _1440K_drv_parms: ; 1.44MB, 3 1/2" drive
+   931 000004DC 62                      		db 62h	; Head unload time & step rate
+   932 000004DD 00                      		db 0	; Head load time
+   933 000004DE 25                      		db 25h	; Motor wait timer
+   934 000004DF 02                      		db 02h	; Number of bytes per sector
+   935 000004E0 12                      		db 12h	; Number of sectors per track
+   936 000004E1 1B                      		db 1Bh	; Gap length
+   937 000004E2 FF                      		db 0FFh	; Data length (always FFh)
+   938 000004E3 6B                      		db 6Bh	; Gap length for format 
+   939 000004E4 F6                      		db 0F6h	; Fill byte for formatting (always F6h)
+   940 000004E5 0F                      		db 0Fh	; Head settle time
+   941 000004E6 08                      		db 08h	; Motor start time
+   942                                  
+   943                                  _2880K_drv_parms: ; 2.88MB, 3 1/2" drive
+   944 000004E7 30                      		db 30h	; Head unload time & step rate
+   945 000004E8 00                      		db 0	; Head load time
+   946 000004E9 25                      		db 25h	; Motor wait timer
+   947 000004EA 02                      		db 02h	; Number of bytes per sector
+   948 000004EB 12                      		db 12h	; Number of sectors per track
+   949 000004EC 1B                      		db 1Bh	; Gap length
+   950 000004ED FF                      		db 0FFh	; Data length (always FFh)
+   951 000004EE 50                      		db 50h	; Gap length for format 
+   952 000004EF F6                      		db 0F6h	; Fill byte for formatting (always F6h)
+   953 000004F0 0F                      		db 0Fh	; Head settle time
+   954 000004F1 08                      		db 08h	; Motor start time
+   955                                  
+   956                                  ;-----------------------------------------------------------------------------
+   957                                  ; initialization - stage 2
+   958                                  ;-----------------------------------------------------------------------------
+   959                                  INIT2:
+   960                                  		; Retro DOS 1.0 - 11/02/2018
+   961 000004F2 B8070E                  		mov	ax, 0E07h ; Beep
+   962 000004F5 BB0700                  		mov	bx, 7
+   963 000004F8 CD10                    		int	10h
+   964                                  
+   965 000004FA 31D2                    		xor	dx, dx
+   966 000004FC 31C0                    		xor	ax, ax
+   967                                  		;mov	ss, ax
+   968 000004FE BC0006                  		mov	sp, BIO_SEGMENT*16 ; 600h
+   969 00000501 CD13                    		int     13h		; reset disk system (DL = drive)
+   970 00000503 B0A3                                    mov     al, 0A3h	; 2400 8N1
+   971 00000505 CD14                                    int     14h		; initialize serial port
+   972 00000507 B401                    		mov     ah, 1
+   973 00000509 CD17                                    int     17h		; initialize printer
+   974 0000050B 8EC2                    		mov	es, dx ; 0
+   975                                  		
+   976 0000050D FC                      		cld
+   977                                  
+   978                                  		; Set CRTRL+BREAK handler
+   979 0000050E BF6C00                  		mov	di, 6Ch
+   980 00000511 B8[E600]                		mov	ax, int_1B 
+   981 00000514 AB                      		stosw
+   982 00000515 B86000                  		mov	ax, BIO_SEGMENT	; 60h, IBMBIO.COM segment
+   983 00000518 AB                      		stosw
+   984                                  		;; Set Division by ZERO int handler
+   985                                  		;xor	di, di
+   986                                  		;mov	bx, int_00
+   987                                  		; Set int 00h to int 04h handlers
+   988                                  		; (Except NMI interrupt, int 02h)
+   989                                  		;xchg	ax, bx
+   990                                  		;stosw			; INT 00h offset
+   991                                                  ;xchg	ax, bx
+   992                                  		;stosw			; INT 00h segment
+   993 00000519 BF0400                  		mov	di, 4 ; 12/08/2018 
+   994 0000051C BB[EC00]                		mov	bx, iret1
+   995 0000051F 93                      		xchg	ax, bx
+   996 00000520 AB                      		stosw			; INT 01h offset
+   997 00000521 93                      		xchg	ax, bx
+   998 00000522 AB                      		stosw			; INT 01h segment
+   999 00000523 83C704                  		add	di, 4
+  1000 00000526 93                      		xchg	ax, bx
+  1001 00000527 AB                      		stosw			; INT 03h offset
+  1002 00000528 93                      		xchg	ax, bx
+  1003 00000529 AB                      		stosw			; INT 03h segment
+  1004 0000052A 93                      		xchg	ax, bx
+  1005 0000052B AB                      		stosw			; INT 04h offset
+  1006 0000052C 93                      		xchg	ax, bx
+  1007 0000052D AB                      		stosw			; INT 04h segment
+  1008                                  		;
+  1009 0000052E 2689160005              		mov	[ES:500h], dx ; 0
+  1010                                  
+  1011                                  		; Retro DOS v1.0 (11/02/2018)
+  1012                                  		; Move Diskette Parameters Table to 0:0570h and set
+  1013                                  		; INT 1Eh vector.
+  1014                                  		
+  1015 00000533 B90B00                  		mov	cx, 11
+  1016                                  		;mov	cl, 11
+  1017 00000536 BE[4004]                		mov	si, fd0_drv_parameters 
+  1018 00000539 B87005                  		mov	ax, 570h
+  1019 0000053C 89C7                    		mov	di, ax
+  1020 0000053E F3A4                    		rep	movsb
+  1021 00000540 803E[5604]02            		cmp	byte [num_floppies], 2 ; 19/02/2018
+  1022 00000545 7604                    		jna	short init3
+  1023                                  		;mov	si, fd1_drv_parameters 		
+  1024 00000547 B10B                    		mov	cl, 11
+  1025 00000549 F3A4                    		rep	movsb		 
+  1026                                  init3:
+  1027 0000054B BF7800                  		mov	di, 78h
+  1028 0000054E AB                      		stosw
+  1029                                  		;mov	ax, es
+  1030 0000054F 31C0                    		xor	ax, ax
+  1031 00000551 AB                      		stosw	
+  1032                                  
+  1033                                  		; Retro DOS v1.0 (10/02/2018)
+  1034                                  		; Move MSDOS.SYS (IBMDOS.COM) to DOS_SEGMENT
+  1035 00000552 BE[E006]                		mov	si, msdos_bin_offset
+  1036 00000555 B93118                  		mov	cx, msdos_bin_size+1
+  1037 00000558 D1E9                    		shr	cx, 1
+  1038                                  		;cld
+  1039                                  		;mov	ax, DOS_SEGMENT ; 0C8h
+  1040                                  		;mov	es, ax
+  1041                                  		;xor	di, di
+  1042 0000055A 1E                      		push	ds
+  1043 0000055B 07                      		pop	es
+  1044 0000055C BF[4006]                		mov	di, DOS_RUN_ADDRESS ; 13/02/2018
+  1045 0000055F F3A5                    		rep	movsw
+  1046                                  		; restore ES to DS (CS)
+  1047                                  		;push	ds
+  1048                                  		;pop	es
+  1049                                  		; Get memory size
+  1050 00000561 CD12                    		int	12h	
+  1051                                  		; Return: AX = number of contiguous 1K blocks of memory
+  1052 00000563 B106                    		mov	cl, 6
+  1053 00000565 D3E0                    		shl	ax, cl
+  1054                                   		; init DOS (returns DS = memory for COMMAND.COM)
+  1055 00000567 92                      		xchg	ax, dx
+  1056                                                  ; DX = memory size in paragraphs
+  1057 00000568 BE[5604]                		mov     si, num_floppies ; pointer to fd parameters structure
+  1058 0000056B 9A0000C400                              call    DOS_SEGMENT:0 
+  1059                                  		; DS = segment for COMMAND.COM)
+  1060 00000570 FB                      		sti
+  1061                                  		; Set INT 25h (disk READ) and INT 26h (disk WRITE) vectors
+  1062 00000571 31C0                    		xor	ax, ax
+  1063 00000573 8EC0                    		mov	es, ax
+  1064 00000575 BF9400                  		mov	di, 94h
+  1065 00000578 B8[4A02]                		mov	ax, INT25h_vector ; 406h
+  1066 0000057B AB                      		stosw
+  1067 0000057C 8CC8                    		mov	ax, cs
+  1068 0000057E AB                      		stosw
+  1069 0000057F B8[5502]                		mov	ax, INT26h_vector ; 410h
+  1070 00000582 AB                      		stosw
+  1071 00000583 268C0D                  		mov	[es:di], cs
+  1072                                  		; Set DTA for COMMAND.COM
+  1073 00000586 BA0001                  		mov	dx, 100h	; offset in COMMAND.COM segment	
+  1074 00000589 B41A                    		mov	ah, 1Ah
+  1075 0000058B CD21                    		int	21h
+  1076                                  		; DS:DX	-> disk	transfer buffer
+  1077 0000058D 8B0E0600                		mov     cx, [06h]	; remaining memory size
+  1078 00000591 81E90001                                sub     cx, 100h	; PSP = bytes to read
+  1079 00000595 8CDB                                    mov     bx, ds
+  1080 00000597 8CC8                                    mov     ax, cs
+  1081 00000599 8ED8                                    mov     ds, ax
+  1082                                  		; DOS - Open File: COMMAND.COM 
+  1083 0000059B BA[D705]                		mov	dx, FCB_command_com
+  1084 0000059E B40F                    		mov	ah, 0Fh
+  1085 000005A0 CD21                    		int	21h
+  1086                                  		; AL = 00h file	found, FFh file	not found
+  1087 000005A2 08C0                    		or	al, al
+  1088 000005A4 7529                    		jnz	short error_command
+  1089                                  		; DOS - Random Block Read 
+  1090                                  		; DS:DX	-> FCB
+  1091                                  		; CX = number of records to be read
+  1092 000005A6 C706[E505]0100          		mov	word [FCB_command_com+14], 1
+  1093 000005AC B427                    		mov	ah, 27h
+  1094 000005AE CD21                    		int	21h
+  1095 000005B0 E31D                    		jcxz	error_command
+  1096 000005B2 3C01                    		cmp	al, 1
+  1097 000005B4 7519                    		jnz	short error_command
+  1098 000005B6 8EDB                    		mov	ds, bx
+  1099 000005B8 8EC3                    		mov	es, bx
+  1100 000005BA 8ED3                    		mov	ss, bx
+  1101 000005BC BC5C00                  		mov	sp, 5Ch
+  1102 000005BF 31C0                    		xor	ax, ax
+  1103 000005C1 50                      		push	ax
+  1104                                  		; DOS - Set Disk Transfer Area address
+  1105 000005C2 BA8000                  		mov	dx, 80h
+  1106                                  		; DS:DX	-> disk	transfer buffer
+  1107 000005C5 B41A                    		mov	ah, 1Ah
+  1108 000005C7 CD21                    		int	21h
+  1109                                  		; Run COMMAND.COM
+  1110 000005C9 53                      		push	bx
+  1111 000005CA B80001                  		mov	ax, 100h
+  1112 000005CD 50                      		push	ax
+  1113 000005CE CB                      		retf	
+  1114                                  
+  1115                                  ;-----------------------------------------------------------------------------
+  1116                                  
+  1117 000005CF BA[FC05]                error_command:  mov     dx, ERR_COMMANDCOM ; "Bad or missing Command Interpreter"
+  1118 000005D2 E858FA                                  call    print_string
+  1119                                  halt:
+  1120 000005D5 EBFE                    		jmp	short halt
+  1121                                  
+  1122                                  ;-----------------------------------------------------------------------------
+  1123                                  
+  1124                                  FCB_command_com:
+  1125 000005D7 01434F4D4D414E4420-     		db 1, 'COMMAND COM', 0
+  1126 000005E0 434F4D00           
+  1127 000005E4 00<rept>                                times 24 db 0
+  1128                                  
+  1129                                  ;-----------------------------------------------------------------------------
+  1130                                  
+  1131                                  ERR_COMMANDCOM:
+  1132 000005FC 0D0A426164206F7220-     		db 13,10,'Bad or missing Command Interpreter',13,10,0
+  1133 00000605 6D697373696E672043-
+  1134 0000060E 6F6D6D616E6420496E-
+  1135 00000617 746572707265746572-
+  1136 00000620 0D0A00             
+  1137                                  
+  1138                                  ;-----------------------------------------------------------------------------
+  1139                                  
+  1140                                  		
+  1141 00000623 00<rept>                		times 512-($-temp_sector) db 0
+  1142                                  
+  1143                                  temp_sector_end:
+  1144                                  
+  1145                                  ;-----------------------------------------------------------------------------
+  1146                                  
+  1147                                  ;-----------------------------------------------------------------------------
+  1148                                  
+  1149                                  align 16
+  1150                                  
+  1151                                  DOS_RUN_ADDRESS	equ $ ; 13/02/2018
+  1152                                  
+  1153                                  ;-----------------------------------------------------------------------------
+  1154                                  ; entry point from boot sector
+  1155                                  ;-----------------------------------------------------------------------------
+  1156                                  
+  1157                                  ;-----------------------------------------------------------------------------
+  1158                                  ; initialization - stage 1
+  1159                                  ;-----------------------------------------------------------------------------
+  1160                                  INIT:
+  1161                                  		; Retro DOS v1.0 (10/02/2018)
+  1162                                  		; (Register values from Retro DOS v1.0 Boot Sector)
+  1163                                  		; CS = 60h  ; BIO_SEGMENT
+  1164                                  		; DS = 0
+  1165                                  		; ES = 0
+  1166                                  		; SS = 0
+  1167                                  		; SP = 0FFFEh
+  1168                                   		; BP = 7C00h
+  1169                                  		; DL = Physical drive number = 0
+  1170 00000640 0E                      		push	cs
+  1171 00000641 1F                      		pop	ds
+  1172                                  
+  1173                                  		; Retro DOS v1.0 boot sector (fd0) dos parameters
+  1174                                  		; (17 bytes)
+  1175                                  		bsBytesPerSec	equ 11
+  1176                                  		bsSecPerClust	equ 13
+  1177                                  		bsResSectors	equ 14	
+  1178                                  		bsFATs		equ 16
+  1179                                  		bsRootDirEnts	equ 17
+  1180                                  		bsSectors	equ 19	
+  1181                                  		bsMedia		equ 21
+  1182                                  		bsFATsecs	equ 22
+  1183                                  		bsSecPerTrack	equ 24
+  1184                                  		bsHeads		equ 26
+  1185                                  
+  1186 00000642 1E                      		push	ds
+  1187 00000643 07                      		pop	es
+  1188                                  
+  1189                                  		; 14/02/2018
+  1190                                  		; Set video mode to 3 (Clear screen)
+  1191 00000644 B80300                  		mov	ax, 3
+  1192 00000647 CD10                    		int	10h
+  1193                                  
+  1194 00000649 BE0B76                  		mov	si, 7C00h+bsBytesPerSec-(BIO_SEGMENT*16)
+  1195                                  		; si = 30219 (60h:760Bh=0:7C0Bh)
+  1196 0000064C B91100                  		mov	cx, 17
+  1197 0000064F BF[1804]                		mov	di, fd0_dos_parameters
+  1198 00000652 F3A4                    		rep	movsb
+  1199                                  
+  1200                                  		;  Return Floppy Disk Parameters (for Drive 0)
+  1201 00000654 B408                    		mov	ah, 08h
+  1202                                  		;mov	dl, 0
+  1203 00000656 CD13                    		int	13h
+  1204 00000658 7274                    		jc	short very_old_rombios
+  1205 0000065A 80FB01                  		cmp	bl, 1
+  1206 0000065D 726F                    		jb	short very_old_rombios		
+  1207 0000065F 80FB05                  		cmp	bl, 5
+  1208 00000662 776A                    		ja	short very_old_rombios
+  1209 00000664 D0E2                    		shl	dl, 1		; 19/02/2018
+  1210 00000666 8816[5604]              		mov	[num_floppies], dl
+  1211                                  
+  1212                                  		; ES:DI = Address of Disk Parameters Table
+  1213 0000066A 06                      		push	es
+  1214 0000066B 1F                      		pop	ds
+  1215 0000066C 0E                      		push	cs
+  1216 0000066D 07                      		pop	es
+  1217 0000066E 89FE                    		mov	si, di
+  1218 00000670 BF[4004]                		mov	di, fd0_drv_parameters
+  1219 00000673 B90B00                  		mov	cx, 11
+  1220 00000676 F3A4                    		rep	movsb
+  1221 00000678 0E                      		push	cs
+  1222 00000679 1F                      		pop	ds
+  1223 0000067A 80FA01                  		cmp	dl, 1
+  1224 0000067D 763A                    		jna	short init1
+  1225 0000067F C606[0804]00            		mov	byte [single_floppy], 0 ; 2 floppy drives
+  1226                                  		; Return Floppy Disk Parameters (for Drive 1)
+  1227 00000684 B408                    		mov	ah, 08h
+  1228 00000686 B201                    		mov	dl, 1
+  1229 00000688 CD13                    		int	13h
+  1230 0000068A 7242                    		jc	short very_old_rombios	
+  1231 0000068C 80FB01                  		cmp	bl, 1
+  1232 0000068F 723D                    		jb	short very_old_rombios
+  1233 00000691 80FB05                  		cmp	bl, 5
+  1234 00000694 7738                    		ja	short very_old_rombios
+  1235 00000696 06                      		push	es
+  1236 00000697 1F                      		pop	ds
+  1237 00000698 0E                      		push	cs
+  1238 00000699 07                      		pop	es
+  1239 0000069A 89FE                    		mov	si, di
+  1240 0000069C BF[4B04]                		mov	di, fd1_drv_parameters
+  1241 0000069F B90B00                  		mov	cx, 11
+  1242 000006A2 F3A4                    		rep	movsb
+  1243 000006A4 06                      		push	es
+  1244 000006A5 1F                      		pop	ds
+  1245 000006A6 FECB                    		dec	bl ; Floppy disk drive type number 1 to 4
+  1246                                  			   ; 0 to 3	
+  1247 000006A8 B011                    		mov	al, 17
+  1248 000006AA F6E3                    		mul	bl
+  1249 000006AC 89C6                    		mov	si, ax
+  1250 000006AE 81C6[6604]              		add	si, fd_dos_parameters
+  1251 000006B2 BF[2904]                		mov	di, fd1_dos_parameters
+  1252 000006B5 B111                    		mov	cl, 17
+  1253 000006B7 F3A4                    		rep	movsb
+  1254                                  init1:
+  1255 000006B9 8B4618                  		mov	ax, [bp+bsSecPerTrack]
+  1256 000006BC A3[0E04]                		mov	[SecPerTrack], ax
+  1257 000006BF 8B461A                  		mov	ax, [bp+bsHeads]
+  1258 000006C2 A3[1004]                		mov	[Heads], ax
+  1259 000006C5 8B4613                  		mov	ax, [bp+bsSectors]
+  1260 000006C8 A3[1204]                		mov	[TotalSectors], ax
+  1261                                  
+  1262 000006CB E924FE                  		jmp	INIT2
+  1263                                  			
+  1264                                  very_old_rombios:
+  1265                                  		; Very old or abnormal or unknown type ROMBIOS
+  1266                                  		; or CMOS RAM data is invalid or not present
+  1267 000006CE C606[5604]02            		mov	byte [num_floppies], 2 ; 19/02/2018
+  1268 000006D3 EBE4                    		jmp	short init1
+  1269                                  
+  1270                                  
+  1271                                  ;-----------------------------------------------------------------------------
+  1272                                  
+  1273 000006D5 90<rept>                align 16
+  1274                                  
+  1275                                  msdos_bin_offset:
+  1276 000006E0 <incbin>                incbin		'MSDOS.BIN'
+  1277                                  msdos_bin_size	equ $ - msdos_bin_offset
