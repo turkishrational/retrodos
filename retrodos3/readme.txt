@@ -112,4 +112,4 @@ Details and relevant files are existing at:
 
 28/07/2019 - 16/09/2022 - Erdogan Tan  ((09/02/2023))
 
-Links: https://www.singlix.com/trdos/retrodos/index.html 
+Link: https://www.singlix.com/trdos/retrodos/index.html 
