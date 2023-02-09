@@ -1,0 +1,1861 @@
+     1                                  ; TRANSIENT PART OF COMMAND.COM 
+     2                                  ; ****************************************************************************
+     3                                  ; COMMAND.COM (MSDOS 1.25 Command Interpreter) - RETRO DOS v1.0 by ERDOGAN TAN
+     4                                  ; ----------------------------------------------------------------------------
+     5                                  ; Last Update: 21/02/2018
+     6                                  ; ----------------------------------------------------------------------------
+     7                                  ; Beginning: 15/02/2018 
+     8                                  ; ----------------------------------------------------------------------------
+     9                                  ; Assembler: NASM version 2.11  
+    10                                  ; ----------------------------------------------------------------------------
+    11                                  ;	    ((nasm command.s -l command.lst -o COMMAND.COM)) 	
+    12                                  ; ----------------------------------------------------------------------------
+    13                                  ; Derived from 'COMMAND.ASM' file of MSDOS 1.25 (IBM PCDOS v1.1) source code
+    14                                  ; by Microsoft (by Tim Paterson), 17/05/1983
+    15                                  ; ****************************************************************************
+    16                                  ; TRANSIENT PART OF COMMAND.COM  - incbin COMTRANS.BIN 
+    17                                  ;		nasm comstrans.s -l comtrans.lst -o COMTRANS.BIN
+    18                                  ; ****************************************************************************
+    19                                  
+    20                                  ; COMMAND version 1.17
+    21                                  ;
+    22                                  ; This version of COMMAND is divided into three distinct parts. First
+    23                                  ; is the resident portion, which includes handlers for interrupts
+    24                                  ; 22H (terminate), 23H (Cntrl-C), 24H (fatal error), and 27H (stay
+    25                                  ; resident); it also has code to test and, if necessary, reload the
+    26                                  ; transient portion. Following the resident is the init code, which is
+    27                                  ; overwritten after use. Then comes the transient portion, which
+    28                                  ; includes all command processing (whether internal or external).
+    29                                  ; The transient portion loads at the end of physical memory, and it may
+    30                                  ; be overlayed by programs that need as much memory as possible. When
+    31                                  ; the resident portion of command regains control from a user program,
+    32                                  ; a checksum is performed on the transient portion to see if it must be
+    33                                  ; reloaded. Thus programs which do not need maximum memory will save
+    34                                  ; the time required to reload COMMAND when they terminate.
+    35                                  
+    36                                  ;Use the following booleans to set assembly flags
+    37                                  FALSE   EQU     0
+    38                                  TRUE    EQU     ~FALSE	; NOT FALSE
+    39                                  
+    40                                  ;IBMVER	EQU     FALSE   ;Switch to build IBM version of Command
+    41                                  ;MSVER	EQU     TRUE    ;Switch to build MS-DOS version of Command
+    42                                  
+    43                                  ;HIGHMEM EQU	TRUE	;Run resident part above transient (high memory)
+    44                                  
+    45                                  LINPERPAG       EQU     23
+    46                                  NORMPERLIN      EQU     1
+    47                                  WIDEPERLIN      EQU     5
+    48                                  
+    49                                          ;IF	IBMVER
+    50                                  SYM     EQU     ">"
+    51                                  ;COMDRV	EQU     1
+    52                                          ;ENDIF
+    53                                  
+    54                                  	;IF	MSVER
+    55                                  ;SYM	EQU     ":"
+    56                                  COMDRV	EQU     0
+    57                                          ;ENDIF
+    58                                  
+    59                                  FCB     EQU     5CH
+    60                                  DSKRESET EQU    13
+    61                                  SETBASE EQU     38
+    62                                  SRCHFRST EQU    17
+    63                                  SRCHNXT EQU     18
+    64                                  RENAM   EQU     23
+    65                                  INCHAR  EQU     1
+    66                                  GETFAT  EQU     27
+    67                                  OPEN    EQU     15
+    68                                  CLOSE   EQU     16
+    69                                  MAKE    EQU     22
+    70                                  DELETE  EQU     19
+    71                                  RDBLK   EQU     39
+    72                                  WRBLK   EQU     40
+    73                                  SETDMA  EQU     26
+    74                                  SELDRV  EQU     14
+    75                                  GETDRV  EQU     25
+    76                                  PRINTBUF EQU    9
+    77                                  OUTCH   EQU     2
+    78                                  INBUF   EQU     10
+    79                                  GETDATE EQU     2AH
+    80                                  SETDATE EQU     2BH
+    81                                  GETTIME EQU     2CH
+    82                                  SETTIME EQU     2DH
+    83                                  RR      EQU     33
+    84                                  RECLEN  EQU     14
+    85                                  FILLEN  EQU     16
+    86                                  OFFDATE EQU     20
+    87                                  
+    88                                  ; 16/02/2018
+    89                                  PARMBUF	EQU	0
+    90                                  
+    91                                  ; 16/02/2018
+    92                                  ; command.s (COMMAND.COM source file 1 of 2) data addresses 
+    93                                  ; (these values must be changed when command.s source code is changed
+    94                                  ; and data offsets are changed)
+    95                                  
+    96                                  NEEDBAT	EQU	02BCH+100H  ; "Insert disk with batch file"
+    97                                  PROMPT	EQU	029AH+100H  ; "and strike any key when ready"
+    98                                  PARMTAB	EQU	031EH+100H  ; command parameter tables
+    99                                  BATFCB	EQU	02F9H+100H  ; 'AUTOEXEC.BAT' FCB
+   100                                  BATCH	EQU	0332H+100H  ; Batch mode (initial value is 1)
+   101                                  BATBYT	EQU	035CH+100H  ; .. for getting a byte in batch file
+   102                                  
+   103                                  ; ----------------------------------------------------------------------------
+   104                                  ; SEGMENT - TRANSCODE
+   105                                  ; ----------------------------------------------------------------------------
+   106                                  
+   107                                  WSWITCH EQU     1               ;Wide display during DIR
+   108                                  PSWITCH EQU     2               ;Pause (or Page) mode during DIR
+   109                                  VSWITCH EQU     4               ;Verify during COPY
+   110                                  ASWITCH EQU     8               ;ASCII mode during COPY
+   111                                  BSWITCH EQU     10H             ;Binary mode during COPY
+   112                                  
+   113                                  ;********************************************************************
+   114                                  ;START OF TRANSIENT PORTION
+   115                                  ;This code is loaded at the end of memory and may be overwritten by
+   116                                  ;memory-intensive user programs.
+   117                                  
+   118                                  TRANCODE:
+   119                                  
+   120                                  ZERO	EQU $
+   121                                  
+   122                                  	[ORG 100H]		;Allow for 100H parameter area
+   123                                  
+   124                                  SETDRV:
+   125 00000000 B40E                            MOV     AH,SELDRV
+   126 00000002 CD21                            INT     21H
+   127                                  COMMAND:
+   128 00000004 FC                              CLD
+   129 00000005 8CC8                            MOV     AX,CS
+   130 00000007 8ED0                            MOV     SS,AX
+   131 00000009 BCBC10                          MOV     SP,STACK
+   132 0000000C 8EC0                            MOV     ES,AX
+   133 0000000E 8ED8                            MOV     DS,AX
+   134 00000010 FB                              STI
+   135 00000011 B8002E                          MOV     AX,46*100H
+   136 00000014 B200                            MOV     DL,0
+   137 00000016 CD21                            INT     33              ;Turn off verify after write
+   138 00000018 8CC8                            MOV     AX,CS           ;Get segment we're in
+   139 0000001A 2B06A00F                        SUB     AX,[TPA]        ;AX=size oF TPA in paragraphs
+   140 0000001E BA1000                          MOV     DX,16
+   141 00000021 F7E2                            MUL     DX              ;DX:AX=size of TPA in bytes
+   142 00000023 09D2                            OR      DX,DX           ;See if over 64K
+   143 00000025 7403                            JZ      SHORT SAVSIZ	;OK if not
+   144 00000027 B8FFFF                          MOV     AX,-1           ;If so, limit to 65535 bytes
+   145                                  SAVSIZ:
+   146 0000002A A3B20F                          MOV     [BYTCNT],AX     ;Max no. of bytes that can be buffered
+   147 0000002D E80D04                          CALL    CRLF2
+   148                                  GETCOM:
+   149 00000030 B419                            MOV     AH,GETDRV
+   150 00000032 CD21                            INT     21H
+   151 00000034 A2A60F                          MOV     [CURDRV],AL
+   152 00000037 0441                            ADD     AL,"A"
+   153 00000039 E8440A                          CALL    OUT             ;Print letter for default drive
+   154 0000003C B03E                            MOV     AL,SYM
+   155 0000003E E83F0A                          CALL    OUT
+   156 00000041 8E1EA20F                        MOV     DS,[RESSEG]     ;All batch work must use resident seg.
+   157 00000045 F6063204FF                      TEST    BYTE [BATCH],-1
+   158 0000004A 7554                            JNZ     SHORT READBAT
+   159 0000004C 0E                              PUSH    CS
+   160 0000004D 1F                              POP     DS              ;Need local segment to point to buffer
+   161 0000004E BA[130E]                        MOV     DX,COMBUF
+   162 00000051 B40A                            MOV     AH,INBUF
+   163 00000053 CD21                            INT     21H             ;Get a command
+   164 00000055 E98100                          JMP     DOCOM
+   165                                  
+   166                                  ;All batch proccessing has DS set to segment of resident portion
+   167                                  NEEDPARM:
+   168 00000058 E84108                          CALL    GETBATBYT
+   169 0000005B 3C25                            CMP     AL,"%"          ;Check for two consecutive %
+   170 0000005D 7463                            JZ      SHORT SAVBATBYT
+   171 0000005F 3C0D                            CMP     AL,13           ;Check for end-of-line
+   172 00000061 745F                            JZ      SHORT SAVBATBYT
+   173 00000063 2C30                            SUB     AL,"0"
+   174 00000065 7254                            JB      SHORT RDBAT	;Ignore parameter reference if invalid
+   175 00000067 3C09                            CMP     AL,9
+   176 00000069 7750                            JA      SHORT RDBAT
+   177 0000006B 98                              CBW
+   178 0000006C 89C6                            MOV     SI,AX
+   179 0000006E D1E6                            SHL     SI,1            ;Two bytes per entry
+   180                                          ;MOV	SI,[SI+PARMTAB] ;Get pointer to corresponding parameter
+   181                                          ; 16/02/2018
+   182 00000070 03361E04                	ADD	SI, [PARMTAB]
+   183                                  	
+   184 00000074 83FEFF                  	CMP     SI,-1           ;Check if parameter exists
+   185 00000077 7442                            JZ      SHORT RDBAT	;Ignore if it doesn't
+   186 00000079 B402                            MOV     AH,OUTCH
+   187                                  RDPARM:
+   188 0000007B AC                              LODSB  			;From resident segment
+   189 0000007C 3C0D                            CMP     AL,0DH          ;Check for end of parameter
+   190 0000007E 743B                            JZ      SHORT RDBAT
+   191 00000080 AA                              STOSB			;To transient segment
+   192 00000081 88C2                            MOV     DL,AL
+   193 00000083 CD21                            INT     33              ;Display parameters too
+   194 00000085 EBF4                            JMP     SHORT RDPARM
+   195                                  
+   196                                  PROMPTBAT:
+   197 00000087 B409                            MOV     AH,PRINTBUF
+   198 00000089 BABC03                          MOV	DX,NEEDBAT
+   199 0000008C CD21                    	INT     33              ;Prompt for batch file
+   200 0000008E B409                            MOV	AH,PRINTBUF
+   201 00000090 BA9A03                          MOV	DX,PROMPT
+   202 00000093 CD21                    	INT	33
+   203 00000095 B8010C                          MOV	AX,0C00H+INCHAR
+   204 00000098 CD21                            INT     33
+   205 0000009A E967FF                          JMP     COMMAND
+   206                                  
+   207                                  BADCOMJ1:
+   208 0000009D E93A02                  	JMP	BADCOM
+   209                                  
+   210                                  READBAT:
+   211 000000A0 BAF903                          MOV     DX,BATFCB
+   212 000000A3 B40F                            MOV     AH,OPEN
+   213 000000A5 CD21                            INT     33              ;Make sure batch file still exists
+   214 000000A7 08C0                            OR      AL,AL
+   215 000000A9 75DC                            JNZ     SHORT PROMPTBAT	;If OPEN fails, prompt for disk
+   216 000000AB C70607040100                    MOV     WORD [BATFCB+RECLEN],1
+   217 000000B1 BA5C04                          MOV     DX,BATBYT
+   218 000000B4 B41A                            MOV     AH,SETDMA
+   219 000000B6 CD21                            INT     33
+   220 000000B8 BF[150E]                        MOV     DI,COMBUF+2
+   221                                  RDBAT:
+   222 000000BB E8DE07                          CALL    GETBATBYT
+   223 000000BE 3C25                            CMP     AL,"%"          ;Check for parameter
+   224 000000C0 7496                            JZ      SHORT NEEDPARM
+   225                                  SAVBATBYT:
+   226 000000C2 AA                              STOSB
+   227 000000C3 E8BA09                          CALL    OUT             ;Display batched command line
+   228 000000C6 3C0D                            CMP     AL,0DH
+   229 000000C8 75F1                            JNZ     SHORT RDBAT
+   230 000000CA 81EF[160E]                      SUB     DI,COMBUF+3
+   231 000000CE 89F8                            MOV     AX,DI
+   232 000000D0 26A2[140E]                      MOV     [ES:COMBUF+1],AL ;Set length of line
+   233 000000D4 E8C507                          CALL    GETBATBYT       ;Eat linefeed
+   234 000000D7 0E                              PUSH    CS
+   235 000000D8 1F                              POP     DS              ;Go back to local segment
+   236                                  DOCOM:
+   237                                  ;All segments are local for command line processing
+   238 000000D9 B00A                            MOV     AL,10
+   239 000000DB E8A209                          CALL    OUT
+   240 000000DE BE[150E]                        MOV     SI,COMBUF+2
+   241 000000E1 BFBA0F                          MOV     DI,IDLEN
+   242 000000E4 B80129                          MOV     AX,2901H        ;Make FCB with blank scan-off
+   243 000000E7 CD21                            INT     21H
+   244 000000E9 3C01                            CMP     AL,1            ;Check for ambiguous command name
+   245 000000EB 74B0                            JZ      SHORT BADCOMJ1	;Ambiguous commands not allowed
+   246 000000ED 3CFF                            CMP     AL,-1
+   247                                          ;JNZ	SHORT DRVGD
+   248                                          ;JMP	DRVBAD
+   249 000000EF 0F84A200                	JZ	DRVBAD
+   250                                  DRVGD:
+   251 000000F3 8A05                            MOV     AL,[DI]
+   252 000000F5 A2B10F                          MOV     [SPECDRV],AL
+   253 000000F8 B020                            MOV     AL," "
+   254 000000FA B90900                          MOV     CX,9
+   255 000000FD 47                              INC     DI
+   256 000000FE F2AE                            REPNE   SCASB           ;Count no. of letters in command name
+   257 00000100 B009                            MOV     AL,9
+   258 00000102 28C8                            SUB     AL,CL
+   259 00000104 A2BA0F                          MOV     [IDLEN],AL
+   260 00000107 BF8100                          MOV     DI,81H
+   261 0000010A B90000                          MOV     CX,0
+   262 0000010D 56                              PUSH    SI
+   263                                  COMTAIL:
+   264 0000010E AC                              LODSB
+   265 0000010F AA                              STOSB			;Move command tail to 80H
+   266 00000110 3C0D                            CMP     AL,13
+   267 00000112 E0FA                            LOOPNZ  COMTAIL
+   268 00000114 F6D1                            NOT     CL
+   269 00000116 880E8000                        MOV     [80H],CL
+   270 0000011A 5E                              POP     SI
+   271                                  ;If the command has 0 parameters must check here for
+   272                                  ;any switches that might be present.
+   273                                  ;SI -> first character after the command.
+   274 0000011B C606AF0F00                      MOV     BYTE [FLAGER],0	;Set error flag before any calls to switch 
+   275 00000120 E83B00                          CALL    SWITCH          ;Is the next character a "/"
+   276 00000123 A3A90F                          MOV     [COMSW],AX
+   277 00000126 BF5C00                          MOV     DI,FCB
+   278 00000129 B80129                          MOV     AX,2901H
+   279 0000012C CD21                            INT     21H
+   280 0000012E A2A70F                          MOV     [PARM1],AL      ;Save result of parse
+   281 00000131 E82A00                          CALL    SWITCH
+   282 00000134 A3AB0F                          MOV     [ARG1S],AX
+   283 00000137 BF6C00                          MOV     DI,FCB+10H
+   284 0000013A B80129                          MOV     AX,2901H
+   285 0000013D CD21                            INT     21H             ;Parse file name
+   286 0000013F A2A80F                          MOV     [PARM2],AL      ;Save result
+   287 00000142 E81900                          CALL    SWITCH
+   288 00000145 A3AD0F                          MOV     [ARG2S],AX
+   289 00000148 A0BA0F                          MOV     AL,[IDLEN]
+   290 0000014B 8A16B10F                        MOV     DL,[SPECDRV]
+   291 0000014F 08D2                            OR      DL,DL           ;Check if drive was specified
+   292 00000151 7402                            JZ      SHORT OK
+   293 00000153 EB7E                            JMP     SHORT DRVCHK
+   294 00000155 FEC8                    OK:     DEC     AL              ;Check for null command
+   295 00000157 7542                            JNZ     SHORT FNDCOM
+   296 00000159 E9D4FE                          JMP	GETCOM
+   297                                  
+   298                                  RETSW:
+   299 0000015C 93                              XCHG    AX,BX           ;Put switches in AX
+   300 0000015D C3                              RETN
+   301                                  
+   302                                  SWITCH:
+   303 0000015E 31DB                            XOR     BX,BX           ;Initialize - no switches set
+   304                                  SWLOOP:
+   305 00000160 E85407                          CALL    SCANOFF         ;Skip any delimiters
+   306 00000163 3C2F                            CMP     AL,"/"          ;Is it a switch specifier?
+   307 00000165 75F5                            JNZ     SHORT RETSW	;No -- we're finished
+   308 00000167 46                              INC     SI              ;Skip over "/"
+   309 00000168 E84C07                          CALL    SCANOFF
+   310 0000016B 46                              INC     SI
+   311                                  ;Convert lower case input to upper case
+   312 0000016C 3C61                            CMP     AL,"a"
+   313 0000016E 7206                            JB      SHORT SAVCHR
+   314 00000170 3C7A                            CMP     AL,"z"
+   315 00000172 7702                            JA      SHORT SAVCHR
+   316 00000174 2C20                            SUB     AL,20H          ;Lower-case changed to upper-case
+   317                                  SAVCHR:
+   318 00000176 BF[9001]                        MOV     DI,SWLIST
+   319 00000179 B90500                          MOV     CX,SWCOUNT
+   320 0000017C F2AE                            REPNE   SCASB		;Look for matching switch
+   321 0000017E 7509                            JNZ     SHORT BADSW
+   322 00000180 B80100                          MOV     AX,1
+   323 00000183 D3E0                            SHL     AX,CL           ;Set a bit for the switch
+   324 00000185 09C3                            OR      BX,AX
+   325 00000187 EBD7                            JMP     SHORT SWLOOP
+   326                                  
+   327                                  BADSW:
+   328 00000189 C606AF0F01                      MOV     BYTE [FLAGER],1	;Record error in switch
+   329 0000018E EBD0                            JMP     SHORT SWLOOP
+   330                                  
+   331 00000190 4241565057              SWLIST:	DB      "BAVPW"
+   332                                  SWCOUNT EQU     $-SWLIST
+   333                                  
+   334                                  DRVBAD:
+   335 00000195 BA[DD0C]                        MOV     DX,BADDRV
+   336 00000198 E94201                          JMP	ERROR
+   337                                  
+   338                                  FNDCOM:
+   339 0000019B BE[BA0D]                        MOV     SI,COMTAB	;Prepare to search command table
+   340 0000019E B500                            MOV     CH,0
+   341                                  FINDCOM:
+   342 000001A0 BFBA0F                          MOV     DI,IDLEN
+   343 000001A3 8A0C                            MOV     CL,[SI]
+   344 000001A5 E332                            JCXZ    EXTERNAL
+   345 000001A7 F3A6                            REPE    CMPSB
+   346 000001A9 9F                              LAHF
+   347 000001AA 01CE                            ADD     SI,CX		;Bump to next position without affecting flags
+   348 000001AC 9E                              SAHF
+   349 000001AD AC                              LODSB			;Get flag for drive check
+   350 000001AE A2A40F                          MOV     [CHKDRV],AL
+   351 000001B1 AD                              LODSW			;Get address of command
+   352 000001B2 75EC                            JNZ     SHORT FINDCOM
+   353 000001B4 89C2                            MOV     DX,AX
+   354 000001B6 803EA40F00                      CMP     BYTE [CHKDRV],0
+   355 000001BB 740B                            JZ      SHORT NOCHECK
+   356 000001BD A0A70F                          MOV     AL,[PARM1]
+   357 000001C0 0A06A80F                        OR      AL,[PARM2]      ;Check if either parm. had invalid drive
+   358 000001C4 3CFF                            CMP     AL,-1
+   359 000001C6 74CD                            JZ      SHORT DRVBAD
+   360                                  NOCHECK:
+   361 000001C8 FFD2                    	CALL	DX
+   362                                  COMJMP: 
+   363 000001CA E937FE                  	JMP	COMMAND
+   364                                  BADCOMJ:
+   365 000001CD E90A01                  	JMP	BADCOM
+   366                                  
+   367                                  SETDRV1:
+   368 000001D0 E92DFE                          JMP	SETDRV
+   369                                  
+   370                                  DRVCHK:
+   371 000001D3 FECA                            DEC     DL              ;Adjust for correct drive number
+   372 000001D5 FEC8                            DEC     AL              ;Check if anything else is on line
+   373 000001D7 74F7                            JZ	SHORT SETDRV1
+   374                                  EXTERNAL:
+   375 000001D9 A0B10F                          MOV     AL,[SPECDRV]
+   376 000001DC A2BA0F                          MOV     [IDLEN],AL
+   377 000001DF C706C30F434F                    MOV     WORD [COM],4F00H+"C" ;"CO"
+   378 000001E5 C606C50F4D                      MOV     BYTE [COM+2],"M"
+   379 000001EA BABA0F                          MOV     DX,IDLEN
+   380 000001ED B40F                            MOV     AH,OPEN
+   381 000001EF CD21                            INT     33              ;Check if command to be executed
+   382 000001F1 A2A50F                          MOV     BYTE [FILTYP],AL ;0 for COM files, -1 for EXE files
+   383 000001F4 08C0                            OR      AL,AL
+   384 000001F6 747B                            JZ      SHORT EXECUTE
+   385 000001F8 C706C30F4558                    MOV     WORD [COM],5800H+"E" ;"EX"
+   386 000001FE C606C50F45                      MOV     BYTE [COM+2],"E"
+   387 00000203 CD21                            INT     33              ;Check for EXE file
+   388 00000205 08C0                            OR      AL,AL
+   389 00000207 746A                            JZ      SHORT EXECUTE
+   390 00000209 C706C30F4241                    MOV     WORD [COM],4100H+"B" ;"BA"
+   391 0000020F C606C50F54                      MOV     BYTE [COM+2],"T"
+   392 00000214 CD21                            INT     33		;Check if batch file to be executed
+   393 00000216 08C0                            OR      AL,AL
+   394 00000218 75B3                            JNZ     SHORT BADCOMJ
+   395                                  BATCOM:
+   396                                  ;Batch parameters are read with ES set to segment of resident part
+   397 0000021A 8E06A20F                        MOV     ES,[RESSEG]
+   398 0000021E BF1E04                          MOV     DI,PARMTAB
+   399 00000221 B8FFFF                          MOV     AX,-1
+   400 00000224 B90A00                          MOV     CX,10
+   401 00000227 F3AB                            REP     STOSW		;Zero parameter pointer table
+   402 00000229 BE[150E]                        MOV     SI,COMBUF+2
+   403 0000022C BF0000                          MOV     DI,PARMBUF
+   404 0000022F BB1E04                          MOV     BX,PARMTAB
+   405                                  EACHPARM:
+   406 00000232 E88206                          CALL    SCANOFF
+   407 00000235 3C0D                            CMP     AL,0DH
+   408 00000237 741B                            JZ      SHORT HAVPARM
+   409 00000239 26893F                          MOV     [ES:BX],DI	;Set pointer table to point to actual parameter
+   410 0000023C 43                              INC     BX
+   411 0000023D 43                              INC     BX
+   412                                  MOVPARM:
+   413 0000023E AC                              LODSB
+   414 0000023F E87D06                          CALL    DELIM
+   415 00000242 7407                            JZ      SHORT ENDPARM	;Check for end of parameter
+   416 00000244 AA                              STOSB
+   417 00000245 3C0D                            CMP     AL,0DH
+   418 00000247 740B                            JZ      SHORT HAVPARM
+   419 00000249 EBF3                            JMP     SHORT MOVPARM
+   420                                  ENDPARM:
+   421 0000024B B00D                            MOV     AL,0DH
+   422 0000024D AA                              STOSB			;End-of-parameter marker
+   423 0000024E 81FB3204                        CMP     BX,PARMTAB+20   ;Maximum number of parameters?
+   424 00000252 72DE                            JB      SHORT EACHPARM
+   425                                  HAVPARM:
+   426 00000254 BEBA0F                          MOV     SI,IDLEN
+   427 00000257 BFF903                          MOV     DI,BATFCB
+   428 0000025A B91000                          MOV     CX,16
+   429 0000025D F3A5                            REP     MOVSW		;Move into private batch FCB
+   430 0000025F 31C0                            XOR     AX,AX
+   431 00000261 06                              PUSH    ES
+   432 00000262 1F                              POP     DS		;Simply batch FCB setup
+   433 00000263 A31A04                          MOV     [BATFCB+RR],AX
+   434 00000266 A31C04                          MOV     [BATFCB+RR+2],AX ;Zero RR field
+   435 00000269 40                              INC     AX
+   436 0000026A A30704                          MOV     [BATFCB+RECLEN],AX ;Set record length to 1 byte
+   437 0000026D A23204                          MOV     [BATCH],AL	;Flag batch job in progress
+   438 00000270 E991FD                          JMP     COMMAND
+   439                                  
+   440                                  EXECUTE:
+   441 00000273 A1CA0F                          MOV     AX,[IDLEN+16]
+   442 00000276 0B06CC0F                        OR      AX,[IDLEN+18]	;See if zero length
+   443 0000027A 745E                            JZ      SHORT BADCOM	;If so, error
+   444 0000027C 31C0                            XOR     AX,AX
+   445 0000027E A3DB0F                          MOV     [IDLEN+RR],AX
+   446 00000281 A3DD0F                          MOV     [IDLEN+RR+2],AX	;Set RR field to zero
+   447 00000284 40                              INC     AX
+   448 00000285 A3C80F                          MOV     [IDLEN+RECLEN],AX ;Set record length field to 1
+   449 00000288 8B16A00F                        MOV     DX,[TPA]
+   450 0000028C 89D3                            MOV     BX,DX
+   451 0000028E B426                            MOV     AH,SETBASE
+   452 00000290 CD21                            INT     21H
+   453 00000292 F606A50FFF                      TEST    BYTE [FILTYP],-1 ;Check if file is COM or EXE
+   454                                          ;JZ	SHORT COMLOAD
+   455                                          ;JMP	EXELOAD
+   456 00000297 0F85EE07                	JNZ	EXELOAD
+   457                                  COMLOAD:
+   458 0000029B 1E                      	PUSH    DS
+   459 0000029C 8EDA                            MOV     DS,DX
+   460 0000029E BA0001                          MOV     DX,100H
+   461 000002A1 B41A                            MOV     AH,SETDMA
+   462 000002A3 CD21                            INT     21H
+   463 000002A5 1F                              POP     DS
+   464 000002A6 8B0EB20F                        MOV     CX,[BYTCNT]
+   465 000002AA 81E90001                        SUB     CX,100H
+   466 000002AE BABA0F                          MOV     DX,IDLEN
+   467 000002B1 B427                            MOV     AH,RDBLK
+   468 000002B3 CD21                            INT     21H
+   469 000002B5 FEC8                            DEC     AL
+   470 000002B7 BA[BC0C]                        MOV     DX,TOOBIG
+   471 000002BA 7521                            JNZ     SHORT ERROR
+   472                                  ;Set up exit conditions
+   473 000002BC 8B0EB20F                        MOV     CX,[BYTCNT]
+   474 000002C0 8EDB                            MOV     DS,BX
+   475 000002C2 8EC3                            MOV     ES,BX
+   476 000002C4 FA                              CLI
+   477 000002C5 8ED3                            MOV     SS,BX
+   478 000002C7 89CC                            MOV     SP,CX
+   479 000002C9 FB                              STI
+   480 000002CA 81E90001                        SUB     CX,100H         ;Allow some stack space
+   481 000002CE 31C0                            XOR     AX,AX
+   482 000002D0 50                              PUSH    AX
+   483 000002D1 B80001                          MOV     AX,100H
+   484 000002D4 53                              PUSH    BX
+   485 000002D5 50                              PUSH    AX
+   486 000002D6 E8B208                          CALL    SETUP
+   487 000002D9 CB                      	RETF
+   488                                  BADCOM:
+   489 000002DA BA[C00B]                        MOV     DX,BADNAM
+   490                                  ERROR:
+   491 000002DD B409                            MOV     AH,PRINTBUF
+   492 000002DF CD21                            INT     21H
+   493 000002E1 E920FD                          JMP	COMMAND
+   494                                  CHKCNT:
+   495 000002E4 F706B80FFFFF                    TEST    WORD [FILECNT],-1
+   496 000002EA 7505                            JNZ     SHORT ENDDIR
+   497 000002EC BA[040C]                        MOV     DX,NOTFND
+   498 000002EF EBEC                            JMP     SHORT ERROR
+   499                                  ENDDIR:
+   500                                  ;Make sure last line ends with CR/LF
+   501 000002F1 A0B70F                          MOV     AL,[LINLEN]
+   502 000002F4 3A06B60F                        CMP     AL,[LINCNT]     ;Will be equal if just had CR/LF
+   503 000002F8 7403                            JZ      SHORT MESSAGE
+   504 000002FA E84001                          CALL    CRLF2
+   505                                  MESSAGE:                
+   506 000002FD 8B36B80F                        MOV     SI,[FILECNT]
+   507 00000301 31FF                            XOR     DI,DI
+   508 00000303 E84901                          CALL    DISP32BITS
+   509 00000306 BA[B30C]                        MOV     DX,DIRMES
+   510 00000309 B409                            MOV     AH,PRINTBUF
+   511 0000030B CD21                            INT     21H
+   512 0000030D C3                              RETN
+   513                                  
+   514                                  CATALOG:
+   515 0000030E B03F                            MOV     AL,"?"		;*.* is default file spec.
+   516 00000310 BF5D00                          MOV     DI,5DH
+   517 00000313 B90B00                          MOV     CX,11
+   518 00000316 F3AA                            REP     STOSB
+   519 00000318 BE8100                          MOV     SI,81H
+   520 0000031B E840FE                          CALL    SWITCH
+   521 0000031E BF5C00                          MOV     DI,5CH
+   522 00000321 B80D29                          MOV     AX,41*100H+0DH	;Parse with default name and extension
+   523 00000324 CD21                            INT     33
+   524                                  
+   525                                  ;Begin by processing any switches that may have been specified.
+   526                                  ;BITS will contain any information about switches that was
+   527                                  ;found when the command line was parsed.
+   528                                  
+   529                                  SETSWT:
+   530 00000326 A1A90F                          MOV     AX,[COMSW]	;Get switches from command
+   531 00000329 0B06AB0F                        OR      AX,[ARG1S]	;OR in switches from first parameter
+   532 0000032D A31B10                          MOV     [_BITS],AX
+   533 00000330 C6061D1017                      MOV     BYTE [FULLSCR],LINPERPAG
+   534 00000335 A801                            TEST    AL,1 		;Look for /W
+   535 00000337 B001                            MOV     AL,NORMPERLIN
+   536 00000339 7402                            JZ      SHORT DIR
+   537 0000033B B005                            MOV     AL,WIDEPERLIN
+   538                                  DIR:
+   539 0000033D A2B70F                          MOV     [LINLEN],AL	;Set number of entries per line
+   540 00000340 A2B60F                          MOV     [LINCNT],AL
+   541 00000343 C706B80F0000                    MOV     WORD [FILECNT],0 ;Keep track of how many files found
+   542 00000349 BAF60F                          MOV     DX,DIRBUF	;Set Disk transfer address
+   543 0000034C B41A                            MOV     AH,SETDMA
+   544 0000034E CD21                            INT     21H             
+   545 00000350 B411                            MOV     AH,SRCHFRST
+   546                                  SHOWDIR:
+   547 00000352 BA5C00                          MOV     DX,5CH          ;DX -> Unopened FCB
+   548 00000355 CD21                            INT     21H             ;Search for a file to match FCB
+   549 00000357 FEC0                            INC     AL              ;FF = file not found
+   550 00000359 7502                            JNZ     SHORT AGAIN	;Either an error or we are finished
+   551 0000035B EB87                            JMP     SHORT CHKCNT
+   552                                  AGAIN:
+   553 0000035D FF06B80F                        INC     WORD [FILECNT]	;Keep track of how many we find
+   554 00000361 BEF70F                          MOV     SI,DIRBUF+1	;SI -> information returned by sys call
+   555 00000364 E8BB00                          CALL    SHONAME
+   556 00000367 F6061B1001                      TEST    BYTE [_BITS],1	;/W set?
+   557 0000036C 7578                            JNZ     SHORT NEXENT	;If so, no size, date, or time
+   558 0000036E E8D600                          CALL    DISPSIZE        ;Print size of file
+   559 00000371 E8C100                          CALL    TWOSPC
+   560 00000374 A10F10                          MOV     AX,WORD [DIRBUF+25]  ;Get date
+   561 00000377 09C0                            OR      AX,AX
+   562 00000379 746B                            JZ      SHORT NEXENT	;Skip if no date
+   563 0000037B 89C2                            MOV     DX,AX
+   564 0000037D B105                            MOV     CL,5
+   565 0000037F D3E8                            SHR     AX,CL           ;Align month
+   566 00000381 240F                            AND     AL,0FH
+   567 00000383 B710                            MOV     BH,"0"-" "      ;Enable zero suppression
+   568 00000385 E8E406                          CALL    OUT2
+   569 00000388 B02D                            MOV     AL,"-"
+   570 0000038A E8F306                          CALL    OUT
+   571 0000038D 88D0                            MOV     AL,DL
+   572 0000038F 241F                            AND     AL,1FH          ;Mask to day
+   573 00000391 E8D806                          CALL    OUT2
+   574 00000394 B02D                            MOV     AL,"-"
+   575 00000396 E8E706                          CALL    OUT
+   576 00000399 88F0                            MOV     AL,DH
+   577 0000039B D0E8                            SHR     AL,1            ;Align year
+   578 0000039D 83C050                          ADD     AX,80           ;Relative 1980
+   579 000003A0 3C64                            CMP     AL,100
+   580 000003A2 7202                            JB      SHORT MILLENIUM
+   581 000003A4 2C64                            SUB     AL,100
+   582                                  MILLENIUM:
+   583 000003A6 E8C306                          CALL    OUT2
+   584 000003A9 8B1E0D10                        MOV     BX,[DIRBUF+23]	;Get time
+   585 000003AD 09DB                            OR      BX,BX           ;Time field present?
+   586 000003AF 7435                            JZ      SHORT NEXENT
+   587 000003B1 E88100                          CALL    TWOSPC  
+   588 000003B4 D1EB                            SHR     BX,1
+   589 000003B6 D1EB                            SHR     BX,1
+   590 000003B8 D1EB                            SHR     BX,1
+   591 000003BA D0EB                            SHR     BL,1
+   592 000003BC D0EB                            SHR     BL,1            ;Hours in BH, minutes in BL
+   593 000003BE 88F8                            MOV     AL,BH
+   594 000003C0 B661                            MOV     DH,"a"          ;Assume A.M.
+   595 000003C2 3C0C                            CMP     AL,12           ;In the afternoon?
+   596 000003C4 7206                            JB      SHORT MORN
+   597 000003C6 B670                            MOV     DH,"p"
+   598 000003C8 7402                            JE      SHORT MORN
+   599 000003CA 2C0C                            SUB     AL,12           ;Keep it to 12 hours or less
+   600                                  MORN:
+   601 000003CC 08C0                            OR      AL,AL           ;Before 1 am?
+   602 000003CE 7502                            JNZ     SHORT SHOHOURS
+   603 000003D0 B00C                            MOV     AL,12
+   604                                  SHOHOURS:
+   605 000003D2 B710                            MOV     BH,"0"-" "      ;Enable zero suppression
+   606 000003D4 E89506                          CALL    OUT2
+   607 000003D7 B03A                            MOV     AL,":"
+   608 000003D9 E8A406                          CALL    OUT
+   609 000003DC 88D8                            MOV     AL,BL           ;Output minutes
+   610 000003DE E88B06                          CALL    OUT2
+   611 000003E1 88F0                            MOV     AL,DH           ;Get "a" or "p"
+   612 000003E3 E89A06                          CALL    OUT
+   613                                  NEXENT:
+   614 000003E6 FE0EB60F                        DEC     BYTE [LINCNT]
+   615 000003EA 752F                            JNZ	SHORT SAMLIN
+   616                                  NEXLIN:
+   617 000003EC A0B70F                          MOV     AL,[LINLEN]
+   618 000003EF A2B60F                          MOV     [LINCNT],AL
+   619 000003F2 E84800                          CALL    CRLF2
+   620 000003F5 F6061B1002                      TEST    BYTE [_BITS],2	;/P switch present?
+   621 000003FA 741A                            JZ 	SHORT SCROLL	;If not, just continue
+   622 000003FC FE0E1D10                        DEC     BYTE [FULLSCR]
+   623 00000400 7514                            JNZ     SHORT SCROLL
+   624 00000402 C6061D1017                      MOV     BYTE [FULLSCR],LINPERPAG
+   625 00000407 B409                            MOV     AH,PRINTBUF
+   626 00000409 BA[F90C]                        MOV     DX,PAUSMES
+   627 0000040C CD21                            INT     33
+   628 0000040E B8080C                          MOV     AX,0C08H        ;Wait for any character to be typed
+   629 00000411 CD21                            INT     21H
+   630 00000413 E82700                          CALL    CRLF2
+   631                                  SCROLL:
+   632 00000416 B412                            MOV     AH,SRCHNXT
+   633 00000418 E937FF                          JMP	SHOWDIR
+   634                                  
+   635                                  SAMLIN:
+   636 0000041B B009                            MOV     AL,9            ;Output a tab
+   637 0000041D E86006                          CALL    OUT
+   638 00000420 EBF4                            JMP     SHORT SCROLL
+   639                                  
+   640                                  SHONAME:
+   641 00000422 B90800                          MOV     CX,8
+   642 00000425 E80600                          CALL    OUTCNT
+   643 00000428 E80D00                          CALL    ONESPC
+   644 0000042B B90300                          MOV     CX,3
+   645                                  OUTCNT:
+   646 0000042E AC                              LODSB
+   647 0000042F E84E06                          CALL    OUT
+   648 00000432 E2FA                            LOOP    OUTCNT
+   649 00000434 C3                              RETN
+   650                                  
+   651                                  TWOSPC:
+   652 00000435 E80000                          CALL    ONESPC
+   653                                  ONESPC:
+   654 00000438 B020                            MOV     AL," "
+   655 0000043A E94306                          JMP	OUT
+   656                                  
+   657                                  CRLF2:
+   658 0000043D B00D                            MOV     AL,13
+   659 0000043F E83E06                          CALL    OUT
+   660 00000442 B00A                            MOV     AL,10
+   661 00000444 E93906                          JMP	OUT
+   662                                  
+   663                                  DISPSIZE:
+   664 00000447 8B361310                        MOV     SI,[DIRBUF+29]
+   665 0000044B 8B3E1510                        MOV     DI,[DIRBUF+31]
+   666                                  DISP32BITS:
+   667                                  ;Prints the 32-bit number DI:SI on the console in decimal. Uses a total
+   668                                  ;of 9 digit positions with leading blanks.
+   669 0000044F 31C0                            XOR     AX,AX
+   670 00000451 89C3                            MOV     BX,AX
+   671 00000453 89C5                            MOV     BP,AX
+   672 00000455 B92000                          MOV     CX,32
+   673                                  CONVLP:
+   674 00000458 D1E6                            SHL     SI,1
+   675 0000045A D1D7                            RCL     DI,1
+   676 0000045C 95                              XCHG    AX,BP
+   677 0000045D E84100                          CALL    CONVWRD
+   678 00000460 95                              XCHG    AX,BP
+   679 00000461 93                              XCHG    AX,BX
+   680 00000462 E83C00                          CALL    CONVWRD
+   681 00000465 93                              XCHG    AX,BX
+   682 00000466 1400                            ADC     AL,0
+   683 00000468 E2EE                            LOOP    CONVLP
+   684                                  ; Conversion complete. Print 9-digit number.
+   685 0000046A B91018                          MOV     CX,1810H        ;Allow leading zero blanking for 8 digits
+   686 0000046D 92                              XCHG    DX,AX
+   687 0000046E E81B00                          CALL    DIGIT
+   688 00000471 93                              XCHG    AX,BX
+   689 00000472 E80100                          CALL    OUTWORD
+   690 00000475 95                              XCHG    AX,BP
+   691                                  OUTWORD:
+   692 00000476 50                              PUSH    AX
+   693 00000477 88E2                            MOV     DL,AH
+   694 00000479 E80100                          CALL    OUTBYTE
+   695 0000047C 5A                              POP     DX
+   696                                  OUTBYTE:
+   697 0000047D 88D6                            MOV     DH,DL
+   698 0000047F D0EA                            SHR     DL,1
+   699 00000481 D0EA                            SHR     DL,1
+   700 00000483 D0EA                            SHR     DL,1
+   701 00000485 D0EA                            SHR     DL,1
+   702 00000487 E80200                          CALL    DIGIT
+   703 0000048A 88F2                            MOV     DL,DH
+   704                                  DIGIT:
+   705 0000048C 80E20F                          AND     DL,0FH
+   706 0000048F 7402                            JZ      SHORT BLANKZER
+   707 00000491 B100                            MOV     CL,0
+   708                                  BLANKZER:
+   709 00000493 FECD                            DEC     CH
+   710 00000495 20E9                            AND     CL,CH
+   711 00000497 80CA30                          OR      DL,30H
+   712 0000049A 28CA                            SUB     DL,CL
+   713 0000049C B402                            MOV     AH,OUTCH
+   714 0000049E CD21                            INT     21H
+   715 000004A0 C3                              RETN
+   716                                  
+   717                                  CONVWRD:
+   718 000004A1 10C0                            ADC     AL,AL
+   719 000004A3 27                              DAA
+   720 000004A4 86C4                            XCHG    AL,AH
+   721 000004A6 10C0                            ADC     AL,AL
+   722 000004A8 27                              DAA
+   723 000004A9 86C4                            XCHG    AL,AH
+   724                                  RET20:  
+   725 000004AB C3                      	RETN
+   726                                  
+   727                                  ERASE:
+   728 000004AC B90B00                          MOV     CX,11
+   729 000004AF BE5D00                          MOV     SI,FCB+1
+   730                                  AMBSPEC:        
+   731 000004B2 AC                              LODSB
+   732 000004B3 3C3F                            CMP     AL,"?"
+   733 000004B5 7502                            JNZ     SHORT ALLFIL
+   734 000004B7 E2F9                            LOOP    AMBSPEC
+   735                                  ALLFIL: 
+   736 000004B9 83F900                          CMP     CX,0
+   737 000004BC 7519                            JNZ     SHORT NOPRMPT
+   738                                  ASKAGN:         
+   739 000004BE BA[A40D]                        MOV     DX,SUREMES	;"Are you sure (Y/N)?"
+   740 000004C1 B409                            MOV     AH,PRINTBUF
+   741 000004C3 CD21                            INT     21H
+   742 000004C5 B8010C                          MOV     AX,0C00H+INCHAR
+   743 000004C8 CD21                            INT     21H
+   744 000004CA 245F                            AND     AL,5FH
+   745 000004CC 3C4E                            CMP     AL,"N"
+   746 000004CE 74DB                            JZ      SHORT RET20
+   747 000004D0 3C59                            CMP     AL,"Y"
+   748 000004D2 E868FF                          CALL    CRLF2
+   749                                          ;JZ	SHORT NOPRMPT
+   750                                          ;JMP	SHORT ASKAGN
+   751 000004D5 75E7                    	JNZ	SHORT ASKAGN
+   752                                  NOPRMPT:
+   753 000004D7 B413                            MOV     AH,DELETE
+   754 000004D9 BB[040C]                        MOV     BX,NOTFND
+   755 000004DC 803E5D0020                      CMP     BYTE [FCB+1]," "	;Check if parameter exists
+   756 000004E1 EB0A                            JMP     SHORT OPFILE
+   757                                  RENAME:
+   758 000004E3 B417                            MOV     AH,RENAM
+   759 000004E5 BB[ED0B]                        MOV     BX,RENERR
+   760 000004E8 803E6D0020                      CMP     BYTE [FCB+16+1]," "	;Check if parameter exists
+   761                                  OPFILE:
+   762 000004ED BA[DB0B]                        MOV     DX,MISNAM
+   763 000004F0 740B                            JZ      SHORT ERRJ		;Error if missing parameter
+   764 000004F2 BA5C00                          MOV     DX,FCB
+   765 000004F5 CD21                            INT     21H
+   766 000004F7 FEC0                            INC     AL
+   767 000004F9 75B0                            JNZ     SHORT RET20
+   768 000004FB 89DA                            MOV     DX,BX
+   769                                  ERRJ:   
+   770 000004FD E9DDFD                  	JMP     ERROR
+   771                                  
+   772                                  TYPEFIL:
+   773 00000500 8E1EA00F                        MOV     DS,[TPA]
+   774 00000504 31D2                            XOR     DX,DX
+   775 00000506 B41A                            MOV     AH,SETDMA
+   776 00000508 CD21                            INT     21H
+   777 0000050A 0E                              PUSH    CS
+   778 0000050B 1F                              POP     DS
+   779 0000050C BA5C00                          MOV     DX,FCB
+   780 0000050F B40F                            MOV     AH,OPEN
+   781 00000511 CD21                            INT     21H
+   782 00000513 08C0                            OR      AL,AL
+   783 00000515 BA[040C]                        MOV     DX,NOTFND
+   784 00000518 75E3                            JNZ     SHORT ERRJ
+   785 0000051A 31C0                            XOR     AX,AX
+   786 0000051C A37D00                          MOV     [FCB+RR],AX		;Set RR field
+   787 0000051F A37F00                          MOV     [FCB+RR+2],AX
+   788 00000522 40                              INC     AX
+   789 00000523 A36A00                          MOV     [FCB+RECLEN],AX		;Set record length
+   790 00000526 8E06A00F                        MOV     ES,[TPA]
+   791                                  TYPELP:
+   792 0000052A BA5C00                          MOV     DX,FCB
+   793 0000052D 8B0EB20F                        MOV     CX,[BYTCNT]
+   794 00000531 B427                            MOV     AH,RDBLK
+   795 00000533 CD21                            INT     21H
+   796 00000535 E312                            JCXZ    RET30
+   797 00000537 31F6                            XOR     SI,SI		;Start at 0 in TPA
+   798                                  OUTLP:
+   799 00000539 26AC                            ES	LODSB		;In TPA segment
+   800 0000053B 3C1A                            CMP     AL,1AH
+   801 0000053D 740A                            JZ	SHORT RET30
+   802 0000053F B402                            MOV     AH,OUTCH
+   803 00000541 88C2                            MOV     DL,AL
+   804 00000543 CD21                            INT     21H
+   805 00000545 E2F2                            LOOP    OUTLP
+   806 00000547 EBE1                            JMP     SHORT TYPELP
+   807                                  
+   808                                  RET30:
+   809 00000549 C3                      	RETN                             ;Need a nearby RET
+   810                                  
+   811                                  COPY:
+   812 0000054A 31C0                            XOR     AX,AX
+   813 0000054C A22810                          MOV     [PLUS],AL               ;Will keep track of "+"s
+   814 0000054F A3B80F                          MOV     [FILECNT],AX
+   815 00000552 BE8100                          MOV     SI,81H                  ;Point to input line
+   816 00000555 E806FC                          CALL    SWITCH                  ;Skip over switches on command
+   817 00000558 89C5                            MOV     BP,AX
+   818 0000055A BF5C00                          MOV     DI,FCB
+   819 0000055D E89401                          CALL    PARSNAM                 ;Scan first source
+   820 00000560 8816A70F                        MOV     [PARM1],DL              ;Save ambiguous flag
+   821 00000564 89362210                        MOV     [SRCPT],SI              ;Save pointer to command line
+   822                                  ;Parse each name to find destination and check for /V switch
+   823                                  SCANNAM:
+   824 00000568 E87901                          CALL    PARSE
+   825 0000056B 75FB                            JNZ     SHORT SCANNAM
+   826                                  GETDEST:
+   827 0000056D BFC60F                          MOV     DI,DEST
+   828 00000570 89EB                            MOV     BX,BP                   ;Remeber switches so far
+   829 00000572 31ED                            XOR     BP,BP                   ;Must have dest. swtiches alone
+   830 00000574 E87D01                          CALL    PARSNAM
+   831 00000577 892EAD0F                        MOV     [ARG2S],BP              ;Remember switches on destination
+   832 0000057B 7508                            JNZ     SHORT HAVDESTNAM	;File name present?
+   833 0000057D 47                              INC     DI                      ;Point to file name spot
+   834 0000057E B03F                            MOV     AL,"?"                  ;Substitute *.*
+   835 00000580 B90B00                          MOV     CX,11
+   836 00000583 F3AA                            REP     STOSB
+   837                                  HAVDESTNAM:
+   838 00000585 09EB                            OR      BX,BP                   ;BX = all switches combined
+   839 00000587 80E304                          AND     BL,VSWITCH              ;Verify requested?
+   840 0000058A 7407                            JZ      SHORT NOVER
+   841 0000058C B8012E                          MOV     AX,46*100H+1            ;Set verify
+   842 0000058F B200                            MOV     DL,0
+   843 00000591 CD21                            INT     33
+   844                                  NOVER:
+   845 00000593 BFEB0F                          MOV     DI,DESTNAME
+   846 00000596 BEC70F                          MOV     SI,DEST+1
+   847 00000599 BB5D00                          MOV     BX,FCB+1
+   848 0000059C E8AF01                          CALL    BUILDNAME               ;See if we can make it unambiguous
+   849 0000059F BFEB0F                          MOV     DI,DESTNAME
+   850 000005A2 B03F                            MOV     AL,"?"
+   851 000005A4 B90B00                          MOV     CX,11
+   852 000005A7 F2AE                            REPNE   SCASB                   ;Scan for "?" to see if ambiguous
+   853 000005A9 B001                            MOV     AL,1                    ;Flag if ambig.
+   854 000005AB 7401                            JZ      SHORT AMBIG
+   855 000005AD 48                              DEC     AX                      ;AL=0 if unambig.
+   856                                  AMBIG:
+   857 000005AE 88C2                            MOV     DL,AL
+   858 000005B0 8A262810                        MOV     AH,[PLUS]               ;1=found "+"
+   859 000005B4 3401                            XOR     AL,1                    ;0=ambig, 1=unambig destination
+   860 000005B6 2206A70F                        AND     AL,[PARM1]              ;Source ambig. AND dest unambig.
+   861 000005BA 08E0                            OR      AL,AH                   ;OR found "+" means concatenation
+   862 000005BC A22710                          MOV     [ASCII],AL              ;Concatenation implies ASCII mode
+   863 000005BF A22410                          MOV     [INEXACT],AL            ;ASCII implies inexact copy
+   864 000005C2 D0E0                            SHL     AL,1
+   865 000005C4 08D0                            OR      AL,DL                   ;Combine multiple and concat flags
+   866 000005C6 A2A80F                          MOV     [PARM2],AL
+   867 000005C9 A0A90F                          MOV     AL,BYTE [COMSW]
+   868 000005CC E86C01                          CALL    SETASC                  ;Check /A,/B on command
+   869 000005CF A0AB0F                          MOV     AL,BYTE [ARG1S]
+   870 000005D2 E86601                          CALL    SETASC                  ;Check for ASCII on first filename
+   871 000005D5 A2A90F                          MOV     BYTE [COMSW],AL              ;Save starting switch values
+   872 000005D8 B411                            MOV     AH,SRCHFRST
+   873 000005DA E84D01                          CALL    SEARCH                  ;Search for first source name
+   874                                  MULTDEST:
+   875 000005DD 744A                            JZ      SHORT FIRSTSRC		;Find a first source name?
+   876 000005DF F606A80F01                      TEST    BYTE [PARM2],1		;If multiple, we're done
+   877 000005E4 7530                            JNZ	SHORT ENDCOPY
+   878 000005E6 31C0                            XOR     AX,AX
+   879 000005E8 A3B40F                          MOV     [NXTADD],AX
+   880 000005EB A2B00F                          MOV     [CFLAG],AL              ;Flag nothing read yet
+   881                                  NEXTSNG:
+   882 000005EE BF5C00                          MOV     DI,FCB
+   883 000005F1 8B362210                        MOV     SI,[SRCPT]
+   884 000005F5 E8EF00                          CALL    PARSESRC                ;Parse next file name into FCB
+   885 000005F8 8816A70F                        MOV     [PARM1],DL              ;Remember if it's ambiguous
+   886 000005FC 89362210                        MOV     [SRCPT],SI
+   887 00000600 7411                            JZ      SHORT SNGCLOS
+   888 00000602 B411                            MOV     AH,SRCHFRST
+   889 00000604 E82301                          CALL    SEARCH                  ;Search for new file name
+   890 00000607 75E5                            JNZ     SHORT NEXTSNG		;If none, skip it and move to next name
+   891                                  READSNG:
+   892 00000609 E85D01                          CALL    CHECKREAD
+   893                                  SNGLOOP:
+   894 0000060C E81201                          CALL    SEARCHNEXT              ;See if any more of this name
+   895 0000060F 74F8                            JZ	SHORT READSNG
+   896 00000611 EBDB                            JMP     SHORT NEXTSNG
+   897                                  
+   898                                  SNGCLOS:
+   899 00000613 E8CC01                          CALL    CLOSEFIL
+   900                                  ENDCOPY:
+   901 00000616 8B36B80F                        MOV     SI,[FILECNT]
+   902 0000061A 31FF                            XOR     DI,DI
+   903 0000061C E830FE                          CALL    DISP32BITS
+   904 0000061F BA[A30C]                        MOV     DX,COPIED
+   905 00000622 B409                            MOV     AH,PRINTBUF
+   906 00000624 CD21                            INT     21H
+   907 00000626 E9DBF9                          JMP     COMMAND			;Stack could be messed up
+   908                                  
+   909                                  FIRSTSRC:
+   910 00000629 BEF70F                          MOV     SI,DIRBUF+1
+   911 0000062C BF2910                          MOV     DI,SOURCE
+   912 0000062F B90B00                          MOV     CX,11
+   913 00000632 F3A4                            REP     MOVSB                   ;Copy first source name to SOURCE
+   914 00000634 BEEB0F                          MOV     SI,DESTNAME
+   915 00000637 BFC70F                          MOV     DI,DEST+1
+   916 0000063A BB2910                          MOV     BX,SOURCE
+   917 0000063D E80E01                          CALL    BUILDNAME               ;Build destination name
+   918 00000640 31C0                            XOR     AX,AX
+   919 00000642 A3B40F                          MOV     [NXTADD],AX
+   920 00000645 A2B00F                          MOV     [CFLAG],AL
+   921 00000648 A22510                          MOV     [APPEND],AL
+   922 0000064B A22610                          MOV     [NOWRITE],AL
+   923 0000064E F606A80F01                      TEST    BYTE [PARM2],1		;Multiple destinations?
+   924 00000653 7409                            JZ      SHORT NOPRT
+   925 00000655 BEF70F                          MOV     SI,DIRBUF+1
+   926 00000658 E8C7FD                          CALL    SHONAME                 ;If so, show first source
+   927 0000065B E8DFFD                          CALL    CRLF2
+   928                                  NOPRT:
+   929 0000065E E8FC00                          CALL    COMPNAME                ;Source and dest. the same?
+   930 00000661 754D                            JNZ     SHORT DOREAD		;If not, read source in
+   931 00000663 F606A80F02                      TEST    BYTE [PARM2],2		;Concatenation?
+   932 00000668 BA[550C]                        MOV     DX,OVERWR
+   933 0000066B 742B                            JZ      SHORT COPERRJ		;If not, overwrite error
+   934 0000066D C606251001                      MOV     BYTE [APPEND],1		;Set physical append
+   935 00000672 B40F                            MOV     AH,OPEN
+   936 00000674 BAC60F                          MOV     DX,DEST
+   937 00000677 CD21                            INT     33                      ;Open (existing) destination
+   938 00000679 803E271000                      CMP     BYTE [ASCII],0		;ASCII flag set?
+   939 0000067E 741B                            JZ      SHORT BINARYAPP
+   940                                  ;ASCII append. Must find logical EOF, then seek there with dest. FCB
+   941 00000680 C606261001                      MOV     BYTE [NOWRITE],1
+   942 00000685 E8F500                          CALL    READIN                  ;Find EOF
+   943 00000688 E8A301                          CALL    FLSHFIL                 ;Seek there
+   944 0000068B C606261000                      MOV     BYTE [NOWRITE],0
+   945 00000690 E89B01                          CALL    FLSHFIL			;Truncate file
+   946 00000693 EB1E                            JMP     SHORT SNGLCHK
+   947                                  
+   948                                  SNGLOOPJ:
+   949 00000695 E974FF                  	JMP	SNGLOOP
+   950                                  
+   951                                  COPERRJ:
+   952 00000698 E9F001                  	JMP	COPERR
+   953                                  
+   954                                  BINARYAPP:
+   955 0000069B C706D40F0100                    MOV     WORD [DEST+RECLEN],1	;Set record length to 1
+   956 000006A1 BED60F                          MOV     SI,DEST+16		;Point to file size
+   957 000006A4 BFE70F                          MOV     DI,DEST+RR
+   958 000006A7 A5                              MOVSW
+   959 000006A8 A5                              MOVSW                           ;Seek to end of file
+   960 000006A9 C606B00F01                      MOV     BYTE [CFLAG],1
+   961 000006AE EB03                            JMP     SHORT SNGLCHK
+   962                                  DOREAD:
+   963 000006B0 E8CA00                          CALL    READIN
+   964                                  SNGLCHK:
+   965 000006B3 F606A80F01                      TEST    BYTE [PARM2],1		;Single or multiple destinations?
+   966 000006B8 74DB                            JZ      SHORT SNGLOOPJ
+   967 000006BA 8B362210                        MOV     SI,[SRCPT]
+   968                                  MULTAPP:
+   969 000006BE E82300                          CALL    PARSE
+   970 000006C1 7412                            JZ      SHORT MULTCLOS
+   971 000006C3 56                              PUSH    SI
+   972 000006C4 BEF70F                          MOV     SI,DIRBUF+1
+   973 000006C7 89F7                            MOV     DI,SI
+   974 000006C9 BB2910                          MOV     BX,SOURCE
+   975 000006CC E87F00                          CALL    BUILDNAME
+   976 000006CF E89700                          CALL    CHECKREAD
+   977 000006D2 5E                              POP     SI
+   978 000006D3 EBE9                            JMP     SHORT MULTAPP
+   979                                  MULTCLOS:
+   980 000006D5 E80A01                          CALL    CLOSEFIL
+   981 000006D8 A0A90F                          MOV     AL,[COMSW]
+   982 000006DB A22710                          MOV     [ASCII],AL              ;Restore ASCII flag
+   983 000006DE E84000                          CALL    SEARCHNEXT
+   984 000006E1 E9F9FE                          JMP	MULTDEST
+   985                                  
+   986                                  PARSE:
+   987 000006E4 BFF60F                          MOV     DI,DIRBUF
+   988                                  PARSESRC:
+   989 000006E7 E8CD01                          CALL    SCANOFF
+   990 000006EA 3C2B                            CMP     AL,"+"
+   991 000006EC 7530                            JNZ     SHORT RETZF
+   992 000006EE C606281001                      MOV     BYTE [PLUS],1		;Keep track of "+" signs
+   993 000006F3 46                              INC     SI                      ;Skip over it
+   994                                  PARSNAM:
+   995 000006F4 B80129                          MOV     AX,2901H
+   996 000006F7 CD21                            INT     33                      ;Parse file name
+   997 000006F9 3CFF                            CMP     AL,-1                   ;Illegal?
+   998 000006FB BA[DD0C]                        MOV     DX,BADDRV
+   999 000006FE 7498                            JZ      SHORT COPERRJ
+  1000 00000700 92                              XCHG    AX,DX                   ;Save parse flag in DL
+  1001 00000701 8A05                            MOV     AL,[DI]			;Get drive number
+  1002 00000703 08C0                            OR      AL,AL                   ;Is it default?
+  1003 00000705 7506                            JNZ     SHORT PARSW
+  1004 00000707 A0A60F                          MOV     AL,[CURDRV]             ;Substitute actual drive
+  1005 0000070A 40                              INC     AX
+  1006 0000070B 8805                            MOV     [DI],AL
+  1007                                  PARSW:
+  1008 0000070D 53                              PUSH    BX
+  1009 0000070E 57                              PUSH    DI
+  1010 0000070F E84CFA                          CALL    SWITCH                  ;Process switches
+  1011 00000712 09C5                            OR      BP,AX                   ;Combine all switches
+  1012 00000714 E82400                          CALL    SETASC                  ;Check for /A or /B
+  1013 00000717 5F                              POP     DI
+  1014 00000718 5B                              POP     BX
+  1015 00000719 807D0120                        CMP     BYTE [DI+1]," "		;Did we even get a file name?
+  1016 0000071D C3                              RETN
+  1017                                  
+  1018                                  RETZF:
+  1019 0000071E 31C0                            XOR     AX,AX
+  1020                                  RET35:  
+  1021 00000720 C3                      	RETN
+  1022                                  
+  1023                                  SEARCHNEXT:
+  1024 00000721 A0A70F                          MOV     AL,[PARM1]              ;Is name ambiguous?
+  1025 00000724 FEC8                            DEC     AL
+  1026 00000726 75F8                            JNZ     SHORT RET35		;Don't perform search if not
+  1027 00000728 B412                            MOV     AH,SRCHNXT
+  1028                                  SEARCH:
+  1029 0000072A 50                              PUSH    AX
+  1030 0000072B B41A                            MOV     AH,SETDMA
+  1031 0000072D BAF60F                          MOV     DX,DIRBUF
+  1032 00000730 CD21                            INT     33                      ;Put result of search in DIRBUF
+  1033 00000732 58                              POP     AX                      ;Restore search first/next command
+  1034 00000733 BA5C00                          MOV     DX,FCB
+  1035 00000736 CD21                            INT     33                      ;Do the search
+  1036 00000738 08C0                            OR      AL,AL
+  1037 0000073A C3                              RETN
+  1038                                  
+  1039                                  SETASC:
+  1040                                  ;Given switch vector in AX, 
+  1041                                  ;       Set ASCII switch if /A is set
+  1042                                  ;       Clear ASCII switch if /B is set
+  1043                                  ;       Leave ASCII unchanged if neither or both are set
+  1044                                  ; Also sets INEXACT if ASCII is ever set. AL = ASCII on exit, flags set
+  1045 0000073B 2418                            AND     AL,ASWITCH+BSWITCH
+  1046 0000073D 7A09                            JPE     SHORT LOADSW		;PE means both or neither are set
+  1047 0000073F 2408                            AND     AL,ASWITCH
+  1048 00000741 A22710                          MOV     [ASCII],AL
+  1049 00000744 08062410                        OR      [INEXACT],AL
+  1050                                  LOADSW:
+  1051 00000748 A02710                          MOV     AL,[ASCII]
+  1052 0000074B 08C0                            OR      AL,AL
+  1053 0000074D C3                              RETN
+  1054                                  
+  1055                                  BUILDNAME:
+  1056                                  ; [SI] = Ambiguous input file name
+  1057                                  ; [BX] = Source of replacement characters
+  1058                                  ; [DI] = Destination
+  1059                                  ; File name is copied from [SI] to [DI]. If "?"s are encountered,
+  1060                                  ; they are replaced with the character in the same position at [BX].
+  1061 0000074E B90B00                          MOV     CX,11
+  1062                                  BUILDNAM:
+  1063 00000751 AC                              LODSB
+  1064 00000752 3C3F                            CMP     AL,"?"
+  1065 00000754 7502                            JNZ     SHORT NOTAMBIG
+  1066 00000756 8A07                            MOV     AL,[BX]
+  1067                                  NOTAMBIG:
+  1068 00000758 AA                              STOSB
+  1069 00000759 43                              INC     BX
+  1070 0000075A E2F5                            LOOP    BUILDNAM
+  1071 0000075C C3                              RETN
+  1072                                  
+  1073                                  COMPNAME:
+  1074 0000075D BEC60F                          MOV     SI,DEST
+  1075 00000760 BFF60F                          MOV     DI,DIRBUF
+  1076 00000763 B90600                          MOV     CX,6
+  1077 00000766 F3A7                            REPE    CMPSW
+  1078 00000768 C3                              RETN
+  1079                                  
+  1080                                  CHECKREAD:
+  1081                                  ;Read file in (with READIN) if not identical to destination
+  1082 00000769 E8F1FF                          CALL    COMPNAME                ;See if source and destination the same
+  1083 0000076C 750F                            JNZ     SHORT READIN
+  1084 0000076E 803E251000                      CMP     BYTE [APPEND],0		;If physical append, it's OK
+  1085 00000773 7507                            JNZ     SHORT RET40
+  1086 00000775 BA[790C]                        MOV     DX,LOSTERR		;Tell him he's not going to get it
+  1087 00000778 B409                            MOV     AH,PRINTBUF
+  1088 0000077A CD21                            INT     33
+  1089                                  RET40:  
+  1090 0000077C C3                      	RETN
+  1091                                  
+  1092                                  READIN:
+  1093                                  ;Open source file and read it in. If memory fills up, flush it out to
+  1094                                  ;destination and keep reading. If /A switch set, chop file at first ^Z.
+  1095                                  ; Inputs/Outputs:
+  1096                                  ;       [NXTADD] has current pointer in buffer
+  1097                                  ;       [CFLAG] <>0 if destination has been created
+  1098                                  
+  1099 0000077D BAF60F                          MOV     DX,DIRBUF
+  1100 00000780 B40F                            MOV     AH,OPEN
+  1101 00000782 CD21                            INT     21H
+  1102 00000784 08C0                            OR      AL,AL                   ;Successful open?
+  1103 00000786 75F4                            JNZ     SHORT RET40		;If not, just ignore it
+  1104 00000788 31C0                            XOR     AX,AX
+  1105 0000078A A31710                          MOV     [DIRBUF+RR],AX
+  1106 0000078D A31910                          MOV     [DIRBUF+RR+2],AX
+  1107 00000790 40                              INC     AX
+  1108 00000791 A30410                          MOV     [DIRBUF+RECLEN],AX
+  1109                                  COPYLP:
+  1110 00000794 8B16B40F                        MOV     DX,[NXTADD]
+  1111 00000798 B41A                            MOV     AH,SETDMA
+  1112 0000079A 1E                              PUSH    DS
+  1113 0000079B 8E1EA00F                        MOV     DS,[TPA]
+  1114 0000079F CD21                            INT     33
+  1115 000007A1 1F                              POP     DS
+  1116 000007A2 8B0EB20F                        MOV     CX,[BYTCNT]
+  1117 000007A6 29D1                            SUB     CX,DX                   ;Compute available space
+  1118 000007A8 BAF60F                          MOV     DX,DIRBUF
+  1119 000007AB B427                            MOV     AH,RDBLK                ;Read in source file
+  1120 000007AD CD21                            INT     21H
+  1121 000007AF E3CB                            JCXZ    RET40
+  1122 000007B1 803E271000                      CMP     BYTE [ASCII],0
+  1123 000007B6 7417                            JZ      SHORT BINREAD
+  1124 000007B8 89CA                            MOV     DX,CX
+  1125 000007BA 8B3EB40F                        MOV     DI,[NXTADD]
+  1126 000007BE B01A                            MOV     AL,1AH
+  1127 000007C0 06                              PUSH    ES
+  1128 000007C1 8E06A00F                        MOV     ES,[TPA]
+  1129 000007C5 F2AE                            REPNE   SCASB                   ;Scan for EOF
+  1130 000007C7 07                              POP     ES
+  1131 000007C8 7501                            JNZ     SHORT USEALL
+  1132 000007CA 41                              INC     CX
+  1133                                  USEALL:
+  1134 000007CB 29CA                            SUB     DX,CX
+  1135 000007CD 89D1                            MOV     CX,DX
+  1136                                  BINREAD:
+  1137 000007CF 030EB40F                        ADD     CX,[NXTADD]
+  1138 000007D3 890EB40F                        MOV     [NXTADD],CX
+  1139 000007D7 3B0EB20F                        CMP     CX,[BYTCNT]             ;Is buffer full?
+  1140 000007DB 729F                            JB      SHORT RET40		;If not, we must have found EOF
+  1141 000007DD E84E00                          CALL    FLSHFIL
+  1142 000007E0 EBB2                            JMP     SHORT COPYLP
+  1143                                  
+  1144                                  CLOSEFIL:
+  1145 000007E2 A1B40F                          MOV     AX,[NXTADD]
+  1146 000007E5 89C3                            MOV     BX,AX
+  1147 000007E7 08E0                            OR      AL,AH                   ;See if any data is loaded
+  1148 000007E9 0A06B00F                        OR      AL,[CFLAG]              ;   or file was created
+  1149 000007ED 743E                            JZ      SHORT RET50		;Don't close or count if not created
+  1150 000007EF A0AD0F                          MOV     AL,[ARG2S]
+  1151 000007F2 E846FF                          CALL    SETASC                  ;Check for /B or /A on destination
+  1152 000007F5 7419                            JZ      SHORT BINCLOS
+  1153 000007F7 3B1EB20F                        CMP     BX,[BYTCNT]             ;Is memory full?
+  1154 000007FB 7505                            JNZ     SHORT PUTZ
+  1155 000007FD E82E00                          CALL    FLSHFIL                 ;Empty it to make room for 1 lousy byte
+  1156 00000800 31DB                            XOR     BX,BX
+  1157                                  PUTZ:
+  1158 00000802 1E                              PUSH    DS
+  1159 00000803 8E1EA00F                        MOV     DS,[TPA]
+  1160 00000807 C7071A00                        MOV     WORD [BX],1AH		;Add End-of-file mark (Ctrl-Z)
+  1161 0000080B 1F                              POP     DS
+  1162 0000080C FF06B40F                        INC     WORD [NXTADD]
+  1163                                  BINCLOS:
+  1164 00000810 E81B00                          CALL    FLSHFIL
+  1165 00000813 803E241000                      CMP     BYTE [INEXACT],0	;Copy not exact?
+  1166 00000818 7508                            JNZ     SHORT NODATE		;If so, don't copy date & time
+  1167 0000081A BE0A10                          MOV     SI,DIRBUF+OFFDATE
+  1168 0000081D BFDA0F                          MOV     DI,DEST+OFFDATE		;Make date & time same as original
+  1169 00000820 A5                              MOVSW                           ;Copy date
+  1170 00000821 A5                              MOVSW                           ;Copy time
+  1171                                  NODATE:
+  1172 00000822 BAC60F                          MOV     DX,DEST
+  1173 00000825 B410                            MOV     AH,CLOSE
+  1174 00000827 CD21                            INT     21H
+  1175 00000829 FF06B80F                        INC     WORD [FILECNT]
+  1176                                  RET50:
+  1177 0000082D C3                      	RETN
+  1178                                  
+  1179                                  FLSHFIL:
+  1180                                  ;Write out any data remaining in memory.
+  1181                                  ; Inputs:
+  1182                                  ;       [NXTADD] = No. of bytes to write
+  1183                                  ;       [CFLAG] <>0 if file has been created
+  1184                                  ; Outputs:
+  1185                                  ;       [NXTADD] = 0
+  1186                                  
+  1187 0000082E B001                            MOV     AL,1
+  1188 00000830 8606B00F                        XCHG    [CFLAG],AL
+  1189 00000834 08C0                            OR      AL,AL
+  1190 00000836 7521                            JNZ     SHORT EXISTS
+  1191 00000838 803E261000                      CMP     BYTE [NOWRITE],0
+  1192 0000083D 750E                            JNZ     SHORT SKPMAK		;Don't actually create if NOWRITE set
+  1193 0000083F BAC60F                          MOV     DX,DEST
+  1194 00000842 B416                            MOV     AH,MAKE
+  1195 00000844 CD21                            INT     21H
+  1196 00000846 BA[3F0C]                        MOV     DX,FULDIR
+  1197 00000849 08C0                            OR      AL,AL
+  1198 0000084B 753E                            JNZ     SHORT COPERR
+  1199                                  SKPMAK:
+  1200 0000084D 31C0                            XOR     AX,AX
+  1201 0000084F A3E70F                          MOV     [DEST+RR],AX
+  1202 00000852 A3E90F                          MOV     [DEST+RR+2],AX
+  1203 00000855 40                              INC     AX
+  1204 00000856 A3D40F                          MOV     [DEST+RECLEN],AX
+  1205                                  EXISTS:
+  1206 00000859 31C9                            XOR     CX,CX
+  1207 0000085B 870EB40F                        XCHG    CX,[NXTADD]
+  1208 0000085F 803E261000                      CMP     BYTE [NOWRITE],0	;If NOWRITE set, just seek CX bytes
+  1209 00000864 752C                            JNZ     SHORT SEEKEND
+  1210 00000866 31D2                            XOR     DX,DX
+  1211 00000868 1E                              PUSH    DS
+  1212 00000869 8E1EA00F                        MOV     DS,[TPA]
+  1213 0000086D B41A                            MOV     AH,SETDMA
+  1214 0000086F CD21                            INT     33
+  1215 00000871 1F                              POP     DS
+  1216 00000872 BAC60F                          MOV     DX,DEST
+  1217 00000875 B428                            MOV     AH,WRBLK
+  1218 00000877 CD21                            INT     21H
+  1219 00000879 08C0                            OR      AL,AL
+  1220 0000087B 741E                            JZ      SHORT RET60
+  1221 0000087D BAC60F                          MOV     DX,DEST
+  1222 00000880 B410                            MOV     AH,CLOSE
+  1223 00000882 CD21                            INT     21H
+  1224 00000884 B413                            MOV     AH,DELETE
+  1225 00000886 CD21                            INT     33
+  1226 00000888 BA[250C]                        MOV     DX,NOSPACE
+  1227                                  COPERR:
+  1228 0000088B B409                            MOV     AH,9
+  1229 0000088D CD21                            INT     21H
+  1230 0000088F E984FD                          JMP	ENDCOPY
+  1231                                  
+  1232                                  SEEKEND:
+  1233 00000892 010EE70F                        ADD     [DEST+RR],CX
+  1234 00000896 8316E90F00                      ADC     WORD [DEST+RR+2],0 ;Propagate carry
+  1235                                  RET60:  
+  1236 0000089B C3                      	RETN
+  1237                                  
+  1238                                  GETBATBYT:
+  1239                                  ;Get one byte from the batch file and return it in AL. End-of-file
+  1240                                  ;returns <CR> and ends batch mode. DS must be set to resident segment.
+  1241                                  ;AH, CX, DX destroyed.
+  1242 0000089C BAF903                          MOV     DX,BATFCB
+  1243 0000089F B427                            MOV     AH,RDBLK
+  1244 000008A1 B90100                          MOV     CX,1
+  1245 000008A4 CD21                            INT     33              ;Get one more byte from batch file
+  1246 000008A6 E307                            JCXZ    BATEOF
+  1247 000008A8 A05C04                          MOV     AL,[BATBYT]
+  1248 000008AB 3C1A                            CMP     AL,1AH
+  1249 000008AD 7507                            JNZ     SHORT RET70
+  1250                                  BATEOF:
+  1251 000008AF B00D                            MOV     AL,0DH          ;If end-of-file, then end of line
+  1252 000008B1 C606320400                      MOV     BYTE [BATCH],0	;And turn off batch mode
+  1253                                  RET70:  
+  1254 000008B6 C3                      	RETN
+  1255                                  
+  1256                                  SCANOFF:
+  1257 000008B7 AC                              LODSB
+  1258 000008B8 E80400                          CALL    DELIM
+  1259 000008BB 74FA                            JZ      SHORT SCANOFF
+  1260 000008BD 4E                              DEC     SI              ;Point to first non-delimiter
+  1261 000008BE C3                              RETN
+  1262                                  
+  1263                                  DELIM:
+  1264 000008BF 3C20                            CMP     AL," "
+  1265 000008C1 740A                            JZ      SHORT RET80
+  1266 000008C3 3C3D                            CMP     AL,"="
+  1267 000008C5 7406                            JZ      SHORT RET80
+  1268 000008C7 3C2C                            CMP     AL,","
+  1269 000008C9 7402                            JZ      SHORT RET80
+  1270 000008CB 3C09                            CMP     AL,9            ;Check for TAB character
+  1271                                  RET80:  
+  1272 000008CD C3                      	RETN
+  1273                                  
+  1274                                  PAUSE:
+  1275 000008CE BA[F90C]                        MOV     DX,PAUSMES
+  1276 000008D1 B409                            MOV     AH,PRINTBUF
+  1277 000008D3 CD21                            INT     33
+  1278 000008D5 B8010C                          MOV     AX,0C00H+INCHAR ;Get character with KB buffer flush
+  1279 000008D8 CD21                            INT     33
+  1280                                  RET90:  
+  1281 000008DA C3                      	RETN
+  1282                                  
+  1283                                  ;Date and time are set during initialization and use
+  1284                                  ;this routines since they need to do a long return
+  1285                                  
+  1286                                  DATINIT:
+  1287 000008DB 06                              PUSH    ES
+  1288 000008DC 1E                              PUSH    DS              ;Going to use the previous stack
+  1289 000008DD 8CC8                            MOV     AX,CS           ;Set up the appropriate segment registers
+  1290 000008DF 8EC0                            MOV     ES,AX
+  1291 000008E1 8ED8                            MOV     DS,AX
+  1292 000008E3 C60681000D                      MOV     BYTE [81H],13	;Want to prompt for date during initialization
+  1293 000008E8 E80600                          CALL    DATE
+  1294 000008EB E89400                          CALL    TIME
+  1295 000008EE 1F                              POP     DS
+  1296 000008EF 07                              POP     ES
+  1297 000008F0 CB                      	RETF
+  1298                                  
+  1299                                  ; DATE - Gets and sets the time
+  1300                                  
+  1301                                  DATE:
+  1302 000008F1 BE8100                          MOV     SI,81H          ;Accepting argument for date inline
+  1303 000008F4 E8C0FF                          CALL    SCANOFF
+  1304 000008F7 3C0D                            CMP     AL,13
+  1305 000008F9 7408                            JZ      SHORT PRMTDAT
+  1306 000008FB BB2D2F                          MOV     BX,2F00H+"-"    ;"/-"
+  1307 000008FE E80401                          CALL    INLINE
+  1308 00000901 EB3C                            JMP     SHORT COMDAT
+  1309                                  
+  1310                                  PRMTDAT:
+  1311 00000903 BA[4D0D]                        MOV     DX,CURDAT
+  1312 00000906 B409                            MOV     AH,PRINTBUF
+  1313 00000908 CD21                            INT     33              ;Print "Current date is "
+  1314 0000090A B42A                            MOV     AH,GETDATE
+  1315 0000090C CD21                            INT     33              ;Get date in CX:DX
+  1316 0000090E 98                              CBW
+  1317 0000090F 89C6                            MOV     SI,AX
+  1318 00000911 D1E6                            SHL     SI,1
+  1319 00000913 01C6                            ADD     SI,AX           ;SI=AX*3
+  1320 00000915 81C6[290D]                      ADD     SI,WEEKTAB
+  1321 00000919 89CB                            MOV     BX,CX
+  1322 0000091B B90300                          MOV     CX,3
+  1323 0000091E E80DFB                          CALL    OUTCNT
+  1324 00000921 B020                            MOV     AL," "
+  1325 00000923 E85A01                          CALL    OUT
+  1326 00000926 89D8                            MOV     AX,BX
+  1327 00000928 89D1                            MOV     CX,DX
+  1328 0000092A B264                            MOV     DL,100
+  1329 0000092C F6F2                            DIV     DL
+  1330 0000092E 86C4                            XCHG    AL,AH
+  1331 00000930 92                              XCHG    AX,DX
+  1332 00000931 B32D                            MOV     BL,"-"
+  1333 00000933 E80F01                          CALL    SHOW
+  1334                                  GETDAT:
+  1335 00000936 BA[5E0D]                        MOV     DX,NEWDAT
+  1336 00000939 BB2D2F                          MOV     BX,2F00H+"-"    ;"/-" in BX
+  1337 0000093C E8B000                          CALL    GETBUF
+  1338                                  COMDAT: 
+  1339 0000093F 7499                    	JZ	SHORT RET90
+  1340 00000941 7236                            JC	SHORT DATERR
+  1341 00000943 AC                              LODSB   
+  1342 00000944 38D8                            CMP     AL,BL
+  1343 00000946 7404                            JZ      SHORT SEPGD
+  1344 00000948 38F8                            CMP     AL,BH
+  1345 0000094A 752D                            JNZ     SHORT DATERR
+  1346                                  SEPGD:  
+  1347 0000094C E8D600                  	CALL    GETNUM
+  1348 0000094F 7228                            JC      SHORT DATERR
+  1349 00000951 B96C07                          MOV     CX,1900
+  1350 00000954 803C0D                          CMP     BYTE [SI],13
+  1351 00000957 740B                            JZ      SHORT BIAS
+  1352 00000959 B064                            MOV     AL,100
+  1353 0000095B F6E4                            MUL     AH
+  1354 0000095D 89C1                            MOV     CX,AX
+  1355 0000095F E8C300                          CALL    GETNUM
+  1356 00000962 7215                            JC	SHORT DATERR
+  1357                                  BIAS:
+  1358 00000964 88E0                            MOV     AL,AH
+  1359 00000966 B400                            MOV     AH,0
+  1360 00000968 01C1                            ADD     CX,AX
+  1361 0000096A AC                              LODSB
+  1362 0000096B 3C0D                            CMP     AL,13
+  1363 0000096D 750A                            JNZ     SHORT DATERR
+  1364 0000096F B42B                            MOV     AH,SETDATE
+  1365 00000971 CD21                            INT     33
+  1366 00000973 08C0                            OR      AL,AL
+  1367                                          ;JNZ	SHORT DATERR
+  1368                                          ;JMP	RET90
+  1369 00000975 0F8461FF                	JZ	RET90
+  1370                                  DATERR:
+  1371 00000979 BA[3E0D]                        MOV     DX,BADDAT
+  1372 0000097C B409                            MOV     AH,PRINTBUF
+  1373 0000097E CD21                            INT     33
+  1374 00000980 EBB4                            JMP     SHORT GETDAT
+  1375                                  
+  1376                                  ; TIME gets and sets the time
+  1377                                  
+  1378                                  TIME:
+  1379 00000982 BE8100                          MOV     SI,81H		;Accepting argument for time inline
+  1380 00000985 E82FFF                          CALL    SCANOFF
+  1381 00000988 3C0D                            CMP     AL,13
+  1382 0000098A 7408                            JZ      SHORT PRMTTIM
+  1383 0000098C BB3A3A                          MOV     BX,3A00H+":"
+  1384 0000098F E87300                          CALL    INLINE
+  1385 00000992 EB1B                            JMP     SHORT COMTIM
+  1386                                  
+  1387                                  PRMTTIM:
+  1388 00000994 BA[800D]                        MOV     DX,CURTIM
+  1389 00000997 B409                            MOV     AH,PRINTBUF
+  1390 00000999 CD21                            INT     33              ;Print "Current time is "
+  1391 0000099B B42C                            MOV     AH,GETTIME
+  1392 0000099D CD21                            INT     33              ;Get time in CX:DX
+  1393 0000099F B33A                            MOV     BL,":"
+  1394 000009A1 E8A100                          CALL    SHOW
+  1395                                  GETTIM:
+  1396 000009A4 31C9                            XOR     CX,CX           ;Initialize hours and minutes to zero
+  1397 000009A6 BA[910D]                        MOV     DX,NEWTIM
+  1398 000009A9 BB3A3A                          MOV     BX,3A00H+":"
+  1399 000009AC E84000                          CALL    GETBUF
+  1400                                  COMTIM: 
+  1401 000009AF 7468                    	JZ      SHORT RET100	;If no time present, don't change it
+  1402 000009B1 7233                            JC      SHORT TIMERR
+  1403 000009B3 89D1                            MOV     CX,DX
+  1404 000009B5 31D2                            XOR     DX,DX
+  1405 000009B7 AC                              LODSB
+  1406 000009B8 3C0D                            CMP     AL,13
+  1407 000009BA 7422                            JZ	SHORT SAVTIM
+  1408 000009BC 38D8                            CMP     AL,BL
+  1409 000009BE 7526                            JNZ     SHORT TIMERR
+  1410 000009C0 B32E                            MOV     BL,"."
+  1411 000009C2 E86000                          CALL    GETNUM
+  1412 000009C5 721F                            JC      SHORT TIMERR
+  1413 000009C7 88E6                            MOV     DH,AH           ;Position seconds
+  1414 000009C9 AC                              LODSB
+  1415 000009CA 3C0D                            CMP     AL,13
+  1416 000009CC 7410                            JZ      SHORT SAVTIM
+  1417 000009CE 38D8                            CMP     AL,BL
+  1418 000009D0 7514                            JNZ     SHORT TIMERR  
+  1419 000009D2 E85000                          CALL    GETNUM
+  1420 000009D5 720F                            JC      SHORT TIMERR
+  1421 000009D7 88E2                            MOV     DL,AH
+  1422 000009D9 AC                              LODSB
+  1423 000009DA 3C0D                            CMP     AL,13
+  1424 000009DC 7508                            JNZ     SHORT TIMERR
+  1425                                  SAVTIM:
+  1426 000009DE B42D                            MOV     AH,SETTIME
+  1427 000009E0 CD21                            INT     33
+  1428 000009E2 08C0                            OR      AL,AL
+  1429 000009E4 7433                            JZ      SHORT RET100	;Error in time?
+  1430                                  TIMERR:
+  1431 000009E6 BA[710D]                        MOV     DX,BADTIM
+  1432 000009E9 B409                            MOV     AH,PRINTBUF
+  1433 000009EB CD21                            INT     33              ;Print error message
+  1434 000009ED EBB5                            JMP     SHORT GETTIM	;Try again
+  1435                                  
+  1436                                  GETBUF:
+  1437 000009EF B409                            MOV     AH,PRINTBUF
+  1438 000009F1 CD21                            INT     33              ;Print "Enter new date: "
+  1439 000009F3 B40A                            MOV     AH,INBUF
+  1440 000009F5 BA[130E]                        MOV     DX,COMBUF
+  1441 000009F8 CD21                            INT     33              ;Get input line
+  1442 000009FA E840FA                          CALL    CRLF2
+  1443 000009FD BE[150E]                        MOV     SI,COMBUF+2
+  1444 00000A00 803C0D                          CMP     BYTE [SI],13	;Check if new date entered
+  1445 00000A03 7414                            JZ      SHORT RET100
+  1446                                  INLINE:
+  1447 00000A05 E81D00                          CALL    GETNUM          ;Get one or two digit number
+  1448 00000A08 720F                            JC      SHORT RET100
+  1449 00000A0A 88E6                            MOV     DH,AH           ;Put in position
+  1450 00000A0C AC                              LODSB
+  1451 00000A0D 38D8                            CMP     AL,BL
+  1452 00000A0F 740E                            JZ      SHORT NEXT
+  1453 00000A11 80FB3A                          CMP     BL,":"          ;Is it a date seperator?
+  1454 00000A14 7504                            JNZ     SHORT DATESEP
+  1455 00000A16 4E                              DEC     SI
+  1456 00000A17 B200                            MOV     DL,0
+  1457                                  RET100: 
+  1458 00000A19 C3                      	RETN			;Time may have only an hour specified
+  1459                                  DATESEP:
+  1460 00000A1A 38F8                            CMP     AL,BH
+  1461 00000A1C F9                              STC
+  1462 00000A1D 75FA                            JNZ     SHORT RET100
+  1463 00000A1F E80300                  NEXT:   CALL    GETNUM
+  1464 00000A22 88E2                            MOV     DL,AH           ;Put in position
+  1465 00000A24 C3                              RETN
+  1466                                  
+  1467                                  GETNUM:
+  1468 00000A25 E81000                          CALL    INDIG
+  1469 00000A28 72EF                            JC      SHORT RET100
+  1470 00000A2A 88C4                            MOV     AH,AL           ;Save first digit
+  1471 00000A2C E80900                          CALL    INDIG           ;Another digit?
+  1472 00000A2F 7204                            JC      SHORT OKRET
+  1473 00000A31 D50A                            AAD                     ;Convert unpacked BCD to decimal
+  1474 00000A33 88C4                            MOV     AH,AL
+  1475                                  OKRET:
+  1476 00000A35 0C01                            OR      AL,1
+  1477                                  RET110: 
+  1478 00000A37 C3                      	RETN
+  1479                                  
+  1480                                  INDIG:
+  1481 00000A38 8A04                            MOV     AL,[SI]
+  1482 00000A3A 2C30                            SUB     AL,"0"
+  1483 00000A3C 72F9                            JC      SHORT RET110
+  1484 00000A3E 3C0A                            CMP     AL,10
+  1485 00000A40 F5                              CMC
+  1486 00000A41 72F4                            JC      SHORT RET110
+  1487 00000A43 46                              INC     SI
+  1488 00000A44 C3                              RETN
+  1489                                  
+  1490                                  SHOW:
+  1491 00000A45 88E8                            MOV     AL,CH
+  1492 00000A47 B710                            MOV     BH,"0"-" "      ;Enable leading zero suppression
+  1493 00000A49 E82000                          CALL    OUT2
+  1494 00000A4C 88D8                            MOV     AL,BL
+  1495 00000A4E E82F00                          CALL    OUT
+  1496 00000A51 88C8                            MOV     AL,CL
+  1497 00000A53 E81600                          CALL    OUT2
+  1498 00000A56 88D8                            MOV     AL,BL
+  1499 00000A58 E82500                          CALL    OUT
+  1500 00000A5B 88F0                            MOV     AL,DH
+  1501 00000A5D E80C00                          CALL    OUT2
+  1502 00000A60 80FB3A                          CMP     BL,":"          ;Are we outputting time?
+  1503 00000A63 7505                            JNZ     SHORT SKIPIT
+  1504 00000A65 B02E                            MOV     AL,"."
+  1505 00000A67 E81600                          CALL    OUT
+  1506                                  SKIPIT: 
+  1507 00000A6A 88D0                    	MOV     AL,DL
+  1508                                  OUT2:   ;Output binary number as two ASCII digits
+  1509 00000A6C D40A                            AAM                     ;Convert binary to unpacked BCD
+  1510 00000A6E 86C4                            XCHG    AL,AH
+  1511 00000A70 0D3030                          OR      AX,3030H        ;Add "0" bias to both digits
+  1512 00000A73 3C30                            CMP     AL,"0"          ;Is MSD zero?
+  1513 00000A75 7502                            JNZ     SHORT NOSUP
+  1514 00000A77 28F8                            SUB     AL,BH           ;Suppress leading zero if enabled
+  1515                                  NOSUP:
+  1516 00000A79 B700                            MOV     BH,0            ;Disable zero suppression
+  1517 00000A7B E80200                          CALL    OUT
+  1518 00000A7E 88E0                            MOV     AL,AH
+  1519                                  OUT:
+  1520                                  ;Print char in AL without affecting registers
+  1521 00000A80 92                              XCHG    AX,DX
+  1522 00000A81 50                              PUSH    AX
+  1523 00000A82 B402                            MOV     AH,OUTCH
+  1524 00000A84 CD21                            INT     33
+  1525 00000A86 58                              POP     AX
+  1526 00000A87 92                              XCHG    AX,DX
+  1527 00000A88 C3                              RETN
+  1528                                  
+  1529                                  EXELOAD:
+  1530 00000A89 8CC8                            MOV     AX,CS
+  1531 00000A8B 05AF00                          ADD     AX,LOADSEG
+  1532 00000A8E A31F10                          MOV     [EXEEND],AX     ;Store in EXEEND
+  1533 00000A91 BA2210                          MOV     DX,RUNVAR	;Read header in here
+  1534 00000A94 B41A                            MOV     AH,SETDMA
+  1535 00000A96 CD21                            INT     33
+  1536 00000A98 B91A00                          MOV     CX,RUNVARSIZ    ;Amount of header info we need
+  1537 00000A9B BABA0F                          MOV     DX,EXEFCB
+  1538 00000A9E B427                            MOV     AH,RDBLK
+  1539 00000AA0 CD21                            INT     33              ;Read in header
+  1540 00000AA2 08C0                            OR      AL,AL
+  1541 00000AA4 7579                            JNZ     SHORT BADEXE	;Must not reach EOF
+  1542 00000AA6 A12A10                          MOV     AX,[HEADSIZ]    ;Size of header in paragraphs
+  1543                                  ;Convert header size to 512-byte pages by multiplying by 32 & rounding up
+  1544 00000AA9 83C01F                          ADD     AX,31           ;Round up first
+  1545 00000AAC B105                            MOV     CL,5
+  1546 00000AAE D3E8                            SHR     AX,CL           ;Multiply by 32
+  1547 00000AB0 A3DB0F                          MOV     [EXEFCB+RR],AX  ;Position in file of program
+  1548 00000AB3 C706C80F0002                    MOV     WORD [EXEFCB+RECLEN],512 ;Set record size
+  1549 00000AB9 83C310                          ADD     BX,10H          ;First paragraph above parameter area
+  1550 00000ABC 8B162610                        MOV     DX,[PAGES]      ;Total size of file in 512-byte pages
+  1551 00000AC0 29C2                            SUB     DX,AX           ;Size of program in pages
+  1552 00000AC2 89162610                        MOV     [PSIZE],DX
+  1553 00000AC6 D3E2                            SHL     DX,CL           ;Convert pages back to paragraphs
+  1554 00000AC8 89D0                            MOV     AX,DX
+  1555 00000ACA 01DA                            ADD     DX,BX           ;Size + start = minimum memory (paragr.)
+  1556 00000ACC 8B0E1F10                        MOV     CX,[EXEEND]     ;Get memory size in paragraphs
+  1557 00000AD0 39CA                            CMP     DX,CX           ;Enough memory?
+  1558 00000AD2 7751                            JA      SHORT SHRTERR
+  1559 00000AD4 8B163210                        MOV     DX,[INITSP]
+  1560 00000AD8 83C20F                          ADD     DX,15
+  1561 00000ADB D1EA                            SHR     DX,1
+  1562 00000ADD D1EA                            SHR     DX,1
+  1563 00000ADF D1EA                            SHR     DX,1
+  1564 00000AE1 D1EA                            SHR     DX,1
+  1565 00000AE3 03163010                        ADD     DX,[INITSS]
+  1566 00000AE7 01DA                            ADD     DX,BX           ;Adjusted value of SP
+  1567 00000AE9 39CA                            CMP     DX,CX           ;Is it valid?
+  1568 00000AEB 7738                            JA      SHORT SHRTERR
+  1569 00000AED 803E2E10FF                      CMP     BYTE [LOADLOW],-1 ;Load low or high?
+  1570 00000AF2 7404                            JZ      SHORT LOAD	;If low, load at segment BX
+  1571 00000AF4 29C1                            SUB     CX,AX           ;Memory size - program size = load addr.
+  1572 00000AF6 89CB                            MOV     BX,CX
+  1573                                  LOAD:
+  1574 00000AF8 89DD                            MOV     BP,BX           ;Save load segment
+  1575                                  LOAD1:
+  1576                                  LOADSEG EQU     (LOAD1-ZERO)/16
+  1577 00000AFA 1E                              PUSH    DS
+  1578 00000AFB 8EDB                            MOV     DS,BX
+  1579 00000AFD 31D2                            XOR     DX,DX           ;Address 0 in segment
+  1580 00000AFF B41A                            MOV     AH,SETDMA
+  1581 00000B01 CD21                            INT     33              ;Set load address
+  1582 00000B03 1F                              POP     DS
+  1583 00000B04 8B0E2610                        MOV     CX,[PSIZE]      ;Number of records to read
+  1584 00000B08 BABA0F                          MOV     DX,EXEFCB
+  1585 00000B0B B427                            MOV     AH,RDBLK
+  1586 00000B0D CD21                            INT     33              ;Read in up to 64K
+  1587 00000B0F 290E2610                        SUB     [PSIZE],CX      ;Decrement count by amount read
+  1588 00000B13 7416                            JZ      SHORT HAVEXE	;Did we get it all?
+  1589 00000B15 A801                            TEST    AL,1            ;Check return code if not
+  1590 00000B17 7506                            JNZ     SHORT BADEXE	;Must be zero if more to come
+  1591 00000B19 81C3E00F                        ADD     BX,1000H-20H    ;Bump data segment 64K minus one record
+  1592 00000B1D EBDB                            JMP     SHORT LOAD1     ;Get next 64K block
+  1593                                  
+  1594                                  BADEXE:
+  1595 00000B1F BA[130C]                        MOV     DX,EXEBAD
+  1596 00000B22 E9B8F7                          JMP     ERROR
+  1597                                  
+  1598                                  SHRTERR:
+  1599 00000B25 BA[BC0C]                        MOV     DX,TOOBIG
+  1600 00000B28 E9B2F7                          JMP     ERROR
+  1601                                  
+  1602                                  HAVEXE:
+  1603 00000B2B A13A10                          MOV     AX,[RELTAB]     ;Get position of table
+  1604 00000B2E A3DB0F                          MOV     [EXEFCB+RR],AX  ;Set in random record field
+  1605 00000B31 C706C80F0100                    MOV     WORD [EXEFCB+RECLEN],1  ;Set one-byte record
+  1606 00000B37 BA2210                          MOV     DX,RELPT	;4-byte buffer for relocation address
+  1607 00000B3A B41A                            MOV     AH,SETDMA
+  1608 00000B3C CD21                            INT     33
+  1609 00000B3E 833E281000                      CMP     WORD [RELCNT],0
+  1610 00000B43 7422                            JZ      SHORT NOREL
+  1611                                  RELOC:
+  1612 00000B45 B427                            MOV     AH,RDBLK
+  1613 00000B47 BABA0F                          MOV     DX,EXEFCB
+  1614 00000B4A B90400                          MOV     CX,4
+  1615 00000B4D CD21                            INT     33              ;Read in one relocation pointer
+  1616 00000B4F 08C0                            OR      AL,AL           ;Check return code
+  1617 00000B51 75CC                            JNZ     SHORT BADEXE
+  1618 00000B53 8B3E2210                        MOV     DI,[RELPT]      ;Get offset of relocation pointer
+  1619 00000B57 A12410                          MOV     AX,[RELSEG]     ;Get segment
+  1620 00000B5A 01E8                            ADD     AX,BP           ;Bias segment with actual load segment
+  1621 00000B5C 8EC0                            MOV     ES,AX
+  1622 00000B5E 26012D                          ADD     [ES:DI],BP	;Relocate
+  1623 00000B61 FF0E2810                        DEC     WORD [RELCNT]	;Count off
+  1624 00000B65 75DE                            JNZ     SHORT RELOC
+  1625                                  ;Set up exit conditions
+  1626                                  NOREL:
+  1627 00000B67 A13010                          MOV     AX,[INITSS]
+  1628 00000B6A 01E8                            ADD     AX,BP
+  1629 00000B6C FA                              CLI
+  1630 00000B6D 8ED0                            MOV     SS,AX           ;Initialize SS
+  1631 00000B6F 8B263210                        MOV     SP,[INITSP]
+  1632 00000B73 FB                              STI
+  1633 00000B74 012E3810                        ADD     [INITCS],BP
+  1634 00000B78 A1A00F                          MOV     AX,[TPA]        ;Get pointer to parameter area
+  1635 00000B7B 8B0EB20F                        MOV     CX,[BYTCNT]     ;Size of TPA segment
+  1636 00000B7F 8EC0                            MOV     ES,AX
+  1637 00000B81 8ED8                            MOV     DS,AX           ;Set segment registers to point to it
+  1638 00000B83 E80500                          CALL    SETUP
+  1639 00000B86 2EFF2E3610                      JMP     FAR [CS:INITIP] ;Long jump to program
+  1640                                  
+  1641                                  SETUP:
+  1642 00000B8B 80E1F0                          AND     CL,0F0H         ;Adjust to even paragraph boundary
+  1643 00000B8E A10600                          MOV     AX,[6]		;Get current memory size
+  1644 00000B91 29C8                            SUB     AX,CX           ;Find out how much we're changing it
+  1645 00000B93 890E0600                        MOV     [6],CX
+  1646 00000B97 B104                            MOV     CL,4
+  1647 00000B99 D3F8                            SAR     AX,CL           ;Convert to a segment address
+  1648 00000B9B 01060800                        ADD     [8],AX		;Adjust long jump to go to same place
+  1649 00000B9F BA8000                          MOV     DX,80H
+  1650 00000BA2 B41A                            MOV     AH,SETDMA
+  1651 00000BA4 CD21                            INT     33              ;Set default disk transfer address
+  1652 00000BA6 2EA1A70F                        MOV     AX,[CS:PARM1]	;Pass on info about FCBs
+  1653 00000BAA 31C9                            XOR     CX,CX
+  1654 00000BAC 89CA                            MOV     DX,CX           ;Assume no batch file
+  1655 00000BAE 2EF6063204FF                    TEST    BYTE [CS:BATCH],-1 ;Batch file in progress?
+  1656 00000BB4 7408                            JZ      SHORT RET120	;If not, all set up
+  1657 00000BB6 2E8B0EA20F                      MOV     CX,[CS:RESSEG]
+  1658 00000BBB BAF903                          MOV     DX,BATFCB       ;CX:DX points to batch FCB
+  1659                                  RET120: 
+  1660 00000BBE C3                      	RETN
+  1661                                  
+  1662                                  
+  1663                                  ; ----------------------------------------------------------------------------
+  1664                                  ; SEGMENT - TRANDATA
+  1665                                  ; ----------------------------------------------------------------------------
+  1666 00000BBF 90                      ALIGN 16
+  1667                                  ; ----------------------------------------------------------------------------
+  1668                                  ;Data for transient portion
+  1669                                  ; ----------------------------------------------------------------------------
+  1670                                  
+  1671                                  TRANDATA:
+  1672                                  
+  1673 00000BC0 42616420636F6D6D61-     BADNAM: DB      "Bad command or file name",13,10,"$"
+  1674 00000BC9 6E64206F722066696C-
+  1675 00000BD2 65206E616D650D0A24 
+  1676 00000BDB 4D697373696E672066-     MISNAM: DB      "Missing file name$"
+  1677 00000BE4 696C65206E616D6524 
+  1678 00000BED 4475706C6963617465-     RENERR: DB      "Duplicate file name or "
+  1679 00000BF6 2066696C65206E616D-
+  1680 00000BFF 65206F7220         
+  1681 00000C04 46696C65206E6F7420-     NOTFND: DB      "File not found$"
+  1682 00000C0D 666F756E6424       
+  1683 00000C13 4572726F7220696E20-     EXEBAD: DB      "Error in EXE file$"
+  1684 00000C1C 4558452066696C6524 
+  1685 00000C25 496E73756666696369-     NOSPACE: DB	"Insufficient disk space",13,10,"$"
+  1686 00000C2E 656E74206469736B20-
+  1687 00000C37 73706163650D0A24   
+  1688 00000C3F 46696C652063726561-     FULDIR: DB      "File creation error",13,10,"$"
+  1689 00000C48 74696F6E206572726F-
+  1690 00000C51 720D0A24           
+  1691 00000C55 46696C652063616E6E-     OVERWR: DB      "File cannot be copied onto itself",13,10,"$"
+  1692 00000C5E 6F7420626520636F70-
+  1693 00000C67 696564206F6E746F20-
+  1694 00000C70 697473656C660D0A24 
+  1695 00000C79 436F6E74656E74206F-     LOSTERR: DB	"Content of destination lost before copy",13,10,"$"
+  1696 00000C82 662064657374696E61-
+  1697 00000C8B 74696F6E206C6F7374-
+  1698 00000C94 206265666F72652063-
+  1699 00000C9D 6F70790D0A24       
+  1700 00000CA3 2046696C6528732920-     COPIED: DB      " File(s) copied$"
+  1701 00000CAC 636F7069656424     
+  1702 00000CB3 2046696C6528732924      DIRMES: DB      " File(s)$"
+  1703 00000CBC 50726F6772616D2074-     TOOBIG: DB      "Program too big to fit in memory$"
+  1704 00000CC5 6F6F2062696720746F-
+  1705 00000CCE 2066697420696E206D-
+  1706 00000CD7 656D6F727924       
+  1707 00000CDD 496E76616C69642064-     BADDRV: DB      "Invalid drive specification$"
+  1708 00000CE6 726976652073706563-
+  1709 00000CEF 696669636174696F6E-
+  1710 00000CF8 24                 
+  1711 00000CF9 537472696B65206120-     PAUSMES: DB	"Strike a key when ready . . . $"
+  1712 00000D02 6B6579207768656E20-
+  1713 00000D0B 7265616479202E202E-
+  1714 00000D14 202E2024           
+  1715 00000D18 496C6C6567616C2073-     BADSWT: DB      "Illegal switch",13,10,"$"
+  1716 00000D21 77697463680D0A24   
+  1717 00000D29 53756E4D6F6E547565-     WEEKTAB: DB	"SunMonTueWedThuFriSat"
+  1718 00000D32 576564546875467269-
+  1719 00000D3B 536174             
+  1720 00000D3E 0D0A496E76616C6964-     BADDAT: DB      13,10,"Invalid date$"
+  1721 00000D47 206461746524       
+  1722 00000D4D 43757272656E742064-     CURDAT: DB      "Current date is $"
+  1723 00000D56 6174652069732024   
+  1724 00000D5E 0D0A456E746572206E-     NEWDAT: DB      13,10,"Enter new date: $"
+  1725 00000D67 657720646174653A20-
+  1726 00000D70 24                 
+  1727 00000D71 0D0A496E76616C6964-     BADTIM: DB      13,10,"Invalid time$"
+  1728 00000D7A 2074696D6524       
+  1729 00000D80 43757272656E742074-     CURTIM: DB      "Current time is $"
+  1730 00000D89 696D652069732024   
+  1731 00000D91 0D0A456E746572206E-     NEWTIM: DB      13,10,"Enter new time: $"
+  1732 00000D9A 65772074696D653A20-
+  1733 00000DA3 24                 
+  1734 00000DA4 41726520796F752073-     SUREMES: DB	"Are you sure (Y/N)? $"
+  1735 00000DAD 7572652028592F4E29-
+  1736 00000DB6 3F2024             
+  1737                                  
+  1738 00000DB9 90                      ALIGN 2
+  1739                                  
+  1740 00000DBA 0444495201              COMTAB:	DB      4,"DIR",1
+  1741 00000DBF [0E03]                          DW      CATALOG
+  1742 00000DC1 0752454E414D4501                DB      7,"RENAME",1
+  1743 00000DC9 [E304]                          DW      RENAME
+  1744 00000DCB 0452454E01                      DB      4,"REN",1
+  1745 00000DD0 [E304]                          DW      RENAME
+  1746 00000DD2 06455241534501                  DB      6,"ERASE",1
+  1747 00000DD9 [AC04]                          DW      ERASE
+  1748 00000DDB 0444454C01                      DB      4,"DEL",1
+  1749 00000DE0 [AC04]                          DW      ERASE
+  1750 00000DE2 055459504501                    DB      5,"TYPE",1
+  1751 00000DE8 [0005]                          DW      TYPEFIL
+  1752 00000DEA 0452454D01                      DB      4,"REM",1
+  1753 00000DEF [0400]                          DW      COMMAND
+  1754 00000DF1 05434F505901                    DB      5,"COPY",1
+  1755 00000DF7 [4A05]                          DW      COPY
+  1756 00000DF9 06504155534501                  DB      6,"PAUSE",1
+  1757 00000E00 [CE08]                          DW      PAUSE
+  1758 00000E02 054441544500                    DB      5,"DATE",0
+  1759 00000E08 [F108]                          DW      DATE
+  1760 00000E0A 0554494D4500                    DB      5,"TIME",0
+  1761 00000E10 [8209]                          DW      TIME
+  1762 00000E12 00                              DB      0               ;Terminate command table
+  1763                                  
+  1764 00000E13 80010D                  COMBUF:	DB      128,1,13
+  1765                                  
+  1766                                  COMLEN	EQU	$-$$
+  1767                                  
+  1768                                  BSS_START EQU	COMLEN+100H
+  1769                                  
+  1770                                  ; ----------------------------------------------------------------------------
+  1771                                  ; SEGMENT - TRANDATA
+  1772                                  ; ----------------------------------------------------------------------------
+  1773                                  
+  1774                                  ; ----------------------------------------------------------------------------
+  1775                                  ;Uninitialized transient data
+  1776                                  ; ----------------------------------------------------------------------------
+  1777                                  
+  1778                                  TRANSPACEPARAGS EQU (BSS_START+15)/16	
+  1779                                  
+  1780                                  TRANSPACE	EQU 16*TRANSPACEPARAGS
+  1781                                  
+  1782                                  ABSOLUTE TRANSPACE
+  1783                                  
+  1784 00000F20 <res 00000080>                  RESB	128
+  1785 00000FA0 <res 00000002>          TPA:	RESW	1
+  1786 00000FA2 <res 00000002>          RESSEG: RESW	1
+  1787 00000FA4 <res 00000001>          CHKDRV: RESB	1
+  1788 00000FA5 <res 00000001>          FILTYP:	RESB	1
+  1789 00000FA6 <res 00000001>          CURDRV:	RESB	1
+  1790 00000FA7 <res 00000001>          PARM1:	RESB	1
+  1791 00000FA8 <res 00000001>          PARM2:	RESB	1
+  1792 00000FA9 <res 00000002>          COMSW:	RESW	1
+  1793 00000FAB <res 00000002>          ARG1S:	RESW	1
+  1794 00000FAD <res 00000002>          ARG2S:	RESW	1
+  1795 00000FAF <res 00000001>          FLAGER:	RESB	1
+  1796 00000FB0 <res 00000001>          CFLAG:	RESB	1
+  1797 00000FB1 <res 00000001>          SPECDRV: RESB	1
+  1798 00000FB2 <res 00000002>          BYTCNT:	RESW	1
+  1799 00000FB4 <res 00000002>          NXTADD:	RESW	1
+  1800 00000FB6 <res 00000001>          LINCNT:	RESB	1
+  1801 00000FB7 <res 00000001>          LINLEN:	RESB	1
+  1802 00000FB8 <res 00000002>          FILECNT: RESW	1
+  1803                                  
+  1804                                  ALIGNB 2
+  1805                                  
+  1806                                  EXEFCB:
+  1807 00000FBA <res 00000001>          IDLEN:	RESB	1
+  1808 00000FBB <res 00000008>          ID:	RESB	8
+  1809 00000FC3 <res 00000003>          COM:	RESB	3
+  1810 00000FC6 <res 00000025>          DEST:	RESB	37
+  1811 00000FEB <res 0000000B>          DESTNAME: RESB	11
+  1812 00000FF6 <res 00000025>          DIRBUF:	RESB	37
+  1813 0000101B <res 00000002>          _BITS:	RESW	1
+  1814 0000101D <res 00000002>          FULLSCR: RESW	1
+  1815 0000101F <res 00000002>          EXEEND:	RESW	1
+  1816                                  ;Header variables for EXE file load
+  1817                                  ;These are overlapped with COPY variables, below
+  1818                                  
+  1819 00001021 <res 00000001>          ALIGNB 2
+  1820                                  
+  1821                                  RUNVAR:
+  1822 00001022 <res 00000002>          RELPT:	RESW	1
+  1823 00001024 <res 00000002>          RELSEG:	RESW	1
+  1824                                  
+  1825                                  ALIGNB 2
+  1826                                  
+  1827                                  PSIZE:
+  1828 00001026 <res 00000002>          PAGES:	RESW	1
+  1829 00001028 <res 00000002>          RELCNT:	RESW	1
+  1830 0000102A <res 00000002>          HEADSIZ: RESW	1
+  1831 0000102C <res 00000002>                  RESW	1
+  1832 0000102E <res 00000002>          LOADLOW: RESW   1
+  1833 00001030 <res 00000002>          INITSS:	RESW	1
+  1834 00001032 <res 00000002>          INITSP: RESW	1
+  1835 00001034 <res 00000002>                  RESW	1
+  1836 00001036 <res 00000002>          INITIP:	RESW	1
+  1837 00001038 <res 00000002>          INITCS:	RESW	1
+  1838 0000103A <res 00000002>          RELTAB:	RESW	1
+  1839                                  
+  1840                                  RUNVARSIZ EQU	$-RUNVAR
+  1841                                  
+  1842                                  ALIGNB 2
+  1843 0000103C <res 00000080>                  RESB	128
+  1844                                  STACK:
+  1845                                  
+  1846                                  ABSOLUTE RUNVAR		;Overlaps EXE variables
+  1847                                  
+  1848 00001022 <res 00000002>          SRCPT:	RESW	1
+  1849 00001024 <res 00000001>          INEXACT: RESB	1
+  1850 00001025 <res 00000001>          APPEND:	RESB	1
+  1851 00001026 <res 00000001>          NOWRITE: RESB	1
+  1852 00001027 <res 00000001>          ASCII:	RESB	1
+  1853 00001028 <res 00000001>          PLUS:	RESB	1
+  1854 00001029 <res 0000000B>          SOURCE:	RESB	11
+  1855                                  
+  1856                                  ABSOLUTE STACK
+  1857                                  
+  1858                                  TRANSPACESIZE 	EQU	$-BSS_START
+  1859                                  
+  1860                                  ;Length of transient in paragraphs
+  1861                                  TRNLEN  EQU     (BSS_START+TRANSPACESIZE+15)/16

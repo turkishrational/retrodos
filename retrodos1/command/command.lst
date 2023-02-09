@@ -1,0 +1,527 @@
+     1                                  ; ****************************************************************************
+     2                                  ; COMMAND.COM (MSDOS 1.25 Command Interpreter) - RETRO DOS v1.0 by ERDOGAN TAN
+     3                                  ; ----------------------------------------------------------------------------
+     4                                  ; Last Update: 23/02/2018
+     5                                  ; ----------------------------------------------------------------------------
+     6                                  ; Beginning: 15/02/2018 
+     7                                  ; ----------------------------------------------------------------------------
+     8                                  ; Assembler: NASM version 2.11  
+     9                                  ; ----------------------------------------------------------------------------
+    10                                  ;	    ((nasm command.s -l command.lst -o COMMAND.COM)) 	
+    11                                  ; ----------------------------------------------------------------------------
+    12                                  ; Derived from 'COMMAND.ASM' file of MSDOS 1.25 (IBM PCDOS v1.1) source code
+    13                                  ; by Microsoft (by Tim Paterson), 17/05/1983
+    14                                  ; ****************************************************************************
+    15                                  
+    16                                  
+    17                                  ; COMMAND version 1.17
+    18                                  ;
+    19                                  ; This version of COMMAND is divided into three distinct parts. First
+    20                                  ; is the resident portion, which includes handlers for interrupts
+    21                                  ; 22H (terminate), 23H (Cntrl-C), 24H (fatal error), and 27H (stay
+    22                                  ; resident); it also has code to test and, if necessary, reload the
+    23                                  ; transient portion. Following the resident is the init code, which is
+    24                                  ; overwritten after use. Then comes the transient portion, which
+    25                                  ; includes all command processing (whether internal or external).
+    26                                  ; The transient portion loads at the end of physical memory, and it may
+    27                                  ; be overlayed by programs that need as much memory as possible. When
+    28                                  ; the resident portion of command regains control from a user program,
+    29                                  ; a checksum is performed on the transient portion to see if it must be
+    30                                  ; reloaded. Thus programs which do not need maximum memory will save
+    31                                  ; the time required to reload COMMAND when they terminate.
+    32                                  
+    33                                  ;Use the following booleans to set assembly flags
+    34                                  ;FALSE	EQU     0
+    35                                  ;TRUE	EQU     ~FALSE	; NOT FALSE
+    36                                  
+    37                                  ;IBMVER	EQU     FALSE   ;Switch to build IBM version of Command
+    38                                  ;MSVER	EQU     TRUE    ;Switch to build MS-DOS version of Command
+    39                                  
+    40                                  ;HIGHMEM EQU	TRUE	;Run resident part above transient (high memory)
+    41                                  
+    42                                  LINPERPAG       EQU     23
+    43                                  NORMPERLIN      EQU     1
+    44                                  WIDEPERLIN      EQU     5
+    45                                  
+    46                                          ;IF	IBMVER
+    47                                  SYM	EQU     ">"
+    48                                  ;COMDRV	EQU     1
+    49                                          ;ENDIF
+    50                                  
+    51                                  	;IF	MSVER
+    52                                  ;SYM	EQU     ":"
+    53                                  COMDRV	EQU     0
+    54                                          ;ENDIF
+    55                                  
+    56                                  FCB     EQU     5CH
+    57                                  DSKRESET EQU    13
+    58                                  SETBASE EQU     38
+    59                                  SRCHFRST EQU    17
+    60                                  SRCHNXT EQU     18
+    61                                  RENAM   EQU     23
+    62                                  INCHAR  EQU     1
+    63                                  GETFAT  EQU     27
+    64                                  OPEN    EQU     15
+    65                                  CLOSE   EQU     16
+    66                                  MAKE    EQU     22
+    67                                  DELETE  EQU     19
+    68                                  RDBLK   EQU     39
+    69                                  WRBLK   EQU     40
+    70                                  SETDMA  EQU     26
+    71                                  SELDRV  EQU     14
+    72                                  GETDRV  EQU     25
+    73                                  PRINTBUF EQU    9
+    74                                  OUTCH   EQU     2
+    75                                  INBUF   EQU     10
+    76                                  GETDATE EQU     2AH
+    77                                  SETDATE EQU     2BH
+    78                                  GETTIME EQU     2CH
+    79                                  SETTIME EQU     2DH
+    80                                  RR      EQU     33
+    81                                  RECLEN  EQU     14
+    82                                  FILLEN  EQU     16
+    83                                  OFFDATE EQU     20
+    84                                  
+    85                                  ; ----------------------------------------------------------------------------
+    86                                  ; SEGMENT - CODERES
+    87                                  ; ----------------------------------------------------------------------------
+    88                                  ;START OF RESIDENT PORTION
+    89                                  ; ----------------------------------------------------------------------------
+    90                                  
+    91                                  	[ORG 100H]
+    92                                  
+    93                                  RSTACK	EQU	$ ; EQU 100H
+    94                                  
+    95                                  PROGSTART:
+    96 00000000 E96D03                  	JMP	CONPROC
+    97                                  
+    98 00000003 0000                    LTPA:	DW	0               ;WILL STORE TPA SEGMENT HERE
+    99 00000005 0000                    MYSEG:	DW	0               ;Put our own segment here
+   100                                  
+   101                                  CONTC:
+   102 00000007 8CC8                            MOV     AX,CS
+   103 00000009 8ED8                            MOV     DS,AX
+   104 0000000B 8ED0                            MOV     SS,AX
+   105 0000000D BC[0000]                        MOV     SP,RSTACK
+   106 00000010 FB                              STI
+   107 00000011 E87E01                          CALL    SETVECT
+   108 00000014 B40D                            MOV     AH,DSKRESET
+   109 00000016 CD21                            INT     33              ;Reset disks in case files were open
+   110 00000018 F606[3203]FF                    TEST    BYTE [BATCH],-1
+   111 0000001D 741B                            JZ      SHORT LODCOM
+   112                                  ASKEND:
+   113 0000001F BA[DA02]                        MOV     DX,ENDBATMES
+   114 00000022 B409                            MOV     AH,PRINTBUF
+   115 00000024 CD21                            INT     33
+   116 00000026 B8010C                          MOV     AX,0C00H+INCHAR
+   117 00000029 CD21                            INT     33
+   118 0000002B 245F                            AND     AL,5FH
+   119 0000002D 3C4E                            CMP     AL,"N"
+   120 0000002F 7409                            JZ      SHORT LODCOM
+   121 00000031 3C59                            CMP     AL,"Y"
+   122 00000033 75EA                            JNZ     SHORT ASKEND
+   123 00000035 C606[3203]00                    MOV     BYTE [BATCH],0
+   124                                  LODCOM:
+   125 0000003A 8CC8                            MOV     AX,CS
+   126 0000003C 8ED0                            MOV     SS,AX
+   127 0000003E BC[0000]                        MOV     SP,RSTACK
+   128 00000041 8ED8                            MOV     DS,AX
+   129 00000043 E84C01                          CALL    SETVECT
+   130 00000046 E83201                          CALL    CHKSUM
+   131 00000049 3B16[5F03]                      CMP     DX,[SUM]
+   132 0000004D 7416                            JZ      SHORT HAVCOM
+   133 0000004F C606[F802]01                    MOV     BYTE [LOADING],1
+   134 00000054 E8D900                          CALL    LOADCOM
+   135                                  CHKSAME:
+   136 00000057 E82101                          CALL    CHKSUM
+   137 0000005A 3B16[5F03]                      CMP     DX,[SUM]
+   138 0000005E 7405                            JZ      SHORT HAVCOM
+   139 00000060 E81301                          CALL    WRONGCOM
+   140 00000063 EBF2                            JMP     SHORT CHKSAME
+   141                                  HAVCOM:
+   142 00000065 C606[F802]00                    MOV     BYTE [LOADING],0
+   143 0000006A BE[0300]                        MOV     SI,LTPA
+   144 0000006D BFA00F                          MOV     DI,TPA
+   145 00000070 8E06[5A03]                      MOV     ES,[TRNSEG]
+   146 00000074 FC                              CLD
+   147 00000075 A5                              MOVSW           ;Move TPA segment to transient storage
+   148 00000076 A5                              MOVSW           ;Move resident segment too
+   149 00000077 A1[5D03]                        MOV     AX,[MEMSIZ]
+   150 0000007A 26A30200                        MOV     [ES:2],AX
+   151 0000007E FF2E[5803]                      JMP     FAR [TRANS]
+   152                                  
+   153                                  RESIDENT:
+   154 00000082 83C20F                          ADD     DX,15
+   155 00000085 B104                            MOV     CL,4
+   156 00000087 D3EA                            SHR     DX,CL           ;Number of paragraphs of new addition
+   157 00000089 2E0116[0300]                    ADD     [CS:LTPA],DX
+   158 0000008E 31C0                            XOR     AX,AX
+   159 00000090 8ED8                            MOV     DS,AX
+   160 00000092 FF2E8000                        JMP     FAR [80H] ;Pretend user executed INT 20H
+   161                                  
+   162                                  DSKERR:
+   163                                          ;******************************************************
+   164                                          ;       THIS IS THE DEFAULT DISK ERROR HANDLING CODE 
+   165                                          ;       AVAILABLE TO ALL USERS IF THEY DO NOT TRY TO 
+   166                                          ;       INTERCEPT INTERRUPT 24H.
+   167                                          ;******************************************************
+   168 00000096 FB                              STI
+   169 00000097 1E                              PUSH    DS
+   170 00000098 0E                              PUSH    CS
+   171 00000099 1F                              POP     DS              ;Set up local data segment
+   172 0000009A 52                              PUSH    DX
+   173 0000009B E88800                          CALL    CRLF
+   174 0000009E 5A                              POP     DX
+   175 0000009F 0441                            ADD     AL,"A"          ;Compute drive letter
+   176 000000A1 A2[3102]                        MOV     [DRVLET],AL
+   177 000000A4 F6C480                          TEST    AH,80H          ;Check if hard disk error
+   178 000000A7 755E                            JNZ     SHORT FATERR
+   179 000000A9 BE[1202]                        MOV     SI,READ
+   180 000000AC F6C401                          TEST    AH,1
+   181 000000AF 7403                            JZ      SHORT SAVMES
+   182 000000B1 BE[1702]                        MOV     SI,WRITE
+   183                                  SAVMES:
+   184 000000B4 AD                              LODSW
+   185 000000B5 A3[2302]                        MOV     WORD [IOTYP],AX
+   186 000000B8 AD                              LODSW
+   187 000000B9 A3[2502]                        MOV     WORD [IOTYP+2],AX
+   188 000000BC 81E7FF00                        AND     DI,0FFH
+   189 000000C0 83FF0C                          CMP     DI,12
+   190 000000C3 7603                            JBE     SHORT HAVCOD
+   191 000000C5 BF0C00                          MOV     DI,12
+   192                                  HAVCOD:
+   193 000000C8 8BBD[C001]                      MOV     DI,WORD [DI+MESBAS] ;Get pointer to error message
+   194 000000CC 87FA                            XCHG    DI,DX           ;May need DX later
+   195 000000CE B409                            MOV     AH,PRINTBUF
+   196 000000D0 CD21                            INT     33              ;Print error type
+   197 000000D2 BA[1C02]                        MOV     DX,ERRMES
+   198 000000D5 CD21                            INT     33
+   199 000000D7 803E[F802]00                    CMP     BYTE [LOADING],0
+   200 000000DC 7539                            JNZ     SHORT GETCOMDSK
+   201                                  ASK:
+   202 000000DE BA[3502]                        MOV     DX,REQUEST
+   203 000000E1 B409                            MOV     AH,PRINTBUF
+   204 000000E3 CD21                            INT     33
+   205 000000E5 B8010C                          MOV     AX,0C00H+INCHAR
+   206 000000E8 CD21                            INT     33              ;Get response
+   207 000000EA E83900                          CALL    CRLF
+   208 000000ED 0C20                            OR      AL,20H          ;Convert to lower case
+   209 000000EF B400                            MOV     AH,0            ;Return code for ignore
+   210 000000F1 3C69                            CMP     AL,"i"          ;Ignore?
+   211 000000F3 740C                            JZ      SHORT EXIT
+   212 000000F5 FEC4                            INC     AH
+   213 000000F7 3C72                            CMP     AL,"r"          ;Retry?
+   214 000000F9 7406                            JZ      SHORT EXIT
+   215 000000FB FEC4                            INC     AH
+   216 000000FD 3C61                            CMP     AL,"a"          ;Abort?
+   217 000000FF 75DD                            JNZ     SHORT ASK
+   218                                  EXIT:
+   219 00000101 88E0                            MOV     AL,AH
+   220 00000103 89FA                            MOV     DX,DI
+   221 00000105 1F                              POP     DS
+   222 00000106 CF                              IRET
+   223                                  
+   224                                  FATERR:
+   225 00000107 BA[4C02]                        MOV     DX,BADFAT
+   226 0000010A B409                            MOV     AH,PRINTBUF
+   227 0000010C CD21                            INT     33
+   228 0000010E BA[2A02]                        MOV     DX,DRVNUM
+   229 00000111 CD21                            INT     33
+   230 00000113 B002                            MOV     AL,2            ;Abort
+   231 00000115 1F                              POP     DS
+   232 00000116 CF                              IRET
+   233                                  
+   234                                  GETCOMDSK:
+   235 00000117 BA[7E02]                        MOV     DX,NEEDCOM
+   236 0000011A B409                            MOV     AH,PRINTBUF
+   237 0000011C CD21                            INT     33
+   238 0000011E B8070C                          MOV     AX,0C07H        ;Get char without testing or echo
+   239 00000121 CD21                            INT     33
+   240 00000123 E914FF                          JMP     LODCOM
+   241                                  
+   242                                  CRLF:
+   243 00000126 BA[3202]                        MOV     DX,NEWLIN
+   244 00000129 50                              PUSH    AX
+   245 0000012A B409                            MOV     AH,PRINTBUF
+   246 0000012C CD21                            INT     33
+   247 0000012E 58                              POP     AX
+   248                                  RET10:  
+   249 0000012F C3                      	RETN
+   250                                  
+   251                                  LOADCOM:
+   252 00000130 1E                              PUSH    DS
+   253 00000131 8E1E[5A03]                      MOV     DS,[TRNSEG]
+   254 00000135 BA0001                          MOV     DX,100H
+   255 00000138 B41A                            MOV     AH,SETDMA
+   256 0000013A CD21                            INT     33
+   257 0000013C 1F                              POP     DS
+   258 0000013D BA[3303]                        MOV     DX,COMFCB
+   259 00000140 B40F                            MOV     AH,OPEN
+   260 00000142 CD21                            INT     33              ;Open COMMAND.COM
+   261 00000144 08C0                            OR      AL,AL
+   262 00000146 740E                            JZ      SHORT READCOM
+   263 00000148 BA[7E02]                        MOV     DX,NEEDCOM
+   264                                  PROMPTCOM:
+   265 0000014B B409                            MOV     AH,PRINTBUF
+   266 0000014D CD21                            INT     33
+   267 0000014F B8070C                          MOV     AX,0C07H        ;Get char without testing or echo
+   268 00000152 CD21                            INT     33
+   269 00000154 EBDA                            JMP     SHORT LOADCOM
+   270                                  READCOM:
+   271 00000156 C706[5403][E002]                MOV     WORD [COMFCB+RR],TRANSTART
+   272 0000015C 31C0                            XOR     AX,AX
+   273 0000015E A3[5603]                        MOV     [COMFCB+RR+2],AX
+   274 00000161 A2[3303]                        MOV     [COMFCB],AL	;Use default drive
+   275 00000164 40                              INC     AX
+   276 00000165 A3[4103]                        MOV     [COMFCB+RECLEN],AX
+   277 00000168 B9160E                          MOV     CX,COMLEN
+   278 0000016B BA[3303]                        MOV     DX,COMFCB
+   279 0000016E B427                            MOV     AH,RDBLK
+   280 00000170 CD21                            INT     33
+   281 00000172 08C0                            OR      AL,AL
+   282 00000174 74B9                            JZ      SHORT RET10
+   283                                  WRONGCOM:
+   284 00000176 BA[6902]                        MOV     DX,COMBAD
+   285 00000179 EBD0                            JMP     SHORT PROMPTCOM
+   286                                  
+   287                                  CHKSUM:
+   288 0000017B FC                              CLD
+   289 0000017C 1E                              PUSH    DS
+   290 0000017D 8E1E[5A03]                      MOV     DS,[TRNSEG]
+   291 00000181 BE0001                          MOV     SI,100H
+   292 00000184 B9160E                          MOV     CX,COMLEN
+   293 00000187 D1E9                            SHR     CX,1
+   294 00000189 31D2                            XOR     DX,DX
+   295                                  CHK:
+   296 0000018B AD                              LODSW
+   297 0000018C 01C2                            ADD     DX,AX
+   298 0000018E E2FB                            LOOP    CHK
+   299 00000190 1F                              POP     DS
+   300 00000191 C3                              RETN
+   301                                  
+   302                                  SETVECT:
+   303 00000192 BA[3A00]                        MOV     DX,LODCOM
+   304 00000195 B82225                          MOV     AX,2522H        ;Set Terminate address
+   305 00000198 CD21                            INT     21H
+   306 0000019A BA[0700]                        MOV     DX,CONTC
+   307 0000019D B82325                          MOV     AX,2523H        ;Set Ctrl-C address
+   308 000001A0 CD21                            INT     21H
+   309 000001A2 BA[9600]                        MOV     DX,DSKERR
+   310 000001A5 B82425                          MOV     AX,2524H        ;Set Hard Disk Error address
+   311 000001A8 CD21                            INT     33
+   312 000001AA BA[8200]                        MOV     DX,RESIDENT
+   313 000001AD B82725                          MOV     AX,2527H        ;Set Terminate and Stay Resident address
+   314 000001B0 CD21                            INT     33
+   315 000001B2 C3                              RETN
+   316                                  
+   317                                  RESCODESIZE     EQU     $-$$
+   318                                  
+   319                                  DATARES:
+   320                                  
+   321                                  ; ----------------------------------------------------------------------------
+   322                                  ; SEGMENT - DATA
+   323                                  ; ----------------------------------------------------------------------------
+   324                                  
+   325 000001B3 90<rept>                ALIGN 16
+   326                                  
+   327                                  ; ----------------------------------------------------------------------------
+   328                                  ; Data for resident portion
+   329                                  ; ----------------------------------------------------------------------------
+   330                                  
+   331 000001C0 [CE01]                  MESBAS: DW	ERR0
+   332 000001C2 [DC01]                          DW	ERR2
+   333 000001C4 [E601]                          DW	ERR4
+   334 000001C6 [EB01]                          DW	ERR6
+   335 000001C8 [F001]                          DW 	ERR8
+   336 000001CA [0102]                          DW	ERR10
+   337 000001CC [0D02]                          DW	ERR12
+   338 000001CE 57726974652070726F-     ERR0:	DB	"Write protect$"
+   339 000001D7 7465637424         
+   340 000001DC 4E6F74207265616479-     ERR2:	DB	"Not ready$"
+   341 000001E5 24                 
+   342 000001E6 4461746124              ERR4:	DB	"Data$"
+   343 000001EB 5365656B24              ERR6:	DB	"Seek$"
+   344 000001F0 536563746F72206E6F-     ERR8:	DB	"Sector not found$"
+   345 000001F9 7420666F756E6424   
+   346 00000201 577269746520666175-     ERR10:	DB	"Write fault$"
+   347 0000020A 6C7424             
+   348 0000020D 4469736B24              ERR12:	DB	"Disk$"
+   349 00000212 7265616424              READ:	DB	"read$"
+   350 00000217 7772697424              WRITE:	DB	"writ$"
+   351 0000021C 206572726F7220          ERRMES:	DB	" error "
+   352 00000223 77726974696E67          IOTYP:	DB	"writing"
+   353 0000022A 20647269766520          DRVNUM:	DB	" drive "
+   354 00000231 41                      DRVLET:	DB	"A"
+   355 00000232 0D0A24                  NEWLIN:	DB	13,10,"$"
+   356 00000235 41626F72742C205265-     REQUEST: DB	"Abort, Retry, Ignore? $"
+   357 0000023E 7472792C2049676E6F-
+   358 00000247 72653F2024         
+   359 0000024C 0D0A46696C6520616C-     BADFAT:	DB	13,10,"File allocation table bad,$"
+   360 00000255 6C6F636174696F6E20-
+   361 0000025E 7461626C6520626164-
+   362 00000267 2C24               
+   363 00000269 0D0A496E76616C6964-     COMBAD:	DB	13,10,"Invalid COMMAND.COM"
+   364 00000272 20434F4D4D414E442E-
+   365 0000027B 434F4D             
+   366 0000027E 0D0A496E7365727420-     NEEDCOM: DB	13,10,"Insert DOS disk in "
+   367 00000287 444F53206469736B20-
+   368 00000290 696E20             
+   369 00000293 64726976652041                  DB	"drive A"
+   370 0000029A 0D0A616E6420737472-     PROMPT:	DB	13,10,"and strike any key when ready",13,10,"$"
+   371 000002A3 696B6520616E79206B-
+   372 000002AC 6579207768656E2072-
+   373 000002B5 656164790D0A24     
+   374 000002BC 0D0A496E7365727420-     NEEDBAT: DB	13,10,"Insert disk with batch file$"
+   375 000002C5 6469736B2077697468-
+   376 000002CE 206261746368206669-
+   377 000002D7 6C6524             
+   378 000002DA 0D0A5465726D696E61-     ENDBATMES: DB	13,10,"Terminate batch job (Y/N)? $"
+   379 000002E3 746520626174636820-
+   380 000002EC 6A6F622028592F4E29-
+   381 000002F5 3F2024             
+   382 000002F8 00                      LOADING: DB	0
+   383 000002F9 014155544F45584543-     BATFCB: DB	1,"AUTOEXECBAT"
+   384 00000302 424154             
+   385 00000305 00<rept>                        TIMES	21 DB 0
+   386 0000031A 0000                            DW	0
+   387 0000031C 0000                            DW	0	;Initialize RR field to zero
+   388 0000031E FFFF<rept>              PARMTAB: TIMES 10 DW -1	;No parameters initially
+   389 00000332 01                      BATCH:	DB      1	;Assume batch mode initially
+   390 00000333 00434F4D4D414E4420-     COMFCB:	DB	COMDRV,"COMMAND COM"
+   391 0000033C 434F4D             
+   392 0000033F 00<rept>                        TIMES 25 DB 0
+   393 00000358 0401                    TRANS:	DW	COMMAND
+   394 0000035A 0000                    TRNSEG:	DW	0
+   395 0000035C 00                      BATBYT: DB	0
+   396 0000035D 0000                    MEMSIZ:	DW	0
+   397 0000035F 0000                    SUM:	DW	0
+   398 00000361 00<rept>                INITADD: TIMES 4 DB 0
+   399                                  
+   400 00000365 90<rept>                ALIGN 16
+   401                                  
+   402                                  RESDATASIZE     EQU	$-DATARES
+   403                                  
+   404                                  ; ----------------------------------------------------------------------------
+   405                                  ; SEGMENT - INIT
+   406                                  ; ----------------------------------------------------------------------------
+   407                                  
+   408                                  ;*******************************************************************
+   409                                  ;START OF INIT PORTION
+   410                                  ;This code is overlayed the first time the TPA is used.
+   411                                  
+   412                                  INIT:
+   413                                  
+   414                                  INIT_START EQU	$
+   415                                  
+   416                                  CONPROC:
+   417 00000370 BC[0000]                        MOV     SP,RSTACK
+   418                                  
+   419                                          ;IF	HIGHMEM
+   420                                          ;MOV	AX, [2]
+   421                                          ;SUB	AX,((RESCODESIZE+RESDATASIZE+100H)+15)/16 ;Subtract size of resident
+   422                                          ;MOV	[2],AX
+   423                                          ;MOV	ES,AX
+   424                                          ;MOV	SI,100H
+   425                                          ;MOV	DI,SI
+   426                                          ;MOV	CX,(1+(RESCODESIZE+RESDATASIZE))/2 ;Length of resident in words
+   427                                          ;REP	MOVSW                   ;Move to end of memory
+   428                                          ;MOV	DS,AX
+   429                                          ;MOV	[LTPA],CS
+   430                                          ;ENDIF
+   431                                  
+   432                                          ;IF	NOT HIGHMEM
+   433 00000373 8CC8                            MOV	AX,CS
+   434 00000375 83C047                          ADD	AX,((RESCODESIZE+RESDATASIZE+100H)+15)/16 ;Compute segment of TPA
+   435 00000378 A3[0300]                        MOV	[LTPA],AX
+   436 0000037B A10200                          MOV	AX,[2]
+   437                                          ;ENDIF
+   438                                  
+   439 0000037E 8C1E[0500]                      MOV     [MYSEG],DS
+   440 00000382 A3[5D03]                        MOV     [MEMSIZ],AX
+   441 00000385 2D0C01                          SUB     AX,TRNLEN               ;Subtract size of transient
+   442 00000388 A3[5A03]                        MOV     [TRNSEG],AX
+   443 0000038B E804FE                          CALL    SETVECT
+   444 0000038E E89FFD                          CALL    LOADCOM
+   445 00000391 E8E7FD                          CALL    CHKSUM
+   446 00000394 8916[5F03]                      MOV     [SUM],DX
+   447                                  
+   448                                  	; 16/02/2018
+   449                                  	
+   450                                  	;IF MSVER
+   451                                          ;IF	HIGHMEM
+   452                                          ;PUSH	DS
+   453                                          ;PUSH	CS
+   454                                          ;POP	DS
+   455                                          ;ENDIF
+   456 00000398 BA[C803]                        MOV	DX,HEADER
+   457 0000039B B409                            MOV	AH,PRINTBUF
+   458 0000039D CD21                            INT	33
+   459                                          ;IF	HIGHMEM
+   460                                          ;POP	DS
+   461                                          ;ENDIF
+   462                                  	;ENDIF
+   463                                  
+   464 0000039F BA[F902]                        MOV     DX,BATFCB
+   465 000003A2 B40F                            MOV     AH,OPEN
+   466 000003A4 CD21                            INT     33                      ;See if AUTOEXEC.BAT exists
+   467 000003A6 C706[0703]0100                  MOV     WORD [BATFCB+RECLEN],1	;Set record length to 1
+   468 000003AC 08C0                            OR      AL,AL                   ;Zero means file found
+   469 000003AE 7415                            JZ      SHORT DRV0
+   470 000003B0 C606[3203]00                    MOV     BYTE [BATCH],0		;Not found--turn off batch job
+   471                                  
+   472 000003B5 B8DB09                          MOV     AX,DATINIT
+   473 000003B8 A3[6103]                        MOV     [INITADD],AX
+   474 000003BB A1[5A03]                        MOV     AX,[TRNSEG]
+   475 000003BE A3[6303]                        MOV     [INITADD+2],AX
+   476 000003C1 FF1E[6103]                      CALL    FAR [INITADD]
+   477                                  DRV0:
+   478 000003C5 E99DFC                          JMP     HAVCOM
+   479                                  
+   480                                          ; IF MSVER
+   481 000003C8 0D0A436F6D6D616E64-     HEADER:	DB	13,10,"Command v. 1.17"
+   482 000003D1 20762E20312E3137   
+   483                                          ;IF	HIGHMEM
+   484                                          ;DB	"H"
+   485                                          ;ENDIF
+   486 000003D9 0D0A24                          DB	13,10,"$"
+   487                                          ;ENDIF
+   488                                  
+   489                                          ;IF IBMVER
+   490                                  ;HEADER: DB	13,10,13,10,"The IBM Personal Computer DOS",13,10
+   491                                          ;DB	"Version 1.10 (C)Copyright IBM Corp 1981, 1982",13,10,"$"
+   492                                          ;DB	"Licensed Material - Program Property of IBM"
+   493                                          ;ENDIF
+   494                                  
+   495                                  INITSIZE EQU	$-INIT_START
+   496                                  
+   497 000003DC 90<rept>                ALIGN 16
+   498                                  
+   499                                  ; 16/02/2018
+   500                                  ; ----------------------------------------------------------------------------
+   501                                  ; SEGMENT - TRANSCODE
+   502                                  ; ----------------------------------------------------------------------------
+   503                                  
+   504                                  ; 16/02/2018
+   505                                  ; comtrans.s (COMMAND.COM source file 2 of 2) code/data addresses 
+   506                                  ; (these values must be changed when comtrans.s source code is changed
+   507                                  ; and data offsets are changed)
+   508                                  
+   509                                  COMMAND EQU	0104H
+   510                                  DATINIT	EQU	09DBH
+   511                                  
+   512                                  ; 23/02/2018
+   513                                  TPA	EQU	0FA0H
+   514                                  TRNLEN	EQU	010CH
+   515                                  
+   516                                  ;********************************************************************
+   517                                  ;START OF TRANSIENT PORTION
+   518                                  ;/This code is loaded at the end of memory and may be overwritten by
+   519                                  ;memory-intensive user programs.
+   520                                  
+   521                                  TRANSTART EQU $-100H
+   522                                  
+   523                                  COMTRANS:
+   524                                  
+   525 000003E0 <incbin>                INCBIN	"COMTRANS.BIN"
+   526                                  
+   527                                  COMLEN	EQU $-COMTRANS ; End of COMMAND load.
