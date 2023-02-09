@@ -1,0 +1,326 @@
+     1                                  ; ****************************************************************************
+     2                                  ; RDOSFDBS.ASM - Retro DOS v1.0 - FAT12 FD BOOT SECTOR
+     3                                  ; ----------------------------------------------------------------------------
+     4                                  ; Last Update: 12/02/2018
+     5                                  ; ----------------------------------------------------------------------------
+     6                                  ; Beginning: 12/02/2018
+     7                                  ; ----------------------------------------------------------------------------
+     8                                  ; Assembler: NASM version 2.11 (rdosfdbs.s)
+     9                                  ; ----------------------------------------------------------------------------
+    10                                  ; Retro DOS Operating System Project by ERDOGAN TAN (Beginning: 04/02/2018)
+    11                                  ; ----------------------------------------------------------------------------
+    12                                  ; Derived from TRDOS Operating System v2.0 (386) boot sector source code 
+    13                                  ; by Erdogan Tan. 'trfdbs.s' (12/02/2018)
+    14                                  ; ****************************************************************************
+    15                                  
+    16                                  notvalidfmask   equ	0018h
+    17                                  
+    18                                  root_dir_buff   equ	7E00h
+    19                                  rts_segment     equ	0060h
+    20                                  FAT_Buffer      equ	7E00h
+    21                                  
+    22                                  [BITS 16]
+    23                                  [ORG 7C00h]
+    24                                  
+    25 00000000 EB44                                    jmp     short BS_01
+    26 00000002 90                                      nop
+    27                                  
+    28                                  ; BootSector Identification (Data) Block
+    29                                  
+    30 00000003 524554524F444F53        bsOemName:      db 'RETRODOS'          
+    31 0000000B 0002                    bsBytesPerSec:  dw 512
+    32 0000000D 01                      bsSecPerClust:  db 1
+    33 0000000E 0100                    bsResSectors:   dw 1
+    34 00000010 02                      bsFATs:         db 2
+    35 00000011 E000                    bsRootDirEnts:  dw 224
+    36 00000013 400B                    bsSectors:      dw 2880
+    37 00000015 F0                      bsMedia:        db 0F0h
+    38 00000016 0900                    bsFATsecs:      dw 9
+    39 00000018 1200                    bsSecPerTrack:  dw 18
+    40 0000001A 0200                    bsHeads:        dw 2
+    41 0000001C 0000                    bsHidden1:      dw 0
+    42 0000001E 0000                    bsHidden2:      dw 0
+    43 00000020 400B0000                bsHugeSectors:  dd 2880
+    44 00000024 00                      bsDriveNumber:  db 0
+    45 00000025 00                      bsReserved1:    db 0
+    46 00000026 29                      bsBpbSignature: db 29h                 
+    47 00000027 00000000                bsVolumeID:     dd 0
+    48 0000002B 4E4F204E414D452020-     bsVolumeLabel:  db 'NO NAME    '
+    49 00000034 2020               
+    50 00000036 4641543132202020        bsFileSysType:  db 'FAT12   '
+    51                                  ; Retro DOS 1.0 Extensions
+    52 0000003E 7631                    bsReserved2:	dw 'v1'
+    53 00000040 2100                    bsDataStart:    dw 33
+    54 00000042 1300                    bsRootDirStart:	dw 19
+    55 00000044 0E00                    bsRootDirSects:	dw 14          
+    56                                  
+    57                                  BS_01:          
+    58 00000046 8CC8                                    mov	ax, cs
+    59 00000048 8ED8                    		mov	ds, ax
+    60 0000004A 8EC0                    		mov	es, ax
+    61                                  		
+    62 0000004C FA                      		cli
+    63 0000004D 8ED0                    		mov	ss, ax
+    64 0000004F BCFEFF                  		mov     sp, 0FFFEh
+    65 00000052 FB                      		sti
+    66                                  
+    67                                  		; overwrite fd drive number !
+    68 00000053 8816[2400]                              mov	[bsDriveNumber], dl 	; drive number from INT 19h
+    69                                  						; (DL = 0)
+    70                                  
+    71                                                  ;mov	ax, 19                  ; Root Dir Location
+    72 00000057 A1[4200]                		mov	ax, [bsRootDirStart]
+    73                                  		;mov	cx, 14                  ; Root Directory Sectors
+    74 0000005A 8B0E[4400]                              mov	cx, [bsRootDirSects]
+    75 0000005E BB007E                  		mov     bx, root_dir_buff       ; Destination offset = 700h
+    76 00000061 89DE                                    mov     si, bx
+    77 00000063 E88B00                                  call    fd_read
+    78 00000066 7222                    		jc      short BS_04		; Disk read error message
+    79                                  
+    80                                                  ;mov	bx, 224                 ; Number of root dir entries
+    81 00000068 8B1E[1100]              		mov	bx, [bsRootDirEnts]
+    82                                  BS_02:          
+    83 0000006C 803C00                  		cmp     byte [si], 0		; Is it null entry?
+    84 0000006F 7414                                    je      short BS_03		; Jump if zero ( = )
+    85 00000071 B90B00                                  mov     cx, 11			; Size of file/directory name
+    86 00000074 56                                      push    si
+    87 00000075 BF[6501]                                mov     di, rtsfilename   
+    88 00000078 F3A6                                    repe    cmpsb                   ; Repeat if ZF = 1, CX > 0
+    89                                  						; Cmp byte DS:SI with ES:DI
+    90 0000007A 5E                                      pop	si
+    91 0000007B 7419                                    je      short BS_06		; If the file name found
+    92 0000007D 4B                                      dec     bx                    
+    93 0000007E 7405                                    jz      short BS_03		; Jump if no next entry
+    94 00000080 83C620                                  add     si, 32                  ; To next directory entry
+    95 00000083 EBE7                                    jmp     short BS_02             ; Jump for next sector
+    96                                  BS_03:
+    97 00000085 BE[8E01]                                mov     si, Replace_Msg
+    98 00000088 EB03                                    jmp     short BS_05
+    99                                  BS_04:      
+   100 0000008A BE[7301]                                mov     si, Error_Msg
+   101                                  BS_05:          
+   102 0000008D E84400                                  call    print_msg
+   103                                  
+   104 00000090 31C0                                    xor	ax, ax
+   105 00000092 CD16                    		int	16h			; BIOS Service func ( ah ) = 0
+   106                                  						; Read next kbd char
+   107                                  						; AH-scan code AL-char code
+   108 00000094 CD19                    		int	19h			; Reboot
+   109                                  
+   110                                  BS_06:
+   111 00000096 8A440B                                  mov     al, [si+0Bh]		; Move attributes byte to BL
+   112 00000099 2418                                    and     al, notvalidfmask       ; Is it a file, really?
+   113 0000009B 75E8                                    jnz     short BS_03		; Jump if not
+   114 0000009D 8B441A                                  mov     ax, [si+1Ah]		; First cluster of the file
+   115 000000A0 83F802                                  cmp     ax, 2                   ; Start cluster
+   116 000000A3 72E5                                    jb      short BS_04
+   117                                  
+   118 000000A5 A3[3E00]                                mov	[bsReserved2], ax	; Save the first cluster
+   119                                      
+   120                                  		; Load FAT
+   121                                                  ;mov	ax, 1                   ; FAT Location
+   122 000000A8 A1[0E00]                                mov	ax, [bsResSectors]
+   123                                  		;mov	cx, 9                   ; FAT Sectors
+   124 000000AB 8B0E[1600]                              mov	cx, [bsFATsecs]
+   125 000000AF BB007E                  		mov     bx, FAT_Buffer    
+   126 000000B2 E83C00                                  call    fd_read
+   127 000000B5 72D3                                    jc      short BS_04
+   128                                  
+   129                                  		; Load  RTS (Kernel) file
+   130 000000B7 BE[C001]                                mov     si, Loading_Msg
+   131 000000BA E81700                                  call    print_msg
+   132 000000BD A1[3E00]                                mov     ax, [bsReserved2]	; The First cluster
+   133 000000C0 BB6000                                  mov     bx, rts_segment
+   134 000000C3 8EC3                                    mov     es, bx
+   135 000000C5 31DB                                    xor     bx, bx
+   136 000000C7 E85E00                                  call    load_file
+   137 000000CA 72BE                                    jc      short BS_04
+   138                                  
+   139                                  		; Launch RTS (Kernel)
+   140                                     		;mov	ax, es
+   141                                  		;cli
+   142                                                  ;mov	ss, ax
+   143                                                  ;mov	sp, 0FFFEh
+   144                                                  ;sti
+   145                                                  ;mov	dl, [bsDriveNumber]
+   146                                                  ;mov	ax, rts_segment ; 60h
+   147                                                  ;mov	ds, ax
+   148                                                  ;mov	es, ax
+   149                                               
+   150 000000CC BD007C                  		mov 	bp, 7C00h
+   151                                  
+   152                                  		;mov	ax, 417
+   153                                  
+   154 000000CF EA00006000              		jmp	rts_segment:0
+   155                                  
+   156                                                  ;db	0EAh
+   157                                                  ;dw	0
+   158                                                  ;dw	rts_segment
+   159                                  
+   160                                  print_msg:
+   161                                  BS_07:
+   162 000000D4 AC                      		lodsb				; Load byte at DS:SI to AL
+   163 000000D5 20C0                                    and     al, al            
+   164 000000D7 7417                                    jz	short BS_09		; If AL = 00h then stop
+   165                                  
+   166 000000D9 B40E                                    mov     ah, 0Eh
+   167 000000DB BB0700                                  mov     bx, 07h             
+   168 000000DE CD10                    		int	10h			; BIOS Service func ( ah ) = 0Eh
+   169                                  						; Write char as TTY
+   170                                  						; AL-char BH-page BL-color
+   171 000000E0 EBF2                                    jmp     short BS_07
+   172                                  
+   173                                  BS_08:         
+   174 000000E2 FE0E[6401]                              dec	byte [RetryCount]
+   175 000000E6 7408                    		jz	short BS_09 ; cf = 1
+   176                                  
+   177                                  		; Reset disk system
+   178 000000E8 50                      		push	ax
+   179 000000E9 30E4                    		xor	ah, ah
+   180                                                  ;mov	dl, [bsDriveNumber]
+   181 000000EB CD13                    		int     13h
+   182 000000ED 58                                      pop	ax
+   183 000000EE 7306                    		jnc	short BS_10
+   184                                  BS_09:
+   185 000000F0 C3                      		retn
+   186                                   
+   187                                  fd_read:
+   188                                                  ; Only for FAT12 Floppy Disks
+   189                                                  
+   190 000000F1 C606[6401]04                            mov     byte [RetryCount], 4
+   191                                  BS_10:
+   192 000000F6 51                                      push    cx
+   193 000000F7 50                                      push    ax                      ; PHYSICAL ADRESS CALCULATION
+   194                                                  ;mov	cl, 18                  ; Sectors per track
+   195 000000F8 8A0E[1800]                              mov	cl, [bsSecPerTrack]
+   196 000000FC F6F1                    		div     cl                      
+   197 000000FE 88E1                                    mov     cl, ah                  ; Sector (zero based)
+   198 00000100 FEC1                                    inc     cl                      ; To make it 1 based
+   199                                                  ;xor	ah, ah
+   200                                                  ;mov	dl, 2			; Heads 
+   201                                                  ;div	dl
+   202                                                                                  ; AL=cyl, AH=head, CL=sector
+   203                                                  ;mov	dh, ah
+   204 00000102 28F6                    		sub	dh, dh
+   205 00000104 D0E8                    		shr	al, 1
+   206 00000106 80D600                  		adc	dh, 0
+   207                                  		;mov	dl, [bsDriveNumber]	; (!DL has not been changed!)
+   208 00000109 88C5                                    mov     ch, al            
+   209                                  
+   210 0000010B B80102                                  mov     ax, 0201h
+   211 0000010E CD13                    		int	13h			; BIOS Service func ( ah ) = 2
+   212                                  						; Read disk sectors
+   213                                  						; AL-sec num CH-track CL-sec
+   214                                  						; DH-head DL-drive ES:BX-buffer
+   215                                  						; CF-flag AH-stat AL-sec read
+   216 00000110 58                      		pop	ax			
+   217 00000111 59                                      pop     cx
+   218 00000112 72CE                                    jc      short BS_08
+   219 00000114 40                                      inc     ax
+   220                                  	                
+   221                                                  ;add	bx, 512
+   222 00000115 80C702                  	        add	bh, 2
+   223 00000118 7309                    		jnc	short BS_11
+   224 0000011A 53                      		push	bx
+   225 0000011B 8CC3                    		mov	bx, es
+   226                                  		;add	bx, 1000h
+   227 0000011D 80C710                  		add	bh, 10h
+   228 00000120 8EC3                    		mov	es, bx
+   229 00000122 5B                      		pop	bx
+   230                                  BS_11:
+   231                                                  ;dec	cx
+   232 00000123 FEC9                                    dec	cl
+   233 00000125 75CA                    		jnz	short fd_read
+   234 00000127 C3                      		retn
+   235                                  
+   236                                  load_file:
+   237                                                ; ES:BX = File Buffer
+   238                                                ; AX = First Cluster Number
+   239                                                ; Only for FAT12 Floppy Disks
+   240                                  BS_12:
+   241 00000128 A3[EE01]                                mov     [File_Cluster], ax
+   242 0000012B 48                                      dec     ax                      ; First cluster is cluster 2
+   243 0000012C 48                                      dec     ax
+   244                                  		               
+   245                                                  ;mov	cx, 1                   ; Sector count
+   246                                                  
+   247 0000012D 8A0E[0D00]              		mov	cl, [bsSecPerClust]
+   248                                  		; ch = 0
+   249 00000131 F6C102                  		test	cl, 2
+   250 00000134 7402                    		jz	short BS_13
+   251 00000136 D1E0                    		shl	ax, 1
+   252                                  
+   253                                  		;add	ax, 33                  ; Beginning sector of Data
+   254                                  BS_13:
+   255 00000138 0306[4000]                              add	ax, [bsDataStart]
+   256 0000013C E8B2FF                  		call    fd_read
+   257 0000013F 721C                                    jc      short BS_15
+   258                                  get_next_cluster:
+   259 00000141 53                      		push	bx
+   260 00000142 A1[EE01]                                mov     ax, [File_Cluster]
+   261 00000145 89C3                                    mov     bx, ax
+   262                                  		; Multiply by 3
+   263                                  		;mov	dx, 3
+   264                                  		;mul	dx
+   265 00000147 01C0                                   	add	ax, ax
+   266 00000149 01D8                    		add	ax, bx
+   267 0000014B D1E8                                    shr     ax, 1 ; Divide by 2
+   268 0000014D 93                                      xchg    bx, ax
+   269                                                  ; BX = Buffer Byte Offset
+   270                                                  ; AX = Current Cluster
+   271 0000014E 8B87007E                                mov     ax, [FAT_Buffer+bx]
+   272 00000152 730A                                    jnc     short BS_16
+   273 00000154 C1E804                                  shr     ax, 4
+   274                                  BS_14:
+   275 00000157 5B                      		pop	bx
+   276 00000158 3DF70F                                  cmp     ax, 0FF7h
+   277 0000015B 72CB                    		jb	short BS_12
+   278                                  		; EOCC (kernel file has been loaded successfully)
+   279                                  BS_15:
+   280 0000015D C3                                      retn
+   281                                  BS_16:
+   282 0000015E 80E40F                                  and     ah, 0Fh
+   283 00000161 EBF4                                    jmp     short BS_14
+   284                                  
+   285 00000163 20                      Reserved3:	db	20h
+   286 00000164 18                      RetryCount:     db      18h
+   287                                  
+   288                                  rtsfilename:
+   289 00000165 4D53444F5320202053-                     db      'MSDOS   SYS'
+   290 0000016E 5953               
+   291 00000170 00                                      db      0
+   292                                  
+   293                                  		; Filler
+   294 00000171 A101                    		dw	417
+   295                                  
+   296                                  Error_Msg:
+   297 00000173 0D0A                                    db      0Dh, 0Ah
+   298 00000175 444F53204B65726E65-                     db      'DOS Kernel Loading Error!'
+   299 0000017E 6C204C6F6164696E67-
+   300 00000187 204572726F7221     
+   301                                  
+   302 0000018E 0D0A                    Replace_Msg:    db      0Dh, 0Ah
+   303 00000190 5265706C6163652074-                     db      'Replace the disk and press any key to reboot.'
+   304 00000199 6865206469736B2061-
+   305 000001A2 6E6420707265737320-
+   306 000001AB 616E79206B65792074-
+   307 000001B4 6F207265626F6F742E 
+   308 000001BD 0D0A00                                  db      0Dh, 0Ah,0
+   309                                  
+   310 000001C0 0D0A                    Loading_Msg:    db      0Dh, 0Ah
+   311 000001C2 4C6F6164696E67204B-                     db      "Loading Kernel MSDOS.SYS ..."
+   312 000001CB 65726E656C204D5344-
+   313 000001D4 4F532E535953202E2E-
+   314 000001DD 2E                 
+   315 000001DE 0D0A00                                  db      0Dh, 0Ah, 0
+   316                                  
+   317                                  		; Filler
+   318 000001E1 524554524F444F532E-     		db	'RETRODOS.SYS'
+   319 000001EA 535953             
+   320 000001ED 00                      		db	0
+   321                                  
+   322 000001EE 0000                    File_Cluster:   dw	0
+   323                                  
+   324 000001F0 00<rept>                		times	510 - ($ - $$) db 0
+   325                                  
+   326 000001FE 55AA                    bootsignature:  db      55h, 0AAh
