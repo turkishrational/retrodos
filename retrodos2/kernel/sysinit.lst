@@ -1,0 +1,2405 @@
+     1                                  ; ****************************************************************************
+     2                                  ; SYSINIT.BIN (MSDOS 2.0 Kernel) - RETRO DOS v2.0 by ERDOGAN TAN
+     3                                  ; ----------------------------------------------------------------------------
+     4                                  ; Last Update: 10/06/2018
+     5                                  ; ----------------------------------------------------------------------------
+     6                                  ; Beginning: 24/02/2018 
+     7                                  ; ----------------------------------------------------------------------------
+     8                                  ; Assembler: NASM version 2.11  
+     9                                  ; ----------------------------------------------------------------------------
+    10                                  ;	    ((nasm sysinit.s -l sysinit.lst -o SYSINIT.BIN)) 	
+    11                                  ; ----------------------------------------------------------------------------
+    12                                  ; Derived from 'SYSINIT1.ASM' and 'SYSINIT2.ASM' files of MSDOS 3.3
+    13                                  ; source code by Microsoft, 24/07/1987
+    14                                  ; ----------------------------------------------------------------------------
+    15                                  ; Derived from 'SYSINIT.ASM' file of MSDOS 2.0 (IBM PCDOS v2.0) source code
+    16                                  ; by Microsoft, 12/10/1983
+    17                                  ; ****************************************************************************
+    18                                  ; main file: 'retrodos.s'
+    19                                  ; incbin 'SYSINIT.BIN' ; (SYINITSEG)
+    20                                  
+    21                                  ;--------------------------------------------------------------
+    22                                  ; SYSINIT.TXT (27/01/1983)
+    23                                  ;--------------------------------------------------------------
+    24                                  ;    SYSINIT is  a module linked behind the OEM bios.  It takes
+    25                                  ;over  the  system  initialization  after  the  OEM  bios   has
+    26                                  ;performed any  initialization  it  needs  to  do.   Control is
+    27                                  ;transfered with a long jump to the external  variable  SYSINIT
+    28                                  ;
+    29                                  ;
+    30                                  ;   The OEM  has  the  following  variables declared external:
+    31                                  ;
+    32                                  ;   CURRENT_DOS_LOCATION    WORD
+    33                                  ;
+    34                                  ;This word  contains  the  segment  number of the DOS before it
+    35                                  ;is relocated.  The OEM bios must set this value.
+    36                                  ;
+    37                                  ;   FINAL_DOS_LOCATION      WORD
+    38                                  ;
+    39                                  ;This word contains the segment number of the DOS after SYSINIT
+    40                                  ;moves it.  The OEM bios must set this value.
+    41                                  ;
+    42                                  ;   DEVICE_LIST             DWORD
+    43                                  ;
+    44                                  ;This  double  word  pointer  points  to  the  linked  list  of
+    45                                  ;character and block device drivers.  The  OEM  must  set  this
+    46                                  ;value.
+    47                                  ;
+    48                                  ;   MEMORY_SIZE             WORD
+    49                                  ;
+    50                                  ;This word  contains  the  number  of  RAM  paragraphs.  If the
+    51                                  ;bios doesn't set  this  variable  SYSINIT  will  automatically
+    52                                  ;calculate it.   NOTE:  systems with PARITY checked memory must
+    53                                  ;size memory in the BIOS.  SYSINITs method is to  write  memory
+    54                                  ;and read it back until it gets a mismatch.
+    55                                  ;
+    56                                  ;   DEFAULT_DRIVE           BYTE
+    57                                  ;
+    58                                  ;This is  the initial default drive when the system first comes
+    59                                  ;up.  drive a=0, drive b=1,  etc.   If  the  bios  doesn't  set
+    60                                  ;it then drive a is assumed.
+    61                                  ;
+    62                                  ;   BUFFERS                 BYTE
+    63                                  ;
+    64                                  ;This is  the  default  number of buffers for the system.  This
+    65                                  ;value may be overridden by the user in  the  CONFIG.SYS  file.
+    66                                  ;It is DBed to 2 in SYSINIT it should be greater than 1.
+    67                                  ;
+    68                                  ;   FILES                   BYTE
+    69                                  ;
+    70                                  ;This is  the  default  number  of  files for the system.  This
+    71                                  ;value may be overridden by the user in  the  CONFIG.SYS  file.
+    72                                  ;It is  DBed  to  8 in SYSINIT, values less than 5 are ignored.
+    73                                  ;
+    74                                  ;   SYSINIT                 FAR
+    75                                  ;
+    76                                  ;The entry  point  of  the  SYSINIT  module.  OEM BIOS jumps to
+    77                                  ;this label at the end of its INIT code.
+    78                                  ;
+    79                                  ;   The OEM  has  the  following  variables declared public:
+    80                                  ;
+    81                                  ;   RE_INIT                 FAR
+    82                                  ;
+    83                                  ;This is an entry point which allows the BIOS to do some INIT
+    84                                  ;work  after  the  DOS is initialized.  ALL REGISTERS MUST BE
+    85                                  ;PRESERVED.  On entry DS points to the first available memory
+    86                                  ;(after  the DOS).  DS:0 points to a 100H byte program header
+    87                                  ;prefix which represents  the  "program"  currently  running.
+    88                                  ;This  program  should  be  thought  of  as  the OEM BIOS and
+    89                                  ;SYSINIT taken together.  This is not  a  normal  program  in
+    90                                  ;that  no  memory  is  allocated to it, it is running in free
+    91                                  ;memory.
+    92                                  ;NOTES:
+    93                                  ;     At the time this routine is called SYSINIT occupies the
+    94                                  ;highest 10K of memory ("highest" is determined by the  value
+    95                                  ;of the MEMORY_SIZE variable), DO NOT DO WRITES THERE.
+    96                                  ;     Since this is called AFTER DOS is initialized, you can
+    97                                  ;make system calls.  This also implies that the code for this
+    98                                  ;routine    CANNOT   be   thrown   away   by   use   of   the
+    99                                  ;FINAL_DOS_LOCATION since the DOS has already been moved.
+   100                                  ;     If you don't want  anything done just set this to point
+   101                                  ;at a FAR RET instruction.
+   102                                  
+   103                                  ; ----------------------------------------------------------------------------
+   104                                  ; TITLE   BIOS SYSTEM INITIALIZATION
+   105                                  ; ----------------------------------------------------------------------------
+   106                                  
+   107                                  FALSE   EQU     0
+   108                                  TRUE    EQU     ~FALSE ; NOT FALSE
+   109                                  
+   110                                  ;IBMVER     EQU     FALSE
+   111                                  ;IBM        EQU     IBMVER
+   112                                  ;IBMJAPVER  EQU     FALSE                ; If TRUE set KANJI true also
+   113                                  ;MSVER      EQU     TRUE 
+   114                                  ;ALTVECT    EQU     FALSE                ; Switch to build ALTVECT version
+   115                                  ;HIGHMEM    EQU     FALSE
+   116                                  ;KANJI      EQU     FALSE
+   117                                  
+   118                                  ;       IF      IBMVER OR IBMJAPVER
+   119                                  ;NOEXEC  EQU     TRUE
+   120                                  ;       ELSE
+   121                                  ;NOEXEC  EQU     FALSE
+   122                                  ;       ENDIF
+   123                                  
+   124                                  ; Set to agree with those in DOST:MSHEAD.ASM, ALTVECT version only
+   125                                  MAJOR_VERSION   EQU     2
+   126                                  MINOR_VERSION   EQU     11	;2.11
+   127                                  
+   128                                  ;DOSSIZE EQU	5000H
+   129                                  
+   130                                  ; (MSDOS 2.0) SYSINITVAR table offsets
+   131                                  ; ----------------------------------------------------------------------
+   132                                  
+   133                                  DPBHEAD	 EQU	0  ; dd ; Pointer to head of DPB-FAT list	
+   134                                  SFT_ADDR EQU	4  ; dd ; Pointer to first FCB table
+   135                                  BCLOCK	 EQU	8  ; dd ; Pointer to the CLOCK device	
+   136                                  BCON	 EQU	12 ; dd ; Console device entry points
+   137                                  NUMIO	 EQU	16 ; db ; Number of disk tables
+   138                                  MAXSEC   EQU	17 ; dw ; Maximum allowed sector size
+   139                                  BUFFHEAD EQU	19 ; dd	; Pointer to head of buffer queue
+   140                                  DEVHEAD  EQU	23 ; dd ; Set to list start passed by BIOS at DOS Init
+   141                                  NUL_DEV	 EQU	23 ; dd	; NUL device header, first 4 bytes of dev header
+   142                                  			; (4+14 bytes)
+   143                                  			; Points to the next device in device chain 
+   144                                  DEVTYPE  EQU    27 ; dw ; = ISNULL
+   145                                  SNULDEV	 EQU 	29 ; dw
+   146                                  INULDEV	 EQU	31 ; dw
+   147                                  DEVNAME	 EQU	33 ; 8 BYTES ; "NUL     "
+   148                                  
+   149                                  ; ----------------------------------------------------------------------
+   150                                  ; Internal DOS data returned by DOSINIT
+   151                                  ;
+   152                                  struc	SYSINITVAR
+   153 00000000 <res 00000004>          .DPBHEAD:	resd 1			; Pointer to head of DPB-FAT list
+   154 00000004 <res 00000004>          .SFT_ADDR:	resd 1			; Pointer to first FCB table
+   155                                  ; The following address points to the CLOCK device
+   156 00000008 <res 00000004>          .BCLOCK:	resd 1
+   157                                  ; The following address is used by DISKSTATCHK it is always
+   158                                  ; points to the console input device header
+   159 0000000C <res 00000004>          .BCON:		resd 1			; Console device entry points
+   160 00000010 <res 00000001>          .NUMIO:		resb 1			; Number of disk tables
+   161 00000011 <res 00000002>          .MAXSEC:	resw 1			; Maximum allowed sector size
+   162 00000013 <res 00000004>          .BUFFHEAD:	resd 1			; Head of buffer queue
+   163 00000017 <res 00000004>          .DEVHEAD:	resd 1			; NUL dev head points to next dev
+   164                                  .size:
+   165                                  endstruc
+   166                                  
+   167                                  ; ----------------------------------------------------------------------
+   168                                  ; device definitions
+   169                                  
+   170                                  ;Attribute bit masks
+   171                                  DEVTYP  EQU     8000H           ;Bit 15 - 1  if Char, 0 if block
+   172                                  DEVIOCTL EQU    4000H           ;Bit 14 - CONTROL mode bit
+   173                                  ISFATBYDEV EQU  2000H           ;Bit 13 - Device uses FAT ID bytes, comp media.
+   174                                  ISCIN   EQU     0001H           ;Bit 0 - This device is the console input.
+   175                                  ISCOUT  EQU     0002H           ;Bit 1 - This device is the console output.
+   176                                  ISNULL  EQU     0004H           ;Bit 2 - This device is the null device.
+   177                                  ISCLOCK EQU     0008H           ;Bit 3 - This device is the clock device.
+   178                                  ISIBM   EQU     0010H           ;Bit 4 - This device is special
+   179                                  
+   180                                  ; The device table list has the form:
+   181                                  struc	SYSDEV
+   182 00000000 <res 00000004>          .NEXT:		resd 1		;Pointer to next device header
+   183 00000004 <res 00000002>          .ATT:		resw 1		;Attributes of the device
+   184 00000006 <res 00000002>          .STRAT:		resw 1		;Strategy entry point
+   185 00000008 <res 00000002>          .INT:		resw 1		;Interrupt entry point
+   186 0000000A <res 00000008>          .NAME:		resb 8		;Name of device (only first byte used for block)
+   187                                  .size:
+   188                                  endstruc
+   189                                  
+   190                                  ;Static Reguest Header
+   191                                  struc	SRHEAD
+   192 00000000 <res 00000001>          .REQLEN:	resb 1		;Length in bytes of request block
+   193 00000001 <res 00000001>          .REQUNIT:	resb 1		;Device unit number
+   194 00000002 <res 00000001>          .REQFUNC:	resb 1		;Type of request
+   195 00000003 <res 00000002>          .REQSTAT:	resw 1		;Status Word
+   196 00000005 <res 00000008>                  	resb 8		;Reserved for queue links
+   197                                  .size:
+   198                                  endstruc
+   199                                  
+   200                                  ;Status word masks
+   201                                  STERR   EQU     8000H           ;Bit 15 - Error
+   202                                  STBUI   EQU     0200H           ;Bit 9 - Buisy
+   203                                  STDON   EQU     0100H           ;Bit 8 - Done
+   204                                  STECODE EQU     00FFH           ;Error code
+   205                                  WRECODE EQU     0
+   206                                  
+   207                                  ;Function codes
+   208                                  DEVINIT EQU     0               ;Initialization
+   209                                  DINITHL EQU     26              ;Size of init header
+   210                                  DEVMDCH EQU     1               ;Media check
+   211                                  DMEDHL  EQU     15              ;Size of media check header
+   212                                  DEVBPB  EQU     2               ;Get BPB
+   213                                  DEVRDIOCTL EQU  3               ;IOCTL read
+   214                                  DBPBHL  EQU     22              ;Size of Get BPB header
+   215                                  DEVRD   EQU     4               ;Read
+   216                                  DRDWRHL EQU     22              ;Size of RD/WR header
+   217                                  DEVRDND EQU     5               ;Non destructive read no wait (character devs)
+   218                                  DRDNDHL EQU     14              ;Size of non destructive read header
+   219                                  DEVIST  EQU     6               ;Input status
+   220                                  DSTATHL EQU     13              ;Size of status header
+   221                                  DEVIFL  EQU     7               ;Input flush
+   222                                  DFLSHL  EQU     15              ;Size of flush header
+   223                                  DEVWRT  EQU     8               ;Write
+   224                                  DEVWRTV EQU     9               ;Write with verify
+   225                                  DEVOST  EQU     10              ;Output status
+   226                                  DEVOFL  EQU     11              ;Output flush
+   227                                  DEVWRIOCTL EQU  12              ;IOCTL write
+   228                                  
+   229                                  ; ----------------------------------------------------------------------
+   230                                  ; system file table
+   231                                  ;
+   232                                  struc	SFT
+   233 00000000 <res 00000004>          .SFT_LINK:	resd 1
+   234 00000004 <res 00000002>          .SFT_COUNT:	resw 1		; number of entries
+   235 00000006 <res 00000002>          .SFT_TABLE:	resw 1		; beginning of array of the following
+   236                                  .size:
+   237                                  endstruc
+   238                                  
+   239                                  ; ----------------------------------------------------------------------
+   240                                  ; system file table entry
+   241                                  ;
+   242                                  struc	SF_ENTRY
+   243 00000000 <res 00000001>          .sf_ref_count:	resb 1		; number of processes sharing fcb
+   244 00000001 <res 00000001>          .sf_mode:	resb 1		; mode of access
+   245 00000002 <res 00000001>          .sf_attr:	resb 1		; attribute of file
+   246 00000003 <res 00000025>          .sf_fcb:	resb SYS_FCB.size  ; actual FCB
+   247                                  .size:
+   248                                  endstruc
+   249                                  
+   250                                  ; ----------------------------------------------------------------------
+   251                                  struc	SYS_FCB
+   252 00000000 <res 00000001>          .fcb_drive:	resb 1
+   253 00000001 <res 00000008>          .fcb_name:	resb 8
+   254 00000009 <res 00000003>          .fcb_ext:	resb 3
+   255 0000000C <res 00000002>          .fcb_EXTENT:	resw 1
+   256 0000000E <res 00000002>          .fcb_RECSIZ:	resw 1	; Size of record (user settable)
+   257 00000010 <res 00000002>          .fcb_FILSIZ:	resw 1	; Size of file in bytes; used with the following
+   258                                                          ; word
+   259 00000012 <res 00000002>          .fcb_DRVBP:	resw 1	; BP for SEARCH FIRST and SEARCH NEXT
+   260 00000014 <res 00000002>          .fcb_FDATE:	resw 1	; Date of last writing
+   261 00000016 <res 00000002>          .fcb_FTIME:	resw 1	; Time of last writing
+   262 00000018 <res 00000001>          .fcb_DEVID:	resb 1	; Device ID number, bits 0-5 if file.
+   263                                                          ; bit 7=0 for file, bit 7=1 for I/O device
+   264                                                          ; If file, bit 6=0 if dirty
+   265                                                          ; If I/O device, bit 6=0 if EOF (input)
+   266                                                          ;               Bit 5=1 if Raw mode
+   267                                                          ;               Bit 0=1 if console input device
+   268                                                          ;               Bit 1=1 if console output device
+   269                                                          ;               Bit 2=1 if null device
+   270                                                          ;               Bit 3=1 if clock device
+   271 00000019 <res 00000002>          .fcb_FIRCLUS:	resw 1	; First cluster of file
+   272 0000001B <res 00000002>          .fcb_CLUSPOS:	resw 1	; Position of last cluster accessed
+   273 0000001D <res 00000002>          .fcb_LSTCLUS:	resw 1	; Last cluster accessed and directory
+   274 0000001F <res 00000001>                       	resb 1	; pack 2 12 bit numbers into 24 bits...
+   275 00000020 <res 00000001>          .fcb_NR:	resb 1	; Next record
+   276 00000021 <res 00000004>          .fcb_RR:	resb 4	; Random record
+   277                                  .size:
+   278                                  endstruc
+   279                                  
+   280                                  ; ----------------------------------------------------------------------
+   281                                  ; Field definition for I/O buffer information
+   282                                  
+   283                                  struc	BUFFINFO
+   284 00000000 <res 00000004>          .NEXTBUF:	resd 1	; Pointer to next buffer in list
+   285                                  ; The next two items are often refed as a word
+   286 00000004 <res 00000001>          .BUFDRV:	resb 1	; Logical drive # assoc with buffer FF = free
+   287 00000005 <res 00000001>          .BUFDIRTY:	resb 1	; Dirty flag
+   288 00000006 <res 00000001>          .BUFPRI:	resb 1	; Buffer selection priority (see EQUs below)
+   289 00000007 <res 00000001>          .VISIT:		resb 1	; Visit flag for buffer pool scans
+   290 00000008 <res 00000002>          .BUFSECNO:	resw 1	; Sector number of buffer
+   291                                  ; The next two items are often refed as a word
+   292 0000000A <res 00000001>          .BUFWRTCNT:	resb 1	; For FAT sectors, # times sector written out
+   293 0000000B <res 00000001>          .BUFWRTINC:	resb 1	; "   "     "   , # sectors between each write
+   294 0000000C <res 00000004>          .BUFDRVDP:	resd 1	; Pointer to drive parameters
+   295                                  .size:
+   296                                  endstruc
+   297                                  
+   298                                  BUFINSIZ        EQU     BUFFINFO.size ; ; Size of structure in bytes
+   299                                  
+   300                                  ; ----------------------------------------------------------------------
+   301                                  ; DPB structure
+   302                                  
+   303                                  DIRSTRLEN       EQU     64	; Max length in bytes of directory strings
+   304                                  
+   305                                  struc	DPB
+   306 00000000 <res 00000001>          .DRIVE:		resb 1		; Logical drive # assoc with DPB (A=0,B=1,...)
+   307 00000001 <res 00000001>          .UNIT:		resb 1		; Driver unit number of DPB
+   308 00000002 <res 00000002>          .SECTOR_SIZE:	resw 1		; Size of physical sector in bytes
+   309 00000004 <res 00000001>          .CLUSTER_MASK:	resb 1		; Sectors/cluster - 1
+   310 00000005 <res 00000001>          .CLUSTER_SHIFT:	resb 1		; Log2 of sectors/cluster
+   311 00000006 <res 00000002>          .FIRST_FAT:	resw 1		; Starting record of FATs
+   312 00000008 <res 00000001>          .FAT_COUNT:	resb 1		; Number of FATs for this drive
+   313 00000009 <res 00000002>          .ROOT_ENTRIES:	resw 1		; Number of directory entries
+   314 0000000B <res 00000002>          .FIRST_SECTOR:	resw 1		; First sector of first cluster
+   315 0000000D <res 00000002>          .MAX_CLUSTER:	resw 1		; Number of clusters on drive + 1
+   316 0000000F <res 00000001>          .FAT_SIZE:	resb 1		; Number of records occupied by FAT
+   317 00000010 <res 00000002>          .DIR_SECTOR:	resw 1		; Starting record of directory
+   318 00000012 <res 00000004>          .DRIVER_ADDR:	resd 1		; Pointer to driver
+   319 00000016 <res 00000001>          .MEDIA:		resb 1		; Media byte
+   320 00000017 <res 00000001>          .FIRST_ACCESS:	resb 1		; This is initialized to -1 to force a media
+   321                                  				; check the first time this DPB is used
+   322 00000018 <res 00000004>          .NEXT_DPB:	resd 1		; Pointer to next Drive parameter block
+   323 0000001C <res 00000002>          .CURRENT_DIR:	resw 1		; Cluster number of start of current directory
+   324                                  				; 0 indicates root, -1 indicates invalid
+   325                                  				; (disk ? changed)
+   326 0000001E <res 00000040>          .DIR_TEXT:	resb DIRSTRLEN	; ASCIZ string of current directory
+   327                                  .size:
+   328                                  endstruc
+   329                                  
+   330                                  DPBSIZ  EQU     DPB.size	; Size of the structure in bytes
+   331                                  
+   332                                  DSKSIZ  EQU	DPB.MAX_CLUSTER	; Size of disk (temp used during init only)
+   333                                  
+   334                                  ; ----------------------------------------------------------------------
+   335                                  ; 26/03/2018
+   336                                  
+   337                                  ; IOCTL SUB-FUNCTIONS
+   338                                  IOCTL_GET_DEVICE_INFO	EQU	0
+   339                                  IOCTL_SET_DEVICE_INFO	EQU	1
+   340                                  IOCTL_READ_HANDLE	EQU	2
+   341                                  IOCTL_WRITE_HANDLE	EQU	3
+   342                                  IOCTL_READ_DRIVE	EQU	4
+   343                                  IOCTL_WRITE_DRIVE	EQU	5
+   344                                  IOCTL_GET_INPUT_STATUS	EQU	6
+   345                                  IOCTL_GET_OUTPUT_STATUS EQU	7
+   346                                  IOCTL_CHANGEABLE?	EQU	8
+   347                                  IOCTL_SHARING_RETRY	EQU	11
+   348                                  GENERIC_IOCTL_HANDLE	EQU	12
+   349                                  GENERIC_IOCTL		EQU	13
+   350                                  
+   351                                  ; GENERIC IOCTL SUB-FUNCTIONS
+   352                                  RAWIO			EQU	8
+   353                                  
+   354                                  ; RAWIO SUB-FUNCTIONS
+   355                                  GET_DEVICE_PARAMETERS	EQU	60H
+   356                                  SET_DEVICE_PARAMETERS	EQU	40H
+   357                                  READ_TRACK		EQU	61H
+   358                                  WRITE_TRACK		EQU	41H
+   359                                  VERIFY_TRACK		EQU	62H
+   360                                  FORMAT_TRACK		EQU	42H
+   361                                  
+   362                                  ; DEVICETYPE VALUES
+   363                                  MAX_SECTORS_IN_TRACK	EQU	63
+   364                                  DEV_5INCH		EQU	0
+   365                                  DEV_5INCH96TPI		EQU	1
+   366                                  DEV_3INCH720KB		EQU	2
+   367                                  DEV_8INCHSS		EQU	3
+   368                                  DEV_8INCHDS		EQU	4
+   369                                  DEV_HARDDISK		EQU	5
+   370                                  DEV_OTHER		EQU	7
+   371                                  ;DEV_3INCH1440KB	EQU	7
+   372                                  DEV_3INCH2880KB		EQU	9
+   373                                  ; Retro DOS v2.0 - 26/03/2018
+   374                                  ;;DEV_TAPE		EQU	6
+   375                                  ;;DEV_ERIMO		EQU	8
+   376                                  ;DEV_3INCH2880KB	EQU	9
+   377                                  DEV_3INCH1440KB		EQU	10
+   378                                  
+   379                                  ;MAX_DEV_TYPE		EQU	9	; MAXIMUM DEVICE TYPE THAT WE
+   380                                  					; CURRENTLY SUPPORT.
+   381                                  MAX_DEV_TYPE		EQU	10
+   382                                  
+   383                                  struc A_SECTORTABLE
+   384 00000000 <res 00000002>          .ST_SECTORNUMBER:	resw	1
+   385 00000002 <res 00000002>          .ST_SECTORSIZE:		resw	1
+   386                                  .size:
+   387                                  endstruc
+   388                                  
+   389                                  struc A_BPB
+   390 00000000 <res 00000002>          .BPB_BYTESPERSECTOR:	resw	1
+   391 00000002 <res 00000001>          .BPB_SECTORSPERCLUSTER:	resb	1
+   392 00000003 <res 00000002>          .BPB_RESERVEDSECTORS:	resw	1
+   393 00000005 <res 00000001>          .BPB_NUMBEROFFATS:	resb	1
+   394 00000006 <res 00000002>          .BPB_ROOTENTRIES: 	resw	1
+   395 00000008 <res 00000002>          .BPB_TOTALSECTORS:	resw	1
+   396 0000000A <res 00000001>          .BPB_MEDIADESCRIPTOR:	resb	1
+   397 0000000B <res 00000002>          .BPB_SECTORSPERFAT:	resw	1
+   398 0000000D <res 00000002>          .BPB_SECTORSPERTRACK:	resw	1
+   399 0000000F <res 00000002>          .BPB_HEADS:		resw	1
+   400 00000011 <res 00000002>          .BPB_HIDDENSECTORS:	resw	1
+   401 00000013 <res 00000002>          			resw	1
+   402 00000015 <res 00000002>          .BPB_BIGTOTALSECTORS:	resw	1
+   403 00000017 <res 00000002>          			resw	1
+   404 00000019 <res 00000006>          			resb	6	; NOTE:  many times these
+   405                                  ;					; 	 6 bytes are omitted
+   406                                  ;					;	 when BPB manipulations
+   407                                  ;					;	 are performed!
+   408                                  .size:
+   409                                  endstruc									   ;
+   410                                  
+   411                                  struc A_DEVICEPARAMETERS
+   412 00000000 <res 00000001>          .DP_SPECIALFUNCTIONS:	resb	1
+   413 00000001 <res 00000001>          .DP_DEVICETYPE:		resb	1
+   414 00000002 <res 00000002>          .DP_DEVICEATTRIBUTES:	resw	1
+   415 00000004 <res 00000002>          .DP_CYLINDERS:		resw	1
+   416 00000006 <res 00000001>          .DP_MEDIATYPE:		resb	1
+   417 00000007 <res 0000001F>          .DP_BPB:		resb	A_BPB.size
+   418 00000026 <res 00000002>          .DP_TRACKTABLEENTRIES.	resw	1
+   419 00000028 <res 000000FC>          .DP_SECTORTABLE:	resb	MAX_SECTORS_IN_TRACK * A_SECTORTABLE.size
+   420                                  endstruc
+   421                                  
+   422                                  ; ----------------------------------------------------------------------
+   423                                  ; Memory arena structure
+   424                                  struc ARENA
+   425 00000000 <res 00000001>          .SIGNATURE:	resb 1		; 4D for valid item, 5A for last item
+   426 00000001 <res 00000002>          .OWNER:		resw 1		; owner of arena item
+   427 00000003 <res 00000002>          .SIZE:		resw 1		; size in paragraphs of item
+   428                                  endstruc
+   429                                  
+   430                                  ; ----------------------------------------------------------------------
+   431                                  ;
+   432                                  ; Process data block (otherwise known as program header)
+   433                                  ;
+   434                                  
+   435                                  FILPERPROC	EQU     20
+   436                                  
+   437                                  struc PDB	; Process_data_block
+   438 00000000 <res 00000002>          .EXIT_CALL:	resw 1   	; INT int_abort system terminate
+   439 00000002 <res 00000002>          .BLOCK_LEN:	resw 1		; size of execution block
+   440 00000004 <res 00000001>                          resb 1
+   441 00000005 <res 00000005>          .CPM_CALL:	resb 5		; ancient call to system
+   442 0000000A <res 00000004>          .EXIT:		resd 1		; pointer to exit routine
+   443 0000000E <res 00000004>          .CTRL_C:	resd 1		; pointer to ^C routine
+   444 00000012 <res 00000004>          .FATAL_ABORT:	resd 1		; pointer to fatal error
+   445 00000016 <res 00000002>          .PARENT_PID:	resw 1		; PID of parent (terminate PID)
+   446 00000018 <res 00000014>          .JFN_TABLE:     resb FILPERPROC ; indices into system table
+   447 0000002C <res 00000002>          .ENVIRON:	resw 1		; seg addr of environment
+   448 0000002E <res 00000004>          .USER_STACK:	resd 1		; stack of self during system calls
+   449 00000032 <res 00000002>          .JFN_LENGTH:	resw 1 ; 25/03/18 ; number of handles allowed
+   450 00000034 <res 00000004>          .JFN_POINTER:	resd 1 ; 25/03/18 ; pointer to JFN table
+   451 00000038 <res 00000004>          .NEXT_PDB:	resd 1 ; 25/03/18 ; pointer to nested PDB's
+   452 0000003C <res 00000014>          .PAD1:		resb 20 ; 25/03/2018
+   453 00000050 <res 00000005>          .CALL_SYSTEM:	resb 5		; portable method of system call
+   454 00000055 <res 00000007>          .PAD2:		resb 7 ; 25/03/2018
+   455                                  endstruc
+   456                                  
+   457                                  ; ----------------------------------------------------------------------
+   458                                  ; <system call definitions>
+   459                                  
+   460                                  ABORT                           EQU 0   ;  0      0
+   461                                  STD_CON_INPUT                   EQU 1   ;  1      1
+   462                                  STD_CON_OUTPUT                  EQU 2   ;  2      2
+   463                                  STD_AUX_INPUT                   EQU 3   ;  3      3
+   464                                  STD_AUX_OUTPUT                  EQU 4   ;  4      4
+   465                                  STD_PRINTER_OUTPUT              EQU 5   ;  5      5
+   466                                  RAW_CON_IO                      EQU 6   ;  6      6
+   467                                  RAW_CON_INPUT                   EQU 7   ;  7      7
+   468                                  STD_CON_INPUT_NO_ECHO           EQU 8   ;  8      8
+   469                                  STD_CON_STRING_OUTPUT           EQU 9   ;  9      9
+   470                                  STD_CON_STRING_INPUT            EQU 10  ; 10      A
+   471                                  STD_CON_INPUT_STATUS            EQU 11  ; 11      B
+   472                                  STD_CON_INPUT_FLUSH             EQU 12  ; 12      C
+   473                                  DISK_RESET                      EQU 13  ; 13      D
+   474                                  SET_DEFAULT_DRIVE               EQU 14  ; 14      E
+   475                                  FCB_OPEN                        EQU 15  ; 15      F
+   476                                  FCB_CLOSE                       EQU 16  ; 16     10
+   477                                  DIR_SEARCH_FIRST                EQU 17  ; 17     11
+   478                                  DIR_SEARCH_NEXT                 EQU 18  ; 18     12
+   479                                  FCB_DELETE                      EQU 19  ; 19     13
+   480                                  FCB_SEQ_READ                    EQU 20  ; 20     14
+   481                                  FCB_SEQ_WRITE                   EQU 21  ; 21     15
+   482                                  FCB_CREATE                      EQU 22  ; 22     16
+   483                                  FCB_RENAME                      EQU 23  ; 23     17
+   484                                  GET_DEFAULT_DRIVE               EQU 25  ; 25     19
+   485                                  SET_DMA                         EQU 26  ; 26     1A
+   486                                  GET_DEFAULT_DPB                 EQU 31  ; 31     1F
+   487                                  FCB_RANDOM_READ                 EQU 33  ; 33     21
+   488                                  FCB_RANDOM_WRITE                EQU 34  ; 34     22
+   489                                  GET_FCB_FILE_LENGTH             EQU 35  ; 35     23
+   490                                  GET_FCB_POSITION                EQU 36  ; 36     24
+   491                                  SET_INTERRUPT_VECTOR            EQU 37  ; 37     25
+   492                                  CREATE_PROCESS_DATA_BLOCK       EQU 38  ; 38     26
+   493                                  FCB_RANDOM_READ_BLOCK           EQU 39  ; 39     27
+   494                                  FCB_RANDOM_WRITE_BLOCK          EQU 40  ; 40     28
+   495                                  PARSE_FILE_DESCRIPTOR           EQU 41  ; 41     29
+   496                                  GET_DATE                        EQU 42  ; 42     2A
+   497                                  SET_DATE                        EQU 43  ; 43     2B
+   498                                  GET_TIME                        EQU 44  ; 44     2C
+   499                                  SET_TIME                        EQU 45  ; 45     2D
+   500                                  SET_VERIFY_ON_WRITE             EQU 46  ; 46     2E
+   501                                  ; Extended functionality group
+   502                                  GET_DMA                         EQU 47  ; 47     2F
+   503                                  GET_VERSION                     EQU 48  ; 48     30
+   504                                  KEEP_PROCESS                    EQU 49  ; 49     31
+   505                                  GET_DPB                         EQU 50  ; 50     32
+   506                                  SET_CTRL_C_TRAPPING             EQU 51  ; 51     33
+   507                                  GET_INDOS_FLAG                  EQU 52  ; 52     34
+   508                                  GET_INTERRUPT_VECTOR            EQU 53  ; 53     35
+   509                                  GET_DRIVE_FREESPACE             EQU 54  ; 54     36
+   510                                  CHAR_OPER                       EQU 55  ; 55     37
+   511                                  INTERNATIONAL                   EQU 56  ; 56     38
+   512                                  ; XENIX CALLS
+   513                                  ;   Directory Group
+   514                                  MKDIR                           EQU 57  ; 57     39
+   515                                  RMDIR                           EQU 58  ; 58     3A
+   516                                  CHDIR                           EQU 59  ; 59     3B
+   517                                  ;   File Group
+   518                                  CREAT                           EQU 60  ; 60     3C
+   519                                  OPEN                            EQU 61  ; 61     3D
+   520                                  CLOSE                           EQU 62  ; 62     3E
+   521                                  READ                            EQU 63  ; 63     3F
+   522                                  WRITE                           EQU 64  ; 64     40
+   523                                  UNLINK                          EQU 65  ; 65     41
+   524                                  LSEEK                           EQU 66  ; 66     42
+   525                                  CHMOD                           EQU 67  ; 67     43
+   526                                  IOCTL                           EQU 68  ; 68     44
+   527                                  XDUP                            EQU 69  ; 69     45
+   528                                  XDUP2                           EQU 70  ; 70     46
+   529                                  CURRENT_DIR                     EQU 71  ; 71     47
+   530                                  ;    Memory Group
+   531                                  ALLOC                           EQU 72  ; 72     48
+   532                                  DEALLOC                         EQU 73  ; 73     49
+   533                                  SETBLOCK                        EQU 74  ; 74     4A
+   534                                  ;    Process Group
+   535                                  EXEC                            EQU 75  ; 75     4B
+   536                                  EXIT                            EQU 76  ; 76     4C
+   537                                  _WAIT				EQU 77  ; 77     4D
+   538                                  FIND_FIRST                      EQU 78  ; 78     4E
+   539                                  ;   Special Group
+   540                                  FIND_NEXT                       EQU 79  ; 79     4F
+   541                                  ; SPECIAL SYSTEM GROUP
+   542                                  SET_CURRENT_PDB                 EQU 80  ; 80     50
+   543                                  GET_CURRENT_PDB                 EQU 81  ; 81     51
+   544                                  GET_IN_VARS                     EQU 82  ; 82     52
+   545                                  SETDPB                          EQU 83  ; 83     53
+   546                                  GET_VERIFY_ON_WRITE             EQU 84  ; 84     54
+   547                                  DUP_PDB                         EQU 85  ; 85     55
+   548                                  RENAME                          EQU 86  ; 86     56
+   549                                  FILE_TIMES                      EQU 87  ; 87     57
+   550                                  
+   551                                  ; ----------------------------------------------------------------------
+   552                                  
+   553                                          ;INCLUDE DOSSYM.ASM
+   554                                          ;INCLUDE DEVSYM.ASM
+   555                                  
+   556                                          ;IF      NOT IBM
+   557                                          ;IF      NOT IBMJAPVER
+   558                                          ;EXTRN   RE_INIT:FAR
+   559                                          ;ENDIF
+   560                                          ;ENDIF
+   561                                  
+   562                                  ;SYSINITSEG      SEGMENT PUBLIC 'SYSTEM_INIT'
+   563                                  
+   564                                  	;ASSUME  CS:SYSINITSEG,DS:NOTHING,ES:NOTHING,SS:NOTHING
+   565                                  
+   566                                  SYSINITSEG:
+   567                                  
+   568                                  	[org 0]
+   569                                  
+   570                                          ;EXTRN   BADOPM:BYTE,CRLFM:BYTE,BADCOM:BYTE
+   571                                          ;EXTRN   BADSIZ_PRE:BYTE,BADLD_PRE:BYTE
+   572                                          ;EXTRN   BADSIZ_POST:BYTE,BADLD_POST:BYTE
+   573                                          ;EXTRN   SYSSIZE:BYTE,BADCOUNTRY:BYTE
+   574                                  
+   575                                          ;PUBLIC  CURRENT_DOS_LOCATION
+   576                                          ;PUBLIC  FINAL_DOS_LOCATION
+   577                                          ;PUBLIC  DEVICE_LIST
+   578                                          ;PUBLIC  MEMORY_SIZE
+   579                                          ;PUBLIC  DEFAULT_DRIVE
+   580                                          ;PUBLIC  BUFFERS
+   581                                          ;PUBLIC  FILES
+   582                                          ;PUBLIC  SYSINIT
+   583                                  
+   584                                          ;IF      HIGHMEM
+   585                                          ;PUBLIC  DPBBUF_SIZ
+   586                                          ;ENDIF
+   587                                  
+   588                                  ; ----------------------------------------------------------------------
+   589                                  ; SYINIT1.ASM (MSDOS 3.3) - SYSINIT.ASM (MSDOS 2.0)
+   590                                  ; ----------------------------------------------------------------------
+   591                                  
+   592                                  SYSINIT:
+   593                                          ;JMP	GOINIT
+   594 00000000 E9E800                  	JMP	SYSIN ; 25/02/2018 - Retro DOS 2.0 modification
+   595 00000003 90                      align 4
+   596                                  DOSINFO: 
+   597 00000004 0000                    	dw	0
+   598                                  CURRENT_DOS_LOCATION: 
+   599 00000006 0000                    	dw	0
+   600                                  MSDOS:	
+   601                                  ENTRY_POINT:
+   602 00000008 0000                    	dw	0
+   603                                  FINAL_DOS_LOCATION:
+   604 0000000A 0000                    	dw	0
+   605                                  DEVICE_LIST:
+   606 0000000C 00000000                	dd	0
+   607                                  DOSSIZE: ; Retro DOS 2.0 feature - 25/02/2018
+   608 00000010 0000                    	dw	0   ; 'MSDOS.BIN' kernel size in words
+   609                                  
+   610                                  ; 28/03/2018
+   611                                  ;; MSDOS 3.3 - SYSINIT1.ASM - 24/07/1987
+   612                                  ;
+   613                                  ;SYSI_Country:	
+   614                                  ;	dw	0 ; 5/29/86 Pointer to
+   615                                  ;	dw	0 ;country table in DOS
+   616                                  
+   617                                  	;; STACKSW   EQU   TRUE ;Include Switchable Hardware Stacks
+   618                                  	;; (SYSCONF.ASM, 1987)
+   619                                  	;; Internal Stack Parameters
+   620                                  	;EntrySize	equ	8
+   621                                  	;MinCount	equ	8
+   622                                  	;DefaultCount	equ	9
+   623                                  	;MaxCount	equ	64
+   624                                  	;MinSize 	equ	32
+   625                                  	;DefaultSize	equ	128
+   626                                  	;MaxSize 	equ	512
+   627                                  
+   628                                  	;;IF	STACKSW    ; STACKSW TRUE
+   629                                  ;;
+   630                                  ;; Internal Stack Parameters
+   631                                  ;
+   632                                  ;STACK_COUNT:	DW	DefaultCount
+   633                                  ;STACK_SIZE:	DW	DefaultSize
+   634                                  ;STACK_ADDR:	DD	0
+   635                                  ;	;ENDIF
+   636                                  
+   637                                  ; various default values
+   638                                  
+   639                                  MEMORY_SIZE:
+   640 00000012 0100                    	dw	1
+   641                                  DEFAULT_DRIVE:
+   642 00000014 00                      	db	0
+   643                                  BUFFERS:
+   644 00000015 FF                      	db	-1	; initialized during buffer allocation
+   645                                  	;db	2	; two buffers
+   646                                  FILES:
+   647 00000016 08                      	db	8	; enough files for pipe
+   648                                  ;FCBS:
+   649                                  ;	db	4	; performance for recycling
+   650                                  ;KEEP:
+   651                                  ;	db	0	; keep original set
+   652                                  ;NUM_CDS:
+   653                                  ;	db	5	; 5 net drives
+   654                                  ;CONFBOT:
+   655                                  ;	dw	0
+   656                                  ;ALLOCLIM:
+   657                                  ;	dw	0
+   658                                  ;FOOSTRNG:
+   659                                  ;	db	"A:\",0
+   660                                  COMMAND_LINE:
+   661 00000017 020050                  	db	2,0,"P" ; Default Command.com Args
+   662                                          
+   663 0000001A 00<rept>                	times	29 db 0
+   664                                  ZERO:
+   665 00000037 00                      	db	0
+   666                                  ;SEPCHR:
+   667                                  ;	db	0
+   668                                  
+   669                                          ;IF      NOT NOEXEC
+   670                                  ;COMEXE EXEC0 <0,COMMAND_LINE,DEFAULT_DRIVE,ZERO>
+   671                                          ;ENDIF
+   672                                  
+   673                                  ; 01/05/2018
+   674                                  COMEXE:
+   675 00000038 0000                    EXEC0.ENVIRON:	DW	0	; seg addr of environment
+   676 0000003A [1700]                  EXEC0.COM_LINE:	DW	COMMAND_LINE ; pointer to asciz command line
+   677 0000003C 0000                    		DW	0
+   678 0000003E [1400]                  EXEC0.5C_FCB:	DW	DEFAULT_DRIVE ; default fcb at 5C
+   679 00000040 0000                    		DW	0
+   680 00000042 [3700]                  EXEC0.6C_FCB:	DW	ZERO	; default fcb at 6C
+   681 00000044 0000                    		DW	0
+   682                                  
+   683                                  COUNT:
+   684 00000046 0000                    	dw	0
+   685                                  CHRPTR:
+   686 00000048 0000                    	dw	0
+   687                                  
+   688 0000004A 90<rept>                align 4
+   689                                  
+   690                                  BUFPTR:
+   691                                  	; LEAVE THIS STUFF IN ORDER!
+   692                                  MEMLO:
+   693 0000004C 0000                    	dw	0
+   694                                  PRMBLK:
+   695                                  MEMHI:
+   696 0000004E 0000                    	dw	0
+   697                                  LDOFF:
+   698 00000050 0000                    	dw	0
+   699                                  AREA:
+   700 00000052 0000                    	dw	0
+   701                                  
+   702                                  PACKET:
+   703 00000054 16                      	db	22
+   704 00000055 00                      	db	0
+   705 00000056 00                      	db	0		; INITIALIZE CODE
+   706 00000057 0000                    	dw	0
+   707 00000059 00<rept>                	times	8 db 0
+   708                                  UNITCOUNT:
+   709 00000061 00                      	db	0
+   710                                  BREAK_ADDR:
+   711 00000062 00000000                	dd	0
+   712                                  BPB_ADDR:
+   713 00000066 00000000                	dd	0
+   714                                  ;DriveNumber:
+   715                                  ;	db	0
+   716                                  
+   717                                  ;align 2
+   718                                  
+   719                                  TempStack:
+   720 0000006A 00<rept>                	times	128 db 0
+   721                                  
+   722                                  ;GOINIT:
+   723                                  ;Move_Myself:
+   724                                  ;	; 25/02/2018 - Retro DOS 2.0 - MSDOS 2.0 "SYSINIT.ASM"
+   725                                  ;	; (Modified for Retro DOS 2.0, for NASM 'incbin' method)
+   726                                  ;
+   727                                  ;	SYSINITSIZE	EQU  sysinit_code_end - sysinit_code_start
+   728                                  ;
+   729                                  ;      	;CLD
+   730                                  ;      	XOR     SI,SI
+   731                                  ;      	MOV     DI,SI
+   732                                  ;	; 19/03/2018
+   733                                  ;      	mov	CX,[SYSINIT_START+MEMORY_SIZE]
+   734                                  ;;	CMP     CX,1
+   735                                  ;;      	JNZ     short NOSCAN
+   736                                  ;;	MOV     CX,2048		; START SCANNING AT 32K BOUNDARY
+   737                                  ;;	XOR     BX,BX
+   738                                  ;;MEMSCAN:
+   739                                  ;;	INC     CX
+   740                                  ;;    	JZ	short SETEND
+   741                                  ;;     	MOV     DS,CX
+   742                                  ;;     	MOV     AL,[BX]
+   743                                  ;;     	NOT     AL
+   744                                  ;;     	MOV     [BX],AL
+   745                                  ;;     	CMP     AL,[BX]
+   746                                  ;;     	NOT     AL
+   747                                  ;;     	MOV     [BX],AL
+   748                                  ;;     	JZ      short MEMSCAN
+   749                                  ;;SETEND:
+   750                                  ;;	MOV     AX,CS
+   751                                  ;;      MOV     DS,AX   
+   752                                  ;;	MOV	[SYSINIT_START+MEMORY_SIZE],CX 
+   753                                  ;;NOSCAN:
+   754                                  ;	MOV     AX,SYSINITSIZE + 15
+   755                                  ;	SHR     AX,1                    ; Divide by 16 for paras
+   756                                  ;	SHR     AX,1
+   757                                  ;	SHR     AX,1
+   758                                  ;	SHR     AX,1
+   759                                  ;
+   760                                  ;	SUB     CX,AX
+   761                                  ;	MOV     ES,CX ; SYSINITSEG = [MEMORY_SIZE] - (SYSIZE+15)/16
+   762                                  ;	MOV     CX,SYSINITSIZE + 1
+   763                                  ;	SHR     CX,1                    ; Divide by 2 to get words
+   764                                  ;	REP     MOVSW                   ; RELOCATE SYSINIT
+   765                                  ;
+   766                                  ;	PUSH    ES
+   767                                  ;	XOR	AX,AX ; 0
+   768                                  ;	PUSH    AX
+   769                                  ;	
+   770                                  ;	RETF	; far jump to final location of SYSINIT code
+   771                                  ;
+   772                                  
+   773                                  ;
+   774                                  ;       MOVE THE DOS TO ITS PROPER LOCATION
+   775                                  ;
+   776                                  
+   777 000000EA 90                      	nop	; 30/03/2018
+   778                                  SYSIN:
+   779                                  	; Retro DOS 2.0 - 25/02/2018 
+   780                                  
+   781 000000EB 0E                      	PUSH	CS
+   782 000000EC 1F                      	POP	DS
+   783                                  
+   784 000000ED 8B0E[1000]                      MOV     CX,[DOSSIZE] ; words (not bytes!)
+   785                                  	        
+   786 000000F1 A1[0A00]                	MOV	AX,[FINAL_DOS_LOCATION]
+   787 000000F4 8EC0                    	MOV     ES,AX
+   788 000000F6 A1[0600]                        MOV     AX,[CURRENT_DOS_LOCATION]
+   789 000000F9 8ED8                            MOV     DS,AX
+   790                                  
+   791 000000FB 31F6                            XOR     SI,SI
+   792 000000FD 89F7                            MOV     DI,SI
+   793                                  	;INC	CX
+   794                                  	;SHR	CX, 1
+   795 000000FF F3A5                            REP     MOVSW
+   796                                  
+   797 00000101 8CC8                    	MOV	AX,CS
+   798 00000103 8ED8                    	MOV	DS,AX
+   799 00000105 8B16[1200]                      MOV	DX,[MEMORY_SIZE]
+   800 00000109 C536[0C00]              	LDS     SI,[DEVICE_LIST]
+   801                                  
+   802 0000010D FA                              CLI
+   803 0000010E 8ED0                            MOV     SS,AX
+   804 00000110 BC[1401]                        MOV     SP,LOCSTACK	
+   805 00000113 FB                      	STI
+   806                                  align 2
+   807                                  	; 30/03/2018
+   808                                  LOCSTACK:
+   809 00000114 2EFF1E[0800]                    CALL	FAR [CS:MSDOS]	; FINAL_DOS_LOCATION:0 
+   810                                  		       		;('jmp DOSINIT' in 'MSHEAD.ASM')
+   811                                  		       		;('DOSINIT:' is in 'MSINIT.ASM') 
+   812                                  
+   813                                  	; DS = Segment for COMMAND.COM
+   814                                  	; ES:DI = Address of SYSINITVAR
+   815                                  
+   816 00000119 2E8C06[0600]                    MOV     [CS:DOSINFO+2],ES ; SAVE POINTER TO DOS INFO
+   817 0000011E 2E893E[0400]                    MOV     [CS:DOSINFO],DI
+   818                                  
+   819                                  	;; 25/03/2018 - Retro DOS v2.0 (MSDOS 2.0 <-> 3.3)
+   820                                  	;SYSI_NUMIO equ	16 ; SYSINITVAR NUMIO offset for MSDOS 2.0
+   821                                  
+   822                                  	;NOTE: Here, MSDOS 3.3 SYSINIT code is modified for
+   823                                  	;      MSDOS 2.0 kernel.
+   824                                  	; (This code is not compatible with MSDOS 3.3 kernel!)
+   825                                  
+   826                                  	;; MSDOS 3.3 - SYSINIT1.ASM
+   827                                  	;MOV	AL,[ES:DI+SYSI_NUMIO] ; SYSINITVAR.NUMIO
+   828                                  	;MOV	[DriveNumber],AL ; Save start of installable block drvs
+   829                                  
+   830                                  	;MOV	AX,CS
+   831                                  	;SUB	AX,11H			; room for header we will copy shortly
+   832                                  	;MOV	[CONFBOT],AX		; Temp "unsafe" location
+   833                                  
+   834                                          ;IF      NOT IBMJAPVER
+   835                                          ;CALL    RE_INIT                 ; Re-call the BIOS
+   836                                          ;ENDIF
+   837                                  
+   838 00000123 FB                              STI
+   839 00000124 FC                              CLD
+   840                                  
+   841                                  ; DOSINIT has set up a default "process" (PHP) at DS:0. We will move it out
+   842                                  ; of the way by putting it just below SYSINIT at end of memory.
+   843                                  
+   844 00000125 8CCB                            MOV     BX,CS
+   845 00000127 83EB10                          SUB     BX,10H
+   846 0000012A 8EC3                            MOV     ES,BX
+   847 0000012C 31F6                            XOR     SI,SI
+   848 0000012E 89F7                            MOV     DI,SI
+   849 00000130 B98000                          MOV     CX,80H
+   850 00000133 F3A5                            REP     MOVSW
+   851                                  
+   852                                   	; Set Process Data Block - Program Segment Prefix address
+   853                                  	; BX = PDB/PSP segment
+   854 00000135 B450                            MOV     AH,SET_CURRENT_PDB
+   855 00000137 CD21                            INT     21H
+   856                                  
+   857                                          ;PUSH	DS ; 13/04/2018
+   858 00000139 0E                              PUSH    CS
+   859 0000013A 1F                              POP     DS
+   860 0000013B BA[B507]                        MOV     DX,INT24	; SET UP INT 24 HANDLER
+   861 0000013E B82425                          MOV     AX,(SET_INTERRUPT_VECTOR*256)+24H
+   862 00000141 CD21                            INT     21H
+   863                                  
+   864                                  	; 25/03/2018 - MSDOS 3.3 - SYSINIT1.ASM
+   865 00000143 BBFFFF                  	MOV	BX,0FFFFH
+   866 00000146 B448                    	MOV	AH,ALLOC
+   867 00000148 CD21                    	INT	21H			;FIRST TIME FAILS
+   868 0000014A B448                    	MOV	AH,ALLOC
+   869 0000014C CD21                    	INT	21H			;SECOND TIME GETS IT
+   870 0000014E A3[5200]                	MOV	[AREA],AX
+   871 00000151 A3[4E00]                	MOV	[MEMHI],AX		; MEMHI:MEMLO now points to
+   872                                  					; start of free memory
+   873                                          ;IF	ALTVECT
+   874                                  	;MOV	DX,BOOTMES
+   875                                          ;CALL	PRINT		; Print message DOSINIT couldn't
+   876                                          ;ENDIF
+   877                                  
+   878 00000154 8A16[1400]                      MOV     DL,[DEFAULT_DRIVE]
+   879                                  
+   880                                  	;POP	DS ; 13/04/2018
+   881                                  	
+   882 00000158 08D2                    	OR      DL,DL
+   883 0000015A 7406                            JZ      SHORT NODRVSET
+   884                                          
+   885 0000015C FECA                    	DEC     DL                      ; A = 0
+   886 0000015E B40E                            MOV     AH,SET_DEFAULT_DRIVE
+   887 00000160 CD21                            INT     21H                     ; SELECT THE DISK
+   888                                  NODRVSET:
+   889 00000162 E88B00                  	CALL	DOCONF                  ; DO THE CONFIG STUFF
+   890                                  
+   891 00000165 E8BE03                  	CALL	ENDFILE	; 25/03/2018 - MSDOS 3.3 - SYSINIT1.ASM
+   892                                  
+   893                                  	; 01/05/2018 (NOEXEC = FALSE)
+   894                                  	;IF	NOEXEC
+   895                                  
+   896                                  	;MOV	BP,DS                   ; SAVE COMMAND.COM SEGMENT
+   897                                  
+   898                                  	;;PUSH	DS
+   899                                  	;;POP	ES
+   900                                  
+   901                                  	;; 13/04/2018
+   902                                  	;MOV	ES, BP	
+   903                                  
+   904                                          ;MOV     BX,CS
+   905                                          ;SUB     BX,10H
+   906                                          ;MOV     DS,BX
+   907                                          ;XOR     SI,SI
+   908                                          ;MOV     DI,SI
+   909                                          ;MOV     CX,80H
+   910                                          ;REP     MOVSW
+   911                                  	;MOV	[ES:PDB.JFN_POINTER + 2],ES ; Relocate ; 25/03/2018
+   912                                          ;MOV     BX,ES
+   913                                  
+   914                                          ;MOV     AH,SET_CURRENT_PDB
+   915                                          ;INT     21H
+   916                                  
+   917                                          ;MOV     [ES:PDB.PARENT_PID],ES  ; WE ARE THE ROOT
+   918                                          ;ENDIF
+   919                                  
+   920                                  ; We must now close all handles and reopen STDIN,STDOUT,STDERR in order
+   921                                  ; to get a possibly NEW device driver for CON. STDAUX and STDPRN must
+   922                                  ; also be openned.
+   923                                  
+   924 00000168 0E                              PUSH    CS
+   925 00000169 1F                              POP     DS
+   926                                  
+   927 0000016A A0[1600]                        MOV     AL,[FILES]
+   928                                  	;CBW
+   929 0000016D 30E4                    	XOR	AH,AH			; DO NOT USE CBW INSTRUCTION!!!!!
+   930                                  					;  IT DOES SIGN EXTEND.
+   931 0000016F 89C1                            MOV     CX,AX
+   932 00000171 31DB                            XOR     BX,BX                   ; Close standard input
+   933 00000173 B43E                            MOV     AH,CLOSE
+   934 00000175 CD21                            INT     21H
+   935                                  
+   936 00000177 BB0200                          MOV     BX,2
+   937                                  RCCLLOOP: 				; Close everybody but standard output
+   938 0000017A B43E                            MOV     AH,CLOSE
+   939 0000017C CD21                            INT     21H
+   940 0000017E 43                              INC     BX
+   941 0000017F E2F9                            LOOP    RCCLLOOP
+   942                                  
+   943 00000181 BA[0C08]                        MOV     DX,CONDEV
+   944 00000184 B002                            MOV     AL,2
+   945 00000186 B43D                            MOV     AH,OPEN                 ; OPEN CON FOR READ/WRITE
+   946 00000188 F9                              STC
+   947 00000189 CD21                            INT     21H
+   948 0000018B 7305                            JNC     SHORT GOAUX
+   949 0000018D E8DF05                          CALL    BADFIL
+   950 00000190 EB13                            JMP     SHORT GOAUX2
+   951                                  
+   952 00000192 50                      GOAUX:  PUSH    AX
+   953 00000193 BB0100                          MOV     BX,1                    ; close standard output
+   954 00000196 B43E                            MOV     AH,CLOSE
+   955 00000198 CD21                            INT     21H
+   956 0000019A 58                              POP     AX
+   957                                  
+   958 0000019B 89C3                            MOV     BX,AX                   ; New device handle
+   959 0000019D B445                            MOV     AH,XDUP
+   960 0000019F CD21                            INT     21H                     ; Dup to 1, STDOUT
+   961 000001A1 B445                            MOV     AH,XDUP
+   962 000001A3 CD21                            INT     21H                     ; Dup to 2, STDERR
+   963                                  
+   964 000001A5 BA[1508]                GOAUX2: MOV     DX,AUXDEV
+   965 000001A8 B002                            MOV     AL,2                    ; READ/WRITE ACCESS
+   966 000001AA E8E505                          CALL    OPEN_DEV
+   967                                  
+   968 000001AD BA[1E08]                        MOV     DX,PRNDEV
+   969 000001B0 B001                            MOV     AL,1                    ; WRITE ONLY
+   970 000001B2 E8DD05                          CALL    OPEN_DEV
+   971                                  ;
+   972                                  ; SET UP THE PARAMETERS FOR COMMAND
+   973                                  ;
+   974                                  GOSET:
+   975 000001B5 BE[1800]                        MOV     SI,COMMAND_LINE+1
+   976                                  
+   977                                  	; 01/05/2018 (NOEXEC = FALSE)
+   978                                          ;IF	NOEXEC
+   979                                          ;MOV     DI,81H
+   980                                          ;ELSE
+   981 000001B8 1E                              PUSH	DS
+   982 000001B9 07                              POP	ES
+   983 000001BA 89F7                            MOV	DI,SI
+   984                                          ;ENDIF
+   985                                  
+   986 000001BC B1FF                            MOV     CL,-1
+   987                                  COMTRANLP:                              ; FIND LENGTH OF COMMAND LINE
+   988 000001BE FEC1                            INC     CL
+   989 000001C0 AC                              LODSB
+   990 000001C1 AA                              STOSB                           ; COPY COMMAND LINE IN
+   991 000001C2 08C0                            OR      AL,AL
+   992 000001C4 75F8                            JNZ     SHORT COMTRANLP
+   993 000001C6 4F                              DEC     DI
+   994 000001C7 B00D                            MOV     AL,0DH
+   995 000001C9 AA                              STOSB
+   996                                  
+   997                                  	; 01/05/2018 (NOEXEC = FALSE)
+   998                                          ;IF	NOEXEC
+   999                                          ;MOV     [ES:80H],CL
+  1000                                          ;MOV     AL,[DEFAULT_DRIVE]
+  1001                                          ;MOV     [ES:5CH],AL
+  1002                                          ;ELSE
+  1003 000001CA 880E[1700]                      MOV	[COMMAND_LINE],CL       ; Count
+  1004                                          ;ENDIF
+  1005                                  
+  1006 000001CE 0E                              PUSH    CS
+  1007 000001CF 07                              POP     ES
+  1008                                  
+  1009 000001D0 BA[3308]                        MOV     DX,COMMND		; NOW POINTING TO FILE DESCRIPTION
+  1010                                  
+  1011                                  	; 01/05/2018 (NOEXEC = FALSE)
+  1012                                          ;IF	NOEXEC
+  1013                                          ;MOV     ES,BP			; SET LOAD ADDRESS
+  1014                                          ;MOV     BX,100H
+  1015                                          ;CALL    LDFIL			; READ IN COMMAND
+  1016                                          ;JC      SHORT COMERR
+  1017                                          ;MOV     DS,BP
+  1018                                          ;MOV     DX,80H
+  1019                                          ;MOV     AH,SET_DMA		; SET DISK TRANSFER ADDRESS
+  1020                                          ;INT     21H
+  1021                                          ;CLI
+  1022                                          ;MOV     SS,BP
+  1023                                          ;MOV     SP,DX
+  1024                                          ;STI
+  1025                                          ;XOR     AX,AX			; PUSH A WORD OF ZEROS
+  1026                                          ;PUSH    AX
+  1027                                          ;PUSH    BP			; SET HIGH PART OF JUMP ADDRESS
+  1028                                          ;MOV     AX,100H
+  1029                                          ;PUSH    AX			; SET LOW PART OF JUMP ADDRESS
+  1030                                          ;RETF				; CRANK UP COMMAND!
+  1031                                  
+  1032                                          ;ELSE
+  1033 000001D3 BB[3800]                	MOV	BX,COMEXE
+  1034                                          ;MOV	[BX+EXEC0.COM_LINE+2],CS
+  1035                                          ;MOV	[BX+EXEC0.5C_FCB+2],CS
+  1036                                          ;MOV	[BX+EXEC0.6C_FCB+2],CS
+  1037 000001D6 8C0E[3C00]              	MOV	[EXEC0.COM_LINE+2],CS
+  1038 000001DA 8C0E[4000]                      MOV	[EXEC0.5C_FCB+2],CS
+  1039 000001DE 8C0E[4400]                      MOV	[EXEC0.6C_FCB+2],CS
+  1040                                  
+  1041                                          ;XOR	AX,AX
+  1042                                          ;MOV	AH,EXEC
+  1043 000001E2 B8004B                          MOV	AX, EXEC*256
+  1044 000001E5 F9                      	STC				; IN CASE OF INT 24
+  1045 000001E6 CD21                            INT	21H			; GO START UP COMMAND
+  1046                                          ;ENDIF
+  1047                                  
+  1048                                  COMERR:
+  1049 000001E8 BA[0509]                        MOV     DX,BADCOM		; WANT TO PRINT COMMAND ERROR
+  1050 000001EB E88105                          CALL    BADFIL
+  1051                                  STALL:  
+  1052 000001EE EBFE                    	JMP     SHORT STALL
+  1053                                  
+  1054                                  ; ----------------------------------------------------------------------
+  1055                                  ; SYSCONF.ASM - MSDOS 3.3 - 24/07/1987
+  1056                                  ; ----------------------------------------------------------------------
+  1057                                  ; 25/03/2018 - Retro DOS v2.0
+  1058                                  
+  1059                                  DOCONF: 		;Take care of Config.sys file.	
+  1060                                          ; 13/04/2018
+  1061                                  	;PUSH    CS
+  1062                                          ;POP     DS
+  1063                                  	
+  1064 000001F0 B80037                  	MOV     AX,(CHAR_OPER*256)	; GET SWITCH CHARACTER
+  1065 000001F3 CD21                    	INT     21H
+  1066 000001F5 8816[1800]              	MOV     [COMMAND_LINE+1],DL
+  1067                                  
+  1068 000001F9 BA[2708]                        MOV     DX,CONFIG		; NOW POINTING TO FILE DESCRIPTION
+  1069 000001FC B8003D                          MOV     AX,(OPEN*256)		; OPEN FILE "CONFIG.SYS"
+  1070 000001FF F9                              STC                             ; IN CASE OF INT 24
+  1071 00000200 CD21                            INT     21H                     ; FUNCTION REQUEST
+  1072                                          ;JC     SHORT ENDCONF
+  1073                                          ;JMP    NOPROB			; PROBLEM WITH OPEN
+  1074 00000202 7309                    	JNC	short NOPROB
+  1075                                  
+  1076                                  ENDCONF:
+  1077 00000204 C3                      	RETN
+  1078                                  
+  1079                                  BADOP:  
+  1080 00000205 BA[AB08]                	MOV     DX,BADOPM		; WANT TO PRINT COMMAND ERROR
+  1081 00000208 E88205                          CALL    PRINT
+  1082 0000020B EB7B                            JMP     COFF
+  1083                                  
+  1084                                  NOPROB:
+  1085                                  					; GET FILE SIZE (NOTE < 64K!!)
+  1086 0000020D 89C3                    	MOV     BX,AX
+  1087 0000020F 31C9                            XOR     CX,CX
+  1088 00000211 31D2                            XOR     DX,DX
+  1089 00000213 B80242                          MOV     AX,(LSEEK*256)+2
+  1090 00000216 CD21                            INT     21H
+  1091 00000218 A3[4600]                        MOV     [COUNT],AX
+  1092 0000021B 31D2                            XOR     DX,DX
+  1093 0000021D B80042                          MOV     AX,(LSEEK*256)		; Reset pointer to beginning of file
+  1094 00000220 CD21                            INT     21H
+  1095                                          
+  1096 00000222 8CCA                    	MOV     DX,CS
+  1097 00000224 A1[4600]                        MOV     AX,[COUNT]
+  1098 00000227 83C00F                          ADD     AX,15
+  1099 0000022A B104                            MOV     CL,4
+  1100 0000022C D3E8                            SHR     AX,CL                   ; NUMBER OF SEGMENTS
+  1101 0000022E 29C2                            SUB     DX,AX
+  1102 00000230 83EA11                          SUB     DX,11H                  ; ROOM FOR HEADER
+  1103                                  
+  1104 00000233 8B0E[4600]                      MOV     CX,[COUNT]
+  1105 00000237 8EDA                            MOV     DS,DX
+  1106 00000239 8EC2                            MOV     ES,DX
+  1107 0000023B 31D2                            XOR     DX,DX
+  1108                                          ;MOV	CX,[CS:COUNT]
+  1109 0000023D B43F                            MOV     AH,READ
+  1110 0000023F F9                              STC                             ; IN CASE OF INT 24
+  1111 00000240 CD21                            INT     21H                     ; Function request
+  1112 00000242 9C                              PUSHF
+  1113                                  ;
+  1114                                  ; Find the EOF mark in the file.  If present, then trim length.
+  1115                                  ;	
+  1116 00000243 0E                             	PUSH    CS
+  1117 00000244 1F                              POP     DS
+  1118                                  
+  1119 00000245 50                      	PUSH	AX
+  1120 00000246 57                      	PUSH	DI
+  1121 00000247 51                      	PUSH	CX
+  1122 00000248 B01A                    	MOV	AL,1Ah			; eof mark
+  1123 0000024A 89D7                    	MOV	DI,DX			; point ro buffer
+  1124 0000024C E305                    	JCXZ	PUTEOL			; no chars
+  1125 0000024E F2AE                    	REPNZ	SCASB			; find end
+  1126 00000250 7501                    	JNZ	SHORT PUTEOL		; none found and count exahusted
+  1127                                  ;
+  1128                                  ; We found a 1A.  Back up
+  1129                                  ;
+  1130 00000252 4F                      	DEC	DI			; backup past 1A
+  1131                                  ;
+  1132                                  ;  Just for the halibut, stick in an extra EOL
+  1133                                  ;
+  1134                                  PUTEOL:
+  1135 00000253 B00D                    	MOV	AL,13
+  1136 00000255 AA                      	STOSB				; CR
+  1137 00000256 B00A                    	MOV	AL,10
+  1138 00000258 AA                      	STOSB				; LF
+  1139 00000259 29D7                    	SUB	DI,DX			; difference moved
+  1140                                  	;MOV	[CS:COUNT],DI	
+  1141 0000025B 893E[4600]              	MOV	[COUNT],DI		; new count
+  1142                                  ;
+  1143                                  ; Restore registers
+  1144                                  ;
+  1145 0000025F 59                      	POP	CX
+  1146 00000260 5F                      	POP	DI
+  1147 00000261 58                      	POP	AX
+  1148                                  
+  1149                                          ;PUSH	CS
+  1150                                          ;POP	DS
+  1151                                  
+  1152 00000262 50                              PUSH    AX
+  1153 00000263 B43E                            MOV     AH,CLOSE
+  1154 00000265 CD21                            INT     21H
+  1155 00000267 58                              POP     AX
+  1156 00000268 9D                              POPF
+  1157 00000269 7204                            JC      SHORT CONFERR		; IF NOT WE'VE GOT A PROBLEM
+  1158 0000026B 39C1                            CMP     CX,AX
+  1159 0000026D 7407                            JZ      SHORT GETCOM		; COULDN'T READ THE FILE
+  1160                                  CONFERR:
+  1161 0000026F BA[2708]                        MOV     DX,CONFIG		; WANT TO PRINT CONFIG ERROR
+  1162 00000272 E8FA04                          CALL    BADFIL
+  1163                                  ENDCONV:
+  1164                                  	;JMP	ENDCONF
+  1165 00000275 C3                      	RETN
+  1166                                  
+  1167                                  GETCOM:
+  1168 00000276 E88403                          CALL    ORGANIZE                ; ORGANIZE THE FILE
+  1169 00000279 E88F02                          CALL    GETCHR
+  1170                                  
+  1171 0000027C 72F7                    CONFLP: JC      SHORT ENDCONV
+  1172 0000027E 88C4                            MOV     AH,AL
+  1173 00000280 E88802                          CALL    GETCHR
+  1174 00000283 730A                    	JNC	SHORT TRYB
+  1175 00000285 E97DFF                  	JMP	BADOP
+  1176                                  
+  1177                                  COFF:   
+  1178 00000288 0E                      	PUSH    CS
+  1179 00000289 1F                              POP     DS
+  1180 0000028A E81A04                          CALL    NEWLINE
+  1181 0000028D EBED                            JMP     SHORT CONFLP
+  1182                                  
+  1183                                  ;------------------------------------------------------------------------------
+  1184                                  ; Buffer command
+  1185                                  ;------------------------------------------------------------------------------
+  1186                                  TRYB:	
+  1187 0000028F 80FC42                  	CMP     AH,'B'                  ; BUFFER COMMAND?
+  1188 00000292 7512                            JNZ     SHORT TRYC
+  1189 00000294 E8AB04                          CALL    GETNUM
+  1190 00000297 7405                            JZ      SHORT TRYBBAD
+  1191 00000299 83F864                          CMP     AX,100
+  1192 0000029C 7203                            JB	SHORT SAVEBUF
+  1193                                  TRYBBAD:
+  1194 0000029E E964FF                  	JMP	BADOP
+  1195                                  SAVEBUF:
+  1196 000002A1 A2[1500]                        MOV     [BUFFERS],AL
+  1197                                  COFFJ1:
+  1198 000002A4 EBE2                            JMP     SHORT COFF
+  1199                                  
+  1200                                  ;------------------------------------------------------------------------------
+  1201                                  ; Break command
+  1202                                  ;------------------------------------------------------------------------------
+  1203                                  TRYC:   
+  1204 000002A6 80FC43                  	CMP     AH,'C'
+  1205                                          ;JZ	SHORT GOTC
+  1206                                          ;JMP	SHORT TRYD
+  1207 000002A9 7527                    	JNZ	SHORT TRYD
+  1208                                  GOTC:
+  1209 000002AB 3C4F                            CMP     AL,'O'                  ; FIRST LETTER OF "ON" OR "OFF"
+  1210 000002AD 7520                            JNZ     SHORT TRYCBAD
+  1211 000002AF E85902                          CALL    GETCHR
+  1212 000002B2 721B                            JC      SHORT TRYCBAD
+  1213 000002B4 3C4E                            CMP     AL,'N'                  ; SECOND LETTER OF "ON"
+  1214 000002B6 750A                            JNZ     SHORT TRYCOFF
+  1215 000002B8 B433                            MOV     AH,SET_CTRL_C_TRAPPING  ; TURN ON CONTROL-C CHECK
+  1216 000002BA B001                            MOV     AL,1
+  1217 000002BC 88C2                            MOV     DL,AL
+  1218 000002BE CD21                            INT     21H
+  1219                                  COFFJ2:
+  1220 000002C0 EBC6                    	JMP	SHORT COFF
+  1221                                  TRYCOFF: 
+  1222 000002C2 3C46                    	CMP	AL,'F'
+  1223 000002C4 7509                    	JNZ	SHORT TRYCBAD		; Check for "OFF"
+  1224 000002C6 E84202                  	CALL	GETCHR
+  1225 000002C9 7204                    	JC	SHORT TRYCBAD
+  1226 000002CB 3C46                    	CMP	AL,'F'
+  1227 000002CD 74F1                    	JZ	SHORT COFFJ2
+  1228                                  TRYCBAD:
+  1229 000002CF E933FF                  	JMP	BADOP
+  1230                                  
+  1231                                  ;------------------------------------------------------------------------------
+  1232                                  ; Device command
+  1233                                  ;------------------------------------------------------------------------------
+  1234                                  TRYD:   
+  1235 000002D2 80FC44                  	CMP     AH,'D'
+  1236 000002D5 7403                            JZ      SHORT GOTD
+  1237 000002D7 E99701                          JMP     TRYQ
+  1238                                  GOTD:   
+  1239 000002DA 8CCB                    	MOV     BX,CS
+  1240 000002DC 8EDB                            MOV     DS,BX
+  1241                                  
+  1242 000002DE 8936[6600]                      MOV     [BPB_ADDR],SI
+  1243 000002E2 8C06[6800]                      MOV     [BPB_ADDR+2],ES
+  1244                                  
+  1245 000002E6 E80A04                          CALL    ROUND
+  1246                                  
+  1247 000002E9 31C0                    	XOR     AX,AX
+  1248 000002EB A3[0800]                        MOV     [ENTRY_POINT],AX
+  1249 000002EE A1[4E00]                        MOV     AX,[MEMHI]
+  1250 000002F1 A3[0A00]                        MOV     [ENTRY_POINT+2],AX	; SET ENTRY POINT
+  1251                                  
+  1252                                  	; 01/05/2018 (NOEXEC = FALSE)
+  1253                                          ;IF     NOT NOEXEC
+  1254 000002F4 A3[5000]                        MOV	[LDOFF],AX		; SET LOAD OFFSET
+  1255                                          ;ENDIF
+  1256                                  
+  1257 000002F7 06                              PUSH    ES
+  1258 000002F8 1F                              POP     DS
+  1259 000002F9 89F2                            MOV     DX,SI                   ; DS:DX POINTS TO FILE NAME
+  1260                                  
+  1261                                          ;IF	NOEXEC
+  1262                                          ;LES     BX,[CS:MEMLO]
+  1263                                          ;CALL    LDFIL			; LOAD IN THE DEVICE DRIVER
+  1264                                          ;ELSE
+  1265 000002FB 8EC3                            MOV	ES,BX
+  1266 000002FD BB[4E00]                        MOV	BX,PRMBLK		; ES:BX POINTS TO PARAMETERS
+  1267 00000300 B003                            MOV	AL,3
+  1268 00000302 B44B                            MOV	AH,EXEC
+  1269 00000304 F9                              STC				; IN CASE OF INT 24
+  1270 00000305 CD21                            INT	21H                     ; LOAD IN THE DEVICE DRIVER
+  1271                                          ;ENDIF
+  1272                                  
+  1273 00000307 1E                              PUSH    DS
+  1274 00000308 07                              POP     ES                      ; ES:SI BACK TO CONFIG.SYS
+  1275 00000309 0E                              PUSH    CS
+  1276 0000030A 1F                              POP     DS                      ; DS BACK TO SYSINIT
+  1277 0000030B 730F                            JNC     SHORT GOODLD
+  1278                                  BADBRK: 
+  1279 0000030D 26803C0D                	cmp	BYTE [ES:SI], 13	; file name is CR?
+  1280 00000311 7503                    	jne	SHORT BADBRK_1		;(entered "device=" without filename)
+  1281 00000313 E9EFFE                  	jmp	BADOP			;"Unrecognized command in CONFIG.SYS"
+  1282                                  BADBRK_1:
+  1283 00000316 E85A04                  	CALL    BADLOAD
+  1284 00000319 E96CFF                          JMP     COFF
+  1285                                  GOODLD: 
+  1286 0000031C 06                      	PUSH    ES                      ; INITIALIZE THE DEVICE
+  1287 0000031D 56                              PUSH    SI
+  1288                                  RESTORE:
+  1289 0000031E 268A1C                  	MOV	BL,[ES:SI]		;   while ((c=*p) != 0)
+  1290 00000321 08DB                    	OR	BL,BL
+  1291 00000323 7403                    	JZ	SHORT GOT
+  1292 00000325 46                      	INC	SI			;	p++;
+  1293 00000326 EBF6                    	JMP	SHORT RESTORE
+  1294                                  GOT:	
+  1295 00000328 26C60420                	MOV	BYTE [ES:SI], ' '	;   *p = ' ';
+  1296                                  
+  1297 0000032C 06                      	PUSH    ES
+  1298 0000032D 56                              PUSH    SI        
+  1299 0000032E 0E                      	PUSH    CS
+  1300 0000032F 07                              POP     ES
+  1301 00000330 BB0600                          MOV     BX,SYSDEV.STRAT
+  1302 00000333 E8D803                          CALL    CALLDEV			;   CallDev (SDevStrat);
+  1303 00000336 BB0800                          MOV     BX,SYSDEV.INT
+  1304 00000339 E8D203                          CALL    CALLDEV			;   CallDev (SDevInt);
+  1305 0000033C 5E                      	POP	SI
+  1306 0000033D 1F                      	POP	DS
+  1307 0000033E C60400                  	MOV	BYTE [SI],0		;   *p = 0;
+  1308                                  		
+  1309 00000341 0E                              PUSH    CS
+  1310 00000342 1F                              POP     DS
+  1311 00000343 A1[6400]                	MOV     AX,[BREAK_ADDR+2]	; REMOVE THE INIT CODE
+  1312 00000346 3B06[1200]                      CMP     AX,[MEMORY_SIZE]
+  1313 0000034A 7204                            JB      SHORT BREAKOK
+  1314 0000034C 5E                              POP     SI
+  1315 0000034D 07                              POP     ES
+  1316 0000034E EBBD                            JMP     SHORT BADBRK
+  1317                                  BREAKOK:
+  1318 00000350 C516[0800]                      LDS     DX,[ENTRY_POINT]        ; SET DS:DX TO HEADER
+  1319 00000354 89D6                            MOV     SI,DX
+  1320 00000356 83C604                          ADD     SI,SYSDEV.ATT		; DS:SI POINTS TO ATTRIBUTES
+  1321 00000359 2EC43E[0400]                    LES     DI,[CS:DOSINFO]         ; ES:DI POINT TO DOS INFO
+  1322 0000035E 3E8B04                          MOV     AX,[DS:SI]              ; GET ATTRIBUTES
+  1323 00000361 A90080                          TEST    AX,DEVTYP               ; TEST IF BLOCK DEV
+  1324 00000364 7422                            JZ      SHORT ISBLOCK
+  1325 00000366 E86903                  	CALL	SET_BREAK		; Go ahead and alloc mem for device
+  1326 00000369 7225                    	JC	SHORT ERASE_DEV
+  1327 0000036B A90100                          TEST    AX,ISCIN                ; IS IT A CONSOLE IN?
+  1328 0000036E 7408                            JZ      SHORT TRYCLK
+  1329 00000370 2689550C                        MOV     [ES:DI+BCON],DX
+  1330 00000374 268C5D0E                        MOV     [ES:DI+BCON+2],DS
+  1331                                  
+  1332                                  TRYCLK: 
+  1333 00000378 A90800                  	TEST    AX,ISCLOCK              ; IS IT A CLOCK DEVICE?
+  1334 0000037B 7408                            JZ      SHORT GOLINK
+  1335 0000037D 26895508                        MOV     [ES:DI+BCLOCK],DX
+  1336 00000381 268C5D0A                        MOV     [ES:DI+BCLOCK+2],DS
+  1337                                  GOLINK: 
+  1338 00000385 E9B600                  	JMP	LINKIT
+  1339                                  
+  1340                                  ISBLOCK:
+  1341 00000388 2EA0[6100]                      MOV     AL,[CS:UNITCOUNT]	; IF NO UNITS FOUND, ERASE THE DEVICE
+  1342 0000038C 08C0                            OR      AL,AL
+  1343 0000038E 7506                            JNZ     SHORT PERDRV
+  1344                                  ERASE_DEV:					
+  1345 00000390 B8FFFF                          MOV     AX,-1			; No call to SET_BREAK yet, so no alloc
+  1346 00000393 E9D000                  	JMP	ENDDEV
+  1347                                  
+  1348                                  PERDRV:
+  1349 00000396 98                              CBW
+  1350 00000397 89C1                            MOV     CX,AX
+  1351 00000399 88E6                            MOV     DH,AH
+  1352 0000039B 268A5510                        MOV     DL,[ES:DI+NUMIO]        ; GET NUMBER OF DEVICES
+  1353 0000039F 88D4                    	MOV	AH,DL
+  1354 000003A1 00C4                    	ADD	AH,AL			; Check for too many devices
+  1355 000003A3 80FC1A                  	CMP	AH,26			; 'A' - 'Z' is 26 devices
+  1356 000003A6 760A                    	JBE	SHORT OK_BLOCK
+  1357 000003A8 0E                      	PUSH	CS
+  1358 000003A9 1F                      	POP	DS
+  1359 000003AA BA[3F09]                	MOV	DX,BADBLOCK
+  1360 000003AD E8DD03                  	CALL	PRINT
+  1361 000003B0 EBDE                    	JMP	SHORT ERASE_DEV
+  1362                                  
+  1363                                  OK_BLOCK:
+  1364 000003B2 E81D03                  	CALL	SET_BREAK		; Alloc the device
+  1365 000003B5 26004510                	ADD	[ES:DI+NUMIO],AL	; UPDATE THE AMOUNT
+  1366                                  	;ADD	[CS:DriveNumber],AL	; remember amount for next device
+  1367 000003B9 2EC51E[6600]                    LDS     BX,[CS:BPB_ADDR]        ; POINT TO BPB ARRAY
+  1368                                  PERUNIT:
+  1369 000003BE 2EC42E[0400]                    LES     BP,[CS:DOSINFO]
+  1370 000003C3 26C46E00                        LES     BP,[ES:BP+DPBHEAD]	; GET FIRST DPB
+  1371                                  
+  1372                                  SCANDPB:
+  1373 000003C7 26837E18FF              	CMP     WORD [ES:BP+DPB.NEXT_DPB],-1
+  1374 000003CC 7406                            JZ      SHORT FOUNDPB
+  1375 000003CE 26C46E18                        LES     BP,[ES:BP+DPB.NEXT_DPB]
+  1376 000003D2 EBF3                            JMP     SHORT SCANDPB
+  1377                                  FOUNDPB:
+  1378 000003D4 2EA1[4C00]                      MOV     AX,[CS:MEMLO]
+  1379 000003D8 26894618                        MOV     [ES:BP+DPB.NEXT_DPB],AX
+  1380                                  
+  1381 000003DC 2EA1[4E00]                      MOV     AX,[CS:MEMHI]
+  1382 000003E0 2689461A                        MOV     [ES:BP+DPB.NEXT_DPB+2],AX
+  1383 000003E4 2EC42E[4C00]                    LES     BP,[CS:MEMLO]
+  1384 000003E9 2E8306[4C00]5E                  ADD     WORD [CS:MEMLO],DPBSIZ
+  1385 000003EF E80103                  	CALL	ROUND			;Check for alloc error
+  1386 000003F2 26C74618FFFF                    MOV     WORD [ES:BP+DPB.NEXT_DPB],-1
+  1387 000003F8 26C64617FF                      MOV     BYTE [ES:BP+DPB.FIRST_ACCESS],-1
+  1388                                  
+  1389 000003FD 8B37                            MOV     SI,[BX]                 ; DS:SI POINTS TO BPB
+  1390 000003FF 43                              INC     BX
+  1391 00000400 43                              INC     BX                      ; POINT TO NEXT GUY
+  1392 00000401 26895600                        MOV     [ES:BP+DPB.DRIVE],DX
+  1393 00000405 B453                            MOV     AH,SETDPB               ; HIDDEN SYSTEM CALL
+  1394 00000407 CD21                            INT     21H
+  1395 00000409 268B4602                        MOV     AX,[ES:BP+DPB.SECTOR_SIZE]
+  1396 0000040D 06                              PUSH    ES
+  1397 0000040E 2EC43E[0400]                    LES     DI,[CS:DOSINFO]		; ES:DI POINT TO DOS INFO
+  1398 00000413 263B4511                        CMP     AX,[ES:DI+MAXSEC]
+  1399 00000417 07                              POP     ES
+  1400 00000418 760E                            JBE     SHORT NOTMAX
+  1401 0000041A 5E                              POP     SI
+  1402 0000041B 07                              POP     ES
+  1403 0000041C BA[D208]                        MOV     DX,BADSIZ_PRE
+  1404 0000041F BB[CF08]                        MOV     BX,BADSIZ_POST
+  1405 00000422 E85103                          CALL    PRNERR
+  1406 00000425 E960FE                          JMP     COFF
+  1407                                  
+  1408                                  NOTMAX: 
+  1409 00000428 1E                      	PUSH    DS
+  1410 00000429 52                              PUSH    DX
+  1411 0000042A 2EC516[0800]                    LDS     DX,[CS:ENTRY_POINT]
+  1412 0000042F 26895612                        MOV     [ES:BP+DPB.DRIVER_ADDR],DX
+  1413 00000433 268C5E14                        MOV     [ES:BP+DPB.DRIVER_ADDR+2],DS
+  1414 00000437 5A                              POP     DX
+  1415 00000438 1F                              POP     DS
+  1416 00000439 42                              INC     DX
+  1417 0000043A FEC6                            INC     DH
+  1418 0000043C E280                            LOOP    PERUNIT
+  1419                                  
+  1420                                  LINKIT:
+  1421 0000043E 2EC43E[0400]                    LES     DI,[CS:DOSINFO]         ; ES:DI = DOS TABLE
+  1422 00000443 268B4D17                        MOV     CX,[ES:DI+DEVHEAD] 	; DX:CX = HEAD OF LIST
+  1423 00000447 268B5519                        MOV     DX,[ES:DI+DEVHEAD+2]
+  1424                                  
+  1425 0000044B 2EC536[0800]                    LDS     SI,[CS:ENTRY_POINT]     ; DS:SI = DEVICE LOCATION
+  1426 00000450 26897517                        MOV     [ES:DI+DEVHEAD],SI 	; SET HEAD OF LIST IN DOS
+  1427 00000454 268C5D19                        MOV     [ES:DI+DEVHEAD+2],DS
+  1428 00000458 3E8B04                          MOV     AX,[DS:SI]              ; GET POINTER TO NEXT DEVICE
+  1429 0000045B 2EA3[0800]                      MOV     [CS:ENTRY_POINT],AX	; AND SAVE IT
+  1430                                  
+  1431 0000045F 3E890C                          MOV    [DS:SI],CX		; LINK IN THE DRIVER
+  1432 00000462 3E895402                        MOV    [DS:SI+2],DX
+  1433                                  ENDDEV:
+  1434 00000466 5E                              POP     SI
+  1435 00000467 07                              POP     ES
+  1436 00000468 40                              INC     AX                      ; AX = FFFF?
+  1437 00000469 7403                            JZ      SHORT COFFJ3
+  1438 0000046B E9AEFE                          JMP	GOODLD                  ; OTHERWISE PRETEND WE LOADED IT IN
+  1439                                  COFFJ3:
+  1440                                  COFFV:  
+  1441 0000046E E917FE                  	JMP     COFF
+  1442                                  
+  1443                                  ;------------------------------------------------------------------------------
+  1444                                  ; Country command
+  1445                                  ; (NOTE: MSDOS 2.0 COUNTRY CONFIG. - not as in MSDOS 3.3 SYSCONF.ASM, 1987) 
+  1446                                  ;------------------------------------------------------------------------------
+  1447                                  ; SYSINIT.ASM, 1983
+  1448                                  TRYQ:
+  1449 00000471 80FC51                          CMP     AH,'Q'
+  1450 00000474 751A                            JNZ     SHORT TRYF
+  1451 00000476 E8C902                          CALL    GETNUM
+  1452 00000479 74F3                            JZ      SHORT COFFV
+  1453 0000047B 08E4                            OR      AH,AH
+  1454 0000047D 75EF                            JNZ	SHORT  COFFV
+  1455 0000047F B438                            MOV     AH,INTERNATIONAL        ; AL is country code
+  1456 00000481 BAFFFF                          MOV     DX,-1                   ; Set country
+  1457 00000484 CD21                            INT     21H
+  1458 00000486 73E6                            JNC     SHORT COFFV
+  1459 00000488 BA[1909]                        MOV     DX,BADCOUNTRY
+  1460 0000048B E8FF02                          CALL    PRINT
+  1461 0000048E EBDE                            JMP     SHORT COFFV
+  1462                                  
+  1463                                  ;------------------------------------------------------------------------------
+  1464                                  ; Files command
+  1465                                  ;------------------------------------------------------------------------------
+  1466                                  ; SYSCONF.ASM, 1987
+  1467                                  TRYF:
+  1468 00000490 80FC46                          CMP     AH,'F'
+  1469                                  	;JNZ    SHORT TRYL
+  1470 00000493 7516                            JNZ	SHORT TRYW	; Retro DOS v2.0 - 25/03/2018 
+  1471 00000495 E8AA02                  	CALL    GETNUM
+  1472 00000498 83F805                  	CMP	AX,5
+  1473 0000049B 720B                    	JB	SHORT TRYFBAD		; Gotta have at least 5
+  1474 0000049D 3D0001                  	CMP	AX,256
+  1475 000004A0 7306                    	JAE	SHORT TRYFBAD		; Has to be a byte
+  1476 000004A2 A2[1600]                	MOV	[FILES],AL
+  1477                                  COFFJ5: 
+  1478 000004A5 E9E0FD                  	JMP	COFF
+  1479                                  TRYFBAD:
+  1480 000004A8 E95AFD                  	JMP	BADOP
+  1481                                  
+  1482                                  ;------------------------------------------------------------------------------
+  1483                                  ; LastDrive command
+  1484                                  ;------------------------------------------------------------------------------
+  1485                                  ;TRYL:
+  1486                                  ;	CMP	AH,'L'
+  1487                                  ;	JNZ	SHORT TRYP
+  1488                                  ;	OR	AL,020h
+  1489                                  ;	SUB	AL,'a'
+  1490                                  ;	JB	SHORT TRYLBAD
+  1491                                  ;	INC	AL
+  1492                                  ;	CMP	AL,26			; a-z are allowed
+  1493                                  ;	JA	SHORT TRYLBAD
+  1494                                  ;	MOV	[NUM_CDS],AL
+  1495                                  ;COFFJ6: 
+  1496                                  ;	JMP	COFF
+  1497                                  ;TRYLBAD:
+  1498                                  ;	JMP	BADOP
+  1499                                  
+  1500                                  ;-------------------------------------------------------------------------------
+  1501                                  ; Setting Drive Parameters
+  1502                                  ;-------------------------------------------------------------------------------
+  1503                                  ;TRYP:
+  1504                                  ;	CMP	AH,'P'
+  1505                                  ;	JNZ	SHORT TRYK
+  1506                                  ;	CALL	PARSELINE
+  1507                                  ;	JC	SHORT TRYLBAD
+  1508                                  ;	CALL	SETPARMS
+  1509                                  ;	CALL	DIDDLEBACK
+  1510                                  ;	JC	SHORT TRYLBAD
+  1511                                  ;	JMP	COFF
+  1512                                  
+  1513                                  ;------------------------------------------------------------------------------
+  1514                                  ; Switch command
+  1515                                  ;------------------------------------------------------------------------------
+  1516                                  TRYW:
+  1517 000004AB 80FC57                          CMP     AH,'W'
+  1518 000004AE 750E                            JNZ     SHORT TRYA
+  1519                                  	;JMP	BADOP		; no longer implemented (MSDOS 3.3)
+  1520                                  	; 01/04/2018
+  1521 000004B0 88C2                    	MOV     DL,AL
+  1522 000004B2 B80137                  	MOV     AX,(CHAR_OPER*256)+1	; SET SWITCH CHARACTER
+  1523 000004B5 8816[1800]              	MOV     [COMMAND_LINE+1],DL
+  1524 000004B9 CD21                    	INT     21H
+  1525 000004BB E9CAFD                  	JMP     COFF
+  1526                                  
+  1527                                  ;------------------------------------------------------------------------------
+  1528                                  ; Availdev command
+  1529                                  ;------------------------------------------------------------------------------
+  1530                                  TRYA:
+  1531 000004BE 80FC41                          CMP     AH,'A'
+  1532 000004C1 7503                            JNZ     SHORT TRYS
+  1533 000004C3 E93FFD                  	JMP	BADOP		; no longer implemented (MSDOS 3.3)
+  1534                                  ;	CMP     AL,'F'			; FIRST LETTER OF "FALSE"
+  1535                                  ;	JNZ     SHORT COFFJ
+  1536                                  ;	MOV     AX,(CHAR_OPER*256)+3	; TURN ON "/DEV" PREFIX
+  1537                                  ;	XOR     DL,DL
+  1538                                  ;	INT     21H
+  1539                                  ;COFFJ7:  
+  1540                                  ;	JMP     COFF
+  1541                                  
+  1542                                  ;------------------------------------------------------------------------------
+  1543                                  ; shell command
+  1544                                  ;------------------------------------------------------------------------------
+  1545                                  TRYS:
+  1546 000004C6 80FC53                          CMP     AH,'S'
+  1547 000004C9 752B                            JNZ     SHORT TRYX
+  1548 000004CB C606[1800]00                    MOV     BYTE [COMMAND_LINE+1],0
+  1549 000004D0 BF[3408]                        MOV     DI,COMMND + 1
+  1550 000004D3 8845FF                          MOV     [DI-1],AL
+  1551                                  STORESHELL:
+  1552 000004D6 E83200                          CALL    GETCHR
+  1553 000004D9 08C0                            OR      AL,AL
+  1554 000004DB 741C                            JZ      SHORT GETSHPARMS
+  1555 000004DD 3C20                            CMP     AL," "
+  1556 000004DF 7205                            JB      SHORT ENDSH
+  1557 000004E1 8805                            MOV     [DI],AL
+  1558 000004E3 47                              INC     DI
+  1559 000004E4 EBF0                            JMP     SHORT STORESHELL
+  1560                                  
+  1561                                  ENDSH:
+  1562 000004E6 C60500                          MOV     BYTE [DI],0
+  1563 000004E9 E81F00                          CALL    GETCHR
+  1564 000004EC 3C0A                            CMP     AL,10
+  1565 000004EE 7503                            JNZ     SHORT CONV
+  1566 000004F0 E81800                          CALL    GETCHR
+  1567                                  CONV:   
+  1568 000004F3 E986FD                  	JMP     CONFLP
+  1569                                  
+  1570                                  ;------------------------------------------------------------------------------
+  1571                                  ; FCBS Command
+  1572                                  ;------------------------------------------------------------------------------
+  1573                                  TRYX:
+  1574 000004F6 E90CFD                  	JMP	BADOP	; 25/03/2018 - Retro DOS v2.0 
+  1575                                  
+  1576                                  ;	CMP	AH,'X'
+  1577                                  ;	JNZ	SHORT TRYZ
+  1578                                  ;	CALL	GETNUM
+  1579                                  ;	JZ	SHORT TRYXBAD 		; gotta have at least one
+  1580                                  ;	CMP	AX,256
+  1581                                  ;	JAE	SHORT TRYXBAD 		; Can't be more than 8 bits worth
+  1582                                  ;	MOV	[FCBS],AL
+  1583                                  ;;
+  1584                                  ;; Skip delimiters after the ,
+  1585                                  ;;
+  1586                                  ;	CALL	SKIP_DELIM
+  1587                                  ;	JC	SHORT TRYXBAD
+  1588                                  ;	CALL	GETNUM
+  1589                                  ;	JC	SHORT TRYXBAD		; Number bad (Zero is OK here)
+  1590                                  ;	CMP	AX,256
+  1591                                  ;	JAE	SHORT TRYXBAD
+  1592                                  ;	CMP	AL,[FCBS]
+  1593                                  ;	JA	SHORT TRYXBAD
+  1594                                  ;	MOV	[KEEP],AL
+  1595                                  ;	JMP	COFF
+  1596                                  ;TRYXBAD:
+  1597                                  ;	JMP	BADOP
+  1598                                  
+  1599                                  ;------------------------------------------------------------------------------
+  1600                                  ; Bogus command
+  1601                                  ;------------------------------------------------------------------------------
+  1602                                  ;TRYZ:
+  1603                                  ;	JMP	BADOP
+  1604                                  
+  1605                                  GETSHPARMS:
+  1606 000004F9 C60500                          MOV     BYTE [DI],0
+  1607 000004FC BF[1800]                        MOV     DI,COMMAND_LINE+1
+  1608                                  PARMLOOP:
+  1609 000004FF E80900                          CALL    GETCHR
+  1610 00000502 3C20                            CMP     AL," "
+  1611 00000504 72E0                            JB      SHORT ENDSH
+  1612 00000506 8805                            MOV     [DI],AL
+  1613 00000508 47                              INC     DI
+  1614 00000509 EBF4                            JMP     SHORT PARMLOOP
+  1615                                  
+  1616                                  GETCHR: 
+  1617 0000050B 51                      	PUSH	CX
+  1618 0000050C B9[4600]                	MOV     CX,COUNT
+  1619 0000050F E312                            JCXZ    NOCHAR
+  1620 00000511 8B36[4800]                      MOV     SI,[CHRPTR]
+  1621 00000515 268A04                          MOV     AL,[ES:SI]
+  1622 00000518 FF0E[4600]                      DEC     WORD [COUNT]
+  1623 0000051C FF06[4800]                      INC     WORD [CHRPTR]
+  1624 00000520 F8                              CLC
+  1625                                  GET_RET:
+  1626 00000521 59                      	POP	CX
+  1627 00000522 C3                              RETN
+  1628                                  NOCHAR: 
+  1629 00000523 F9                      	STC
+  1630 00000524 EBFB                            JMP	SHORT GET_RET
+  1631                                  
+  1632                                  ; ----------------------------------------------------------------------
+  1633                                  ; SYINIT1.ASM (MSDOS 3.3) - SYSINIT.ASM (MSDOS 2.0)
+  1634                                  ; ----------------------------------------------------------------------
+  1635                                  
+  1636                                  ENDFILE:
+  1637                                  	; 26/03/2018 - Retro DOS v2.0
+  1638                                  
+  1639                                          ;PUSH    CS
+  1640                                          ;POP     DS
+  1641                                  
+  1642                                  	;;MOV	AX,[CONFBOT]
+  1643                                  	;;MOV	[ALLOCLIM],AX
+  1644                                  
+  1645 00000526 E8CA01                          CALL    ROUND
+  1646 00000529 A0[1600]                        MOV     AL,[FILES]
+  1647 0000052C 2C05                            SUB     AL,5
+  1648                                          ;JBE	SHORT DOFCBS
+  1649 0000052E 763F                    	JBE     SHORT DOBUFF
+  1650                                  	;CBW
+  1651 00000530 30E4                    	XOR	AH,AH			; DO NOT USE CBW INSTRUCTION!!!!!
+  1652                                  					;  IT DOES SIGN EXTEND.
+  1653 00000532 8B1E[4C00]                      MOV     BX,[MEMLO]
+  1654 00000536 8B16[4E00]                      MOV     DX,[MEMHI]
+  1655 0000053A C53E[0400]                      LDS     DI,[DOSINFO]            ; GET POINTER TO DOS DATA
+  1656 0000053E C57D04                          LDS     DI,[DI+SFT_ADDR]        ; DS:BP POINTS TO SFT
+  1657 00000541 891D                            MOV     [DI+SFT.SFT_LINK],BX
+  1658 00000543 895502                          MOV     [DI+SFT.SFT_LINK+2],DX ; SET POINTER TO NEW SFT
+  1659 00000546 0E                              PUSH    CS
+  1660 00000547 1F                              POP     DS
+  1661 00000548 C43E[4C00]                      LES     DI,[MEMLO]		; POINT TO NEW SFT
+  1662 0000054C 26C705FFFF                      MOV     WORD [ES:DI+SFT.SFT_LINK],-1
+  1663 00000551 26894504                        MOV     [ES:DI+SFT.SFT_COUNT],AX
+  1664 00000555 B328                            MOV     BL,SF_ENTRY.size
+  1665 00000557 F6E3                            MUL     BL                      ; AX = NUMBER OF BYTES TO CLEAR
+  1666 00000559 89C1                            MOV     CX,AX
+  1667                                  
+  1668 0000055B 0106[4C00]              	ADD     [MEMLO],AX		; ALLOCATE MEMORY
+  1669 0000055F B80600                          MOV     AX,6
+  1670 00000562 0106[4C00]                      ADD     [MEMLO],AX		; REMEMBER THE HEADER TOO
+  1671 00000566 E88A01                  	CALL	ROUND			; Check for mem error before the STOSB
+  1672 00000569 01C7                            ADD     DI,AX
+  1673 0000056B 31C0                            XOR     AX,AX
+  1674 0000056D F3AA                            REP     STOSB                   ; CLEAN OUT THE STUFF
+  1675                                  
+  1676                                  ;------------------------------------------------------------------------------
+  1677                                  ; Allocate Buffers
+  1678                                  ;------------------------------------------------------------------------------
+  1679                                  
+  1680                                  ; Search through the list of media supported and allocate 3 buffers if the
+  1681                                  ; capacity of the drive is > 360KB
+  1682                                  
+  1683                                  DOBUFF: 
+  1684                                  	; 26/03/2018
+  1685                                  
+  1686 0000056F 803E[1500]FF            	CMP	BYTE [BUFFERS], -1	; Has buffers been already set?
+  1687                                  	;je	SHORT DODEFAULTBUFF
+  1688                                  	;jmp	SHORT DOBUFF2		; the user entered the buffers=.
+  1689 00000574 752C                    	JNE	short DOBUFF2 ; 13/04/2018
+  1690                                  
+  1691                                  DODEFAULTBUFF:
+  1692 00000576 C606[1500]02            	MOV	BYTE [BUFFERS], 2	; Default to 2 buffers
+  1693                                  
+  1694                                  ; 10/04/2018
+  1695                                  
+  1696                                  ;	;PUSH	AX ; *?
+  1697                                  ;	;PUSH	DS ; *?
+  1698                                  ;	;LES	BP,CS:[DOSINFO] 	; Search through the DPB's
+  1699                                  ;	LES	BP,[DOSINFO] 
+  1700                                  ;	;LES	BP,ES:[BP+.SYSI_DPB]	; Get first DPB,
+  1701                                  ;	LES	BP,[ES:BP+DPBHEAD]
+  1702                                  ;
+  1703                                  ;	;PUSH	CS
+  1704                                  ;	;POP	DS
+  1705                                  ;
+  1706                                  ;NEXTDPB:
+  1707                                  ;	; Test if the drive supports removeable media
+  1708                                  ;	MOV	BL, [ES:BP+DPB.DRIVE]
+  1709                                  ;	INC	BL
+  1710                                  ;	;MOV	AX, (IOCTL SHL 8) OR 8
+  1711                                  ;	MOV	AX, (IOCTL*256) + 8
+  1712                                  ;	INT	21H
+  1713                                  ;
+  1714                                  ;; Ignore fixed disks
+  1715                                  ;	OR	AX, AX			; AX is nonzero if disk is nonremoveable
+  1716                                  ;	JNZ	SHORT NOSETBUF
+  1717                                  ;
+  1718                                  ;; Get parameters of drive
+  1719                                  ;	XOR	BX, BX
+  1720                                  ;	;MOV	BL, BYTE PTR ES:[BP.DPB_DRIVE]
+  1721                                  ;	MOV	BL, [ES:BP+DPB.DRIVE]
+  1722                                  ;	INC	BL
+  1723                                  ;	MOV	DX, DEVICEPARAMETERS
+  1724                                  ;	;MOV	AX, (IOCTL SHL 8) OR GENERIC_IOCTL
+  1725                                  ;	MOV	AX, (IOCTL*256) + GENERIC_IOCTL
+  1726                                  ;	;MOV	CX, (RAWIO SHL 8) OR GET_DEVICE_PARAMETERS
+  1727                                  ;	MOV	CX, (RAWIO*256) + GET_DEVICE_PARAMETERS
+  1728                                  ;	INT	21H
+  1729                                  ;	JC	SHORT NOSETBUF		; Get next DPB if driver doesn't support
+  1730                                  ;					; Generic IOCTL
+  1731                                  ;
+  1732                                  ;	; Determine capacity of drive
+  1733                                  ;	; Media Capacity = #Sectors * Bytes/Sector
+  1734                                  ;	;MOV	BX, WORD PTR DeviceParameters.DP_BPB.BPB_TotalSectors
+  1735                                  ;	MOV	BX, [DEVP.DP_BPB+A_BPB.BPB_TOTALSECTORS]
+  1736                                  ;
+  1737                                  ;; To keep the magnitude of the media capacity within a word,
+  1738                                  ;; scale the sector size
+  1739                                  ;; (ie. 1 -> 512 bytes, 2 -> 1024 bytes, ...)
+  1740                                  ;	;MOV	AX, WORD PTR DeviceParameters.DP_BPB.BPB_BytesPerSector
+  1741                                  ;	MOV	AX, [DEVP.DP_BPB+A_BPB.BPB_BYTESPERSECTOR]
+  1742                                  ;	XOR	DX, DX
+  1743                                  ;	MOV	CX, 512
+  1744                                  ;	DIV	CX				; Scale sector size in factor of
+  1745                                  ;						; 512 bytes
+  1746                                  ;
+  1747                                  ;	MUL	BX				; AX = #sectors * size factor
+  1748                                  ;	OR	DX, DX				; Just in case of LARGE floppies
+  1749                                  ;	JNZ	SHORT SETBUF
+  1750                                  ;	CMP	AX, 720 			; 720 Sectors * size factor of 1
+  1751                                  ;	JBE	SHORT NOSETBUF
+  1752                                  ;SETBUF:
+  1753                                  ;	MOV	BYTE [BUFFERS], 3
+  1754                                  ;	jmp	SHORT CHK_MEMSIZE_FOR_BUFFERS	; Check the mem. size for def. buff. count
+  1755                                  ;NOSETBUF:
+  1756                                  ;	CMP	WORD [ES:BP+DPB.NEXT_DPB],-1
+  1757                                  ;	JE	SHORT CHK_MEMSIZE_FOR_BUFFERS
+  1758                                  ;	LES	BP,[ES:BP+DPB.NEXT_DPB]
+  1759                                  ;	JMP	SHORT NEXTDPB
+  1760                                  
+  1761                                  ;From DOS 3.3, the default number of buffers will be changed according to the
+  1762                                  ;memory size too.						
+  1763                                  ; Default buffers = 2						
+  1764                                  ; If diskette Media > 360 kb, then default buffers = 3		
+  1765                                  ; If memory size > 128 kb (2000H para), then default buffers = 5
+  1766                                  ; If memory size > 256 kb (4000H para), then default buffers = 10
+  1767                                  ; If memory size > 512 kb (8000H para), then default buffers = 15.
+  1768                                  
+  1769                                  CHK_MEMSIZE_FOR_BUFFERS:
+  1770 0000057B 813E[1200]0020          	cmp	WORD [MEMORY_SIZE], 2000h ; 128KB
+  1771 00000581 761F                    	jbe	SHORT BUFSET
+  1772 00000583 C606[1500]05            	mov	BYTE [BUFFERS], 5
+  1773 00000588 813E[1200]0040          	cmp	WORD [MEMORY_SIZE], 4000h ; 256KB
+  1774 0000058E 7612                    	jbe	SHORT BUFSET
+  1775 00000590 C606[1500]0A            	mov	BYTE [BUFFERS], 10
+  1776 00000595 813E[1200]0080          	cmp	WORD [MEMORY_SIZE], 8000h ; 512KB
+  1777 0000059B 7605                    	jbe	SHORT BUFSET
+  1778 0000059D C606[1500]0F            	mov	BYTE [BUFFERS], 15
+  1779                                  
+  1780                                  BUFSET:
+  1781                                  	;POP	DS ; *?
+  1782                                  	;POP	AX ; *?
+  1783                                  
+  1784                                  DOBUFF2:
+  1785 000005A2 E84E01                  	CALL    ROUND
+  1786                                  	
+  1787 000005A5 FE0E[1500]              	DEC     BYTE [BUFFERS]
+  1788 000005A9 742F                            JZ      SHORT BUF1
+  1789                                  
+  1790 000005AB 1E                              PUSH    DS
+  1791 000005AC C43E[4C00]                      LES     DI,[BUFPTR]
+  1792 000005B0 C51E[0400]                      LDS     BX,[DOSINFO]
+  1793                                  
+  1794 000005B4 8B4713                          MOV     AX,[BX+BUFFHEAD]
+  1795                                          ;MOV    [ES:DI+BUFFINFO.NEXTBUF],AX
+  1796 000005B7 268905                         	MOV	[ES:DI],AX	; BUFFINFO.NEXTBUF
+  1797 000005BA 8B4715                  	MOV     AX,[BX+BUFFHEAD+2]
+  1798                                          ;MOV	[ES:DI+BUFFINFO.NEXTBUF+2],AX
+  1799 000005BD 26894502                        MOV     [ES:DI+2],AX	; BUFFINFO.NEXTBUF+2 
+  1800                                  
+  1801 000005C1 897F13                          MOV     [BX+BUFFHEAD],DI
+  1802 000005C4 8C4715                          MOV     [BX+BUFFHEAD+2],ES
+  1803                                  
+  1804 000005C7 26C74504FF00                    MOV     WORD [ES:DI+BUFFINFO.BUFDRV],00FFH  ; NEW BUFFER FREE
+  1805 000005CD 8B5F11                          MOV     BX,[BX+MAXSEC]
+  1806 000005D0 1F                              POP     DS
+  1807                                  
+  1808 000005D1 83C310                          ADD     BX,BUFINSIZ
+  1809 000005D4 011E[4C00]                      ADD     [MEMLO],BX
+  1810                                  
+  1811 000005D8 EBC8                            JMP     SHORT DOBUFF2
+  1812                                  
+  1813                                  BUF1:   
+  1814 000005DA E81601                  	CALL    ROUND
+  1815 000005DD 8B1E[4E00]                      MOV     BX,[MEMHI]
+  1816 000005E1 A1[5200]                        MOV     AX,[AREA]
+  1817 000005E4 8EC0                            MOV     ES,AX                   ; CALC WHAT WE NEEDED
+  1818 000005E6 29C3                            SUB     BX,AX
+  1819                                  
+  1820 000005E8 B44A                            MOV     AH,SETBLOCK
+  1821 000005EA CD21                            INT     21H                     ; GIVE THE REST BACK
+  1822                                  
+  1823 000005EC 06                              PUSH    ES
+  1824 000005ED 8CC0                            MOV     AX,ES
+  1825 000005EF 48                              DEC     AX
+  1826 000005F0 8EC0                            MOV     ES,AX
+  1827 000005F2 26C70601000800                  MOV     WORD [ES:ARENA.OWNER],8	; Set impossible owner
+  1828 000005F9 07                              POP     ES
+  1829                                  
+  1830                                  	; 01/05/2018 (NOEXEC = FALSE)
+  1831                                  	;IF      NOEXEC
+  1832                                          ;MOV     BX,0FFFFH		; ALLOCATE THE REST OF MEM FOR COMMAND
+  1833                                          ;MOV     AH,ALLOC
+  1834                                          ;INT     21H
+  1835                                          ;MOV     AH,ALLOC
+  1836                                          ;INT     21H
+  1837                                          ;MOV     DS,AX
+  1838                                          ;ENDIF
+  1839                                  
+  1840 000005FA C3                              RETN
+  1841                                  
+  1842                                  NOCHAR1:
+  1843 000005FB F9                      	STC
+  1844 000005FC C3                      	RETN
+  1845                                  
+  1846                                  ORGANIZE:
+  1847 000005FD 8B0E[4600]                      MOV     CX,[COUNT]
+  1848 00000601 E3F8                            JCXZ    NOCHAR1
+  1849 00000603 E8AE00                          CALL    MAPCASE
+  1850 00000606 31F6                            XOR     SI,SI
+  1851 00000608 89F7                            MOV     DI,SI
+  1852                                  
+  1853                                  ORG1:   
+  1854 0000060A E86600                  	CALL    GET                     ; SKIP LEADING CONTROL CHARACTERS
+  1855 0000060D 3C20                            CMP     AL,' '
+  1856 0000060F 72F9                            JB      SHORT ORG1
+  1857                                  
+  1858 00000611 51                              PUSH    CX
+  1859 00000612 56                              PUSH    SI
+  1860 00000613 57                              PUSH    DI
+  1861 00000614 89F5                            MOV     BP,SI
+  1862 00000616 4D                              DEC     BP
+  1863 00000617 BE[4008]                        MOV     SI,COMTAB		; Prepare to search command table
+  1864 0000061A B500                            MOV     CH,0
+  1865                                  FINDCOM:
+  1866 0000061C 89EF                            MOV     DI,BP
+  1867 0000061E 8A0C                            MOV     CL,[SI]
+  1868 00000620 46                              INC     SI
+  1869 00000621 E30E                            JCXZ    NOCOM
+  1870 00000623 F3A6                            REPE    CMPSB
+  1871 00000625 9F                              LAHF
+  1872 00000626 01CE                            ADD     SI,CX                   ; Bump to next position without affecting flags
+  1873 00000628 9E                              SAHF
+  1874 00000629 AC                              LODSB                           ; Get indicator letter
+  1875 0000062A 75F0                            JNZ     SHORT FINDCOM
+  1876 0000062C 5F                              POP     DI
+  1877 0000062D 5E                              POP     SI
+  1878 0000062E 59                              POP     CX
+  1879 0000062F EB05                            JMP     SHORT GOTCOM
+  1880                                  
+  1881                                  NOCOM:
+  1882 00000631 5F                              POP     DI
+  1883 00000632 5E                              POP     SI
+  1884 00000633 59                              POP     CX
+  1885 00000634 B05A                            MOV     AL,'Z'
+  1886                                  GOTCOM: 
+  1887 00000636 AA                      	STOSB                           ; SAVE INDICATOR CHAR IN BUFFER
+  1888                                  
+  1889                                  ORG2:   
+  1890 00000637 E83100                  	CALL    GET2                    ; SKIP NAME UNTIL DELIMETER
+  1891 0000063A E84300                          CALL    DELIM                   ;
+  1892 0000063D 75F8                            JNZ     SHORT ORG2
+  1893                                  
+  1894 0000063F E83100                          CALL    GET                     ; GET CHARS TO RIGHT OF EQUALS SIGN
+  1895 00000642 AA                              STOSB
+  1896                                  
+  1897                                  ORG4:   
+  1898 00000643 E82500                  	CALL    GET2
+  1899 00000646 E83700                  	CALL	DELIM ; 26/03/2018
+  1900 00000649 7418                    	JZ	SHORT ORG_EXT
+  1901 0000064B AA                              STOSB
+  1902 0000064C 3C20                            CMP     AL,' '
+  1903 0000064E 77F3                            JA      SHORT ORG4
+  1904 00000650 3C0A                            CMP     AL,10
+  1905 00000652 74B6                            JZ      SHORT ORG1
+  1906                                  
+  1907 00000654 26C645FF00                      MOV     BYTE [ES:DI-1],0
+  1908                                  ORG5:   
+  1909 00000659 E80F00                  	CALL    GET2
+  1910 0000065C AA                              STOSB
+  1911 0000065D 3C0A                            CMP     AL,10
+  1912 0000065F 75F8                            JNZ     SHORT ORG5
+  1913 00000661 EBA7                            JMP     SHORT ORG1
+  1914                                  
+  1915                                  ORG_EXT: ; 26/03/2018
+  1916 00000663 26C60500                	MOV	BYTE [ES:DI], 0		;put 0 at DI to make it an ASCIIZ
+  1917 00000667 47                      	INC	DI
+  1918 00000668 AA                      	STOSB				;and copy the delimeter char.
+  1919 00000669 EBEE                    	JMP	SHORT ORG5		;and continue as usual.
+  1920                                  
+  1921                                  GET2:
+  1922 0000066B E32E                            JCXZ    NOGET
+  1923 0000066D 268A04                          MOV     AL,[ES:SI]
+  1924 00000670 46                              INC     SI
+  1925 00000671 49                              DEC     CX
+  1926 00000672 C3                              RETN
+  1927                                  
+  1928                                  GET:    
+  1929 00000673 E326                    	JCXZ    NOGET
+  1930 00000675 268A04                          MOV     AL,[ES:SI]
+  1931 00000678 46                              INC     SI
+  1932 00000679 49                              DEC     CX
+  1933 0000067A E80300                          CALL    DELIM
+  1934 0000067D 74F4                            JZ      SHORT GET
+  1935                                  GRET:   
+  1936 0000067F C3                      	RETN
+  1937                                  
+  1938                                  
+  1939 00000680 3C20                    DELIM:  CMP     AL,' '
+  1940 00000682 74FB                            JZ      SHORT GRET
+  1941 00000684 3C09                            CMP     AL,9
+  1942 00000686 74F7                            JZ      SHORT GRET
+  1943 00000688 3C3D                            CMP     AL,'='
+  1944 0000068A 74F3                            JZ      SHORT GRET
+  1945 0000068C 3C2C                            CMP     AL,','
+  1946 0000068E 74EF                            JZ      SHORT GRET
+  1947 00000690 3C3B                            CMP     AL,';'
+  1948                                  	; 26/03/2018
+  1949 00000692 74EB                            JZ      SHORT GRET
+  1950 00000694 3C2F                    	CMP	AL, '/'
+  1951 00000696 74E7                    	JZ	SHORT GRET
+  1952 00000698 3C00                    	CMP	AL, 0
+  1953 0000069A C3                              RETN
+  1954                                  
+  1955                                  NOGET:  
+  1956 0000069B 59                      	POP     CX
+  1957 0000069C 893E[4600]                      MOV     [COUNT],DI
+  1958 000006A0 31F6                            XOR     SI,SI
+  1959 000006A2 8936[4800]                      MOV     [CHRPTR],SI
+  1960 000006A6 C3                              RETN
+  1961                                  
+  1962                                  ;
+  1963                                  ;  NEWLINE RETURNS WITH FIRST CHARACTER OF NEXT LINE
+  1964                                  ;
+  1965                                  NEWLINE:
+  1966 000006A7 E861FE                  	CALL    GETCHR                  ; SKIP NON-CONTROL CHARACTERS
+  1967 000006AA 7207                            JC      SHORT NONEW
+  1968 000006AC 3C0A                            CMP     AL,10                   ; LOOK FOR LINE FEED
+  1969 000006AE 75F7                            JNZ     SHORT NEWLINE
+  1970 000006B0 E858FE                          CALL    GETCHR
+  1971                                  NONEW:  
+  1972 000006B3 C3                      	RETN
+  1973                                  
+  1974                                  MAPCASE:
+  1975 000006B4 51                              PUSH    CX
+  1976 000006B5 56                              PUSH    SI
+  1977 000006B6 1E                              PUSH    DS
+  1978 000006B7 06                              PUSH    ES
+  1979 000006B8 1F                              POP     DS
+  1980 000006B9 31F6                            XOR     SI,SI
+  1981                                  CONVLOOP:
+  1982 000006BB AC                              LODSB
+  1983                                  
+  1984                                          ;IF      KANJI
+  1985                                          ;CALL    TESTKANJ
+  1986                                          ;JZ      SHORT NORMCONV
+  1987                                          ;INC     SI			; Skip next char
+  1988                                          ;DEC     CX
+  1989                                          ;JCXZ    CONVDONE		; Just ignore 1/2 kanji error
+  1990                                  ; Fall through, know AL is not in 'a'-'z' range
+  1991                                  ;NORMCONV:
+  1992                                          ;ENDIF
+  1993                                  
+  1994 000006BC 3C61                            CMP     AL,'a'
+  1995 000006BE 7209                            JB      SHORT NOCONV
+  1996 000006C0 3C7A                            CMP     AL,'z'
+  1997 000006C2 7705                            JA      SHORT NOCONV
+  1998 000006C4 2C20                            SUB     AL,20H
+  1999 000006C6 8844FF                          MOV     [SI-1],AL
+  2000                                  NOCONV:
+  2001 000006C9 E2F0                            LOOP    CONVLOOP
+  2002                                  CONVDONE:
+  2003 000006CB 1F                              POP     DS
+  2004 000006CC 5E                              POP     SI
+  2005 000006CD 59                              POP     CX
+  2006 000006CE C3                              RETN
+  2007                                  
+  2008                                          ;IF      KANJI
+  2009                                  ;TESTKANJ:
+  2010                                          ;CMP     AL,81H
+  2011                                          ;JB      SHORT NOTLEAD
+  2012                                          ;CMP     AL,9FH
+  2013                                          ;JBE     SHORT ISLEAD
+  2014                                          ;CMP     AL,0E0H
+  2015                                          ;JB      SHORT NOTLEAD
+  2016                                          ;CMP     AL,0FCH
+  2017                                          ;JBE    SHORT  ISLEAD
+  2018                                  ;NOTLEAD:
+  2019                                          ;PUSH    AX
+  2020                                          ;XOR     AX,AX			; Set zero
+  2021                                          ;POP     AX
+  2022                                          ;RETN
+  2023                                  ;ISLEAD:
+  2024                                          ;PUSH    AX
+  2025                                          ;XOR     AX,AX			; Set zero
+  2026                                          ;INC     AX			; Reset zero
+  2027                                          ;POP     AX
+  2028                                          ;RETN
+  2029                                          ;ENDIF
+  2030                                  
+  2031                                  Yes_Break_Failed:			;dev drv Init failed and aborted.
+  2032 000006CF F9                      	stc
+  2033 000006D0 58                      	pop	ax
+  2034 000006D1 C3                      	retn
+  2035                                  
+  2036                                  SET_BREAK:
+  2037                                  ; 8/14/86  For DOS 3.3, this routine is modified to take care of the
+  2038                                  ;Device driver's initialization error and abort.
+  2039                                  ;If [break_addr+2] == [memhi] && [break_addr] = 0 then assume
+  2040                                  ;that the device driver's initialization has an error and wanted to
+  2041                                  ;abort the device driver.  In this case, this routine will set carry
+  2042                                  ;and return to the caller.
+  2043                                  ;
+  2044 000006D2 50                      	PUSH	AX
+  2045 000006D3 2EA1[6400]              	MOV	AX,[CS:BREAK_ADDR+2]	;REMOVE THE INIT CODE
+  2046 000006D7 2E3B06[4E00]            	cmp	ax,[CS:MEMHI]
+  2047 000006DC 7508                    	jne	short Set_Break_Continue  ;if not same, then O.K.
+  2048                                  
+  2049 000006DE 2E833E[6200]00          	cmp	word [CS:BREAK_ADDR],0 
+  2050 000006E4 74E9                    	je	SHORT Yes_Break_Failed	;[Break_addr+2]=[MEMHI] & [Break_addr]=0 
+  2051                                  
+  2052                                  Set_Break_Continue:
+  2053 000006E6 2EA3[4E00]              	MOV	[CS:MEMHI],AX
+  2054 000006EA 2EA1[6200]              	MOV	AX,[CS:BREAK_ADDR]
+  2055 000006EE 2EA3[4C00]              	MOV	[CS:MEMLO],AX
+  2056 000006F2 58                      	POP	AX			    ; NOTE FALL THROUGH
+  2057                                  
+  2058                                  ROUND:  
+  2059                                  	; 26/03/2018
+  2060                                  	;PUSH	AX
+  2061 000006F3 2EA1[4C00]              	MOV     AX,[CS:MEMLO]
+  2062                                  	;CALL	PARAROUND
+  2063                                  ;ParaRound:
+  2064 000006F7 83C00F                          ADD     AX,15
+  2065                                          ;RCR	AX,1
+  2066 000006FA D1E8                    	SHR	AX,1 ; 10/04/2018
+  2067 000006FC D1E8                            SHR     AX,1
+  2068 000006FE D1E8                            SHR     AX,1
+  2069 00000700 D1E8                            SHR     AX,1
+  2070                                  	; RETN
+  2071 00000702 2E0106[4E00]                    ADD     [CS:MEMHI],AX
+  2072 00000707 31C0                            XOR     AX,AX
+  2073 00000709 2EA3[4C00]                      MOV     [CS:MEMLO],AX
+  2074                                  	;MOV	AX,[CS:MEMHI]		; ax = new memhi
+  2075                                  	;CMP	AX,[CS:ALLOCLIM]	; if new memhi >= alloclim, error
+  2076                                  	;JAE	SHORT MEM_ER
+  2077                                  	;POP	AX
+  2078                                  	;CLC
+  2079 0000070D C3                              RETN
+  2080                                  
+  2081                                  ;MEM_ERR:
+  2082                                  ;	MOV	DX,BADMEM
+  2083                                  ;	;PUSH	CS
+  2084                                  ;	;HJPOP	DS
+  2085                                  ;	CALL	PRINT
+  2086                                  ;	JMP	STALL
+  2087                                  
+  2088                                  CALLDEV:
+  2089 0000070E 2E8E1E[0A00]            	MOV     DS,[CS:ENTRY_POINT+2]
+  2090 00000713 2E031E[0800]                    ADD     BX,[CS:ENTRY_POINT]	; Do a little relocation
+  2091 00000718 3E8B07                          MOV     AX,[DS:BX]
+  2092 0000071B 2EFF36[0800]                    PUSH    WORD [CS:ENTRY_POINT]
+  2093 00000720 2EA3[0800]                      MOV     WORD [CS:ENTRY_POINT],AX
+  2094 00000724 BB[5400]                        MOV     BX,PACKET
+  2095 00000727 36FF16[0800]                    CALL    NEAR [SS:ENTRY_POINT]	; 06/04/2018
+  2096 0000072C 2E8F06[0800]                    POP     WORD [CS:ENTRY_POINT]
+  2097 00000731 C3                              RETN
+  2098                                  
+  2099                                  BADNUM: 
+  2100 00000732 58                      	POP     AX                      ; POP RETURN ADDRESS
+  2101 00000733 E9CFFA                          JMP	BADOP
+  2102                                  
+  2103                                  TODIGIT:
+  2104 00000736 2C30                            SUB     AL,'0'
+  2105 00000738 7206                            JB      SHORT NOTDIG
+  2106 0000073A 3C09                            CMP     AL,9
+  2107 0000073C 7702                            JA      SHORT NOTDIG
+  2108 0000073E F8                              CLC
+  2109 0000073F C3                              RETN
+  2110                                  NOTDIG: 
+  2111 00000740 F9                      	STC
+  2112 00000741 C3                              RETN
+  2113                                  
+  2114                                  GETNUM: 
+  2115 00000742 31DB                    	XOR     BX,BX                   ; running count is zero
+  2116 00000744 E8EFFF                  B2:     CALL    TODIGIT                 ; do we have a digit
+  2117 00000747 72E9                            JC      SHORT BADNUM		; no, bomb
+  2118 00000749 93                              XCHG    AX,BX                   ; put total in AX
+  2119 0000074A 53                              PUSH    BX                      ; save digit
+  2120 0000074B BB0A00                          MOV     BX,10                   ; base of arithmetic
+  2121 0000074E F7E3                            MUL     BX                      ; shift by one decimal digit
+  2122 00000750 5B                              POP     BX                      ; get back digit
+  2123 00000751 00D8                            ADD     AL,BL                   ; get total
+  2124 00000753 80D400                          ADC     AH,0                    ; make that 16 bits
+  2125 00000756 72DA                            JC      SHORT BADNUM		; too big a number
+  2126 00000758 93                              XCHG    AX,BX                   ; stash total
+  2127 00000759 E8AFFD                          CALL    GETCHR                  ; GET NEXT DIGIT
+  2128 0000075C 720C                            JC      SHORT B1		; no more characters
+  2129 0000075E 08C0                            OR      AL,AL                   ; end of line separator?
+  2130 00000760 75E2                            JNZ     SHORT B2		; no, try as a valid character
+  2131 00000762 FF06[4600]                      INC     WORD [COUNT]            ; one more character to scan
+  2132 00000766 FF0E[4800]                      DEC     WORD [CHRPTR]           ; back up over separator
+  2133                                  B1:     
+  2134 0000076A 89D8                    	MOV     AX,BX                   ; get proper count
+  2135 0000076C 09C0                            OR      AX,AX
+  2136 0000076E C3                              RETN
+  2137                                  ;
+  2138                                  ;       ES:SI POINTS TO FILE NAME (NUL TERMINATED)
+  2139                                  ;       DS:DX POINTS TO STRING TO OUTPUT IN FRONT OF NAME ($ TERM)
+  2140                                  ;
+  2141                                  BADFIL:
+  2142 0000076F 0E                              PUSH    CS
+  2143 00000770 07                              POP     ES
+  2144 00000771 89D6                            MOV     SI,DX
+  2145                                  BADLOAD:
+  2146 00000773 BA[F308]                        MOV     DX,BADLD_PRE		; WANT TO PRINT CONFIG ERROR
+  2147                                          ;MOV	BX,BADLD_POST
+  2148                                  PRNERR:
+  2149 00000776 0E                              PUSH    CS
+  2150 00000777 1F                              POP     DS
+  2151 00000778 B409                            MOV     AH,STD_CON_STRING_OUTPUT
+  2152 0000077A CD21                            INT     21H
+  2153                                  PRN1:   
+  2154 0000077C 268A14                  	MOV     DL,[ES:SI]
+  2155 0000077F 08D2                            OR      DL,DL
+  2156 00000781 7407                            JZ      SHORT PRN2
+  2157 00000783 B402                            MOV     AH,STD_CON_OUTPUT
+  2158 00000785 CD21                            INT     21H
+  2159 00000787 46                              INC     SI
+  2160 00000788 EBF2                            JMP     SHORT PRN1
+  2161                                  PRN2:   
+  2162                                  	;MOV	DX,BX
+  2163 0000078A BA[CF08]                	MOV	DX,BADLD_POST ; 10/04/2018
+  2164                                  PRINT:  
+  2165 0000078D B409                    	MOV     AH,STD_CON_STRING_OUTPUT
+  2166 0000078F CD21                            INT     21H
+  2167 00000791 C3                              RETN
+  2168                                  
+  2169                                  	; 10/06/2018  (NOEXEC = FALSE)
+  2170                                  
+  2171                                  	;IF	NOEXEC
+  2172                                  ;;
+  2173                                  ;; LOAD FILE CALLED [DS:DX] AT MEMORY LOCATION ES:BX
+  2174                                  ;;
+  2175                                  ;LDFIL:
+  2176                                  ;	PUSH    AX
+  2177                                  ;	PUSH    BX
+  2178                                  ;	PUSH    CX
+  2179                                  ;	PUSH    DX
+  2180                                  ;	PUSH    SI
+  2181                                  ;	PUSH    DS
+  2182                                  ;	PUSH    BX
+  2183                                  ;
+  2184                                  ;	XOR     AX,AX			; OPEN THE FILE
+  2185                                  ;	MOV     AH,OPEN
+  2186                                  ;	STC				; IN CASE OF INT 24
+  2187                                  ;	INT     21H
+  2188                                  ;	POP     DX			; Trans addr is DS:DX
+  2189                                  ;	JC      SHORT LDRET
+  2190                                  ;
+  2191                                  ;	PUSH    ES			; READ THE FILE IN
+  2192                                  ;	POP     DS
+  2193                                  ;	MOV     BX,AX			; Handle in BX
+  2194                                  ;	MOV     CX,0FF00H
+  2195                                  ;	MOV     AH,READ
+  2196                                  ;	STC				; IN CASE OF INT 24
+  2197                                  ;	INT     21H
+  2198                                  ;	JC      SHORT LDRET
+  2199                                  ;	MOV     SI,DX			; CHECK FOR EXE FILE
+  2200                                  ;	CMP     WORD [SI],"MZ"
+  2201                                  ;	JNZ     SHORT LDCLS
+  2202                                  ;LDERR:  
+  2203                                  ;	STC
+  2204                                  ;	JMP     SHORT LDRET
+  2205                                  ;
+  2206                                  ;LDCLS:  
+  2207                                  ;	MOV     AH,CLOSE		; CLOSE THE FILE
+  2208                                  ;	STC
+  2209                                  ;	INT     21H
+  2210                                  ;
+  2211                                  ;LDRET:  
+  2212                                  ;	POP     DS
+  2213                                  ;	POP     SI
+  2214                                  ;	POP     DX
+  2215                                  ;	POP     CX
+  2216                                  ;	POP     BX
+  2217                                  ;	POP     AX
+  2218                                  ;	RETN
+  2219                                  
+  2220                                  	;ENDIF
+  2221                                  
+  2222                                  ;
+  2223                                  ;  OPEN DEVICE POINTED TO BY DX, AL HAS ACCESS CODE
+  2224                                  ;   IF UNABLE TO OPEN DO A DEVICE OPEN NULL DEVICE INSTEAD
+  2225                                  ;
+  2226                                  OPEN_DEV:
+  2227 00000792 E81A00                          CALL    OPEN_FILE
+  2228 00000795 7307                            JNC     SHORT OPEN_DEV3
+  2229                                  OPEN_DEV1:
+  2230 00000797 BA[0308]                        MOV     DX,NULDEV
+  2231 0000079A E81200                          CALL    OPEN_FILE
+  2232                                  OPEN_DEV2:
+  2233 0000079D C3                              RETN
+  2234                                  OPEN_DEV3:
+  2235 0000079E 31C0                            XOR     AX,AX                   ; GET DEVICE INFO
+  2236 000007A0 B444                            MOV     AH,IOCTL
+  2237 000007A2 CD21                            INT     21H
+  2238 000007A4 F6C280                          TEST    DL,10000000B
+  2239 000007A7 75F4                            JNZ     SHORT OPEN_DEV2
+  2240 000007A9 B43E                            MOV     AH,CLOSE
+  2241 000007AB CD21                            INT     21H
+  2242 000007AD EBE8                            JMP     SHORT OPEN_DEV1
+  2243                                  
+  2244                                  OPEN_FILE:
+  2245 000007AF B43D                            MOV     AH,OPEN
+  2246 000007B1 F9                              STC
+  2247 000007B2 CD21                            INT     21H
+  2248 000007B4 C3                              RETN
+  2249                                  
+  2250                                  INT24:  
+  2251 000007B5 83C406                  	ADD     SP,6                    ; RESTORE MACHINE STATE
+  2252 000007B8 58                              POP     AX
+  2253 000007B9 5B                              POP     BX
+  2254 000007BA 59                              POP     CX
+  2255 000007BB 5A                              POP     DX
+  2256 000007BC 5E                              POP     SI
+  2257 000007BD 5F                              POP     DI
+  2258 000007BE 5D                              POP     BP
+  2259 000007BF 1F                              POP     DS
+  2260 000007C0 07                              POP     ES
+  2261 000007C1 50                              PUSH    AX
+  2262 000007C2 B419                            MOV     AH,GET_DEFAULT_DRIVE    ; INITIALIZE DOS
+  2263 000007C4 CD21                            INT     21H
+  2264 000007C6 58                              POP     AX
+  2265 000007C7 CF                              IRET                            ; BACK TO USER
+  2266                                  
+  2267                                          ;IF	ALTVECT
+  2268                                  BOOTMES:
+  2269 000007C8 0D                      	DB      13
+  2270 000007C9 0A                      TEN:	DB      10
+  2271 000007CA 4D532D444F53207665-     	DB      "MS-DOS version "
+  2272 000007D3 7273696F6E20       
+  2273 000007D9 32                      	DB      MAJOR_VERSION + "0"
+  2274 000007DA 2E                      	DB      "."
+  2275 000007DB 31                      	DB      (MINOR_VERSION / 10) + "0"
+  2276 000007DC 31                      	DB      (MINOR_VERSION % 10) + "0"
+  2277 000007DD 0D0A                    	DB      13,10
+  2278 000007DF 436F70797269676874-     	DB      "Copyright 1981,82 Microsoft Corp.",13,10,"$"
+  2279 000007E8 20313938312C383220-
+  2280 000007F1 4D6963726F736F6674-
+  2281 000007FA 20436F72702E0D0A24 
+  2282                                  	;ENDIF
+  2283                                  
+  2284                                  NULDEV: 
+  2285 00000803 5C4445565C4E554C00      	DB      "\DEV\NUL",0
+  2286                                  CONDEV: 
+  2287 0000080C 5C4445565C434F4E00      	DB      "\DEV\CON",0
+  2288                                  AUXDEV: 
+  2289 00000815 5C4445565C41555800      	DB      "\DEV\AUX",0
+  2290                                  PRNDEV: 
+  2291 0000081E 5C4445565C50524E00      	DB      "\DEV\PRN",0
+  2292                                  
+  2293                                  CONFIG:
+  2294 00000827 5C434F4E4649472E53-     	DB      "\CONFIG.SYS",0
+  2295 00000830 595300             
+  2296                                  COMMND:
+  2297 00000833 5C434F4D4D414E442E-     	DB      "\COMMAND.COM",0
+  2298 0000083C 434F4D00           
+  2299                                  
+  2300                                  COMTAB:
+  2301 00000840 074255464645525342              DB      7,"BUFFERS",'B'
+  2302 00000849 05425245414B43                  DB      5,"BREAK",'C'
+  2303 00000850 055348454C4C53                  DB      5,"SHELL",'S'
+  2304 00000857 0644455649434544                DB      6,"DEVICE",'D'
+  2305 0000085F 0546494C455346                  DB      5,"FILES",'F'
+  2306 00000866 085357495443484152-             DB      8,"SWITCHAR",'W'
+  2307 0000086F 57                 
+  2308 00000870 08415641494C444556-             DB      8,"AVAILDEV",'A'
+  2309 00000879 41                 
+  2310                                  	;DB	7,"COUNTRY",'Q'
+  2311 0000087A 00                              DB      0
+  2312                                  
+  2313                                  DEVICEPARAMETERS:  ; STRUC A_DEVICEPARAMETERS
+  2314                                  ;DeviceParameters a_DeviceParameters <0,DEV_3INCH720KB,0,80>
+  2315 0000087B 00                      DEVP.SPECIALFUNC:	DB 0
+  2316 0000087C 02                      DEVP.DEVICETYPE:	DB DEV_3INCH720KB
+  2317 0000087D 0000                    DEVP.ATTRIBUTES:	DW 0
+  2318 0000087F 5000                    DEVP.CYLINDERS:		DW 80
+  2319 00000881 00                      DEVP.MEDIATYPE:		DB 0
+  2320 00000882 00<rept>                DEVP.DP_BPB:		TIMES A_BPB.size DB 0
+  2321 000008A1 0000                    DEVP.TRACKTBLENTS:	DW 0
+  2322 000008A3 FC                      DEVP.SECTORTABLE:	DB MAX_SECTORS_IN_TRACK * A_SECTORTABLE.size
+  2323                                  
+  2324 000008A4 0200                    HLIM: DW 2
+  2325 000008A6 0900                    SLIM: DW 9
+  2326                                  
+  2327 000008A8 00                      DRIVE: DB 0
+  2328 000008A9 0000                    SWITCHES: DW 0
+  2329                                  
+  2330                                  SWTCHR	EQU "/"	
+  2331                                  
+  2332                                  ;SYSINITSEG      ENDS
+  2333                                  ;       END
+  2334                                  
+  2335                                  ; ----------------------------------------------------------------------------
+  2336                                  ; SYSIMES.ASM, 22/09/1983, -- SYSIMES.INC, 24/07/1987 (MSDOS 3.3) --
+  2337                                  ; ----------------------------------------------------------------------------
+  2338                                  
+  2339                                  ;SYSINITSEG      SEGMENT PUBLIC BYTE 'SYSTEM_INIT'
+  2340                                  
+  2341                                          ;PUBLIC  BADOPM,CRLFM,BADSIZ,BADLD,BADCOM,SYSSIZE
+  2342                                  
+  2343                                  BADOPM: 
+  2344 000008AB 0D0A556E7265636F67-     	DB      13,10,"Unrecognized command in CONFIG.SYS"
+  2345 000008B4 6E697A656420636F6D-
+  2346 000008BD 6D616E6420696E2043-
+  2347 000008C6 4F4E4649472E535953 
+  2348                                  BADSIZ_POST:
+  2349                                  BADLD_POST:
+  2350 000008CF 0D0A24                  CRLFM:  DB      13,10,'$'
+  2351                                  
+  2352                                  ;
+  2353                                  ;PRINTED when installed device specifies too large a sector size.'$' terminated.
+  2354                                  ; FORM: 	<BADSIZ_PRE>device name<BADSIZ_POST>
+  2355                                  ;
+  2356                                  
+  2357                                  BADSIZ_PRE:
+  2358 000008D2 0D0A536563746F7220-     	DB      13,10,"Sector size too large in file $"
+  2359 000008DB 73697A6520746F6F20-
+  2360 000008E4 6C6172676520696E20-
+  2361 000008ED 66696C652024       
+  2362                                  
+  2363                                  ;
+  2364                                  ;PRINTED when installed device cannot be found. '$' terminated.
+  2365                                  ; FORM: 	<BADLD_PRE>device name<BADLD_POST>
+  2366                                  ;
+  2367                                  
+  2368                                  BADLD_PRE:
+  2369 000008F3 0D0A426164206F7220-     	DB      13,10,"Bad or missing $"
+  2370 000008FC 6D697373696E672024 
+  2371                                  
+  2372                                  ;
+  2373                                  ;PRINTED when command interpreter is not found. NUL terminated.
+  2374                                  ; FORM: 	<BADLD_PRE><BADCOM><BADLD_POST>
+  2375                                  ;
+  2376                                  
+  2377 00000905 436F6D6D616E642049-     BADCOM: DB      "Command Interpreter",0
+  2378 0000090E 6E7465727072657465-
+  2379 00000917 7200               
+  2380                                  
+  2381                                  ;PRINTED when country code, code page combination was not found ;3.30
+  2382                                  ;  in country.sys file. '$' terminated.				;3.30
+  2383                                  ; FORM: 	<BADCOUNTRY>		
+  2384                                  
+  2385                                  BADCOUNTRY:
+  2386 00000919 0D0A496E76616C6964-     	DB	13,10,"Invalid country code or code page",13,10,"$" 
+  2387 00000922 20636F756E74727920-
+  2388 0000092B 636F6465206F722063-
+  2389 00000934 6F646520706167650D-
+  2390 0000093D 0A24               
+  2391                                  
+  2392                                  ; 26/03/2018
+  2393                                  ; PRINTED when the attempt is made to install a block device which would
+  2394                                  ;   have a drive letter > 'Z'
+  2395                                  ;
+  2396                                  
+  2397                                  BADBLOCK:
+  2398 0000093F 0D0A546F6F206D616E-     	DB	13,10,"Too many Block Devices",13,10,"$"
+  2399 00000948 7920426C6F636B2044-
+  2400 00000951 6576696365730D0A24 
+  2401                                  
+  2402                                  ;SYSSIZE LABEL   BYTE
+  2403                                  
+  2404                                  ;SYSINITSEG      ENDS
+  2405                                  ;       END
