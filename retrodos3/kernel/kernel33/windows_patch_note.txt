@@ -1,0 +1,17 @@
+I think windows 3.1 (setup and win.com) patches msdos 3.3 kernel
+(There are 13 patch code strings in 'wpatch.inc' file of MSDOS 6.0.)
+by searching fixed opcode/byte strings (as they are in 'wpatch.inc' file)
+and changes relevant code for suitable running DOS vm in windows.
+
+If addresses and opcodes are not exactly same, windows 3.1 does not
+patch the dos 3.3 kernel code and rejects to run by displaying
+"ERROR: Unsupported MS-DOS version." message.
+
+For example: Retro DOS 3.2 kernel is not suitable for running windows 3.1.
+	
+But Retro DOS 3.3 kernel runs with (and within) windows 3.1 because
+path portion/string opcodes and procedure (calling) addresses are same
+as in wpatch.inc file. (Thats is a pitty, Retro DOS 3.3 can not use 32 bit
+disk sector addresses while Retro DOS v3.2 can use 32 bit sector addresses.)
+
+Erdogan Tan - 13/11/2022
