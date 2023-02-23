@@ -2,7 +2,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 3.3 Command Interpreter) - RETRO DOS v3.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 20/10/2018
+; Last Update: 24/02/2023 ((Prev: 20/10/2018))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
 ; ----------------------------------------------------------------------------
@@ -7484,7 +7484,6 @@ FIND1:
 		push	cx
 		push	si
 		push	di
-
 FIND11:
 		lodsb
 		;call	UPCONV
@@ -7516,13 +7515,12 @@ COUNT0:
 ;COUNT1:
 		push	di		; Count number of chars until "="
 		call	SCASB1
-		jmp	short COUNTX
-
+		; 24/02/2023
+		;jmp	short COUNTX
 ;COUNT2:
-;		PUSH	DI		; Count number of chars until nul
-;		CALL	SCASB2
-
-COUNTX:
+;		push	di		; Count number of chars until nul
+;		call	SCASB2
+;COUNTX:
 		pop	cx
 		sub	di,cx
 		xchg	di,cx
