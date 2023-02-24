@@ -958,21 +958,25 @@ EXEC_OPEN	    equ 03h	; access code of 3 indicates that open was
 ;=============================================================================
 
 ; Transient portion loader code offset in resident code segment
-LODCOM1	   equ	0318h	; 13/10/2018
+;LODCOM1   equ	0318h	; 13/10/2018
+LODCOM1    equ	0319h	; 24/02/2023
 
 ; EXEC call adressses in resident portion for calling from transient portion
 EXEC_WAIT  equ 	0131h	; 13/10/2018
 
 ; Putbackmsg ("Insert disk ..." msg) disk drive letter in resident portion
-PUTBACKDRV equ  0A21h	; 14/10/2018
+;PUTBACKDRV equ	0A21h	; 14/10/2018
+PUTBACKDRV equ	0A23h	; 24/02/2023
 
 ; Note: Following offset addresses are in data section of 'command3.s' file.
 ; They must be verified by using assembly list (command3.lst) of COMMAND.COM.
 
 ; Resident portion stack address  
-RSTACK	   equ  083Ch
+;RSTACK	   equ	083Ch
+RSTACK	   equ	083Eh	; 24/02/2023 
 
-RETRABASE  equ  0B86h ; 13/10/2018 (Base address for following common params.)	
+;RETRABASE equ  0B86h	; 13/10/2018 (Base addr for following common params.)
+RETRABASE  equ  0B88h	; 24/02/2023	
 
 ; RESGROUP       [RESSEG]
 ; DATA		  offset
