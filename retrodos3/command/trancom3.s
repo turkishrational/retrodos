@@ -8780,6 +8780,10 @@ EXTERNAL:
 		jz	short NOT_BARRYF ; no - truly external command
 		jmp	APPEND_INTERNAL	; yes - go to Barryf code
 
+		; 25/02/2023
+BATCOMJ:
+		jmp	BATCOM
+
 NOT_BARRYF:
 		mov	byte [cs:FILTYP],0
 		mov	dl,[cs:SPECDRV]
@@ -8801,29 +8805,37 @@ POSTSAVE:
 		mov	byte [di],0	; Initialize to current directory
 	
 		cmp	byte [cs:ROM_CALL],0
-		jz	short RESEARCH
-		jmp	short NEOEXECUTE
-		
+		;jz	short RESEARCH
+		;jmp	short NEOEXECUTE
+		; 25/02/2023
+		jnz	short NEOEXECUTE		
+
 		;nop
 RESEARCH:
 		call	PATH_SEARCH	; find the mother (result in execpath)
 		or	ax,ax		; did we find anything?
-		jz	short BADCOMJ45	; null means no (sob)
+		;jz	short BADCOMJ45	; null means no (sob)
+		; 25/02/2023
+		jz	short BADCOM
 		cmp	ax,4		; 04H and 08H are .exe and .com
 					; fuckin' sixteen-bit machine ought
 		jl	short BATCOMJ	; to be able to handle a SIXTEEN-BIT
 					; DISPLACEMENT!!
-		;jmp	short NEOEXECUTE
-		jmp	short EXECUTE	
+		; 25/02/2023
+		;;jmp	short NEOEXECUTE
+		;jmp	short EXECUTE	
+
 
 		; 02H is .bat
 
 		;nop
-BATCOMJ:
-		jmp	BATCOM
 
-BADCOMJ45:
-		jmp	short BADCOM
+		; 25/02/2023
+;BATCOMJ:
+;		jmp	BATCOM
+;
+;BADCOMJ45:
+;		jmp	short BADCOM
 
 		;nop
 EXECUTE:

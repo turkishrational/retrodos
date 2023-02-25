@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 3.3 Command Interpreter) - RETRO DOS v3.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 24/02/2023 (BugFix: 12/01/2023) ((Previous: 20/10/2018))
+; Last Update: 25/02/2023 ((Previous: 20/10/2018))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
 ; ----------------------------------------------------------------------------
@@ -5392,14 +5392,14 @@ COMMAND      EQU  012CH
 ;GETEXTERRNUM EQU 1ECCH ; TRIAGEERROR (GET_EXT_ERR_NUMBER) proc addr
 ;TRIAGE_INIT EQU  1EF3H
 ;DATINIT     EQU  206FH
-; 24/02/2023
-GETEXTERRNUM EQU  1ECAH
-TRIAGE_INIT  EQU  1EF1H
-DATINIT	     EQU  206DH		
-PRINTF_INIT  EQU  34BFH
-TRANDATAEND  EQU  3F24H
-HEADCALL     EQU  426FH
-TRANSPACEEND EQU  4D3CH
+; 25/02/2023
+GETEXTERRNUM EQU  1EC4H
+TRIAGE_INIT  EQU  1EEBH
+DATINIT	     EQU  2067H		
+PRINTF_INIT  EQU  34AFH
+TRANDATAEND  EQU  3F14H
+HEADCALL     EQU  425FH
+TRANSPACEEND EQU  4D2CH
 
 ;-----------------------------------------------------------------------------
 ;START OF TRANSIENT PORTION
