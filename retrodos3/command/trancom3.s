@@ -2,7 +2,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 3.3 Command Interpreter) - RETRO DOS v3.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 25/02/2023 ((Prev: 20/10/2018))
+; Last Update: 01/03/2023 ((Prev: 20/10/2018))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
 ; ----------------------------------------------------------------------------
@@ -1066,7 +1066,7 @@ SETDRV:					; Allow for 100H parameter area
 TCOMMAND:
 		mov	ds,[cs:RESSEG]
 		mov	ax,-1
-		xchg	ax,word [VERVAL]
+		xchg	ax,[VERVAL]
 		cmp	ax,-1
 		jz	short NOSETVER2
 		mov	ah,SET_VERIFY_ON_WRITE ; 2Eh
@@ -1255,10 +1255,10 @@ TESTFORBAT:
 		mov	byte [NULLFLAG],0	;G reset no command flag
 		test	word [BATCH],0FFFFh
 		jnz	short JDOCOM1		;G if batch still in progress continue
-		mov	bx,word [NEXT_BATCH]
+		mov	bx,[NEXT_BATCH]
 		cmp	bx,0			;G see if there is a new batch file
 		jz	short JDOCOM1		;G no - go do command
-		mov	word [BATCH],bx		;G get segment of next batch file
+		mov	[BATCH],bx		;G get segment of next batch file
 		mov	word [NEXT_BATCH],0	;G reset next batch
 JDOCOM1:
 		push	cs
@@ -1267,9 +1267,9 @@ JDOCOM1:
 
 ISNOBAT:	cmp	word [SINGLECOM],0
 		jz	short REGCOM
-		;MOV	SI,[SEMIPERMCOM] ;  MSDOS 6.0
+		;mov	si,[SEMIPERMCOM] ;  MSDOS 6.0
 		mov	si,0FFFFh 	 ;  MSDOS 3.3
-		xchg	si,word [SINGLECOM]
+		xchg	si,[SINGLECOM]
 		mov	di,COMBUF+2
 		xor	cx,cx
 SINGLELOOP:
@@ -1380,7 +1380,9 @@ OKPARSE:
 		;mov	dl,[bx+ARGV_ELE.argpointer] ; mov dl,[bx+0]
 		;and	dl,~20h
 		and	dl,0DFh		; uppercase the sucker
-		sub	dl,[CAPITAL_A]	; convert it to a drive number, A=0
+		;sub	dl,[CAPITAL_A]	; convert it to a drive number, A=0
+		; 01/03/2023
+		sub	dl,capital_A  ; sub dl,'A'
 		cmp	al,-1		; See what PARSE said about our drive letter.
 		jz	short DRVBADJ	; It was invalid.
 		;mov	di,[ARGV0_ARGSTARTEL]
@@ -1742,7 +1744,7 @@ ROM_EXEC:
 
 		; copy in environment info
 
-		mov	ax,word [es:ENVIRSEG]
+		mov	ax,[es:ENVIRSEG]
 		mov	[PDB.ENVIRON],	ax
 
 		; set up correct size of block
@@ -1751,7 +1753,7 @@ ROM_EXEC:
 		mov	dx,ds
 		add	dx,bx
 		;mov	[2],dx
-		mov	word [PDB.BLOCK_LEN],dx
+		mov	[PDB.BLOCK_LEN],dx
 
 		; change ownership of block
 
@@ -1760,7 +1762,7 @@ ROM_EXEC:
 		mov	ds,dx
 		inc	dx	
 		;mov	[1],dx
-		mov	word [ARENA.owner],dx
+		mov	[ARENA.owner],dx
 		mov	ds,dx
 
 		; set up correct stack
@@ -1829,7 +1831,7 @@ BAT_REMCHECK:				; Go see if media is removable
 
 		call	FOROFF
 		call	PIPEOFF
-		mov	byte [IFFLAG],al ; No If in progress.	
+		mov	[IFFLAG],al	; No If in progress.	
 		mov	dx,BADPATHPTR
 BATDIE:
 		call	BATCHOFF
@@ -1997,7 +1999,7 @@ TRYING_TO_ABORT:
 
 TESTNOP:
 		mov	ax,ds
-		mov	ds,word [BATCH]
+		mov	ds,[BATCH]
 		push	word [BATCHSEGMENT.BatSeek]
 		push	word [BATCHSEGMENT.BatSeek+2] ; save current location.
 		mov	ds,ax
@@ -2023,7 +2025,7 @@ TESTNOP:
 		;nop
 SET_BAT_POS:
 		push	ds
-		mov	ds,word [BATCH]
+		mov	ds,[BATCH]
 		mov	[BATCHSEGMENT.BatSeek],dx ; reseek back to beginning
 		mov	[BATCHSEGMENT.BatSeek+2],cx
 		pop	ds
@@ -2145,7 +2147,7 @@ PAROK:
 		mov	bx,ax		; move index into AX
 		shl	bx,1		; convert word index into byte ptr
 		push	es
-		mov	es,word [BATCH]
+		mov	es,[BATCH]
 ;
 ; The structure of the batch area is:
 ;
@@ -2172,7 +2174,7 @@ PAROK:
 
 YES_THERE_IS:
 		push	ds
-		mov	ds,word [BATCH]
+		mov	ds,[BATCH]
 		dec	cx		; Don't count '%' in line length
 COPYPARM:
 		lodsb			; From resident segment
@@ -2305,7 +2307,7 @@ SKIPTOEOL2:
 FREE_TPA:
 		push	es
 		mov	es,[RESSEG]
-		mov	es,word [es:RES_TPA]
+		mov	es,[es:RES_TPA]
 		mov	ah,DEALLOC ; 49h
 		int	21h	; DOS -	2+ - FREE MEMORY
 				; ES = segment address of area to be freed
@@ -2331,7 +2333,7 @@ ALLOC_TPA:
 ; Attempt to align TPA on 64K boundary
 
 		pop	bx		; Restore size of block
-		mov	word [es:RES_TPA],ax ; Save segment to beginning of block
+		mov	[es:RES_TPA],ax ; Save segment to beginning of block
 		mov	[TRAN_TPA],ax
 
 ; Is the segment already aligned on a 64K boundary
@@ -2350,7 +2352,7 @@ CALC_TPA:
 
 ; Make sure that new boundary is within allocated range
 
-		mov	dx,word [es:RES_TPA]
+		mov	dx,[es:RES_TPA]
 		add	dx,bx		; Compute maximum address
 		cmp	dx,ax		; Is 64K address out of range?
 		jb	short NOROUND
@@ -2369,9 +2371,9 @@ CALC_TPA:
 		cmp	bx,1000h	; Size greater than 64K?	
 		jnb	short ROUNDDONE
 NOROUND:
-		mov	ax,word [es:RES_TPA]
+		mov	ax,[es:RES_TPA]
 ROUNDDONE:
-		mov	word [es:LTPA],ax ; Re-compute everything
+		mov	[es:LTPA],ax ; Re-compute everything
 		mov	[TPA],ax
 		mov	bx,ax
 		mov	ax,cs
@@ -2440,14 +2442,14 @@ BATCOM:
 		call	FOROFF
 GETECHO:
 		call	PIPEOFF
-		mov	al,byte [es:ECHOFLAG] ; preserve echo state for chaining
+		mov	al,[es:ECHOFLAG]	; preserve echo state for chaining
 		and	al,1		; Save current echo state
 
 		push	ax
 		xor	ax,ax
 		test	word [es:BATCH],-1 ; Are we in a batch file?
 		jz	short LEAVEBAT	   ; No, nothing to save
-		mov	ax,word [es:BATCH] ; Get current batch segment
+		mov	ax,[es:BATCH]	; Get current batch segment
 		;cmp	byte [es:CALL_BATCH_FLAG],1
 		cmp	byte [es:CALL_BATCH_FLAG],call_in_progress
 		jz	short LEAVEBAT
@@ -2459,7 +2461,7 @@ GETECHO:
 		mov	es,ax		; Get current batch segment
 		;mov	ax,[es:02h] ; MSDOS 3.3 COMMAND.COM
 					; Get previous batch segment
-		mov	ax,word [es:BATCHSEGMENT.BatLast]
+		mov	ax,[es:BATCHSEGMENT.BatLast]
 		pop	es
 LEAVEBAT:
 		push	ax		; Keep segment until new one created
@@ -2568,7 +2570,7 @@ ENOUGH_MEM:
 		;pop	ax		; restore ax; M006
 
 		; MSDOS 3.3 (& MSDOS 6.0)
-		mov	word [es:BATCH],ax
+		mov	[es:BATCH],ax
 		call	ALLOC_TPA
 
 ; Initialize batch segment
@@ -2577,32 +2579,32 @@ ENOUGH_MEM:
 		pop	ax		;G get saved batch segment back
 		inc	word [es:NEST]	;G increment # batch files in progress
 		push	es
-		mov	es,word [es:BATCH]
-		;mov	byte [ES:0],0
+		mov	es,[es:BATCH]
+		;mov	byte [es:0],0
 					; signal batch file type
 		mov	byte [es:BATCHSEGMENT.BatType],BATCHTYPE ; 0
-		;mov	byte [ES:2],ax ; MSDOS 3.3
+		;mov	[es:2],ax ; MSDOS 3.3
 					;G save segment of last batch file
-		mov	word [es:BATCHSEGMENT.BatLast],ax
+		mov	[es:BATCHSEGMENT.BatLast],ax
 		push	ds
 		mov	ds,[RESSEG]	;G set to resident data
 
 		xor	ax,ax
-		mov	bl,byte [FORFLAG] ;G get the current FOR state
-		;mov	[es:6],bl ;  MSDOS 3.3
+		mov	bl,[FORFLAG]	;G get the current FOR state
+		;mov	[es:6],bl ; MSDOS 3.3
 					;G save it in the batch segment
 		mov	[es:BATCHSEGMENT.BatForFlag],bl
 		test	bl,-1		;G are we in a FOR?
 		jz	short FOR_NOT_ON ;G no, for segment set to 0	
-		mov	ax,word [FORPTR] ;G yes, get current FOR segment	
+		mov	ax,[FORPTR]	;G yes, get current FOR segment	
 		mov	byte [FORFLAG],0 ;G reset forflag
 FOR_NOT_ON:
 		;mov	[es:4],ax ; MSDOS 3.3
 					;G save FOR segment in batch segment
 		mov	[es:BATCHSEGMENT.BatForPtr],ax	
 		xor	ax,ax
-		mov	word [FORPTR],ax ;G make sure for segment is not active
-		mov	bl,byte [ECHOFLAG]
+		mov	[FORPTR],ax	;G make sure for segment is not active
+		mov	bl,[ECHOFLAG]
 		pop	ds
 		;mov	[es:1],bl 
 					 ;G save echo state of parent
@@ -2706,7 +2708,7 @@ NOBATSING:
 ; Enter the batch file with the current echo state
 
 		pop	ax		; Get original echo state
-		mov	byte [ECHOFLAG],al ; restore it
+		mov	[ECHOFLAG],al	; restore it
 		jmp	TCOMMAND
 
 ; The following is executed if there isn't enough memory for batch segment
@@ -2740,7 +2742,7 @@ BATCHOFF:
 
 		mov	es,[cs:RESSEG]
 		mov	ds,[cs:RESSEG]
-		mov	ax,word [BATCH]	; Free the batch segment
+		mov	ax,[BATCH]	; Free the batch segment
 		or	ax,ax
 		jz	short NOTFREE
 
@@ -2753,24 +2755,24 @@ BATCHOFF:
 ECHO_LAST_LINE:
 		;mov	bl,[es:1]
 		mov	bl,[es:BATCHSEGMENT.BatEchoFlag] ; G get echo state
-		mov	byte [ECHOFLAG],bl		 ; G and restore it
+		mov	[ECHOFLAG],bl	; G and restore it
 		;mov	bx,[es:4] ;  MSDOS 3.3
 		mov	bx,[es:BATCHSEGMENT.BatForPtr]	;G  Get FOR segment
-		mov	word [FORPTR],bx		;G  and restore it
+		mov	[FORPTR],bx	;G  and restore it
 		;mov	bl,[es:6]
 		mov	bl,[es:BATCHSEGMENT.BatForFlag] ;G  Get FOR flag
-		mov	byte [FORFLAG],bl		;G  and restore it
-		;mov	bx,word [es:2] ; MSDOS 3.3
+		mov	[FORFLAG],bl	;G  and restore it
+		;mov	bx,[es:2] ; MSDOS 3.3
 		mov	bx,[es:BATCHSEGMENT.BatLast]	;G  Get old batch segment
 
 		mov	ah,DEALLOC ; 49h
 		int	21h	; DOS -	2+ - FREE MEMORY
 				; ES = segment address of area to be freed
 		pop	es
-		mov	word [NEXT_BATCH],bx ;G  reset batch segment	
+		mov	[NEXT_BATCH],bx	;G  reset batch segment	
 		dec	word [es:NEST]
 		xor	ax,ax
-		mov	word [BATCH],ax	; No batch in progress
+		mov	[BATCH],ax	; No batch in progress
 NOTFREE:
 		pop	bx
 		pop	ds
@@ -2842,7 +2844,7 @@ GETBATBYT:
 		test	word [BATCH],-1
 		jz	short BATEOF
 		push	es
-		mov	es,word [BATCH]
+		mov	es,[BATCH]
 
 		; MSDOS 6.0
 ;M020;
@@ -3292,7 +3294,7 @@ GETNUMLP:
 GOTNUM:
 		push	ds
 		mov	ds,[RESSEG]
-		mov	ah,byte [RETCODE]  ; [0BEAh] in MSDOS 3.3 COMMAND.COM 
+		mov	ah,[RETCODE]	; [0BEAh] in MSDOS 3.3 COMMAND.COM 
 		pop	ds
 		xor	al,al
 		cmp	ah,bl
@@ -3307,7 +3309,7 @@ GOTNUM:
 
 SHIFT:
 		mov	ds,[RESSEG]
-		mov	ax,word [BATCH]	; get batch pointer
+		mov	ax,[BATCH]	; get batch pointer
 		or	ax,ax		; in batch mode?
 		jnz	short SHIFT1	; yes, operate in batch segment	
 SHIFT_RETN:				; no, done.
@@ -3425,7 +3427,7 @@ GOTO:
 		jz	short GOTO_RETN
 		xor	dx,dx
 		push	ds
-		mov	ds,word [BATCH]
+		mov	ds,[BATCH]
 		mov	[BATCHSEGMENT.BatSeek],dx ; Back to start
 		mov	[BATCHSEGMENT.BatSeek+2],dx ; Back to start
 
@@ -3567,7 +3569,7 @@ CLOSERETURN:
 
 BATOPEN:
 		push	ds
-		mov	ds,word [BATCH]
+		mov	ds,[BATCH]
 		;mov	dx,1Fh	; MSDOS 3.3 COMMAND.COM
 		mov	dx,BATCHSEGMENT.BatFile
 		mov	ax,(OPEN<<8) ; 3D00h ; Open the batch file
@@ -3725,7 +3727,7 @@ _$FOR_EXIT:
 ; ---------------------------------------------------------------------------
 
 FORPROC:
-		mov	ax,word [FORPTR]
+		mov	ax,[FORPTR]
 		mov	ds,ax
 		mov	es,ax		; operate in for-info area
 		mov	dx,FOR_INFO.FORDMA
@@ -3739,9 +3741,9 @@ FOR_BEGIN:
 		inc	word [FOR_INFO.FOR_MINARG]	; [547h]
 
 FOR_BEGIN1:
-		mov	bx,word [FOR_INFO.FOR_MINARG]
+		mov	bx,[FOR_INFO.FOR_MINARG]
 					; current item in <list> to examine
-		cmp	bx,word [FOR_INFO.FOR_MAXARG]	; [549h]
+		cmp	bx,[FOR_INFO.FOR_MAXARG]	; [549h]
 		jg	short _$FOR_EXIT ; exceeding maxarg means all done	
 		;mov	ax,0
 		mov	ax,FOR_INFO.FOR_ARGS
@@ -3756,7 +3758,9 @@ FOR_BEGIN1:
 		mov	si,[bx]
 		;mov	si,[bx+ARGV_ELE.argpointer]
 
-		mov	al,[cs:LPAREN]
+		;mov	al,[cs:LPAREN]
+		; 01/03/2023
+		mov	al,lparen ; '('
 		cmp	[si-1],	al	; If the current token is the first
 		jnz	short FORSUB	;  one in the list and originally had
 		inc	cx		;  the opening paren as its first char,
@@ -3801,7 +3805,7 @@ FOR_RESULT:
 		jc	short FOR_CHECK
 		mov	ax,0		; Find* returns 0 for SUCCESS
 FOR_CHECK:				; record success of findfirst/next
-		mov	word [FOR_INFO.FOR_EXPAND],ax
+		mov	[FOR_INFO.FOR_EXPAND],ax
 		or	ax,ax	; anything out there?
 		jnz	short FOR_BEGIN	; if not, try next arg
 FOR_SMOOSH:
@@ -3828,8 +3832,8 @@ FOR_MAKE_COM:
 		not	cx		; negate it -- take advantage of loopnz
 		xor	bx,bx		; argpointer
 		mov	di,COMBUF+2
-		mov	bl,byte [FOR_INFO.FOR_COM_START] ; argindex
-		mov	dh,byte [FOR_INFO.FOR_VAR] 
+		mov	bl,[FOR_INFO.FOR_COM_START] ; argindex
+		mov	dh,[FOR_INFO.FOR_VAR] 
 					; %<for-var> is replaced by [forbuf]
 		push	cs		; time to form the <command> string
 		pop	es
@@ -3937,14 +3941,18 @@ NO_PIPE:
 		jb	short FORERRORJ
 		;and	ax,0DFDFh
 		and	ax,~2020h	; uppercase the letters
-		cmp	ax,word [IN_WORD]
+		;cmp	ax,[IN_WORD]
+		; 01/03/2023
+		cmp	ax,in_word ; cmp ax,'IN'
 		jnz	short FORERRORJ
 		lodsb
 
 		; MSDOS 3.3
 		or	al,al		; it, too, must end right away
 		jz	short CHECKLPAREN
-		cmp	al,[LPAREN]
+		;cmp	al,[LPAREN]
+		; 01/03/2023
+		cmp	al,lparen ; '('
 		jnz	short FORERRORJ
 		;add	word [bx+ARGV_ELE.argpointer],2 ; add word [bx+0],2
 		add	word [bx],2
@@ -3992,33 +4000,55 @@ CHECKLPAREN:
 		call	NEXTARG		; lparen delimits beginning of <list>
 		jc	short FORERRORJ
 LPCHECK:
-		cmp	al,[LPAREN]
+		;cmp	al,[LPAREN]
+		; 01/03/2023
+		cmp	al,lparen ; '('
 		jne	short FORERRORJ
-		cmp	ah,0
-		je	short FOR_PAREN_TOKEN
-		cmp	ah,byte [RPAREN] ; special case:  null list	
+		;cmp	ah,0
+		;je	short FOR_PAREN_TOKEN
+		or	ah,ah ; 0 ?
+		jz	short FOR_PAREN_TOKEN
+		;cmp	ah,[RPAREN]	; special case:  null list	
+		cmp	ah,rparen ; ')'
 		jne	short FOR_LIST_NOT_EMPTY
 		jmp	FORTERM
+
+		; 01/03/2023
+FOR_PAREN_TOKEN:
+		call	NEXTARG		; what have we in our <list>?
+		jc	short FORERRORJ
+		;
+		;;cmp	ax,[RPAREN+1]	
+		;cmp	ax,[NULLRPAREN]	; special case: null list
+		; 01/03/2023
+		cmp	ax,nullrparen ; 0029h  ; db ')',0
+		jne	short FOR_LIST
+		jmp	FORTERM
+
 FOR_LIST_NOT_EMPTY:
 		;inc	word [bx+ARGV_ELE.argpointer] ; inc word [bx+0]
 		inc	word [bx]	; Advance ptr past "("
 		;dec	word [bx+5]	; Adjust the rest of this argv entry	
-		dec	word [bx+ARGV_ELE.arglen] 	;  to agree.
+		dec	word [bx+ARGV_ELE.arglen] ; to agree.
 		inc	si		; Inc si so check for ")" works
-		jmp	short FOR_LIST
+		; 01/03/2023
+		;jmp	short FOR_LIST ;-->
 
 		;nop
-FOR_PAREN_TOKEN:
-		call	NEXTARG		; what have we in our <list>?
-		jc	short FORERRORJ
-		;cmp	ax,[RPAREN+1]	
-		cmp	ax,[NULLRPAREN]	; special case:  null list
-		jne	short FOR_LIST
-		jmp	FORTERM
 
-FORERORJJ:
-		jmp	FORERROR
-
+		; 01/03/2023
+;FOR_PAREN_TOKEN:
+		;call	NEXTARG		; what have we in our <list>?
+		;jc	short FORERRORJ
+		;;;cmp	ax,[RPAREN+1]	
+		;;cmp	ax,[NULLRPAREN]	; special case: null list
+		;cmp	ax,nullrparen ; 0029h  ; db ')',0
+		;jne	short FOR_LIST
+		;jmp	FORTERM
+		; 01/03/2023
+;FORERORJJ:
+		;jmp	FORERROR
+; -->
 FOR_LIST:				; skip over rest of <list>
 		mov	cx,dx		; first arg of <list>
 
@@ -4026,18 +4056,25 @@ SKIP_LIST:
 		;add	si,[bx+5]
 		add	si,[bx+ARGV_ELE.arglen]
 		sub	si,3		; si = ptr to last char of token
-		mov	al,byte [RPAREN]
+		;mov	al,[RPAREN]
+		; 01/03/2023
+		mov	al,rparen ; ')'
 		cmp	[si],al		; Is this the last element in <list>
 		je	short FOR_END_LIST ; Yes, exit loop.
 		call	NEXTARG		; No, get next arg <list>
-		jc	short FORERORJJ	; If no more and no rparen, error.
-		jmp	short SKIP_LIST
+		;jc	short FORERORJJ	; If no more and no rparen, error.
+		;jmp	short SKIP_LIST
+		; 01/03/2023
+		jnc	short SKIP_LIST
+FORERORJJ:
+		jmp	FORERROR
 
 FOR_END_LIST:
 		mov	di,dx		; record position of last arg in <list>
 		mov	byte [si],0	; Zap the rparen
-		;cmp	ax,[RPAREN+1]	
-		cmp	ax,[NULLRPAREN] ; Was this token only a rparen
+		;;cmp	ax,[RPAREN+1]	
+		;cmp	ax,[NULLRPAREN] ; Was this token only a rparen
+		cmp	ax,nullrparen ; 0029h  ; db ')',0
 		je	short FOR_DO	; Yes, continue
 		inc	di		; No, inc position of last arg
 FOR_DO:
@@ -4045,7 +4082,9 @@ FOR_DO:
 		jc	short FORERORJJ
 		;and	ax,0DFDFh	
 		and	ax,~2020h	; uppercase the letters
-		cmp	ax,word [DO_WORD]
+		;cmp	ax,[DO_WORD]
+		; 01/03/2023
+		cmp	ax,do_word ; cmp ax,'DO'
 		jne	short FORERORJJ
 		lodsb
 		or	al,al		; and it had BETTER be ONLY a 'do'...
@@ -4067,7 +4106,7 @@ FOR_DO:
 		mov	bx,FOR_INFO.size-ARG_UNIT.SIZE
 		call	SAVE_ARGS	; extra bytes needed for for-info
 		pushf
-		mov	word [es:FORPTR],ax
+		mov	[es:FORPTR],ax
 		call	ALLOC_TPA	; ALLOC_TPA clobbers registers...
 		popf
 		pop	bp
@@ -4085,12 +4124,12 @@ FOR_DO:
 		;assume ES:for_segment	
 		dec	cx		; forproc wants min pointing before
 		dec	di		; first arg, max right at last one
-		mov	word [es:FOR_INFO.FOR_MINARG],cx
-		mov	word [es:FOR_INFO.FOR_MAXARG],di
-		mov	byte [es:FOR_INFO.FOR_COM_START],dl
+		mov	[es:FOR_INFO.FOR_MINARG],cx
+		mov	[es:FOR_INFO.FOR_MAXARG],di
+		mov	[es:FOR_INFO.FOR_COM_START],dl
 		mov	word [es:FOR_INFO.FOR_EXPAND],-1 ; non-zero means FALSE
 		mov	ax,bp
-		mov	byte [es:FOR_INFO.FOR_VAR],ah
+		mov	[es:FOR_INFO.FOR_VAR],ah
 		pop	es
 		;assume ES:resgroup	
 		inc	byte [es:FORFLAG]
@@ -4101,7 +4140,7 @@ FOR_RET:
 		retn
 
 FOR_ALLOC_ERR:
-		; MSDOS 3.0
+		; MSDOS 3.3
 		mov	dx,INSFMEMMESPTR
 		jmp	CERROR
 
@@ -4159,7 +4198,7 @@ FOROFF:
 		push	ax
 		push	es
 		mov	es,[cs:RESSEG]
-		mov	ax,word [es:FORPTR]
+		mov	ax,[es:FORPTR]
 		or	ax,ax
 		jz	short FREEDONE
 		push	es
@@ -4278,7 +4317,7 @@ DIR7:
 ; found when the command line was parsed.
 
 		mov	ax,[COMSW]	; Get switches from command
-		mov	word [_BITS],ax	; initialize switches
+		mov	[_BITS],ax	; initialize switches
 		mov	word [COMSW],0	; initialize flags
 		mov	byte [LINPERPAG],23 ; Set default for lines per page
 		;test	al,1
@@ -4610,7 +4649,7 @@ DTFREE1:
 ;	mov	al,end_of_line_in		;AN000;
 ;	stosb					;AN000;
 ;	mov	si,81H				;AN000; Get command line
-;	mov	di,offset trangroup:parse_dir	;AN000; Get adderss of PARSE_DIR
+;	mov	di,offset trangroup:parse_dir	;AN000; Get address of PARSE_DIR
 ;	xor	cx,cx				;AC000; clear counter for positionals
 ;	mov	ComSw,cx			;AC000; initialize flags
 ;	mov	bits,cx 			;AC000; initialize switches
@@ -5125,7 +5164,7 @@ ERASE:
 ;		mov	si,81H		;AC000; get command line
 ;		mov	comsw,0 	;AN000; clear switch indicator
 ;		mov	di,offset trangroup:parse_erase
-;					;AN000; Get adderss of PARSE_erase
+;					;AN000; Get address of PARSE_erase
 ;		xor	cx,cx		;AN000; clear cx,dx
 ;
 ;erase_scan:
@@ -5282,7 +5321,7 @@ CRENAME:
 ;
 ;		mov	si,81H		;AC000; Point to command line
 ;		mov	di,offset trangroup:parse_rename
-;					;AN000; Get adderss of PARSE_RENAME
+;					;AN000; Get address of PARSE_RENAME
 ;		xor	cx,cx		;AN000; clear cx,dx
 ;		xor	dx,dx		;AN000;
 ;		invoke	parse_with_msg	;AC018; call parser
@@ -5501,7 +5540,7 @@ TYPEFIL:
 
 ;		mov	si,81H
 ;		mov	di,offset trangroup:parse_mrdir 
-;					;AN000; Get adderss of PARSE_MRDIR
+;					;AN000; Get address of PARSE_MRDIR
 ;		xor	cx,cx		;AN000; clear cx,dx
 ;		xor	dx,dx		;AN000;
 ;		invoke	parse_with_msg	;AC018; call parser
@@ -5768,7 +5807,7 @@ VOLUME:
 		; MSDOS 6.0
 		;mov	si,81H
 		;mov	di,offset trangroup:parse_vol
-		;			;AN000; Get adderss of PARSE_VOL
+		;			;AN000; Get address of PARSE_VOL
 		;xor	cx,cx		;AN000; clear cx,dx
 		;xor	dx,dx		;AN000;
 		;invoke	parse_with_msg	;AC018; call parser
@@ -5982,7 +6021,9 @@ PP1:
 		inc	di
 		or	al,al
 		jz	short PP5	; Nul terminated
-		cmp	al,[DOLLAR]	; Meta character
+		;cmp	al,[DOLLAR]	; Meta character
+		; 01/03/2023
+		cmp	al,dollar ; '$'
 		jz	short PP2	; Nope
 		call	PRINT_CHAR
 		jmp	short PP1
@@ -6037,19 +6078,27 @@ PRINT_ESC:
 ; ---------------------------------------------------------------------------
 
 PRINT_G:
-		mov	al,[RABRACKET]
+		;mov	al,[RABRACKET]
+		; 01/03/2023
+		mov	al,rabracket  ; '>'
 		jmp	short PRINT_CHAR
 
 ; ---------------------------------------------------------------------------
 
 PRINT_L:
-		mov	al,[LABRACKET]
+		;mov	al,[LABRACKET]
+		; 01/03/2023
+		mov	al,labracket ; '<'
 		jmp	short PRINT_CHAR
 
 ; ---------------------------------------------------------------------------
 
 PRINT_B:
-		mov	al,[VBAR]
+		;mov	al,[VBAR]
+		; 01/03/2023
+		;mov	al,vbar
+		;mov	al,'|'
+		mov	al,ALTPIPECHR ; '|'
 
 ; =============== S U B	R O U T	I N E =======================================
 
@@ -6092,9 +6141,13 @@ PRINT_DRIVE:
 		mov	ah,GET_DEFAULT_DRIVE ; 19h
 		int	21h	; DOS -	GET DEFAULT DISK NUMBER
 		;add	al,'A'
-		add	al,[CAPITAL_A]
-		call	PRINT_CHAR
-		retn
+		;add	al,[CAPITAL_A]
+		; 01/03/2023
+		add	al,capital_A  ; add al,'A'
+		;call	PRINT_CHAR
+		;retn
+		; 01/03/2023
+		jmp	PRINT_CHAR	
 
 ; ---------------------------------------------------------------------------
 
@@ -6118,8 +6171,10 @@ BUILD_DIR_FOR_PROMPT:
 		jnc	short DOPRINT
 		mov	dx,BADCURDRVPTR
 DOPRINT:
-		call	STD_PRINTF
-		retn
+		;call	STD_PRINTF
+		;retn
+		; 01/03/2023
+		jmp	STD_PRINTF
 
 ; =============== S U B	R O U T	I N E =======================================
 
@@ -6129,8 +6184,10 @@ BUILD_DIR_FOR_CHDIR:
 		mov	[STRING_PTR_2],dx
 		;mov	dx,offset trangroup:string_buf_ptr  ; MSDOS 6.0
 		mov	dx,STRINGBUF2PTR
-		call	STD_PRINTF
-		retn
+		;call	STD_PRINTF
+		;retn
+		; 01/03/2023
+		jmp	STD_PRINTF
 
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -6624,7 +6681,7 @@ CTTY:
 		;mov	si,81H			;AC000; Get command argument for CTTY
 
 		;mov	di,offset trangroup:parse_ctty	
-						;AC000; Get adderss of PARSE_CTTY
+						;AC000; Get address of PARSE_CTTY
 		;xor	cx,cx			;AC000; clear cx,dx
 		;xor	dx,dx			;AC000;
 		;invoke	cmd_parse		;AC000; call parser
@@ -6644,7 +6701,7 @@ CTTY:
 		;jnz	ctty_move_filename	;AN000; no - keep moving
 		;pop	si			;AN000; get line position back
 		;mov	di,offset trangroup:parse_ctty	
-						;AC000; Get adderss of PARSE_CTTY
+						;AC000; Get address of PARSE_CTTY
 		;call	parse_check_eol 	;AN000; are we at end of line?
 		;jz	nocolon 		;AN000; yes - continue
 
@@ -6734,7 +6791,7 @@ RESRET:
 		mov	ds,[RESSEG]
 		push	ds
 		mov	ax,[PDB.JFN_TABLE] ; Get new 0 and 1
-		mov	word [IO_SAVE],ax
+		mov	[IO_SAVE],ax
 		;MOV	AX,OFFSET DATARES:TrnLodCom1_Trap  ; MSDOS 6.0
 		;mov	ax,31Eh ;  MSDOS 3.3
 		mov	ax,LODCOM1
@@ -6764,8 +6821,8 @@ RESRET:
 ;****************************************************************
 
 ;NLSFUNC_installed equ  0FFh
-set_global_cp	  equ   2
-get_global_cp	  equ   1
+set_global_cp	equ   2
+get_global_cp	equ   1
 
 CHCP:
 		; MSDOS 6.0
@@ -6774,7 +6831,7 @@ CHCP:
 		;mov	si,81H		;AC000; Get command argument for CHCP
 
 		;mov	di,offset trangroup:parse_chcp	
-					;AN000; Get adderss of PARSE_CHCP
+					;AN000; Get address of PARSE_CHCP
 		;xor	cx,cx		;AC000; clear cx,dx
 		;xor	dx,dx		;AC000;
 		;call	parse_with_msg	;AC018; call parser
@@ -6793,7 +6850,7 @@ CHCP:
 		;mov	system_cpage,cx ;AN000; save user input number
 		;pop	cx		;AC000; restore positional count
 		;mov	di,offset trangroup:parse_chcp	
-					;AN000; Get adderss of PARSE_CHCP
+					;AN000; Get address of PARSE_CHCP
 		;call	parse_check_eol ;AN000; are we at end of line?
 		;jnz	cp_error	;AC000; no - exit
 ;okset:
@@ -6851,7 +6908,7 @@ CHCP_BADPARM:
 ;GOT_NLS:
 SET_CP_TBL_NUM:
 		; MSDOS 3.3 (& MSDOS 6.0)
-		mov	word [SYSTEM_CPAGE],bx
+		mov	[SYSTEM_CPAGE],bx
 		mov	ah,GETSETCDPG  ; 66h
 		mov	al,set_global_cp ; 2
 		int	21h	; DOS -	3.3+ - SET GLOBAL CODE PAGE TABLE
@@ -6887,7 +6944,7 @@ GETCP:
 		mov	ah,GETSETCDPG ; 66h  ;get/set global code page function	
 		mov	al,get_global_cp ; 1 ;minor - get
 		int	21h	; DOS -	3.3+ - GET GLOBAL CODE PAGE TABLE
-		mov	word [SYSTEM_CPAGE],bx ;get active cp for output
+		mov	[SYSTEM_CPAGE],bx ;get active cp for output
 		mov	dx,CPACTIVEPTR
 		call	STD_PRINTF	;print it out
 CHCP_RETURN:
@@ -6922,7 +6979,7 @@ CHCP_RETURN:
 ;	push	ds				;AN000; Get local ES
 ;	pop	es				;AN000;
 ;	mov	si,81H				;AN000; Get command line
-;	mov	di,offset trangroup:parse_chdir ;AN000; Get adderss of PARSE_CHDIR
+;	mov	di,offset trangroup:parse_chdir ;AN000; Get address of PARSE_CHDIR
 ;	xor	cx,cx				;AN000; clear cx,dx
 ;	xor	dx,dx				;AN000;
 ;	call	parse_with_msg			;AC018; call parser
@@ -7000,13 +7057,13 @@ CHCP_RETURN:
 _$EXIT:
 		; MSDOS 3.3
 		mov	es,[RESSEG]
-		mov	ax,word [es:PARENT]
+		mov	ax,[es:PARENT]
 		;mov	[es:16h],ax
 		mov	[es:PDB.PARENT_PID],ax
-		mov	ax,word [es:OLDTERM]
+		mov	ax,[es:OLDTERM]
 		;mov	[es:0Ah],ax
 		mov	[es:PDB.EXIT],ax
-		mov	ax,word [es:OLDTERM+2]
+		mov	ax,[es:OLDTERM+2]
 		;mov	[es:0Ch],ax
 		mov	[es:PDB.EXIT+2],ax
 		push	es
@@ -7016,8 +7073,8 @@ _$EXIT:
 				; ES = segment address of area to be freed
 		pop	es
 		mov	ah,EXIT ; 4Ch
-		;mov	al,byte [0BEAh] ;  MSDOS 3.3 COMMAND.cOm offset 168Ah
-		mov	al,byte [es:RETCODE]
+		;mov	al,[0BEAh] ; MSDOS 3.3 COMMAND.cOm offset 168Ah
+		mov	al,[es:RETCODE]
 		int	21h		; DOS -	2+ - QUIT WITH EXIT CODE (EXIT)
 
 ;;here:
@@ -7329,7 +7386,7 @@ ADD_NAME_JZ_RET:
 ; Generate drive letter for display
 
 		xor	ax,ax		;g assume no drive first
-		mov	byte [es:COMDRV],al ;g
+		mov	[es:COMDRV],al ;g
 		cmp	byte [si+1],':'	 ; drive specified?
 		jnz	short _GOTDRIVE
 		mov	al,[si]		; get his specified drive
@@ -7338,18 +7395,18 @@ ADD_NAME_JZ_RET:
 		sub	al,'A'		; convert to 0-based
 		add	di,2
 		inc	al		; convert to 1-based number
-		mov	byte [es:COMDRV],al
+		mov	[es:COMDRV],al
 
 ; Stick the drive letter in the prompt message. Nothing special needs to be
 ; done here..
 		;add	al,40h
 		add	al,'A'-1
 _GOTDRIVE:
-		;mov	word [es:0BD9h],di ; MSDOS 3.3 COMMAND.COM offset 1734h
-		mov	word [es:PUTBACKSUBSTPTR],di
+		;mov	[es:0BD9h],di ; MSDOS 3.3 COMMAND.COM offset 1734h
+		mov	[es:PUTBACKSUBSTPTR],di
 					;g point to beginning of name after drive
-		;mov	byte [es:0A21h],al ; MSDOS 3.3 COMMAND.COM offset 1739h
-		mov	byte [es:PUTBACKDRV],al ; MSDOS 3.3 COMMAND
+		;mov	[es:0A21h],al ; MSDOS 3.3 COMMAND.COM offset 1739h
+		mov	[es:PUTBACKDRV],al ; MSDOS 3.3 COMMAND
 
 ; Copy chars until delim      	
 
@@ -7367,11 +7424,11 @@ COPYDONE:
 		stosb
 		mov	byte [COMSPEC_FLAG],0
 		dec	di
-		mov	word [es:COMSPEC_END],di
+		mov	[es:COMSPEC_END],di
 		retn
 DISP_ENV:
 		mov	ds,[RESSEG]
-		mov	ds,word [ENVIRSEG]
+		mov	ds,[ENVIRSEG]
 		; assume ds:nothing
 		xor	si,si
 PENVLP:
@@ -7481,7 +7538,7 @@ FIND:
 		call	COUNT0		; CX = Length of name
 		mov	es,[RESSEG]
 		; assume es:RESGROUP
-		mov	es,word [es:ENVIRSEG]
+		mov	es,[es:ENVIRSEG]
 		; assume es:NOTHING
 		xor	di,di
 FIND1:	
@@ -7565,7 +7622,7 @@ SDN_RETN:
 SCAN_DOUBLE_NULL:
 		mov	es,[RESSEG]
 		; ASSUME ES:RESGROUP
-		mov	es,word [es:ENVIRSEG]
+		mov	es,[es:ENVIRSEG]
 		; ASSUME ES:NOTHING
 		xor	di,di
 
@@ -7652,9 +7709,12 @@ SCASBX:
 
 UPCONV_MAPCALL:
 					; If between "a" and "z"
-		cmp	al,[small_a]
+		;cmp	al,[small_a]
+		; 01/03/2023
+		cmp	al,'a' ; small_a
 		jb	short UPCONV_END
-		cmp	al,[small_z]
+		;cmp	al,[small_z]
+		cmp	al,'z' ; small_z
 		ja	short UPCONV_END
 		sub	al,20h		; Change lower-case to upper
 UPCONV_END:
@@ -7756,7 +7816,7 @@ GETENVSIZ:
 		mov	ax,es
 		dec	ax	;Point at arena	
 		mov	es,ax
-		mov	ax,word [es:ARENA.size]
+		mov	ax,[es:ARENA.size]
 		mov	cl,4
 		shl	ax,cl	;Convert to bytes
 		mov	cx,ax
@@ -8004,7 +8064,7 @@ MKDIRERR:
 		; MSDOS 6.0
 		;mov	si,81H
 		;mov	di,offset trangroup:parse_mrdir 
-					;AN000; Get adderss of PARSE_MRDIR
+					;AN000; Get address of PARSE_MRDIR
 		;xor	cx,cx		;AN000; clear cx,dx
 		;xor	dx,dx		;AN000;
 		;invoke	parse_with_msg	;AC000; call parser
@@ -8239,7 +8299,9 @@ SKIPSPC:
 		jz	short GOTNAME
 		mov	ah,al
 		;mov	al,'.'
-		mov	al,[DOT_CHR]
+		;mov	al,[DOT_CHR]
+		; 01/03/2023
+		mov	al,dot_chr ; mov al,'.'
 		stosb
 		xchg	al,ah
 		stosb
@@ -8420,7 +8482,10 @@ DELLOOP:
 TRYCD:
 		push	ax
 		;mov	al,'.'
-		mov	al,[DOT_CHR]	; AL = '.'
+		;mov	al,[DOT_CHR]	; AL = '.'
+		; 01/03/2023
+		mov	al,dot_chr ; mov al,'.'
+		
 		; MSDOS 6.0
 		;cmp	byte ptr [SI+1],al ; check for '.' after path delim
 					;M019; allow continuation if '. ' or 
@@ -8936,7 +9001,9 @@ QLOOP:
 		jne	short QLOOP
 		dec	ch
 TRYGREATER:
-		cmp	al,[RABRACKET]
+		;cmp	al,[RABRACKET]
+		; 01/03/2023
+		cmp	al,rabracket  ; '>'
 		jne	short NOOUT
 
 ; We have found a ">" char. We need to see if there is another ">"
@@ -8952,8 +9019,9 @@ NOAPPND:
 		call	SCANOFF
 
 		; MSDOS 6.0
-		;CMP	AL,[LABRACKET]	   ;AN040; was there no filename?
-		;Je	short REOUT_ERRSET ;AN040; yes - set up error
+		;;cmp	al,[LABRACKET]	   ;AN040; was there no filename?
+		;cmp	al,labracket ; '<'
+		;je	short REOUT_ERRSET ;AN040; yes - set up error
 
 		; MSDOS 3.3 (& MSDOS 6.0)
 		cmp	al,0Dh
@@ -9023,12 +9091,15 @@ NO_ABRACKET:
 		jmp	short SETREOUTSTR_LOOP
 NOOUT:
 		; MSDOS 3.3 (& MSDOS 6.0)
-		cmp	al,[LABRACKET]
+		;cmp	al,[LABRACKET]
+		; 01/03/2023
+		cmp	al,labracket ; '<'
 		jnz	short CHKPIPE
 		mov	bx,si		; Save loc of "<"
 		call	SCANOFF
 		; MSDOS 6.0
-		;CMP	AL,[RABRACKET]	;AN040; was there no filename?
+		;;cmp	al,[RABRACKET]	;AN040; was there no filename?
+		;cmp	al,rabracket ; '>'
 		;jz	short REIN_ERRSET ;AN040; yes - set up error
 		; MSDOS 3.3 (& MSDOS 6.0)
 		cmp	al,0Dh
@@ -9050,8 +9121,10 @@ CHKPIPE:
 		mov	ah,al
 		;cmp	ah,'|'
 		cmp	ah,ALTPIPECHR
-		je	short ISPIPE3
-		cmp	ah,[VBAR]
+		; 01/03/2023
+		;je	short ISPIPE3
+		;;cmp	ah,[VBAR]
+		;cmp	ah,vbar	; '|'
 		jne	short CONTPRESCAN
 ISPIPE3:
 ; Only push the echo flag if we are entering the pipe for the first time.
@@ -9066,10 +9139,11 @@ NOECHOPUSH:
 		jz	short PIPEERRSYNJ5
 		;cmp	al,'|'
 		cmp	al,ALTPIPECHR
-		jz	short PIPEERRSYNJ5
-		cmp	al,[VBAR]	; Double '|'?	
+		; 01/03/2023
+		;jz	short PIPEERRSYNJ5
+		;;cmp	al,[VBAR]	; '|'
+		;cmp	al,vbar
 		jnz	short CONTPRESCAN
-
 PIPEERRSYNJ5:
 		push	es
 		pop	ds
@@ -9104,7 +9178,7 @@ PRESCANEND:
 		je	short ISNOPIPE
 		;MOV	DI,OFFSET RESGROUP:PIPESTR
 		mov	di,PIPESTR
-		mov	word [es:PIPEPTR],di
+		mov	[es:PIPEPTR],di
 		mov	si,COMBUF+2
 		call	SCANOFF
 PIPESETLP:				; Transfer the pipe into the resident
@@ -9226,7 +9300,9 @@ TESTPMETA:
 		or	byte [DESTINFO],2 ; DestInfo = 2, signalling wildcard
 TESTPSTAR:
 		;cmp	al,'*'
-		cmp	al,[STAR]
+		;cmp	al,[STAR]
+		; 01/03/2023
+		cmp	al,star ; cmp al,'*'
 		jne	short TESTPDELIM ; char is not '*'
 		or	byte [DESTINFO],2 ; DestInfo = 2, signalling wildcard
 TESTPDELIM:
@@ -9322,7 +9398,7 @@ TESTDOREIN:
 
 		;xchg	al,[bx+18h]
 		xchg	al,[bx+PDB.JFN_TABLE]
-		mov	byte [PDB.JFN_TABLE],al
+		mov	[PDB.JFN_TABLE],al
 		retn
 
 ; ---------------------------------------------------------------------------
@@ -9475,7 +9551,7 @@ SET_REOUT:
 		mov	al,0FFh
 		;xchg	al,[bx+18h]
 		xchg	al,[bx+PDB.JFN_TABLE]
-		mov	byte [PDB.JFN_TABLE+1],al
+		mov	[PDB.JFN_TABLE+1],al
 NOREOUT:
 		retn
 
@@ -9593,7 +9669,7 @@ SETREST1:
 SETREST:
 		push	ds
 		mov	ds,[RESSEG]
-		mov	byte [RESTDIR],al
+		mov	[RESTDIR],al
 		pop	ds
 		retn
 
@@ -9714,13 +9790,15 @@ no_temp_path:
 		; MSDOS 3.3
 		mov	ah,GET_DEFAULT_DRIVE ; 19h	; Get current drive
 		int	21h ; DOS - GET DEFAULT DISK NUMBER
-		add	al,[cs:CAPITAL_A]
-		mov	byte [PIPE2],al		; Make pipe files in root of def drv
+		;add	al,[cs:CAPITAL_A]
+		; 01/03/2023
+		add	al,capital_A  ; add al,'A'
+		mov	[PIPE2],al		; Make pipe files in root of def drv
 		mov	bx,PIPE1
 		mov	[bx],al
 		xor	ah,ah			; nul terminate path names
-		mov	byte [PIPE1+3],ah
-		mov	byte [PIPE2+3],ah
+		mov	[PIPE1+3],ah
+		mov	[PIPE2+3],ah
 
 		; MSDOS 6.0
 ;SR;
@@ -9766,7 +9844,7 @@ no_temp_path:
 					; BX = file handle
 		;call	near ptr TESTDOREIN ; Set up a redirection if specified
 		call	TESTDOREIN
-		mov	si,word [PIPEPTR]
+		mov	si,[PIPEPTR]
 		cmp	word [SINGLECOM],-1
 		jne	short NOSINGP
 		mov	word [SINGLECOM],0F000h ; Flag single command pipe
@@ -9777,16 +9855,20 @@ NOSINGP:
 
 PIPEPROC:
 		and	byte [ECHOFLAG],0FEh  ; force current echo to be off
-		mov	si,word [PIPEPTR]
+		mov	si,[PIPEPTR]
 		lodsb
 		;cmp	al,'|'		
 		cmp	al,ALTPIPECHR	; Alternate pipe char? 	
-		je	short ISPIPE1	; Yes
-		cmp	al,[cs:VBAR]
-		je	short ISPIPE1
-		jmp	PIPEEND		; Pipe done
+		; 01/03/2023
+		;je	short ISPIPE1	; Yes
+		;;cmp	al,[cs:VBAR]
+		;cmp	al,vbar  ; '|'
+		; 01/03/2023
+		;je	short ISPIPE1
+		;jmp	PIPEEND		; Pipe done
+		jne	short PIPEEND
 ISPIPE1:
-		mov	dx,word [INPIPEPTR] ; Get the input file name
+		mov	dx,[INPIPEPTR] ; Get the input file name
 		mov	ax,OPEN*256 ; 3D00h
 		int	21h	; DOS -	2+ - OPEN DISK FILE WITH HANDLE
 				; DS:DX	-> ASCIZ filename
@@ -9800,7 +9882,7 @@ NO_PIPEERR:
 		mov	al,0FFh
 		;xchg	al,[bx+18h]
 		xchg	al,[bx+PDB.JFN_TABLE]
-		mov	byte [PDB.JFN_TABLE],al	; Redirect
+		mov	[PDB.JFN_TABLE],al ; Redirect
 FIRSTPIPE:
 		mov	di,COMBUF+2
 		xor	cx,cx
@@ -9809,9 +9891,11 @@ FIRSTPIPE:
 PIPEERRSYNJ:
 		jmp	PIPEERRSYN
 PIPEOK1:
-		mov	al,[cs:VBAR]
-		cmp	[si],al		; '||'
-		je	short PIPEERRSYNJ
+		; 01/03/2023
+		;;mov	al,[cs:VBAR]
+		;mov	al,vbar ; '|'
+		;cmp	[si],al		; '||'
+		;je	short PIPEERRSYNJ
 		;cmp	byte [si],'|'
 		cmp	byte [si],ALTPIPECHR ; '##' or '|#'?
 		je	short PIPEERRSYNJ
@@ -9823,16 +9907,18 @@ PIPECOMLP:
 		inc	cx
 		;cmp	al,'|'
 		cmp	al,ALTPIPECHR
-		je	short ISPIPE2
-		cmp	al,[cs:VBAR]
+		; 01/03/2023
+		;je	short ISPIPE2
+		;;cmp	al,[cs:VBAR]
+		;cmp	al,vbar ; '|'
 		jne	short PIPECOMLP
 ISPIPE2:
 		mov	byte [es:di-1],0Dh
 		dec	cx
 		mov	[cs:COMBUF+1],cl
 		dec	si
-		mov	word [PIPEPTR],si	; On to next pipe element
-		mov	dx,word [OUTPIPEPTR]
+		mov	[PIPEPTR],si	; On to next pipe element
+		mov	dx,[OUTPIPEPTR]
 		push	cx
 		xor	cx,cx
 		mov	ax,CREAT*256 ; 3C00h
@@ -9845,14 +9931,14 @@ ISPIPE2:
 		mov	al,0FFh
 		;xchg	al,[bx+18h]
 		xchg	al,[bx+PDB.JFN_TABLE]
-		mov	byte [PDB.JFN_TABLE+1],al
-		xchg	dx,word [INPIPEPTR]	; Swap for next element of pipe
-		mov	word [OUTPIPEPTR],dx
+		mov	[PDB.JFN_TABLE+1],al
+		xchg	dx,[INPIPEPTR]	; Swap for next element of pipe
+		mov	[OUTPIPEPTR],dx
 		jmp	short PIPECOM
 LASTPIPE:
 		mov	[cs:COMBUF+1],cl 
 		dec	si
-		mov	word [PIPEPTR],si ; Point at the CR (anything not '|' will do)
+		mov	[PIPEPTR],si ; Point at the CR (anything not '|' will do)
 		call	TESTDOREOUT	; Set up the redirection if specified
 PIPECOM:
 		push	cs
@@ -9919,7 +10005,7 @@ DATINIT:
 ;
 ;DATE:
 ;	MOV	SI,81H				; Accepting argument for date inline
-;	mov	di,offset trangroup:parse_date	;AN000; Get adderss of PARSE_DATE
+;	mov	di,offset trangroup:parse_date	;AN000; Get address of PARSE_DATE
 ;	xor	cx,cx				;AN000; clear counter for positionals
 ;	xor	dx,dx				;AN000;
 ;	invoke	cmd_parse			;AC000; call parser
@@ -10000,7 +10086,7 @@ DATINIT:
 ;
 ;CTIME:
 ;	MOV	SI,81H				; Accepting argument for time inline
-;	mov	di,offset trangroup:parse_time	;AN000; Get adderss of PARSE_time
+;	mov	di,offset trangroup:parse_time	;AN000; Get address of PARSE_time
 ;	xor	cx,cx				;AN000; clear counter for positionals
 ;	xor	dx,dx				;AN000;
 ;	invoke	cmd_parse			;AC000; call parser
@@ -10171,7 +10257,7 @@ DATINIT:
 ;	call	SetInitFlag			;  prompting for date.
 ;	invoke	CRLF2
 ;	MOV	SI,OFFSET TRANGROUP:COMBUF+2
-;	mov	di,offset trangroup:parse_date	;AN000; Get adderss of PARSE_DATE
+;	mov	di,offset trangroup:parse_date	;AN000; Get address of PARSE_DATE
 ;	xor	cx,cx				;AN000; clear counter for positionals
 ;	xor	dx,dx				;AN000;
 ;	invoke	cmd_parse			;AC000; call parser
@@ -10215,7 +10301,7 @@ DATINIT:
 ;	call	SetInitFlag			;  prompting for time.
 ;	invoke	CRLF2
 ;	MOV	SI,OFFSET TRANGROUP:COMBUF+2
-;	mov	di,offset trangroup:parse_time	;AN000; Get adderss of PARSE_TIME
+;	mov	di,offset trangroup:parse_time	;AN000; Get address of PARSE_TIME
 ;	xor	cx,cx				;AN000; clear counter for positionals
 ;	xor	dx,dx				;AN000;
 ;	invoke	cmd_parse			;AC000; call parser
@@ -10573,10 +10659,13 @@ GET_DSEP:
 		cmp	al,'/'
 		je	short BIAS_RETN
 		;cmp	al,'.'
-		cmp	al,[DOT_CHR]
+		;cmp	al,[DOT_CHR]
+		; 01/03/2023
+		cmp	al,dot_chr ; cmp al,'.'
 		je	short BIAS_RETN
-		;cmp	al,'-'
-		cmp	al,[CHAR_SUB]
+		; 01/03/2023
+		cmp	al,'-'
+		;cmp	al,[CHAR_SUB]
 		je	short BIAS_RETN
 		stc
 		retn
@@ -10683,7 +10772,9 @@ GETTIM:
 		mov	dx,NEWTIMPTR
 		call	STD_PRINTF
 		;mov	bx,':.'
-		mov	bx,[TIMECHARS] 
+		;mov	bx,[TIMECHARS] 
+		; 01/03/2023
+		mov	bx,dot_colon ; mov bx,2E3Ah ; mov bx,':.'
 		call	GETBUF
 COMTIM:
 		jz	short P_TSEP_RETN ; If no time present, don't change it	
@@ -10858,7 +10949,7 @@ PIPEOFF:
 		push	ax
 		mov	ds,[cs:RESSEG]
 		xor	al,al
-		xchg	al,byte [PIPEFLAG]
+		xchg	al,[PIPEFLAG]
 		or	al,al
 		jz	short PIPEOFFDONE
 		shr	byte [ECHOFLAG],1
@@ -10993,18 +11084,23 @@ PARSELOOP:
 					;   switch char IMMEDIATELY preceeds
 					;   the CR. We have an argument, but it
 					;   is sort of an error.
-		jmp	short PARSEDONE	; We're done (found the CR).
+		;jmp	short PARSEDONE	; We're done (found the CR).
+		; 01/03/2023
+PARSEDONE:
+		popf
+		clc
+		jmp	short PARSE_EXIT
 
 MORE_PRSE:
 		mov	byte [CPYFLAG],2 ; tell CPARSE that 1st token is done
 		call	NEWARG		; add to argv array (CX has char count)
 		jnb	short PARSELOOP	; was everything OK?
-		jmp	short PARSE_ERROR ; NO, it wasn't -- bug out (CF set)
-
-PARSEDONE:
-		popf
-		clc
-		jmp	short PARSE_EXIT
+		;jmp	short PARSE_ERROR ; NO, it wasn't -- bug out (CF set)
+		; 01/03/2023
+;PARSEDONE:
+		;popf
+		;clc
+		;jmp	short PARSE_EXIT
 
 PARSE_ERROR:				; error entry (er, exit) point
 		popf
@@ -12204,7 +12300,7 @@ DOEMES:
 PECHO:
 		; MSDOS 3.3 (& MSDOS 6.0)
 		mov	ds,[RESSEG]
-		mov	bl,byte [ECHOFLAG]
+		mov	bl,[ECHOFLAG]
 		push	cs
 		pop	ds
 		and	bl,1
@@ -12398,7 +12494,7 @@ OFF_CHECK:
 ;		dec	si		;AN032; if none of above - back up
 ;
 ;parse_on_off:				;AN032;    and start parsing
-;		mov	di,offset trangroup:parse_break ;AN000; Get adderss of PARSE_BREAK
+;		mov	di,offset trangroup:parse_break ;AN000; Get address of PARSE_BREAK
 ;		xor	cx,cx		;AN000; clear cx,dx
 ;		xor	dx,dx		;AN000;
 ;		invoke	cmd_parse	;AC000; call parser
@@ -12420,7 +12516,7 @@ OFF_CHECK:
 ;		or	al,parse1_code	;AC000;    ON or OFF in AX
 ;		pushf			;AN000; save flags
 ;		mov	di,offset trangroup:parse_break
-;					;AN000; Get adderss of PARSE_BREAK
+;					;AN000; Get address of PARSE_BREAK
 ;		xor	dx,dx		;AN000;
 ;		invoke	cmd_parse	;AN000; call parser
 ;		cmp	ax,end_of_line	;AN000; are we at end of line?
@@ -12462,7 +12558,9 @@ PRINTVOL:
 		cmp	al,'@'
 		jnz	short DRVOK
 		mov	al,[CURDRV]
-		add	al,[CAPITAL_A]
+		;add	al,[CAPITAL_A]
+		; 01/03/2023
+		add	al,capital_A  ; add al,'A'
 DRVOK:
 		mov	[VOL_DRV],al	; get drive letter into argument
 		pop	ax		; get return code back
@@ -12855,7 +12953,10 @@ COPY:
 		mov	[DESTISDIR],al	; 'haven't analyzed destination' ; *!*
 		
 		mov	si,81h		; SI = ptr to command line
-		mov	bl,[PLUS_CHR]	; BL = special delimiter = "+"
+		;mov	bl,[PLUS_CHR]	; BL = special delimiter = "+"
+		; 01/03/2023
+		;mov	bl,'+'
+		mov	bl,plus_chr
 		inc	byte [EXPAND_STAR] ; CParse 'expand * to ?s' = true
 		mov	byte [CPYFLAG],1 ; CParse 'called from COPY' = true
 
@@ -12994,7 +13095,9 @@ ACOUNTOK:
 	;	The two files would be appended as d:file1, rather than x:file1.
 
 		mov	al,[CURDRV]		; AL = current drive (0 = A)
-		add	al,[CAPITAL_A]		; AL = current drive letter
+		;add	al,[CAPITAL_A]		; AL = current drive letter
+		; 01/03/2023
+		add	al,capital_A  ; add al,'A'
 		mov	ah,':'			; AX = "d:"
 		;mov	byte [bp+1],2
 		mov	byte [bp+VARSTRUC.SIZ],2 ; pathname length = 2
@@ -13017,7 +13120,7 @@ GOT2ARGS:
 		cmp	byte [bp+VARSTRUC.SIZ],2
 		jnz	short NOTSHORTDEST	; not two chars, can't be "d:"
 		mov	al,':'
-		cmp	byte [DESTBUF+1],al
+		cmp	[DESTBUF+1],al
 		jnz	short NOTSHORTDEST	; it's just a 2-character filename
 		;or	byte [bp+4],2
 		or	byte [bp+VARSTRUC.INFO],2 ; mark destination 'wildcard present'
@@ -13073,7 +13176,7 @@ CHKSWTCHES:
 		push	ds
 		mov	ds,[RESSEG]
 		xor	ah,ah
-		mov	word [VERVAL],ax	; save current verify flag
+		mov	[VERVAL],ax	; save current verify flag
 		pop	ds
 		mov	ax,(SET_VERIFY_ON_WRITE<<8)|1 ; 2E01h
 		int	21h		; DOS -	SET VERIFY FLAG
@@ -13083,7 +13186,9 @@ NOVERIF:
 
 		xor	bp,bp			; BP = switch flags accumulator
 		mov	si,81h			; SI = ptr into command line
-		mov	bl,[PLUS_CHR]		; BL = special CParse delimiter = "+"
+		;mov	bl,[PLUS_CHR]		; BL = special CParse delimiter = "+"
+		; 01/03/2023
+		mov	bl,plus_chr  ; mov bl,'+'
 SCANFSRC:
 		mov	di,SCANBUF		; DI = ptr to pathname buf
 		call	CPARSE			; parse first source pathname
@@ -13190,23 +13295,28 @@ NEXTSRC:
 	;	are processed before coming here.
 
 		cmp	byte [PLUS],0
-		jne	short MORECP		; copying "+" sources - keep going
-
-ENDCOPYJ2:
-		jmp	short ENDCOPY
-
+		;jne	short MORECP		; copying "+" sources - keep going
+		; 01/03/2023
+		je	short ENDCOPY
+;ENDCOPYJ2:
+		;jmp	short ENDCOPY
 MORECP:
 		xor	bp,bp			; BP = switch flags accumulator
 		mov	si,[SRCPT]		; SI = ptr to current pos'n in cmd line
-		mov	bl,[PLUS_CHR]		; BL = special delimiter = "+"
-
+		;mov	bl,[PLUS_CHR]		; BL = special delimiter = "+"
+		; 01/03/2023
+		mov	bl,plus_chr ; mov bl,'+'
 SCANSRC:
 		mov	di,SCANBUF		; DI = ptr to pathname buf
 		call	CPARSE			; parse first source name
-		jb	short ENDCOPYJ2		; CR found - we're done
+		;jb	short ENDCOPYJ2		; CR found - we're done
+		; 01/03/2023
+		jb	short ENDCOPY
 
 		test	bh,80h
-		jz	short ENDCOPYJ2		; no "+" delimiter - we're done
+		;jz	short ENDCOPYJ2		; no "+" delimiter - we're done
+		; 01/03/2023
+		jz	short ENDCOPY
 
 		test	bh,1
 		jnz	short SCANSRC		; switch found - keep looking
@@ -13218,7 +13328,6 @@ SCANSRC:
 		jnz	short NOSTAMP		;  no - try for a file
 		mov	byte [PLUS_COMMA],1	; yes - set flag
 		jmp	short SRCNONEXIST	; we know we won't find it
-
 NOSTAMP:
 		mov	byte [PLUS_COMMA],0	; reset +,, flag
 
@@ -13312,8 +13421,10 @@ NODCLOSE:
 
 		call	FLUSHFIL ; MSDOS 3.3
 		test	byte [MELCOPY],0FFh
-		jz	short NOFLUSH
-		jmp	short DOMELCOPY
+		;jz	short NOFLUSH
+		;jmp	short DOMELCOPY
+		; 01/03/2023
+		jnz	short DOMELCOPY
 NOFLUSH:
 		call	SEARCHNEXT		; try next match
 		jnz	short NEXTSRCJ		; not found - finished with 
@@ -13321,18 +13432,18 @@ NOFLUSH:
 		mov	byte [DESTCLOSED],0	; 'destination not closed'
 
 		jmp	short NEXTAMBIG		; do next ambig match
-
 DOMELCOPY:
 		cmp	byte [MELCOPY],0FFh
 		je	short CONTMEL
 		mov	si,[SRCPT]
 		mov	[MELSTART],si
 		mov	byte [MELCOPY],0FFh
-
 CONTMEL:
 		xor	bp,bp
 		mov	si,[SRCPT]
-		mov	bl,[PLUS_CHR]
+		;mov	bl,[PLUS_CHR]
+		; 01/03/2023
+		mov	bl,plus_chr ; mov bl,'+'
 SCANSRC2:
 		mov	di,SCANBUF
 		call	CPARSE
@@ -13417,24 +13528,25 @@ DOCOPY:
 		mov	byte [RDEOF],0	; no EOF yet
 
 		; MSDOS 6.0
-		;mov	ax,EXTOPEN shl 8		; open the file
+		;mov	ax,EXTOPEN shl 8	; open the file
 ;M046
 ; For reads, the sharing mode should be deny none so that any process can
 ;open this file again in any other sharing mode. This is mainly to allow
 ;multiple command.com's to access the same file without getting sharing
 ;violations
 ;
-		;mov	bx,DENY_NONE or READ_OPEN_MODE ; open mode for COPY ;M046
-		;xor	cx,cx				; no special files
-		;mov	dx,READ_OPEN_FLAG		; set up open flags
+		;mov	bx,DENY_NONE or READ_OPEN_MODE
+						; open mode for COPY ;M046
+		;xor	cx,cx			; no special files
+		;mov	dx,READ_OPEN_FLAG	; set up open flags
 		;int	21h
 		;
 		;jnc	OpenOk
 
-	;	Bogosity:  IBM wants us to issue Access Denied in this case.
+	;	Bogosity: IBM wants us to issue Access Denied in this case.
 	;	They asked for it...
 
-		;jmp	short Error_On_Source 		;AC022; clean up and exit
+		;jmp	short Error_On_Source 	;AC022; clean up and exit
 
 		; MSDOS 3.3
 		mov	dx,SRCBUF
@@ -13573,7 +13685,7 @@ CLOSEDEST:
 
 		cmp	byte [DESTCLOSED],0
 		jne	short CLOSESRCDEST_RETN	; don't double close
-		mov	al,byte [DESTSWITCH]
+		mov	al,[DESTSWITCH]
 		call	SETASC			; check for b or a switch
 		jz	short BINCLOS		;   on destination
 		mov	bx,[NXTADD]
@@ -13898,7 +14010,7 @@ DODESTOPEN:
 
 ;	Destination is device.
 
-		mov	al,byte [DESTSWITCH]
+		mov	al,[DESTSWITCH]
 		;and	al,0Ch
 		and	al,SWITCHA+SWITCHB
 		jnz	short TESTBOTH
@@ -14159,7 +14271,7 @@ DRVSPEC4:
 		mov	cl,[ASCII]		; CL = saved Ascii flag
 		or	al,20h
 		sub	al,60h
-		mov	byte [DESTFCB],al	; store drive # in FCB
+		mov	[DESTFCB],al		; store drive # in FCB
 
 ;*	Figure out what copy mode we're in.
 ;	Letters stand for unambiguous, * for ambiguous pathnames.
@@ -14267,7 +14379,9 @@ NOSTORE:
 		mov	al,' '
 		cmp	[si],al
 		jz	short ENDDEST	; No extension
-		mov	al,[DOT_CHR]
+		;mov	al,[DOT_CHR]
+		; 01/03/2023
+		mov	al,dot_chr ; mov al,'.'
 		stosb
 BUILDEXT:
 		lodsb
@@ -14447,11 +14561,16 @@ NOTPDIR:
 		mov	si,[bp+VARSTRUC.TTAIL]
 		cmp	byte [si],0
 		je	short BADCDERRJ2	; Trailing '/'	
-		mov	bl,[DOT_CHR]
-		cmp	[si],bl
+		;;mov	bl,[DOT_CHR]
+		; 01/03/2023
+		;mov	bl,dot_chr  ; mov bl,'.'
+		;cmp	[si],bl
+		cmp	byte [si],dot_chr ; '.'
 		je	short BADCDERRJ2	; If . or .. pure cd should have worked
-		mov	bl,':'
-		cmp	[si-2],bl
+		;mov	bl,':'
+		;cmp	[si-2],bl
+		; 01/03/2023
+		cmp	byte [si-2],':'
 		je	short DOPCD		   ; Know d:/file
 		;mov	byte [bp+VARSTRUC.ISDIR],1 ; Know path/file
 		;mov	byte [bp+0],1
@@ -14488,7 +14607,9 @@ SETSTARS:
 		mov	[bp+VARSTRUC.TTAIL],di
 		;add	byte [bp+1],12
 		add	byte [bp+VARSTRUC.SIZ],12
-		mov	ax,[DOT_QMARK] ; '?.' (2E3Fh)
+		;mov	ax,[DOT_QMARK] ; '?.' (2E3Fh)
+		; 01/03/2023
+		mov	ax,dot_qmark ; '?.' (mov ax,2E3Fh)
 		mov	cx,8
 		rep stosb
 		xchg	al,ah
@@ -14654,7 +14775,9 @@ ANUM_CHARD:
 		jnz	short ANUM_CHAR		; no
 		push	ax
 		mov	al,[CURDRV]		; Insert drive spec
-		add	al,[CAPITAL_A]
+		;add	al,[CAPITAL_A]
+		; 01/03/2023
+		add	al,capital_A  ; add al,'A'
 		call	MOVE_CHAR
 		mov	al,':'
 		call	MOVE_CHAR
@@ -14663,7 +14786,9 @@ ANUM_CHARD:
 		mov	byte [ELCNT],0
 
 ANUM_CHAR:
-		cmp	al,[DOT_CHR]
+		;cmp	al,[DOT_CHR]
+		; 01/03/2023
+		cmp	al,dot_chr  ; cmp al,'.'
 		jnz	short TESTQUEST
 		inc	byte [ELPOS]		; flag in extension
 		mov	byte [ELCNT],0FFh	; Store of the '.' resets it to 0
@@ -14672,15 +14797,18 @@ TESTQUEST:
 		jnz	short TESTSPLAT
 		or	bh,2
 TESTSPLAT:
-		cmp	al,[STAR]
+		;cmp	al,[STAR]
+		; 01/03/2023
+		cmp	al,star ; cmp al,'*'
 		jnz	short TESTPATH
 		or	bh,2
 		cmp	byte [EXPAND_STAR],0
-		jnz	short EXPAND_FILENAME
-		jmp	short TESTPATH
-
-BADPERR2J:
-		jmp	BADPERR2
+		;jnz	short EXPAND_FILENAME
+		;jmp	short TESTPATH
+		; 01/03/2023
+		jz	short TESTPATH
+;BADPERR2J:
+		;jmp	BADPERR2
 
 		;db	0E9h
 		;db	7Eh	
@@ -14694,7 +14822,9 @@ EXPAND_FILENAME:
 GOTELCNT:
 		mov	al,'?'
 		sub	ah,[ELCNT]
-		jb	short BADPERR2J
+		;jb	short BADPERR2J
+		; 01/03/2023
+		jb	short BADPERR2
 		xchg	ah,cl
 		jcxz	TESTPATHX
 QMOVE:
@@ -14977,13 +15107,18 @@ NXT_CONV_CHAR:
 		lodsb
 		cmp	al,'%'			;Just print the %
 		jz	short PRINTF_PERCENT
-		cmp	al,[cs:CHAR_SUB] ; "-"	;Right justify the field	
+		;cmp	al,[cs:CHAR_SUB] ; "-"	;Right justify the field	
+		; 01/03/2023
+		cmp	al,'-'
 		jz	short LEFT_ADJ
-		cmp	al,[cs:PLUS_CHR] ; "+"	;Left justify the field
+		;cmp	al,[cs:PLUS_CHR] ; "+"	;Left justify the field
+		cmp	al,plus_chr ; cmp al,'+'
 		jz	short CONV_CHAR
-		cmp	al,[cs:CHAR_L]	 ; "L"	;Is it a long integer
+		;cmp	al,[cs:CHAR_L]	 ; "L"	;Is it a long integer
+		cmp	al,'L'
 		jz	short LONG_INT
-		cmp	al,[cs:char_l]	 ; "l"		
+		;cmp	al,[cs:char_l]	 ; "l"		
+		cmp	al,'l'
 		jz	short LONG_INT
 		cmp	al,'0'			;Is it a precision specification
 		jb	short LOOK_CONV_CHAR
@@ -14993,8 +15128,10 @@ NXT_CONV_CHAR:
 		jnz	short NOT_PAD
 		cmp	word [cs:PRINTF_WIDTH],0
 		jnz	short NOT_PAD
-		mov	ah,'0'
-		mov	[cs:PAD_CHAR],ah
+		;mov	ah,'0'
+		;mov	[cs:PAD_CHAR],ah
+		; 01/03/2023
+		mov	[cs:PAD_CHAR],al ; '0'
 NOT_PAD:					;Adjust decimal place on precision
 		push	ax
 		mov	ax,[cs:PRINTF_WIDTH]
@@ -15017,31 +15154,41 @@ LONG_INT:
 
 LOOK_CONV_CHAR:
 		and	al,0DFh
-		cmp	al,[cs:CHAR_X]	 ; "X"
+		; 01/03/2023
+		;cmp	al,[cs:CHAR_X]	 ; "X"
+		cmp	al,'X'
 		jz	short HEX_UP
-		cmp	al,[cs:CHAR_D]	 ; "D"
+		;cmp	al,[cs:CHAR_D]	 ; "D"
+		cmp	al,'D'
 		jz	short DECIMAL
-		cmp	al,[cs:CHAR_C]	 ; "C"
+		;cmp	al,[cs:CHAR_C]	 ; "C"
+		cmp	al,'C'
 		jz	short C_PUT_CHAR
-		cmp	al,[cs:CHAR_S]	 ; "S"
-		jz	short S_PUT_STRG
-		call	CLEAR_FLAGS
-		jmp	GET_CHAR
+		;cmp	al,[cs:CHAR_S]	 ; "S"
+		cmp	al,'S'
+		;jz	short S_PUT_STRG
+		;call	CLEAR_FLAGS
+		;jmp	GET_CHAR
+		; 01/03/2023
+		jnz	short S_PUT_5
+		;jmp	short S_PUT_STRG ; -->
 
-HEX_UP:
-		mov	word [cs:PRINTF_BASE],16 ;Hex conversion
-		jmp	short CONV_TO_NUM
-DECIMAL:
-		mov	word [cs:PRINTF_BASE],10 ;Decimal conversion
-		jmp	short CONV_TO_NUM
+		; 01/03/2023
+;HEX_UP:
+;		mov	word [cs:PRINTF_BASE],16 ;Hex conversion
+;		jmp	short CONV_TO_NUM
+;DECIMAL:
+;		mov	word [cs:PRINTF_BASE],10 ;Decimal conversion
+;		jmp	short CONV_TO_NUM
+;
+;C_PUT_CHAR:
+;		call	NEXT_CHRS
+;		mov	al,dl
+;		call	OUTCHR
+;		call	CLEAR_FLAGS
+;		jmp	GET_CHAR
 
-C_PUT_CHAR:
-		call	NEXT_CHRS
-		mov	al,dl
-		call	OUTCHR
-		call	CLEAR_FLAGS
-		jmp	GET_CHAR
-
+; -->
 S_PUT_STRG:
 		push	si			;Save pointer to control string
 		call	NEXT_CHRS
@@ -15061,6 +15208,21 @@ S_PUT_3:
 		jz	short S_PUT_4
 		call	OUTCHR			;Put it into our buffer
 		jmp	short S_PUT_3
+
+		; 01/03/2023
+HEX_UP:
+		mov	word [cs:PRINTF_BASE],16 ;Hex conversion
+		jmp	short CONV_TO_NUM
+DECIMAL:
+		mov	word [cs:PRINTF_BASE],10 ;Decimal conversion
+		jmp	short CONV_TO_NUM
+C_PUT_CHAR:
+		call	NEXT_CHRS
+		mov	al,dl
+		call	OUTCHR
+S_PUT_5: ; 01/03/2023
+		call	CLEAR_FLAGS
+		jmp	GET_CHAR
 S_PUT_4:
 		pop	si
 		cmp	byte [cs:PRINTF_LEFT],0
@@ -15071,8 +15233,10 @@ S_PUT_4:
 		call	PAD_STRING
 C_S_END:
 		pop	si			;Restore control string pointer
-		call	CLEAR_FLAGS
-		jmp	GET_CHAR		;Go get another character	
+		;call	CLEAR_FLAGS
+		;jmp	GET_CHAR		;Go get another character	
+		; 01/03/2023
+		jmp	short S_PUT_5
 
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -15080,20 +15244,17 @@ C_S_END:
 PAD_STRING:
 		xor	dx,dx
 		push	si
-
 COUNT_LOOP:
 		lodsb
 		or	al,al
 		jz	short COUNT_DONE
 		inc	dx
 		jmp	short COUNT_LOOP
-
 COUNT_DONE:
 		pop	si
 		sub	cx,dx
 		jbe	short COUNT_RET
 		call	PAD
-
 COUNT_RET:
 		retn
 
@@ -15107,7 +15268,6 @@ CONV_TO_NUM:
 				;Is this is a short or long integer?
 		jz	short NOT_LONG_INT
 		call	NEXT_CHRS
-
 NOT_LONG_INT:
 		push	bx
 		push	si
@@ -15151,7 +15311,7 @@ REM:
 		jb	short NOT_HEX
 		add	bx,6
 NOT_HEX:
-		mov	al,byte [cs:PRINTF_TABLE+bx] ; "0123456789ABCDEF"
+		mov	al,[cs:PRINTF_TABLE+bx]	; "0123456789ABCDEF"
 		push	cx
 		call	OUTCHR
 		pop	cx
@@ -15629,35 +15789,36 @@ COMTAB:		db 3
 		dw CLS
 		db 0
 
-CAPITAL_A:	db 'A'
-VBAR:		db '|'
-LABRACKET:	db '<' ; 3Ch
-RABRACKET:	db '>' ; 3Eh
-DOLLAR:		db '$'
-LPAREN:		db '('
-RPAREN:		db ')'
-NULLRPAREN:	db ')' ; 29h
-		db 0
-IN_WORD:	db 'I','N'
-DO_WORD	:	db 'D','O'
-STAR:		db '*'
-CHAR_SUB:	db '-' 
-PLUS_CHR:	db '+'
-CHAR_L:		db 'L'
-char_l:		db 'l'
-small_a:	db 'a'
-small_z:	db 'z'
-CHAR_D:		db 'D'
-CHAR_C:		db 'C'
-CHAR_S:		db 'S'
-CHAR_X:		db 'X'
-DOT_CHR:	db '.' 
-DOT_QMARK:	dw '?.'  ; dw 2E3Fh
-		db ','
-TIMECHARS:	dw ':.'  ; dw 2E3Ah 	 
-MNCHR:		db 'p'
-SYSTEM_CPAGE:	db 0
-		db 0
+; 01/03/2023
+;CAPITAL_A:	db 'A'
+;VBAR:		db '|'
+;LABRACKET:	db '<' ; 3Ch
+;RABRACKET:	db '>' ; 3Eh
+;DOLLAR:	db '$'
+;LPAREN:	db '('
+;RPAREN:	db ')'
+;NULLRPAREN:	db ')' ; 29h
+;		db 0
+;IN_WORD:	db 'I','N'
+;DO_WORD:	db 'D','O'
+;STAR:		db '*'
+;CHAR_SUB:	db '-' 
+;PLUS_CHR:	db '+'
+;CHAR_L:	db 'L'
+;char_l:	db 'l'
+;small_a:	db 'a'
+;small_z:	db 'z'
+;CHAR_D:	db 'D'
+;CHAR_C:	db 'C'
+;CHAR_S:	db 'S'
+;CHAR_X:	db 'X'
+;DOT_CHR:	db '.' 
+;DOT_QMARK:	dw '?.'  ; dw 2E3Fh
+;		db ','
+;TIMECHARS:	dw ':.'  ; dw 2E3Ah 	 
+;MNCHR:		db 'p'
+
+SYSTEM_CPAGE:	dw 0
 
 COMEXT:		db '.COM'
 EXEEXT:		db '.EXE'

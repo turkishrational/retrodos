@@ -1,7 +1,7 @@
      1                                  ; ****************************************************************************
      2                                  ; COMMAND.COM (MSDOS 3.3 Command Interpreter) - RETRO DOS v3.0 by ERDOGAN TAN
      3                                  ; ----------------------------------------------------------------------------
-     4                                  ; Last Update: 25/02/2023 ((Previous: 20/10/2018))
+     4                                  ; Last Update: 01/03/2023 ((Previous: 20/10/2018))
      5                                  ; ----------------------------------------------------------------------------
      6                                  ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
      7                                  ; ----------------------------------------------------------------------------
@@ -1653,7 +1653,7 @@
   1653                                  ;***	SetSize - get transient size in paragraphs
   1654                                  
   1655                                  SETSIZE:
-  1656 000001C9 B83B4D                  	mov	ax,TRANSPACEEND+15	; mov AX,4D6Bh
+  1656 000001C9 B88B4C                  	mov	ax,TRANSPACEEND+15	; mov AX,4D6Bh
   1657 000001CC B104                    	mov	cl,4
   1658 000001CE D3E8                    	shr	ax,cl
   1659 000001D0 C3                      	retn
@@ -1805,7 +1805,7 @@
   1805                                  USESLASH:
   1806 00000273 C606[980A]00            	mov	byte [LOADING],0		; flag to DskErr
   1807 00000278 BE[130C]                	mov	si,TRANVARS
-  1808 0000027B BF5F42                  	mov	di,HEADCALL
+  1808 0000027B BFAF41                  	mov	di,HEADCALL
   1809 0000027E 8E06[E10A]              	mov	es,[TRNSEG]
   1810 00000282 FC                      	cld
   1811 00000283 B9[270C]                	mov	cx,TRANVAREND
@@ -2088,7 +2088,7 @@
   2088 00000399 B80042                  	mov	ax,LSEEK<<8	; 4200h
   2089 0000039C CD21                    	int	21h
   2090 0000039E 7210                    	jc	short WRONGCOM1
-  2091 000003A0 B92C4C                  	mov	cx,TRANSPACEEND-100h ; 4C5Ch (for original MSDOS 3.3!)
+  2091 000003A0 B97C4B                  	mov	cx,TRANSPACEEND-100h ; 4C5Ch (for original MSDOS 3.3!)
   2092 000003A3 1E                      	push	ds
   2093 000003A4 8E1E[E10A]              	mov	ds,[TRNSEG]
   2094                                  	;assume	ds:NOTHING
@@ -2122,7 +2122,7 @@
   2122 000003C6 1E                      	push	ds
   2123 000003C7 8E1E[E10A]              	mov	ds,[TRNSEG]
   2124 000003CB BE0001                  	mov	si,100h
-  2125 000003CE B9143E                  	mov	cx,TRANDATAEND-100H	; 3E44h (for original MSDOS 3.3!)
+  2125 000003CE B9653D                  	mov	cx,TRANDATAEND-100H	; 3E44h (for original MSDOS 3.3!)
   2126                                  
   2127                                  CHECK_SUM:
   2128 000003D1 FC                      	cld
@@ -2179,13 +2179,13 @@
   2179 00000401 0E                      	push	cs			; get resident segment to DS
   2180 00000402 1F                      	pop	ds			;
   2181                                  	;assume	ds:RESGROUP
-  2182 00000403 8B0E[0615]              	mov	cx,[USEDENV]		; get number of bytes to move
+  2182 00000403 8B0E[0715]              	mov	cx,[USEDENV]		; get number of bytes to move
   2183 00000407 8E06[050C]              	mov	es,[ENVIRSEG]		; get target environment segment
   2184                                  	;assume	es:NOTHING
   2185                                  
-  2186 0000040B 803E[0C15]01            	cmp	byte [RESETENV],1	; do we need to setblock to env end?
+  2186 0000040B 803E[0D15]01            	cmp	byte [RESETENV],1	; do we need to setblock to env end?
   2187 00000410 750A                    	jne	short NO_RESET 		; no - we already did it
-  2188 00000412 8B1E[0015]              	mov	bx,[ENVSIZ]		; BX = size of environ in paragraphs
+  2188 00000412 8B1E[0115]              	mov	bx,[ENVSIZ]		; BX = size of environ in paragraphs
   2189 00000416 06                      	push	es			; save environment - just to be sure
   2190 00000417 B44A                    	mov	ah,SETBLOCK  ; 4Ah	;
   2191 00000419 CD21                    	int	21h             ; DOS - 2+ - ADJUST MEMORY BLOCK SIZE (SETBLOCK)
@@ -2195,7 +2195,7 @@
   2195                                  
   2196                                  NO_RESET:
   2197 0000041C 8C062C00                	mov	[PDB.ENVIRON],es ; mov [ds:2Ch],es ; put new environment in my header
-  2198 00000420 8E1E[0415]              	mov	ds,[OLDENV]		; source environment segment
+  2198 00000420 8E1E[0515]              	mov	ds,[OLDENV]		; source environment segment
   2199                                  	;assume	ds:NOTHING
   2200 00000424 31F6                    	xor	si,si			; set up offsets to start of segments
   2201 00000426 31FF                    	xor	di,di
@@ -2466,7 +2466,7 @@
   2466 00000480 0441                    	add	al,'A'
   2467 00000482 A2[9908]                	mov	[DRVLET],al
   2468                                  
-  2469                                  ;	Bugbug:	These labels are awful.  Change, especially 'NoHardE'.
+  2469                                  ;	Bugbug:	These labels are awful. Change, especially 'NoHardE'.
   2470                                  
   2471 00000485 F6C480                  	test	ah,80h
   2472 00000488 740A                    	jz	short NOHARDE		; it's a disk-device error
@@ -2477,7 +2477,7 @@
   2477                                  NOHARDE:
   2478 00000494 BE[7A08]                	mov	si,MREAD		; SI = "read" msg #
   2479 00000497 F6C401                  	test	ah,1
-  2480 0000049A 7403                    	jz	short SAVMES		  ; it's a read error
+  2480 0000049A 7403                    	jz	short SAVMES		; it's a read error
   2481 0000049C BE[8208]                	mov	si,MWRITE		; SI = "write" msg #
   2482                                  
   2483                                  SAVMES:
@@ -3623,7 +3623,7 @@
   3564 00000CE8 3D031E                  	cmp	ax,EXPECTED_VERSION ; 1E03h
   3565 00000CEB 7412                    	je	short OKDOS			; DOS version is ok
   3566                                  
-  3567 00000CED BA[7214]                	mov	dx,BADVERMSG			; DX = ptr to msg
+  3567 00000CED BA[7314]                	mov	dx,BADVERMSG			; DX = ptr to msg
   3568                                  	;call	RPrint
   3569                                  
   3570                                  	; MSDOS 3.3
@@ -3667,7 +3667,7 @@
   3608 00000D16 D3EA                            shr	dx,cl				;
   3609 00000D18 8CC8                            mov     ax,cs                           ; get current segment
   3610 00000D1A 01D0                            add     ax,dx                           ; calculate segment of end of init
-  3611 00000D1C A3[0815]                        mov     [INITEND],ax			; save this
+  3611 00000D1C A3[0915]                        mov     [INITEND],ax			; save this
   3612                                  
   3613 00000D1F A11600                  	mov	ax,[PDB.PARENT_PID] ; mov ax,ds:16h ; Init PARENT so we can exit
   3614 00000D22 A3[8E0A]                	mov	[PARENT],ax			    ;  correctly.
@@ -3696,23 +3696,23 @@
   3637 00000D54 8C1E[210C]              	mov	[MYSEG2],ds			;  3 long ptrs that the transient will
   3638 00000D58 8C1E[150C]              	mov	[MYSEG],ds			;  use to call resident routines.
   3639                                  
-  3640 00000D5C A3[E70A]                        MOV     [MEMSIZ],ax			; Needed for execing other programs
+  3640 00000D5C A3[E70A]                        mov     [MEMSIZ],ax			; Needed for execing other programs
   3641                                  ;
   3642                                  ; Compute maximum size of environment
   3643                                  ;
   3644                                  	;mov	word [ENVMAX],69 ; = (160/16)+(973/16)-1 ; (11EEh-0E30h+0Fh/10h) = 3Ch
-  3645 00000D5F C706[0215]4500                  mov	word [ENVMAX],((ENVIRONSIZ+15)/16) + ((ENVMAXIMUM-ZERO+15)/16) - 1
+  3645 00000D5F C706[0315]4500                  mov	word [ENVMAX],((ENVIRONSIZ+15)/16) + ((ENVMAXIMUM-ZERO+15)/16) - 1
   3646                                  ;
   3647                                  ; Compute minimum size of environment
   3648                                  ;
   3649                                  	;mov	word [ENVSIZ],10 ; = 160/16
-  3650 00000D65 C706[0015]0A00          	mov	word [ENVSIZ],ENVSML/16; 
+  3650 00000D65 C706[0115]0A00          	mov	word [ENVSIZ],ENVSML/16; 
   3651                                  
   3652                                  	;mov	dx,offset TranGroup:Transpaceend + 15 ; dx = size of transient
-  3653 00000D6B BA3B4D                  	mov	dx,TRANSPACEEND+15 ; 4D5Ch+0Fh (for MSDOS 3.3 COMMAND.COM)
+  3653 00000D6B BA8B4C                  	mov	dx,TRANSPACEEND+15 ; 4D5Ch+0Fh (for MSDOS 3.3 COMMAND.COM)
   3654 00000D6E B104                    	mov	cl,4				;  in paragraphs.
   3655 00000D70 D3EA                    	shr	dx,cl
-  3656 00000D72 8916[0A15]                      mov     [TRNSIZE],dx			; save size of transient in paragraphs
+  3656 00000D72 8916[0B15]                      mov     [TRNSIZE],dx			; save size of transient in paragraphs
   3657                                  
   3658 00000D76 29D0                    	sub	ax,dx				; max seg addr - # para's needed for transient
   3659 00000D78 A3[E10A]                	mov	[TRNSEG],ax			;  = seg addr to load the transient at.
@@ -3729,7 +3729,7 @@
   3670                                  	; MSDOS 3.3
   3671 00000D7E 09C0                    	or	ax,ax
   3672 00000D80 7406                    	jz	short BUILDENV
-  3673 00000D82 FE06[EB14]                      inc	byte [CHUCKENV]			; Flag no ENVIRONSEG
+  3673 00000D82 FE06[EC14]                      inc	byte [CHUCKENV]			; Flag no ENVIRONSEG
   3674 00000D86 EB0B                            jmp	short ENVIRONPASSED
   3675                                  
   3676                                  	; MSDOS 6.0
@@ -3762,33 +3762,33 @@
   3703 00000D91 01D0                    	add	ax,dx
   3704                                  
   3705                                  ENVIRONPASSED:
-  3706 00000D93 A3[050C]                        mov	[ENVIRSEG],ax
+  3706 00000D93 A3[050C]                	mov	[ENVIRSEG],ax
   3707                                  
-  3708 00000D96 8EC0                            MOV     es,ax
+  3708 00000D96 8EC0                    	mov	es,ax
   3709                                  
-  3710                                          ;mov	ax,CHAR_OPER<<8
-  3711 00000D98 B80037                          mov	ax,CHAR_OPER*256 ; 3700h
+  3710                                  	;mov	ax,CHAR_OPER<<8
+  3711 00000D98 B80037                  	mov	ax,CHAR_OPER*256 ; 3700h
   3712 00000D9B CD21                    	int     21h	; DOS - 2+ internal - GET SWITCHAR/AVAILDEV
   3713                                  			; Return: AL = FFh unsupported subfunction
   3714                                  			; DL = current switch character
-  3715 00000D9D 8816[190C]                      mov	[RSWITCHAR],dl
+  3715 00000D9D 8816[190C]              	mov	[RSWITCHAR],dl
   3716                                  
-  3717                                          ;CMP	dl,'/'
-  3718 00000DA1 3A16[F914]              	cmp	dl,[slash_chr]
-  3719 00000DA5 7511                            jnz	short IUSESLASH
+  3717                                  	;CMP	dl,'/'
+  3718 00000DA1 3A16[FA14]              	cmp	dl,[slash_chr]
+  3719 00000DA5 7511                    	jnz	short IUSESLASH
   3720                                  
   3721                                  	;mov	al,'\'
-  3722 00000DA7 A0[FA14]                 	mov	al,[bslash_chr]
-  3723 00000DAA A2[C014]                	mov	[COMSPECT],al
+  3722 00000DA7 A0[FB14]                	mov	al,[bslash_chr]
+  3723 00000DAA A2[C114]                	mov	[COMSPECT],al
   3724                                  
-  3725 00000DAD 803E[EB14]00            	cmp	byte [CHUCKENV],0
+  3725 00000DAD 803E[EC14]00            	cmp	byte [CHUCKENV],0
   3726 00000DB2 7504                    	jnz	short IUSESLASH
   3727                                  
-  3728                                          ;mov	ES:[ECOMSPEC-10h],'\'
+  3728                                  	;mov	ES:[ECOMSPEC-10h],'\'
   3729                                  	; 30/04/2018
   3730                                  	;mov	byte [ES:(ECOMSPEC-ENVIRONMENT)],'\' ; [ES:0Eh]
   3731                                  	; 23/09/2018
-  3732 00000DB4 26A20E00                	mov	byte [ES:(ECOMSPEC-ENVIRONMENT)],al ; mov es:0Eh,al
+  3732 00000DB4 26A20E00                	mov	[ES:(ECOMSPEC-ENVIRONMENT)],al ; mov es:0Eh,al
   3733                                  
   3734                                  ;gottheenvir:
   3735                                  IUSESLASH:
@@ -3820,7 +3820,7 @@
   3761                                          ;je	notwidenv               ; yes, must have been inherited that way
   3762                                  
   3763                                  	; MSDOS 3.3
-  3764 00000DD0 803E[EB14]00                    cmp	byte [CHUCKENV],0
+  3764 00000DD0 803E[EC14]00                    cmp	byte [CHUCKENV],0
   3765 00000DD5 7513                    	jne	short NOTWIDENV
   3766                                  
   3767 00000DD7 1E                        	push	ds			;  2 bytes to make room for a drivespec.
@@ -3853,13 +3853,13 @@
   3794                                  	; MSDOS 3.3
   3795                                  	;mov	es:0Eh,ax
   3796                                  	;MOV	WORD PTR ES:[ECOMSPEC-10H],AX
-  3797 00000DE6 26A30E00                	MOV	[es:(ECOMSPEC-ENVIRONMENT)],ax	; mov [es:0Eh],ax
+  3797 00000DE6 26A30E00                	mov	[es:(ECOMSPEC-ENVIRONMENT)],ax	; mov [es:0Eh],ax
   3798                                  
   3799                                  	; MSDOS 3.3 & MSDOS 6.0
   3800                                  NOTWIDENV:
   3801 00000DEA FC                      	cld
   3802                                  
-  3803 00000DEB A3[CE14]                	mov    [AUTOBAT],ax ; ":\AUTOEXEC.BAT"
+  3803 00000DEB A3[CF14]                	mov    [AUTOBAT],ax ; ":\AUTOEXEC.BAT"
   3804                                  
   3805                                  NOCOMDRV:
   3806 00000DEE E8EFF5                          CALL    SETVECT         ; Set the vectors
@@ -3882,7 +3882,7 @@
   3823 00000E04 AC                      	lodsb
   3824                                  CHECKSWITCHCHR:
   3825                                  	;cmp	al,' '
-  3826 00000E05 3A06[FB14]              	cmp	al,[space_chr]	 ;Skip blank spaces
+  3826 00000E05 3A06[FC14]              	cmp	al,[space_chr]	 ;Skip blank spaces
   3827 00000E09 74F6                    	jz	short CHKARG
   3828 00000E0B 3C09                    	cmp	al,9		; Skip TAB characters
   3829 00000E0D 74F2                    	jz	short CHKARG
@@ -3916,7 +3916,7 @@
   3857                                  
   3858                                  CHECKPSWITCH:
   3859                                          ;CMP	AL,'p'		; Permanent COMMAND switch
-  3860 00000E29 3A06[FC14]              	cmp	al,[letter_p]
+  3860 00000E29 3A06[FD14]              	cmp	al,[letter_p]
   3861 00000E2D 751C                            JNZ     short CHECKDSWITCH
   3862                                  
   3863                                  SETPSWITCH:
@@ -3939,9 +3939,9 @@
   3880                                  ; initialized, set it to indicate yes, do prompt.
   3881                                  ;
   3882                                  	; MSDOS 3.3
-  3883 00000E3D 803E[DE14]FF            	cmp     byte [PRDATTM],-1
+  3883 00000E3D 803E[DF14]FF            	cmp     byte [PRDATTM],-1
   3884 00000E42 75BD                    	jnz     short CHKARG
-  3885 00000E44 C606[DE14]00            	mov     byte [PRDATTM],0
+  3885 00000E44 C606[DF14]00            	mov     byte [PRDATTM],0
   3886 00000E49 EBB6                    	jmp     short CHKARG
   3887                                  
   3888                                  ;COMRETURNSJ:
@@ -3950,7 +3950,7 @@
   3891                                  
   3892                                  CHECKDSWITCH:
   3893                                  	;cmp	al,'d'
-  3894 00000E4B 3A06[FD14]                      cmp	al,[letter_d]
+  3894 00000E4B 3A06[FE14]                      cmp	al,[letter_d]
   3895 00000E4F 7507                    	jnz     short CHECKCSWITCH
   3896                                  SETDSWITCH:
   3897                                  ;
@@ -3965,13 +3965,13 @@
   3906                                  	;inc	Dswitch 		; indicate /D entered
   3907                                  
   3908                                  	; MSDOS 3.3 & MSDOS 6.0
-  3909 00000E51 C606[DE14]01                    mov	byte [PRDATTM],1  ; User explicitly says no date time
+  3909 00000E51 C606[DF14]01                    mov	byte [PRDATTM],1  ; User explicitly says no date time
   3910                                  	; MSDOS 3.3
   3911 00000E56 EBA9                    	jmp	short CHKARG
   3912                                  
   3913                                  CHECKCSWITCH:
   3914                                          ;cmp	al,'c'
-  3915 00000E58 3A06[FE14]              	cmp     al,[letter_c]
+  3915 00000E58 3A06[FF14]              	cmp     al,[letter_c]
   3916 00000E5C 7511                            jnz	short CHECKESWITCH
   3917                                  
   3918                                  ;SetSSwitch:
@@ -3982,7 +3982,7 @@
   3923 00000E5E C606[F40A]00            	mov	byte [PERMCOM],0	; A SINGLECOM must not be a PERMCOM
   3924 00000E63 8936[F50A]              	mov	[SINGLECOM],si		; Point to the rest of the command line
   3925                                  	;mov	byte [PERMCOM],0
-  3926 00000E67 C606[DE14]01            	mov	byte [PRDATTM],1	; no date or time either, explicit
+  3926 00000E67 C606[DF14]01            	mov	byte [PRDATTM],1	; no date or time either, explicit
   3927                                  COMRETURNSJ: ; 24/09/2018
   3928 00000E6C E96C01                  	jmp	ARGSDONE
   3929                                  
@@ -4035,7 +4035,7 @@
   3976                                  
   3977                                  NOTDECIMALCHR:
   3978                                  	;cmp	al,' '
-  3979 00000E9B 3A06[FB14]              	cmp     al,[space_chr]
+  3979 00000E9B 3A06[FC14]              	cmp     al,[space_chr]
   3980 00000E9F 741A                    	jz      short CHECKENVSIZE
   3981                                  	;cmp	al,'/'
   3982 00000EA1 3A06[190C]              	cmp     al,[RSWITCHAR]
@@ -4046,7 +4046,7 @@
   3987 00000EA9 49                      	dec     cx
   3988 00000EAA AC                      	lodsb
   3989                                  	;cmp	al,' '
-  3990 00000EAB 3A06[FB14]              	cmp     al,[space_chr]
+  3990 00000EAB 3A06[FC14]              	cmp     al,[space_chr]
   3991 00000EAF 7406                    	jz      short ENVSIZESPC
   3992                                  	;cmp	al,'/'
   3993 00000EB1 3A06[190C]              	cmp     al,[RSWITCHAR]
@@ -4065,11 +4065,11 @@
   4006                                  
   4007                                  SETENVSIZE:
   4008                                  	;mov	word [ENVSIZ],2048	; Maximum environment size (32KB)
-  4009 00000EBD C706[0015]0008          	mov	word [ENVSIZ],ENVBIG/16
+  4009 00000EBD C706[0115]0008          	mov	word [ENVSIZ],ENVBIG/16
   4010 00000EC3 81FB0080                	cmp     bx,32768
   4011 00000EC7 771D                    	ja      short INVENVSIZE
   4012                                  	;mov	word [ENVSIZ],10	; Minimum environment size (160 bytes)
-  4013 00000EC9 C706[0015]0A00          	mov	word [ENVSIZ],ENVSML/16
+  4013 00000EC9 C706[0115]0A00          	mov	word [ENVSIZ],ENVSML/16
   4014 00000ECF 81FBA000                	cmp     bx,160
   4015 00000ED3 7211                    	jb      short INVENVSIZE
   4016 00000ED5 83C30F                  	add     bx,15
@@ -4077,13 +4077,13 @@
   4018 00000EDA D1EB                    	shr     bx,1
   4019 00000EDC D1EB                    	shr     bx,1
   4020 00000EDE D1EB                    	shr     bx,1
-  4021 00000EE0 891E[0015]              	mov	[ENVSIZ],bx		; EnvSiz is in paragraphs
+  4021 00000EE0 891E[0115]              	mov	[ENVSIZ],bx		; EnvSiz is in paragraphs
   4022 00000EE4 EB07                    	jmp     short NEXTCH2
   4023                                  
   4024                                  	;nop
   4025                                  
   4026                                  INVENVSIZE:
-  4027 00000EE6 BA[8A14]                	mov     dx,BADENVSIZMSG ; "Invalid environment size specified\r\n$"
+  4027 00000EE6 BA[8B14]                	mov     dx,BADENVSIZMSG ; "Invalid environment size specified\r\n$"
   4028 00000EE9 B409                    	mov     ah,STD_CON_STRING_OUTPUT ; 9
   4029 00000EEB CD21                    	int     21h             ; DOS - PRINT STRING
   4030                                  				; DS:DX -> string terminated by "$"
@@ -4129,7 +4129,7 @@
   4070 00000EF6 AC                      	lodsb
   4071 00000EF7 49                      	dec	cx
   4072                                  	;cmp	al,' '
-  4073 00000EF8 3A06[FB14]              	cmp	al,[space_chr]
+  4073 00000EF8 3A06[FC14]              	cmp	al,[space_chr]
   4074 00000EFC 7409                    	jz	short SETCDEV
   4075 00000EFE 3C09                    	cmp	al,9
   4076 00000F00 7405                    	jz	short SETCDEV
@@ -4300,7 +4300,7 @@
   4241                                          ;pop    si                              ; get new comspec location back
   4242                                  
   4243                                  	; MSDOS 3.3
-  4244 00000F59 C606[EB14]00            	mov     byte [CHUCKENV],0	; If search specified -- no inheritance
+  4244 00000F59 C606[EC14]00            	mov     byte [CHUCKENV],0	; If search specified -- no inheritance
   4245 00000F5E B8[400C]                	mov     ax,PATHSTRING ; "PATH="	; Figure environment pointer
   4246 00000F61 B104                    	mov     cl,4
   4247 00000F63 D3E8                    	shr     ax,cl
@@ -4309,19 +4309,19 @@
   4250 00000F69 A3[050C]                	mov     [ENVIRSEG],ax
   4251 00000F6C 8EC0                    	mov     es,ax
   4252                                  	;mov	al,' '
-  4253 00000F6E A0[FB14]                	mov     al,[space_chr]
+  4253 00000F6E A0[FC14]                	mov     al,[space_chr]
   4254 00000F71 8844FF                  	mov     [si-1],al
   4255 00000F74 5E                      	pop     si ; **			; Remember location
   4256 00000F75 59                      	pop     cx ; *			; and count
   4257                                  	;mov	di,[ECOMLOC]
-  4258 00000F76 8B3E[EC14]              	mov     di,[COMSPOFFSET]
+  4258 00000F76 8B3E[ED14]              	mov     di,[COMSPOFFSET]
   4259                                  
   4260                                  COMTRLOOP:
   4261                                  	; MSDOS 3.3 & MSDOS 6.0
   4262 00000F7A AC                      	lodsb
   4263 00000F7B 49                      	dec	cx
   4264                                  	;cmp	al,' '
-  4265 00000F7C 3A06[FB14]              	cmp	al,[space_chr]
+  4265 00000F7C 3A06[FC14]              	cmp	al,[space_chr]
   4266 00000F80 7409                    	je	short SETCOMSR
   4267                                  	; MSDOS 3.3
   4268 00000F82 3C09                    	cmp	al,9
@@ -4354,7 +4354,7 @@
   4295 00000F8B 56                      	push    si
   4296 00000F8C 51                      	push    cx
   4297 00000F8D 1E                      	push    ds
-  4298 00000F8E BE[C014]                	mov     si,COMSPECT ; "/COMMAND.COM"
+  4298 00000F8E BE[C114]                	mov     si,COMSPECT ; "/COMMAND.COM"
   4299 00000F91 B90E00                  	mov     cx,14
   4300 00000F94 268A45FF                	mov     al,[es:di-1]
   4301 00000F98 E8E602                  	call    PATHCHRCMPR
@@ -4367,7 +4367,7 @@
   4308 00000F9F F3A4                    	rep	movsb
   4309                                  
   4310                                  	;mov	dx,[ECOMLOC]			; Now lets make sure its good!
-  4311 00000FA1 8B16[EC14]                      mov     dx,[COMSPOFFSET]
+  4311 00000FA1 8B16[ED14]                      mov     dx,[COMSPOFFSET]
   4312 00000FA5 06                      	push	es
   4313 00000FA6 1F                      	pop	ds
   4314                                  	;mov	ax,OPEN shl 8
@@ -4398,7 +4398,7 @@
   4339                                  SETCOMSRBAD:
   4340                                  	; MSDOS 3.3 & MSDOS 6.0
   4341                                  	;mov	dx,offset ResGroup:BadComlkMsg	; dx = ptr to msg
-  4342 00000FBC BA[0814]                	mov	dx,BADCOMLKMES
+  4342 00000FBC BA[0914]                	mov	dx,BADCOMLKMES
   4343                                  
   4344                                  ;	Note:  we're about to make a near call to TriageError, which
   4345                                  ;	lives in a different segment and group.  Some linkers will
@@ -4406,18 +4406,18 @@
   4347                                  ;	ok, though, because we all fit in 64 KB and, at init time,
   4348                                  ;	we're still all together.
   4349                                  
-  4350 00000FBF E85223                  	call	TRIAGEERROR	; TRIAGEERROR procedure is at offset 354Eh
+  4350 00000FBF E81D23                  	call	TRIAGEERROR	; TRIAGEERROR procedure is at offset 354Eh
   4351                                  				; in original MSDOS 3.3 COMMAND.COM	
   4352 00000FC2 83F841                  	cmp	ax,65
   4353 00000FC5 7503                    	jne	short DOPRT
   4354                                  	;mov	dx,offset ResGroup:BadComaccMsg	; dx = ptr to msg
-  4355 00000FC7 BA[4114]                	mov	dx,BADCOMACCMSG
+  4355 00000FC7 BA[4214]                	mov	dx,BADCOMACCMSG
   4356                                  DOPRT:
   4357 00000FCA E8A702                  	call	RPRINT
   4358                                  	;mov	si,offset ResGroup:ComSpect
-  4359 00000FCD BE[C014]                	mov     si,COMSPECT ; "/COMMAND.COM"
+  4359 00000FCD BE[C114]                	mov     si,COMSPECT ; "/COMMAND.COM"
   4360                                  	;mov	di,[ECOMLOC]
-  4361 00000FD0 8B3E[EC14]                      mov     di,[COMSPOFFSET]
+  4361 00000FD0 8B3E[ED14]                      mov     di,[COMSPOFFSET]
   4362 00000FD4 B90E00                  	mov	cx,14
   4363 00000FD7 F3A4                    	rep	movsb				; get my default back
   4364                                  
@@ -4481,9 +4481,9 @@
   4422 0000102C BF[9B0A]                        mov	di,COMSPEC
   4423                                  
   4424                                  	;mov	si,[ECOMLOC]
-  4425 0000102F 8B36[EC14]              	mov	si,[COMSPOFFSET]
+  4425 0000102F 8B36[ED14]              	mov	si,[COMSPOFFSET]
   4426                                  	;cmp	AllocedEnv,0  ; MSDOS 6.0
-  4427 00001033 803E[EB14]00                    cmp	byte [CHUCKENV],0 ; MSDOS 3.3
+  4427 00001033 803E[EC14]00                    cmp	byte [CHUCKENV],0 ; MSDOS 3.3
   4428                                  	
   4429 00001038 8CD8                    	mov	ax,ds				; Xchg es,ds
   4430 0000103A 06                      	push	es
@@ -4497,7 +4497,7 @@
   4438 00001041 1F                              pop	ds
   4439                                  
   4440                                          ;mov	si,offset ResGroup:ComspString
-  4441 00001042 BE[EE14]                	mov	si,COMSPSTRING ; "COMSPEC="
+  4441 00001042 BE[EF14]                	mov	si,COMSPSTRING ; "COMSPEC="
   4442 00001045 06                      	push	es
   4443 00001046 57                      	push	di
   4444 00001047 E84C02                  	call	IFINDE
@@ -4518,7 +4518,7 @@
   4459                                  COMSPECNOFND:
   4460                                  	; MSDOS 3.3
   4461                                          ;mov	si,[es:ECOMLOC]
-  4462 00001052 268B36[EC14]                    mov	si,[es:COMSPOFFSET]
+  4462 00001052 268B36[ED14]                    mov	si,[es:COMSPOFFSET]
   4463                                  	;add	si,offset RESGROUP:PATHSTRING
   4464 00001057 81C6[400C]                      add	si,PATHSTRING ; "PATH="
   4465 0000105B 0E                      	push	cs
@@ -4581,7 +4581,7 @@
   4522 000010A1 BF0000                  	mov	di,0
   4523 000010A4 8E06[E10A]              	mov	es,[TRNSEG]
   4524                                  	;mov	cx,4D5Ch
-  4525 000010A8 B92C4D                  	mov	cx,TRANSPACEEND ; 4D5Ch for MSDOS 3.3 COMMAND.COM
+  4525 000010A8 B97C4C                  	mov	cx,TRANSPACEEND ; 4D5Ch for MSDOS 3.3 COMMAND.COM
   4526 000010AB 51                      	push	cx
   4527 000010AC 89C8                    	mov	ax,cx
   4528 000010AE 01F0                    	add	ax,si
@@ -4633,7 +4633,7 @@
   4574 000010D3 8916[E90A]              	mov     [SUM],dx
   4575                                  
   4576                                  	; MSDOS 3.3 & MSDOS 6.0
-  4577 000010D7 803E[DE14]00                    cmp     byte [PRDATTM],0	;
+  4577 000010D7 803E[DF14]00                    cmp     byte [PRDATTM],0	;
   4578 000010DC 750C                            jnz     short NOBATCHSEG	; don't do autoexec or date time
   4579                                  ;
   4580                                  ; Allocate batch segment for d:/autoexec.bat + no arguments
@@ -4727,33 +4727,33 @@
   4668 000010ED B448                    	mov     ah,ALLOC ; 48h
   4669 000010EF CD21                    	int     21h	; DOS - 2+ - ALLOCATE MEMORY
   4670                                  			; BX = number of 16-byte paragraphs desired
-  4671 000010F1 2B1E[0A15]              	sub     bx,[TRNSIZE]
+  4671 000010F1 2B1E[0B15]              	sub     bx,[TRNSIZE]
   4672 000010F5 81EB8000                	sub     bx,128
-  4673 000010F9 891E[0215]              	mov     [ENVMAX],bx
+  4673 000010F9 891E[0315]              	mov     [ENVMAX],bx
   4674                                  
   4675 000010FD 81FB0010                	cmp     bx,4096
   4676 00001101 7207                    	jb      short ALLOCENVIRSEG
   4677 00001103 BBFF0F                  	mov     bx,4096-1		; max. allowed environment size
-  4678 00001106 891E[0215]              	mov     [ENVMAX],bx
+  4678 00001106 891E[0315]              	mov     [ENVMAX],bx
   4679                                  
   4680                                  ALLOCENVIRSEG:
   4681 0000110A B448                    	mov     ah,ALLOC ; 48h
   4682 0000110C CD21                    	int     21h	; DOS - 2+ - ALLOCATE MEMORY
   4683                                  			; BX = number of 16-byte paragraphs desired
   4684 0000110E 8B1E[050C]              	mov     bx,[ENVIRSEG]		; get old environment segment
-  4685 00001112 891E[0415]              	mov     [OLDENV],bx		; save it	
-  4686 00001116 C706[0615]0000          	mov     word [USEDENV],0	; initialize environment size counter
+  4685 00001112 891E[0515]              	mov     [OLDENV],bx		; save it	
+  4686 00001116 C706[0715]0000          	mov     word [USEDENV],0	; initialize environment size counter
   4687 0000111C 8EDB                    	mov     ds,bx
   4688 0000111E 36A3[050C]              	mov     [ss:ENVIRSEG], ax	; save new environment segment
   4689 00001122 8EC0                    	mov     es,ax
   4690 00001124 31F6                    	xor     si,si
   4691 00001126 89F7                    	mov     di,si
-  4692 00001128 368B1E[0215]            	mov     bx,[ss:ENVMAX]
+  4692 00001128 368B1E[0315]            	mov     bx,[ss:ENVMAX]
   4693 0000112D D1E3                    	shl     bx,1
   4694 0000112F D1E3                    	shl     bx,1
   4695 00001131 D1E3                    	shl     bx,1
   4696 00001133 D1E3                    	shl     bx,1
-  4697 00001135 36891E[0215]            	mov     [ss:ENVMAX],bx		; convert envmax to bytes
+  4697 00001135 36891E[0315]            	mov     [ss:ENVMAX],bx		; convert envmax to bytes
   4698 0000113A 4B                      	dec     bx			; dec by one to leave room for double 0
   4699 0000113B 31D2                    	xor     dx,dx			; use dx to indicate that there was
   4700                                  					; no environment size error.
@@ -4764,7 +4764,7 @@
   4705 00001140 1E                      	push    ds
   4706 00001141 0E                      	push    cs
   4707 00001142 1F                      	pop     ds
-  4708 00001143 010E[0615]              	add     [USEDENV],cx		; add the string length to env size
+  4708 00001143 010E[0715]              	add     [USEDENV],cx		; add the string length to env size
   4709 00001147 1F                      	pop     ds
   4710 00001148 83F901                  	cmp     cx,1			; end of environment was encountered.
   4711 0000114B 7409                    	je      short ENVEXIT
@@ -4783,34 +4783,34 @@
   4724 00001157 1F                      	pop     ds
   4725 00001158 09D2                    	or      dx, dx			; dx will be non-zero if error
   4726 0000115A 7406                    	jz      short ENVNOERR
-  4727 0000115C BA[7014]                	mov     dx,OUTENVMSG		; dx = ptr to msg
+  4727 0000115C BA[7114]                	mov     dx,OUTENVMSG		; dx = ptr to msg
   4728 0000115F E81201                  	call    RPRINT
   4729                                  
   4730                                  ENVNOERR:
-  4731 00001162 8B0E[0215]              	mov     cx,[ENVMAX]
+  4731 00001162 8B0E[0315]              	mov     cx,[ENVMAX]
   4732 00001166 29D9                    	sub     cx,bx			; current environment size in bytes
   4733 00001168 83C110                  	add     cx,16			; add memory arena to the size
   4734 0000116B D1E9                    	shr     cx,1
   4735 0000116D D1E9                    	shr     cx,1
   4736 0000116F D1E9                    	shr     cx,1
   4737 00001171 D1E9                    	shr     cx,1			; convert current env size to paragraphs
-  4738 00001173 3B0E[0015]              	cmp     cx,[ENVSIZ]		; compare with env size previously set
+  4738 00001173 3B0E[0115]              	cmp     cx,[ENVSIZ]		; compare with env size previously set
   4739                                  	;jb	short SET_ENVSIZE
   4740 00001177 7604                    	jna	short SET_ENVSIZE  ; 24/09/2018 - Retro DOS v3.0
-  4741 00001179 890E[0015]              	mov     [ENVSIZ],cx		; store env size needed (paragraphs)
+  4741 00001179 890E[0115]              	mov     [ENVSIZ],cx		; store env size needed (paragraphs)
   4742                                  
   4743                                  SET_ENVSIZE:
-  4744 0000117D 8B1E[0015]              	mov     bx,[ENVSIZ]
+  4744 0000117D 8B1E[0115]              	mov     bx,[ENVSIZ]
   4745 00001181 8CC0                    	mov     ax,es
   4746 00001183 01D8                    	add     ax,bx			; get end segment of environemnt
-  4747 00001185 3B06[0815]              	cmp     ax,[INITEND]		; compare with init code end segment
+  4747 00001185 3B06[0915]              	cmp     ax,[INITEND]		; compare with init code end segment
   4748 00001189 770E                    	ja      short NOPHEAD
   4749                                  					; free unused paragraghs		
   4750 0000118B 8CC0                    	mov     ax,es
-  4751 0000118D 8B1E[0815]              	mov     bx,[INITEND]
+  4751 0000118D 8B1E[0915]              	mov     bx,[INITEND]
   4752 00001191 29C3                    	sub     bx,ax
   4753                                  	;mov	byte [RESETENV],1  ; 24/09/2018
-  4754 00001193 C706[0C15]0100          	mov	word [RESETENV],1	; environment segment reset sign
+  4754 00001193 C706[0D15]0100          	mov	word [RESETENV],1	; environment segment reset sign
   4755                                  
   4756                                  NOPHEAD:
   4757                                  	; MSDOS 3.3
@@ -4861,26 +4861,26 @@
   4802                                  ;
   4803                                  ; decide whether we should grab the default drive
   4804                                  ;
-  4805 000011CE 803E[CE14]00            	cmp	byte [AUTOBAT],0 ; ":\AUTOEXEC.BAT"
+  4805 000011CE 803E[CF14]00            	cmp	byte [AUTOBAT],0 ; ":\AUTOEXEC.BAT"
   4806 000011D3 750B                    	jnz	short NOAUTSET
   4807 000011D5 B419                    	mov	ah,GET_DEFAULT_DRIVE ; 19h
   4808 000011D7 CD21                    	int	21h
   4809                                  	;add	al,'A'
-  4810 000011D9 0206[FF14]              	add	al,[letter_A] ; Ucasea
-  4811 000011DD A2[CE14]                	mov	[AUTOBAT],al
+  4810 000011D9 0206[0015]              	add	al,[letter_A] ; Ucasea
+  4811 000011DD A2[CF14]                	mov	[AUTOBAT],al
   4812                                  
   4813                                  NOAUTSET:
   4814                                  ;
   4815                                  ; copy in the batch file name (including nul)
   4816                                  ;
   4817                                  	;mov	si,offset ResGroup:AutoBat
-  4818 000011E0 BE[CE14]                	mov	si,AUTOBAT
+  4818 000011E0 BE[CF14]                	mov	si,AUTOBAT
   4819 000011E3 B90800                  	mov	cx,8
   4820 000011E6 F3A5                    	rep	movsw
   4821                                  	;movsb	; MSDOS 6.0		; move in carriage return to terminate string
   4822                                  
   4823                                  	;mov	dx,offset ResGroup:AutoBat
-  4824 000011E8 BA[CE14]                	mov     dx,AUTOBAT ; ":\AUTOEXEC.BAT"
+  4824 000011E8 BA[CF14]                	mov     dx,AUTOBAT ; ":\AUTOEXEC.BAT"
   4825                                  
   4826                                  	;mov	ax,OPEN shl 8
   4827 000011EB B8003D                  	mov	ax,OPEN*256 ; 3D00h  ; open for read
@@ -4894,15 +4894,15 @@
   4835                                  NOABAT:
   4836 000011FA 50                      	push	ax
   4837 000011FB E85A00                  	call	SETUP_SEG
-  4838 000011FE A3[E914]                	mov	[TRIAGEADD+2],ax
+  4838 000011FE A3[EA14]                	mov	[TRIAGEADD+2],ax
   4839 00001201 58                      	pop	ax
-  4840 00001202 FF1E[E714]              	call	far [TRIAGEADD]		; get extended error
+  4840 00001202 FF1E[E814]              	call	far [TRIAGEADD]		; get extended error
   4841 00001206 83F841                  	cmp	ax,65			; network access denied?
   4842 00001209 7506                    	jne	short OPENERR		; no - go deallocate batch
   4843                                  
   4844                                  _ACCDENERROR:					; yes - put out message
   4845                                  	;mov	dx,offset ResGroup:AccDen	; dx = ptr to msg
-  4846 0000120B BA[5314]                	mov	dx,ACCDENERR
+  4846 0000120B BA[5414]                	mov	dx,ACCDENERR
   4847 0000120E E86300                  	call	RPRINT
   4848                                  
   4849                                  OPENERR:
@@ -4916,8 +4916,8 @@
   4857                                  DODTTM:
   4858                                  	;mov	ax,offset TranGroup:Datinit
   4859                                  
-  4860 0000122A B86720                  	mov	ax,DATINIT
-  4861 0000122D A3[DF14]                	mov	[INITADD],ax
+  4860 0000122A B81620                  	mov	ax,DATINIT
+  4861 0000122D A3[E014]                	mov	[INITADD],ax
   4862                                  
   4863                                  	; MSDOS 6.0
   4864                                  ;;;M004	mov	ax,TrnSeg	
@@ -4937,9 +4937,9 @@
   4878 00001230 A1[E10A]                	mov     ax,[TRNSEG]	; COMMAND.COM (MSDOS 3.3) - Offset 1387h
   4879                                  
   4880                                  	; MSDOS 3.3 & MSDOS 6.0
-  4881 00001233 A3[E114]                	mov	[INITADD+2],ax
+  4881 00001233 A3[E214]                	mov	[INITADD+2],ax
   4882                                  	;call	dword ptr InitAdd
-  4883 00001236 FF1E[DF14]              	call	far [INITADD]
+  4883 00001236 FF1E[E014]              	call	far [INITADD]
   4884                                  
   4885                                  NODTTM:
   4886                                  	; MSDOS 6.0
@@ -4957,7 +4957,7 @@
   4898                                  	; MSDOS 3.3
   4899 0000123A 833E[F50A]00            	cmp	word [SINGLECOM],0	; don't print header if singlecom
   4900 0000123F 7506                    	jnz     short DRV0
-  4901 00001241 BA[AF14]                	mov     dx,HEADERPTR	; dx = ptr to msg
+  4901 00001241 BA[B014]                	mov     dx,HEADERPTR	; dx = ptr to msg
   4902 00001244 E82D00                  	call    RPRINT
   4903                                  
   4904                                  DRV0:
@@ -5065,9 +5065,9 @@
   5006                                  	; MSDOS 3.3
   5007 00001274 50                      	push    ax
   5008 00001275 E8E0FF                  	call    SETUP_SEG
-  5009 00001278 A3[E514]                	mov     [PRINTADD+2], ax
+  5009 00001278 A3[E614]                	mov     [PRINTADD+2], ax
   5010                                  	;call	dword ptr PRINTADD
-  5011 0000127B FF1E[E314]              	call	far [PRINTADD]
+  5011 0000127B FF1E[E414]              	call	far [PRINTADD]
   5012 0000127F 58                      	pop     ax
   5013 00001280 C3                      	retn
   5014                                  
@@ -5104,7 +5104,7 @@
   5045                                  PATHCHRCMPR:
   5046                                  	; MSDOS 3.3
   5047 00001281 52                      	push	dx
-  5048 00001282 8A16[F914]              	mov	dl,[slash_chr]
+  5048 00001282 8A16[FA14]              	mov	dl,[slash_chr]
   5049                                  	;cmp	byte [RSWITCHAR],'/'
   5050 00001286 3816[190C]                      cmp	[RSWITCHAR],dl
   5051 0000128A 7404                    	je	short RNOSLASHT
@@ -5113,7 +5113,7 @@
   5054 0000128E 7404                    	je	short RET41 ; zf = 1 
   5055                                  RNOSLASHT:
   5056                                          ;cmp	al,'\'
-  5057 00001290 3A06[FA14]              	cmp	al,[bslash_chr]
+  5057 00001290 3A06[FB14]              	cmp	al,[bslash_chr]
   5058                                  RET41:
   5059 00001294 5A                      	pop	dx
   5060 00001295 C3                      	retn
@@ -5176,7 +5176,7 @@
   5117                                  
   5118                                  ISCASB1:
   5119                                  	;mov	al,"="
-  5120 000012D7 A0[F614]                	mov	al,[equal_sign]			; scan for an =
+  5120 000012D7 A0[F714]                	mov	al,[equal_sign]			; scan for an =
   5121 000012DA EB02                    	jmp	short ISCASBX
   5122                                  
   5123                                  ISCASB2:
@@ -5190,10 +5190,10 @@
   5131                                  IUPCONV:
   5132                                  	; MSDOS 3.3
   5133                                          ;cmp	al,"a"
-  5134 000012E4 3A06[F714]              	cmp	al,[letter_a]
+  5134 000012E4 3A06[F814]              	cmp	al,[letter_a]
   5135 000012E8 7208                            jb	short IRET22
   5136                                          ;cmp	al,"z"
-  5137 000012EA 3A06[F814]                      cmp	al,[letter_z]
+  5137 000012EA 3A06[F914]                      cmp	al,[letter_z]
   5138 000012EE 7702                    	ja	short IRET22
   5139 000012F0 2C20                            sub	al,20h			; Lower-case changed to upper-case
   5140                                  IRET22:
@@ -5271,268 +5271,269 @@
   5212                                  	; 25/09/2018
   5213                                  	; (15 bytes filler)
   5214 00001300 00                      	db 0
-  5215 00001301 32352F392F32303138-     	db "25/9/2018 ETAN"
-  5215 0000130A 204554414E         
-  5216 0000130F 00                      	db 0
-  5217                                  
-  5218                                  	; MSDOS 3.3 COMMAND.COM - offset 145Eh
-  5219                                  	;dw 0
-  5220                                  COPYRIGHTMSG:	; MSDOS 3.3 COMMAND.COM - offset 1460h
-  5221 00001310 0D0A                    	db 0Dh,0Ah
-  5222 00001312 0D0A                    	db 0Dh,0Ah
-  5223 00001314 4D6963726F736F6674-     	db 'Microsoft(R) MS-DOS(R)  Version 3.30'
-  5223 0000131D 285229204D532D444F-
-  5223 00001326 532852292020566572-
-  5223 0000132F 73696F6E20332E3330 
-  5224 00001338 0D0A                    	db 0Dh,0Ah
-  5225 0000133A 202020202020202020-     	db '             (C)Copyright Microsoft Corp 1981-1987               '
-  5225 00001343 20202020284329436F-
-  5225 0000134C 70797269676874204D-
-  5225 00001355 6963726F736F667420-
-  5225 0000135E 436F72702031393831-
-  5225 00001367 2D3139383720202020-
-  5225 00001370 202020202020202020-
-  5225 00001379 2020               
-  5226 0000137B 200D0A                  	db ' ',0Dh,0Ah
-  5227 0000137E 202020202020202020-     	db '                                                   ',
-  5227 00001387 202020202020202020-
-  5227 00001390 202020202020202020-
-  5227 00001399 202020202020202020-
-  5227 000013A2 202020202020202020-
-  5227 000013AB 202020202020       
-  5228 000013B1 0D0A00                  	db 0Dh,0Ah,0
-  5229                                  
-  5230 000013B4 20<rep 2Bh>             	times	43 db 20h
-  5231                                  
-  5232 000013DF 537065636966696564-     _152Fh:	db 'Specified COMMAND search directory bad',0Dh,0Ah,0
-  5232 000013E8 20434F4D4D414E4420-
-  5232 000013F1 736561726368206469-
-  5232 000013FA 726563746F72792062-
-  5232 00001403 61640D0A00         
-  5233                                  BADCOMLKMES:
-  5234 00001408 [DF13]                  	dw _152Fh
-  5235                                  
-  5236 0000140A 537065636966696564-     _155Ah:	db 'Specified COMMAND search directory bad access denied',0Dh,0Ah,0
-  5236 00001413 20434F4D4D414E4420-
-  5236 0000141C 736561726368206469-
-  5236 00001425 726563746F72792062-
-  5236 0000142E 616420616363657373-
-  5236 00001437 2064656E6965640D0A-
-  5236 00001440 00                 
-  5237                                  BADCOMACCMSG:
-  5238 00001441 [0A14]                  	dw _155Ah
-  5239                                  
-  5240 00001443 416363657373206465-     _1593h:	db 'Access denied',0Dh,0Ah,0
-  5240 0000144C 6E6965640D0A00     
-  5241                                  ACCDENERR:
-  5242 00001453 [4314]                  	dw _1593h
-  5243                                  
-  5244 00001455 4F7574206F6620656E-     _15A5h:	db 'Out of environment space',0Dh,0Ah,0
-  5244 0000145E 7669726F6E6D656E74-
-  5244 00001467 2073706163650D0A00 
-  5245                                  OUTENVMSG:
-  5246 00001470 [5514]                  	dw _15A5h
-  5247                                  
-  5248                                  BADVERMSG:
-  5249 00001472 496E636F7272656374-     	db 'Incorrect DOS version',0Dh,0Ah,'$'
-  5249 0000147B 20444F532076657273-
-  5249 00001484 696F6E0D0A24       
-  5250                                  
-  5251                                  BADENVSIZMSG:
-  5252 0000148A 496E76616C69642065-     	db 'Invalid environment size specified',0Dh,0Ah,'$'
-  5252 00001493 6E7669726F6E6D656E-
-  5252 0000149C 742073697A65207370-
-  5252 000014A5 656369666965640D0A-
-  5252 000014AE 24                 
-  5253                                  
-  5254                                  HEADERPTR:
-  5255 000014AF [1013]                  	dw COPYRIGHTMSG
-  5256                                  
-  5257                                  ICONDEV:
-  5258 000014B1 2F4445562F                      db '/DEV/'
-  5259 000014B6 434F4E                  	db 'CON'
-  5260 000014B9 000000000000            	db 0,0,0,0,0,0		; Room for 8 char device	
-  5261                                  BADCSPFL:
-  5262 000014BF 00                      	db 0
-  5263                                  COMSPECT:
-  5264 000014C0 2F434F4D4D414E442E-     	db '/COMMAND.COM',0
-  5264 000014C9 434F4D00           
-  5265 000014CD 00                      	db 0
-  5266                                  AUTOBAT:
-  5267 000014CE 003A5C4155544F4558-     	db 0,':\AUTOEXEC.BAT',0 
-  5267 000014D7 45432E42415400     
-  5268                                  PRDATTM:
-  5269 000014DE FF                      	db -1 ; 0FFh		 ; Init not to prompt for date time
-  5270                                  INITADD:
-  5271 000014DF 00000000                	dd 0
-  5272                                  	;dw 0
+  5215                                  	;db "25/9/2018 ETAN"
+  5216 00001301 30312F30332F323032-     	db "01/03/2023 ETAN" ; 01/03/2023	
+  5216 0000130A 33204554414E       
+  5217 00001310 00                      	db 0
+  5218                                  
+  5219                                  	; MSDOS 3.3 COMMAND.COM - offset 145Eh
+  5220                                  	;dw 0
+  5221                                  COPYRIGHTMSG:	; MSDOS 3.3 COMMAND.COM - offset 1460h
+  5222 00001311 0D0A                    	db 0Dh,0Ah
+  5223 00001313 0D0A                    	db 0Dh,0Ah
+  5224 00001315 4D6963726F736F6674-     	db 'Microsoft(R) MS-DOS(R)  Version 3.30'
+  5224 0000131E 285229204D532D444F-
+  5224 00001327 532852292020566572-
+  5224 00001330 73696F6E20332E3330 
+  5225 00001339 0D0A                    	db 0Dh,0Ah
+  5226 0000133B 202020202020202020-     	db '             (C)Copyright Microsoft Corp 1981-1987               '
+  5226 00001344 20202020284329436F-
+  5226 0000134D 70797269676874204D-
+  5226 00001356 6963726F736F667420-
+  5226 0000135F 436F72702031393831-
+  5226 00001368 2D3139383720202020-
+  5226 00001371 202020202020202020-
+  5226 0000137A 2020               
+  5227 0000137C 200D0A                  	db ' ',0Dh,0Ah
+  5228 0000137F 202020202020202020-     	db '                                                   ',
+  5228 00001388 202020202020202020-
+  5228 00001391 202020202020202020-
+  5228 0000139A 202020202020202020-
+  5228 000013A3 202020202020202020-
+  5228 000013AC 202020202020       
+  5229 000013B2 0D0A00                  	db 0Dh,0Ah,0
+  5230                                  
+  5231 000013B5 20<rep 2Bh>             	times	43 db 20h
+  5232                                  
+  5233 000013E0 537065636966696564-     _152Fh:	db 'Specified COMMAND search directory bad',0Dh,0Ah,0
+  5233 000013E9 20434F4D4D414E4420-
+  5233 000013F2 736561726368206469-
+  5233 000013FB 726563746F72792062-
+  5233 00001404 61640D0A00         
+  5234                                  BADCOMLKMES:
+  5235 00001409 [E013]                  	dw _152Fh
+  5236                                  
+  5237 0000140B 537065636966696564-     _155Ah:	db 'Specified COMMAND search directory bad access denied',0Dh,0Ah,0
+  5237 00001414 20434F4D4D414E4420-
+  5237 0000141D 736561726368206469-
+  5237 00001426 726563746F72792062-
+  5237 0000142F 616420616363657373-
+  5237 00001438 2064656E6965640D0A-
+  5237 00001441 00                 
+  5238                                  BADCOMACCMSG:
+  5239 00001442 [0B14]                  	dw _155Ah
+  5240                                  
+  5241 00001444 416363657373206465-     _1593h:	db 'Access denied',0Dh,0Ah,0
+  5241 0000144D 6E6965640D0A00     
+  5242                                  ACCDENERR:
+  5243 00001454 [4414]                  	dw _1593h
+  5244                                  
+  5245 00001456 4F7574206F6620656E-     _15A5h:	db 'Out of environment space',0Dh,0Ah,0
+  5245 0000145F 7669726F6E6D656E74-
+  5245 00001468 2073706163650D0A00 
+  5246                                  OUTENVMSG:
+  5247 00001471 [5614]                  	dw _15A5h
+  5248                                  
+  5249                                  BADVERMSG:
+  5250 00001473 496E636F7272656374-     	db 'Incorrect DOS version',0Dh,0Ah,'$'
+  5250 0000147C 20444F532076657273-
+  5250 00001485 696F6E0D0A24       
+  5251                                  
+  5252                                  BADENVSIZMSG:
+  5253 0000148B 496E76616C69642065-     	db 'Invalid environment size specified',0Dh,0Ah,'$'
+  5253 00001494 6E7669726F6E6D656E-
+  5253 0000149D 742073697A65207370-
+  5253 000014A6 656369666965640D0A-
+  5253 000014AF 24                 
+  5254                                  
+  5255                                  HEADERPTR:
+  5256 000014B0 [1113]                  	dw COPYRIGHTMSG
+  5257                                  
+  5258                                  ICONDEV:
+  5259 000014B2 2F4445562F                      db '/DEV/'
+  5260 000014B7 434F4E                  	db 'CON'
+  5261 000014BA 000000000000            	db 0,0,0,0,0,0		; Room for 8 char device	
+  5262                                  BADCSPFL:
+  5263 000014C0 00                      	db 0
+  5264                                  COMSPECT:
+  5265 000014C1 2F434F4D4D414E442E-     	db '/COMMAND.COM',0
+  5265 000014CA 434F4D00           
+  5266 000014CE 00                      	db 0
+  5267                                  AUTOBAT:
+  5268 000014CF 003A5C4155544F4558-     	db 0,':\AUTOEXEC.BAT',0 
+  5268 000014D8 45432E42415400     
+  5269                                  PRDATTM:
+  5270 000014DF FF                      	db -1 ; 0FFh		 ; Init not to prompt for date time
+  5271                                  INITADD:
+  5272 000014E0 00000000                	dd 0
   5273                                  	;dw 0
-  5274                                  PRINTADD:
-  5275 000014E3 AF34                    	dw PRINTF_INIT
-  5276 000014E5 0000                    	dw 0
-  5277                                  TRIAGEADD:
-  5278 000014E7 EB1E                    	dw TRIAGE_INIT
-  5279 000014E9 0000                    	dw 0
-  5280                                  CHUCKENV:
-  5281 000014EB 00                      	db 0
-  5282                                  COMSPOFFSET:
-  5283                                  ECOMLOC:
-  5284                                  	;dw 0Eh
-  5285                                  	;dw offset ENVIRONMENT:ECOMSPEC-10h
-  5286 000014EC 0E00                    	dw ECOMSPEC-ENVIRONMENT ; 30/04/2018	
-  5287                                  COMSPSTRING:
-  5288 000014EE 434F4D535045433D        	db 'COMSPEC='
-  5289                                  equal_sign:
-  5290 000014F6 3D                      	db '='
-  5291                                  letter_a:
-  5292 000014F7 61                      	db 'a'
-  5293                                  letter_z:
-  5294 000014F8 7A                      	db 'z'
-  5295                                  slash_chr:
-  5296 000014F9 2F                      	db '/'
-  5297                                  bslash_chr:
-  5298 000014FA 5C                      	db '\'
-  5299                                  space_chr:
-  5300 000014FB 20                      	db 20h
-  5301                                  letter_p:
-  5302 000014FC 70                      	db 'p'
-  5303                                  letter_d:
-  5304 000014FD 64                      	db 'd'
-  5305                                  letter_c:
-  5306 000014FE 63                      	db 'c'
-  5307                                  letter_A:
-  5308 000014FF 41                      	db 'A'
-  5309                                  ENVSIZ:
-  5310 00001500 0000                    	dw 0
-  5311                                  ENVMAX:
-  5312 00001502 0000                    	dw 0
-  5313                                  OLDENV:
-  5314 00001504 0000                    	dw 0
-  5315                                  USEDENV:
-  5316 00001506 0000                    	dw 0
-  5317                                  INITEND:
-  5318 00001508 0000                    	dw 0
-  5319                                  TRNSIZE:
-  5320 0000150A 0000                    	dw 0
-  5321                                  RESETENV:
-  5322 0000150C 0000                    	dw 0
-  5323                                  
-  5324                                  ;INIT	ENDS
-  5325                                  
-  5326                                  ;	END
-  5327                                  
-  5328                                  ;-----------------------------------------------------------------------------
-  5329                                  ; 14/10/2018 (Retro DOS v3.0 COMMAND.COM Signature)
-  5330                                  ;-----------------------------------------------------------------------------
-  5331                                  
-  5332                                  ;db	"Retro DOS v3.0 COMMAND.COM by Erdogan Tan [2018]"
-  5333                                  ; 12/01/2023
-  5334 0000150E 526574726F20444F53-     db	"Retro DOS v3.0 COMMAND.COM by Erdogan Tan [2018-2023]"
-  5334 00001517 2076332E3020434F4D-
-  5334 00001520 4D414E442E434F4D20-
-  5334 00001529 6279204572646F6761-
-  5334 00001532 6E2054616E205B3230-
-  5334 0000153B 31382D323032335D   
-  5335 00001543 00                      db	0
-  5336                                  
-  5337                                  ;-----------------------------------------------------------------------------
-  5338                                  ; 24/09/2018 (Retro DOS v3.0 COMMAND)
-  5339                                  ;-----------------------------------------------------------------------------
-  5340                                  
-  5341                                  ;TAIL    SEGMENT PUBLIC PARA
-  5342                                  ;        ORG     0
-  5343                                  ;TRANSTART       LABEL   WORD
-  5344                                  ;TAIL    ENDS
-  5345                                  
-  5346 00001544 90<rep Ch>              ALIGN 16  ; 25/09/2018
-  5347                                  
-  5348                                  ;TRANSTART:
-  5349                                  
-  5350                                  ; 21/04/2018 (Retro DOS v2.0 COMMAND)
-  5351                                  ;	times	128 db 0	
-  5352                                  
-  5353                                  ;-----------------------------------------------------------------------------
-  5354                                  ; SEGMENT - TRANSCODE
-  5355                                  ;-----------------------------------------------------------------------------
-  5356                                  
-  5357                                  TRANGROUP: ; 21/04/2018
-  5358                                  
-  5359                                  ;=============================================================================
-  5360                                  ; TRANCODE.ASM
-  5361                                  ;=============================================================================
-  5362                                  ; 24/09/2018 - Retro DOS v3.0
-  5363                                  
-  5364                                  ; MSDOS 3.3 COMMAND.COM Transient Portion Addresses
-  5365                                  
-  5366                                  ; 21/04/2018 - Retro DOS v2.0
-  5367                                  ; transcom.s (COMMAND.COM source file 2 of 2) code/data addresses 
-  5368                                  ; (these values must be changed when transcom.s source code is changed
-  5369                                  ; and data offsets are changed)
-  5370                                  ;
-  5371                                  ; 30/04/2018
-  5372                                  ; 29/04/2018
-  5373                                  
-  5374                                  ; 24/09/2018 (original MSDOS 3.3 COMMAND.COM TRNSEG offset addresses)
-  5375                                  ;COMMAND      EQU  012CH
-  5376                                  ;DATINIT      EQU  2091H
-  5377                                  ;HEADCALL     EQU  428FH
-  5378                                  ;TRANSPACEEND EQU  4D5CH
-  5379                                  ;TRANDATAEND  EQU  3F44H
-  5380                                  
-  5381                                  ; 29/04/2018 (original MSDOS 3.3 COMMAND.COM TRNSEG offset addresses)
-  5382                                  ;TRIAGE_INIT  EQU  1F15H
-  5383                                  ;PRINTF_INIT  EQU  34E0H 
-  5384                                  
-  5385                                  ;GETEXTERRNUM EQU  1EEEH  ; TRIAGEERROR (GET_EXT_ERR_NUMBER) proc addr	
-  5386                                  
-  5387                                  ;TPA	EQU  4293H
-  5388                                  ;TRNLEN	EQU  04D6H
-  5389                                  
-  5390                                  ; 20/10/2018 - Retro DOS v3.0 COMMAND.COM transient portion addresses
-  5391                                  COMMAND      EQU  012CH
-  5392                                  ;GETEXTERRNUM EQU 1ECCH ; TRIAGEERROR (GET_EXT_ERR_NUMBER) proc addr
-  5393                                  ;TRIAGE_INIT EQU  1EF3H
-  5394                                  ;DATINIT     EQU  206FH
-  5395                                  ; 25/02/2023
-  5396                                  GETEXTERRNUM EQU  1EC4H
-  5397                                  TRIAGE_INIT  EQU  1EEBH
-  5398                                  DATINIT	     EQU  2067H		
-  5399                                  PRINTF_INIT  EQU  34AFH
-  5400                                  TRANDATAEND  EQU  3F14H
-  5401                                  HEADCALL     EQU  425FH
-  5402                                  TRANSPACEEND EQU  4D2CH
-  5403                                  
-  5404                                  ;-----------------------------------------------------------------------------
-  5405                                  ;START OF TRANSIENT PORTION
-  5406                                  ;This code is loaded at the end of memory and may be overwritten by
-  5407                                  ;memory-intensive user programs.
-  5408                                  ;-----------------------------------------------------------------------------
-  5409                                  
-  5410                                  ;TRANSTART EQU $
-  5411                                  ; 29/09/2018 
-  5412                                  TRANSTART:		; Offset 1660h in original MSDOS 3.3 COMMAND.COM
-  5413                                  
-  5414                                  ; 25/09/2018
-  5415                                  ; (original MSDOS 3.3 COMMAND.COM TRIAGEERROR offset address)
-  5416                                  ;
-  5417                                  ; 'GET_EXT_ERR_NUMBER' ('TRIAGEERROR') procedure is at offset 354Eh 
-  5418                                  ; in MSDOS 3.3 COMMAND.COM (It is at offset 1EEEh in transient porsion).	 	
-  5419                                  ;
-  5420                                  TRIAGEERROR EQU TRANSTART+GETEXTERRNUM-100H
-  5421                                  ;
-  5422                                  
-  5423                                  ;COMTRANS:
-  5424                                  
-  5425                                  ; 20/10/2018 - Retro DOS v3.0	
-  5426 00001550 <bin 4D2Ch>             INCBIN	"TRANCOM3.BIN"
-  5427                                  
-  5428                                  ;COMLEN	EQU $-COMTRANS	; End of COMMAND load.
-  5429                                  
-  5430                                  ; 29/04/2018
-  5431                                  ;BSS_SIZE EQU TRANSPACEEND-TRANDATAEND	
-  5432                                  ;
-  5433                                  ;TIMES BSS_SIZE db 0
-  5434                                  ;
-  5435                                  ;COMLEN	EQU $-COMTRANS	; 30/04/2018
-  5436                                  
-  5437                                  ;COMMANDCOMSIZE equ $ - 100h
+  5274                                  	;dw 0
+  5275                                  PRINTADD:
+  5276 000014E4 4034                    	dw PRINTF_INIT
+  5277 000014E6 0000                    	dw 0
+  5278                                  TRIAGEADD:
+  5279 000014E8 B61E                    	dw TRIAGE_INIT
+  5280 000014EA 0000                    	dw 0
+  5281                                  CHUCKENV:
+  5282 000014EC 00                      	db 0
+  5283                                  COMSPOFFSET:
+  5284                                  ECOMLOC:
+  5285                                  	;dw 0Eh
+  5286                                  	;dw offset ENVIRONMENT:ECOMSPEC-10h
+  5287 000014ED 0E00                    	dw ECOMSPEC-ENVIRONMENT ; 30/04/2018	
+  5288                                  COMSPSTRING:
+  5289 000014EF 434F4D535045433D        	db 'COMSPEC='
+  5290                                  equal_sign:
+  5291 000014F7 3D                      	db '='
+  5292                                  letter_a:
+  5293 000014F8 61                      	db 'a'
+  5294                                  letter_z:
+  5295 000014F9 7A                      	db 'z'
+  5296                                  slash_chr:
+  5297 000014FA 2F                      	db '/'
+  5298                                  bslash_chr:
+  5299 000014FB 5C                      	db '\'
+  5300                                  space_chr:
+  5301 000014FC 20                      	db 20h
+  5302                                  letter_p:
+  5303 000014FD 70                      	db 'p'
+  5304                                  letter_d:
+  5305 000014FE 64                      	db 'd'
+  5306                                  letter_c:
+  5307 000014FF 63                      	db 'c'
+  5308                                  letter_A:
+  5309 00001500 41                      	db 'A'
+  5310                                  ENVSIZ:
+  5311 00001501 0000                    	dw 0
+  5312                                  ENVMAX:
+  5313 00001503 0000                    	dw 0
+  5314                                  OLDENV:
+  5315 00001505 0000                    	dw 0
+  5316                                  USEDENV:
+  5317 00001507 0000                    	dw 0
+  5318                                  INITEND:
+  5319 00001509 0000                    	dw 0
+  5320                                  TRNSIZE:
+  5321 0000150B 0000                    	dw 0
+  5322                                  RESETENV:
+  5323 0000150D 0000                    	dw 0
+  5324                                  
+  5325                                  ;INIT	ENDS
+  5326                                  
+  5327                                  ;	END
+  5328                                  
+  5329                                  ;-----------------------------------------------------------------------------
+  5330                                  ; 14/10/2018 (Retro DOS v3.0 COMMAND.COM Signature)
+  5331                                  ;-----------------------------------------------------------------------------
+  5332                                  
+  5333                                  ;db	"Retro DOS v3.0 COMMAND.COM by Erdogan Tan [2018]"
+  5334                                  ; 12/01/2023
+  5335 0000150F 526574726F20444F53-     db	"Retro DOS v3.0 COMMAND.COM by Erdogan Tan [2018-2023]"
+  5335 00001518 2076332E3020434F4D-
+  5335 00001521 4D414E442E434F4D20-
+  5335 0000152A 6279204572646F6761-
+  5335 00001533 6E2054616E205B3230-
+  5335 0000153C 31382D323032335D   
+  5336 00001544 00                      db	0
+  5337                                  
+  5338                                  ;-----------------------------------------------------------------------------
+  5339                                  ; 24/09/2018 (Retro DOS v3.0 COMMAND)
+  5340                                  ;-----------------------------------------------------------------------------
+  5341                                  
+  5342                                  ;TAIL    SEGMENT PUBLIC PARA
+  5343                                  ;        ORG     0
+  5344                                  ;TRANSTART       LABEL   WORD
+  5345                                  ;TAIL    ENDS
+  5346                                  
+  5347 00001545 90<rep Bh>              ALIGN 16  ; 25/09/2018
+  5348                                  
+  5349                                  ;TRANSTART:
+  5350                                  
+  5351                                  ; 21/04/2018 (Retro DOS v2.0 COMMAND)
+  5352                                  ;	times	128 db 0	
+  5353                                  
+  5354                                  ;-----------------------------------------------------------------------------
+  5355                                  ; SEGMENT - TRANSCODE
+  5356                                  ;-----------------------------------------------------------------------------
+  5357                                  
+  5358                                  TRANGROUP: ; 21/04/2018
+  5359                                  
+  5360                                  ;=============================================================================
+  5361                                  ; TRANCODE.ASM
+  5362                                  ;=============================================================================
+  5363                                  ; 24/09/2018 - Retro DOS v3.0
+  5364                                  
+  5365                                  ; MSDOS 3.3 COMMAND.COM Transient Portion Addresses
+  5366                                  
+  5367                                  ; 21/04/2018 - Retro DOS v2.0
+  5368                                  ; transcom.s (COMMAND.COM source file 2 of 2) code/data addresses 
+  5369                                  ; (these values must be changed when transcom.s source code is changed
+  5370                                  ; and data offsets are changed)
+  5371                                  ;
+  5372                                  ; 30/04/2018
+  5373                                  ; 29/04/2018
+  5374                                  
+  5375                                  ; 24/09/2018 (original MSDOS 3.3 COMMAND.COM TRNSEG offset addresses)
+  5376                                  ;COMMAND      EQU  012CH
+  5377                                  ;DATINIT      EQU  2091H
+  5378                                  ;HEADCALL     EQU  428FH
+  5379                                  ;TRANSPACEEND EQU  4D5CH
+  5380                                  ;TRANDATAEND  EQU  3F44H
+  5381                                  
+  5382                                  ; 29/04/2018 (original MSDOS 3.3 COMMAND.COM TRNSEG offset addresses)
+  5383                                  ;TRIAGE_INIT  EQU  1F15H
+  5384                                  ;PRINTF_INIT  EQU  34E0H 
+  5385                                  
+  5386                                  ;GETEXTERRNUM EQU  1EEEH  ; TRIAGEERROR (GET_EXT_ERR_NUMBER) proc addr	
+  5387                                  
+  5388                                  ;TPA	EQU  4293H
+  5389                                  ;TRNLEN	EQU  04D6H
+  5390                                  
+  5391                                  ; 20/10/2018 - Retro DOS v3.0 COMMAND.COM transient portion addresses
+  5392                                  COMMAND      EQU  012CH
+  5393                                  ;GETEXTERRNUM EQU 1ECCH ; TRIAGEERROR (GET_EXT_ERR_NUMBER) proc addr
+  5394                                  ;TRIAGE_INIT EQU  1EF3H
+  5395                                  ;DATINIT     EQU  206FH
+  5396                                  ; 01/03/2023
+  5397                                  GETEXTERRNUM EQU  1E8FH
+  5398                                  TRIAGE_INIT  EQU  1EB6H
+  5399                                  DATINIT	     EQU  2016H		
+  5400                                  PRINTF_INIT  EQU  3440H
+  5401                                  TRANDATAEND  EQU  3E65H
+  5402                                  HEADCALL     EQU  41AFH
+  5403                                  TRANSPACEEND EQU  4C7CH
+  5404                                  
+  5405                                  ;-----------------------------------------------------------------------------
+  5406                                  ;START OF TRANSIENT PORTION
+  5407                                  ;This code is loaded at the end of memory and may be overwritten by
+  5408                                  ;memory-intensive user programs.
+  5409                                  ;-----------------------------------------------------------------------------
+  5410                                  
+  5411                                  ;TRANSTART EQU $
+  5412                                  ; 29/09/2018 
+  5413                                  TRANSTART:		; Offset 1660h in original MSDOS 3.3 COMMAND.COM
+  5414                                  
+  5415                                  ; 25/09/2018
+  5416                                  ; (original MSDOS 3.3 COMMAND.COM TRIAGEERROR offset address)
+  5417                                  ;
+  5418                                  ; 'GET_EXT_ERR_NUMBER' ('TRIAGEERROR') procedure is at offset 354Eh 
+  5419                                  ; in MSDOS 3.3 COMMAND.COM (It is at offset 1EEEh in transient porsion).	 	
+  5420                                  ;
+  5421                                  TRIAGEERROR EQU TRANSTART+GETEXTERRNUM-100H
+  5422                                  ;
+  5423                                  
+  5424                                  ;COMTRANS:
+  5425                                  
+  5426                                  ; 20/10/2018 - Retro DOS v3.0	
+  5427 00001550 <bin 4C7Ch>             INCBIN	"TRANCOM3.BIN"
+  5428                                  
+  5429                                  ;COMLEN	EQU $-COMTRANS	; End of COMMAND load.
+  5430                                  
+  5431                                  ; 29/04/2018
+  5432                                  ;BSS_SIZE EQU TRANSPACEEND-TRANDATAEND	
+  5433                                  ;
+  5434                                  ;TIMES BSS_SIZE db 0
+  5435                                  ;
+  5436                                  ;COMLEN	EQU $-COMTRANS	; 30/04/2018
+  5437                                  
+  5438                                  ;COMMANDCOMSIZE equ $ - 100h

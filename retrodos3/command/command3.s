@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 3.3 Command Interpreter) - RETRO DOS v3.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 25/02/2023 ((Previous: 20/10/2018))
+; Last Update: 01/03/2023 ((Previous: 20/10/2018))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
 ; ----------------------------------------------------------------------------
@@ -2466,7 +2466,7 @@ CRITERR: ; MSDOS 3.3
 	add	al,'A'
 	mov	[DRVLET],al
 
-;	Bugbug:	These labels are awful.  Change, especially 'NoHardE'.
+;	Bugbug:	These labels are awful. Change, especially 'NoHardE'.
 
 	test	ah,80h
 	jz	short NOHARDE		; it's a disk-device error
@@ -2477,7 +2477,7 @@ CRITERR: ; MSDOS 3.3
 NOHARDE:
 	mov	si,MREAD		; SI = "read" msg #
 	test	ah,1
-	jz	short SAVMES		  ; it's a read error
+	jz	short SAVMES		; it's a read error
 	mov	si,MWRITE		; SI = "write" msg #
 
 SAVMES:
@@ -3637,7 +3637,7 @@ TPA_SET:
 	mov	[MYSEG2],ds			;  3 long ptrs that the transient will
 	mov	[MYSEG],ds			;  use to call resident routines.
 
-        MOV     [MEMSIZ],ax			; Needed for execing other programs
+        mov     [MEMSIZ],ax			; Needed for execing other programs
 ;
 ; Compute maximum size of environment
 ;
@@ -3703,33 +3703,33 @@ BUILDENV:
 	add	ax,dx
 
 ENVIRONPASSED:
-        mov	[ENVIRSEG],ax
+	mov	[ENVIRSEG],ax
 
-        MOV     es,ax
+	mov	es,ax
 
-        ;mov	ax,CHAR_OPER<<8
-        mov	ax,CHAR_OPER*256 ; 3700h
+	;mov	ax,CHAR_OPER<<8
+	mov	ax,CHAR_OPER*256 ; 3700h
 	int     21h	; DOS - 2+ internal - GET SWITCHAR/AVAILDEV
 			; Return: AL = FFh unsupported subfunction
 			; DL = current switch character
-        mov	[RSWITCHAR],dl
+	mov	[RSWITCHAR],dl
 
-        ;CMP	dl,'/'
+	;CMP	dl,'/'
 	cmp	dl,[slash_chr]
-        jnz	short IUSESLASH
+	jnz	short IUSESLASH
 
 	;mov	al,'\'
- 	mov	al,[bslash_chr]
+	mov	al,[bslash_chr]
 	mov	[COMSPECT],al
 
 	cmp	byte [CHUCKENV],0
 	jnz	short IUSESLASH
 
-        ;mov	ES:[ECOMSPEC-10h],'\'
+	;mov	ES:[ECOMSPEC-10h],'\'
 	; 30/04/2018
 	;mov	byte [ES:(ECOMSPEC-ENVIRONMENT)],'\' ; [ES:0Eh]
 	; 23/09/2018
-	mov	byte [ES:(ECOMSPEC-ENVIRONMENT)],al ; mov es:0Eh,al
+	mov	[ES:(ECOMSPEC-ENVIRONMENT)],al ; mov es:0Eh,al
 
 ;gottheenvir:
 IUSESLASH:
@@ -3794,7 +3794,7 @@ IUSESLASH:
 	; MSDOS 3.3
 	;mov	es:0Eh,ax
 	;MOV	WORD PTR ES:[ECOMSPEC-10H],AX
-	MOV	[es:(ECOMSPEC-ENVIRONMENT)],ax	; mov [es:0Eh],ax
+	mov	[es:(ECOMSPEC-ENVIRONMENT)],ax	; mov [es:0Eh],ax
 
 	; MSDOS 3.3 & MSDOS 6.0
 NOTWIDENV:
@@ -5212,7 +5212,8 @@ INIT_CONTC_SPECIALCASE:
 	; 25/09/2018
 	; (15 bytes filler)
 	db 0
-	db "25/9/2018 ETAN"
+	;db "25/9/2018 ETAN"
+	db "01/03/2023 ETAN" ; 01/03/2023	
 	db 0
 
 	; MSDOS 3.3 COMMAND.COM - offset 145Eh
@@ -5392,14 +5393,14 @@ COMMAND      EQU  012CH
 ;GETEXTERRNUM EQU 1ECCH ; TRIAGEERROR (GET_EXT_ERR_NUMBER) proc addr
 ;TRIAGE_INIT EQU  1EF3H
 ;DATINIT     EQU  206FH
-; 25/02/2023
-GETEXTERRNUM EQU  1EC4H
-TRIAGE_INIT  EQU  1EEBH
-DATINIT	     EQU  2067H		
-PRINTF_INIT  EQU  34AFH
-TRANDATAEND  EQU  3F14H
-HEADCALL     EQU  425FH
-TRANSPACEEND EQU  4D2CH
+; 01/03/2023
+GETEXTERRNUM EQU  1E8FH
+TRIAGE_INIT  EQU  1EB6H
+DATINIT	     EQU  2016H		
+PRINTF_INIT  EQU  3440H
+TRANDATAEND  EQU  3E65H
+HEADCALL     EQU  41AFH
+TRANSPACEEND EQU  4C7CH
 
 ;-----------------------------------------------------------------------------
 ;START OF TRANSIENT PORTION
