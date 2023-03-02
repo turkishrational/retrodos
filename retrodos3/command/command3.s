@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 3.3 Command Interpreter) - RETRO DOS v3.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 01/03/2023 ((Previous: 20/10/2018))
+; Last Update: 02/03/2023 ((Previous: 20/10/2018))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
 ; ----------------------------------------------------------------------------
@@ -1598,7 +1598,7 @@ INT_2E:
 	int	21h			; get user's header
 	;mov	[es:SAVE_PDB],bx
 	MOV	[cs:SAVE_PDB],bx
-	mov	ah,SET_CURRENT_PDB ; 50H
+	mov	ah,SET_CURRENT_PDB ; 50h
 
 ;;	mov	bx,cs
 ;SR;
@@ -2047,8 +2047,10 @@ USERS_DRIVE:
 	mov	dx,PROMPT
 	call    RDISPMSG
 
-	call	GETRAWFLUSHEDBYTE
-	retn
+	;call	GETRAWFLUSHEDBYTE
+	;retn
+	; 02/03/2023
+	;jmp	short GETRAWFLUSHEDBYTE
 
 ;***	GetRawFlushedByte - flush world and get raw input
 
@@ -2115,7 +2117,6 @@ WRONGCOM:
 	call	GETCOMDSK
 	jmp	short LOADCOM		; try again
 
-
 ;***	ChkSum - compute transient checksum
 
 CHKSUM:
@@ -2123,7 +2124,6 @@ CHKSUM:
 	mov	ds,[TRNSEG]
 	mov	si,100h
 	mov	cx,TRANDATAEND-100H	; 3E44h (for original MSDOS 3.3!)
-
 CHECK_SUM:
 	cld
 	shr	cx,1
@@ -2647,6 +2647,23 @@ CHECKERRTYPE:
 	call	CRLF			; if new style then done printing
 	jmp	short ASK
 
+	; 02/03/2023
+BLKERR:
+	; MSDOS 6.0
+	;mov	dx,offset DATARES:BlkDevErr	  ; DX = error msg #
+	;mov	BlkDevErrRw.SubstPtr,si		  ; "reading","writing" ptr
+	;mov	si,offset DATARES:BlkDevErrSubst ; SI = ptr to subst block
+	;call	RPrint
+
+	; MSDOS 3.3
+	mov     dx,BLKDEVERR
+	call    RDISPMSG
+
+	cmp	byte [LOADING],0
+	jz	short ASK
+	call	RESTHAND
+	jmp	GETCOMDSK2		; if error loading COMMAND, re-prompt
+
 CONTOLD:
 	; MSDOS 6.0
 ;	inc	si			; DS:SI = ptr to asciiz string
@@ -2674,23 +2691,25 @@ CONTOLD:
 	mov	ah,STD_CON_STRING_OUTPUT ; 9
 	int	21h		; DOS - PRINT STRING
 				; DS:DX -> string terminated by "$"
-	jmp	short ASK
+	; 02/03/2023
+	;jmp	short ASK
 
-BLKERR:
-	; MSDOS 6.0
-	;mov	dx,offset DATARES:BlkDevErr	  ; DX = error msg #
-	;mov	BlkDevErrRw.SubstPtr,si		  ; "reading","writing" ptr
-	;mov	si,offset DATARES:BlkDevErrSubst ; SI = ptr to subst block
-	;call	RPrint
-
-	; MSDOS 3.3
-	mov     dx,BLKDEVERR
-	call    RDISPMSG
-
-	cmp	byte [LOADING],0
-	jz	short ASK
-	call	RESTHAND
-	jmp	GETCOMDSK2		; if error loading COMMAND, re-prompt
+; 02/03/2023
+;BLKERR:
+;	; MSDOS 6.0
+;	;mov	dx,offset DATARES:BlkDevErr	  ; DX = error msg #
+;	;mov	BlkDevErrRw.SubstPtr,si		  ; "reading","writing" ptr
+;	;mov	si,offset DATARES:BlkDevErrSubst ; SI = ptr to subst block
+;	;call	RPrint
+;
+;	; MSDOS 3.3
+;	mov     dx,BLKDEVERR
+;	call    RDISPMSG
+;
+;	cmp	byte [LOADING],0
+;	jz	short ASK
+;	call	RESTHAND
+;	jmp	GETCOMDSK2		; if error loading COMMAND, re-prompt
 
 ASK:
 	cmp	word [ERRCD_24],15	; error 15 has an extra message
@@ -2710,7 +2729,7 @@ ASK:
 	; MSDOS 6.0
 	;mov	cx,16			; copy volume name & serial #
 	; MSDOS 3.3
-	MOV	CX,11			; copy volume name
+	mov	cx,11			; copy volume name
 	cld
 	rep	movsb
 	pop	di
@@ -2827,7 +2846,6 @@ ABORTCONT:
 	test	byte [IN_BATCH],-1		; Are we accessing a batch file?
 	jz	short NOT_BATCH_ABORT
 	mov	byte [BATCH_ABORT],1		; set flag for abort
-
 NOT_BATCH_ABORT:
 	mov	dl,[PIPEFLAG]
 	call	RESPIPEOFF
@@ -2836,23 +2854,19 @@ NOT_BATCH_ABORT:
 	cmp	word [SINGLECOM],0
 	je	short CHECKFORA
 	mov	word [SINGLECOM],-1		; make sure singlecom exits
-
 CHECKFORA:
 	cmp	word [ERRCD_24],0		; write protect?
 	je	short ABORTFOR
 	cmp	word [ERRCD_24],2		; drive not ready?
 	jne	short EEXIT			; don't abort the FOR
-
 ABORTFOR:
 	mov	byte [FORFLAG],0		; abort a FOR in progress
 	cmp	word [SINGLECOM],0
 	je	short EEXIT
 	mov	word [SINGLECOM],-1		; make sure singlecom exits
-
 EEXIT:
 	mov	al,ah
 	mov	dx,di
-
 RESTHD:
 	call    RESTHAND
 	pop	cx
@@ -2958,7 +2972,6 @@ RDISPMSG: ; Display message/text
 				; DS:DX -> string terminated by "$"
 	pop     ax
 	retn
-
 
 	; MSDOS 6.0
 
@@ -3714,12 +3727,12 @@ ENVIRONPASSED:
 			; DL = current switch character
 	mov	[RSWITCHAR],dl
 
-	;CMP	dl,'/'
-	cmp	dl,[slash_chr]
+	; 02/03/2023
+	cmp	dl,'/'
+	;cmp	dl,[slash_chr]
 	jnz	short IUSESLASH
-
-	;mov	al,'\'
-	mov	al,[bslash_chr]
+	mov	al,'\'
+	;mov	al,[bslash_chr]
 	mov	[COMSPECT],al
 
 	cmp	byte [CHUCKENV],0
@@ -3789,7 +3802,7 @@ IUSESLASH:
 	pop	ds
 
 	; MSDOS 6.0
-	;mov     word ptr es:[di-1],ax
+	;mov	word ptr es:[di-1],ax
 
 	; MSDOS 3.3
 	;mov	es:0Eh,ax
@@ -3822,8 +3835,9 @@ CHKARG:
         dec	cx
 	lodsb
 CHECKSWITCHCHR:
-	;cmp	al,' '
-	cmp	al,[space_chr]	 ;Skip blank spaces
+	; 02/03/2023
+	cmp	al,' ' ; 20h
+	;cmp	al,[space_chr]	 ;Skip blank spaces
 	jz	short CHKARG
 	cmp	al,9		; Skip TAB characters
 	jz	short CHKARG
@@ -3856,9 +3870,10 @@ FAIL_OK:
 	jmp	short CHKARG
 
 CHECKPSWITCH:
-        ;CMP	AL,'p'		; Permanent COMMAND switch
-	cmp	al,[letter_p]
-        JNZ     short CHECKDSWITCH
+	; 02/03/2023
+	cmp	al,'p'		; Permanent COMMAND switch
+	;cmp	al,[letter_p]
+        jnz	short CHECKDSWITCH
 
 SETPSWITCH:
 ;
@@ -3890,8 +3905,9 @@ SETPSWITCH:
 ;	JMP	ARGSDONE
 
 CHECKDSWITCH:
-	;cmp	al,'d'
-        cmp	al,[letter_d]
+	; 02/03/2023
+	cmp	al,'d'
+        ;cmp	al,[letter_d]
 	jnz     short CHECKCSWITCH
 SETDSWITCH:
 ;
@@ -3911,8 +3927,9 @@ SETDSWITCH:
 	jmp	short CHKARG
 
 CHECKCSWITCH:
-        ;cmp	al,'c'
-	cmp     al,[letter_c]
+	; 02/03/2023
+        cmp	al,'c'
+	;cmp	al,[letter_c]
         jnz	short CHECKESWITCH
 
 ;SetSSwitch:
@@ -3975,8 +3992,9 @@ GETENVSIZE:
 	jmp     short GETENVSIZE
 
 NOTDECIMALCHR:
-	;cmp	al,' '
-	cmp     al,[space_chr]
+	; 02/03/2023
+	cmp	al,' ' ; 20h
+	;cmp	al,[space_chr]
 	jz      short CHECKENVSIZE
 	;cmp	al,'/'
 	cmp     al,[RSWITCHAR]
@@ -3986,8 +4004,9 @@ CHECKNEXTECHR:
 	jcxz    INVENVSIZE
 	dec     cx
 	lodsb
-	;cmp	al,' '
-	cmp     al,[space_chr]
+	; 02/03/2023
+	cmp	al,' ' ; 20h
+	;cmp	al,[space_chr]
 	jz      short ENVSIZESPC
 	;cmp	al,'/'
 	cmp     al,[RSWITCHAR]
@@ -4069,8 +4088,9 @@ CHKOTHERARGS:
 CONTRLOOP:
 	lodsb
 	dec	cx
-	;cmp	al,' '
-	cmp	al,[space_chr]
+	; 02/03/2023
+	cmp	al,' ' ; 20h
+	;cmp	al,[space_chr]
 	jz	short SETCDEV
 	cmp	al,9
 	jz	short SETCDEV
@@ -4130,7 +4150,6 @@ ISADEVICE:
 	push	cx
 	mov	cx,3
 	xor	bx,bx
-
 RCCLLOOP:
 	mov	ah,CLOSE ; 3Eh
 	int	21h
@@ -4171,7 +4190,6 @@ RCCLLOOP:
         ;call	RPrintParse                     ; "Too many parameters"
         ;call	CrLf
 	;jmp	Parse_command_line
-
 
 CHKSRCHSPEC:                    ; Not a device, so must be directory spec
 
@@ -4249,8 +4267,9 @@ CHKSRCHSPEC:                    ; Not a device, so must be directory spec
 	add     ax,dx
 	mov     [ENVIRSEG],ax
 	mov     es,ax
-	;mov	al,' '
-	mov     al,[space_chr]
+	; 02/03/2023
+	mov	al,' ' ; 20h
+	;mov	al,[space_chr]
 	mov     [si-1],al
 	pop     si ; **			; Remember location
 	pop     cx ; *			; and count
@@ -4261,8 +4280,9 @@ COMTRLOOP:
 	; MSDOS 3.3 & MSDOS 6.0
 	lodsb
 	dec	cx
-	;cmp	al,' '
-	cmp	al,[space_chr]
+	; 02/03/2023
+	cmp	al,' ' ; 20h
+	;cmp	al,[space_chr]
 	je	short SETCOMSR
 	; MSDOS 3.3
 	cmp	al,9
@@ -4302,7 +4322,6 @@ SETCOMSR:
 	jnz     short INOTROOT			
 	inc     si				; Don't make a double /
 	dec     cx
-
 INOTROOT:
 	; MSDOS 3.3 & MSDOS 6.0
 	rep	movsb
@@ -4806,8 +4825,9 @@ DODATE:
 	jnz	short NOAUTSET
 	mov	ah,GET_DEFAULT_DRIVE ; 19h
 	int	21h
-	;add	al,'A'
-	add	al,[letter_A] ; Ucasea
+	; 02/03/2023
+	add	al,'A'
+	;add	al,[letter_A] ; Ucasea
 	mov	[AUTOBAT],al
 
 NOAUTSET:
@@ -4831,7 +4851,6 @@ NOAUTSET:
 	mov	ah,CLOSE  ; 3Eh
 	int	21h
 	jmp	short DRV0		; go process autoexec
-
 NOABAT:
 	push	ax
 	call	SETUP_SEG
@@ -4845,7 +4864,6 @@ _ACCDENERROR:					; yes - put out message
 	;mov	dx,offset ResGroup:AccDen	; dx = ptr to msg
 	mov	dx,ACCDENERR
 	call	RPRINT
-
 OPENERR:
 	mov	es,[BATCH]		; not found--turn off batch job
 	mov	ah,DEALLOC ; 49h
@@ -4881,7 +4899,6 @@ DODTTM:
 	mov	[INITADD+2],ax
 	;call	dword ptr InitAdd
 	call	far [INITADD]
-
 NODTTM:
 	; MSDOS 6.0
 Copyright:
@@ -4900,7 +4917,6 @@ Copyright:
 	jnz     short DRV0
 	mov     dx,HEADERPTR	; dx = ptr to msg
 	call    RPRINT
-
 DRV0:
 	; MSDOS 3.3
         mov     byte [INITFLAG],0
@@ -5044,19 +5060,20 @@ RPRINT:
 
 PATHCHRCMPR:
 	; MSDOS 3.3
-	push	dx
-	mov	dl,[slash_chr]
-	;cmp	byte [RSWITCHAR],'/'
-        cmp	[RSWITCHAR],dl
+	; 02/03/2023
+	;push	dx
+	;mov	dl,[slash_chr] ; '/'
+	cmp	byte [RSWITCHAR],'/'
+	;cmp	[RSWITCHAR],dl
 	je	short RNOSLASHT
-	;cmp	al,'/'
-	cmp	al,dl
+	cmp	al,'/'
+	;cmp	al,dl
 	je	short RET41 ; zf = 1 
 RNOSLASHT:
-        ;cmp	al,'\'
-	cmp	al,[bslash_chr]
+        cmp	al,'\'
+	;cmp	al,[bslash_chr]
 RET41:
-	pop	dx
+	;pop	dx
 	retn
 
 IFINDE:
@@ -5108,7 +5125,6 @@ ICOUNT0:
 	;jmp	short ICOUNTX
 	;push	di				; count number of chars until nul
 	;call	ISCASB2
-
 ;ICOUNTX:
 	pop	cx
 	sub	di,cx
@@ -5116,13 +5132,12 @@ ICOUNT0:
 	retn
 
 ISCASB1:
-	;mov	al,"="
-	mov	al,[equal_sign]			; scan for an =
+	; 02/03/2023
+	mov	al,"="
+	;mov	al,[equal_sign]			; scan for an =
 	jmp	short ISCASBX
-
 ISCASB2:
 	xor	al,al				; scan for a nul
-
 ISCASBX:
 	mov	cx,256 ; 100h
 	repnz	scasb
@@ -5130,13 +5145,14 @@ ISCASBX:
 
 IUPCONV:
 	; MSDOS 3.3
-        ;cmp	al,"a"
-	cmp	al,[letter_a]
-        jb	short IRET22
-        ;cmp	al,"z"
-        cmp	al,[letter_z]
+	cmp	al,"a"
+	; 02/03/2023
+	;cmp	al,[letter_a]
+	jb	short IRET22
+	cmp	al,"z"
+	;cmp	al,[letter_z]
 	ja	short IRET22
-        sub	al,20h			; Lower-case changed to upper-case
+	sub	al,20h			; Lower-case changed to upper-case
 IRET22:
         retn
 
@@ -5213,7 +5229,7 @@ INIT_CONTC_SPECIALCASE:
 	; (15 bytes filler)
 	db 0
 	;db "25/9/2018 ETAN"
-	db "01/03/2023 ETAN" ; 01/03/2023	
+	db "02/03/2023 ETAN" ; 02/03/2023	
 	db 0
 
 	; MSDOS 3.3 COMMAND.COM - offset 145Eh
@@ -5287,26 +5303,28 @@ ECOMLOC:
 	dw ECOMSPEC-ENVIRONMENT ; 30/04/2018	
 COMSPSTRING:
 	db 'COMSPEC='
-equal_sign:
-	db '='
-letter_a:
-	db 'a'
-letter_z:
-	db 'z'
-slash_chr:
-	db '/'
-bslash_chr:
-	db '\'
-space_chr:
-	db 20h
-letter_p:
-	db 'p'
-letter_d:
-	db 'd'
-letter_c:
-	db 'c'
-letter_A:
-	db 'A'
+
+; 02/03/2023
+;equal_sign:
+;	db '='
+;letter_a:
+;	db 'a'
+;letter_z:
+;	db 'z'
+;slash_chr:
+;	db '/'
+;bslash_chr:
+;	db '\'
+;space_chr:
+;	db 20h
+;letter_p:
+;	db 'p'
+;letter_d:
+;	db 'd'
+;letter_c:
+;	db 'c'
+;letter_A:
+;	db 'A'
 ENVSIZ:
 	dw 0
 ENVMAX:
@@ -5393,14 +5411,14 @@ COMMAND      EQU  012CH
 ;GETEXTERRNUM EQU 1ECCH ; TRIAGEERROR (GET_EXT_ERR_NUMBER) proc addr
 ;TRIAGE_INIT EQU  1EF3H
 ;DATINIT     EQU  206FH
-; 01/03/2023
-GETEXTERRNUM EQU  1E8FH
-TRIAGE_INIT  EQU  1EB6H
-DATINIT	     EQU  2016H		
-PRINTF_INIT  EQU  3440H
-TRANDATAEND  EQU  3E65H
-HEADCALL     EQU  41AFH
-TRANSPACEEND EQU  4C7CH
+; 02/03/2023
+GETEXTERRNUM EQU  1E79H
+TRIAGE_INIT  EQU  1EA0H
+DATINIT	     EQU  2000H		
+PRINTF_INIT  EQU  3415H
+TRANDATAEND  EQU  3E35H
+HEADCALL     EQU  417FH
+TRANSPACEEND EQU  4C4CH
 
 ;-----------------------------------------------------------------------------
 ;START OF TRANSIENT PORTION
