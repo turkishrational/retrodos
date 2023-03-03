@@ -2,7 +2,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 3.3 Command Interpreter) - RETRO DOS v3.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 02/03/2023 ((Prev: 20/10/2018))
+; Last Update: 03/03/2023 ((Prev: 20/10/2018))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
 ; ----------------------------------------------------------------------------
@@ -966,63 +966,63 @@ EXEC_WAIT  equ 	0131h	; 13/10/2018
 
 ; Putbackmsg ("Insert disk ..." msg) disk drive letter in resident portion
 ;PUTBACKDRV equ 0A21h	; 14/10/2018
-PUTBACKDRV equ	0A1Dh	; 02/03/2023
+PUTBACKDRV equ	0A11h	; 03/03/2023
 
 ; Note: Following offset addresses are in data section of 'command3.s' file.
 ; They must be verified by using assembly list (command3.lst) of COMMAND.COM.
 
 ; Resident portion stack address  
 ;RSTACK	   equ	083Ch
-RSTACK	   equ	0838h	; 02/03/2023 
+RSTACK	   equ	082Ch	; 03/03/2023 
 
 ;RETRABASE equ  0B86h	; 13/10/2018 (Base addr for following common params.)
-RETRABASE  equ  0B82h	; 02/03/2023	
+RETRABASE  equ  0B70h	; 03/03/2023	
 
 ; RESGROUP       [RESSEG]
 ; DATA		  offset
 ; --------     	------------
-PARENT	  equ	RETRABASE+6	; 0B88h	; 02/03/2023
-OLDTERM	  equ	RETRABASE+8	; 0B8Ah
-BATCH	  equ	RETRABASE+17	; 0B93h
-COMSPEC	  equ	RETRABASE+19	; 0B95h
-PUTBACKSUBSTPTR equ RETRABASE+83 ; 0BD5h
-COMSPEC_END equ	RETRABASE+85	; 0BD7h
-IN_BATCH  equ	RETRABASE+92	; 0BDEh
-BATCH_ABORT equ	RETRABASE+93	; 0BDFh
-COMDRV	  equ	RETRABASE+94	; 0BE0h
-EXTCOM	  equ	RETRABASE+99	; 0BE1h
-RETCODE	  equ	RETRABASE+100	; 0BE5h
-ECHOFLAG  equ	RETRABASE+103	; 0BE9h
-SUPPRESS  equ	RETRABASE+104	; 0BEAh
-IO_SAVE	  equ	RETRABASE+105	; 0BEBh
-RESTDIR	  equ	RETRABASE+107	; 0BEDh
-PERMCOM	  equ	RETRABASE+108	; 0BEEh
-SINGLECOM equ	RETRABASE+109	; 0BEFh
-VERVAL	  equ	RETRABASE+111	; 0BF1h
-IFFLAG	  equ	RETRABASE+114	; 0BF4h	
-FORFLAG	  equ	RETRABASE+115	; 0BF5h
-FORPTR	  equ	RETRABASE+116	; 0BF6h 	
-NEST	  equ	RETRABASE+118	; 0BF8h
-CALL_FLAG equ	RETRABASE+120	; 0BFAh
-CALL_BATCH_FLAG equ RETRABASE+121 ; 0BFBh
-NEXT_BATCH equ	RETRABASE+122 	; 0BFCh
-NULLFLAG  equ	RETRABASE+124	; 0BFEh
-UPPERCASETBL equ RETRABASE+126	; 0C00h
-RE_OUT_APP equ	RETRABASE+130	; 0C04h
-RE_OUTSTR equ	RETRABASE+131	; 0C05h
-INITFLAG  equ	RETRABASE+211	; 0C55h	
-PIPEFLAG  equ	RETRABASE+212	; 0C56h
-PIPEFILES equ	RETRABASE+213	; 0C57h
-PIPE1	  equ	RETRABASE+214	; 0C58h	
-PIPE2	  equ	RETRABASE+230	; 0C68h
-PIPEPTR	  equ	RETRABASE+246	; 0C78h
-PIPESTR	  equ	RETRABASE+248	; 0C7Ah
-INPIPEPTR equ	RETRABASE+377	; 0CFBh
-OUTPIPEPTR equ	RETRABASE+379	; 0CFDh
-ENVIRSEG  equ	RETRABASE+381	; 0CFFh
-EXEC_BLOCK equ	RETRABASE+381 	; 0CFFh  ; ENVIRSEG
-LTPA	  equ	RETRABASE+399	; 0D11h
-RES_TPA	  equ	RETRABASE+413	; 0D1Fh
+PARENT	  equ	RETRABASE+6	; 0B76h	; 02/03/2023
+OLDTERM	  equ	RETRABASE+8	; 0B78h
+BATCH	  equ	RETRABASE+17	; 0B81h
+COMSPEC	  equ	RETRABASE+19	; 0B83h
+PUTBACKSUBSTPTR equ RETRABASE+83 ; 0BC3h
+COMSPEC_END equ	RETRABASE+85	; 0BC5h
+IN_BATCH  equ	RETRABASE+92	; 0BCCh
+BATCH_ABORT equ	RETRABASE+93	; 0BCDh
+COMDRV	  equ	RETRABASE+94	; 0BCEh
+EXTCOM	  equ	RETRABASE+99	; 0BD3h
+RETCODE	  equ	RETRABASE+100	; 0BD4h
+ECHOFLAG  equ	RETRABASE+103	; 0BD7h
+SUPPRESS  equ	RETRABASE+104	; 0BD8h
+IO_SAVE	  equ	RETRABASE+105	; 0BD9h
+RESTDIR	  equ	RETRABASE+107	; 0BDBh
+PERMCOM	  equ	RETRABASE+108	; 0BDCh
+SINGLECOM equ	RETRABASE+109	; 0BDDh
+VERVAL	  equ	RETRABASE+111	; 0BDFh
+IFFLAG	  equ	RETRABASE+114	; 0BE2h	
+FORFLAG	  equ	RETRABASE+115	; 0BE3h
+FORPTR	  equ	RETRABASE+116	; 0BE4h 	
+NEST	  equ	RETRABASE+118	; 0BE6h
+CALL_FLAG equ	RETRABASE+120	; 0BE8h
+CALL_BATCH_FLAG equ RETRABASE+121 ; 0BE9h
+NEXT_BATCH equ	RETRABASE+122 	; 0BEAh
+NULLFLAG  equ	RETRABASE+124	; 0BECh
+UPPERCASETBL equ RETRABASE+126	; 0BEEh
+RE_OUT_APP equ	RETRABASE+130	; 0BF2h
+RE_OUTSTR equ	RETRABASE+131	; 0BF3h
+INITFLAG  equ	RETRABASE+211	; 0C43h	
+PIPEFLAG  equ	RETRABASE+212	; 0C44h
+PIPEFILES equ	RETRABASE+213	; 0C45h
+PIPE1	  equ	RETRABASE+214	; 0C46h	
+PIPE2	  equ	RETRABASE+230	; 0C56h
+PIPEPTR	  equ	RETRABASE+246	; 0C66h
+PIPESTR	  equ	RETRABASE+248	; 0C68h
+INPIPEPTR equ	RETRABASE+377	; 0CE9h
+OUTPIPEPTR equ	RETRABASE+379	; 0CEBh
+ENVIRSEG  equ	RETRABASE+381	; 0CEDh
+EXEC_BLOCK equ	RETRABASE+381 	; 0CEDh  ; ENVIRSEG
+LTPA	  equ	RETRABASE+399	; 0CFFh
+RES_TPA	  equ	RETRABASE+413	; 0D0Dh
 
 ;=============================================================================
 					
@@ -1341,7 +1341,7 @@ NULLCOMJ:
 		jmp	NULLCOM
 NOPIPEPROC:
 		call	PARSELINE
-		jnb	short OKPARSE	; user error?  or maybe we goofed?
+		jnb	short OKPARSE	; user error? or maybe we goofed?
 BADPARSE:
 		push	cs
 		pop	ds
@@ -1834,7 +1834,7 @@ BATDIE:
 		call	BATCHOFF
 		push	cs
 		pop	ds
-		;invoke	std_eprintf	;AC022; display message ;  MSDOS 6.0
+		;invoke	std_eprintf	;AC022; display message ; MSDOS 6.0
 		call	STD_PRINTF	; MSDOS 3.3
 
 ; TCOMMAND resets the stack. This is the equivalent of a non-local goto.
@@ -2120,8 +2120,10 @@ NO_CRLF_PRINT:
 		pop	ds
 		mov	dx,COMBUF+2	; get command line for echoing
 		call	CRPRINT
-		call	CRLF2
-		retn
+		;call	CRLF2
+		;retn
+		; 03/03/2023
+		jmp	CRLF2
 
 ; The line was too long. Eat remainder of input text up until the CR
 
@@ -2246,8 +2248,8 @@ GETENV1:
 		push	cs
 		pop	ds
 		call	STRCPY
-		;jc	short LineTooL	;  MSDOS 6.0 COMMAND.COM
-		dec	di  		;  MSDOS 3.3 COMMAND.COM	
+		;jc	short LineTooL	; MSDOS 6.0 COMMAND.COM
+		dec	di  		; MSDOS 3.3 COMMAND.COM	
 		pop	ds
 		jmp	SAVBATBYT
 GETENV15:
@@ -2455,7 +2457,7 @@ BATCOM:
 		call	FOROFF
 GETECHO:
 		call	PIPEOFF
-		mov	al,[es:ECHOFLAG]	; preserve echo state for chaining
+		mov	al,[es:ECHOFLAG] ; preserve echo state for chaining
 		and	al,1		; Save current echo state
 
 		push	ax
@@ -2620,7 +2622,7 @@ FOR_NOT_ON:
 		mov	bl,[ECHOFLAG]
 		pop	ds
 		;mov	[es:1],bl 
-					 ;G save echo state of parent
+					;G save echo state of parent
 		mov	[es:BATCHSEGMENT.BatEchoFlag],bl
 ;SR;
 ; Initialize the new BatchEOF flag we have added to 0
@@ -2767,8 +2769,12 @@ BATCHOFF:
 		push	ds
 		push	bx
 
-		mov	es,[cs:RESSEG]
-		mov	ds,[cs:RESSEG]
+		;mov	es,[cs:RESSEG]
+		;mov	ds,[cs:RESSEG]
+		; 03/03/2023
+		mov	ax,[cs:RESSEG]
+		mov	es,ax
+		mov	ds,ax
 		mov	ax,[BATCH]	; Free the batch segment
 		or	ax,ax
 		jz	short NOTFREE
@@ -2790,7 +2796,7 @@ ECHO_LAST_LINE:
 		mov	bl,[es:BATCHSEGMENT.BatForFlag] ;G  Get FOR flag
 		mov	[FORFLAG],bl	;G  and restore it
 		;mov	bx,[es:2] ; MSDOS 3.3
-		mov	bx,[es:BATCHSEGMENT.BatLast]	;G  Get old batch segment
+		mov	bx,[es:BATCHSEGMENT.BatLast] ;G  Get old batch segment
 
 		mov	ah,DEALLOC ; 49h
 		int	21h	; DOS -	2+ - FREE MEMORY
@@ -3385,7 +3391,7 @@ SKIPCRLP:
 ; returns char in AL, carry set -> eof
 
 SKIPDELIM:
-		test	word [BATCH],-1	; batch file empty.  OOPS!
+		test	word [BATCH],-1	; batch file empty. OOPS!
 		jz	short SKIPERR
 		call	GETBATBYT	; get a char
 		call	DELIM		; check for ignoreable chars
@@ -3744,7 +3750,6 @@ struc FOR_INFO
   .size:
 endstruc
 					; ARG_UNIT.SIZE = 1348 (544h)
-
 _$FOR_EXIT:
 		jmp	short FORTERM	; exceeding maxarg means all done
 
@@ -11017,7 +11022,9 @@ PIPEOFFDONE:
 ; ---------------------------------------------------------------------------
 		;db    0,0,0,0,0
 		;times 5 db 0
-align 16
+
+; 03/03/2023
+;align 16
 
 ;============================================================================
 ; PARSE2.ASM, MSDOS 6.0, 1991
@@ -15882,7 +15889,8 @@ TRANDATAEND:
 
 ;	times 12 db 0
 
-align 16
+; 03/03/2023
+;align 16
 
 	; MSDOS 3.3 COMMAND.COM (1987) Transient portion offset 3F50h
 
@@ -16180,6 +16188,7 @@ SEARCH_ERROR:	dw 0
 
 IF_NOT_COUNT:	dw 0
 ZFLAG:		db 0
+		db 0 ; 03/03/2023
 	  times 256 db 0 	
 STACK:
 

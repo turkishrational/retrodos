@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 3.3 Command Interpreter) - RETRO DOS v3.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 02/03/2023 ((Previous: 20/10/2018))
+; Last Update: 03/03/2023 ((Previous: 20/10/2018))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
 ; ----------------------------------------------------------------------------
@@ -2365,9 +2365,13 @@ ASKEND:
 	int     21h             ; DOS - CLEAR KEYBOARD BUFFER
 				; AL must be 01h, 06h, 07h, 08h, or 0Ah.
 	call	CHARTOUPPER			; change to upper case
-	cmp	al,[NO_CHAR]
+	;cmp	al,[NO_CHAR]
+	; 03/03/2023
+	cmp	al,'N'
 	je	short AERET			; answer is no (CY is clear)
-	cmp	al,[YES_CHAR]
+	;cmp	al,[YES_CHAR]
+	; 03/03/2023
+	cmp	al,'Y'
 	jne	short ASKEND			; invalid response, try again
 	stc					; answer is yes
 AERET:	
@@ -2794,7 +2798,9 @@ DOPROMPT:
 	mov	ah,0				; return code for ignore
 	test	byte [CRIT_ERR_INFO],IGNORE_ALLOWED ; 20h ; is ignore allowed?
 	jz	short USER_RETRY
-	cmp	al,[IGNORE_CHAR]		; ignore?
+	;cmp	al,[IGNORE_CHAR]		; ignore?
+	; 03/03/2023
+	cmp	al,'I'
 	jz	short EEXITJ
 
 ;	Bugbug:	optimize following code.
@@ -2803,18 +2809,24 @@ USER_RETRY:
 	inc	ah				; return code for retry
 	test	byte [CRIT_ERR_INFO],RETRY_ALLOWED ; 10h ; is retry allowed?
 	jz	short USER_ABORT
-	cmp	al,[RETRY_CHAR]			; retry?
+	;cmp	al,[RETRY_CHAR]			; retry?
+	; 03/03/2023
+	cmp	al,'R'
 	jz	short EEXITJ
 
 USER_ABORT:
 	inc	ah				; return code for abort
 						;  (abort always allowed)
-	cmp	al,[ABORT_CHAR]			; abort?
+	;cmp	al,[ABORT_CHAR]			; abort?
+	; 03/03/2023
+	cmp	al,'A'
 	jz	short ABORT_PROCESS			; exit user program
 	inc	ah				; return code for fail
 	test	byte [CRIT_ERR_INFO],FAIL_ALLOWED ; 08h ; is fail allowed?
 	jz	short ASKJ
-	cmp	al,[FAIL_CHAR]			; fail?
+	;cmp	al,[FAIL_CHAR]			; fail?
+	; 03/03/2023
+	cmp	al,'F'
 	jz	short EEXITJ
 ASKJ:
 	jmp	ASK
@@ -3291,12 +3303,13 @@ BMEMMES:	db 0Dh,0Ah,'Memory allocation error $'
 HALTMES:	db 0Dh,0Ah,'Cannot load COMMAND, system halted$'
 FRETMES:	db 0Dh,0Ah,'Cannot start COMMAND, exiting',0Dh,0Ah,'$'
 PATRICIDE:	db 0Dh,0Ah,'Top level process aborted, cannot continue. $'
-YES_CHAR:	db 'Y'
-NO_CHAR:	db 'N'
-RETRY_CHAR:	db 'R'
-ABORT_CHAR:	db 'A'
-IGNORE_CHAR:	db 'I'
-FAIL_CHAR:	db 'F'
+; 03/03/2023
+;YES_CHAR:	db 'Y'
+;NO_CHAR:	db 'N'
+;RETRY_CHAR:	db 'R'
+;ABORT_CHAR:	db 'A'
+;IGNORE_CHAR:	db 'I'
+;FAIL_CHAR:	db 'F'
 NEEDVOL:	dd 0
 ERRTYPE:	db 0
 
@@ -5229,7 +5242,7 @@ INIT_CONTC_SPECIALCASE:
 	; (15 bytes filler)
 	db 0
 	;db "25/9/2018 ETAN"
-	db "02/03/2023 ETAN" ; 02/03/2023	
+	db "03/03/2023 ETAN" ; 02/03/2023	
 	db 0
 
 	; MSDOS 3.3 COMMAND.COM - offset 145Eh
@@ -5244,7 +5257,8 @@ COPYRIGHTMSG:	; MSDOS 3.3 COMMAND.COM - offset 1460h
 	db '                                                   ',
 	db 0Dh,0Ah,0
 
-	times	43 db 20h
+	; 03/03/2023	
+	;times	43 db 20h
 
 _152Fh:	db 'Specified COMMAND search directory bad',0Dh,0Ah,0
 BADCOMLKMES:
@@ -5411,14 +5425,14 @@ COMMAND      EQU  012CH
 ;GETEXTERRNUM EQU 1ECCH ; TRIAGEERROR (GET_EXT_ERR_NUMBER) proc addr
 ;TRIAGE_INIT EQU  1EF3H
 ;DATINIT     EQU  206FH
-; 02/03/2023
-GETEXTERRNUM EQU  1E79H
-TRIAGE_INIT  EQU  1EA0H
-DATINIT	     EQU  2000H		
-PRINTF_INIT  EQU  3415H
-TRANDATAEND  EQU  3E35H
-HEADCALL     EQU  417FH
-TRANSPACEEND EQU  4C4CH
+; 03/03/2023
+GETEXTERRNUM EQU  1E75H
+TRIAGE_INIT  EQU  1E9CH
+DATINIT	     EQU  1FFCH		
+PRINTF_INIT  EQU  3405H
+TRANDATAEND  EQU  3E25H
+HEADCALL     EQU  4164H
+TRANSPACEEND EQU  4C32H
 
 ;-----------------------------------------------------------------------------
 ;START OF TRANSIENT PORTION
