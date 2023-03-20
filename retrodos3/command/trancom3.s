@@ -2,7 +2,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 3.3 Command Interpreter) - RETRO DOS v3.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 03/03/2023 ((Prev: 20/10/2018))
+; Last Update: 20/03/2023 ((Prev: 20/10/2018))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
 ; ----------------------------------------------------------------------------
@@ -12697,9 +12697,10 @@ PRINTVOL2:
 ; =============== S U B	R O U T	I N E =======================================
 
 PRINT_DATE:
+		; 20/03/2023
 		; MSDOS 3.3
-		push	es
-		push	di
+		;push	es ; 20/03/2023	
+		;push	di
 		push	cs
 		pop	es
 		mov	di,ARG_BUF
@@ -12714,8 +12715,9 @@ PRINT_DATE:
 		stosb
 		mov	dx,ARG_BUF_PTR
 		call	STD_PRINTF
-		pop	es
-		pop	di
+			; 20/03/2023 (MSDOS 3.3 COMMAND.COM - TRANGROUP:29DAh)
+		;pop	es ; !!??!! 
+		;pop	di
 		retn
 
 		; MSDOS 6.0

@@ -1,7 +1,7 @@
      1                                  ; ****************************************************************************
      2                                  ; COMMAND.COM (MSDOS 3.3 Command Interpreter) - RETRO DOS v3.0 by ERDOGAN TAN
      3                                  ; ----------------------------------------------------------------------------
-     4                                  ; Last Update: 03/03/2023 ((Previous: 20/10/2018))
+     4                                  ; Last Update: 20/03/2023 ((Previous: 20/10/2018))
      5                                  ; ----------------------------------------------------------------------------
      6                                  ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
      7                                  ; ----------------------------------------------------------------------------
@@ -1653,7 +1653,7 @@
   1653                                  ;***	SetSize - get transient size in paragraphs
   1654                                  
   1655                                  SETSIZE:
-  1656 000001C9 B8414C                  	mov	ax,TRANSPACEEND+15	; mov AX,4D6Bh
+  1656 000001C9 B8314C                  	mov	ax,TRANSPACEEND+15	; mov AX,4D6Bh
   1657 000001CC B104                    	mov	cl,4
   1658 000001CE D3E8                    	shr	ax,cl
   1659 000001D0 C3                      	retn
@@ -1805,7 +1805,7 @@
   1805                                  USESLASH:
   1806 00000273 C606[800A]00            	mov	byte [LOADING],0		; flag to DskErr
   1807 00000278 BE[FB0B]                	mov	si,TRANVARS
-  1808 0000027B BF6441                  	mov	di,HEADCALL
+  1808 0000027B BF5441                  	mov	di,HEADCALL
   1809 0000027E 8E06[C90A]              	mov	es,[TRNSEG]
   1810 00000282 FC                      	cld
   1811 00000283 B9[0F0C]                	mov	cx,TRANVAREND
@@ -2090,7 +2090,7 @@
   2090 00000395 B80042                  	mov	ax,LSEEK<<8	; 4200h
   2091 00000398 CD21                    	int	21h
   2092 0000039A 7210                    	jc	short WRONGCOM1
-  2093 0000039C B9324B                  	mov	cx,TRANSPACEEND-100h ; 4C5Ch (for original MSDOS 3.3!)
+  2093 0000039C B9224B                  	mov	cx,TRANSPACEEND-100h ; 4C5Ch (for original MSDOS 3.3!)
   2094 0000039F 1E                      	push	ds
   2095 000003A0 8E1E[C90A]              	mov	ds,[TRNSEG]
   2096                                  	;assume	ds:NOTHING
@@ -2123,7 +2123,7 @@
   2123 000003C2 1E                      	push	ds
   2124 000003C3 8E1E[C90A]              	mov	ds,[TRNSEG]
   2125 000003C7 BE0001                  	mov	si,100h
-  2126 000003CA B9253D                  	mov	cx,TRANDATAEND-100H	; 3E44h (for original MSDOS 3.3!)
+  2126 000003CA B9153D                  	mov	cx,TRANDATAEND-100H	; 3E44h (for original MSDOS 3.3!)
   2127                                  CHECK_SUM:
   2128 000003CD FC                      	cld
   2129 000003CE D1E9                    	shr	cx,1
@@ -3735,7 +3735,7 @@
   3676 00000D55 C706[9B14]0A00          	mov	word [ENVSIZ],ENVSML/16; 
   3677                                  
   3678                                  	;mov	dx,offset TranGroup:Transpaceend + 15 ; dx = size of transient
-  3679 00000D5B BA414C                  	mov	dx,TRANSPACEEND+15 ; 4D5Ch+0Fh (for MSDOS 3.3 COMMAND.COM)
+  3679 00000D5B BA314C                  	mov	dx,TRANSPACEEND+15 ; 4D5Ch+0Fh (for MSDOS 3.3 COMMAND.COM)
   3680 00000D5E B104                    	mov	cl,4				;  in paragraphs.
   3681 00000D60 D3EA                    	shr	dx,cl
   3682 00000D62 8916[A514]                      mov     [TRNSIZE],dx			; save size of transient in paragraphs
@@ -4613,7 +4613,7 @@
   4554 0000107E BF0000                  	mov	di,0
   4555 00001081 8E06[C90A]              	mov	es,[TRNSEG]
   4556                                  	;mov	cx,4D5Ch
-  4557 00001085 B9324C                  	mov	cx,TRANSPACEEND ; 4D5Ch for MSDOS 3.3 COMMAND.COM
+  4557 00001085 B9224C                  	mov	cx,TRANSPACEEND ; 4D5Ch for MSDOS 3.3 COMMAND.COM
   4558 00001088 51                      	push	cx
   4559 00001089 89C8                    	mov	ax,cx
   4560 0000108B 01F0                    	add	ax,si
@@ -5301,7 +5301,7 @@
   5242                                  	; (15 bytes filler)
   5243 000012CF 00                      	db 0
   5244                                  	;db "25/9/2018 ETAN"
-  5245 000012D0 30332F30332F323032-     	db "03/03/2023 ETAN" ; 02/03/2023	
+  5245 000012D0 32302F30332F323032-     	db "20/03/2023 ETAN" ; 20/03/2023	
   5245 000012D9 33204554414E       
   5246 000012DF 00                      	db 0
   5247                                  
@@ -5399,7 +5399,7 @@
   5303                                  	;dw 0
   5304                                  	;dw 0
   5305                                  PRINTADD:
-  5306 00001488 0534                    	dw PRINTF_INIT
+  5306 00001488 0134                    	dw PRINTF_INIT
   5307 0000148A 0000                    	dw 0
   5308                                  TRIAGEADD:
   5309 0000148C 9C1E                    	dw TRIAGE_INIT
@@ -5529,43 +5529,44 @@
   5428                                  ; 03/03/2023
   5429                                  GETEXTERRNUM EQU  1E75H
   5430                                  TRIAGE_INIT  EQU  1E9CH
-  5431                                  DATINIT	     EQU  1FFCH		
-  5432                                  PRINTF_INIT  EQU  3405H
-  5433                                  TRANDATAEND  EQU  3E25H
-  5434                                  HEADCALL     EQU  4164H
-  5435                                  TRANSPACEEND EQU  4C32H
-  5436                                  
-  5437                                  ;-----------------------------------------------------------------------------
-  5438                                  ;START OF TRANSIENT PORTION
-  5439                                  ;This code is loaded at the end of memory and may be overwritten by
-  5440                                  ;memory-intensive user programs.
-  5441                                  ;-----------------------------------------------------------------------------
-  5442                                  
-  5443                                  ;TRANSTART EQU $
-  5444                                  ; 29/09/2018 
-  5445                                  TRANSTART:		; Offset 1660h in original MSDOS 3.3 COMMAND.COM
-  5446                                  
-  5447                                  ; 25/09/2018
-  5448                                  ; (original MSDOS 3.3 COMMAND.COM TRIAGEERROR offset address)
-  5449                                  ;
-  5450                                  ; 'GET_EXT_ERR_NUMBER' ('TRIAGEERROR') procedure is at offset 354Eh 
-  5451                                  ; in MSDOS 3.3 COMMAND.COM (It is at offset 1EEEh in transient porsion).	 	
-  5452                                  ;
-  5453                                  TRIAGEERROR EQU TRANSTART+GETEXTERRNUM-100H
-  5454                                  ;
-  5455                                  
-  5456                                  ;COMTRANS:
-  5457                                  
-  5458                                  ; 20/10/2018 - Retro DOS v3.0	
-  5459 000014E0 <bin 4C32h>             INCBIN	"TRANCOM3.BIN"
-  5460                                  
-  5461                                  ;COMLEN	EQU $-COMTRANS	; End of COMMAND load.
-  5462                                  
-  5463                                  ; 29/04/2018
-  5464                                  ;BSS_SIZE EQU TRANSPACEEND-TRANDATAEND	
-  5465                                  ;
-  5466                                  ;TIMES BSS_SIZE db 0
-  5467                                  ;
-  5468                                  ;COMLEN	EQU $-COMTRANS	; 30/04/2018
-  5469                                  
-  5470                                  ;COMMANDCOMSIZE equ $ - 100h
+  5431                                  DATINIT	     EQU  1FFCH
+  5432                                  ; 20/03/2023		
+  5433                                  PRINTF_INIT  EQU  3401H
+  5434                                  TRANDATAEND  EQU  3E15H
+  5435                                  HEADCALL     EQU  4154H
+  5436                                  TRANSPACEEND EQU  4C22H
+  5437                                  
+  5438                                  ;-----------------------------------------------------------------------------
+  5439                                  ;START OF TRANSIENT PORTION
+  5440                                  ;This code is loaded at the end of memory and may be overwritten by
+  5441                                  ;memory-intensive user programs.
+  5442                                  ;-----------------------------------------------------------------------------
+  5443                                  
+  5444                                  ;TRANSTART EQU $
+  5445                                  ; 29/09/2018 
+  5446                                  TRANSTART:		; Offset 1660h in original MSDOS 3.3 COMMAND.COM
+  5447                                  
+  5448                                  ; 25/09/2018
+  5449                                  ; (original MSDOS 3.3 COMMAND.COM TRIAGEERROR offset address)
+  5450                                  ;
+  5451                                  ; 'GET_EXT_ERR_NUMBER' ('TRIAGEERROR') procedure is at offset 354Eh 
+  5452                                  ; in MSDOS 3.3 COMMAND.COM (It is at offset 1EEEh in transient porsion).	 	
+  5453                                  ;
+  5454                                  TRIAGEERROR EQU TRANSTART+GETEXTERRNUM-100H
+  5455                                  ;
+  5456                                  
+  5457                                  ;COMTRANS:
+  5458                                  
+  5459                                  ; 20/10/2018 - Retro DOS v3.0	
+  5460 000014E0 <bin 4C22h>             INCBIN	"TRANCOM3.BIN"
+  5461                                  
+  5462                                  ;COMLEN	EQU $-COMTRANS	; End of COMMAND load.
+  5463                                  
+  5464                                  ; 29/04/2018
+  5465                                  ;BSS_SIZE EQU TRANSPACEEND-TRANDATAEND	
+  5466                                  ;
+  5467                                  ;TIMES BSS_SIZE db 0
+  5468                                  ;
+  5469                                  ;COMLEN	EQU $-COMTRANS	; 30/04/2018
+  5470                                  
+  5471                                  ;COMMANDCOMSIZE equ $ - 100h

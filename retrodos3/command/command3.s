@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 3.3 Command Interpreter) - RETRO DOS v3.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 03/03/2023 ((Previous: 20/10/2018))
+; Last Update: 20/03/2023 ((Previous: 20/10/2018))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
 ; ----------------------------------------------------------------------------
@@ -5242,7 +5242,7 @@ INIT_CONTC_SPECIALCASE:
 	; (15 bytes filler)
 	db 0
 	;db "25/9/2018 ETAN"
-	db "03/03/2023 ETAN" ; 02/03/2023	
+	db "20/03/2023 ETAN" ; 20/03/2023	
 	db 0
 
 	; MSDOS 3.3 COMMAND.COM - offset 145Eh
@@ -5428,11 +5428,12 @@ COMMAND      EQU  012CH
 ; 03/03/2023
 GETEXTERRNUM EQU  1E75H
 TRIAGE_INIT  EQU  1E9CH
-DATINIT	     EQU  1FFCH		
-PRINTF_INIT  EQU  3405H
-TRANDATAEND  EQU  3E25H
-HEADCALL     EQU  4164H
-TRANSPACEEND EQU  4C32H
+DATINIT	     EQU  1FFCH
+; 20/03/2023		
+PRINTF_INIT  EQU  3401H
+TRANDATAEND  EQU  3E15H
+HEADCALL     EQU  4154H
+TRANSPACEEND EQU  4C22H
 
 ;-----------------------------------------------------------------------------
 ;START OF TRANSIENT PORTION
