@@ -534,7 +534,7 @@
 </span><span style="color:gray">RESGROUP:0800 </span>CRMSG6          <span style="color:navy">db </span><span style="color:#008040">10                   </span><span style="color:#8080ff">; ...
 </span><span style="color:gray">RESGROUP:0801                 </span><span style="color:navy">db 'Seek error'
 </span><span style="color:gray">RESGROUP:080B </span>CRMSG7          <span style="color:navy">db </span><span style="color:#008040">18                   </span><span style="color:#8080ff">; ...
-</span><span style="color:gray">RESGROUP:080C </span><span style="color:navy">asc_80C         db 'Invalid media type'
+</span><span style="color:gray">RESGROUP:080C                 </span><span style="color:navy">db 'Invalid media type'
 </span><span style="color:gray">RESGROUP:081E </span>CRMSG8          <span style="color:navy">db </span><span style="color:#008040">16                   </span><span style="color:#8080ff">; ...
 </span><span style="color:gray">RESGROUP:081F                 </span><span style="color:navy">db 'Sector not found'
 </span><span style="color:gray">RESGROUP:082F </span>CRMSG9          <span style="color:navy">db </span><span style="color:#008040">26                   </span><span style="color:#8080ff">; ...
@@ -1053,7 +1053,7 @@
 </span><span style="color:maroon">RESGROUP:0F7D </span>LodCom1<span style="color:navy">:                                </span><span style="color:green">; ...
 </span><span style="color:maroon">RESGROUP:0F7D                 </span><span style="color:navy">mov     ax</span><span style="color:navy">, ds</span>
 <span style="color:maroon">RESGROUP:0F7F                 </span><span style="color:navy">mov     ss</span><span style="color:navy">, ax</span>
-<span style="color:maroon">RESGROUP:0F81                 </span><span style="color:navy">mov     sp</span><span style="color:navy">, </span><span style="color:#ff8000">53Eh</span>        ; mov sp,offset DATARES:RStack
+<span style="color:maroon">RESGROUP:0F81                 </span><span style="color:navy">mov     sp</span><span style="color:navy">, offset </span>RStack ; mov sp,offset DATARES:RStack
 <span style="color:maroon">RESGROUP:0F84                 </span><span style="color:navy">call    </span>HeadFix
 <span style="color:maroon">RESGROUP:0F87                 </span><span style="color:navy">xor     bp</span><span style="color:navy">, bp</span>
 <span style="color:maroon">RESGROUP:0F89                 </span><span style="color:navy">mov     ax</span><span style="color:navy">, </span><span style="color:green">0FFFFh</span>
@@ -4045,7 +4045,7 @@
 <span style="color:black">TRANGROUP:03AF                                         </span>; ES:DI -&gt; buffer to fill with unopened FCB
 <span style="color:black">TRANGROUP:03AF                                         </span>; AL = bit mask to control parsing
 <span style="color:black">TRANGROUP:03B1                 </span><span style="color:navy">mov     </span>PARM2<span style="color:navy">, al</span>
-<span style="color:black">TRANGROUP:03B4                 </span><span style="color:navy">mov     di</span><span style="color:navy">, </span>ARGV2_ARGSW_WORD ; ARG+(2*ARGV_ELE.SIZE)+ARGV_ELE.argsw_word]
+<span style="color:black">TRANGROUP:03B4                 </span><span style="color:navy">mov     di</span><span style="color:navy">, </span>ARGV2_ARGSW_WORD ; [ARG+(2*ARGV_ELE.SIZE)+ARGV_ELE.argsw_word]
 <span style="color:black">TRANGROUP:03B8                 </span><span style="color:navy">mov     </span>ARG2S<span style="color:navy">, di</span>
 <span style="color:black">TRANGROUP:03BC                 </span><span style="color:navy">mov     di</span><span style="color:navy">, </span>ARGV0_ARGSW_WORD ; [ARG+ARGV_ELE.argsw_word]
 <span style="color:black">TRANGROUP:03C0                 </span><span style="color:navy">not     di</span>
@@ -4571,8 +4571,8 @@
 <span style="color:black">TRANGROUP:06D3 </span><span style="color:gray">; ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
 </span><span style="color:black">TRANGROUP:06D3
 </span><span style="color:black">TRANGROUP:06D3 </span><span style="color:gray">GETENV15</span><span style="color:navy">:                               </span><span style="color:green">; ...
-</span><span style="color:black">TRANGROUP:06D3                 </span><span style="color:navy">cmp     al</span><span style="color:navy">, </span><span style="color:#ff8000">25h</span> <span style="color:gray">; '%'
-</span><span style="color:black">TRANGROUP:06D5                 </span><span style="color:navy">jnz     short </span><span style="color:gray">GETENV1</span>
+</span><span style="color:black">TRANGROUP:06D3                 </span><span style="color:navy">cmp     al</span><span style="color:navy">, </span><span style="color:green">'%'</span>
+<span style="color:black">TRANGROUP:06D5                 </span><span style="color:navy">jnz     short </span><span style="color:gray">GETENV1</span>
 <span style="color:black">TRANGROUP:06D7                 </span><span style="color:navy">mov     al</span><span style="color:navy">, </span><span style="color:green">'='</span>
 <span style="color:black">TRANGROUP:06D9                 </span><span style="color:navy">mov     es:[di-</span><span style="color:green">1</span><span style="color:navy">]</span><span style="color:navy">, al</span>
 <span style="color:black">TRANGROUP:06DD                 </span><span style="color:navy">mov     si</span><span style="color:navy">, offset </span>ID
@@ -4766,9 +4766,7 @@
 <span style="color:black">TRANGROUP:0810                 </span><span style="color:navy">add     ax</span><span style="color:navy">, </span><span style="color:green">20h</span>
 <span style="color:black">TRANGROUP:0813                 </span><span style="color:navy">mov     bx</span><span style="color:navy">, cs</span>
 <span style="color:black">TRANGROUP:0815                 </span><span style="color:navy">mov     dx</span><span style="color:navy">, </span><span style="background:red">98C5h</span>       ; mov dx,offset TRANGROUP:TranSpaceEnd
-<span style="color:black">TRANGROUP:0818
-</span><span style="color:black">TRANGROUP:0818 </span><span style="color:navy">loc_2B38:
-</span><span style="color:black">TRANGROUP:0818                 </span><span style="color:navy">add     dx</span><span style="color:navy">, </span><span style="color:green">15</span>
+<span style="color:black">TRANGROUP:0818                 </span><span style="color:navy">add     dx</span><span style="color:navy">, </span><span style="color:green">15</span>
 <span style="color:black">TRANGROUP:081B                 </span><span style="color:navy">shr     dx</span><span style="color:navy">, cl</span>
 <span style="color:black">TRANGROUP:081D                 </span><span style="color:navy">add     dx</span><span style="color:navy">, bx</span>
 <span style="color:black">TRANGROUP:081F                 </span><span style="color:navy">cmp     ax</span><span style="color:navy">, bx</span>
@@ -5179,9 +5177,7 @@
 </span><span style="color:maroon">TRANGROUP:0AF9
 </span><span style="color:maroon">TRANGROUP:0AF9 </span>IFSTRING<span style="color:navy">:                               </span><span style="color:green">; ...
 </span><span style="color:maroon">TRANGROUP:0AF9                 </span><span style="color:navy">push    si</span>
-<span style="color:maroon">TRANGROUP:0AFA
-</span><span style="color:maroon">TRANGROUP:0AFA </span><span style="color:navy">loc_2E1A:
-</span><span style="color:maroon">TRANGROUP:0AFA                 </span><span style="color:navy">xor     cx</span><span style="color:navy">, cx</span>
+<span style="color:maroon">TRANGROUP:0AFA                 </span><span style="color:navy">xor     cx</span><span style="color:navy">, cx</span>
 <span style="color:maroon">TRANGROUP:0AFC
 </span><span style="color:maroon">TRANGROUP:0AFC </span>FIRST_STRING<span style="color:navy">:                           </span><span style="color:green">; ...
 </span><span style="color:maroon">TRANGROUP:0AFC                 </span><span style="color:navy">lodsb
@@ -5283,8 +5279,8 @@
 </span><span style="color:maroon">TRANGROUP:0B83 </span>IFTRUE<span style="color:navy">:                                 </span><span style="color:green">; ...
 </span><span style="color:maroon">TRANGROUP:0B83                 </span><span style="color:navy">call    </span>scanoff
 <span style="color:maroon">TRANGROUP:0B86                 </span><span style="color:navy">mov     cx</span><span style="color:navy">, si</span>
-<span style="color:maroon">TRANGROUP:0B88                 </span><span style="color:navy">sub     cx</span><span style="color:navy">, </span><span style="color:#ff8000">81h</span> <span style="color:gray">; 'ü'
-</span><span style="color:maroon">TRANGROUP:0B8C                 </span><span style="color:navy">sub     ds:</span><span style="color:green">80h</span><span style="color:navy">, cl</span>
+<span style="color:maroon">TRANGROUP:0B88                 </span><span style="color:navy">sub     cx</span><span style="color:navy">, </span><span style="color:green">81h</span>
+<span style="color:maroon">TRANGROUP:0B8C                 </span><span style="color:navy">sub     ds:</span><span style="color:green">80h</span><span style="color:navy">, cl</span>
 <span style="color:maroon">TRANGROUP:0B90                 </span><span style="color:navy">mov     cl</span><span style="color:navy">, ds:</span><span style="color:green">80h</span>
 <span style="color:maroon">TRANGROUP:0B94                 </span><span style="color:navy">mov     ds:</span>COMBUF<span style="color:navy">+</span><span style="color:green">1</span><span style="color:navy">, cl</span>
 <span style="color:maroon">TRANGROUP:0B98                 </span><span style="color:navy">mov     di</span><span style="color:navy">, (offset </span>COMBUF<span style="color:navy">+</span><span style="color:green">2</span><span style="color:navy">)</span>
@@ -5680,7 +5676,7 @@
 <span style="color:black">TRANGROUP:0E13
 </span><span style="color:black">TRANGROUP:0E13 </span><span style="color:gray">FOR_BEGIN1</span><span style="color:navy">:                             </span><span style="color:green">; ...
 </span><span style="color:black">TRANGROUP:0E13                 </span><span style="color:navy">mov     bx</span><span style="color:navy">, ds:</span><span style="color:green">547h</span>
-<span style="color:black">TRANGROUP:0E17                 </span><span style="color:navy">cmp     bx</span><span style="color:navy">, ds:</span><span style="color:green">549h</span>
+<span style="color:black">TRANGROUP:0E17                 </span><span style="color:navy">cmp     bx</span><span style="color:navy">, ds:</span><span style="color:green">549h</span>     ; FOR_INFO.FOR_MAXARG
 <span style="color:black">TRANGROUP:0E1B                 </span><span style="color:navy">jg      short </span><span style="color:gray">_$FOR_EXIT</span>
 <span style="color:black">TRANGROUP:0E1D                 </span><span style="color:navy">mov     ax</span><span style="color:navy">, </span><span style="color:#ff8000">0</span>
 <span style="color:black">TRANGROUP:0E20                 </span><span style="color:navy">call    </span>argv_calc
@@ -5959,9 +5955,7 @@
 <span style="color:maroon">TRANGROUP:0FF1                 </span><span style="color:navy">dec     di</span>
 <span style="color:maroon">TRANGROUP:0FF2                 </span><span style="color:navy">mov     es:</span><span style="color:green">547h</span><span style="color:navy">, cx</span>     ; [es:FOR_INFO.FOR_MINARG]
 <span style="color:maroon">TRANGROUP:0FF7                 </span><span style="color:navy">mov     es:</span><span style="color:green">549h</span><span style="color:navy">, di</span>     ; [es:FOR_INFO.FOR_MAXARG]
-<span style="color:maroon">TRANGROUP:0FFC
-</span><span style="color:maroon">TRANGROUP:0FFC </span><span style="color:navy">loc_331C:                               </span>; [es:FOR_INFO.FOR_COM_START]
-<span style="color:maroon">TRANGROUP:0FFC                 </span><span style="color:navy">mov     es:</span><span style="color:green">544h</span><span style="color:navy">, dl</span>
+<span style="color:maroon">TRANGROUP:0FFC                 </span><span style="color:navy">mov     es:</span><span style="color:green">544h</span><span style="color:navy">, dl</span>     ; [es:FOR_INFO.FOR_COM_START]
 <span style="color:maroon">TRANGROUP:1001                 </span><span style="color:navy">mov     word ptr es:</span><span style="color:green">545h</span><span style="color:navy">, </span><span style="color:green">0FFFFh</span> ; [es:FOR_INFO.FOR_EXPAND]
 <span style="color:maroon">TRANGROUP:1008                 </span><span style="color:navy">mov     ax</span><span style="color:navy">, bp</span>
 <span style="color:maroon">TRANGROUP:100A                 </span><span style="color:navy">mov     es:</span><span style="color:green">64Bh</span><span style="color:navy">, ah</span>     ; [es:FOR_INFO.FOR_VAR]
@@ -6995,7 +6989,7 @@
 </span><span style="color:black">TRANGROUP:15DD
 </span><span style="color:black">TRANGROUP:15DD
 </span><span style="color:black">TRANGROUP:15DD </span>LoadEntry       proc near               <span style="color:green">; ...
-</span><span style="color:black">TRANGROUP:15DD                 </span><span style="color:navy">mov     si</span><span style="color:navy">, offset </span>DIRBUF_8 ; DIREBUF+8
+</span><span style="color:black">TRANGROUP:15DD                 </span><span style="color:navy">mov     si</span><span style="color:navy">, offset </span>DIRBUF_8 ; DIRBUF+8
 <span style="color:black">TRANGROUP:15E0                 </span><span style="color:navy">xor     al</span><span style="color:navy">, al</span>
 <span style="color:black">TRANGROUP:15E2                 </span><span style="color:navy">stosb
 </span><span style="color:black">TRANGROUP:15E3                 </span><span style="color:navy">mov     cx</span><span style="color:navy">, </span><span style="color:green">11</span>
@@ -7477,7 +7471,7 @@
 <span style="color:black">TRANGROUP:1884
 </span><span style="color:black">TRANGROUP:1884 </span><span style="color:gray">dhRet</span><span style="color:navy">:                                  </span><span style="color:green">; ...
 </span><span style="color:black">TRANGROUP:1884                 </span><span style="color:navy">retn
-</span><span style="color:black">TRANGROUP:1884 </span><span style="background:red">DisplayHeader   endp</span><span style="background:red"> ; sp =  4</span>
+</span><span style="color:black">TRANGROUP:1884 </span>DisplayHeader   endp
 <span style="color:black">TRANGROUP:1884
 </span><span style="color:black">TRANGROUP:1885
 </span><span style="color:black">TRANGROUP:1885 </span><span style="color:gray">; --------------- S U B R O U T I N E ---------------------------------------
@@ -8802,7 +8796,7 @@
 </span><span style="color:maroon">TRANGROUP:201B
 </span><span style="color:maroon">TRANGROUP:201B </span>DoAlpha<span style="color:navy">:                                </span><span style="color:green">; ...
 </span><span style="color:maroon">TRANGROUP:201B                 </span><span style="color:navy">push    ds</span>
-<span style="color:maroon">TRANGROUP:201C                 </span><span style="color:navy">mov     ax</span><span style="color:navy">, </span><span style="color:#ff8000">40h</span> <span style="color:gray">; '@'   </span>; ROMBIOS_DATA
+<span style="color:maroon">TRANGROUP:201C                 </span><span style="color:navy">mov     ax</span><span style="color:navy">, </span><span style="color:green">40h</span>         ; ROMBIOS_DATA
 <span style="color:maroon">TRANGROUP:201F                 </span><span style="color:navy">mov     ds</span><span style="color:navy">, ax</span>
 <span style="color:maroon">TRANGROUP:2021                 </span>assume ds:nothing
 <span style="color:maroon">TRANGROUP:2021                 </span><span style="color:navy">mov     dx</span><span style="color:navy">, ds:</span><span style="color:green">4Ah</span>      ; [CRT_Cols]
@@ -11484,7 +11478,7 @@
 <span style="color:black">TRANGROUP:2E70                 </span><span style="color:navy">call    </span>copy_pipe_path
 <span style="color:black">TRANGROUP:2E73                 </span><span style="color:navy">push    es</span>
 <span style="color:black">TRANGROUP:2E74                 </span><span style="color:navy">pop     ds</span>
-<span style="color:black">TRANGROUP:2E75                 </span><span style="color:navy">mov     dx</span><span style="color:navy">, </span><span style="color:#ff8000">320h</span>        ; offset DATARES:Pipe1 = RESGROUP:EndInit
+<span style="color:black">TRANGROUP:2E75                 </span><span style="color:navy">mov     dx</span><span style="color:navy">, offset </span>EndInit ; offset DATARES:Pipe1 = RESGROUP:EndInit
 <span style="color:black">TRANGROUP:2E78                 </span><span style="color:navy">mov     ax</span><span style="color:navy">, </span><span style="color:green">4300h</span>
 <span style="color:black">TRANGROUP:2E7B                 </span><span style="color:navy">int     </span><span style="color:green">21h</span>             ; DOS - 2+ - GET FILE ATTRIBUTES
 <span style="color:black">TRANGROUP:2E7B                                         </span>; DS:DX -&gt; ASCIZ file name or directory
@@ -12344,7 +12338,7 @@
 <span style="color:black">TRANGROUP:33B5                 </span><span style="color:navy">push    es</span>
 <span style="color:black">TRANGROUP:33B6                 </span><span style="color:navy">push    ds:</span>pathinfo     ; [pathinfo+0]
 <span style="color:black">TRANGROUP:33BA                 </span><span style="color:navy">pop     es</span>
-<span style="color:black">TRANGROUP:33BB                 </span><span style="color:navy">cmp     byte ptr es:[si+</span><span style="color:#ff8000">2</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">'.'</span> ; ; 2Eh
+<span style="color:black">TRANGROUP:33BB                 </span><span style="color:navy">cmp     byte ptr es:[si+</span><span style="color:#ff8000">2</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">'.'</span> ; 2Eh
 <span style="color:black">TRANGROUP:33C0                 </span><span style="color:navy">jnz     short </span><span style="color:gray">path_cpy</span>
 <span style="color:black">TRANGROUP:33C2                 </span><span style="color:navy">cmp     byte ptr es:[si+</span><span style="color:#ff8000">1</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">':'</span> ; 3Ah
 <span style="color:black">TRANGROUP:33C7                 </span><span style="color:navy">jnz     short </span><span style="color:gray">path_cpy</span>
@@ -13259,8 +13253,8 @@
 <span style="color:maroon">TRANGROUP:38D1                 </span><span style="color:navy">mov     </span>NXTADD<span style="color:navy">, ax</span>
 <span style="color:maroon">TRANGROUP:38D4                 </span><span style="color:navy">mov     </span>ARG2S<span style="color:navy">, ax</span>       ; [DestSwitch]
 <span style="color:maroon">TRANGROUP:38D7                 </span><span style="color:navy">mov     </span>STARTEL<span style="color:navy">, ax</span>
-<span style="color:maroon">TRANGROUP:38DA                 </span><span style="color:navy">mov     </span>DestTail<span style="color:navy">, ax</span>    ; [DestClosed]
-<span style="color:maroon">TRANGROUP:38DD                 </span><span style="color:navy">mov     </span>SPECDRV<span style="color:navy">, al</span>
+<span style="color:maroon">TRANGROUP:38DA                 </span><span style="color:navy">mov     </span>DestTail<span style="color:navy">, ax</span>
+<span style="color:maroon">TRANGROUP:38DD                 </span><span style="color:navy">mov     </span>SPECDRV<span style="color:navy">, al</span>     ; [DestClosed]
 <span style="color:maroon">TRANGROUP:38E0                 </span><span style="color:navy">mov     </span>DestSiz<span style="color:navy">, al</span>
 <span style="color:maroon">TRANGROUP:38E3                 </span><span style="color:navy">mov     </span>SrcSiz<span style="color:navy">, al</span>
 <span style="color:maroon">TRANGROUP:38E6                 </span><span style="color:navy">mov     </span>DestInfo<span style="color:navy">, al</span>
@@ -14132,13 +14126,9 @@
 <span style="color:black">TRANGROUP:3F43
 </span><span style="color:black">TRANGROUP:3F43 </span><span style="color:gray">Xa_Set_Error</span><span style="color:navy">:                           </span><span style="color:green">; ...
 </span><span style="color:black">TRANGROUP:3F43                 </span><span style="color:navy">call    </span>Set_Ext_Error_Msg
-<span style="color:black">TRANGROUP:3F46
-</span><span style="color:black">TRANGROUP:3F46 </span>Ext_Err_Set<span style="color:navy">:
-</span><span style="color:black">TRANGROUP:3F46                 </span><span style="color:navy">mov     ds:</span>string_ptr_2<span style="color:navy">, offset </span>DestBuf
+<span style="color:black">TRANGROUP:3F46                 </span><span style="color:navy">mov     ds:</span>string_ptr_2<span style="color:navy">, offset </span>DestBuf
 <span style="color:black">TRANGROUP:3F4C                 </span><span style="color:navy">mov     ds:</span>extend_buf_sub<span style="color:navy">, </span><span style="color:#ff8000">1</span>
-<span style="color:black">TRANGROUP:3F51
-</span><span style="color:black">TRANGROUP:3F51 </span>CopErrJ2<span style="color:navy">:
-</span><span style="color:black">TRANGROUP:3F51                 </span><span style="color:navy">jmp     </span>COPYERR
+<span style="color:black">TRANGROUP:3F51                 </span><span style="color:navy">jmp     </span>COPYERR
 <span style="color:black">TRANGROUP:3F54 </span><span style="color:gray">; ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
 </span><span style="color:black">TRANGROUP:3F54
 </span><span style="color:black">TRANGROUP:3F54 </span><span style="color:gray">Dest_Open_Okay</span><span style="color:navy">:                         </span><span style="color:green">; ...
@@ -15384,7 +15374,7 @@
 </span><span style="color:black">TRANGROUP:4762 </span><span style="color:gray">$P_RLT00</span><span style="color:navy">:                               </span><span style="color:green">; ...
 </span><span style="color:black">TRANGROUP:4762                 </span><span style="color:navy">cmp     al</span><span style="color:navy">, </span><span style="color:#ff8000">2</span>           ; $P_List_Idx
 <span style="color:black">TRANGROUP:4764                 </span><span style="color:navy">jnz     short </span><span style="color:gray">$P_RLT01</span>
-<span style="color:black">TRANGROUP:4766                 </span><span style="color:navy">mov     es:[di+</span><span style="color:#ff8000">4</span><span style="color:navy">]</span><span style="color:navy">, dx</span>   ; es:di+$P_RESULT_BLK.$P_Picked_Val]
+<span style="color:black">TRANGROUP:4766                 </span><span style="color:navy">mov     es:[di+</span><span style="color:#ff8000">4</span><span style="color:navy">]</span><span style="color:navy">, dx</span>   ; [es:di+$P_RESULT_BLK.$P_Picked_Val]
 <span style="color:black">TRANGROUP:476A                 </span><span style="color:navy">jmp     short </span><span style="color:gray">$P_RLT_Exit</span>
 <span style="color:black">TRANGROUP:476C </span><span style="color:gray">; ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
 </span><span style="color:black">TRANGROUP:476C
@@ -15959,7 +15949,7 @@
 <span style="color:black">TRANGROUP:4AD4                 </span><span style="color:navy">mov     dl</span><span style="color:navy">, </span><span style="color:#ff8000">2</span>           ; $P_DOSTBL_Char
 <span style="color:black">TRANGROUP:4AD6
 </span><span style="color:black">TRANGROUP:4AD6 </span><span style="color:gray">$P_SCOM_Loop</span><span style="color:navy">:                           </span><span style="color:green">; ...
-</span><span style="color:black">TRANGROUP:4AD6                 </span><span style="color:navy">mov     al</span><span style="color:navy">, cs:[si]</span>
+</span><span style="color:black">TRANGROUP:4AD6                 </span><span style="color:navy">mov     al</span><span style="color:navy">, cs:[si]</span>     ; 1st string
 <span style="color:black">TRANGROUP:4AD9                 </span><span style="color:navy">call    </span>$P_Chk_DBCS
 <span style="color:black">TRANGROUP:4ADC                 </span><span style="color:navy">jb      short </span><span style="color:gray">$P_SCOM00</span>
 <span style="color:black">TRANGROUP:4ADE                 </span><span style="color:navy">call    </span>$P_Do_CAPS_Char
@@ -15986,7 +15976,7 @@
 <span style="color:black">TRANGROUP:4B0C </span><span style="color:gray">; ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
 </span><span style="color:black">TRANGROUP:4B0C
 </span><span style="color:black">TRANGROUP:4B0C </span><span style="color:gray">$P_SCOM03</span><span style="color:navy">:                              </span><span style="color:green">; ...
-</span><span style="color:black">TRANGROUP:4B0C                 </span><span style="color:navy">cmp     al</span><span style="color:navy">, es:[bp+</span><span style="color:#ff8000">0</span><span style="color:navy">]</span>
+</span><span style="color:black">TRANGROUP:4B0C                 </span><span style="color:navy">cmp     al</span><span style="color:navy">, es:[bp+</span><span style="color:#ff8000">0</span><span style="color:navy">]</span>   ; 2nd string (must be upper case)
 <span style="color:black">TRANGROUP:4B10                 </span><span style="color:navy">jnz     short </span><span style="color:gray">$P_SCOM_Differ0</span>
 <span style="color:black">TRANGROUP:4B12                 </span><span style="color:navy">or      al</span><span style="color:navy">, al</span>
 <span style="color:black">TRANGROUP:4B14                 </span><span style="color:navy">jz      short </span><span style="color:gray">$P_SCOM_Same</span>
@@ -16154,7 +16144,6 @@
 </span><span style="color:black">TRANGROUP:4C26 </span>$P_Set_CDI      proc near               <span style="color:green">; ...
 </span><span style="color:black">TRANGROUP:4C26                 </span><span style="color:navy">lea     si</span><span style="color:navy">, </span>$P_Country_Info ; (lea si,ds:8960h)
 <span style="color:black">TRANGROUP:4C26                                         </span>; lea si,psdata_seg:$P_Country_Info
-<span style="color:black">TRANGROUP:4C26                                         </span>;
 <span style="color:black">TRANGROUP:4C2A                 </span><span style="color:navy">cmp     word ptr cs:[si]</span><span style="color:navy">, </span><span style="color:green">0FFFFh</span> ;
 <span style="color:black">TRANGROUP:4C2A                                         </span>; cmp psdata_seg:[si].$P_CDI_DateF,$P_NeedToBeRead
 <span style="color:black">TRANGROUP:4C2E                 </span><span style="color:navy">jz      short </span><span style="color:gray">$P_Read_CDI</span>
@@ -16920,7 +16909,8 @@
 <span style="color:black">TRANGROUP:5084                 </span><span style="color:navy">loop    </span><span style="color:gray">set_subst</span>
 <span style="color:black">TRANGROUP:5086                 </span><span style="color:navy">pop     cx</span>
 <span style="color:black">TRANGROUP:5087                 </span><span style="color:navy">mov     bx</span><span style="color:navy">, si</span>
-<span style="color:black">TRANGROUP:5089                 </span><span style="color:navy">cmp     word ptr [bx+</span><span style="color:#ff8000">2</span><span style="color:navy">]</span><span style="color:navy">, offset </span>string_ptr_2 ; [bx.$M_S_VALUE],offset trangroup:string_ptr_2
+<span style="color:black">TRANGROUP:5089                 </span><span style="color:navy">cmp     word ptr [bx+</span><span style="color:#ff8000">2</span><span style="color:navy">]</span><span style="color:navy">, offset </span>string_ptr_2 ;
+<span style="color:black">TRANGROUP:5089                                         </span>; [bx.$M_S_VALUE],offset trangroup:string_ptr_2
 <span style="color:black">TRANGROUP:508E                 </span><span style="color:navy">jnz     short </span><span style="color:gray">ready_to_print</span>
 <span style="color:black">TRANGROUP:5090                 </span><span style="color:navy">mov     dx</span><span style="color:navy">, ds:</span>string_ptr_2
 <span style="color:black">TRANGROUP:5094                 </span><span style="color:navy">mov     [bx+</span><span style="color:#ff8000">2</span><span style="color:navy">]</span><span style="color:navy">, dx</span>      ; [bx.$M_S_VALUE],dx
@@ -17046,8 +17036,8 @@
 <span style="color:black">TRANGROUP:5144                 </span><span style="color:navy">int     </span><span style="color:green">2Fh</span>             ; Multiplex - DOS 3+ internal - GET OR SET ERROR TABLE ADDRESSES
 <span style="color:black">TRANGROUP:5144                                         </span>; DL = subfunction - get ??? error table
 <span style="color:black">TRANGROUP:5144                                         </span>; ES:DI -&gt; error table
-<span style="color:black">TRANGROUP:5146                 </span><span style="color:navy">mov     ds:</span>$M_RT_$M_EXT_FILE<span style="color:navy">+</span><span style="color:green">2</span><span style="color:navy">, es</span>
-<span style="color:black">TRANGROUP:514A                 </span><span style="color:navy">mov     ds:</span>$M_RT_$M_EXT_FILE<span style="color:navy">, di</span>
+<span style="color:black">TRANGROUP:5146                 </span><span style="color:navy">mov     ds:</span>$M_RT_$M_EXT_FILE<span style="color:navy">+</span><span style="color:green">2</span><span style="color:navy">, es</span> ; [$M_RT+6]
+<span style="color:black">TRANGROUP:514A                 </span><span style="color:navy">mov     ds:</span>$M_RT_$M_EXT_FILE<span style="color:navy">, di</span> ; [$M_RT+4]
 <span style="color:black">TRANGROUP:514E                 </span><span style="color:navy">call    </span>$M_MSGSERV_1
 <span style="color:black">TRANGROUP:5151                 </span><span style="color:navy">mov     ds:</span>$M_RT_$M_EXT_ERR_ADDRS<span style="color:navy">+</span><span style="color:green">2</span><span style="color:navy">, es</span> ; [$M_RT+2]
 <span style="color:black">TRANGROUP:5155                 </span><span style="color:navy">mov     ds:</span>$M_RT_$M_EXT_ERR_ADDRS<span style="color:navy">, di</span> ; [$M_RT+0]
@@ -17165,7 +17155,8 @@
 </span><span style="color:black">TRANGROUP:51E5 </span><span style="color:gray">$MDO36</span><span style="color:navy">:                                 </span><span style="color:green">; ...
 </span><span style="color:black">TRANGROUP:51E5                 </span><span style="color:navy">cmp     dh</span><span style="color:navy">, </span><span style="color:#ff8000">0FFh</span>        ; UTILITY_MSG_CLASS
 <span style="color:black">TRANGROUP:51E8                 </span><span style="color:navy">jnz     short </span><span style="color:gray">$MIF37</span>
-<span style="color:black">TRANGROUP:51EA                 </span><span style="color:navy">mov     di</span><span style="color:navy">, </span>$M_RT_$M_CLASS_ADDRS<span style="color:navy">[si]</span> ; DWORD PTR $M_RT.$M_CLASS_ADDRS[SI]
+<span style="color:black">TRANGROUP:51EA                 </span><span style="color:navy">mov     di</span><span style="color:navy">, </span>$M_RT_$M_CLASS_ADDRS<span style="color:navy">[si]</span> ;
+<span style="color:black">TRANGROUP:51EA                                         </span>; DWORD PTR $M_RT.$M_CLASS_ADDRS[SI]
 <span style="color:black">TRANGROUP:51EE                 </span><span style="color:navy">mov     bx</span><span style="color:navy">, di</span>
 <span style="color:black">TRANGROUP:51F0                 </span><span style="color:navy">jmp     short </span><span style="color:gray">$MEN37</span>
 <span style="color:black">TRANGROUP:51F2 </span><span style="color:gray">; ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
@@ -17173,7 +17164,8 @@
 </span><span style="color:black">TRANGROUP:51F2 </span><span style="color:gray">$MIF37</span><span style="color:navy">:                                 </span><span style="color:green">; ...
 </span><span style="color:black">TRANGROUP:51F2                 </span><span style="color:navy">test    dh</span><span style="color:navy">, </span><span style="color:green">2</span>           ; PARSE_ERR_CLASS
 <span style="color:black">TRANGROUP:51F5                 </span><span style="color:navy">jz      short </span><span style="color:gray">$MIF39</span>
-<span style="color:black">TRANGROUP:51F7                 </span><span style="color:navy">les     di</span><span style="color:navy">, dword ptr </span>$M_RT_$M_PARSE_COMMAND<span style="color:navy">[si]</span> ; DWORD PTR $M_RT.$M_PARSE_COMMAND[SI]
+<span style="color:black">TRANGROUP:51F7                 </span><span style="color:navy">les     di</span><span style="color:navy">, dword ptr </span>$M_RT_$M_PARSE_COMMAND<span style="color:navy">[si]</span> ;
+<span style="color:black">TRANGROUP:51F7                                         </span>; DWORD PTR $M_RT.$M_PARSE_COMMAND[SI]
 <span style="color:black">TRANGROUP:51FB                 </span><span style="color:navy">mov     bx</span><span style="color:navy">, es</span>
 <span style="color:black">TRANGROUP:51FD                 </span><span style="color:navy">jmp     short </span><span style="color:gray">$MEN37</span>
 <span style="color:black">TRANGROUP:51FF </span><span style="color:gray">; ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
@@ -17183,13 +17175,15 @@
 <span style="color:black">TRANGROUP:5202                 </span><span style="color:navy">jb      short </span><span style="color:gray">$MIF41</span>
 <span style="color:black">TRANGROUP:5204                 </span><span style="color:navy">cmp     ax</span><span style="color:navy">, </span><span style="color:green">39</span>          ; $M_CRIT_HI
 <span style="color:black">TRANGROUP:5207                 </span><span style="color:navy">ja      short </span><span style="color:gray">$MIF41</span>
-<span style="color:black">TRANGROUP:5209                 </span><span style="color:navy">les     di</span><span style="color:navy">, dword ptr </span>$M_RT_$M_CRIT_ADDRS<span style="color:navy">[si]</span> ; DWORD PTR $M_RT.$M_CRIT_ADDRS[SI]
+<span style="color:black">TRANGROUP:5209                 </span><span style="color:navy">les     di</span><span style="color:navy">, dword ptr </span>$M_RT_$M_CRIT_ADDRS<span style="color:navy">[si]</span> ;
+<span style="color:black">TRANGROUP:5209                                         </span>; DWORD PTR $M_RT.$M_CRIT_ADDRS[SI]
 <span style="color:black">TRANGROUP:520D                 </span><span style="color:navy">mov     bx</span><span style="color:navy">, es</span>
 <span style="color:black">TRANGROUP:520F                 </span><span style="color:navy">jmp     short </span><span style="color:gray">$MEN37</span>
 <span style="color:black">TRANGROUP:5211 </span><span style="color:gray">; ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
 </span><span style="color:black">TRANGROUP:5211
 </span><span style="color:black">TRANGROUP:5211 </span><span style="color:gray">$MIF41</span><span style="color:navy">:                                 </span><span style="color:green">; ...
-</span><span style="color:black">TRANGROUP:5211                 </span><span style="color:navy">les     di</span><span style="color:navy">, dword ptr </span>$M_RT_$M_EXT_ERR_ADDRS<span style="color:navy">[si]</span> ; DWORD PTR $M_RT.$M_EXT_ERR_ADDRS[SI]
+</span><span style="color:black">TRANGROUP:5211                 </span><span style="color:navy">les     di</span><span style="color:navy">, dword ptr </span>$M_RT_$M_EXT_ERR_ADDRS<span style="color:navy">[si]</span> ;
+<span style="color:black">TRANGROUP:5211                                         </span>; DWORD PTR $M_RT.$M_EXT_ERR_ADDRS[SI]
 <span style="color:black">TRANGROUP:5215                 </span><span style="color:navy">mov     bx</span><span style="color:navy">, es</span>
 <span style="color:black">TRANGROUP:5217
 </span><span style="color:black">TRANGROUP:5217 </span><span style="color:gray">$MEN37</span><span style="color:navy">:                                 </span><span style="color:green">; ...
@@ -17364,7 +17358,7 @@
 <span style="color:black">TRANGROUP:52DB </span><span style="color:gray">; ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
 </span><span style="color:black">TRANGROUP:52DB
 </span><span style="color:black">TRANGROUP:52DB </span><span style="color:gray">$MIF78</span><span style="color:navy">:                                 </span><span style="color:green">; ...
-</span><span style="color:black">TRANGROUP:52DB                 </span><span style="color:navy">cmp     ax</span><span style="color:navy">, cs:[di]</span>     ; ,WORD PTR CS:[DI].$M_NUM
+</span><span style="color:black">TRANGROUP:52DB                 </span><span style="color:navy">cmp     ax</span><span style="color:navy">, cs:[di]</span>     ; WORD PTR CS:[DI].$M_NUM
 <span style="color:black">TRANGROUP:52DE
 </span><span style="color:black">TRANGROUP:52DE </span><span style="color:gray">$MEN78</span><span style="color:navy">:                                 </span><span style="color:green">; ...
 </span><span style="color:black">TRANGROUP:52DE                 </span><span style="color:navy">jnz     short </span><span style="color:gray">$MIF76</span>
@@ -17784,7 +17778,8 @@
 </span><span style="color:black">TRANGROUP:5499 </span><span style="color:gray">$MLL149</span><span style="color:navy">:                                </span><span style="color:green">; ...
 </span><span style="color:black">TRANGROUP:5499                 </span><span style="color:navy">cmp     cx</span><span style="color:navy">, </span><span style="color:#ff8000">3</span>           ; $M_FIRST_THOU
 <span style="color:black">TRANGROUP:549C                 </span><span style="color:navy">jnz     short </span><span style="color:gray">$MIF150</span>
-<span style="color:black">TRANGROUP:549E                 </span><span style="color:navy">cmp     byte ptr [si+</span><span style="color:#ff8000">0Ah</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">','</span> ; $M_SL.$M_S_PAD,$M_COMMA ($M_SL = [DS:SI])
+<span style="color:black">TRANGROUP:549E                 </span><span style="color:navy">cmp     byte ptr [si+</span><span style="color:#ff8000">0Ah</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">','</span> ;
+<span style="color:black">TRANGROUP:549E                                         </span>; $M_SL.$M_S_PAD,$M_COMMA ($M_SL = [DS:SI])
 <span style="color:black">TRANGROUP:54A2                 </span><span style="color:navy">jnz     short </span><span style="color:gray">$MIF151</span>
 <span style="color:black">TRANGROUP:54A4                 </span><span style="color:navy">push    ds:</span>$M_RT_$M_THOU_SEPARA ; word $M_RT.$M_THOU_SEPARA
 <span style="color:black">TRANGROUP:54A8                 </span><span style="color:navy">inc     cx</span>
@@ -17959,7 +17954,8 @@
 <span style="color:black">TRANGROUP:5577                 </span><span style="color:navy">cmp     ds:</span>$M_RT_$M_MSG_NUM<span style="color:navy">, </span><span style="color:#ff8000">0</span> ; $M_RT.$M_MSG_NUM,$M_NULL
 <span style="color:black">TRANGROUP:5577                                         </span>; [$M_RT+72],0
 <span style="color:black">TRANGROUP:557C                 </span><span style="color:navy">jnz     short </span><span style="color:gray">$MIF199</span>
-<span style="color:black">TRANGROUP:557E                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">0Fh</span> ; $M_SL.$M_S_FLAG,NOT Char_Type AND $M_TYPE_MASK
+<span style="color:black">TRANGROUP:557E                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">0Fh</span> ;
+<span style="color:black">TRANGROUP:557E                                         </span>; $M_SL.$M_S_FLAG,NOT Char_Type AND $M_TYPE_MASK
 <span style="color:black">TRANGROUP:5582                 </span><span style="color:navy">jnz     short </span><span style="color:gray">$MIF200</span>
 <span style="color:black">TRANGROUP:5584                 </span><span style="color:navy">les     di</span><span style="color:navy">, [si+</span><span style="color:#ff8000">2</span><span style="color:navy">]</span>      ; $M_SL.$M_S_VALUE
 <span style="color:black">TRANGROUP:5587                 </span><span style="color:navy">call    </span>$M_CHAR_REPLACE
@@ -17967,11 +17963,14 @@
 <span style="color:black">TRANGROUP:558C </span><span style="color:gray">; ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
 </span><span style="color:black">TRANGROUP:558C
 </span><span style="color:black">TRANGROUP:558C </span><span style="color:gray">$MIF200</span><span style="color:navy">:                                </span><span style="color:green">; ...
-</span><span style="color:black">TRANGROUP:558C                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">0Dh</span> ; $M_SL.$M_S_FLAG,NOT Sgn_Bin_Type AND $M_TYPE_MASK
+</span><span style="color:black">TRANGROUP:558C                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">0Dh</span> ;
+<span style="color:black">TRANGROUP:558C                                         </span>; $M_SL.$M_S_FLAG,NOT Sgn_Bin_Type AND $M_TYPE_MASK
 <span style="color:black">TRANGROUP:5590                 </span><span style="color:navy">jz      short </span><span style="color:gray">$MLL202</span>
-<span style="color:black">TRANGROUP:5592                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">0Eh</span> ; $M_SL.$M_S_FLAG,NOT Unsgn_Bin_Type AND $M_TYPE_MASK
+<span style="color:black">TRANGROUP:5592                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">0Eh</span> ;
+<span style="color:black">TRANGROUP:5592                                         </span>; $M_SL.$M_S_FLAG,NOT Unsgn_Bin_Type AND $M_TYPE_MASK
 <span style="color:black">TRANGROUP:5596                 </span><span style="color:navy">jz      short </span><span style="color:gray">$MLL202</span>
-<span style="color:black">TRANGROUP:5598                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">0Ch</span> ; $M_SL.$M_S_FLAG,NOT Bin_Hex_Type AND $M_TYPE_MASK
+<span style="color:black">TRANGROUP:5598                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">0Ch</span> ;
+<span style="color:black">TRANGROUP:5598                                         </span>; $M_SL.$M_S_FLAG,NOT Bin_Hex_Type AND $M_TYPE_MASK
 <span style="color:black">TRANGROUP:559C                 </span><span style="color:navy">jnz     short </span><span style="color:gray">$MIF202</span>
 <span style="color:black">TRANGROUP:559E
 </span><span style="color:black">TRANGROUP:559E </span><span style="color:gray">$MLL202</span><span style="color:navy">:                                </span><span style="color:green">; ...
@@ -18067,10 +18066,12 @@
 </span><span style="color:black">TRANGROUP:5609                 </span><span style="color:navy">xor     bx</span><span style="color:navy">, bx</span>
 <span style="color:black">TRANGROUP:560B                 </span><span style="color:navy">cmp     byte ptr [si+</span><span style="color:#ff8000">6</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:#ff8000">0</span> ; $M_SL.$M_S_ID,$M_SPECIAL_CASE-30H
 <span style="color:black">TRANGROUP:560F                 </span><span style="color:navy">jnz     short </span><span style="color:gray">$MIF276</span>
-<span style="color:black">TRANGROUP:5611                 </span><span style="color:navy">mov     ds:</span>$M_RT_$M_TEMP_BUF<span style="color:navy">[bx]</span><span style="color:navy">, </span><span style="color:#ff8000">2D20h</span> ; $M_RT.$M_TEMP_BUF[BX],$M_SPACE_HYP
+<span style="color:black">TRANGROUP:5611                 </span><span style="color:navy">mov     ds:</span>$M_RT_$M_TEMP_BUF<span style="color:navy">[bx]</span><span style="color:navy">, </span><span style="color:#ff8000">2D20h</span> ;
+<span style="color:black">TRANGROUP:5611                                         </span>; $M_RT.$M_TEMP_BUF[BX],$M_SPACE_HYP
 <span style="color:black">TRANGROUP:5617                 </span><span style="color:navy">inc     bx</span>
 <span style="color:black">TRANGROUP:5618                 </span><span style="color:navy">inc     bx</span>
-<span style="color:black">TRANGROUP:5619                 </span><span style="color:navy">mov     byte ptr ds:</span>$M_RT_$M_TEMP_BUF<span style="color:navy">[bx]</span><span style="color:navy">, </span><span style="color:green">20h</span> ; $M_RT.$M_TEMP_BUF[BX],$M_SPACE
+<span style="color:black">TRANGROUP:5619                 </span><span style="color:navy">mov     byte ptr ds:</span>$M_RT_$M_TEMP_BUF<span style="color:navy">[bx]</span><span style="color:navy">, </span><span style="color:green">20h</span> ;
+<span style="color:black">TRANGROUP:5619                                         </span>; $M_RT.$M_TEMP_BUF[BX],$M_SPACE
 <span style="color:black">TRANGROUP:561E                 </span><span style="color:navy">inc     bx</span>
 <span style="color:black">TRANGROUP:561F                 </span><span style="color:navy">call    </span>$M_FLUSH_BUF
 <span style="color:black">TRANGROUP:5622
@@ -18114,9 +18115,11 @@
 <span style="color:black">TRANGROUP:5665                 </span><span style="color:navy">jz      short </span><span style="color:gray">$MIF290</span>
 <span style="color:black">TRANGROUP:5667
 </span><span style="color:black">TRANGROUP:5667 </span><span style="color:gray">$MDO291</span><span style="color:navy">:                                </span><span style="color:green">; ...
-</span><span style="color:black">TRANGROUP:5667                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">0Fh</span> ; $M_SL.$M_S_FLAG,NOT Char_Type AND $M_TYPE_MASK
+</span><span style="color:black">TRANGROUP:5667                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">0Fh</span> ;
+<span style="color:black">TRANGROUP:5667                                         </span>; $M_SL.$M_S_FLAG,NOT Char_Type AND $M_TYPE_MASK
 <span style="color:black">TRANGROUP:566B                 </span><span style="color:navy">jnz     short </span><span style="color:gray">$MIF292</span>
-<span style="color:black">TRANGROUP:566D                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">10h</span> ; $M_SL.$M_S_FLAG,Char_field_ASCIIZ AND $M_SIZE_MASK
+<span style="color:black">TRANGROUP:566D                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">10h</span> ;
+<span style="color:black">TRANGROUP:566D                                         </span>; $M_SL.$M_S_FLAG,Char_field_ASCIIZ AND $M_SIZE_MASK
 <span style="color:black">TRANGROUP:5671                 </span><span style="color:navy">jz      short </span><span style="color:gray">$MIF292</span>
 <span style="color:black">TRANGROUP:5673                 </span><span style="color:navy">mov     al</span><span style="color:navy">, es:[di]</span>
 <span style="color:black">TRANGROUP:5676                 </span><span style="color:navy">inc     di</span>
@@ -18127,7 +18130,8 @@
 </span><span style="color:black">TRANGROUP:5679                 </span><span style="color:navy">pop     ax</span>
 <span style="color:black">TRANGROUP:567A
 </span><span style="color:black">TRANGROUP:567A </span><span style="color:gray">$MEN292</span><span style="color:navy">:                                </span><span style="color:green">; ...
-</span><span style="color:black">TRANGROUP:567A                 </span><span style="color:navy">mov     byte ptr ds:</span>$M_RT_$M_TEMP_BUF<span style="color:navy">[bx]</span><span style="color:navy">, al</span> ; MOV BYTE PTR $M_RT.$M_TEMP_BUF[BX],AL
+</span><span style="color:black">TRANGROUP:567A                 </span><span style="color:navy">mov     byte ptr ds:</span>$M_RT_$M_TEMP_BUF<span style="color:navy">[bx]</span><span style="color:navy">, al</span> ;
+<span style="color:black">TRANGROUP:567A                                         </span>; MOV BYTE PTR $M_RT.$M_TEMP_BUF[BX],AL
 <span style="color:black">TRANGROUP:567A                                         </span>; mov [bx+$M_RT+76],al
 <span style="color:black">TRANGROUP:567E                 </span><span style="color:navy">inc     bx</span>
 <span style="color:black">TRANGROUP:567F                 </span><span style="color:navy">cmp     bx</span><span style="color:navy">, </span><span style="color:green">64</span>          ; $M_TEMP_BUF_SZ
@@ -18145,7 +18149,8 @@
 <span style="color:black">TRANGROUP:5693                 </span><span style="color:navy">jz      short </span><span style="color:gray">$MIF299</span>
 <span style="color:black">TRANGROUP:5695
 </span><span style="color:black">TRANGROUP:5695 </span><span style="color:gray">$MDO301</span><span style="color:navy">:                                </span><span style="color:green">; ...
-</span><span style="color:black">TRANGROUP:5695                 </span><span style="color:navy">mov     al</span><span style="color:navy">, [si+</span><span style="color:#ff8000">0Ah</span><span style="color:navy">]</span>    ; $M_SL.$M_S_PAD  (ds:si+$M_SUBLIST_STRUC.$M_S_PAD)
+</span><span style="color:black">TRANGROUP:5695                 </span><span style="color:navy">mov     al</span><span style="color:navy">, [si+</span><span style="color:#ff8000">0Ah</span><span style="color:navy">]</span>    ; $M_SL.$M_S_PAD
+<span style="color:black">TRANGROUP:5695                                         </span>; (ds:si+$M_SUBLIST_STRUC.$M_S_PAD)
 <span style="color:black">TRANGROUP:5698                 </span><span style="color:navy">mov     byte ptr ds:</span>$M_RT_$M_TEMP_BUF<span style="color:navy">[bx]</span><span style="color:navy">, al</span>
 <span style="color:black">TRANGROUP:569C                 </span><span style="color:navy">inc     bx</span>
 <span style="color:black">TRANGROUP:569D                 </span><span style="color:navy">cmp     bx</span><span style="color:navy">, </span><span style="color:green">64</span>          ; $M_TEMP_BUF_SZ
@@ -18157,9 +18162,11 @@
 <span style="color:black">TRANGROUP:56A7                 </span><span style="color:navy">jnz     short </span><span style="color:gray">$MDO301</span>
 <span style="color:black">TRANGROUP:56A9
 </span><span style="color:black">TRANGROUP:56A9 </span><span style="color:gray">$MIF299</span><span style="color:navy">:                                </span><span style="color:green">; ...
-</span><span style="color:black">TRANGROUP:56A9                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">0Fh</span> ; $M_SL.$M_S_FLAG,NOT Char_Type AND $M_TYPE_MASK
+</span><span style="color:black">TRANGROUP:56A9                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">0Fh</span> ;
+<span style="color:black">TRANGROUP:56A9                                         </span>; $M_SL.$M_S_FLAG,NOT Char_Type AND $M_TYPE_MASK
 <span style="color:black">TRANGROUP:56AD                 </span><span style="color:navy">jnz     short </span><span style="color:gray">$MIF307</span>
-<span style="color:black">TRANGROUP:56AF                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">10h</span> ; $M_SL.$M_S_FLAG,Char_field_ASCIIZ AND $M_SIZE_MASK
+<span style="color:black">TRANGROUP:56AF                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">10h</span> ;
+<span style="color:black">TRANGROUP:56AF                                         </span>; $M_SL.$M_S_FLAG,Char_field_ASCIIZ AND $M_SIZE_MASK
 <span style="color:black">TRANGROUP:56B3                 </span><span style="color:navy">jz      short </span><span style="color:gray">$MIF307</span>
 <span style="color:black">TRANGROUP:56B5                 </span><span style="color:navy">jmp     short </span><span style="color:gray">$MEN307</span>
 <span style="color:black">TRANGROUP:56B7 </span><span style="color:gray">; ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
@@ -18216,8 +18223,9 @@
 </span><span style="color:black">TRANGROUP:56E4
 </span><span style="color:black">TRANGROUP:56E4 </span>$M_CHAR_REPLACE proc near               <span style="color:green">; ...
 </span><span style="color:black">TRANGROUP:56E4                 </span><span style="color:navy">pop     bp</span>
-<span style="color:black">TRANGROUP:56E5                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">30h</span> ; $M_SL.$M_S_FLAG,NOT Char_Field_Char AND $M_SIZE_MASK
-<span style="color:black">TRANGROUP:56E9                 </span><span style="color:navy">jnz     short </span><span style="color:gray">MIF317</span>
+<span style="color:black">TRANGROUP:56E5                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">30h</span> ;
+<span style="color:black">TRANGROUP:56E5                                         </span>; $M_SL.$M_S_FLAG,NOT Char_Field_Char AND $M_SIZE_MASK
+<span style="color:black">TRANGROUP:56E9                 </span><span style="color:navy">jnz     short </span><span style="color:gray">$MIF317</span>
 <span style="color:black">TRANGROUP:56EB                 </span><span style="color:navy">mov     al</span><span style="color:navy">, es:[di]</span>
 <span style="color:black">TRANGROUP:56EE                 </span><span style="color:navy">push    ax</span>
 <span style="color:black">TRANGROUP:56EF                 </span><span style="color:navy">inc     cx</span>
@@ -18231,13 +18239,13 @@
 </span><span style="color:black">TRANGROUP:56FB                 </span><span style="color:navy">jmp     short </span><span style="color:gray">$MEN317</span>
 <span style="color:black">TRANGROUP:56FD </span><span style="color:gray">; ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
 </span><span style="color:black">TRANGROUP:56FD
-</span><span style="color:black">TRANGROUP:56FD </span><span style="color:gray">MIF317</span><span style="color:navy">:                                 </span><span style="color:green">; ...
+</span><span style="color:black">TRANGROUP:56FD </span><span style="color:gray">$MIF317</span><span style="color:navy">:                                </span><span style="color:green">; ...
 </span><span style="color:black">TRANGROUP:56FD                 </span><span style="color:navy">mov     al</span><span style="color:navy">, es:[di]</span>
 <span style="color:black">TRANGROUP:5700                 </span><span style="color:navy">or      al</span><span style="color:navy">, al</span>
 <span style="color:black">TRANGROUP:5702                 </span><span style="color:navy">jz      short </span><span style="color:gray">$MEN321</span>
 <span style="color:black">TRANGROUP:5704                 </span><span style="color:navy">inc     di</span>
 <span style="color:black">TRANGROUP:5705                 </span><span style="color:navy">inc     cx</span>
-<span style="color:black">TRANGROUP:5706                 </span><span style="color:navy">jmp     short </span><span style="color:gray">MIF317</span>
+<span style="color:black">TRANGROUP:5706                 </span><span style="color:navy">jmp     short </span><span style="color:gray">$MIF317</span>
 <span style="color:black">TRANGROUP:5708 </span><span style="color:gray">; ¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦
 </span><span style="color:black">TRANGROUP:5708
 </span><span style="color:black">TRANGROUP:5708 </span><span style="color:gray">$MEN321</span><span style="color:navy">:                                </span><span style="color:green">; ...
@@ -18311,7 +18319,7 @@
 <span style="color:black">TRANGROUP:5772                 </span><span style="color:navy">mov     dx</span><span style="color:navy">, es:[di+</span><span style="color:#ff8000">2</span><span style="color:navy">]</span>
 <span style="color:black">TRANGROUP:5776                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">0Dh</span> ; $M_SL.$M_S_FLAG,NOT Sgn_Bin_Type AND $M_TYPE_MASK
 <span style="color:black">TRANGROUP:577A                 </span><span style="color:navy">jnz     short </span><span style="color:gray">$MIF341</span>
-<span style="color:black">TRANGROUP:577C                 </span><span style="color:navy">test    dh</span><span style="color:navy">, </span><span style="color:green">80h</span>         ; test    dh,10000000b
+<span style="color:black">TRANGROUP:577C                 </span><span style="color:navy">test    dh</span><span style="color:navy">, </span><span style="color:green">80h</span>         ; test dh,10000000b
 <span style="color:black">TRANGROUP:577F                 </span><span style="color:navy">jz      short </span><span style="color:gray">$MIF342</span>
 <span style="color:black">TRANGROUP:5781                 </span><span style="color:navy">inc     bx</span>
 <span style="color:black">TRANGROUP:5782                 </span><span style="color:navy">and     dh</span><span style="color:navy">, </span><span style="color:green">7Fh</span>         ; and dh,01111111b
@@ -18492,7 +18500,8 @@
 </span><span style="color:black">TRANGROUP:5895 </span><span style="color:gray">$MIF365</span><span style="color:navy">:                                </span><span style="color:green">; ...
 </span><span style="color:black">TRANGROUP:5895                 </span><span style="color:navy">xor     ax</span><span style="color:navy">, ax</span>
 <span style="color:black">TRANGROUP:5897                 </span><span style="color:navy">xor     dx</span><span style="color:navy">, dx</span>
-<span style="color:black">TRANGROUP:5899                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">20h</span> ; $M_SL.$M_S_FLAG,Time_HHMMSSHH_Cty AND $M_SIZE_MASK
+<span style="color:black">TRANGROUP:5899                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">20h</span> ;
+<span style="color:black">TRANGROUP:5899                                         </span>; $M_SL.$M_S_FLAG,Time_HHMMSSHH_Cty AND $M_SIZE_MASK
 <span style="color:black">TRANGROUP:589D                 </span><span style="color:navy">jz      short </span><span style="color:gray">$MIF372</span>
 <span style="color:black">TRANGROUP:589F                 </span><span style="color:navy">mov     al</span><span style="color:navy">, [si+</span><span style="color:#ff8000">5</span><span style="color:navy">]</span>      ; $M_SL.$M_S_VALUE+3 ($M_SUBLIST_STRUC.$M_S_VALUE = 2)
 <span style="color:black">TRANGROUP:58A2                 </span><span style="color:navy">call    </span>$M_CONVERTTIME
@@ -18501,9 +18510,11 @@
 <span style="color:black">TRANGROUP:58A9                 </span><span style="color:navy">inc     cx</span>
 <span style="color:black">TRANGROUP:58AA
 </span><span style="color:black">TRANGROUP:58AA </span><span style="color:gray">$MIF372</span><span style="color:navy">:                                </span><span style="color:green">; ...
-</span><span style="color:black">TRANGROUP:58AA                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">20h</span> ; $M_SL.$M_S_FLAG,Time_HHMMSSHH_Cty AND $M_SIZE_MASK
+</span><span style="color:black">TRANGROUP:58AA                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">20h</span> ;
+<span style="color:black">TRANGROUP:58AA                                         </span>; $M_SL.$M_S_FLAG,Time_HHMMSSHH_Cty AND $M_SIZE_MASK
 <span style="color:black">TRANGROUP:58AE                 </span><span style="color:navy">jnz     short </span><span style="color:gray">$MLL374</span>
-<span style="color:black">TRANGROUP:58B0                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">10h</span> ; $M_SL.$M_S_FLAG,Time_HHMMSS_Cty AND $M_SIZE_MASK
+<span style="color:black">TRANGROUP:58B0                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">10h</span> ;
+<span style="color:black">TRANGROUP:58B0                                         </span>; $M_SL.$M_S_FLAG,Time_HHMMSS_Cty AND $M_SIZE_MASK
 <span style="color:black">TRANGROUP:58B4                 </span><span style="color:navy">jz      short </span><span style="color:gray">$MIF374</span>
 <span style="color:black">TRANGROUP:58B6
 </span><span style="color:black">TRANGROUP:58B6 </span><span style="color:gray">$MLL374</span><span style="color:navy">:                                </span><span style="color:green">; ...
@@ -18519,7 +18530,8 @@
 <span style="color:black">TRANGROUP:58C7                 </span><span style="color:navy">push    ds:</span>$M_RT_$M_TIME_SEPARA
 <span style="color:black">TRANGROUP:58CB                 </span><span style="color:navy">inc     cx</span>
 <span style="color:black">TRANGROUP:58CC                 </span><span style="color:navy">mov     al</span><span style="color:navy">, [si+</span><span style="color:#ff8000">2</span><span style="color:navy">]</span>      ; $M_SL.$M_S_VALUE
-<span style="color:black">TRANGROUP:58CF                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">1</span> ; $M_SL.$M_S_FLAG,Time_Cty_Type AND $M_TIME_MASK
+<span style="color:black">TRANGROUP:58CF                 </span><span style="color:navy">test    byte ptr [si+</span><span style="color:#ff8000">7</span><span style="color:navy">]</span><span style="color:navy">, </span><span style="color:green">1</span> ;
+<span style="color:black">TRANGROUP:58CF                                         </span>; $M_SL.$M_S_FLAG,Time_Cty_Type AND $M_TIME_MASK
 <span style="color:black">TRANGROUP:58D3                 </span><span style="color:navy">jz      short </span><span style="color:gray">$MIF376</span>
 <span style="color:black">TRANGROUP:58D5                 </span><span style="color:navy">cmp     ds:</span>$M_RT_$M_TIME_FORMAT<span style="color:navy">, </span><span style="color:#ff8000">0</span> ; $M_RT.$M_TIME_FORMAT
 <span style="color:black">TRANGROUP:58D5                                         </span>; cmp byte [$M_RT+93],0
@@ -18912,7 +18924,7 @@
 </span><span style="color:gray">TRANGROUP:5EC0                 </span><span style="color:navy">db </span><span style="color:#008040">16
 </span><span style="color:gray">TRANGROUP:5EC1                 </span><span style="color:navy">db 'Access denied ',0Dh,0Ah
 </span><span style="color:gray">TRANGROUP:5ED1                 </span><span style="color:navy">db </span><span style="color:#008040">41
-</span><span style="color:gray">TRANGROUP:5ED2 </span><span style="color:navy">asc_81F2        db 'Content of destination lost before copy',0Dh,0Ah
+</span><span style="color:gray">TRANGROUP:5ED2                 </span><span style="color:navy">db 'Content of destination lost before copy',0Dh,0Ah
 </span><span style="color:gray">TRANGROUP:5EFB                 </span><span style="color:navy">db </span><span style="color:#008040">36
 </span><span style="color:gray">TRANGROUP:5EFC                 </span><span style="color:navy">db 'Invalid filename or file not found',0Dh,0Ah
 </span><span style="color:gray">TRANGROUP:5F20                 </span><span style="color:navy">db </span><span style="color:#008040">19
@@ -19076,11 +19088,11 @@
 </span><span style="color:gray">TRANGROUP:65BB                 </span><span style="color:navy">db 'Type CD without parameters to display the current drive and direc'
 </span><span style="color:gray">TRANGROUP:65BB                 </span><span style="color:navy">db 'tory.',0Dh,0Ah
 </span><span style="color:gray">TRANGROUP:664C                 </span><span style="color:navy">db </span><span style="color:#008040">27
-</span><span style="color:gray">TRANGROUP:664D </span><span style="color:navy">asc_896D        db 'Clears the screen.',0Dh,0Ah
+</span><span style="color:gray">TRANGROUP:664D                 </span><span style="color:navy">db 'Clears the screen.',0Dh,0Ah
 </span><span style="color:gray">TRANGROUP:664D                 </span><span style="color:navy">db </span><span style="color:green">0Dh</span><span style="color:navy">,</span><span style="color:green">0Ah
 </span><span style="color:gray">TRANGROUP:664D                 </span><span style="color:navy">db 'CLS',0Dh,0Ah
 </span><span style="color:gray">TRANGROUP:6668                 </span><span style="color:navy">db </span><span style="color:#008040">145
-</span><span style="color:gray">TRANGROUP:6669 </span><span style="color:navy">asc_8989        db 'Copies one or more files to another location.',0Dh,0Ah
+</span><span style="color:gray">TRANGROUP:6669                 </span><span style="color:navy">db 'Copies one or more files to another location.',0Dh,0Ah
 </span><span style="color:gray">TRANGROUP:6669                 </span><span style="color:navy">db </span><span style="color:green">0Dh</span><span style="color:navy">,</span><span style="color:green">0Ah
 </span><span style="color:gray">TRANGROUP:6669                 </span><span style="color:navy">db 'COPY [/A | /B] source [/A | /B] [+ source [/A | /B] [+ ...]] [des'
 </span><span style="color:gray">TRANGROUP:6669                 </span><span style="color:navy">db 'tination',0Dh,0Ah
@@ -19126,7 +19138,7 @@
 </span><span style="color:gray">TRANGROUP:6A47                 </span><span style="color:navy">db 'fy multiple',0Dh,0Ah
 </span><span style="color:gray">TRANGROUP:6A47                 </span><span style="color:navy">db '                          files by using wildcards.',0Dh,0Ah
 </span><span style="color:gray">TRANGROUP:6ACA                 </span><span style="color:navy">db </span><span style="color:#008040">79
-</span><span style="color:gray">TRANGROUP:6ACB </span><span style="color:navy">asc_8DEB        db '  /P                      Prompts for confirmation before deletin'
+</span><span style="color:gray">TRANGROUP:6ACB                 </span><span style="color:navy">db '  /P                      Prompts for confirmation before deletin'
 </span><span style="color:gray">TRANGROUP:6ACB                 </span><span style="color:navy">db 'g each file.',0Dh,0Ah
 </span><span style="color:gray">TRANGROUP:6B1A </span>MSG_1480        <span style="color:navy">db </span><span style="color:#008040">162
 </span><span style="color:gray">TRANGROUP:6B1B                 </span><span style="color:navy">db 'Displays a list of files and subdirectories in a directory.',0Dh,0Ah
@@ -19247,7 +19259,7 @@
 </span><span style="color:gray">TRANGROUP:74E7                 </span><span style="color:navy">db 'SET [variable=[string]]',0Dh,0Ah
 </span><span style="color:gray">TRANGROUP:74E7                 </span><span style="color:navy">db </span><span style="color:green">0Dh</span><span style="color:navy">,</span><span style="color:green">0Ah
 </span><span style="color:gray">TRANGROUP:753E                 </span><span style="color:navy">db </span><span style="color:#008040">129
-</span><span style="color:gray">TRANGROUP:753F </span><span style="color:navy">asc_985F        db '  variable  Specifies the environment-variable name.',0Dh,0Ah
+</span><span style="color:gray">TRANGROUP:753F                 </span><span style="color:navy">db '  variable  Specifies the environment-variable name.',0Dh,0Ah
 </span><span style="color:gray">TRANGROUP:753F                 </span><span style="color:navy">db '  string    Specifies a series of characters to assign to the var'
 </span><span style="color:gray">TRANGROUP:753F                 </span><span style="color:navy">db 'iable.',0Dh,0Ah
 </span><span style="color:gray">TRANGROUP:753F                 </span><span style="color:navy">db </span><span style="color:green">0Dh</span><span style="color:navy">,</span><span style="color:green">0Ah
@@ -20318,8 +20330,8 @@
 </span><span style="color:gray">TRANGROUP:87E9 </span>VOL_PARMS       <span style="color:navy">db </span><span style="color:#008040">0                    </span><span style="color:#8080ff">; ...
 </span><span style="color:gray">TRANGROUP:87EA                 </span><span style="color:navy">db </span><span style="color:#008040">1
 </span><span style="color:gray">TRANGROUP:87EB                 </span><span style="color:navy">dw offset </span>DRIVE_CONTROL1
-<span style="color:olive">TRANGROUP:87ED                 </span><span style="color:navy">db    </span><span style="color:#008040">0
-</span><span style="color:olive">TRANGROUP:87EE                 </span><span style="color:navy">db    </span><span style="color:#008040">0
+<span style="color:gray">TRANGROUP:87ED                 </span><span style="color:navy">db </span><span style="color:#008040">0
+</span><span style="color:gray">TRANGROUP:87EE                 </span><span style="color:navy">db </span><span style="color:#008040">0
 </span><span style="color:gray">TRANGROUP:87EF </span>DRIVE_CONTROL1  <span style="color:navy">dw </span><span style="color:#008040">101h                 </span><span style="color:#8080ff">; ...
 </span><span style="color:gray">TRANGROUP:87F1                 </span><span style="color:navy">dw </span><span style="color:#008040">1
 </span><span style="color:gray">TRANGROUP:87F3                 </span><span style="color:navy">dw offset </span>DRIVE_OUTPUT
@@ -20491,7 +20503,7 @@
 </span><span style="color:gray">TRANGROUP:89EA </span>$M_RT_$M_TEMP_BUF <span style="color:navy">dw </span><span style="color:#008040">2424h              </span><span style="color:#8080ff">; ...
 </span><span style="color:gray">TRANGROUP:89EA                                         </span>; ($M_COUNTRY_INFO.$M_DATE_FORMAT)
 <span style="color:gray">TRANGROUP:89EA                                         </span>; $M_RT_$M_DATE_FORMAT
-<span style="color:gray">TRANGROUP:89EC </span>$M_RT_$M_CURR_SEPARA <span style="color:navy">db </span><span style="color:#008040">5 </span><span style="color:navy">dup(</span><span style="color:#008040">24h</span><span style="color:navy">)
+<span style="color:gray">TRANGROUP:89EC </span>$M_RT_$M_CURR_SEPARA <span style="color:navy">db </span><span style="color:#008040">5 </span><span style="color:navy">dup(</span><span style="color:green">'$'</span><span style="color:navy">)
 </span><span style="color:gray">TRANGROUP:89F1 </span>$M_RT_$M_THOU_SEPARA <span style="color:navy">dw </span><span style="color:#008040">2424h           </span><span style="color:#8080ff">; ...
 </span><span style="color:gray">TRANGROUP:89F3 </span>$M_RT_$M_DECI_SEPARA <span style="color:navy">dw </span><span style="color:#008040">2424h           </span><span style="color:#8080ff">; ...
 </span><span style="color:gray">TRANGROUP:89F5 </span>$M_RT_$M_DATE_SEPARA <span style="color:navy">dw </span><span style="color:#008040">2424h           </span><span style="color:#8080ff">; ...
@@ -20499,8 +20511,8 @@
 </span><span style="color:gray">TRANGROUP:89F9 </span>$M_RT_$M_CURR_FORMAT <span style="color:navy">db </span><span style="color:#008040">24h
 </span><span style="color:gray">TRANGROUP:89FA </span>$M_RT_$M_SIG_DIGS_CU <span style="color:navy">db </span><span style="color:#008040">24h
 </span><span style="color:gray">TRANGROUP:89FB </span>$M_RT_$M_TIME_FORMAT <span style="color:navy">db </span><span style="color:#008040">24h             </span><span style="color:#8080ff">; ...
-</span><span style="color:gray">TRANGROUP:89FC                 </span><span style="color:navy">db </span><span style="color:#008040">24h
-</span><span style="color:gray">TRANGROUP:89FD                 </span><span style="color:navy">db </span><span style="color:#008040">2Dh </span><span style="color:navy">dup(</span><span style="color:#008040">24h</span><span style="color:navy">)         </span>; '$'
+</span><span style="color:gray">TRANGROUP:89FC                 </span><span style="color:navy">db </span><span style="color:green">'$'                  </span>; 24h
+<span style="color:gray">TRANGROUP:89FD                 </span><span style="color:navy">db </span><span style="color:#008040">2Dh </span><span style="color:navy">dup(</span><span style="color:green">'$'</span><span style="color:navy">)         </span>; '$'
 <span style="color:gray">TRANGROUP:8A2A </span>$M_RT_$M_BUF_TERM <span style="color:navy">db </span><span style="color:green">'$'                </span><span style="color:#8080ff">; ...
 </span><span style="color:gray">TRANGROUP:8A2B </span>MsDosVer5_CCopy <span style="color:navy">db 'MS DOS Version 5.00 (C)Copyright 1981-1991 Microsoft Corp License'
 </span><span style="color:gray">TRANGROUP:8A2B                 </span><span style="color:navy">db 'd Material - Property of Microsoft All rights reserved '

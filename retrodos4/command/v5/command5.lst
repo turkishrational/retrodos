@@ -525,7 +525,7 @@ RESGROUP:07DF		      db 'Invalid device request parameters'
 RESGROUP:0800 CRMSG6	      db 10		      ;	...
 RESGROUP:0801		      db 'Seek error'
 RESGROUP:080B CRMSG7	      db 18		      ;	...
-RESGROUP:080C asc_80C	      db 'Invalid media type'
+RESGROUP:080C		      db 'Invalid media type'
 RESGROUP:081E CRMSG8	      db 16		      ;	...
 RESGROUP:081F		      db 'Sector not found'
 RESGROUP:082F CRMSG9	      db 26		      ;	...
@@ -1044,7 +1044,7 @@ RESGROUP:0F7D
 RESGROUP:0F7D LodCom1:				      ;	...
 RESGROUP:0F7D		      mov     ax, ds
 RESGROUP:0F7F		      mov     ss, ax
-RESGROUP:0F81		      mov     sp, 53Eh	      ;	mov sp,offset DATARES:RStack
+RESGROUP:0F81		      mov     sp, offset RStack	; mov sp,offset	DATARES:RStack
 RESGROUP:0F84		      call    HeadFix
 RESGROUP:0F87		      xor     bp, bp
 RESGROUP:0F89		      mov     ax, 0FFFFh
@@ -4036,7 +4036,7 @@ TRANGROUP:03AF					       ; DS:SI -> string to parse
 TRANGROUP:03AF					       ; ES:DI -> buffer to fill with unopened FCB
 TRANGROUP:03AF					       ; AL = bit mask to control parsing
 TRANGROUP:03B1		       mov     PARM2, al
-TRANGROUP:03B4		       mov     di, ARGV2_ARGSW_WORD ; ARG+(2*ARGV_ELE.SIZE)+ARGV_ELE.argsw_word]
+TRANGROUP:03B4		       mov     di, ARGV2_ARGSW_WORD ; [ARG+(2*ARGV_ELE.SIZE)+ARGV_ELE.argsw_word]
 TRANGROUP:03B8		       mov     ARG2S, di
 TRANGROUP:03BC		       mov     di, ARGV0_ARGSW_WORD ; [ARG+ARGV_ELE.argsw_word]
 TRANGROUP:03C0		       not     di
@@ -4562,7 +4562,7 @@ TRANGROUP:06D0		       jmp     SAVBATBYT
 TRANGROUP:06D3 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 TRANGROUP:06D3
 TRANGROUP:06D3 GETENV15:			       ; ...
-TRANGROUP:06D3		       cmp     al, 25h ; '%'
+TRANGROUP:06D3		       cmp     al, '%'
 TRANGROUP:06D5		       jnz     short GETENV1
 TRANGROUP:06D7		       mov     al, '='
 TRANGROUP:06D9		       mov     es:[di-1], al
@@ -4757,8 +4757,6 @@ TRANGROUP:080E		       add     ax, bx
 TRANGROUP:0810		       add     ax, 20h
 TRANGROUP:0813		       mov     bx, cs
 TRANGROUP:0815		       mov     dx, 98C5h       ; mov dx,offset TRANGROUP:TranSpaceEnd
-TRANGROUP:0818
-TRANGROUP:0818 loc_2B38:
 TRANGROUP:0818		       add     dx, 15
 TRANGROUP:081B		       shr     dx, cl
 TRANGROUP:081D		       add     dx, bx
@@ -5170,8 +5168,6 @@ TRANGROUP:0AF9 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 TRANGROUP:0AF9
 TRANGROUP:0AF9 IFSTRING:			       ; ...
 TRANGROUP:0AF9		       push    si
-TRANGROUP:0AFA
-TRANGROUP:0AFA loc_2E1A:
 TRANGROUP:0AFA		       xor     cx, cx
 TRANGROUP:0AFC
 TRANGROUP:0AFC FIRST_STRING:			       ; ...
@@ -5274,7 +5270,7 @@ TRANGROUP:0B83
 TRANGROUP:0B83 IFTRUE:				       ; ...
 TRANGROUP:0B83		       call    scanoff
 TRANGROUP:0B86		       mov     cx, si
-TRANGROUP:0B88		       sub     cx, 81h ; 'Ѓ'
+TRANGROUP:0B88		       sub     cx, 81h
 TRANGROUP:0B8C		       sub     ds:80h, cl
 TRANGROUP:0B90		       mov     cl, ds:80h
 TRANGROUP:0B94		       mov     ds:COMBUF+1, cl
@@ -5671,7 +5667,7 @@ TRANGROUP:0E0F		       inc     word ptr	ds:547h	; FOR_INFO.FOR_MINARG
 TRANGROUP:0E13
 TRANGROUP:0E13 FOR_BEGIN1:			       ; ...
 TRANGROUP:0E13		       mov     bx, ds:547h
-TRANGROUP:0E17		       cmp     bx, ds:549h
+TRANGROUP:0E17		       cmp     bx, ds:549h     ; FOR_INFO.FOR_MAXARG
 TRANGROUP:0E1B		       jg      short _$FOR_EXIT
 TRANGROUP:0E1D		       mov     ax, 0
 TRANGROUP:0E20		       call    argv_calc
@@ -5950,9 +5946,7 @@ TRANGROUP:0FF0		       dec     cx
 TRANGROUP:0FF1		       dec     di
 TRANGROUP:0FF2		       mov     es:547h,	cx     ; [es:FOR_INFO.FOR_MINARG]
 TRANGROUP:0FF7		       mov     es:549h,	di     ; [es:FOR_INFO.FOR_MAXARG]
-TRANGROUP:0FFC
-TRANGROUP:0FFC loc_331C:			       ; [es:FOR_INFO.FOR_COM_START]
-TRANGROUP:0FFC		       mov     es:544h,	dl
+TRANGROUP:0FFC		       mov     es:544h,	dl     ; [es:FOR_INFO.FOR_COM_START]
 TRANGROUP:1001		       mov     word ptr	es:545h, 0FFFFh	; [es:FOR_INFO.FOR_EXPAND]
 TRANGROUP:1008		       mov     ax, bp
 TRANGROUP:100A		       mov     es:64Bh,	ah     ; [es:FOR_INFO.FOR_VAR]
@@ -6986,7 +6980,7 @@ TRANGROUP:15DD ; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B R O U T I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
 TRANGROUP:15DD
 TRANGROUP:15DD
 TRANGROUP:15DD LoadEntry       proc near	       ; ...
-TRANGROUP:15DD		       mov     si, offset DIRBUF_8 ; DIREBUF+8
+TRANGROUP:15DD		       mov     si, offset DIRBUF_8 ; DIRBUF+8
 TRANGROUP:15E0		       xor     al, al
 TRANGROUP:15E2		       stosb
 TRANGROUP:15E3		       mov     cx, 11
@@ -7468,7 +7462,7 @@ TRANGROUP:1881		       call    UseLine
 TRANGROUP:1884
 TRANGROUP:1884 dhRet:				       ; ...
 TRANGROUP:1884		       retn
-TRANGROUP:1884 DisplayHeader   endp ; sp =  4
+TRANGROUP:1884 DisplayHeader   endp
 TRANGROUP:1884
 TRANGROUP:1885
 TRANGROUP:1885 ; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B R O U T I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
@@ -8793,7 +8787,7 @@ TRANGROUP:201B ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 TRANGROUP:201B
 TRANGROUP:201B DoAlpha:				       ; ...
 TRANGROUP:201B		       push    ds
-TRANGROUP:201C		       mov     ax, 40h ; '@'   ; ROMBIOS_DATA
+TRANGROUP:201C		       mov     ax, 40h	       ; ROMBIOS_DATA
 TRANGROUP:201F		       mov     ds, ax
 TRANGROUP:2021		       assume ds:nothing
 TRANGROUP:2021		       mov     dx, ds:4Ah      ; [CRT_Cols]
@@ -11475,7 +11469,7 @@ TRANGROUP:2E6D		       call    skip_white
 TRANGROUP:2E70		       call    copy_pipe_path
 TRANGROUP:2E73		       push    es
 TRANGROUP:2E74		       pop     ds
-TRANGROUP:2E75		       mov     dx, 320h	       ; offset	DATARES:Pipe1 =	RESGROUP:EndInit
+TRANGROUP:2E75		       mov     dx, offset EndInit ; offset DATARES:Pipe1 = RESGROUP:EndInit
 TRANGROUP:2E78		       mov     ax, 4300h
 TRANGROUP:2E7B		       int     21h	       ; DOS - 2+ - GET	FILE ATTRIBUTES
 TRANGROUP:2E7B					       ; DS:DX -> ASCIZ	file name or directory
@@ -12335,7 +12329,7 @@ TRANGROUP:33B1		       mov     si, ds:pathinfo+2
 TRANGROUP:33B5		       push    es
 TRANGROUP:33B6		       push    ds:pathinfo     ; [pathinfo+0]
 TRANGROUP:33BA		       pop     es
-TRANGROUP:33BB		       cmp     byte ptr	es:[si+2], '.' ; ; 2Eh
+TRANGROUP:33BB		       cmp     byte ptr	es:[si+2], '.' ; 2Eh
 TRANGROUP:33C0		       jnz     short path_cpy
 TRANGROUP:33C2		       cmp     byte ptr	es:[si+1], ':' ; 3Ah
 TRANGROUP:33C7		       jnz     short path_cpy
@@ -13250,8 +13244,8 @@ TRANGROUP:38CE		       mov     CFLAG, al
 TRANGROUP:38D1		       mov     NXTADD, ax
 TRANGROUP:38D4		       mov     ARG2S, ax       ; [DestSwitch]
 TRANGROUP:38D7		       mov     STARTEL,	ax
-TRANGROUP:38DA		       mov     DestTail, ax    ; [DestClosed]
-TRANGROUP:38DD		       mov     SPECDRV,	al
+TRANGROUP:38DA		       mov     DestTail, ax
+TRANGROUP:38DD		       mov     SPECDRV,	al     ; [DestClosed]
 TRANGROUP:38E0		       mov     DestSiz,	al
 TRANGROUP:38E3		       mov     SrcSiz, al
 TRANGROUP:38E6		       mov     DestInfo, al
@@ -14123,12 +14117,8 @@ TRANGROUP:3F41		       jnb     short Dest_Open_Okay
 TRANGROUP:3F43
 TRANGROUP:3F43 Xa_Set_Error:			       ; ...
 TRANGROUP:3F43		       call    Set_Ext_Error_Msg
-TRANGROUP:3F46
-TRANGROUP:3F46 Ext_Err_Set:
 TRANGROUP:3F46		       mov     ds:string_ptr_2,	offset DestBuf
 TRANGROUP:3F4C		       mov     ds:extend_buf_sub, 1
-TRANGROUP:3F51
-TRANGROUP:3F51 CopErrJ2:
 TRANGROUP:3F51		       jmp     COPYERR
 TRANGROUP:3F54 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 TRANGROUP:3F54
@@ -15375,7 +15365,7 @@ TRANGROUP:4762
 TRANGROUP:4762 $P_RLT00:			       ; ...
 TRANGROUP:4762		       cmp     al, 2	       ; $P_List_Idx
 TRANGROUP:4764		       jnz     short $P_RLT01
-TRANGROUP:4766		       mov     es:[di+4], dx   ; es:di+$P_RESULT_BLK.$P_Picked_Val]
+TRANGROUP:4766		       mov     es:[di+4], dx   ; [es:di+$P_RESULT_BLK.$P_Picked_Val]
 TRANGROUP:476A		       jmp     short $P_RLT_Exit
 TRANGROUP:476C ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 TRANGROUP:476C
@@ -15950,7 +15940,7 @@ TRANGROUP:4AD3		       push    si
 TRANGROUP:4AD4		       mov     dl, 2	       ; $P_DOSTBL_Char
 TRANGROUP:4AD6
 TRANGROUP:4AD6 $P_SCOM_Loop:			       ; ...
-TRANGROUP:4AD6		       mov     al, cs:[si]
+TRANGROUP:4AD6		       mov     al, cs:[si]     ; 1st string
 TRANGROUP:4AD9		       call    $P_Chk_DBCS
 TRANGROUP:4ADC		       jb      short $P_SCOM00
 TRANGROUP:4ADE		       call    $P_Do_CAPS_Char
@@ -15977,7 +15967,7 @@ TRANGROUP:4B0A		       jmp     short $P_SCOM_Same
 TRANGROUP:4B0C ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 TRANGROUP:4B0C
 TRANGROUP:4B0C $P_SCOM03:			       ; ...
-TRANGROUP:4B0C		       cmp     al, es:[bp+0]
+TRANGROUP:4B0C		       cmp     al, es:[bp+0]   ; 2nd string (must be upper case)
 TRANGROUP:4B10		       jnz     short $P_SCOM_Differ0
 TRANGROUP:4B12		       or      al, al
 TRANGROUP:4B14		       jz      short $P_SCOM_Same
@@ -16145,7 +16135,6 @@ TRANGROUP:4C26
 TRANGROUP:4C26 $P_Set_CDI      proc near	       ; ...
 TRANGROUP:4C26		       lea     si, $P_Country_Info ; (lea si,ds:8960h)
 TRANGROUP:4C26					       ; lea si,psdata_seg:$P_Country_Info
-TRANGROUP:4C26					       ;
 TRANGROUP:4C2A		       cmp     word ptr	cs:[si], 0FFFFh	;
 TRANGROUP:4C2A					       ; cmp psdata_seg:[si].$P_CDI_DateF,$P_NeedToBeRead
 TRANGROUP:4C2E		       jz      short $P_Read_CDI
@@ -16911,7 +16900,8 @@ TRANGROUP:5081		       add     bx, 11	       ; parm_block_size
 TRANGROUP:5084		       loop    set_subst
 TRANGROUP:5086		       pop     cx
 TRANGROUP:5087		       mov     bx, si
-TRANGROUP:5089		       cmp     word ptr	[bx+2],	offset string_ptr_2 ; [bx.$M_S_VALUE],offset trangroup:string_ptr_2
+TRANGROUP:5089		       cmp     word ptr	[bx+2],	offset string_ptr_2 ;
+TRANGROUP:5089					       ; [bx.$M_S_VALUE],offset	trangroup:string_ptr_2
 TRANGROUP:508E		       jnz     short ready_to_print
 TRANGROUP:5090		       mov     dx, ds:string_ptr_2
 TRANGROUP:5094		       mov     [bx+2], dx      ; [bx.$M_S_VALUE],dx
@@ -17037,8 +17027,8 @@ TRANGROUP:5142		       mov     dl, 6	       ; DOS_GET_FILE
 TRANGROUP:5144		       int     2Fh	       ; Multiplex - DOS 3+ internal - GET OR SET ERROR	TABLE ADDRESSES
 TRANGROUP:5144					       ; DL = subfunction - get	??? error table
 TRANGROUP:5144					       ; ES:DI -> error	table
-TRANGROUP:5146		       mov     ds:$M_RT_$M_EXT_FILE+2, es
-TRANGROUP:514A		       mov     ds:$M_RT_$M_EXT_FILE, di
+TRANGROUP:5146		       mov     ds:$M_RT_$M_EXT_FILE+2, es ; [$M_RT+6]
+TRANGROUP:514A		       mov     ds:$M_RT_$M_EXT_FILE, di	; [$M_RT+4]
 TRANGROUP:514E		       call    $M_MSGSERV_1
 TRANGROUP:5151		       mov     ds:$M_RT_$M_EXT_ERR_ADDRS+2, es ; [$M_RT+2]
 TRANGROUP:5155		       mov     ds:$M_RT_$M_EXT_ERR_ADDRS, di ; [$M_RT+0]
@@ -17156,7 +17146,8 @@ TRANGROUP:51E5
 TRANGROUP:51E5 $MDO36:				       ; ...
 TRANGROUP:51E5		       cmp     dh, 0FFh	       ; UTILITY_MSG_CLASS
 TRANGROUP:51E8		       jnz     short $MIF37
-TRANGROUP:51EA		       mov     di, $M_RT_$M_CLASS_ADDRS[si] ; DWORD PTR	$M_RT.$M_CLASS_ADDRS[SI]
+TRANGROUP:51EA		       mov     di, $M_RT_$M_CLASS_ADDRS[si] ;
+TRANGROUP:51EA					       ; DWORD PTR $M_RT.$M_CLASS_ADDRS[SI]
 TRANGROUP:51EE		       mov     bx, di
 TRANGROUP:51F0		       jmp     short $MEN37
 TRANGROUP:51F2 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
@@ -17164,7 +17155,8 @@ TRANGROUP:51F2
 TRANGROUP:51F2 $MIF37:				       ; ...
 TRANGROUP:51F2		       test    dh, 2	       ; PARSE_ERR_CLASS
 TRANGROUP:51F5		       jz      short $MIF39
-TRANGROUP:51F7		       les     di, dword ptr $M_RT_$M_PARSE_COMMAND[si]	; DWORD	PTR $M_RT.$M_PARSE_COMMAND[SI]
+TRANGROUP:51F7		       les     di, dword ptr $M_RT_$M_PARSE_COMMAND[si]	;
+TRANGROUP:51F7					       ; DWORD PTR $M_RT.$M_PARSE_COMMAND[SI]
 TRANGROUP:51FB		       mov     bx, es
 TRANGROUP:51FD		       jmp     short $MEN37
 TRANGROUP:51FF ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
@@ -17174,13 +17166,15 @@ TRANGROUP:51FF		       cmp     ax, 19	       ; $M_CRIT_LO
 TRANGROUP:5202		       jb      short $MIF41
 TRANGROUP:5204		       cmp     ax, 39	       ; $M_CRIT_HI
 TRANGROUP:5207		       ja      short $MIF41
-TRANGROUP:5209		       les     di, dword ptr $M_RT_$M_CRIT_ADDRS[si] ; DWORD PTR $M_RT.$M_CRIT_ADDRS[SI]
+TRANGROUP:5209		       les     di, dword ptr $M_RT_$M_CRIT_ADDRS[si] ;
+TRANGROUP:5209					       ; DWORD PTR $M_RT.$M_CRIT_ADDRS[SI]
 TRANGROUP:520D		       mov     bx, es
 TRANGROUP:520F		       jmp     short $MEN37
 TRANGROUP:5211 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 TRANGROUP:5211
 TRANGROUP:5211 $MIF41:				       ; ...
-TRANGROUP:5211		       les     di, dword ptr $M_RT_$M_EXT_ERR_ADDRS[si]	; DWORD	PTR $M_RT.$M_EXT_ERR_ADDRS[SI]
+TRANGROUP:5211		       les     di, dword ptr $M_RT_$M_EXT_ERR_ADDRS[si]	;
+TRANGROUP:5211					       ; DWORD PTR $M_RT.$M_EXT_ERR_ADDRS[SI]
 TRANGROUP:5215		       mov     bx, es
 TRANGROUP:5217
 TRANGROUP:5217 $MEN37:				       ; ...
@@ -17355,7 +17349,7 @@ TRANGROUP:52D9		       jmp     short $MEN78
 TRANGROUP:52DB ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 TRANGROUP:52DB
 TRANGROUP:52DB $MIF78:				       ; ...
-TRANGROUP:52DB		       cmp     ax, cs:[di]     ; ,WORD PTR CS:[DI].$M_NUM
+TRANGROUP:52DB		       cmp     ax, cs:[di]     ; WORD PTR CS:[DI].$M_NUM
 TRANGROUP:52DE
 TRANGROUP:52DE $MEN78:				       ; ...
 TRANGROUP:52DE		       jnz     short $MIF76
@@ -17775,7 +17769,8 @@ TRANGROUP:5499
 TRANGROUP:5499 $MLL149:				       ; ...
 TRANGROUP:5499		       cmp     cx, 3	       ; $M_FIRST_THOU
 TRANGROUP:549C		       jnz     short $MIF150
-TRANGROUP:549E		       cmp     byte ptr	[si+0Ah], ',' ; $M_SL.$M_S_PAD,$M_COMMA ($M_SL = [DS:SI])
+TRANGROUP:549E		       cmp     byte ptr	[si+0Ah], ',' ;
+TRANGROUP:549E					       ; $M_SL.$M_S_PAD,$M_COMMA ($M_SL	= [DS:SI])
 TRANGROUP:54A2		       jnz     short $MIF151
 TRANGROUP:54A4		       push    ds:$M_RT_$M_THOU_SEPARA ; word $M_RT.$M_THOU_SEPARA
 TRANGROUP:54A8		       inc     cx
@@ -17950,7 +17945,8 @@ TRANGROUP:5575		       xor     cx, cx
 TRANGROUP:5577		       cmp     ds:$M_RT_$M_MSG_NUM, 0 ;	$M_RT.$M_MSG_NUM,$M_NULL
 TRANGROUP:5577					       ; [$M_RT+72],0
 TRANGROUP:557C		       jnz     short $MIF199
-TRANGROUP:557E		       test    byte ptr	[si+7],	0Fh ; $M_SL.$M_S_FLAG,NOT Char_Type AND	$M_TYPE_MASK
+TRANGROUP:557E		       test    byte ptr	[si+7],	0Fh ;
+TRANGROUP:557E					       ; $M_SL.$M_S_FLAG,NOT Char_Type AND $M_TYPE_MASK
 TRANGROUP:5582		       jnz     short $MIF200
 TRANGROUP:5584		       les     di, [si+2]      ; $M_SL.$M_S_VALUE
 TRANGROUP:5587		       call    $M_CHAR_REPLACE
@@ -17958,11 +17954,14 @@ TRANGROUP:558A		       jmp     short $MEN200
 TRANGROUP:558C ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 TRANGROUP:558C
 TRANGROUP:558C $MIF200:				       ; ...
-TRANGROUP:558C		       test    byte ptr	[si+7],	0Dh ; $M_SL.$M_S_FLAG,NOT Sgn_Bin_Type AND $M_TYPE_MASK
+TRANGROUP:558C		       test    byte ptr	[si+7],	0Dh ;
+TRANGROUP:558C					       ; $M_SL.$M_S_FLAG,NOT Sgn_Bin_Type AND $M_TYPE_MASK
 TRANGROUP:5590		       jz      short $MLL202
-TRANGROUP:5592		       test    byte ptr	[si+7],	0Eh ; $M_SL.$M_S_FLAG,NOT Unsgn_Bin_Type AND $M_TYPE_MASK
+TRANGROUP:5592		       test    byte ptr	[si+7],	0Eh ;
+TRANGROUP:5592					       ; $M_SL.$M_S_FLAG,NOT Unsgn_Bin_Type AND	$M_TYPE_MASK
 TRANGROUP:5596		       jz      short $MLL202
-TRANGROUP:5598		       test    byte ptr	[si+7],	0Ch ; $M_SL.$M_S_FLAG,NOT Bin_Hex_Type AND $M_TYPE_MASK
+TRANGROUP:5598		       test    byte ptr	[si+7],	0Ch ;
+TRANGROUP:5598					       ; $M_SL.$M_S_FLAG,NOT Bin_Hex_Type AND $M_TYPE_MASK
 TRANGROUP:559C		       jnz     short $MIF202
 TRANGROUP:559E
 TRANGROUP:559E $MLL202:				       ; ...
@@ -18058,10 +18057,12 @@ TRANGROUP:5609 $M_DISPLAY_REPLACE proc near	       ; ...
 TRANGROUP:5609		       xor     bx, bx
 TRANGROUP:560B		       cmp     byte ptr	[si+6],	0 ; $M_SL.$M_S_ID,$M_SPECIAL_CASE-30H
 TRANGROUP:560F		       jnz     short $MIF276
-TRANGROUP:5611		       mov     ds:$M_RT_$M_TEMP_BUF[bx], 2D20h ; $M_RT.$M_TEMP_BUF[BX],$M_SPACE_HYP
+TRANGROUP:5611		       mov     ds:$M_RT_$M_TEMP_BUF[bx], 2D20h ;
+TRANGROUP:5611					       ; $M_RT.$M_TEMP_BUF[BX],$M_SPACE_HYP
 TRANGROUP:5617		       inc     bx
 TRANGROUP:5618		       inc     bx
-TRANGROUP:5619		       mov     byte ptr	ds:$M_RT_$M_TEMP_BUF[bx], 20h ;	$M_RT.$M_TEMP_BUF[BX],$M_SPACE
+TRANGROUP:5619		       mov     byte ptr	ds:$M_RT_$M_TEMP_BUF[bx], 20h ;
+TRANGROUP:5619					       ; $M_RT.$M_TEMP_BUF[BX],$M_SPACE
 TRANGROUP:561E		       inc     bx
 TRANGROUP:561F		       call    $M_FLUSH_BUF
 TRANGROUP:5622
@@ -18105,9 +18106,11 @@ TRANGROUP:5663		       or      cx, cx
 TRANGROUP:5665		       jz      short $MIF290
 TRANGROUP:5667
 TRANGROUP:5667 $MDO291:				       ; ...
-TRANGROUP:5667		       test    byte ptr	[si+7],	0Fh ; $M_SL.$M_S_FLAG,NOT Char_Type AND	$M_TYPE_MASK
+TRANGROUP:5667		       test    byte ptr	[si+7],	0Fh ;
+TRANGROUP:5667					       ; $M_SL.$M_S_FLAG,NOT Char_Type AND $M_TYPE_MASK
 TRANGROUP:566B		       jnz     short $MIF292
-TRANGROUP:566D		       test    byte ptr	[si+7],	10h ; $M_SL.$M_S_FLAG,Char_field_ASCIIZ	AND $M_SIZE_MASK
+TRANGROUP:566D		       test    byte ptr	[si+7],	10h ;
+TRANGROUP:566D					       ; $M_SL.$M_S_FLAG,Char_field_ASCIIZ AND $M_SIZE_MASK
 TRANGROUP:5671		       jz      short $MIF292
 TRANGROUP:5673		       mov     al, es:[di]
 TRANGROUP:5676		       inc     di
@@ -18118,7 +18121,8 @@ TRANGROUP:5679 $MIF292:				       ; ...
 TRANGROUP:5679		       pop     ax
 TRANGROUP:567A
 TRANGROUP:567A $MEN292:				       ; ...
-TRANGROUP:567A		       mov     byte ptr	ds:$M_RT_$M_TEMP_BUF[bx], al ; MOV BYTE	PTR $M_RT.$M_TEMP_BUF[BX],AL
+TRANGROUP:567A		       mov     byte ptr	ds:$M_RT_$M_TEMP_BUF[bx], al ;
+TRANGROUP:567A					       ; MOV BYTE PTR $M_RT.$M_TEMP_BUF[BX],AL
 TRANGROUP:567A					       ; mov [bx+$M_RT+76],al
 TRANGROUP:567E		       inc     bx
 TRANGROUP:567F		       cmp     bx, 64	       ; $M_TEMP_BUF_SZ
@@ -18136,7 +18140,8 @@ TRANGROUP:5691		       or      dh, dh
 TRANGROUP:5693		       jz      short $MIF299
 TRANGROUP:5695
 TRANGROUP:5695 $MDO301:				       ; ...
-TRANGROUP:5695		       mov     al, [si+0Ah]    ; $M_SL.$M_S_PAD	 (ds:si+$M_SUBLIST_STRUC.$M_S_PAD)
+TRANGROUP:5695		       mov     al, [si+0Ah]    ; $M_SL.$M_S_PAD
+TRANGROUP:5695					       ; (ds:si+$M_SUBLIST_STRUC.$M_S_PAD)
 TRANGROUP:5698		       mov     byte ptr	ds:$M_RT_$M_TEMP_BUF[bx], al
 TRANGROUP:569C		       inc     bx
 TRANGROUP:569D		       cmp     bx, 64	       ; $M_TEMP_BUF_SZ
@@ -18148,9 +18153,11 @@ TRANGROUP:56A5		       dec     dh
 TRANGROUP:56A7		       jnz     short $MDO301
 TRANGROUP:56A9
 TRANGROUP:56A9 $MIF299:				       ; ...
-TRANGROUP:56A9		       test    byte ptr	[si+7],	0Fh ; $M_SL.$M_S_FLAG,NOT Char_Type AND	$M_TYPE_MASK
+TRANGROUP:56A9		       test    byte ptr	[si+7],	0Fh ;
+TRANGROUP:56A9					       ; $M_SL.$M_S_FLAG,NOT Char_Type AND $M_TYPE_MASK
 TRANGROUP:56AD		       jnz     short $MIF307
-TRANGROUP:56AF		       test    byte ptr	[si+7],	10h ; $M_SL.$M_S_FLAG,Char_field_ASCIIZ	AND $M_SIZE_MASK
+TRANGROUP:56AF		       test    byte ptr	[si+7],	10h ;
+TRANGROUP:56AF					       ; $M_SL.$M_S_FLAG,Char_field_ASCIIZ AND $M_SIZE_MASK
 TRANGROUP:56B3		       jz      short $MIF307
 TRANGROUP:56B5		       jmp     short $MEN307
 TRANGROUP:56B7 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
@@ -18207,8 +18214,9 @@ TRANGROUP:56E4
 TRANGROUP:56E4
 TRANGROUP:56E4 $M_CHAR_REPLACE proc near	       ; ...
 TRANGROUP:56E4		       pop     bp
-TRANGROUP:56E5		       test    byte ptr	[si+7],	30h ; $M_SL.$M_S_FLAG,NOT Char_Field_Char AND $M_SIZE_MASK
-TRANGROUP:56E9		       jnz     short MIF317
+TRANGROUP:56E5		       test    byte ptr	[si+7],	30h ;
+TRANGROUP:56E5					       ; $M_SL.$M_S_FLAG,NOT Char_Field_Char AND $M_SIZE_MASK
+TRANGROUP:56E9		       jnz     short $MIF317
 TRANGROUP:56EB		       mov     al, es:[di]
 TRANGROUP:56EE		       push    ax
 TRANGROUP:56EF		       inc     cx
@@ -18222,13 +18230,13 @@ TRANGROUP:56FB $MIF318:				       ; ...
 TRANGROUP:56FB		       jmp     short $MEN317
 TRANGROUP:56FD ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 TRANGROUP:56FD
-TRANGROUP:56FD MIF317:				       ; ...
+TRANGROUP:56FD $MIF317:				       ; ...
 TRANGROUP:56FD		       mov     al, es:[di]
 TRANGROUP:5700		       or      al, al
 TRANGROUP:5702		       jz      short $MEN321
 TRANGROUP:5704		       inc     di
 TRANGROUP:5705		       inc     cx
-TRANGROUP:5706		       jmp     short MIF317
+TRANGROUP:5706		       jmp     short $MIF317
 TRANGROUP:5708 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 TRANGROUP:5708
 TRANGROUP:5708 $MEN321:				       ; ...
@@ -18302,7 +18310,7 @@ TRANGROUP:576F		       mov     ax, es:[di]
 TRANGROUP:5772		       mov     dx, es:[di+2]
 TRANGROUP:5776		       test    byte ptr	[si+7],	0Dh ; $M_SL.$M_S_FLAG,NOT Sgn_Bin_Type AND $M_TYPE_MASK
 TRANGROUP:577A		       jnz     short $MIF341
-TRANGROUP:577C		       test    dh, 80h	       ; test	 dh,10000000b
+TRANGROUP:577C		       test    dh, 80h	       ; test dh,10000000b
 TRANGROUP:577F		       jz      short $MIF342
 TRANGROUP:5781		       inc     bx
 TRANGROUP:5782		       and     dh, 7Fh	       ; and dh,01111111b
@@ -18483,7 +18491,8 @@ TRANGROUP:5895
 TRANGROUP:5895 $MIF365:				       ; ...
 TRANGROUP:5895		       xor     ax, ax
 TRANGROUP:5897		       xor     dx, dx
-TRANGROUP:5899		       test    byte ptr	[si+7],	20h ; $M_SL.$M_S_FLAG,Time_HHMMSSHH_Cty	AND $M_SIZE_MASK
+TRANGROUP:5899		       test    byte ptr	[si+7],	20h ;
+TRANGROUP:5899					       ; $M_SL.$M_S_FLAG,Time_HHMMSSHH_Cty AND $M_SIZE_MASK
 TRANGROUP:589D		       jz      short $MIF372
 TRANGROUP:589F		       mov     al, [si+5]      ; $M_SL.$M_S_VALUE+3 ($M_SUBLIST_STRUC.$M_S_VALUE = 2)
 TRANGROUP:58A2		       call    $M_CONVERTTIME
@@ -18492,9 +18501,11 @@ TRANGROUP:58A5					       ; push word [$M_RT+85]
 TRANGROUP:58A9		       inc     cx
 TRANGROUP:58AA
 TRANGROUP:58AA $MIF372:				       ; ...
-TRANGROUP:58AA		       test    byte ptr	[si+7],	20h ; $M_SL.$M_S_FLAG,Time_HHMMSSHH_Cty	AND $M_SIZE_MASK
+TRANGROUP:58AA		       test    byte ptr	[si+7],	20h ;
+TRANGROUP:58AA					       ; $M_SL.$M_S_FLAG,Time_HHMMSSHH_Cty AND $M_SIZE_MASK
 TRANGROUP:58AE		       jnz     short $MLL374
-TRANGROUP:58B0		       test    byte ptr	[si+7],	10h ; $M_SL.$M_S_FLAG,Time_HHMMSS_Cty AND $M_SIZE_MASK
+TRANGROUP:58B0		       test    byte ptr	[si+7],	10h ;
+TRANGROUP:58B0					       ; $M_SL.$M_S_FLAG,Time_HHMMSS_Cty AND $M_SIZE_MASK
 TRANGROUP:58B4		       jz      short $MIF374
 TRANGROUP:58B6
 TRANGROUP:58B6 $MLL374:				       ; ...
@@ -18510,7 +18521,8 @@ TRANGROUP:58C4		       call    $M_CONVERTTIME
 TRANGROUP:58C7		       push    ds:$M_RT_$M_TIME_SEPARA
 TRANGROUP:58CB		       inc     cx
 TRANGROUP:58CC		       mov     al, [si+2]      ; $M_SL.$M_S_VALUE
-TRANGROUP:58CF		       test    byte ptr	[si+7],	1 ; $M_SL.$M_S_FLAG,Time_Cty_Type AND $M_TIME_MASK
+TRANGROUP:58CF		       test    byte ptr	[si+7],	1 ;
+TRANGROUP:58CF					       ; $M_SL.$M_S_FLAG,Time_Cty_Type AND $M_TIME_MASK
 TRANGROUP:58D3		       jz      short $MIF376
 TRANGROUP:58D5		       cmp     ds:$M_RT_$M_TIME_FORMAT,	0 ; $M_RT.$M_TIME_FORMAT
 TRANGROUP:58D5					       ; cmp byte [$M_RT+93],0
@@ -18903,7 +18915,7 @@ TRANGROUP:5EA6		       db 'Bad command or file name',0Dh,0Ah
 TRANGROUP:5EC0		       db 16
 TRANGROUP:5EC1		       db 'Access denied ',0Dh,0Ah
 TRANGROUP:5ED1		       db 41
-TRANGROUP:5ED2 asc_81F2	       db 'Content of destination lost before copy',0Dh,0Ah
+TRANGROUP:5ED2		       db 'Content of destination lost before copy',0Dh,0Ah
 TRANGROUP:5EFB		       db 36
 TRANGROUP:5EFC		       db 'Invalid filename or file not found',0Dh,0Ah
 TRANGROUP:5F20		       db 19
@@ -19067,11 +19079,11 @@ TRANGROUP:65BB		       db 'drive.',0Dh,0Ah
 TRANGROUP:65BB		       db 'Type CD without parameters to display the current drive and direc'
 TRANGROUP:65BB		       db 'tory.',0Dh,0Ah
 TRANGROUP:664C		       db 27
-TRANGROUP:664D asc_896D	       db 'Clears the screen.',0Dh,0Ah
+TRANGROUP:664D		       db 'Clears the screen.',0Dh,0Ah
 TRANGROUP:664D		       db 0Dh,0Ah
 TRANGROUP:664D		       db 'CLS',0Dh,0Ah
 TRANGROUP:6668		       db 145
-TRANGROUP:6669 asc_8989	       db 'Copies one or more files to another location.',0Dh,0Ah
+TRANGROUP:6669		       db 'Copies one or more files to another location.',0Dh,0Ah
 TRANGROUP:6669		       db 0Dh,0Ah
 TRANGROUP:6669		       db 'COPY [/A | /B] source [/A | /B] [+ source [/A | /B] [+ ...]] [des'
 TRANGROUP:6669		       db 'tination',0Dh,0Ah
@@ -19117,7 +19129,7 @@ TRANGROUP:6A47		       db '  [drive:][path]filename  Specifies the file(s) to de
 TRANGROUP:6A47		       db 'fy multiple',0Dh,0Ah
 TRANGROUP:6A47		       db '                          files by using wildcards.',0Dh,0Ah
 TRANGROUP:6ACA		       db 79
-TRANGROUP:6ACB asc_8DEB	       db '  /P                      Prompts for confirmation before deletin'
+TRANGROUP:6ACB		       db '  /P                      Prompts for confirmation before deletin'
 TRANGROUP:6ACB		       db 'g each file.',0Dh,0Ah
 TRANGROUP:6B1A MSG_1480	       db 162
 TRANGROUP:6B1B		       db 'Displays a list of files and subdirectories in a directory.',0Dh,0Ah
@@ -19238,7 +19250,7 @@ TRANGROUP:74E7		       db 0Dh,0Ah
 TRANGROUP:74E7		       db 'SET [variable=[string]]',0Dh,0Ah
 TRANGROUP:74E7		       db 0Dh,0Ah
 TRANGROUP:753E		       db 129
-TRANGROUP:753F asc_985F	       db '  variable  Specifies the environment-variable name.',0Dh,0Ah
+TRANGROUP:753F		       db '  variable  Specifies the environment-variable name.',0Dh,0Ah
 TRANGROUP:753F		       db '  string    Specifies a series of characters to assign to the var'
 TRANGROUP:753F		       db 'iable.',0Dh,0Ah
 TRANGROUP:753F		       db 0Dh,0Ah
@@ -20309,8 +20321,8 @@ TRANGROUP:87E8		       db 0
 TRANGROUP:87E9 VOL_PARMS       db 0		       ; ...
 TRANGROUP:87EA		       db 1
 TRANGROUP:87EB		       dw offset DRIVE_CONTROL1
-TRANGROUP:87ED		       db    0
-TRANGROUP:87EE		       db    0
+TRANGROUP:87ED		       db 0
+TRANGROUP:87EE		       db 0
 TRANGROUP:87EF DRIVE_CONTROL1  dw 101h		       ; ...
 TRANGROUP:87F1		       dw 1
 TRANGROUP:87F3		       dw offset DRIVE_OUTPUT
@@ -20482,7 +20494,7 @@ TRANGROUP:89E8 $M_RT_$M_DIVISOR	dw 10		       ; ...
 TRANGROUP:89EA $M_RT_$M_TEMP_BUF dw 2424h	       ; ...
 TRANGROUP:89EA					       ; ($M_COUNTRY_INFO.$M_DATE_FORMAT)
 TRANGROUP:89EA					       ; $M_RT_$M_DATE_FORMAT
-TRANGROUP:89EC $M_RT_$M_CURR_SEPARA db 5 dup(24h)
+TRANGROUP:89EC $M_RT_$M_CURR_SEPARA db 5 dup('$')
 TRANGROUP:89F1 $M_RT_$M_THOU_SEPARA dw 2424h	       ; ...
 TRANGROUP:89F3 $M_RT_$M_DECI_SEPARA dw 2424h	       ; ...
 TRANGROUP:89F5 $M_RT_$M_DATE_SEPARA dw 2424h	       ; ...
@@ -20490,8 +20502,8 @@ TRANGROUP:89F7 $M_RT_$M_TIME_SEPARA dw 2424h	       ; ...
 TRANGROUP:89F9 $M_RT_$M_CURR_FORMAT db 24h
 TRANGROUP:89FA $M_RT_$M_SIG_DIGS_CU db 24h
 TRANGROUP:89FB $M_RT_$M_TIME_FORMAT db 24h	       ; ...
-TRANGROUP:89FC		       db 24h
-TRANGROUP:89FD		       db 2Dh dup(24h)	       ; '$'
+TRANGROUP:89FC		       db '$'                  ; 24h
+TRANGROUP:89FD		       db 2Dh dup('$')         ; '$'
 TRANGROUP:8A2A $M_RT_$M_BUF_TERM db '$'                ; ...
 TRANGROUP:8A2B MsDosVer5_CCopy db 'MS DOS Version 5.00 (C)Copyright 1981-1991 Microsoft Corp License'
 TRANGROUP:8A2B		       db 'd Material - Property of Microsoft All rights reserved '

@@ -527,7 +527,7 @@ CRMSG5		db 33			; ...
 CRMSG6		db 10			; ...
 		db 'Seek error'
 CRMSG7		db 18			; ...
-asc_80C		db 'Invalid media type'
+		db 'Invalid media type'
 CRMSG8		db 16			; ...
 		db 'Sector not found'
 CRMSG9		db 26			; ...
@@ -1046,7 +1046,7 @@ copy_trans:				; ...
 LodCom1:				; ...
 		mov	ax, ds
 		mov	ss, ax
-		mov	sp, 53Eh	; mov sp,offset	DATARES:RStack
+		mov	sp, offset RStack ; mov	sp,offset DATARES:RStack
 		call	HeadFix
 		xor	bp, bp
 		mov	ax, 0FFFFh
@@ -4038,7 +4038,7 @@ DOPARSE2:				; ...
 					; ES:DI	-> buffer to fill with unopened	FCB
 					; AL = bit mask	to control parsing
 		mov	PARM2, al
-		mov	di, ARGV2_ARGSW_WORD ; ARG+(2*ARGV_ELE.SIZE)+ARGV_ELE.argsw_word]
+		mov	di, ARGV2_ARGSW_WORD ; [ARG+(2*ARGV_ELE.SIZE)+ARGV_ELE.argsw_word]
 		mov	ARG2S, di
 		mov	di, ARGV0_ARGSW_WORD ; [ARG+ARGV_ELE.argsw_word]
 		not	di
@@ -4564,7 +4564,7 @@ GETENV1:				; ...
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
 GETENV15:				; ...
-		cmp	al, 25h	; '%'
+		cmp	al, '%'
 		jnz	short GETENV1
 		mov	al, '='
 		mov	es:[di-1], al
@@ -4759,8 +4759,6 @@ STARTBAT:				; ...
 		add	ax, 20h
 		mov	bx, cs
 		mov	dx, 98C5h	; mov dx,offset	TRANGROUP:TranSpaceEnd
-
-loc_2B38:
 		add	dx, 15
 		shr	dx, cl
 		add	dx, bx
@@ -5172,8 +5170,6 @@ IFNOT:					; ...
 
 IFSTRING:				; ...
 		push	si
-
-loc_2E1A:
 		xor	cx, cx
 
 FIRST_STRING:				; ...
@@ -5276,7 +5272,7 @@ REALTEST:				; ...
 IFTRUE:					; ...
 		call	scanoff
 		mov	cx, si
-		sub	cx, 81h	; 'Ѓ'
+		sub	cx, 81h
 		sub	ds:80h,	cl
 		mov	cl, ds:80h
 		mov	ds:COMBUF+1, cl
@@ -5673,7 +5669,7 @@ FOR_BEGIN:				; ...
 
 FOR_BEGIN1:				; ...
 		mov	bx, ds:547h
-		cmp	bx, ds:549h
+		cmp	bx, ds:549h	; FOR_INFO.FOR_MAXARG
 		jg	short _$FOR_EXIT
 		mov	ax, 0
 		call	argv_calc
@@ -5952,9 +5948,7 @@ FOR_DO:					; ...
 		dec	di
 		mov	es:547h, cx	; [es:FOR_INFO.FOR_MINARG]
 		mov	es:549h, di	; [es:FOR_INFO.FOR_MAXARG]
-
-loc_331C:				; [es:FOR_INFO.FOR_COM_START]
-		mov	es:544h, dl
+		mov	es:544h, dl	; [es:FOR_INFO.FOR_COM_START]
 		mov	word ptr es:545h, 0FFFFh ; [es:FOR_INFO.FOR_EXPAND]
 		mov	ax, bp
 		mov	es:64Bh, ah	; [es:FOR_INFO.FOR_VAR]
@@ -6988,7 +6982,7 @@ LoadEntries	endp
 
 
 LoadEntry	proc near		; ...
-		mov	si, offset DIRBUF_8 ; DIREBUF+8
+		mov	si, offset DIRBUF_8 ; DIRBUF+8
 		xor	al, al
 		stosb
 		mov	cx, 11
@@ -7470,7 +7464,7 @@ dhCom:					; ...
 
 dhRet:					; ...
 		retn
-DisplayHeader	endp ; sp =  4
+DisplayHeader	endp
 
 
 ; ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ S U B	R O U T	I N E ЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫЫ
@@ -8795,7 +8789,7 @@ cls_normal:				; ...
 
 DoAlpha:				; ...
 		push	ds
-		mov	ax, 40h	; '@'   ; ROMBIOS_DATA
+		mov	ax, 40h		; ROMBIOS_DATA
 		mov	ds, ax
 		assume ds:nothing
 		mov	dx, ds:4Ah	; [CRT_Cols]
@@ -11477,7 +11471,7 @@ PIPEPROCSTRT:				; ...
 		call	copy_pipe_path
 		push	es
 		pop	ds
-		mov	dx, 320h	; offset DATARES:Pipe1 = RESGROUP:EndInit
+		mov	dx, offset EndInit ; offset DATARES:Pipe1 = RESGROUP:EndInit
 		mov	ax, 4300h
 		int	21h		; DOS -	2+ - GET FILE ATTRIBUTES
 					; DS:DX	-> ASCIZ file name or directory
@@ -12337,7 +12331,7 @@ path_found:				; ...
 		push	es
 		push	ds:pathinfo	; [pathinfo+0]
 		pop	es
-		cmp	byte ptr es:[si+2], '.' ; ; 2Eh
+		cmp	byte ptr es:[si+2], '.' ; 2Eh
 		jnz	short path_cpy
 		cmp	byte ptr es:[si+1], ':' ; 3Ah
 		jnz	short path_cpy
@@ -13252,8 +13246,8 @@ COPY:					; ...
 		mov	NXTADD,	ax
 		mov	ARG2S, ax	; [DestSwitch]
 		mov	STARTEL, ax
-		mov	DestTail, ax	; [DestClosed]
-		mov	SPECDRV, al
+		mov	DestTail, ax
+		mov	SPECDRV, al	; [DestClosed]
 		mov	DestSiz, al
 		mov	SrcSiz,	al
 		mov	DestInfo, al
@@ -14125,12 +14119,8 @@ DoDestOpen:				; ...
 
 Xa_Set_Error:				; ...
 		call	Set_Ext_Error_Msg
-
-Ext_Err_Set:
 		mov	ds:string_ptr_2, offset	DestBuf
 		mov	ds:extend_buf_sub, 1
-
-CopErrJ2:
 		jmp	COPYERR
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
@@ -15377,7 +15367,7 @@ $P_RLT02:				; ...
 $P_RLT00:				; ...
 		cmp	al, 2		; $P_List_Idx
 		jnz	short $P_RLT01
-		mov	es:[di+4], dx	; es:di+$P_RESULT_BLK.$P_Picked_Val]
+		mov	es:[di+4], dx	; [es:di+$P_RESULT_BLK.$P_Picked_Val]
 		jmp	short $P_RLT_Exit
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
@@ -15952,7 +15942,7 @@ $P_String_Comp	proc near		; ...
 		mov	dl, 2		; $P_DOSTBL_Char
 
 $P_SCOM_Loop:				; ...
-		mov	al, cs:[si]
+		mov	al, cs:[si]	; 1st string
 		call	$P_Chk_DBCS
 		jb	short $P_SCOM00
 		call	$P_Do_CAPS_Char
@@ -15979,7 +15969,7 @@ $P_SCOM05:				; ...
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
 $P_SCOM03:				; ...
-		cmp	al, es:[bp+0]
+		cmp	al, es:[bp+0]	; 2nd string (must be upper case)
 		jnz	short $P_SCOM_Differ0
 		or	al, al
 		jz	short $P_SCOM_Same
@@ -16147,7 +16137,6 @@ $P_Date_Format	endp
 $P_Set_CDI	proc near		; ...
 		lea	si, $P_Country_Info ; (lea si,ds:8960h)
 					; lea si,psdata_seg:$P_Country_Info
-					;
 		cmp	word ptr cs:[si], 0FFFFh ;
 					; cmp psdata_seg:[si].$P_CDI_DateF,$P_NeedToBeRead
 		jz	short $P_Read_CDI
@@ -16913,7 +16902,8 @@ subst_seg_set:				; ...
 		loop	set_subst
 		pop	cx
 		mov	bx, si
-		cmp	word ptr [bx+2], offset	string_ptr_2 ; [bx.$M_S_VALUE],offset trangroup:string_ptr_2
+		cmp	word ptr [bx+2], offset	string_ptr_2 ;
+					; [bx.$M_S_VALUE],offset trangroup:string_ptr_2
 		jnz	short ready_to_print
 		mov	dx, ds:string_ptr_2
 		mov	[bx+2],	dx	; [bx.$M_S_VALUE],dx
@@ -17039,8 +17029,8 @@ SYSLOADMSG	proc near		; ...
 		int	2Fh		; Multiplex - DOS 3+ internal -	GET OR SET ERROR TABLE ADDRESSES
 					; DL = subfunction - get ??? error table
 					; ES:DI	-> error table
-		mov	ds:$M_RT_$M_EXT_FILE+2,	es
-		mov	ds:$M_RT_$M_EXT_FILE, di
+		mov	ds:$M_RT_$M_EXT_FILE+2,	es ; [$M_RT+6]
+		mov	ds:$M_RT_$M_EXT_FILE, di ; [$M_RT+4]
 		call	$M_MSGSERV_1
 		mov	ds:$M_RT_$M_EXT_ERR_ADDRS+2, es	; [$M_RT+2]
 		mov	ds:$M_RT_$M_EXT_ERR_ADDRS, di ;	[$M_RT+0]
@@ -17158,7 +17148,8 @@ $M_GET_MSG_ADDRESS proc	near		; ...
 $MDO36:					; ...
 		cmp	dh, 0FFh	; UTILITY_MSG_CLASS
 		jnz	short $MIF37
-		mov	di, $M_RT_$M_CLASS_ADDRS[si] ; DWORD PTR $M_RT.$M_CLASS_ADDRS[SI]
+		mov	di, $M_RT_$M_CLASS_ADDRS[si] ;
+					; DWORD	PTR $M_RT.$M_CLASS_ADDRS[SI]
 		mov	bx, di
 		jmp	short $MEN37
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
@@ -17166,7 +17157,8 @@ $MDO36:					; ...
 $MIF37:					; ...
 		test	dh, 2		; PARSE_ERR_CLASS
 		jz	short $MIF39
-		les	di, dword ptr $M_RT_$M_PARSE_COMMAND[si] ; DWORD PTR $M_RT.$M_PARSE_COMMAND[SI]
+		les	di, dword ptr $M_RT_$M_PARSE_COMMAND[si] ;
+					; DWORD	PTR $M_RT.$M_PARSE_COMMAND[SI]
 		mov	bx, es
 		jmp	short $MEN37
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
@@ -17176,13 +17168,15 @@ $MIF39:					; ...
 		jb	short $MIF41
 		cmp	ax, 39		; $M_CRIT_HI
 		ja	short $MIF41
-		les	di, dword ptr $M_RT_$M_CRIT_ADDRS[si] ;	DWORD PTR $M_RT.$M_CRIT_ADDRS[SI]
+		les	di, dword ptr $M_RT_$M_CRIT_ADDRS[si] ;
+					; DWORD	PTR $M_RT.$M_CRIT_ADDRS[SI]
 		mov	bx, es
 		jmp	short $MEN37
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
 $MIF41:					; ...
-		les	di, dword ptr $M_RT_$M_EXT_ERR_ADDRS[si] ; DWORD PTR $M_RT.$M_EXT_ERR_ADDRS[SI]
+		les	di, dword ptr $M_RT_$M_EXT_ERR_ADDRS[si] ;
+					; DWORD	PTR $M_RT.$M_EXT_ERR_ADDRS[SI]
 		mov	bx, es
 
 $MEN37:					; ...
@@ -17357,7 +17351,7 @@ $MDO76:					; ...
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
 $MIF78:					; ...
-		cmp	ax, cs:[di]	; ,WORD	PTR CS:[DI].$M_NUM
+		cmp	ax, cs:[di]	; WORD PTR CS:[DI].$M_NUM
 
 $MEN78:					; ...
 		jnz	short $MIF76
@@ -17777,7 +17771,8 @@ $MEN146:				; ...
 $MLL149:				; ...
 		cmp	cx, 3		; $M_FIRST_THOU
 		jnz	short $MIF150
-		cmp	byte ptr [si+0Ah], ',' ; $M_SL.$M_S_PAD,$M_COMMA ($M_SL = [DS:SI])
+		cmp	byte ptr [si+0Ah], ',' ;
+					; $M_SL.$M_S_PAD,$M_COMMA ($M_SL = [DS:SI])
 		jnz	short $MIF151
 		push	ds:$M_RT_$M_THOU_SEPARA	; word $M_RT.$M_THOU_SEPARA
 		inc	cx
@@ -17952,7 +17947,8 @@ $MEN187:				; ...
 		cmp	ds:$M_RT_$M_MSG_NUM, 0 ; $M_RT.$M_MSG_NUM,$M_NULL
 					; [$M_RT+72],0
 		jnz	short $MIF199
-		test	byte ptr [si+7], 0Fh ; $M_SL.$M_S_FLAG,NOT Char_Type AND $M_TYPE_MASK
+		test	byte ptr [si+7], 0Fh ;
+					; $M_SL.$M_S_FLAG,NOT Char_Type	AND $M_TYPE_MASK
 		jnz	short $MIF200
 		les	di, [si+2]	; $M_SL.$M_S_VALUE
 		call	$M_CHAR_REPLACE
@@ -17960,11 +17956,14 @@ $MEN187:				; ...
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
 $MIF200:				; ...
-		test	byte ptr [si+7], 0Dh ; $M_SL.$M_S_FLAG,NOT Sgn_Bin_Type	AND $M_TYPE_MASK
+		test	byte ptr [si+7], 0Dh ;
+					; $M_SL.$M_S_FLAG,NOT Sgn_Bin_Type AND $M_TYPE_MASK
 		jz	short $MLL202
-		test	byte ptr [si+7], 0Eh ; $M_SL.$M_S_FLAG,NOT Unsgn_Bin_Type AND $M_TYPE_MASK
+		test	byte ptr [si+7], 0Eh ;
+					; $M_SL.$M_S_FLAG,NOT Unsgn_Bin_Type AND $M_TYPE_MASK
 		jz	short $MLL202
-		test	byte ptr [si+7], 0Ch ; $M_SL.$M_S_FLAG,NOT Bin_Hex_Type	AND $M_TYPE_MASK
+		test	byte ptr [si+7], 0Ch ;
+					; $M_SL.$M_S_FLAG,NOT Bin_Hex_Type AND $M_TYPE_MASK
 		jnz	short $MIF202
 
 $MLL202:				; ...
@@ -18060,10 +18059,12 @@ $M_DISPLAY_REPLACE proc	near		; ...
 		xor	bx, bx
 		cmp	byte ptr [si+6], 0 ; $M_SL.$M_S_ID,$M_SPECIAL_CASE-30H
 		jnz	short $MIF276
-		mov	ds:$M_RT_$M_TEMP_BUF[bx], 2D20h	; $M_RT.$M_TEMP_BUF[BX],$M_SPACE_HYP
+		mov	ds:$M_RT_$M_TEMP_BUF[bx], 2D20h	;
+					; $M_RT.$M_TEMP_BUF[BX],$M_SPACE_HYP
 		inc	bx
 		inc	bx
-		mov	byte ptr ds:$M_RT_$M_TEMP_BUF[bx], 20h ; $M_RT.$M_TEMP_BUF[BX],$M_SPACE
+		mov	byte ptr ds:$M_RT_$M_TEMP_BUF[bx], 20h ;
+					; $M_RT.$M_TEMP_BUF[BX],$M_SPACE
 		inc	bx
 		call	$M_FLUSH_BUF
 
@@ -18107,9 +18108,11 @@ $MIF286:				; ...
 		jz	short $MIF290
 
 $MDO291:				; ...
-		test	byte ptr [si+7], 0Fh ; $M_SL.$M_S_FLAG,NOT Char_Type AND $M_TYPE_MASK
+		test	byte ptr [si+7], 0Fh ;
+					; $M_SL.$M_S_FLAG,NOT Char_Type	AND $M_TYPE_MASK
 		jnz	short $MIF292
-		test	byte ptr [si+7], 10h ; $M_SL.$M_S_FLAG,Char_field_ASCIIZ AND $M_SIZE_MASK
+		test	byte ptr [si+7], 10h ;
+					; $M_SL.$M_S_FLAG,Char_field_ASCIIZ AND	$M_SIZE_MASK
 		jz	short $MIF292
 		mov	al, es:[di]
 		inc	di
@@ -18120,7 +18123,8 @@ $MIF292:				; ...
 		pop	ax
 
 $MEN292:				; ...
-		mov	byte ptr ds:$M_RT_$M_TEMP_BUF[bx], al ;	MOV BYTE PTR $M_RT.$M_TEMP_BUF[BX],AL
+		mov	byte ptr ds:$M_RT_$M_TEMP_BUF[bx], al ;
+					; MOV BYTE PTR $M_RT.$M_TEMP_BUF[BX],AL
 					; mov [bx+$M_RT+76],al
 		inc	bx
 		cmp	bx, 64		; $M_TEMP_BUF_SZ
@@ -18138,7 +18142,8 @@ $MIF290:				; ...
 		jz	short $MIF299
 
 $MDO301:				; ...
-		mov	al, [si+0Ah]	; $M_SL.$M_S_PAD  (ds:si+$M_SUBLIST_STRUC.$M_S_PAD)
+		mov	al, [si+0Ah]	; $M_SL.$M_S_PAD
+					; (ds:si+$M_SUBLIST_STRUC.$M_S_PAD)
 		mov	byte ptr ds:$M_RT_$M_TEMP_BUF[bx], al
 		inc	bx
 		cmp	bx, 64		; $M_TEMP_BUF_SZ
@@ -18150,9 +18155,11 @@ $MIF302:				; ...
 		jnz	short $MDO301
 
 $MIF299:				; ...
-		test	byte ptr [si+7], 0Fh ; $M_SL.$M_S_FLAG,NOT Char_Type AND $M_TYPE_MASK
+		test	byte ptr [si+7], 0Fh ;
+					; $M_SL.$M_S_FLAG,NOT Char_Type	AND $M_TYPE_MASK
 		jnz	short $MIF307
-		test	byte ptr [si+7], 10h ; $M_SL.$M_S_FLAG,Char_field_ASCIIZ AND $M_SIZE_MASK
+		test	byte ptr [si+7], 10h ;
+					; $M_SL.$M_S_FLAG,Char_field_ASCIIZ AND	$M_SIZE_MASK
 		jz	short $MIF307
 		jmp	short $MEN307
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
@@ -18209,8 +18216,9 @@ $M_FLUSH_BUF	endp
 
 $M_CHAR_REPLACE	proc near		; ...
 		pop	bp
-		test	byte ptr [si+7], 30h ; $M_SL.$M_S_FLAG,NOT Char_Field_Char AND $M_SIZE_MASK
-		jnz	short MIF317
+		test	byte ptr [si+7], 30h ;
+					; $M_SL.$M_S_FLAG,NOT Char_Field_Char AND $M_SIZE_MASK
+		jnz	short $MIF317
 		mov	al, es:[di]
 		push	ax
 		inc	cx
@@ -18224,13 +18232,13 @@ $MIF318:				; ...
 		jmp	short $MEN317
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
-MIF317:					; ...
+$MIF317:				; ...
 		mov	al, es:[di]
 		or	al, al
 		jz	short $MEN321
 		inc	di
 		inc	cx
-		jmp	short MIF317
+		jmp	short $MIF317
 ; ДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДДД
 
 $MEN321:				; ...
@@ -18304,7 +18312,7 @@ $MIF333:				; ...
 		mov	dx, es:[di+2]
 		test	byte ptr [si+7], 0Dh ; $M_SL.$M_S_FLAG,NOT Sgn_Bin_Type	AND $M_TYPE_MASK
 		jnz	short $MIF341
-		test	dh, 80h		; test	  dh,10000000b
+		test	dh, 80h		; test dh,10000000b
 		jz	short $MIF342
 		inc	bx
 		and	dh, 7Fh		; and dh,01111111b
@@ -18485,7 +18493,8 @@ MIF367:					; ...
 $MIF365:				; ...
 		xor	ax, ax
 		xor	dx, dx
-		test	byte ptr [si+7], 20h ; $M_SL.$M_S_FLAG,Time_HHMMSSHH_Cty AND $M_SIZE_MASK
+		test	byte ptr [si+7], 20h ;
+					; $M_SL.$M_S_FLAG,Time_HHMMSSHH_Cty AND	$M_SIZE_MASK
 		jz	short $MIF372
 		mov	al, [si+5]	; $M_SL.$M_S_VALUE+3 ($M_SUBLIST_STRUC.$M_S_VALUE = 2)
 		call	$M_CONVERTTIME
@@ -18494,9 +18503,11 @@ $MIF365:				; ...
 		inc	cx
 
 $MIF372:				; ...
-		test	byte ptr [si+7], 20h ; $M_SL.$M_S_FLAG,Time_HHMMSSHH_Cty AND $M_SIZE_MASK
+		test	byte ptr [si+7], 20h ;
+					; $M_SL.$M_S_FLAG,Time_HHMMSSHH_Cty AND	$M_SIZE_MASK
 		jnz	short $MLL374
-		test	byte ptr [si+7], 10h ; $M_SL.$M_S_FLAG,Time_HHMMSS_Cty AND $M_SIZE_MASK
+		test	byte ptr [si+7], 10h ;
+					; $M_SL.$M_S_FLAG,Time_HHMMSS_Cty AND $M_SIZE_MASK
 		jz	short $MIF374
 
 $MLL374:				; ...
@@ -18512,7 +18523,8 @@ $MIF374:				; ...
 		push	ds:$M_RT_$M_TIME_SEPARA
 		inc	cx
 		mov	al, [si+2]	; $M_SL.$M_S_VALUE
-		test	byte ptr [si+7], 1 ; $M_SL.$M_S_FLAG,Time_Cty_Type AND $M_TIME_MASK
+		test	byte ptr [si+7], 1 ;
+					; $M_SL.$M_S_FLAG,Time_Cty_Type	AND $M_TIME_MASK
 		jz	short $MIF376
 		cmp	ds:$M_RT_$M_TIME_FORMAT, 0 ; $M_RT.$M_TIME_FORMAT
 					; cmp byte [$M_RT+93],0
@@ -18905,7 +18917,7 @@ MSG_1010	db 31
 		db 16
 		db 'Access denied ',0Dh,0Ah
 		db 41
-asc_81F2	db 'Content of destination lost before copy',0Dh,0Ah
+		db 'Content of destination lost before copy',0Dh,0Ah
 		db 36
 		db 'Invalid filename or file not found',0Dh,0Ah
 		db 19
@@ -19069,11 +19081,11 @@ MSG_1342	db 145
 		db 'Type CD without parameters to display the current drive and direc'
 		db 'tory.',0Dh,0Ah
 		db 27
-asc_896D	db 'Clears the screen.',0Dh,0Ah
+		db 'Clears the screen.',0Dh,0Ah
 		db 0Dh,0Ah
 		db 'CLS',0Dh,0Ah
 		db 145
-asc_8989	db 'Copies one or more files to another location.',0Dh,0Ah
+		db 'Copies one or more files to another location.',0Dh,0Ah
 		db 0Dh,0Ah
 		db 'COPY [/A | /B] source [/A | /B] [+ source [/A | /B] [+ ...]] [des'
 		db 'tination',0Dh,0Ah
@@ -19119,7 +19131,7 @@ MSG_1460	db 100
 		db 'fy multiple',0Dh,0Ah
 		db '                          files by using wildcards.',0Dh,0Ah
 		db 79
-asc_8DEB	db '  /P                      Prompts for confirmation before deletin'
+		db '  /P                      Prompts for confirmation before deletin'
 		db 'g each file.',0Dh,0Ah
 MSG_1480	db 162
 		db 'Displays a list of files and subdirectories in a directory.',0Dh,0Ah
@@ -19240,7 +19252,7 @@ MSG_1620	db 87
 		db 'SET [variable=[string]]',0Dh,0Ah
 		db 0Dh,0Ah
 		db 129
-asc_985F	db '  variable  Specifies the environment-variable name.',0Dh,0Ah
+		db '  variable  Specifies the environment-variable name.',0Dh,0Ah
 		db '  string    Specifies a series of characters to assign to the var'
 		db 'iable.',0Dh,0Ah
 		db 0Dh,0Ah
@@ -20311,8 +20323,8 @@ PARSE_VOL	dw offset VOL_PARMS	; ...
 VOL_PARMS	db 0			; ...
 		db 1
 		dw offset DRIVE_CONTROL1
-		db    0
-		db    0
+		db 0
+		db 0
 DRIVE_CONTROL1	dw 101h			; ...
 		dw 1
 		dw offset DRIVE_OUTPUT
@@ -20484,7 +20496,7 @@ $M_RT_$M_DIVISOR dw 10			; ...
 $M_RT_$M_TEMP_BUF dw 2424h		; ...
 					; ($M_COUNTRY_INFO.$M_DATE_FORMAT)
 					; $M_RT_$M_DATE_FORMAT
-$M_RT_$M_CURR_SEPARA db	5 dup(24h)
+$M_RT_$M_CURR_SEPARA db	5 dup('$')
 $M_RT_$M_THOU_SEPARA dw	2424h		; ...
 $M_RT_$M_DECI_SEPARA dw	2424h		; ...
 $M_RT_$M_DATE_SEPARA dw	2424h		; ...
@@ -20492,8 +20504,8 @@ $M_RT_$M_TIME_SEPARA dw	2424h		; ...
 $M_RT_$M_CURR_FORMAT db	24h
 $M_RT_$M_SIG_DIGS_CU db	24h
 $M_RT_$M_TIME_FORMAT db	24h		; ...
-		db 24h
-		db 2Dh dup(24h)		; '$'
+		db '$'                  ; 24h
+		db 2Dh dup('$')         ; '$'
 $M_RT_$M_BUF_TERM db '$'                ; ...
 MsDosVer5_CCopy	db 'MS DOS Version 5.00 (C)Copyright 1981-1991 Microsoft Corp License'
 		db 'd Material - Property of Microsoft All rights reserved '

@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 5.0 Command Interpreter) - RETRO DOS v4.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 05/05/2023 (v5.0) ((Previous: 20/10/2018 COMMAND.COM v3.3))
+; Last Update: 09/06/2023 (v5.0) ((Previous: 20/10/2018 COMMAND.COM v3.3))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
 ; ----------------------------------------------------------------------------
@@ -1560,7 +1560,7 @@ BlkDevErrRw:	dw	0
 		db	1
 		dw	DrvLet
 
-DrvLet		db	'A'			; drive letter
+DrvLet:		db	'A'			; drive letter
 
 
 ;CharDevErrSubst label	byte
@@ -1609,7 +1609,7 @@ PutBackComSpec:	dw	0
 		db	1
 		dw	PutBackDrv
 
-PutBackDrv	db	' '			; drive letter
+PutBackDrv:	db	' '			; drive letter
 
 ;ExecErrSubst	subst	<STRING,DATARES:SafePathBuffer>
 
@@ -2051,7 +2051,7 @@ nomem_err:
 
 ; 09/01/2023
 
-; MSDOS 5.0 COMMAND.COM - COMDERES:03EDh
+; MSDOS 5.0 COMMAND.COM - CODERES:03EDh
 ;	times 84 db 0	; db (EndPipe-EndCodeInit) dup(0)
 
 ; 16/04/2023
@@ -2065,7 +2065,7 @@ nomem_err:
 %endif
 
 ; 09/01/2023 - Retrodos v4.0 (& v4.1)
-; MSDOS 5.0 COMMAND.COM - COMDERES:0441h ; EndInit+289 
+; MSDOS 5.0 COMMAND.COM - CODERES:0441h ; EndInit+289 
 
 ;InPipePtr	dw	offset DATARES:Pipe1	; 320h 
 ;OutPipePtr	dw	offset DATARES:Pipe2	; 36Fh
@@ -2747,7 +2747,8 @@ NoReset:
 ClearBatch:
 	mov	es,[Batch]		; get batch segment
 	;mov	di,20h
-	mov	di,[BATCHSEGMENT.BatFile] ; get offset of batch file name
+	; 06/06/2023 (BugFix)
+	mov	di,BATCHSEGMENT.BatFile ; get offset of batch file name
 	; MSDOS 5.0 & MSDOS 6.0 (ES:5)
 	;mov	bx,es:BatForPtr		; get old FOR segment
 	mov	bx,[es:BATCHSEGMENT.BatForPtr] ; [es:5]
@@ -4061,7 +4062,7 @@ SavMes:
 	push	dx
 	push	cx
 	push	bx
-	mov	ah,59 ; *
+	mov	ah,59h ; * ; 05/06/2023 (BugFix)
 	;mov	ah,GetExtendedError ; 59h ; get extended error info
 	int	21h
 	pop	bx
@@ -4163,7 +4164,7 @@ GotStyle:
 	; MSDOS 3.3
 	;mov     ax,di
 	;mov     ah,5
-	;int     2Fh	; Multiplex - DOS 3+ CRITIChhgdffdAL ERROR HANDLER -
+	;int     2Fh	; Multiplex - DOS 3+ CRITICAL ERROR HANDLER -
 	;jc      short NOHANDLER
 
 ;	Bugbug:	need to record error type?
@@ -4851,7 +4852,7 @@ CharToUpper:
 ;MsgInt2fHandler proc	far
 ;	assume	cs:CODERES,ds:NOTHING,es:NOTHING,ss:NOTHING
 
-	 ;14/01/2023
+	; 14/01/2023
 MsgInt2fHandler:
 	pop	ds			; ds = DATARES
 	;assume	ds:DATARES
@@ -5193,8 +5194,11 @@ Lh_OffUnlink:	; proc	far
 ;public	EndCode
 ; 14/01/2023
 ;EndCode: ; label byte
+; 06/06/2023
 ; 16/04/2023
 EndCode equ ($-StartCode)+100h
+; 06/06/2023
+;EndCode equ $-StartCode	
 
 ;CODERES ends
 ;	end
@@ -5240,7 +5244,7 @@ TAB_CHAR equ 09h
 SPACE_CHAR equ 20h	
 
 ; (MSDOS 6.22 COMMAND.COM -initial- Environment Structure size)
-;ENVIRONSIZ equ 181	; SIZE Environment 
+;ENVIRONSIZ equ 180	; SIZE Environment 
 
 ;----------------------------------------------------
 ; MSDOS 6.0 - ENVDATA.ASM - 1991
@@ -5300,8 +5304,10 @@ ConProc:
         int	21h
 
 	; 14/01/2023
-        mov	ah,30h 
+	mov	ah,30h 
 	;mov	ax,GET_VERSION<<8 ; 30h
+	; 06/06/2023 - MSDOS 6.22 COMMAND.COM
+	;mov	ax,3000h
 	int	21h
 	;;cmp	ax,EXPECTED_VERSION ; 1E03h
 	;cmp	ax,5
@@ -5532,12 +5538,13 @@ TpaSet:
 	;add	bx,15 ; *			; round up the size
 
 	; 03/05/2023
-	;mov	bx,TRANSTART+15 ; * ; 14/01/2023
-	;add	bx,TRANSPACEEND
-	mov	bx,TRANSTART+TRANSPACEEND+15 
-
-        mov     cl,4				;
-        shr     bx,cl				; size of command.com
+	;;mov	bx,TRANSTART+15 ; * ; 14/01/2023
+	;;add	bx,TRANSPACEEND
+	; 06/06/2023
+	;mov	bx,TRANSTART+TRANSPACEEND+15 
+        ;mov	cl,4				;
+        ;shr	bx,cl				; size of command.com
+	mov	bx,(TRANSTART+TRANSPACEEND+15)>>4
 	
 	mov	ah,4Ah
 	;mov	ah,SETBLOCK			; free all memory above pgm
@@ -5561,9 +5568,11 @@ TpaSet:
 
 	;;mov	dx,offset TranGroup:Transpaceend + 15 ; dx = size of transient
 	;mov	dx,98D4h	 ; MSDOS 5.0 COMMAND.COM
-	mov	dx,TRANSPACEEND+15 ; 4D5Ch+0Fh (for MSDOS 3.3 COMMAND.COM)
-	mov	cl,4				;  in paragraphs.
-	shr	dx,cl
+	; 06/06/2023
+	;mov	dx,TRANSPACEEND+15 ; 4D5Ch+0Fh (for MSDOS 3.3 COMMAND.COM)
+	;mov	cl,4				;  in paragraphs.
+	;shr	dx,cl
+	mov	dx,(TRANSPACEEND+15)>>4
         mov     [TrnSize],dx			; save size of transient in paragraphs
 
 	sub	ax,dx				; max seg addr - # para's needed for transient
@@ -5864,7 +5873,7 @@ init_chk_delim:
 
 	; MSDOS 6.0
 ;check_k_too:
-	;cmp	al,[Skswitch]	; 'K'		; it is /K?
+	;cmp	al,[skswitch]	; 'K'		; it is /K?
         ;jne	short parse_line_error_disp	;
 	;pop	dx ; *				; even up stack
 	;pop	dx ; **				; even up stack
@@ -5895,7 +5904,8 @@ SetMSwitch:
 setMswitchok:
         ;mov	byte [ext_msg],1
 	mov	byte [ext_msg],SET_EXTENDED_MSG	; set /MSG switch
-	jmp	Parse_command_line              ; keep parsing
+	; 06/06/2023
+	jmp	short Parse_command_line	; keep parsing
 %endif
 
 parse_cont:
@@ -7114,15 +7124,21 @@ DoDate:
 ; initialize the segment
 
 	xor	di,di
-	;mov	al,0
-	mov	al,BATCHTYPE ; 0
+	;;mov	al,0
+	;mov	al,BATCHTYPE ; 0
+	; 06/06/2023
+	xor	ax,ax
 	stosb
-	mov	al,1			; initialize echo for batch exit
+	;mov	al,1			; initialize echo for batch exit
+	inc	al
 	stosb
 
 ; Hosebag! This guy does not use the struct fields to init the BatchSegment
 
-	xor	ax,ax			; initialize to zero
+	;xor	ax,ax			; initialize to zero
+	; 06/06/2023
+	dec	al ; ax = 0	
+
 	; 21/01/2023
 	stosb	; MSDOS 6.0 		; clear out BatchEOF
 
@@ -7134,7 +7150,10 @@ DoDate:
 
 ; clean out the parameters
 
-	mov	ax,-1			; initialize to no parameters
+	;mov	ax,-1			; initialize to no parameters
+	; 06/06/2023
+	dec	ax ; ax = -1
+
 	mov	cx,10
 	rep	stosw
 
@@ -7225,7 +7244,7 @@ noabat:
 	;mov	di,BatFile			; 3/3/kk
 	mov	di,20h
 	;mov	si,offset ResGroup:KautoBat	; another trial to do	3/3/kk
-	mov	si,KAUTO.BAT
+	mov	si,KAUTOBAT
 	mov	cx,8				; auto execution for the 3/3/kk
 	rep	movsw				; non-english country	3/3/kk
 	movsb					; move in carraige return to terminate string
@@ -7278,10 +7297,14 @@ OpenErr:
 
 	; 21/01/2023
 	;mov	ax,offset RESGROUP:TranStart	; M004
-	;mov	ax,2320h ; MSDOS 5.0 COMMAND.COM
-	mov	ax,TRANSTART
-	mov	cl,4				; M004
-	shr	ax,cl				; get relative seg ; M004
+	;;mov	ax,2320h ; MSDOS 5.0 COMMAND.COM
+	; 06/06/2023
+	;mov	ax,TRANSTART
+	;mov	cl,4				; M004
+	;shr	ax,cl				; get relative seg ; M004
+	; 06/06/2023
+	mov	ax,TRANSTART>>4	
+
 	mov	cx,cs
 	add	ax,cx				; ax = transient seg ; M004
 
@@ -7411,10 +7434,15 @@ Setup_Seg:
 	mov	ax,[TrnSeg]
 	cmp	byte [TrnMvFlg],1	; Has transient portion been moved
 	je	short setup_end
+
+;06/06/2023
+%if 0
 	push	bx
 	mov	bx,cs
 	;mov	ax,offset ResGroup:TranStart
-	;mov	ax,2320h ; MSDOS 5.0 COMMAND.COM	
+	;mov	ax,2320h ; MSDOS 5.0 COMMAND.COM
+	; 06/06/2023
+	;mov	ax,26E0h ; MSDOS 6.22 COMMAND.COM
 	;mov	ax,TRANSTART
 	;shr	ax,1
 	;shr	ax,1
@@ -7424,6 +7452,11 @@ Setup_Seg:
 	mov	ax,TRANSTART>>4
 	add	ax,bx
 	pop	bx
+%endif
+	; 06/06/2023
+	mov	ax,cs
+	add	ax,TRANSTART>>4
+
 setup_end:
 	retn
 
@@ -7804,7 +7837,7 @@ chParse:
 	call	far [Init_Parse]	; call system parser
 
 	;cmp	ax,END_OF_LINE
-	cmp	ax, -1 ; 0FFFFh	
+	cmp	ax,-1 ; 0FFFFh	
 	je	short chRet		; end of command line, no /? found
 	;cmp	ax,RESULT_NO_ERROR
 	;cmp	ax,0
@@ -7906,7 +7939,9 @@ calc_res:
 
 	xor	ax,ax
        	cmp	byte [FirstCom],1		;is it first command.com?
-	jne	short not_first			;no, do not keep code
+	;jne	short not_first			;no, do not keep code
+	; 06/06/2023
+	jne	short not_first2
 
 ;We issue a version check call with al=01 to detect if DOS is in HMA. If so,
 ;bit 4 of dh is set
@@ -7935,10 +7970,11 @@ calc_res:
 oldver:
 	;mov	ax,offset CODERES:EndCode	;size of code in bytes
 	;;mov	ax,81Ah ; MSDOS 5.0 COMMAND.COM
+	; 06/06/2023
 	; 29/01/2023
 	;mov	ax,EndCode-(RCODE_START+100h) ; 23/04/2023
 	; 03/05/2023
-	mov	ax,EndCode-RCODE_START
+	mov	ax,EndCode-RCODE_START	; 06/06/2023
 
 not_first_pop:
 	; 29/01/2023
@@ -7946,9 +7982,11 @@ not_first_pop:
 
 not_first:
 
-;Note that ax = 0(side effect of int 2fh), if the code is not to be retained
+;Note that ax = 0 (side effect of int 2fh), if the code is not to be retained
 
 	add	cx,ax
+
+not_first2:	; 06/06/2023
 
 ;endif	;not ROMDOS
 
@@ -8041,9 +8079,10 @@ move_high:
 	;mov	bx,offset CODERES:EndCode
 	; 29/01/2023
 	;;mov	bx,81Ah ; MSDOS 5.0 COMMAND.COM
-	;mov	bx,EndCode-(RCODE_START+100h) ; 23/04/2023
+	; 06/06/2023
+	;mov	bx,EndCode-(RCODE_START+100h) ; 23/04/2023 ; 06/06/2023
 	; 03/05/2023
-	mov	bx,EndCode-RCODE_START
+	mov	bx,EndCode-RCODE_START ; 06/06/2023
 
 ;M030;
 ; Set di=0ffffh so that we load low in case no one answers this int 2fh
@@ -8071,11 +8110,12 @@ move_high:
 	;;mov	ax,81Ah ; MSDOS 5.0 COMMAND.COM
 	;mov	ax,EndCode-RCODE_START
 	;add	cx,ax
+	; 06/06/2023
 	; 29/01/2023
-	;add	cx,(EndCode-(RCODE_START+100h))+15 ; 23/04/2023 
-	;;add	cx,15				;round up to next para
+	;add	cx,(EndCode-(RCODE_START+100h))+15 ; 23/04/2023 ; 06/06/2023
+	;add	cx,15				;round up to next para
 	; 03/05/2023
-	add	cx,(EndCode-RCODE_START)+15
+	add	cx,(EndCode-RCODE_START)+15 ; 06/06/2023
 	shr	cx,1
 	shr	cx,1
 	shr	cx,1
@@ -8096,10 +8136,11 @@ setup_move:
 	mov	si,RCODE_START  ; Start addr of Resident Code (CODERES segment)
 				; 0D40h for MSDOS 5.0 COMMAND.COM
 	;mov	cx,offset CODERES:EndCode	;cx = bytes to move
-	;;mov	cx,81Ah ; MSDOS 5.0 COMMAND.COM
+	;mov	cx,81Ah ; MSDOS 5.0 COMMAND.COM
+	; 06/06/2023
 	;mov	cx,EndCode-(RCODE_START+100h) ; 23/04/2023
 	; 03/05/2023
-	mov	cx,EndCode-RCODE_START
+	mov	cx,EndCode-RCODE_START	; 06/06/2023
 
 	cld
 	push	di				;need di for patching offset
@@ -8661,8 +8702,8 @@ cXMMexit:
 	; (15 bytes filler)
 	db 0
 	;db "25/9/2018 ETAN"
-	; 30/01/2023
-	db "30/1/2023 ETAN"	
+	; 09/06/2023
+	db "9/6/2023 ETAN"	
 	db 0
 
 ; 30/01/2023
@@ -8679,7 +8720,7 @@ COPYRIGHTMSG:	; MSDOS 3.3 COMMAND.COM - offset 1460h
 	db '                                                   ',
 	db 0Dh,0Ah,0
 
-	times	43 db 20h
+	times 43 db 20h
 
 _152Fh:	db 'Specified COMMAND search directory bad',0Dh,0Ah,0
 BADCOMLKMES:
@@ -9345,7 +9386,9 @@ COMMAND:
 	cli
 	mov	ss,ax
 	;mov	sp,offset TRANGROUP:STACK
-	mov	sp,STACK
+				; 07/06/2023
+	mov	sp,STACK	; 09854h for MSDOS 5.0 COMMAND.COM
+				; 0AF24h for MSDOS 6.22 COMMAND.COM
 	sti
 		
 	mov	es,ax
@@ -9409,7 +9452,9 @@ NOPCLOSE:
 	mov	ax,cs		; Get segment we're in
 	mov	ds,ax
 	push	ax
-	mov	dx,INTERNATVARS
+			; 07/06/2023 (INTERNATVARS addr = STACK addr)
+	mov	dx,INTERNATVARS ; 09854h for MSDOS 5.0 COMMAND.COM
+				; 0AF24h for MSDOS 6.22 COMMAND.COM
 	mov	ax,3800h
 	;mov	ax,INTERNATIONAL*256 ; 3800h
 	int	21h	; DOS -	2+ - GET COUNTRY-DEPENDENT INFORMATION
@@ -9446,7 +9491,7 @@ GOTSIZE:
 				; G  Don't print prompt in FOR
 	test	byte [ForFlag],0FFh ; -1
 	jnz	short GETCOM
-					; G  Don't print prompt if in batch
+				; G  Don't print prompt if in batch
 	test	word [Batch],0FFFFh ; -1
 	jnz	short GETCOM
 	call	CRLF2
@@ -11061,7 +11106,9 @@ FOR_NOT_ON:
 ;   <arg0>CR<arg1>CR...<arg6>CR CR CR ... CR 0
 
 	mov	si,COMBUF+2
-	mov	cx,10		; at most 10 arguments
+	;mov	cx,10		; at most 10 arguments
+	; 07/06/2023
+	mov	cl,10
 EACHPARM:
 	call	scanoff		; skip to argument
 
@@ -12515,7 +12562,7 @@ FOR_STOSB:
 	dec	cx			; and put it into the <command> to be
 					; executed (and note length, too)
 	cmp	al,0Dh		
-	jne	short FOR_MAKE_LOOP ; If not done, loop.
+	jne	short FOR_MAKE_LOOP	; If not done, loop.
 FOR_MADE_COM:
 	not	cl
 	;mov	[cs:COMBUF+1],cl
@@ -13531,7 +13578,7 @@ NUM_ORDER_LTRS	equ	5	; length of sort order letter list
 ; ---------------------------------------------------------------------------
 ;	Bugbug:	Each routine should start with it's own ASSUME.
 
-; ---------------------------------------------------------------------------
+;----------------------------------------------------------------------------
 ;----------------------------------------------------------------------------
 
 ; 16/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
@@ -14331,6 +14378,7 @@ lsRet:
 ;	   and it's alphanumerically less than temp name.
 
 	; 16/02/2023 - Retro DOS v4.0 COMMAND.COM
+	; 07/06/2023
 CheckChild:
 	;test	DirBuf.find_buf_attr,ATTR_DIRECTORY
 	test	byte [DIRBUF+FIND_BUF.ATTR],ATTR_DIRECTORY ; 10h
@@ -14349,16 +14397,21 @@ CheckChild:
 	call	CmpAscz		; compare candidate to last child's name
 	jna	short ccRet	; it's not above it- return
 
-	;mov	si,offset TRANGROUP:DirBuf+find_buf_pname
-	mov	si,DIRBUF+FIND_BUF.PNAME
+
+	; 07/06/2023
+	;;mov	si,offset TRANGROUP:DirBuf+find_buf_pname
+	;mov	si,DIRBUF+FIND_BUF.PNAME
+	; si = DIRBUF+FIND_BUF.PNAME
 	mov	di,bp
 	call	CmpAscz		; compare candidate to temp name
 	jnb	short ccRet	; it's not below it- return
 
 ;	New kid is alright. Copy to temp.
 
-	;mov	si,offset TRANGROUP:DirBuf+find_buf_pname
-	mov	si,DIRBUF+FIND_BUF.PNAME
+	; 07/06/2023
+	;;mov	si,offset TRANGROUP:DirBuf+find_buf_pname
+	;mov	si,DIRBUF+FIND_BUF.PNAME
+	; si = DIRBUF+FIND_BUF.PNAME
 	mov	di,bp
 	mov	cx,13
 	rep	movsb
@@ -14415,7 +14468,6 @@ ceDn:
 ceNs:
 	pop	si		; SI = ptr to next sort code
 	je	short ceLoop	; compare showed no difference, keep trying
-
 ceDone:
 
 ;	Get here either from unequal compare or sort code = 0.
@@ -14425,7 +14477,7 @@ ceDone:
 	retn
 
 	; 16/02/2023 - Retro DOS v4.0 COMMAND.COM
-	;(MSDOS 5.0 COMMAND.COM - TRANGROUP:1339h)
+	; (MSDOS 5.0 COMMAND.COM - TRANGROUP:1339h)
 
 FieldCmps:		; call table of entry comparisons
 	dw	CmpName
@@ -14461,17 +14513,25 @@ CmpName:
 	;add	di,1
 	; 25/04/2023
 	inc	di
-	;mov	cx,size filename; CX = length of name
+	;mov	cx,size filename
+				; CX = length of name
 	mov	cx,8
 	jmp	short CmpStr
 
 CmpExt:
-	mov	si,bx		; ES:SI = ptr to BX entry
-	mov	di,bp		; ES:DI = ptr to BP entry
-	;add	si,fileext	; ES:SI = ptr to BX extension
-	add	si,9
-	;add	di,fileext	; ES:DI = ptr to BP extension
-	add	di,9
+	; 07/06/2023
+	;mov	si,bx		; ES:SI = ptr to BX entry
+	;mov	di,bp		; ES:DI = ptr to BP entry
+	;;add	si,fileext	; ES:SI = ptr to BX extension
+	;add	si,9
+	;;add	di,fileext	; ES:DI = ptr to BP extension
+	;add	di,9
+	;
+	mov	si,9
+	mov	di,si ; mov di,9
+	add	si,bx
+	add	di,bp
+	;
 	;mov	cx,size fileext	; CX = length of extension field
 	mov	cx,3
 
@@ -14556,6 +14616,7 @@ cnNoCollTable:
 ;		structure must be adjacent and in that order.
 
 	; 16/02/2023 - Retro DOS v4.0 COMMAND.COM
+	; 07/06/2023
 CmpTime:
 	mov	si,bx
 	mov	di,bp
@@ -14563,11 +14624,18 @@ CmpTime:
 	add	si,16 ; 15+2-1
 	;add	di,filedate + size filedate - 1
 	add	di,16 ; 15+2-1
+	; 07/06/2023
+	mov	si,16
+CmpST2:		; 07/06/2023
+	mov	di,si	; mov di,16
+	add	si,bx
+	add	di,bp
+
 	;mov	cx,size filetime + size filedate
 	mov	cx,4 ; 2+2
 	std
 	;repe	cmps byte ptr es:[si],[di]
-				;db 0F3h,26h,0A6h,0FCh, 0C3h
+				;db 0F3h,26h,0A6h, 0FCh,0C3h
 	repe	; 0F3h
 	es	; 26h
 	cmpsb	; 0A6h
@@ -14590,25 +14658,35 @@ CmpTime:
 ;	USED:	CX,SI,DI
 
 	; 16/02/2023 - Retro DOS v4.0 COMMAND.COM
+	; 07/06/2023
 CmpSize:
-
-	mov	si,bx
-	mov	di,bp
-	;add	si,filesize + size filesize - 1
-	add	si,20  ; 17+4-1
-	;add	di,filesize + size filesize - 1
-	add	di,20  ; 17+4-1
-	;mov	cx,size filesize
-	mov	cx,4
-	std
-	;repe	cmps byte ptr es:[si],[di]
-				;db 0F3h,26h,0A6h
-	repe	; 0F3h
-	es	; 26h
-	cmpsb	; 0A6h
-
-	cld
-	retn
+	;mov	si,bx
+	;mov	di,bp
+	;;add	si,filesize + size filesize - 1
+	;add	si,20  ; 17+4-1
+	;;add	di,filesize + size filesize - 1
+	;add	di,20  ; 17+4-1
+	; 07/06/2023
+	mov	si,20
+	;;;
+	jmp	short CmpST2 ; 07/06/2023
+	;;;
+;CmpST2:
+;	mov	di,si	; mov di,20
+;	add	si,bx
+;	add	di,bp
+;
+;	;mov	cx,size filesize
+;	mov	cx,4
+;	std
+;	;repe	cmps byte ptr es:[si],[di]
+;				;db 0F3h,26h,0A6h
+;	repe	; 0F3h
+;	es	; 26h
+;	cmpsb	; 0A6h
+;
+;	cld
+;	retn
 
 ; ---------------------------------------------------------------------------
 
@@ -15174,18 +15252,27 @@ GetFirst:
 	;mov	byte [5Bh],16h
 	mov	byte [FCB-1],ATTR_ALL ; 16h
 					; find any file
-	mov	dx,FCB-7 ; 55h		; DX = ptr to extended FCB
+	; 07/06/2023
+	;mov	dx,FCB-7 ; 55h		; DX = ptr to extended FCB
 	mov	ah,11h
 	;mov	ah,Dir_Search_First	; AH = DOS Find First function code
-	int	21h			; call DOS
-	shl	al,1			; CY = set if error
-	jc	short gfRet		; return error
-	jmp	short gfFound		; go look at attr's
+	; 07/06/2023
+	;int	21h			; call DOS
+	;shl	al,1			; CY = set if error
+	;jc	short gfRet		; return error
+	;jmp	short gfFound		; go look at attr's
+	; 07/06/2023
+	jmp	short GetFrstNxt
 GetNext:
-	;mov	dx,55h
-	mov	dx,FCB-7		; DX = ptr to extended FCB
+	; 07/06/2023
+	;;mov	dx,55h
+	;mov	dx,FCB-7		; DX = ptr to extended FCB
 	mov	ah,12h
 	;mov	ah,Dir_Search_Next	; AH = DOS Find Next function code
+GetFrstNxt:
+	; 07/06/2023
+	mov	dx,FCB-7 ; mov dx,55h
+	;
 	int	21h			; call DOS
 	shl	al,1			; CY = set if error
 	jc	short gfRet		; return error
@@ -15280,11 +15367,12 @@ ldDone:
 	; 25/04/2023
 	jz	short ldRet
 	call	DisplayTrailer		; display trailing info
-ld2:	
-	clc				; return success
+	; 08/06/2023
+	; cf=0
+;ld2:	
+	;clc				; return success
 ldRet:
 	retn
-
 
 ; ---------------------------------------------------------------------------
 
@@ -15653,7 +15741,8 @@ ParseOrder:
 	;mov	si,[bx+ResultBuffer.ValuePtr]
 	mov	si,[bx+4]		; SI = ptr to order letters
 	;mov	bx,offset TRANGROUP:DestBuf
-	mov	bx,[DestBuf]		; BX = ptr to sort code buffer
+	; 08/06/2023 (BugFix)
+	mov	bx,DestBuf		; BX = ptr to sort code buffer
 	mov	al,[si]			; AL = 1st char of order string
 	or	al,al
 	jnz	short poLtr		; not NUL, go parse letters
@@ -15683,7 +15772,8 @@ poLtr:
 	lodsb				; AL = next char
 po1:
 	;mov	di,offset TRANGROUP:OrderLtrs
-	mov	di,[OrderLtrs] ;"NEDSG" ; DI = ptr to list of letters
+	; 08/06/2023 (BugFix)
+	mov	di,OrderLtrs	;"NEDSG" ; DI = ptr to list of letters
 	mov	cx,NUM_ORDER_LTRS ; 5	; CX = length of list
 	repne	scasb			; look for our letter in the list
 	jne	short poErr		; not found, return error
@@ -15863,6 +15953,9 @@ cdLoop:
 
 	; 19/02/2023
 CmpAscz:
+	; 07/06/2023
+	push	si ; *
+	;
 	push	di
 
 	mov	di,si
@@ -15873,6 +15966,10 @@ CmpAscz:
 
 	pop	di
 	repe	cmpsb
+
+	; 07/06/2023
+	pop	si ; *
+	;
 	retn
 
 ; ---------------------------------------------------------------------------
@@ -16141,11 +16238,17 @@ DisplayDotForm:
 	;assume	ds:nothing
 	mov	es,ax			; ES:BX = ptr to entry
 
-	mov	di,bx			; ES:DI = ptr to entry
-	;;add	di,filename + size filename - 1
-	add	di,8 ; 1+8-1		; ES:DI = ptr to last char in name field
-	;mov	cx,size filename	; CX = length of name field
+	; 08/06/2023
+	;mov	di,bx			; ES:DI = ptr to entry
+	;;;add	di,filename + size filename - 1
+	;add	di,8 ; 1+8-1		; ES:DI = ptr to last char in name field
+	;;mov	cx,size filename	; CX = length of name field
+	;mov	cx,8
+	; 08/06/2023
 	mov	cx,8
+	mov	di,cx
+	add	di,bx	
+	
 	mov	al,' '
 	std				; scan down
 	repe	scasb			; scan for nonblank
@@ -16351,14 +16454,16 @@ dhCom:
 ;	  Cursor is left at end of extension.
 
 	; 19/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 08/06/2023
 DisplayName:
 	push	ds			; save TRANGROUP seg addr
 	mov	ds,[TPA]		; DS:BX = ptr to entry
 	;assume	ds:nothing
 	mov	si,bx			; DS:SI = ptr to entry
 	;add	si,filename		; DS:SI = ptr to filename
-	add	si,1  ; EntryStruc.filename
+	;add	si,1  ; EntryStruc.filename
+	; 08/06/2023
+	inc	si
 	mov	di,CHARBUF		; ES:DI = ptr to CharBuf
 
 	mov	cx,8
@@ -16366,7 +16471,9 @@ DisplayName:
 	rep	movsb			; move filename to CharBuf
 	mov	al,' '
 	stosb				; add a blank
-	mov	cx,3
+	;mov	cx,3
+	; 08/06/2023
+	mov	cl,3
 	rep	movsb			; add extension
 	xor	al,al
 	stosb				; add a NULL
@@ -18066,7 +18173,7 @@ PRINT_VERSION:
 PRINT_PROMPT:
 	push	ds
 	push	cs
-	pop	ds		; Make sure Ds is in TRANGROUP
+	pop	ds		; Make sure DS is in TRANGROUP
 	push	es
 	call	find_prompt	; Look for prompt string
 	jc	short PP0	; Can't find one	
@@ -18919,7 +19026,8 @@ devisok:
 	; 21/02/2023
 	; MSDOS 6.0
 	push	dx		;AN007; save device info
-	mov	ax,acrlf_ptr	;AN021; get message number for 0d, 0a
+	; 08/06/2023 (BugFix)
+	mov	ax,[acrlf_ptr]	;AN021; get message number for 0d, 0a
 	;mov	dh,util_msg_class
 	mov	dh,-1 ; 0FFh	;AN021; this is a utility message
 	push	bx		;AN021; save handle
@@ -19011,6 +19119,7 @@ set_global_cp	  equ  2
 get_global_cp	  equ  1
 
 	; 21/02/2023 - Retro DOS v4.0
+	; 09/06/2023
 CHCP:
 	; MSDOS 6.0
 	push	ds		;AN000; Get local ES
@@ -19033,15 +19142,18 @@ setcp:
 	and	ax,ax ; ax > 0 ?
 	jnz	short cp_error	
 
-	;push	cx		;AN000; save positional count
-	mov	bx,PARSE1_ADDR	;AN000; get number returned
-	;mov	cx,[bx]		;AN000;  into cx
-	;mov	[system_cpage],cx
-				;AN000; save user input number
-	;pop	cx		;AC000; restore positional count
-	; 21/02/2023
-	mov	di,[bx]
-	mov	[system_cpage],di
+	;;push	cx		;AN000; save positional count
+	;mov	bx,PARSE1_ADDR	;AN000; get number returned
+	;;mov	cx,[bx]		;AN000;  into cx
+	;;mov	[system_cpage],cx
+	;			;AN000; save user input number
+	;;pop	cx		;AC000; restore positional count
+	;; 21/02/2023
+	;mov	di,[bx]
+	;mov	[system_cpage],di
+	; 09/06/2023	
+	mov	bx,[PARSE1_ADDR]
+	mov	[system_cpage],bx
 	;
 	mov	di,PARSE_CHCP	;AN000; Get address of PARSE_CHCP
 	call	parse_check_eol ;AN000; are we at end of line?
@@ -24561,7 +24673,7 @@ path_found:				; pathinfo[] points to winner
 	mov	ax,[es:si]
 	mov	[di],ax
 	mov	al,[psep_char]
-	mov	[di+2],	al
+	mov	[di+2],al
 	push	si		; Save pointer to begining of string
 	mov	dl,[es:si]	; Convert device letter for cur dir
 	or	dl,20h
