@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 5.0 Command Interpreter) - RETRO DOS v4.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 09/06/2023 (v5.0) ((Previous: 20/10/2018 COMMAND.COM v3.3))
+; Last Update: 10/06/2023 (v5.0) ((Previous: 20/10/2018 COMMAND.COM v3.3))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
 ; ----------------------------------------------------------------------------
@@ -8702,8 +8702,8 @@ cXMMexit:
 	; (15 bytes filler)
 	db 0
 	;db "25/9/2018 ETAN"
-	; 09/06/2023
-	db "9/6/2023 ETAN"	
+	; 10/06/2023
+	db "10/6/2023 ETAN"	
 	db 0
 
 ; 30/01/2023
@@ -19323,7 +19323,7 @@ chcp_return:
 
 	; 23/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2197h
-
+	; 10/06/2023
 TRUENAME:				;AN000; TRUENAME entry point
 	push	ds			;AN000; Get local ES
 	pop	es			;AN000;
@@ -19334,15 +19334,20 @@ TRUENAME:				;AN000; TRUENAME entry point
 	call	Parse_With_Msg		;AC018; call parser
 
 	mov	di,SRCXNAME		;AN000; get address of srcxname
-	cmp	ax,0FFFFh
-	;cmp	ax,END_OF_LINE		;AN000; are we at end of line?
-	je	short tn_eol		;AN000; yes - go process
-	; 22/02/2023
-	;cmp	ax,0
-	;cmp	ax,RESULT_NO_ERROR	;AN000; did we have an error?
-	;jne	short tn_parse_error	;AN000; yes - go issue message
-	and	ax,ax ; ax = 0 ?
-	jnz	short tn_parse_error ; no, parse error	
+	;cmp	ax,0FFFFh
+	;;cmp	ax,END_OF_LINE		;AN000; are we at end of line?
+	;je	short tn_eol		;AN000; yes - go process
+	;; 22/02/2023
+	;;cmp	ax,0
+	;;cmp	ax,RESULT_NO_ERROR	;AN000; did we have an error?
+	;;jne	short tn_parse_error	;AN000; yes - go issue message
+	;and	ax,ax ; ax = 0 ?
+	;jnz	short tn_parse_error ; no, parse error
+	; 10/06/2023
+	inc	ax  ; 0FFFFh -> 0 ; cmp ax,0FFFFh
+	jz	short tn_eol ; ah = 0 ; *
+	dec	ax  ; 1 -> 0 ; cmp ax, 0
+	jnz	short tn_parse_error
 
 	;cmp	byte [PARSE1_TYPE],6
 	cmp	byte [PARSE1_TYPE],result_drive
@@ -19401,7 +19406,11 @@ tn_eol:
 	;mov	ah,END_OF_LINE_OUT	;AN000; set buffer to .
 	;;mov	al,dot_chr		;AN000;   for current dir
 	;mov	al,'.'
-	mov	ax,002Eh
+	; 10/06/2023
+	;mov	ax,002Eh
+	; ah = 0 ; *
+	mov	al,'.'  ;dot_chr ; 2Eh
+	;
 	stosw				;AN000; store in srcxname
 	; 23/02/2023
 	;jmp	short tn_doit		;AN000; go do command
@@ -19560,7 +19569,7 @@ parse_check_eol:
 	xor	dx,dx			;AN000;
 	mov	[parse_last],si 	;AN018; save start of parameter
 	call	cmd_parse		;AN000; call parser
-	cmp	al,-1  ;0FFh
+	cmp	al,-1 ; 0FFh
 	;cmp	al,END_OF_LINE	; 0FFh	;AN000; Are we at end of line?
 	je	short parse_good_eol	;AN000; yes - no problem
 	;cmp	ax,0
@@ -19602,7 +19611,7 @@ parse_msg_good:	; 23/02/2023
 Parse_With_Msg:
 	mov	[parse_last],si 	;AN018; save start of parameter
 	call	cmd_parse		;AN018; call parser
-	cmp	al,-1  ;0FFh
+	cmp	al,-1 ; 0FFh
 	;cmp	al,END_OF_LINE	; 0FFh	;AN018; Are we at end of line?
 	je	short parse_msg_good	;AN018; yes - no problem
 	;cmp	ax,0
@@ -20207,6 +20216,7 @@ upconv_end:				;AN000;
 ; STORE A CHAR IN environment, GROWING IT IF NECESSARY
 
 	; 24/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 10/06/2023
 store_char:
 	push	cx
 	push	bx
@@ -20268,8 +20278,10 @@ envnoset:
 	pop	cx
 	pop	ax
 	; 24/02/2023
-	pop	es ; MSDOS 6.0	;AN056;*	
+	;pop	es ; MSDOS 6.0	;AN056;*	
 	jnc	short store1
+	; 10/06/2023 (BugFix)
+	pop	es ; MSDOS 6.0	;AN056;*	
 	mov	dx,ENVERR_PTR
 	jmp	cerror
 store1:	
