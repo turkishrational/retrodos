@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 6.22 Command Interpreter) - RETRO DOS v4.2 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 09/06/2023 (v6.22) ((Previous: 05/05/2023 COMMAND.COM v5.0))
+; Last Update: 10/06/2023 (v6.22) ((Previous: 05/05/2023 COMMAND.COM v5.0))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
 ; ----------------------------------------------------------------------------
@@ -8615,8 +8615,8 @@ cXMMexit:
 	;db "25/9/2018 ETAN"
 	; 30/01/2023
 	;db "30/1/2023 ETAN"	
-	; 09/06/2023
-	db "9/6/2023 ETAN"	
+	; 10/06/2023
+	db "10/6/2023 ETAN"	
 	db 0
 
 ; 30/01/2023
@@ -20317,7 +20317,8 @@ chcp_return:
 	; 23/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2197h
 
-burada kaldým.. 09/06/2023
+	; 10/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:2741h
 
 TRUENAME:				;AN000; TRUENAME entry point
 	push	ds			;AN000; Get local ES
@@ -20329,16 +20330,21 @@ TRUENAME:				;AN000; TRUENAME entry point
 	call	Parse_With_Msg		;AC018; call parser
 
 	mov	di,SRCXNAME		;AN000; get address of srcxname
-	cmp	ax,0FFFFh
-	;cmp	ax,END_OF_LINE		;AN000; are we at end of line?
-	je	short tn_eol		;AN000; yes - go process
-	; 22/02/2023
-	;cmp	ax,0
-	;cmp	ax,RESULT_NO_ERROR	;AN000; did we have an error?
-	;jne	short tn_parse_error	;AN000; yes - go issue message
-	and	ax,ax ; ax = 0 ?
-	jnz	short tn_parse_error ; no, parse error	
-
+	;cmp	ax,0FFFFh
+	;;cmp	ax,END_OF_LINE		;AN000; are we at end of line?
+	;je	short tn_eol		;AN000; yes - go process
+	;; 22/02/2023
+	;;cmp	ax,0
+	;;cmp	ax,RESULT_NO_ERROR	;AN000; did we have an error?
+	;;jne	short tn_parse_error	;AN000; yes - go issue message
+	;and	ax,ax ; ax = 0 ?
+	;jnz	short tn_parse_error ; no, parse error	
+	; 10/06/2023
+	inc	ax  ; 0FFFFh -> 0 ; cmp ax,0FFFFh
+	jz	short tn_eol ; ah = 0 ; *
+	dec	ax  ; 1 -> 0 ; cmp ax, 0
+	jnz	short tn_parse_error
+	
 	;cmp	byte [PARSE1_TYPE],6
 	cmp	byte [PARSE1_TYPE],result_drive
 					;AN000; was a drive entered?
@@ -20396,7 +20402,11 @@ tn_eol:
 	;mov	ah,END_OF_LINE_OUT	;AN000; set buffer to .
 	;;mov	al,dot_chr		;AN000;   for current dir
 	;mov	al,'.'
-	mov	ax,002Eh
+	; 10/06/2023
+	;mov	ax,002Eh
+	; ah = 0 ; *
+	mov	al,'.'  ;dot_chr ; 2Eh
+	;	
 	stosw				;AN000; store in srcxname
 	; 23/02/2023
 	;jmp	short tn_doit		;AN000; go do command
@@ -20431,6 +20441,9 @@ tn_print_xname: 			;AN000;
 
 	; 23/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2219h
+
+	; 10/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:27C3h
 _$EXIT:
 	; MSDOS 6.0
 	push	ds			;AN000; save data segment
@@ -20525,7 +20538,7 @@ parse_check_eol:
 	xor	dx,dx			;AN000;
 	mov	[parse_last],si 	;AN018; save start of parameter
 	call	cmd_parse		;AN000; call parser
-	cmp	al,-1  ;0FFh
+	cmp	al,-1 ; 0FFh
 	;cmp	al,END_OF_LINE	; 0FFh	;AN000; Are we at end of line?
 	je	short parse_good_eol	;AN000; yes - no problem
 	;cmp	ax,0
@@ -20567,7 +20580,7 @@ parse_msg_good:	; 23/02/2023
 Parse_With_Msg:
 	mov	[parse_last],si 	;AN018; save start of parameter
 	call	cmd_parse		;AN018; call parser
-	cmp	al,-1  ;0FFh
+	cmp	al,-1 ; 0FFh
 	;cmp	al,END_OF_LINE	; 0FFh	;AN018; Are we at end of line?
 	je	short parse_msg_good	;AN018; yes - no problem
 	;cmp	ax,0
@@ -20638,6 +20651,7 @@ setup_parse_msg_ret:
 ; ---------------------------------------------------------------------------
 
 	; 23/02/2023 - Retro DOS v4.0 COMMAND.COM
+	; 10/06/2023 - Retro DOS v4.2 COMMAND.COM
 ADD_PROMPT:
 	call	delete_prompt	; Delete any existing prompt
 	call	scan_double_null
@@ -20916,6 +20930,7 @@ find_name_in_environment:
 
 ; On return of FIND1, ES:DI points to beginning of name
 
+	; 10/06/2023 - Retro DOS v4.2 COMMAND.COM
 FIND:
 	cld
 	call	COUNT0		; CX = Length of name
@@ -21124,6 +21139,9 @@ ktret:					;AN000;  3/3/KK
 
 	; 24/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:24C4h
+
+	; 10/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:2A6Eh
 UPCONV:
 	cmp	al,80h			;AN000;  see if char is > ascii 128
 	jb	short oth_fucase	;AN000;  no - upper case math
@@ -21139,6 +21157,8 @@ UPCONV:
 	pop	bx			;AN000;
 	pop	ds			;AN000;
 	;jmp	short upconv_end	;AN000;  we finished - exit
+	; 10/06/2023
+upconv_end:
 	; 24/02/2023
 	retn
 oth_fucase:				;AN000;
@@ -21147,7 +21167,7 @@ oth_fucase:				;AN000;
 	cmp	al,'z' ; small_z	;AC000;    upper case equivalent.
 	ja	short upconv_end	;AC000;
 	sub	al,20h			;AC000; Change lower-case to upper
-upconv_end:				;AN000;
+;upconv_end:	; 10/06/2023		;AN000;
 	retn
 
 ; ---------------------------------------------------------------------------
@@ -21232,9 +21252,11 @@ envnoset:
 	popf
 	pop	cx
 	pop	ax
+	; 10/06/2023
+	jnc	short store1
 	; 24/02/2023
 	pop	es ; MSDOS 6.0	;AN056;*	
-	jnc	short store1
+	;jnc	short store1
 	mov	dx,ENVERR_PTR
 	jmp	cerror
 store1:	
@@ -21245,6 +21267,8 @@ store1:
 	pop	bx
 	pop	cx
 	retn
+
+burada kaldým... 10/06/2023
 
 ; =============== S U B	R O U T	I N E =======================================
 
