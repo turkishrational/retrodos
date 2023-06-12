@@ -1,13 +1,13 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 6.22 Command Interpreter) - RETRO DOS v4.2 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 10/06/2023 (v6.22) ((Previous: 05/05/2023 COMMAND.COM v5.0))
+; Last Update: 12/06/2023 (v6.22) ((Previous: 05/05/2023 COMMAND.COM v5.0))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
 ; ----------------------------------------------------------------------------
 ; Assembler: NASM version 2.15 (2.11)
 ; ----------------------------------------------------------------------------
-;	    ((nasm command5.s -l command5.lst -o COMMAND.COM)) 	
+;	    ((nasm command6.s -l command6.lst -o COMMAND.COM)) 	
 ; ----------------------------------------------------------------------------
 ; Derived from 'COMMAND.ASM' file of MSDOS 2.11 (IBM PCDOS v2.11) source code
 ; by Microsoft, 18/08/1983
@@ -6001,15 +6001,21 @@ Parse_command_line:
 	call	far [Init_Parse]		; call parser
         mov     [num_positionals],cx		; Save number of positionals
 	; 29/01/2023
-	;cmp	ax,END_OF_LINE ; 0FFFFh ; -1 	; are we at end of line?
-        cmp	ax,-1
-	jne	short t1
-        jmp     ArgsDone                        ; yes - exit
+	;;cmp	ax,END_OF_LINE ; 0FFFFh ; -1 	; are we at end of line?
+        ;cmp	ax,-1
+	;jne	short t1
+	; 10/06/2023
+	inc	ax	 ; cmp ax,-1
+	jnz	short t1 ; 0FFFFh -> 0
+	; ax = 0
+	jmp     ArgsDone                        ; yes - exit
 t1:	
-	;cmp	ax,RESULT_NO_ERROR ; 0		; did an error occur
-	;cmp	ax,0
-	and	ax,ax
-	jz	short parse_cont		; no - continue
+	;;cmp	ax,RESULT_NO_ERROR ; 0		; did an error occur
+	;;cmp	ax,0
+	;and	ax,ax
+	; 10/06/2023
+	dec	ax  ; cmp ax,0
+	jz	short parse_cont  ; 1 -> 0	; no - continue
 
 ; Before issuing error message - make sure switch is not /C
 
@@ -7729,15 +7735,21 @@ chParse:
 	;call	dword ptr Init_Parse
 	call	far [Init_Parse]	; call system parser
 
-	;cmp	ax,END_OF_LINE
-	cmp	ax,-1 ; 0FFFFh	
-	je	short chRet		; end of command line, no /? found
-	;cmp	ax,RESULT_NO_ERROR
-	;cmp	ax,0
-	;je	short chWhich		; valid syntax element found
-	;jmp	short chParse		; go parse more
-	and	ax,ax ; cmp ax,0
-	jnz	short chParse ; jne 
+	;;cmp	ax,END_OF_LINE
+	;cmp	ax,-1 ; 0FFFFh	
+	;je	short chRet		; end of command line, no /? found
+	;;cmp	ax,RESULT_NO_ERROR
+	;;cmp	ax,0
+	;;je	short chWhich		; valid syntax element found
+	;;jmp	short chParse		; go parse more
+	;and	ax,ax ; cmp ax,0
+	;jnz	short chParse ; jne
+	; 10/06/2023
+	inc	ax	; cmp ax,-1
+	jz	short chRet   ; 0FFFFh -> 0
+	dec	ax	; cmp ax,0
+	jnz	short chParse ; 1 -> 0
+	; ax = 0
 chWhich:
 	;cmp	Comnd1_Syn,offset RESGROUP:Command_?_Syn
 	cmp     word [COMND1_SYN],COMMAND_?_SYN ; "/?"
@@ -8615,8 +8627,8 @@ cXMMexit:
 	;db "25/9/2018 ETAN"
 	; 30/01/2023
 	;db "30/1/2023 ETAN"	
-	; 10/06/2023
-	db "10/6/2023 ETAN"	
+	; 12/06/2023
+	db "12/6/2023 ETAN"	
 	db 0
 
 ; 30/01/2023
@@ -18452,13 +18464,20 @@ ERASE:
 erase_scan:
 	xor	dx,dx		;AN000;
 	call	Parse_With_Msg	;AC018; call parser
-	cmp	ax,-1  ; 0FFFFh
-	;cmp	ax,END_OF_LINE	;AN000; are we at end of line?
-	je	short good_line	;AN000; yes - done parsing
-	;cmp	ax,0
-	;cmp	ax,RESULT_NO_ERROR ; 0
-	and	ax,ax		;AC000; did we have an error?
-	jnz	short errj2	;AC000; yes exit
+	
+	;cmp	ax,-1  ; 0FFFFh
+	;;cmp	ax,END_OF_LINE	;AN000; are we at end of line?
+	;je	short good_line	;AN000; yes - done parsing
+	;;cmp	ax,0
+	;;cmp	ax,RESULT_NO_ERROR ; 0
+	;and	ax,ax		;AC000; did we have an error?
+	;jnz	short errj2	;AC000; yes exit
+	; 10/06/2023
+	inc	ax  ; cmp ax,-1
+	jz	short good_line ; 0FFFFh -> 0
+	dec	ax  ; cmp ax,0	
+	jnz	short errj2  ; 1 -> 0
+	; ax = 0
 
 	cmp	word [PARSE1_SYN],SLASH_P_SYN ; "/P"
 				;AN000; was /P entered?
@@ -18925,6 +18944,7 @@ typelp_ret:
 
 	; 20/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 10/06/2023
 VOLUME:
 	; MSDOS 6.0
 	mov	si,81h
@@ -18933,13 +18953,20 @@ VOLUME:
 	xor	cx,cx		;AN000; clear cx,dx
 	xor	dx,dx		;AN000;
 	call	Parse_With_Msg	;AC018; call parser
-	cmp	ax,-1 ; 0FFFFh
-	;cmp	ax,END_OF_LINE	;AC000; are we at end of line?
-	je	short OkVolArg	;AC000; Yes, display default volume ID
-	;cmp	ax,RESULT_NO_ERROR
-	;cmp	ax,0		;AC000; did we have an error?
-	or	ax,ax ; 0?
-	jnz	short badvolarg	;AC000; Yes, fail.
+
+	;cmp	ax,-1 ; 0FFFFh
+	;;cmp	ax,END_OF_LINE	;AC000; are we at end of line?
+	;je	short OkVolArg	;AC000; Yes, display default volume ID
+	;;cmp	ax,RESULT_NO_ERROR
+	;;cmp	ax,0		;AC000; did we have an error?
+	;or	ax,ax ; 0?
+	;jnz	short badvolarg	;AC000; Yes, fail.
+	; 10/06/2023
+	inc	ax  ; cmp ax,-1
+	jz	short OkVolArg ; 0FFFFh -> 0
+	dec	ax  ; cmp ax,0
+	jnz	short badvolarg ; 1 -> 0
+	; ax = 0
 
 ; We have parsed off the drive. See if there are any more chars left
 
@@ -19983,6 +20010,7 @@ clrloop:
 
 	; 21/02/2023 - Retro DOS v4.0
 	; 08/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
+	; 10/06/2023
 CTTY:
 	; MSDOS 6.0
 	push	ds			;AN000; Get local ES
@@ -19993,12 +20021,19 @@ CTTY:
 	xor	cx,cx			;AC000; clear cx,dx
 	xor	dx,dx			;AC000;
 	call	cmd_parse		;AC000; call parser
-	cmp	ax,-1 ; 0FFFFh
-	;cmp	ax,END_OF_LINE		;AN000; are we at end of line?
-	je	short ctty_error	;AN000; yes - error
-	;cmp	ax,RESULT_NO_ERROR ; 0	;AN000; did an error occur
-	and	ax,ax ; ax > 0 ?
-	jnz	short ctty_error	;AN000; YES -ERROR
+
+	;cmp	ax,-1 ; 0FFFFh
+	;;cmp	ax,END_OF_LINE		;AN000; are we at end of line?
+	;je	short ctty_error	;AN000; yes - error
+	;;cmp	ax,RESULT_NO_ERROR ; 0	;AN000; did an error occur
+	;and	ax,ax ; ax > 0 ?
+	;jnz	short ctty_error	;AN000; YES -ERROR
+	; 10/06/2023
+	inc	ax  ; cmp ax,-1
+	jz	shoret ctty_err  ; 0FFFFh -> 0
+	dec	ax  ; cmp ax,0
+	jnz	short ctty_error  ; 1 -> 0
+	; ax = 0
 
 	push	si			;AN000; save position in line
 	lds	si,[PARSE1_ADDR]	;AN000; get address of filespec
@@ -20158,6 +20193,7 @@ get_global_cp	  equ  1
 
 	; 21/02/2023 - Retro DOS v4.0
 	; 09/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 10/06/2023
 CHCP:
 	; MSDOS 6.0
 	push	ds		;AN000; Get local ES
@@ -20168,17 +20204,24 @@ CHCP:
 	xor	cx,cx		;AC000; clear cx,dx
 	xor	dx,dx		;AC000;
 	call    Parse_With_Msg	;AC018; call parser
-	cmp	ax,-1
-	;cmp	ax,END_OF_LINE	;AN000; are we at end of line?
-	;jne	short setcp	;AC000; no go get number & set code page
-	je	short getcp	;AC000; yes - no parm - get code page
-setcp:
-	;cmp	ax,0
-	;cmp	ax,RESULT_NO_ERROR
-				;AN000; did we have an error?
-	;jne	short cp_error	;AC018; yes - go issue message
-	and	ax,ax ; ax > 0 ?
-	jnz	short cp_error	
+
+	;cmp	ax,-1
+	;;cmp	ax,END_OF_LINE	;AN000; are we at end of line?
+	;;jne	short setcp	;AC000; no go get number & set code page
+	;je	short getcp	;AC000; yes - no parm - get code page
+;setcp:
+	;;cmp	ax,0
+	;;cmp	ax,RESULT_NO_ERROR
+	;			;AN000; did we have an error?
+	;;jne	short cp_error	;AC018; yes - go issue message
+	;and	ax,ax ; ax > 0 ?
+	;jnz	short cp_error	
+	; 10/06/2023
+	inc	ax  ; cmp ax,-1	
+	jz	short getcp ; 0FFFFh -> 0
+	dec	ax  ; cmp ax,0
+	jnz	short cp_error ; 1 -> 0
+	; ax = 0
 
 	;;push	cx		;AN000; save positional count
 	;mov	bx,PARSE1_ADDR	;AN000; get number returned
@@ -20414,8 +20457,8 @@ tn_eol:
 tn_doit:				;AN000;
 	mov	si,SRCXNAME		;AN000; set up srcxname as source
 	mov	di,COMBUF		;AN000; set up combuf as target (need big target)
-	;mov	ah,xNameTrans		;AN000; do name translate call
-	mov	ah,60h
+	mov	ah,xNameTrans		;AN000; do name translate call
+	;mov	ah,60h
 	int	21h			;AN000;
 	jnc	short tn_print_xname	;AN000; If no error - print result
 
@@ -21268,8 +21311,6 @@ store1:
 	pop	cx
 	retn
 
-burada kaldým... 10/06/2023
-
 ; =============== S U B	R O U T	I N E =======================================
 
 	; 24/02/2023
@@ -21352,6 +21393,9 @@ RestUDir:
 ; ****************************************************************
 
 	; 24/02/2023 - Retro DOS v4.0 (& v4.1)
+
+	; 10/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:2B21h
 _$CHDIR:
 	; MSDOS 6.0
 	mov	si,81h
@@ -21361,15 +21405,22 @@ _$CHDIR:
 	xor	dx,dx		;AN000;
 	call	Parse_With_Msg	;AC018; call parser
 	
-	cmp	ax,-1
-	;cmp	ax,END_OF_LINE	;AC000; are we at end of line?
-	je	short bwdj	; No args
-	;cmp	ax,0
-	;cmp	ax,RESULT_NO_ERROR
-				;AC000; did we have an error?
-	or	ax,ax ; ax = 0 ?
-	jnz	short ChDirErr	;AC018; yes - exit
+	;cmp	ax,-1
+	;;cmp	ax,END_OF_LINE	;AC000; are we at end of line?
+	;je	short bwdj	; No args
+	;;cmp	ax,0
+	;;cmp	ax,RESULT_NO_ERROR
+	;			;AC000; did we have an error?
+	;or	ax,ax ; ax = 0 ?
+	;jnz	short ChDirErr	;AC018; yes - exit
 	
+	; 10/06/2023
+	inc	ax	; cmp ax,-1
+	jz	short bwdj ; 0FFFFh -> 0
+	dec	ax	; cmp ax,0
+	jnz	short ChDirErr ; 1 -> 0
+	; ax = 0
+
 	;cmp	byte [PARSE1_TYPE],6
 	cmp	byte [PARSE1_TYPE],result_drive
 				;AC000; was a drive entered?
@@ -21484,6 +21535,9 @@ BadChDir:
 
 	; 24/02/2023 - Retro DOS v4.0 (& v4.1)
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:25E2h
+
+	; 11/06/2023 - Retro DOS v4.2
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:2B8Ch
 _$MKDIR:
 	; MSDOS 6.0
 	call	SETRMMK
@@ -21567,6 +21621,8 @@ MD_other_err:			;AN006;
 
 	; 24/02/2023 - Retro DOS v4.0 (& v4.1)
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2656h
+	; 11/06/2023 - Retro DOS v4.2
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:2C00h
 _$RMDIR:
 	call	SETRMMK
 	jb	short RmDirErr
@@ -21634,6 +21690,8 @@ badrderr:
 
 	; 24/02/2023 - Retro DOS v4.0 (& v4.1)
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2624h
+	; 11/06/2023 - Retro DOS v4.2
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:2BCEh
 SETRMMK:
 	; MSDOS 6.0
 	mov	si,81h
@@ -21991,6 +22049,8 @@ pccont:
 	; 25/02/2023 - Retro DOS v4.0 (& v4.1)
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2767h
 
+	; 11/06/2023 - Retro DOS v4.2
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:2D11h
 PathCrunch:
 	; MSDOS 6.0
 	mov     word [Msg_Numb],0
@@ -22241,6 +22301,7 @@ RETSW:
 ; =============== S U B	R O U T	I N E =======================================
 
 	; 25/02/2023 - Retro DOS v4.0 COMMAND.COM
+	; 11/06/2023 - Retro DOS 4.2 COMMAND.COM
 SWITCH:
 	xor	bx,bx		; Initialize - no switches set
 SWLOOP:
@@ -22260,11 +22321,15 @@ SWLOOP:
 	call	UPCONV
 	;call	UPCONV_MAPCALL	; MSDOS 3.3
 
-	mov	di,switch_list	; "?VBAPW" (for MSDOS 6.0)
+	mov	di,switch_list	; "-Y?VBAPW" (for MSDOS 6.22) ; 11/06/2023
+				; "?VBAPW" (for MSDOS 6.0)
 				; ("VBAPW" (for MSDOS 3.3))
-	mov	cx,6  ; MSDOS 6.0
-	;mov	cx,5  ; MSDOS 3.3
-	;mov	cx,SWCOUNT ; 5 (for MSDOS 3.3), (6 (for MSDOS 6.0))
+	; 11/06/2023
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:2E33h
+	mov	cx,8
+	;mov	cx,6  ; MSDOS 6.0
+	;;mov	cx,5  ; MSDOS 3.3
+	;;mov	cx,SWCOUNT ; 5 (for MSDOS 3.3), (6 (for MSDOS 6.0))
 		
 	;nop
 		
@@ -22506,7 +22571,10 @@ CMD_DONE:
 	jz	short INCALL	; G
 	jmp	TCOMMAND	; chill out...
 INCALL:
-	jmp	DOCOM1
+	;jmp	DOCOM1
+	; 11/06/2023
+	; Retro DOS v4.2 - MSDOS 6.22 COMMAND.COM
+	jmp	DOCOM0
 
 ; =============== S U B	R O U T	I N E =======================================
 
@@ -22678,6 +22746,9 @@ cerror:
 
 	; 26/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2A51h
+
+	; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.2 COMMAND.COM - TRANGROUP:2FFBh
 
 PRESCAN:
 	xor	cx,cx
@@ -22958,12 +23029,18 @@ PRESCANEND:
 	cmp	byte [es:PipeFlag],0
 	jz	short ISNOPIPE
 
+	; 11/06/2023
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:314Ah
+	;mov	di,48Ah		; PipeStr ; RESGROUP:EndInit+160
+	;mov	[es:488h],di	; [es:PipePtr],di
+				; (RESGROUP:EndInit+158)
 	; 26/02/2023
 	;;MSDOS 5.0 COMMAND.COM - TRANGROUP:2BA0h
 	;;mov	di,3C0h		; offset RESGROUP:PIPESTR
 	;;			; (EndInit+160]
 	;mov	di,offset RESGROUP:PIPESTR
 	mov	di,PipeStr	; RESGROUP:EndInit+160
+
 	;;MSDOS 5.0 COMMAND.COM - TRANGROUP:2BA3h
 	;;mov	[es:3BEh],di	; [es:EndInit+158]
 	mov	[es:PipePtr],di	; RESGROUP:EndInit+158
@@ -23057,6 +23134,9 @@ test_append:
 ; 26/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 ; MSDOS 5.0 - COMMAND.COM, transient portion/segment offset 2BEFh
 
+; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
+; MSDOS 6.22 - COMMAND.COM, transient portion/segment offset 3199h
+
 ; =============== S U B	R O U T	I N E =======================================
 
 SETPATH:
@@ -23076,9 +23156,11 @@ SETPATH:
 ;       positions in the buffer following the pathname.
 
 	; 26/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	
+	; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.0
-	mov	ax,[PathCnt]	;AC000; get length of string
-	mov	si,[PathPos]	;AC000; get start of source buffer
+	;mov	ax,[PathCnt]	;AC000; get length of string
+	;mov	si,[PathPos]	;AC000; get start of source buffer
 
 	; 26/02/2023
 	; MSDOS 3.3
@@ -23475,6 +23557,9 @@ TriageError:  ; MSDOS 6.0
 ; 26/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 ; MSDOS 5.0 - COMMAND.COM, transient portion/segment offset 2D92h
 
+; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
+; MSDOS 6.22 - COMMAND.COM, transient portion/segment offset 333Ch
+
 GET_EXT_ERR_NUMBER:  ; MSDOS 3.3
 	jnc	short TRIAGEERR_RETN ; no carry => do nothing...
 	pushf
@@ -23515,8 +23600,10 @@ NoMove:
 
 ; MSDOS 3.3 - COMMAND.COM, transient portion/segment offset 1F15h
 ; MSDOS 5.0 - COMMAND.COM, transient portion/segment offset 2DB9h
+; MSDOS 6.22 - COMMAND.COM, transient portion/segment offset 3363h
 
 	; 26/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
 Triage_Init:
 	call	TriageError	 ; MSDOS 6.0
 	;call	GET_EXT_ERR_NUMBER ; MSDOS 3.3
@@ -23623,11 +23710,15 @@ SETREST:
 ; disappear, we just give up.
 
 	; 26/02/2023 - Retro DOS v4.0 COMMAND.COM
+	;
+	; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:33AFh 
 PIPEDEL:
 	push	ds
 	push	dx
 	mov	ds,[cs:RESSEG]
-	;mov	dx,320h	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2E0Ch
+	;mov	dx,3EAh	; MSDOS 6.22 COMMAND.COM - TRANGROUP:33B1h
+	;;mov	dx,320h	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2E0Ch
 			; Pipe1 = offset RESGROUP:EndInit
 	mov	dx,Pipe1	; Clean up in case ^C
 	;mov	ah,Unlink ; 41h 
@@ -23636,7 +23727,8 @@ PIPEDEL:
 			; DS:DX	-> ASCIZ pathname of file to delete 
 			;		(no wildcards allowed)
 
-	;mov	dx,36Fh ; MSDOS 5.0 COMMAND.COM - TRANGROUP:2E13h
+	;mov	dx,439h	; MSDOS 6.22 COMMAND.COM - TRANGROUP:33BDh
+	;;mov	dx,36Fh ; MSDOS 5.0 COMMAND.COM - TRANGROUP:2E13h
 			; Pipe2 = offset RESGROUP:EndInit+79
 	mov	dx,Pipe2
 	;mov	ah,Unlink ; 41h
@@ -23687,6 +23779,7 @@ TCOMMANDJ:
 ; ---------------------------------------------------------------------------
 
 	; 27/02/2023 - Retro DOS v4.0 COMMAND.COM
+	; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
 PIPEPROCSTRT:
 	mov	ds,[RESSEG]
 	inc	byte [PipeFiles] ; Flag that the pipe files exist
@@ -23727,7 +23820,8 @@ PIPEPROCSTRT:
 	push	es
 	pop	ds			;ds = DATARES
 	;mov	dx,offset DATARES:Pipe1	;ds:dx = path to look for
-	;mov	dx,320h ; MSDOS 5.0 - offset EndIniýt
+	;;mov	dx,320h ; MSDOS 5.0 - offset EndInit
+	;mov	dx,3EAh	; MSDOS 6.22 - offset EndInit
 	mov	dx,Pipe1
 	;mov	ax,(CHMOD shl 8) or 0
 	mov	ax,4300h
@@ -23777,7 +23871,8 @@ no_temp_path:
 crt_temp:
 	; MSDOS 6.0
 	;mov	dx,offset DATARES:Pipe1	; = RESGROUP:EndInit
-	;mov	dx,320h ; MSDOS 5.0 COMMAND.COM
+	;;mov	dx,320h ; MSDOS 5.0 COMMAND.COM
+	;mov	dx,3EAh ; MSDOS 6.22 COMMAND.COM	
 	mov	dx,Pipe1
 	; MSDOS 3.3
 	;mov	dx,bx
@@ -23798,8 +23893,9 @@ crt_temp:
 	mov	ah,3Eh
 	int	21h	; DOS -	2+ - CLOSE A FILE WITH HANDLE
 			; BX = file handle
-	;;mov	dx,PIPE2
-	;mov	dx,36Fh ; MSDOS 5.0 COMMAND.COM
+	;;;mov	dx,PIPE2
+	;;mov	dx,36Fh ; MSDOS 5.0 COMMAND.COM
+	;mov	dx,439h ; MSDOS 6.22 COMMAND.COM
 	mov	dx,Pipe2
 	;mov	ah,CREATETEMPFILE ; 5Ah ; the CreateTemp call
 	mov	ah,5Ah
@@ -23820,8 +23916,9 @@ pps1:
 				; BX = file handle
 	;call	near ptr TESTDOREIN ; Set up a redirection if specified
 	call	TESTDOREIN
+	;mov	si,[488h] ; MSDOS 6.22 COMMAND.COM ; 11/06/2023
 	mov	si,[PipePtr]	; offset RESGROUP:EndInit+158
-	cmp	word [SingleCom],-1
+	cmp	word [SingleCom],-1 ; 0FFFFh
 	jne	short NOSINGP
 	mov	word [SingleCom],0F000h ; Flag single command pipe
 NOSINGP:
@@ -23830,8 +23927,10 @@ NOSINGP:
 ; ---------------------------------------------------------------------------
 
 	; 27/02/2023 - Retro DOS v4.0 COMMAND.COM
+	; 11/06/2026 - Retro DOS v4.2 COMMAND.COM
 PIPEPROC:
 	and	byte [EchoFlag],0FEh  ; force current echo to be off
+	;;mov	si,[488h] ; MSDOS 6.22 COMMAND.COM ; 11/06/2023
 	mov	si,[PipePtr]	; offset RESGROUP:EndInit+158
 	lodsb
 	; 27/02/2023
@@ -23905,9 +24004,11 @@ ISPIPE2:
 	; 27/02/2023
 	mov	[es:COMBUF+1],cl
 	dec	si
-	;mov	[3BEh],si ;  MSDOS 5.0 COMMAND.COM
+	;;mov	[3BEh],si ; MSDOS 5.0 COMMAND.COM
+	; 11/06/2023 - MSDOS 6.22 COMMAND.COM
+	;mov	[488h],si ; [PipePtr] = [EndInit+158]
 	mov	[PipePtr],si		; On to next pipe element
-			; mov [EndInit+158], si
+			; mov [EndInit+158],si
 	mov	dx,[OutPipePtr]
 	push	cx
 	xor	cx,cx
@@ -23931,9 +24032,10 @@ LASTPIPE:
 	; 27/02/2023
 	mov	[es:COMBUF+1],cl
 	dec	si
-	;mov	[3BEh],si ;  MSDOS 5.0 COMMAND.COM
+	;mov	[3BEh],si ; MSDOS 5.0 COMMAND.COM
+	;mov	[488h],si ; MSDOS 6.22 COMMAND.COM ; 11/06/2023
 	mov	[PipePtr],si	; Point at the CR (anything not '|' will do)
-		; mov [EndInit+158], si
+		; mov [EndInit+158],si
 	call	TESTDOREOUT	; Set up the redirection if specified
 PIPECOM:
 	push	cs
@@ -24000,23 +24102,34 @@ DATINIT:
 
 	; 27/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2FC4h
+
+	; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:356Eh
 DATE:
 	mov	si,81h			; Accepting argument for date inline
 	mov	di,PARSE_DATE		;AN000; Get address of PARSE_DATE
 	xor	cx,cx			;AN000; clear counter for positionals
 	xor	dx,dx			;AN000;
 	call	cmd_parse		;AC000; call parser
+
 	; 27/02/2023
-	cmp	ax,-1
-	;cmp	ax,END_OF_LINE		;AC000; are we at end of line?
-	je	short PRMTDAT 		;AC000; yes - go ask for date
-	;cmp	ax,0
-	;cmp	ax,RESULT_NO_ERROR	;AN000; did we have an error?
-	;jne	short DATERR		;AN000; yes - go issue message
+	;cmp	ax,-1
+	;;cmp	ax,END_OF_LINE		;AC000; are we at end of line?
+	;je	short PRMTDAT 		;AC000; yes - go ask for date
+	;;cmp	ax,0
+	;;cmp	ax,RESULT_NO_ERROR	;AN000; did we have an error?
+	;;jne	short DATERR		;AN000; yes - go issue message
 	; 26/04/2023
-	or	ax,ax ; ax = 0 ?
-	jnz	short DATERR
-	;jmp	short COMDAT		;AC000; we have a date
+	;or	ax,ax ; ax = 0 ?
+	;jnz	short DATERR
+	;;jmp	short COMDAT		;AC000; we have a date
+	; 11/06/2023
+	inc	ax  ; cmp ax,-1
+	jz	short PRMTDAT ; 0FFFFh -> 0
+	dec	ax  ; cmp ax,0
+	jnz	short DATERR ; 1 -> 0
+	; ax = 0
+
 	; 27/02/2023
 COMDAT:
 	mov	cx,[DATE_YEAR]		;AC000; get parts of date in
@@ -24059,18 +24172,28 @@ PRMTDAT:
 
 GET_NEW_DATE:				;AN000;
 	call	GETDAT			;AC000; prompt user for date
-	cmp	ax,0FFFFh ; -1
-	;cmp	ax,END_OF_LINE		;AC000; are we at end of line?
-	je	short date_end		;AC000; yes - exit
+	
+	; 11/06/2023
+	;cmp	ax,0FFFFh ; -1
+	;;cmp	ax,END_OF_LINE		;AC000; are we at end of line?
+	;je	short date_end		;AC000; yes - exit
 	; 26/04/2023
-	;cmp	ax,0
-	;;cmp	ax,RESULT_NO_ERROR	;AN000; did we have an error?
-	;;jnz	short DATERR		;AN000; yes - go issue message
+	;;cmp	ax,0
+	;;;cmp	ax,RESULT_NO_ERROR	;AN000; did we have an error?
+	;;;jnz	short DATERR		;AN000; yes - go issue message
 	;; 27/02/2023
-	;jz	short COMDAT
+	;;jz	short COMDAT
 	; 26/04/2023
-	and	ax,ax ; 0 ?
-	jz	short COMDAT
+	;and	ax,ax ; 0 ?
+	;jz	short COMDAT
+
+	; 11/06/2023
+	inc	ax  ; cmp ax,-1
+	jz	short date_end ; 0FFFFh -> 0
+	dec	ax  ; cmp ax,0
+	jz	short COMDAT ; 1 -> 0
+	; ax > 0
+
 ;COMDAT:
 ;	....
 DATERR:
@@ -24104,22 +24227,33 @@ DATERR:
 
 	; 27/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:302Dh
+
+	; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:35D7h
 CTIME:
 	mov	si,81h			; Accepting argument for time inline
 	mov	di,PARSE_TIME		;AN000; Get address of PARSE_time
 	xor	cx,cx			;AN000; clear counter for positionals
 	xor	dx,dx			;AN000;
 	call	cmd_parse		;AC000; call parser
+	
 	; 27/02/2023
-	cmp	ax,-1
-	;cmp	ax,END_OF_LINE		;AC000; are we at end of line?
-	je	short PRMTTIM 		;AC000; yes - prompt for time
-	;cmp	ax,0
-	;cmp	ax,RESULT_NO_ERROR	;AN000; did we have an error?
-	;jne	short TIMERR		;AN000; yes - go issue message
-	and	ax,ax ; ax = 0 ?
-	jnz	short TIMERR
-	;jmp	short COMTIM		;AC000; we have a time
+	;cmp	ax,-1
+	;;cmp	ax,END_OF_LINE		;AC000; are we at end of line?
+	;je	short PRMTTIM 		;AC000; yes - prompt for time
+	;;cmp	ax,0
+	;;cmp	ax,RESULT_NO_ERROR	;AN000; did we have an error?
+	;;jne	short TIMERR		;AN000; yes - go issue message
+	;and	ax,ax ; ax = 0 ?
+	;jnz	short TIMERR
+	;;jmp	short COMTIM		;AC000; we have a time
+	; 11/06/2023
+	inc	ax  ; cmp ax,-1
+	jz	short PRMTTIM ; 0FFFFh -> 0
+	dec	ax  ; cmp ax,0
+	jnz	short TIMERR ; 1 -> 0
+	; ax = 0
+	
 	; 27/02/2023
 COMTIM:
 	mov	ch,[TIME_HOUR]		;AC000; get parts of time in
@@ -24163,16 +24297,26 @@ PRMTTIM:
 
 GET_NEW_TIME:
 	call	GETTIM			;AC000;
-	cmp	ax,-1
-	;cmp	ax,END_OF_LINE		;AC000; are we at end of line?
-	je	short time_end		;AC000;
-	;cmp	ax,0
-	;cmp	ax,RESULT_NO_ERROR	;AN000; did we have an error?
-	;jne	short TIMERR		;AN000; yes - go issue message
-	or	ax,ax  ; ax = 0 ?
-	;jnz	short TIMERR
+	
+	; 11/06/2023
+	;cmp	ax,-1
+	;;cmp	ax,END_OF_LINE		;AC000; are we at end of line?
+	;je	short time_end		;AC000;
+	;;cmp	ax,0
+	;;cmp	ax,RESULT_NO_ERROR	;AN000; did we have an error?
+	;;jne	short TIMERR		;AN000; yes - go issue message
+	;or	ax,ax  ; ax = 0 ?
+	;;jnz	short TIMERR
 	; 27/02/2023
-	jz	short COMTIM
+	;jz	short COMTIM
+
+	; 11/06/2023
+	inc	ax  ; cmp ax,-1
+	jz	short time_end ; 0FFFFh -> 0
+	dec	ax  ; cmp ax,0
+	jz	short COMTIM ; 1 -> 0
+	; ax > 0
+
 ;COMTIM:
 ;	....
 TIMERR:
@@ -24222,6 +24366,7 @@ PipeOffDone:
 ; MSDOS 6.0
 
 	; 27/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
 PRINT_TIME:
 	;mov	ah,Get_Time
 	mov	ah,2Ch
@@ -24268,6 +24413,9 @@ PRINT_TIME:
 
 	; 28/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:30E2h
+
+	; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:368Ch
 GETDAT:
 	;mov	ax,(International SHL 8)
 	mov	ax,3800h
@@ -24344,6 +24492,9 @@ gettim_p:
 
 	; 28/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:313Dh
+
+	; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:36E7h
 GETTIM:
 	xor	cx,cx			; Initialize hours and minutes to zero
 	mov	dx,NewTim_Ptr
@@ -24419,6 +24570,8 @@ skw_lp:
 	; 28/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:3174h
 
+	; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:371Eh
 copy_pipe_path:
 	mov	cx,0FFFFh ; 65535
 	xor	al,al
@@ -24437,7 +24590,8 @@ copy_pipe_path:
 
 	not	cx			;length including the null
 
-	;;mov	di,320h ; MSDOS 5.0 COMMAND.COM ; (RESGROUP:EndInit)
+	;;;mov	di,320h ; MSDOS 5.0 COMMAND.COM ; (RESGROUP:EndInit)
+	;;mov	di,3EAh ; MSDOS 6.22 COMMAND.COM ; 11/06/2023
 	;mov	di,offset DATARES:Pipe1
 	mov	di,Pipe1  ; (offset RESGROUP:EndInit)
 	push	di
@@ -24450,7 +24604,8 @@ copy_pipe_path:
 	push	es
 	pop	ds			;ds:si = Pipe1
 	mov	si,di
-	;;mov	di,36Fh ; MSDOS 5.0 COMMAND.COM ; (RESGROUP:EndInit+79)
+	;;;mov	di,36Fh ; MSDOS 5.0 COMMAND.COM ; (RESGROUP:EndInit+79)
+	;;mov	di,439h ; MSDOS 6.22 COMMAND.COM ; 11/06/2023
 	;mov	di,offset DATARES:Pipe2	;es:di = Pipe2
 	mov	di,Pipe2  ; (offset RESGROUP:EndInit+79)
 	rep	movsb			;copy path into Pipe2
@@ -24518,6 +24673,9 @@ copy_pipe_path:
 
 ; 01/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 ; MSDOS 5.0 - COMMAND.COM, transient portion/segment offset 319Bh
+
+; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
+; MSDOS 6.22 - COMMAND.COM, transient portion/segment offset 3745h
 
 PARSELINE:
 	push	ax			; most of these are clobbered
@@ -24632,6 +24790,7 @@ PARSE_EXIT:			; depend on not changing CF
 ;   AL			carry set:  error code; otherwise, zero
 
 	; 01/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
 newarg:
 	push	bx
 	push	cx
@@ -24729,6 +24888,7 @@ newarg_exit:
 ;   *	An ugly routine.
 
 	; 01/03/2023 - Retro DOS v4.0 COMMAND.COM
+	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
 arg_switch:
 	push	ax
 	push	bx
@@ -24886,6 +25046,9 @@ PATH_SEP_CHAR	EQU	';'
 
 ; 18/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 ; MSDOS 5.0 - COMMAND.COM, transient portion/segment offset 32D1h
+
+; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
+; MSDOS 6.22 - COMMAND.COM, transient portion/segment offset 387Bh
 
 path_search:
 	push	bx
@@ -25222,6 +25385,9 @@ STORE_SLASH:
 
 	; 18/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:3454h
+
+	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:39FEh
 	
 path_crunch:
 	push	bx
@@ -25363,7 +25529,9 @@ WILDCHAR		EQU	'?'
 
 	; 18/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:34C9h
-	
+
+	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:3A73h
 PSEARCH:
 	push	cx
 	push	dx
@@ -25468,7 +25636,7 @@ SEARCH_EXIT:
 ;   *	Implicit assumption that NULL == search_file_not_found
 
 	; 18/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
 SEARCH_FTYPE:
 	push	di
 	push	si
@@ -25558,7 +25726,7 @@ FTYPE_DONE:
 ; NOTE(S):
 
 	; 18/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
 STRIP:
 	push	ax
 	push	bx
@@ -25622,7 +25790,7 @@ PROCESS_EXT:
 	; MSDOS 6.0
 	cmp	byte [ext_entered],1
 				;AN005; if an extension was entered
-	jne	short SKIP_WILDS
+	jne	short SKIP_WILDS ; cf = 1 ; 12/06/2023
 				;AN005;    don't set up wildcard ext.
 
 	; MSDOS 3.3 (& MSDOS 6.0)
@@ -25676,7 +25844,7 @@ STRIP_EXIT:
 ;   3)	AX is undefined if CF indicates an error.
 
 	; 19/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
 SAVE_ARGS:
 	push	bx
 	push	cx
@@ -25805,7 +25973,7 @@ answ_no:	; 26/04/2023
 ; ARE YOU SURE prompt when deleting *.*
 
 	; 19/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
 notest2:
 	mov	cx,11
 	mov	si,FCB+1 ; 5Dh
@@ -26125,6 +26293,7 @@ good_erase_exit:
 ; ECHO, BREAK, and VERIFY commands. Check for "ON" and "OFF"
 
 	; 19/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
 _ECHO:
 	call	ON_OFF
 	jb	short DOEMES
@@ -26416,7 +26585,7 @@ on_off_there:
 	;mov	cx,10 ; 0Ah
 	jmp	short BADONF	;AN014; return error
 
-good_on_off:				;AN014;
+good_on_off:			;AN014;
 	xor	ax,ax		;AC000; set up return code for
 	or	al,[PARSE1_CODE]
 				;AC000;    ON or OFF in AX
@@ -26462,6 +26631,8 @@ on_off_end:
 	; 20/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:3876h
 	
+	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:3E20h
 PRINT_DATE:
 	; 20/03/2023
 	; MSDOS 3.3
@@ -26695,6 +26866,9 @@ char_in_xlat:	; proc	near
 ; 23/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 ; MSDOS 5.0 - COMMAND.COM, transient portion/segment offset 38C3h
 
+; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
+; MSDOS 6.22 - COMMAND.COM, transient portion/segment offset 3E6Dh
+
 COPY:
 	; 	Initialize internal variables.
 
@@ -26740,7 +26914,13 @@ COPY:
 	mov	[WRITTEN],ax	; 'destination written to' = false
 	mov	[Concat],al	; 'concatenating' = false
 	mov	[MELCOPY],al	; 'Mel Hallerman copy' = false
-	mov	[MELSTART],ax	; Mel Hallerman cmd line ptr = 0,
+	mov	[MELSTART],ax	; Mel Hallerman cmd line ptr = 0
+	
+	; 12/06/2023
+	; MSDOS 6.22 COMMAND.COM
+	; (Disassembled source code by using Hex-Rays IDA disassembler)
+	mov     [cox_dest_file], al ; MSDOS 6.22
+	mov     [cox_src_file], al  ; MSDOS 6.22
 
 	;	Initialize buffers with double-nulls.
 
@@ -26758,6 +26938,13 @@ COPY:
 	mov	[FRSTSRCH],al	; 'first search for source' = true
 	mov	[FIRSTDEST],al	; 'first time for dest' = true
 	mov	[DestIsDir],al	; 'haven't analyzed destination' ; *!*
+
+	; 12/06/2023
+	; Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM code only !
+	; (Disassembled source code by using Hex-Rays IDA disassembler)
+	;
+	call	init_copycmd_option ; MSDOS 6.22 
 		
 	mov	si,81h		; SI = ptr to command line
 	;mov	bl,[PLUS_CHR]	; BL = special delimiter = "+"
@@ -26774,7 +26961,7 @@ DESTSCAN:
 	; 23/03/2023
 	mov	[parse_last],si		;AN018; save cmd line ptr
 	call	cparse			; parse next object
-	pushf				; save CParse flags
+	pushf	; (*)			; save CParse flags
 	inc	byte [objcnt]		; count object
 	test	bh,80h
 	jz	short NOCOPY		; no "+" delimiter
@@ -26786,10 +26973,15 @@ NOCOPY:
 	;	Found a switch.
 
 	; 23/03/2023 - Retro DOS v4.0 COMMAND.COM
+	;
+	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:3F43h
+CHK_CP_SWITCH:
 	; MSDOS 6.0
 	test	bp,10h
 	;test	bp,SwitchV ; 10h	;AN038; Verify requested?
 	jz	short NOT_SLASHV	;AN038; No - set the switch
+	;test	word [AllSwitch],10h
 	test	byte [AllSwitch],10h
 	;test	byte [AllSwitch],SwitchV ;AN038; Verify already entered?
 	jz	short NOT_SLASHV	;AN038; No - set the switch
@@ -26797,15 +26989,77 @@ NOCOPY:
 	;or	bp,FBadSwitch		;AN018; Set up bad switch
 	or	bp,4000h
 NOT_SLASHV:
-	or	[DestSwitch],bp		; assume destination
-	or	[AllSwitch],bp		; keep tabs on all switches
+	; ****************************************
+	; 12/06/2023
+	; Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM code only !
+	; (Disassembled source code by using Hex-Rays IDA disassembler)
+	; ****************************************
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:3F55h
+	;
+	test    bp,40h			; negative Y (-Y) switch flag
+	jz	short CHK_SLASHY0
+	;
+	;test	word [AllSwitch],40h
+	test	byte [AllSwitch],40h	; [AllSwitch] negative (-Y) flag
+	jnz	short NOT_SLASHY1	; N flag
+	;test	word [AllSwitch],80h
+	test	byte [AllSwitch],80h	; [AllSwitch] SwitchY (Y) flag
+	jz	short NOT_SLASHY2
+NOT_SLASHY1:
+	or	bp,4000h		; FBadSwitch (Repetitive)
+	;				; Set up bad switch
+	mov	byte [cox_y_override],0	; cox_y setting will be used
+CHK_SLASHY0:
+	test    bp,80h
+	jz      short CHK_SLASHY4	; not a /Y switch
+	;
+	mov	al,[si]
+	cmp	al,'y'
+	je	short CHK_SLASHY1
+	cmp	al,'Y'
+	je	short CHK_SLASHY1
+	or	bp,4000h		; FBadSwitch
+	;				; Set up bad switch
+	jmp	short CHK_SLASHY4
+CHK_SLASHY1:
+	mov	byte [si],20h ; ' '
+	inc	si
+	;test	word [AllSwitch],40h
+	test	byte [AllSwitch],40h	; [AllSwitch] negative (-Y) flag
+	jnz	short CHK_SLASHY2	; N flag
+	;test	word [AllSwitch],80h
+	test	byte [AllSwitch],80h	; [AllSwitch] SwitchY (Y) flag
+	jz	short CHK_SLASHY3
+CHK_SLASHY2:
+	or	bp,4000h		; FBadSwitch (Repetitive)
+	;				; Set up bad switch
+CHK_SLASHY3:
+	mov	byte [cox_y_override],1
+CHK_SLASHY4:
+	; ****************************************
+	; 12/06/2023
+;NOT_SLASHV:
+	;or	[DestSwitch],bp		; assume destination
+	;or	[AllSwitch],bp		; keep tabs on all switches
 
-	; 2303/2023
+	; 12/06/2023
+	; Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM -TRANGROUP:3FA7h
+	or	[DestSwitch],bp		; set [DestSwitch] SwitchY flag to 1
+	or	[AllSwitch],bp		; set [AllSwitch] SwitchY flag to 1
+	;test	bp,~SwitchCopy		; Bad switch?
+	test	bp,7F23h ; MSDOS 6.22	; ~SwitchCopy ; not SwitchCopy
+	jz	short NOT_BAD_SWITCH	; Switches are okay
+
+	; 12/06/2023
+	; 23/03/2023
 	; MSDOS 6.0
-	;test	bp,not SwitchCopy	;AN018; Bad switch?
-	test	bp,7FE3h ; test bp,~SwitchCopy
-	jz	short NOT_BAD_SWITCH	;AN018; Switches are okay
-	popf				;AN018; fix up stack
+	;;test	bp,not SwitchCopy	;AN018; Bad switch?
+	;test	bp,7FE3h ; test bp,~SwitchCopy
+	;jz	short NOT_BAD_SWITCH	;AN018; Switches are okay
+	
+	popf	; (*)			;AN018; fix up stack
 	mov	ax,BadSwt_Ptr ; 3	;AN018; get "Invalid switch" message number
 	call	setup_parse_error_msg	;AN018; setup to print the message
 	jmp	cerror			;AC018; exit
@@ -26814,7 +27068,7 @@ NOT_BAD_SWITCH:
 	jc	short CHECKDONE		; found CR
 	jmp	short DESTSCAN		; continue scanning for destination
 TESTP2:
-	popf				; restore CParse flags
+	popf	; (*)			; restore CParse flags
 	jc	short CHECKDONE		; found CR
 	test	bh,80h
 	jnz	short GOTPLUS		; found a "+pathname" argument
@@ -27109,6 +27363,7 @@ LEAVECFLAG:
 ; ---------------------------------------------------------------------------
 
 	; 25/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
 NEXTSRC:
 	;*	Next source. Come here after handling each pathname.
 	;	We're done unless there are additional source pathnames
@@ -27213,6 +27468,84 @@ NEXTAMBIG:
 	mov	di,[SrcTail]
 	mov	si,DIRBUF+1
 	call	FCB_TO_ASCZ		; SrcBuf has complete name
+;MELDO:
+	; ****************************************
+	; 12/06/2023
+	; Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM code only !
+	; (Disassembled source code by using Hex-Rays IDA disassembler)
+	; ****************************************
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:41DBh
+MELDO0:
+	cmp	byte [cox_y_override],0 ; /Y switch override (question) enabled ?
+	jz	short MELDO ; no
+	; ----------------------
+	; yes
+	call	BUILDDEST
+	mov	si,SrcBuf
+	mov	di,SRCXNAME
+	;mov	ah,60h
+	mov	ah,xNameTrans ; 60h
+	int	21h	; DOS - RESOLVE PATH STRING TO CANONICAL PATH STRING
+			; DS:SI -> ASCIZ relative path string or directory name
+			; ES:DI -> 128-byte buffer for ASCIZ canonical fully qualified name
+	call	COMPNAME
+	jnz	short MELDO1    	; different file names
+	cmp	byte [Concat],0
+	jnz	short MELDO1		; concatenating
+	; "File cannot be copied onto itself"
+	mov	dx,file_name_ptr
+	call	std_printf
+	call	CRLF2
+	mov	dx,OVERWR_PTR
+	jmp	COPYERR
+;MELDO1:
+	;cmp	byte [CFLAG],0		; destination file created flag
+	;jnz	short MELDO		; yes, new (created) file
+	;				; no, overwrite question (must be confirmed)
+	;call	get_answer_YNA
+	;jb	short MELDO2    	; answer is no
+	;cmp	byte [Concat1],0
+	;jnz	short MELDO
+	;cmp	byte [cox_dest_file],0	; is there a (valid) target file ?
+	;jnz	short DOREAD    	; yes
+	;jmp	short MELDO     	; no, destination/target file does not exist
+MELDO2:
+	cmp	byte [MELCOPY],0	; is 'Mel Hallerman copy' false ?
+	jnz	short MELDO3    	; no (, it is true)
+	cmp	byte [Concat],0
+	jz	short MELDO4
+MELDO3:
+	mov	byte [DestClosed]],1
+	jmp	short ENDCOPY
+MELDO4:
+	call	SEARCHNEXT
+	jz	short NEXTAMBIG
+	cmp	byte [cox_src_file],0
+	;jz	short MELDO5
+	;jmp	short NEXTSRC
+	; 12/06/2023
+	jnz	short NEXTSRC
+MELDO5:
+	mov	byte [DestClosed],1
+	jmp	short NEXTSRC
+
+	; 12/06/2023
+MELDO1:
+	cmp	byte [CFLAG],0		; destination file created flag
+	jnz	short MELDO     	; yes, new (created) file
+					; no, overwrite question (must be confirmed)
+	call	get_answer_YNA
+	jb	short MELDO2    	; answer is no
+	cmp	byte [Concat1],0
+	jnz	short MELDO
+	cmp	byte [cox_dest_file],0	; is there a (valid) target file ?
+	jnz	short DOREAD    	; yes
+	; 12/06/2023
+	;jmp	short MELDO     	; no, destination/target file does not exist
+
+	; ****************************************
+	; 12/06/2023
 MELDO:
 	cmp	byte [Concat],0
 	jnz	short SHOWCPNAM		; concatenating - show name
@@ -27306,7 +27639,7 @@ SCANSRC2:
 
 	mov	byte [NOWRITE],0
 MELDOJ:
-	jmp	MELDO
+	jmp	short MELDO
 NEXTSRCJ:
 	jmp	NEXTSRC
 
@@ -27350,10 +27683,13 @@ SEARCH:
 ; ---------------------------------------------------------------------------
 
 	; 26/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:4335h
 DOCOPY:
 	mov	si,SrcBuf	; do name translate of source
 	mov	di,SRCXNAME	; save for name comparison
 	mov	ah,xNameTrans ; 60h
+	;mov	ah,60h
 	int	21h	; DOS -	RESOLVE	PATH STRING TO CANONICAL PATH STRING
 			; DS:SI	-> ASCIZ relative path string or directory name
 			; ES:DI	-> 128-byte buffer for ASCIZ canonical fully qualified name
@@ -27412,7 +27748,7 @@ OPENOK:
 	int	21h		; DOS -	2+ - GET FILE'S DATE/TIME
 				; BX = file handle
 
-	jc	short Error_On_Source  ; MSDOS 6.0
+	jc	short Error_On_Source ; MSDOS 6.0
 
 	mov	[CPDATE],dx		; save date
 	mov	[CPTIME],cx		; save time
@@ -27779,8 +28115,9 @@ SOURCE_SET:
 ;****************************************************************
 
 	; 26/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.0 (MSDOS 5.0) COMMAND.COM
-CleanUpErr:	; proc	near		;AN022;
+CleanUpErr:	;proc near		;AN022;
 
 	cmp	byte [msg_flag],0	;AN022; have we already issued a message?
 	jnz	short CleanupErr_Cont	;AN022; yes - don't issue duplicate error
@@ -27791,9 +28128,233 @@ CleanUpErr:	; proc	near		;AN022;
 					;AN022; put number of subst in control block
 	call	std_eprintf		;AN022; issue the error message
 CleanupErr_Cont:			;AN022;
+getansw_8:	; 12/06/2023
 	retn				;AN022; return to caller
 
 ;CleanUpErr	endp			;AN022;
+
+
+; 12/06/2023
+; ---------------------------------------------------------------------------
+; MSDOS 6.2(2) COMMAND.COM procedure only !
+; -----------------------------------------
+; Hex-Rays IDA / disassembled source code ! modified for NASM by Erdogan Tan
+; ---------------------------------------------------------------------------
+
+	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:456Dh
+
+get_answer_YNA:
+	mov	byte [cox_dest_file],0	; clear validation flag
+	mov	ax,4300h
+	mov	dx,DestBuf
+	int	21h		; DOS -	2+ - GET FILE ATTRIBUTES
+				; DS:DX	-> ASCIZ file name or directory
+				; name without trailing	slash
+	;jnc	short getansw_1
+	;jmp	getansw_5
+	; 12/06/2023
+	cmc
+	jnc	short getansw_8 
+getansw_1:
+	inc	byte [cox_dest_file]	; valid destination file
+	lea	si,cox_sublist_buff
+	mov	word [si],11		; sublist size, 11 bytes
+	mov	word [si+2],DestBuf	; sublist value	(pointer)
+	mov	[si+4],ds		; sublist segment
+	;mov	byte [si+6],1		; sub id (N of %N)
+	mov	byte [si+7],10h		; data type flags
+	;mov	byte [si+8],0		; maximum length (chars)
+	;mov	byte [si+9],0		; minimum length (chars)
+	;mov	byte [si+10],0		; pad field character (0)
+	; 12/06/2023
+	xor	cx,cx
+	mov	[si+8],cx ; 0
+	mov	[si+10],cl ; 0
+	inc	cl
+	mov	[si+6],cl ; 1	
+
+	; 12/06/2023
+	;lea	si,cox_sublist_buff
+	mov	ax,1103			; message number
+					; 'Overwrite %1 (Yes/No/All)?'
+	mov	bx,2			; std error (file handle = 2)
+	; 12/06/2023
+	;mov	cx,1			; byte count
+	; cx = 1
+	;mov	dh,0FFh			; message class	(utility)
+	;xor	dl,dl			; control flag = 0
+	xor	dx,dx
+	dec	dh  ; dh = 0FFh
+	call	SYSDISPMSG
+	; 12/06/2023
+	;xor	bx,bx
+	; bh = 0
+getansw_2:
+	mov	ax,0C08h
+	int	21h		; DOS -	CLEAR KEYBOARD BUFFER
+				; AL must be 01h, 06h, 07h, 08h, or 0Ah.
+	;cmp	al,0
+	;jz	short getansw_2
+	; 12/06/2023
+	and	al,al
+	jz	short getansw_2
+	cmp	al,0Dh
+	je	short getansw_4
+	mov	bl,al
+	mov	dl,al
+	mov	ax,6520h
+	int	21h		; DOS -	4.x internal - COUNTRY-DEPENDENT FILENAME CAPITALIZATION
+				; AL = function	-
+	cmp	dl,[_Y_es]		; 'Y' ?
+	je	short getansw_3
+	cmp	dl,[_N_o]		; 'N' ?
+	je	short getansw_3
+	cmp	dl,[_A_ll]		; 'A' ?
+	jne	short getansw_2
+getansw_3:
+	mov	bh,bl
+	push	bx
+	mov	[MSG_1104],bl
+	mov	ah,40h
+	mov	bx,2			; std error (file handle = 2)
+	mov	cx,1			; byte count
+	mov	dx,MSG_1104
+	int	21h		; DOS -	2+ - WRITE TO FILE WITH	HANDLE
+				; BX = file handle, CX = number	of bytes to write, DS:DX -> buffer
+	mov	ah,40h
+	mov	byte [MSG_1104],8	; backspace (move cursor to back)
+	int	21h		; DOS -	2+ - WRITE TO FILE WITH	HANDLE
+				; BX = file handle, CX = number	of bytes to write, DS:DX -> buffer
+	pop	bx
+	jmp	short getansw_2
+getansw_4:
+	;cmp	bh,0
+	;jz	short getansw_2
+	; 12/06/2023
+	or	bh,bh
+	jz	short getansw_2
+	mov	dl,bh
+	mov	ax,6520h
+	int	21h		; DOS -	4.x internal - COUNTRY-DEPENDENT FILENAME CAPITALIZATION
+				; AL = function	-
+	push	dx
+	mov	ax,1070			; message number
+	mov	bx,2			; std error (file handle = 2)
+	xor	cx,cx
+	;mov	dh,0FFh			; message class	(utility)
+	;xor	dl,dl
+	; 12/06/2023
+	xor	dx,dx
+	dec	dh  ; dh = 0FFh
+	call	SYSDISPMSG
+	pop	dx
+	cmp	dl,[_Y_es]
+	jz	short getansw_5
+	cmp	dl,[_N_o]
+	jz	short getansw_6
+	mov	byte [cox_y_override],0
+	; 12/06/2023
+	;jmp	short $+2
+getansw_5:
+	; 12/06/2023
+	;clc
+	; cf = 0
+	;jmp	short getansw_7
+	; 12/06/2023
+	retn
+getansw_6:
+gcpcmdo_2:	; 12/06/2023
+gecpcmd_3:	; 12/06/2023
+	stc
+getansw_7:
+	retn
+
+	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:463Ah
+init_copycmd_option:
+	mov	byte [cox_y_override],1 ; suppress copy overwrite confirmation
+	push	es
+	mov	es,[RESSEG]
+	mov	es,[es:EnvirSeg]
+	lea	si,copycmd		; "COPYCMD="
+	mov	cx,8
+	call	getenv_copycmd
+	jc	short icpcmd_3
+	call	get_copycmd_option	; copycmd=/Y or copycmd=/-Y
+	jc	short icpcmd_2
+	inc	di			; skip '/'
+	mov	al,[es:di]
+	and	al,0DFh			; convert to uppercase
+	cmp	al,'Y'
+	jnz	short icpcmd_2
+icpcmd_1:
+	mov	byte [cox_y_override],0	; clear copy overwrite question/confirmation
+					; (don't suppress)
+icpcmd_2:
+	pop	es
+	retn
+icpcmd_3:				; ...
+	mov	es,[RESSEG]
+	cmp	byte [cox_Y_option],0	; default (/Y) switch option (1 = enabled)
+	jz	short icpcmd_2
+	jmp	short icpcmd_1
+
+	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:4679h
+get_copycmd_option:
+	cmp	byte [es:di],0
+	jz	short gcpcmdo_2
+	cmp	byte [es:di],'/'
+	jz	short gcpcmdo_1
+	inc	di
+	jmp	short get_copycmd_option
+gcpcmdo_1:
+	; 12/06/2023
+	;clc
+	; cf = 0
+	;jmp	short gcpcmdo_3
+	; 12/06/2023
+	retn
+	; 12/06/2023
+;gcpcmdo_2:
+;	stc
+;gcpcmdo_3:
+;	retn
+
+	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:468Dh
+getenv_copycmd:
+	xor	di,di
+	xor	al,al
+gecpcmd_1:
+	;cmp	byte [es:di],0
+	; 12/06/2023
+	cmp	[es:di],al ; 0
+	jz	short gecpcmd_3
+	push	cx
+	push	si
+	repe	cmpsb
+	pop	si
+	pop	cx
+	jz	short gecpcmd_2 ; cf = 0
+	push	cx
+	mov	cx,32768
+	repne	scasb	; al = 0
+	pop	cx
+	jmp	short gecpcmd_1
+gecpcmd_2:
+	;clc
+	; 12/06/2023
+	; cf = 0
+	;jmp	short gecpcmd_4
+	; 12/06/2023
+	retn
+	; 12/06/2023
+;gecpcmd_3:
+;	stc
+;gecpcmd_4:
+;	retn
 
 ;============================================================================
 ; COPYPR1.ASM, MSDOS 6.0, 1991
@@ -27810,6 +28371,9 @@ CleanupErr_Cont:			;AN022;
 
 	; 26/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:3EEAh
+
+	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:46ADh
 TRYFLUSH:
 	mov	al,[Concat]
 	push	ax
@@ -27844,6 +28408,12 @@ TRYFLUSH:
 ;	  [NXTADD] = 0
 
 	; 26/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	;
+	; 13/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:46BAh
+
+burada kaldým... 13/06/2023
+
 FlshFil:
 	mov	byte [TERMREAD],0
 	cmp	byte [CFLAG],0
@@ -28690,10 +29260,12 @@ SETSTARS:
 ; =============== S U B	R O U T	I N E =======================================
 
 	; 28/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
 COMPNAME:
 	mov	si,DestBuf	; do name translate of target
 	mov	di,TRGXNAME	; save for name comparison
 	mov	ah,xNameTrans ; 60h
+	;mov	ah,60h
 	int	21h	; DOS -	RESOLVE	PATH STRING TO CANONICAL PATH STRING
 			; DS:SI	-> ASCIZ relative path string or directory name
 			; ES:DI	-> 128-byte buffer for ASCIZ canonical fully qualified name
@@ -35083,6 +35655,7 @@ LhErr:
 	; 13/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:5944h
 	; MSDOS 5.0 COMMAND.COM only ! (MSDOS 6.0 code is different)
+	; 11/06/2023
 ParseLhCmd:
 	;mov	si,81h
 	mov	si,iCmdLine	;ds:si points at command line
@@ -35091,10 +35664,19 @@ ParseLhCmd:
 	mov	di,Parse_LoadHi
 	xor	cx,cx
 	call	Parse_With_Msg
-	cmp	ax,0FFFFh ; -1
-	jz	short PLhCmd2
-	cmp	ax,0
-	jnz	short PLhCmd1
+
+	; 11/06/2023
+	;cmp	ax,0FFFFh ; -1
+	;jz	short PLhCmd2
+	;cmp	ax,0
+	;jnz	short PLhCmd1
+	; 11/06/2023
+	inc	ax ; cmp ax,-1
+	jz	short PLhCmd2 ; 0FFFFh -> 0
+	dec	ax ; cmp ax,0
+	jnz	short PLhCmd1 ; 1 -> 0
+	; ax = 0
+
 	mov	bx,dx
 	; 14/04/2023
 	;call	LhCopyFilename
@@ -35260,7 +35842,7 @@ SetCmdL1:
 	inc	cl			;update count
 	; 14/04/2023
 	; * ; MSDOS 6.0 only !
-	;or	al, al	; *
+	;or	al,al	; *
 	;jz	short SetCmdL2 ; *
 	cmp	al,0Dh			;carriage return?
 	jnz	short SetCmdL1		;no, continue storing
