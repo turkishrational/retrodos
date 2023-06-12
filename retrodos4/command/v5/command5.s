@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 5.0 Command Interpreter) - RETRO DOS v4.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 10/06/2023 (v5.0) ((Previous: 20/10/2018 COMMAND.COM v3.3))
+; Last Update: 12/06/2023 (v5.0) ((Previous: 20/10/2018 COMMAND.COM v3.3))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
 ; ----------------------------------------------------------------------------
@@ -5819,15 +5819,21 @@ Parse_command_line:
 	call	far [Init_Parse]		; call parser
         mov     [num_positionals],cx		; Save number of positionals
 	; 29/01/2023
-	;cmp	ax,END_OF_LINE ; 0FFFFh ; -1 	; are we at end of line?
-        cmp	ax,-1
-	jne	short t1
-        jmp     ArgsDone                        ; yes - exit
+	;;cmp	ax,END_OF_LINE ; 0FFFFh ; -1 	; are we at end of line?
+        ;cmp	ax,-1
+	;jne	short t1
+	; 10/06/2023
+	inc	ax	 ; cmp ax,-1
+	jnz	short t1 ; 0FFFFh -> 0
+	; ax = 0
+	jmp     ArgsDone                        ; yes - exit
 t1:	
-	;cmp	ax,RESULT_NO_ERROR ; 0		; did an error occur
-	;cmp	ax,0
-	and	ax,ax
-	jz	short parse_cont		; no - continue
+	;;cmp	ax,RESULT_NO_ERROR ; 0		; did an error occur
+	;;cmp	ax,0
+	;and	ax,ax
+	; 10/06/2023
+	dec	ax  ; cmp ax,0
+	jz	short parse_cont  ; 1 -> 0	; no - continue
 
 ; Before issuing error message - make sure switch is not /C
 
@@ -7836,15 +7842,21 @@ chParse:
 	;call	dword ptr Init_Parse
 	call	far [Init_Parse]	; call system parser
 
-	;cmp	ax,END_OF_LINE
-	cmp	ax,-1 ; 0FFFFh	
-	je	short chRet		; end of command line, no /? found
-	;cmp	ax,RESULT_NO_ERROR
-	;cmp	ax,0
-	;je	short chWhich		; valid syntax element found
-	;jmp	short chParse		; go parse more
-	and	ax,ax ; cmp ax,0
-	jnz	short chParse ; jne 
+	;;cmp	ax,END_OF_LINE
+	;cmp	ax,-1 ; 0FFFFh	
+	;je	short chRet		; end of command line, no /? found
+	;;cmp	ax,RESULT_NO_ERROR
+	;;cmp	ax,0
+	;;je	short chWhich		; valid syntax element found
+	;;jmp	short chParse		; go parse more
+	;and	ax,ax ; cmp ax,0
+	;jnz	short chParse ; jne
+	; 10/06/2023
+	inc	ax	; cmp ax,-1
+	jz	short chRet   ; 0FFFFh -> 0
+	dec	ax	; cmp ax,0
+	jnz	short chParse ; 1 -> 0
+	; ax = 0
 chWhich:
 	;cmp	Comnd1_Syn,offset RESGROUP:Command_?_Syn
 	cmp     word [COMND1_SYN],COMMAND_?_SYN ; "/?"
@@ -8702,8 +8714,8 @@ cXMMexit:
 	; (15 bytes filler)
 	db 0
 	;db "25/9/2018 ETAN"
-	; 10/06/2023
-	db "10/6/2023 ETAN"	
+	; 12/06/2023
+	db "12/6/2023 ETAN"	
 	db 0
 
 ; 30/01/2023
@@ -16974,6 +16986,7 @@ PAUSE:
 
 	; 20/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:1A57h
+	; 10/06/2023
 ERASE:
 	; MSDOS 6.0
 
@@ -16987,13 +17000,20 @@ ERASE:
 erase_scan:
 	xor	dx,dx		;AN000;
 	call	Parse_With_Msg	;AC018; call parser
-	cmp	ax,-1  ; 0FFFFh
-	;cmp	ax,END_OF_LINE	;AN000; are we at end of line?
-	je	short good_line	;AN000; yes - done parsing
-	;cmp	ax,0
-	;cmp	ax,RESULT_NO_ERROR ; 0
-	and	ax,ax		;AC000; did we have an error?
-	jnz	short errj2	;AC000; yes exit
+
+	;cmp	ax,-1  ; 0FFFFh
+	;;cmp	ax,END_OF_LINE	;AN000; are we at end of line?
+	;je	short good_line	;AN000; yes - done parsing
+	;;cmp	ax,0
+	;;cmp	ax,RESULT_NO_ERROR ; 0
+	;and	ax,ax		;AC000; did we have an error?
+	;jnz	short errj2	;AC000; yes exit
+	; 10/06/2023
+	inc	ax  ; cmp ax,-1
+	jz	short good_line ; 0FFFFh -> 0
+	dec	ax  ; cmp ax,0	
+	jnz	short errj2  ; 1 -> 0
+	; ax = 0
 
 	cmp	word [PARSE1_SYN],SLASH_P_SYN ; "/P"
 				;AN000; was /P entered?
@@ -17703,6 +17723,7 @@ ERROR_OUTPUTJ:
 ; VOLUME command displays the volume ID on the specified drive
 
 	; 20/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 10/06/2023
 VOLUME:
 	; MSDOS 6.0
 	mov	si,81h
@@ -17711,13 +17732,20 @@ VOLUME:
 	xor	cx,cx		;AN000; clear cx,dx
 	xor	dx,dx		;AN000;
 	call	Parse_With_Msg	;AC018; call parser
-	cmp	ax,-1
-	;cmp	ax,END_OF_LINE	;AC000; are we at end of line?
-	je	short OkVolArg	;AC000; Yes, display default volume ID
-	;cmp	ax,RESULT_NO_ERROR
-	;cmp	ax,0		;AC000; did we have an error?
-	or	ax,ax ; 0?
-	jnz	short badvolarg	;AC000; Yes, fail.
+
+	;cmp	ax,-1 ; 0FFFFh
+	;;cmp	ax,END_OF_LINE	;AC000; are we at end of line?
+	;je	short OkVolArg	;AC000; Yes, display default volume ID
+	;;cmp	ax,RESULT_NO_ERROR
+	;;cmp	ax,0		;AC000; did we have an error?
+	;or	ax,ax ; 0?
+	;jnz	short badvolarg	;AC000; Yes, fail.
+	; 10/06/2023
+	inc	ax  ; cmp ax,-1
+	jz	short OkVolArg ; 0FFFFh -> 0
+	dec	ax  ; cmp ax,0
+	jnz	short badvolarg ; 1 -> 0
+	; ax = 0
 
 ; We have parsed off the drive. See if there are any more chars left
 
@@ -18945,6 +18973,7 @@ clrloop:
 ; ****************************************************************
 
 	; 21/02/2023 - Retro DOS v4.0
+	; 10/06/2023
 CTTY:
 	; MSDOS 6.0
 	push	ds			;AN000; Get local ES
@@ -18955,12 +18984,19 @@ CTTY:
 	xor	cx,cx			;AC000; clear cx,dx
 	xor	dx,dx			;AC000;
 	call	cmd_parse		;AC000; call parser
-	cmp	ax,-1 ; 0FFFFh
-	;cmp	ax,END_OF_LINE		;AN000; are we at end of line?
-	je	short ctty_error	;AN000; yes - error
-	;cmp	ax,RESULT_NO_ERROR ; 0	;AN000; did an error occur
-	and	ax,ax ; ax > 0 ?
-	jnz	short ctty_error	;AN000; YES -ERROR
+
+	;cmp	ax,-1 ; 0FFFFh
+	;;cmp	ax,END_OF_LINE		;AN000; are we at end of line?
+	;je	short ctty_error	;AN000; yes - error
+	;;cmp	ax,RESULT_NO_ERROR ; 0	;AN000; did an error occur
+	;and	ax,ax ; ax > 0 ?
+	;jnz	short ctty_error	;AN000; YES -ERROR
+	; 10/06/2023
+	inc	ax  ; cmp ax,-1
+	jz	short ctty_error  ; 0FFFFh -> 0
+	dec	ax  ; cmp ax,0
+	jnz	short ctty_error  ; 1 -> 0
+	; ax = 0
 
 	push	si			;AN000; save position in line
 	lds	si,[PARSE1_ADDR]	;AN000; get address of filespec
@@ -19120,6 +19156,7 @@ get_global_cp	  equ  1
 
 	; 21/02/2023 - Retro DOS v4.0
 	; 09/06/2023
+	; 10/06/2023
 CHCP:
 	; MSDOS 6.0
 	push	ds		;AN000; Get local ES
@@ -19130,17 +19167,24 @@ CHCP:
 	xor	cx,cx		;AC000; clear cx,dx
 	xor	dx,dx		;AC000;
 	call    Parse_With_Msg	;AC018; call parser
-	cmp	ax,-1
-	;cmp	ax,END_OF_LINE	;AN000; are we at end of line?
-	;jne	short setcp	;AC000; no go get number & set code page
-	je	short getcp	;AC000; yes - no parm - get code page
-setcp:
-	;cmp	ax,0
-	;cmp	ax,RESULT_NO_ERROR
-				;AN000; did we have an error?
-	;jne	short cp_error	;AC018; yes - go issue message
-	and	ax,ax ; ax > 0 ?
-	jnz	short cp_error	
+
+	;cmp	ax,-1
+	;;cmp	ax,END_OF_LINE	;AN000; are we at end of line?
+	;;jne	short setcp	;AC000; no go get number & set code page
+	;je	short getcp	;AC000; yes - no parm - get code page
+;setcp:
+	;;cmp	ax,0
+	;;cmp	ax,RESULT_NO_ERROR
+	;			;AN000; did we have an error?
+	;;jne	short cp_error	;AC018; yes - go issue message
+	;and	ax,ax ; ax > 0 ?
+	;jnz	short cp_error	
+	; 10/06/2023
+	inc	ax  ; cmp ax,-1	
+	jz	short getcp ; 0FFFFh -> 0
+	dec	ax  ; cmp ax,0
+	jnz	short cp_error ; 1 -> 0
+	; ax = 0
 
 	;;push	cx		;AN000; save positional count
 	;mov	bx,PARSE1_ADDR	;AN000; get number returned
@@ -20375,6 +20419,7 @@ RestUDir:
 ; ****************************************************************
 
 	; 24/02/2023 - Retro DOS v4.0 (& v4.1)
+	; 10/06/2023
 _$CHDIR:
 	; MSDOS 6.0
 	mov	si,81h
@@ -20384,15 +20429,22 @@ _$CHDIR:
 	xor	dx,dx		;AN000;
 	call	Parse_With_Msg	;AC018; call parser
 	
-	cmp	ax,-1
-	;cmp	ax,END_OF_LINE	;AC000; are we at end of line?
-	je	short bwdj	; No args
-	;cmp	ax,0
-	;cmp	ax,RESULT_NO_ERROR
-				;AC000; did we have an error?
-	or	ax,ax ; ax = 0 ?
-	jnz	short ChDirErr	;AC018; yes - exit
+	;cmp	ax,-1
+	;;cmp	ax,END_OF_LINE	;AC000; are we at end of line?
+	;je	short bwdj	; No args
+	;;cmp	ax,0
+	;;cmp	ax,RESULT_NO_ERROR
+	;			;AC000; did we have an error?
+	;or	ax,ax ; ax = 0 ?
+	;jnz	short ChDirErr	;AC018; yes - exit
 	
+	; 10/06/2023
+	inc	ax	; cmp ax,-1
+	jz	short bwdj ; 0FFFFh -> 0
+	dec	ax	; cmp ax,0
+	jnz	short ChDirErr ; 1 -> 0
+	; ax = 0	
+
 	;cmp	byte [PARSE1_TYPE],6
 	cmp	byte [PARSE1_TYPE],result_drive
 				;AC000; was a drive entered?
@@ -22099,9 +22151,10 @@ SETPATH:
 ;       positions in the buffer following the pathname.
 
 	; 26/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 11/06/2023
 	; MSDOS 6.0
-	mov	ax,[PathCnt]	;AC000; get length of string
-	mov	si,[PathPos]	;AC000; get start of source buffer
+	;mov	ax,[PathCnt]	;AC000; get length of string
+	;mov	si,[PathPos]	;AC000; get start of source buffer
 
 	; 26/02/2023
 	; MSDOS 3.3
@@ -22750,7 +22803,7 @@ PIPEPROCSTRT:
 	push	es
 	pop	ds			;ds = DATARES
 	;mov	dx,offset DATARES:Pipe1	;ds:dx = path to look for
-	;mov	dx,320h ; MSDOS 5.0 - offset EndIniýt
+	;mov	dx,320h ; MSDOS 5.0 - offset EndInit
 	mov	dx,Pipe1
 	;mov	ax,(CHMOD shl 8) or 0
 	mov	ax,4300h
@@ -22928,9 +22981,9 @@ ISPIPE2:
 	; 27/02/2023
 	mov	[es:COMBUF+1],cl
 	dec	si
-	;mov	[3BEh],si ;  MSDOS 5.0 COMMAND.COM
+	;mov	[3BEh],si ; MSDOS 5.0 COMMAND.COM
 	mov	[PipePtr],si		; On to next pipe element
-			; mov [EndInit+158], si
+			; mov [EndInit+158],si
 	mov	dx,[OutPipePtr]
 	push	cx
 	xor	cx,cx
@@ -22954,9 +23007,9 @@ LASTPIPE:
 	; 27/02/2023
 	mov	[es:COMBUF+1],cl
 	dec	si
-	;mov	[3BEh],si ;  MSDOS 5.0 COMMAND.COM
+	;mov	[3BEh],si ; MSDOS 5.0 COMMAND.COM
 	mov	[PipePtr],si	; Point at the CR (anything not '|' will do)
-		; mov [EndInit+158], si
+		; mov [EndInit+158],si
 	call	TESTDOREOUT	; Set up the redirection if specified
 PIPECOM:
 	push	cs
@@ -23023,23 +23076,32 @@ DATINIT:
 
 	; 27/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2FC4h
+	; 11/06/2023
 DATE:
 	mov	si,81h			; Accepting argument for date inline
 	mov	di,PARSE_DATE		;AN000; Get address of PARSE_DATE
 	xor	cx,cx			;AN000; clear counter for positionals
 	xor	dx,dx			;AN000;
 	call	cmd_parse		;AC000; call parser
+	
 	; 27/02/2023
-	cmp	ax,-1
-	;cmp	ax,END_OF_LINE		;AC000; are we at end of line?
-	je	short PRMTDAT 		;AC000; yes - go ask for date
-	;cmp	ax,0
-	;cmp	ax,RESULT_NO_ERROR	;AN000; did we have an error?
-	;jne	short DATERR		;AN000; yes - go issue message
+	;cmp	ax,-1
+	;;cmp	ax,END_OF_LINE		;AC000; are we at end of line?
+	;je	short PRMTDAT 		;AC000; yes - go ask for date
+	;;cmp	ax,0
+	;;cmp	ax,RESULT_NO_ERROR	;AN000; did we have an error?
+	;;jne	short DATERR		;AN000; yes - go issue message
 	; 26/04/2023
-	or	ax,ax ; ax = 0 ?
-	jnz	short DATERR
-	;jmp	short COMDAT		;AC000; we have a date
+	;or	ax,ax ; ax = 0 ?
+	;jnz	short DATERR
+	;;jmp	short COMDAT		;AC000; we have a date
+	; 11/06/2023
+	inc	ax  ; cmp ax,-1
+	jz	short PRMTDAT ; 0FFFFh -> 0
+	dec	ax  ; cmp ax,0
+	jnz	short DATERR ; 1 -> 0
+	; ax = 0
+	
 	; 27/02/2023
 COMDAT:
 	mov	cx,[DATE_YEAR]		;AC000; get parts of date in
@@ -23082,18 +23144,28 @@ PRMTDAT:
 
 GET_NEW_DATE:				;AN000;
 	call	GETDAT			;AC000; prompt user for date
-	cmp	ax,0FFFFh ; -1
-	;cmp	ax,END_OF_LINE		;AC000; are we at end of line?
-	je	short date_end		;AC000; yes - exit
+	
+	; 11/06/2023
+	;cmp	ax,0FFFFh ; -1
+	;;cmp	ax,END_OF_LINE		;AC000; are we at end of line?
+	;je	short date_end		;AC000; yes - exit
 	; 26/04/2023
-	;cmp	ax,0
-	;;cmp	ax,RESULT_NO_ERROR	;AN000; did we have an error?
-	;;jnz	short DATERR		;AN000; yes - go issue message
+	;;cmp	ax,0
+	;;;cmp	ax,RESULT_NO_ERROR	;AN000; did we have an error?
+	;;;jnz	short DATERR		;AN000; yes - go issue message
 	;; 27/02/2023
-	;jz	short COMDAT
+	;;jz	short COMDAT
 	; 26/04/2023
-	and	ax,ax ; 0 ?
-	jz	short COMDAT
+	;and	ax,ax ; 0 ?
+	;jz	short COMDAT
+
+	; 11/06/2023
+	inc	ax  ; cmp ax,-1
+	jz	short date_end ; 0FFFFh -> 0
+	dec	ax  ; cmp ax,0
+	jz	short COMDAT ; 1 -> 0
+	; ax > 0
+
 ;COMDAT:
 ;	....
 DATERR:
@@ -23127,22 +23199,31 @@ DATERR:
 
 	; 27/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:302Dh
+	; 11/06/2023
 CTIME:
 	mov	si,81h			; Accepting argument for time inline
 	mov	di,PARSE_TIME		;AN000; Get address of PARSE_time
 	xor	cx,cx			;AN000; clear counter for positionals
 	xor	dx,dx			;AN000;
 	call	cmd_parse		;AC000; call parser
+	
 	; 27/02/2023
-	cmp	ax,-1
-	;cmp	ax,END_OF_LINE		;AC000; are we at end of line?
-	je	short PRMTTIM 		;AC000; yes - prompt for time
-	;cmp	ax,0
-	;cmp	ax,RESULT_NO_ERROR	;AN000; did we have an error?
-	;jne	short TIMERR		;AN000; yes - go issue message
-	and	ax,ax ; ax = 0 ?
-	jnz	short TIMERR
-	;jmp	short COMTIM		;AC000; we have a time
+	;cmp	ax,-1
+	;;cmp	ax,END_OF_LINE		;AC000; are we at end of line?
+	;je	short PRMTTIM 		;AC000; yes - prompt for time
+	;;cmp	ax,0
+	;;cmp	ax,RESULT_NO_ERROR	;AN000; did we have an error?
+	;;jne	short TIMERR		;AN000; yes - go issue message
+	;and	ax,ax ; ax = 0 ?
+	;jnz	short TIMERR
+	;;jmp	short COMTIM		;AC000; we have a time
+	; 11/06/2023
+	inc	ax  ; cmp ax,-1
+	jz	short PRMTTIM ; 0FFFFh -> 0
+	dec	ax  ; cmp ax,0
+	jnz	short TIMERR ; 1 -> 0
+	; ax = 0
+	
 	; 27/02/2023
 COMTIM:
 	mov	ch,[TIME_HOUR]		;AC000; get parts of time in
@@ -23186,16 +23267,26 @@ PRMTTIM:
 
 GET_NEW_TIME:
 	call	GETTIM			;AC000;
-	cmp	ax,-1
-	;cmp	ax,END_OF_LINE		;AC000; are we at end of line?
-	je	short time_end		;AC000;
-	;cmp	ax,0
-	;cmp	ax,RESULT_NO_ERROR	;AN000; did we have an error?
-	;jne	short TIMERR		;AN000; yes - go issue message
-	or	ax,ax  ; ax = 0 ?
-	;jnz	short TIMERR
+	
+	; 11/06/2023
+	;cmp	ax,-1
+	;;cmp	ax,END_OF_LINE		;AC000; are we at end of line?
+	;je	short time_end		;AC000;
+	;;cmp	ax,0
+	;;cmp	ax,RESULT_NO_ERROR	;AN000; did we have an error?
+	;;jne	short TIMERR		;AN000; yes - go issue message
+	;or	ax,ax  ; ax = 0 ?
+	;;jnz	short TIMERR
 	; 27/02/2023
-	jz	short COMTIM
+	;jz	short COMTIM
+
+	; 11/06/2023
+	inc	ax  ; cmp ax,-1
+	jz	short time_end ; 0FFFFh -> 0
+	dec	ax  ; cmp ax,0
+	jz	short COMTIM ; 1 -> 0
+	; ax > 0
+
 ;COMTIM:
 ;	....
 TIMERR:
@@ -26455,7 +26546,7 @@ COPY:
 	mov	[WRITTEN],ax	; 'destination written to' = false
 	mov	[Concat],al	; 'concatenating' = false
 	mov	[MELCOPY],al	; 'Mel Hallerman copy' = false
-	mov	[MELSTART],ax	; Mel Hallerman cmd line ptr = 0,
+	mov	[MELSTART],ax	; Mel Hallerman cmd line ptr = 0
 
 	;	Initialize buffers with double-nulls.
 
@@ -26515,7 +26606,7 @@ NOT_SLASHV:
 	or	[DestSwitch],bp		; assume destination
 	or	[AllSwitch],bp		; keep tabs on all switches
 
-	; 2303/2023
+	; 23/03/2023
 	; MSDOS 6.0
 	;test	bp,not SwitchCopy	;AN018; Bad switch?
 	test	bp,7FE3h ; test bp,~SwitchCopy
@@ -27127,7 +27218,7 @@ OPENOK:
 	int	21h		; DOS -	2+ - GET FILE'S DATE/TIME
 				; BX = file handle
 
-	jc	short Error_On_Source  ; MSDOS 6.0
+	jc	short Error_On_Source ; MSDOS 6.0
 
 	mov	[CPDATE],dx		; save date
 	mov	[CPTIME],cx		; save time
@@ -35228,6 +35319,7 @@ LhErr:
 	; 13/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:5944h
 	; MSDOS 5.0 COMMAND.COM only ! (MSDOS 6.0 code is different)
+	; 11/06/2023
 ParseLhCmd:
 	;mov	si,81h
 	mov	si,iCmdLine	;ds:si points at command line
@@ -35236,10 +35328,19 @@ ParseLhCmd:
 	mov	di,Parse_LoadHi
 	xor	cx,cx
 	call	Parse_With_Msg
-	cmp	ax,0FFFFh ; -1
-	jz	short PLhCmd2
-	cmp	ax,0
-	jnz	short PLhCmd1
+
+	; 11/06/2023
+	;cmp	ax,0FFFFh ; -1
+	;jz	short PLhCmd2
+	;cmp	ax,0
+	;jnz	short PLhCmd1
+	; 11/06/2023
+	inc	ax ; cmp ax,-1
+	jz	short PLhCmd2 ; 0FFFFh -> 0
+	dec	ax ; cmp ax,0
+	jnz	short PLhCmd1 ; 1 -> 0
+	; ax = 0
+
 	mov	bx,dx
 	; 14/04/2023
 	;call	LhCopyFilename
@@ -35405,7 +35506,7 @@ SetCmdL1:
 	inc	cl			;update count
 	; 14/04/2023
 	; * ; MSDOS 6.0 only !
-	;or	al, al	; *
+	;or	al,al	; *
 	;jz	short SetCmdL2 ; *
 	cmp	al,0Dh			;carriage return?
 	jnz	short SetCmdL1		;no, continue storing
