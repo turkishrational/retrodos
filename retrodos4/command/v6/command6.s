@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 6.22 Command Interpreter) - RETRO DOS v4.2 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 12/06/2023 (v6.22) ((Previous: 05/05/2023 COMMAND.COM v5.0))
+; Last Update: 14/06/2023 (v6.22) ((Previous: 05/05/2023 COMMAND.COM v5.0))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
 ; ----------------------------------------------------------------------------
@@ -8627,8 +8627,8 @@ cXMMexit:
 	;db "25/9/2018 ETAN"
 	; 30/01/2023
 	;db "30/1/2023 ETAN"	
-	; 12/06/2023
-	db "12/6/2023 ETAN"	
+	; 14/06/2023
+	db "14/6/2023 ETAN"	
 	db 0
 
 ; 30/01/2023
@@ -28411,9 +28411,6 @@ TRYFLUSH:
 	;
 	; 13/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:46BAh
-
-burada kaldým... 13/06/2023
-
 FlshFil:
 	mov	byte [TERMREAD],0
 	cmp	byte [CFLAG],0
@@ -28531,7 +28528,7 @@ Dest_Open_Okay:
 
 ;	Destination is device.
 
-	mov	al,byte [DestSwitch]
+	mov	al,[DestSwitch]
 	; 26/03/2023
 	and	al,0Ch
 	;and	al,SWITCHA+SWITCHB ; 4+8
@@ -28790,6 +28787,7 @@ LOADSW:
 ; =============== S U B	R O U T	I N E =======================================
 
 	; 27/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 13/06/2023 - Retro DOS v4.2 COMMAND.COM
 BUILDDEST:
 	cmp	byte [DestIsDir],-1 ; 0FFh
 	jnz	short KNOWABOUTDEST	; figuring already done
@@ -28894,7 +28892,12 @@ SETCONC:
 	cmp	byte [BINARY],0
 	jne	short NOFIRSTDEST 	; explicit binary copy	
 
-	mov	[ASCII],al		; otherwise, concatenate in ascii mode	
+	; 13/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.0 (MSDOS.50)
+	;mov	[ASCII],al		; otherwise, concatenate in ascii mode
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:48FAh
+	or	[ASCII],al	
+
 	or	cl,cl
 	jnz	short NOFIRSTDEST 	; Ascii flag set before, data read correctly	
 	or	al,al
@@ -28970,9 +28973,11 @@ ENDDEST:
 	retn
 
 ; =============== S U B	R O U T	I N E =======================================
-	
+
 	; 28/03/2023
 	; 27/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	;
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 BUILDPATH:
 	test	byte [bp+VARSTRUC.INFO],2 ; test byte [bp+4],2
 	jnz	short NOTPFILE		; If ambig don't bother with open
@@ -29096,7 +29101,8 @@ CHECKCD:
 	xor	ax,ax
 	mov	cx,ax
 	dec	cx
-	repne	scasb
+	; 14/06/2023
+	;repne	scasb	 ; MSDOS 3.3
 
 	; 27/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; (MSDOS 5.0 COMMAND.COM - TRANGROUP:424Ah)
