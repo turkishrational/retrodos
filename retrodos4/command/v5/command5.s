@@ -28933,7 +28933,7 @@ $P_Plus 	   equ	"+"             ;AN000;
 $P_Minus	   equ	"-"             ;AN000;
 $P_Rparen	   equ	")"             ;AN000;
 $P_Lparen	   equ	"("             ;AN000;
-;(deleted ;AN025;) $P_SQuote	      equ  "'"
+;(deleted ;AN025;) $P_SQuote equ  "'"
 $P_DQuote	   equ	'"'             ;AN000;
 $P_NULL 	   equ	0		;AN000;
 $P_TAB		   equ	9		;AN000;
@@ -29792,14 +29792,16 @@ $P_Chk_Key_Control:			;AN000;
 ;***********************************************************************
 
 	; 31/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 14/06/2023
 $P_Search_KEYorSW:
 	push	bp			;AN000;
 	push	cx			;AN000;
 	mov	cl,[es:bx+$P_CONTROL_BLK.$P_nid]
 	;mov	cl,[es:bx+8]		;AN000; Get synonym count
-	xor	ch,ch			;AN000; and set it to cx
-	or	cx,cx			;AN000; No synonyms specified ?
+	; 14/06/2023
+	;xor	ch,ch			;AN000; and set it to cx
+	;or	cx,cx			;AN000; No synonyms specified ?
+	or	cl,cl
 	jz	short $P_KEYorSW_Not_Found
 					;AN000; then indicate not found by CY
 	lea	bp,[es:bx+$P_CONTROL_BLK.$P_KEYorSW]
