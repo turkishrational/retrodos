@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 5.0 Command Interpreter) - RETRO DOS v4.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 12/06/2023 (v5.0) ((Previous: 20/10/2018 COMMAND.COM v3.3))
+; Last Update: 14/06/2023 (v5.0) ((Previous: 20/10/2018 COMMAND.COM v3.3))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
 ; ----------------------------------------------------------------------------
@@ -8714,8 +8714,8 @@ cXMMexit:
 	; (15 bytes filler)
 	db 0
 	;db "25/9/2018 ETAN"
-	; 12/06/2023
-	db "12/6/2023 ETAN"	
+	; 14/06/2023
+	db "14/6/2023 ETAN"	
 	db 0
 
 ; 30/01/2023
@@ -27767,7 +27767,7 @@ Dest_Open_Okay:
 
 ;	Destination is device.
 
-	mov	al,byte [DestSwitch]
+	mov	al,[DestSwitch]
 	; 26/03/2023
 	and	al,0Ch
 	;and	al,SWITCHA+SWITCHB ; 4+8
@@ -28332,7 +28332,8 @@ CHECKCD:
 	xor	ax,ax
 	mov	cx,ax
 	dec	cx
-	repne	scasb
+	; 14/06/2023
+	;repne	scasb	 ; MSDOS 3.3
 
 	; 27/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; (MSDOS 5.0 COMMAND.COM - TRANGROUP:424Ah)
