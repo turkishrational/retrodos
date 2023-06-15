@@ -33935,7 +33935,7 @@ $MIF138:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 	; 09/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 15/06/2023
 $M_CONVERT2ASC:
 	pop	word [$M_RT+$M_RES_ADDRS.$M_RETURN_ADDR]
 	;pop	word [$M_RT+70]			;;AN000;; Save Return Address
@@ -33983,7 +33983,15 @@ $MLL149:
 ;	jmp	short $MEN150
 
 $MIF150:
-	cmp	cx,6 ; $M_SECOND_THOU		;;AN000;; Are we at the first thousands mark
+	; 15/06/2023 (6)
+	; MSDOS 6.0
+	; MSDOS 5.0 COMMAND.COM - TRANGROUP:54ABh 
+	;cmp	cx,6 ; $M_SECOND_THOU		;;AN000;; Are we at the first thousands mark
+	; 15/06/2023 (7)
+	; MSDOS 6.22
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:5C78h 
+	cmp	cx,7 ; $M_SECOND_THOU		;;AN000;; Are we at the first thousands mark	
+
 ; 28/04/2023
 	je	short $MIF153
 ;	jne	short $MIF154			;;AN000;; No
@@ -34001,7 +34009,14 @@ $MIF150:
 ;	jmp	short $MEN154
 
 $MIF154:
-	cmp	cx,9 ; $M_THIRD_THOU		;;AN000;; Are we at the first thousands mark
+	; 15/06/2023 (9)
+	; MSDOS 6.0
+	; MSDOS 5.0 COMMAND.COM - TRANGROUP:54BDh 
+	;cmp	cx,9 ; $M_THIRD_THOU		;;AN000;; Are we at the first thousands mark
+	; 15/06/2023 (11)
+	; MSDOS 6.22
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:5C8Ah 
+	cmp	cx,11 ; $M_THIRD_THOU		;;AN000;; Are we at the first thousands mark
 	jne	short $MIF158			;;AN000;; No  
 ; 28/04/2023
 $MIF153:
