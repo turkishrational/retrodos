@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 5.0 Command Interpreter) - RETRO DOS v4.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 14/06/2023 (v5.0) ((Previous: 20/10/2018 COMMAND.COM v3.3))
+; Last Update: 15/06/2023 (v5.0) ((Previous: 20/10/2018 COMMAND.COM v3.3))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
 ; ----------------------------------------------------------------------------
@@ -8714,8 +8714,8 @@ cXMMexit:
 	; (15 bytes filler)
 	db 0
 	;db "25/9/2018 ETAN"
-	; 14/06/2023
-	db "14/6/2023 ETAN"	
+	; 15/06/2023
+	db "15/6/2023 ETAN"	
 	db 0
 
 ; 30/01/2023
@@ -30334,7 +30334,7 @@ $P_DCC_Go:				;AN000;
 	cmp	dl,$P_DOSTBL_File ; 4	;AN000; Use file CAPS table ?
 	je	short $P_DCC00		;AN000;
 	; 27/04/2023
-	lea	di,[$P_Char_CAP_Ptr]	;AC034; or use char CAPS table ?
+	lea	di,$P_Char_CAP_Ptr	;AC034; or use char CAPS table ?
 $P_DCC00:				;AN000;
 	cmp	[cs:di],dl		;AN000; already got table address ?
 	je	short $P_DCC01		;AN000; if no,
@@ -32441,7 +32441,7 @@ std_eprintf:
 
 	; 07/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM (1991) Transient portion offset 5012h
-
+	; 15/06/2023
 std_printf:
 	mov	word [PRINTF_HANDLE],1 		;AC000;Print to STDOUT
 
@@ -32463,12 +32463,17 @@ new_printf:
 
 	mov	si,dx				;AN000;Get offset of message number
 	lodsw					;AN000;load message number
-	push	ax				;AN000;save it
-	lodsb					;AN000;get number of substitutions
-	mov	cl,al				;AN000;set up CX as # of subst
-	; 07/04/2023
-	;xor	ch,ch				;AN000;SI now points to subst list
-	pop	ax				;AN000;get message number back
+	; 15/06/2023
+	;push	ax				;AN000;save it
+	;lodsb					;AN000;get number of substitutions
+	;mov	cl,al				;AN000;set up CX as # of subst
+	;; 07/04/2023
+	;;xor	ch,ch				;AN000;SI now points to subst list
+	;pop	ax				;AN000;get message number back
+	; 15/06/2023
+	mov	cl,[si]
+	inc	si
+	
 	;cmp	cx,0				;AN000;Any substitutions?
 	; 07/04/2023
 	and	cx,cx
@@ -33016,6 +33021,7 @@ $MIF23:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 	; 07/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 15/06/2023
 
 	utility_msg_class equ 0FFh ; 18/04/2023
 
@@ -33030,8 +33036,10 @@ SYSGETMSG:
 	jc	short $MIF31
 	
 	cmp	dh,utility_msg_class ; 0FFh	;;AN000;; Were utility messages requested?
-	clc					;;AN000;;
+	;clc					;;AN000;;
 	je	short $MIF32			;;AN000;;
+	; 15/06/2023
+	clc	
 
 	push	es				;;AN000;;
 	;pop	ds				;;AN000;;
@@ -33181,7 +33189,7 @@ $MEN36:
 		; 01h not installed, can't install
 		; FFh installed
 
-	cmp	al, 0FFh ; IFSFUNC_INSTALLED	;;AN006;; Is it installed?
+	cmp	al,0FFh ; IFSFUNC_INSTALLED	;;AN006;; Is it installed?
 	pop	ax				;;AN006;; Restore msg number
 	jne	short $MIF57			;;AN006;; No (not installed)
 
@@ -33273,13 +33281,14 @@ $M_SET_LEN_IN_CX:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 	; 07/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 15/06/2023
 $M_FIND_SPECIFIED_MSG:
 	cmp	bx,1				;;AN004;; Do we have an address to CALL?
 	jne	short $MIF64
 	cmp	word [$M_RT+$M_RES_ADDRS.$M_DISK_PROC_ADDR],-1
 	;cmp	word [$M_RT+40],-1 ; 0FFFFh	;;AN004;; Do we have an address to CALL?
-	jne	short $MIF64
+	; 15/06/2023 (BugFix)
+	je	short $MIF64
 
 	cmp	ax,0FFFFh ; $M_SPECIAL_MSG_NUM	;;AN004;; Are we displaying a default Ext Err?
 	jne	short $MIF65
