@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 6.22 Command Interpreter) - RETRO DOS v4.2 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 14/06/2023 (v6.22) ((Previous: 05/05/2023 COMMAND.COM v5.0))
+; Last Update: 15/06/2023 (v6.22) ((Previous: 05/05/2023 COMMAND.COM v5.0))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
 ; ----------------------------------------------------------------------------
@@ -5969,7 +5969,7 @@ nocomdrv:
 	; 14/01/2023 - Retro DOS v4.0 (& V4.1) COMMAND.COM
 	; (MSDOS 5.0 COMMAND.COM - RESGROUP:16C9h - CODERES:0989h)
 	; 06/06/2023 - Retro DOS v4.2 COMMAND.COM
-	; (MSDOS 5.0 COMMAND.COM - RESGROUP:17E8h - CODERES:0998h)
+	; (MSDOS 6.22 COMMAND.COM - RESGROUP:17E8h - CODERES:0998h)
 	; MSDOS 6.0
 	push	cs
 	push	cs
@@ -8627,8 +8627,8 @@ cXMMexit:
 	;db "25/9/2018 ETAN"
 	; 30/01/2023
 	;db "30/1/2023 ETAN"	
-	; 14/06/2023
-	db "14/6/2023 ETAN"	
+	; 15/06/2023
+	db "15/6/2023 ETAN"	
 	db 0
 
 ; 30/01/2023
@@ -22282,9 +22282,11 @@ pcrunch_end:
 ; switch -- after all, it IS public!
 ;---------------------------
 
+; 14/06/2023
+SWCOUNT	EQU 8	; MSDOS 6.22		; Length of switch_list
 ; 28/03/2023
-SWCOUNT  EQU  6  ; MSDOS 6.0		; Length of switch_list
-;SWCOUNT EQU  5  ; MSDOS 3.3	
+;SWCOUNT  EQU  6  ; MSDOS 6.0 (& MSDOS 5.0)
+;;SWCOUNT EQU  5  ; MSDOS 3.3	
 
 ; MSDOS 3.3 - COMMAND.COM, transient portion/segment offset 1AC2h
 
@@ -22326,8 +22328,8 @@ SWLOOP:
 				; ("VBAPW" (for MSDOS 3.3))
 	; 11/06/2023
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:2E33h
-	mov	cx,8
-	;mov	cx,6  ; MSDOS 6.0
+	mov	cx,8  ; MSDOS 6.22	   	
+	;mov	cx,6  ; MSDOS 6.0 (& MSDOS 5.0)
 	;;mov	cx,5  ; MSDOS 3.3
 	;;mov	cx,SWCOUNT ; 5 (for MSDOS 3.3), (6 (for MSDOS 6.0))
 		
@@ -22748,7 +22750,7 @@ cerror:
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2A51h
 
 	; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
-	; MSDOS 6.2 COMMAND.COM - TRANGROUP:2FFBh
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:2FFBh
 
 PRESCAN:
 	xor	cx,cx
@@ -29287,6 +29289,7 @@ COMPNAME:
 ;============================================================================
 ; 30/09/2018 - Retro DOS v3.0
 ; 28/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 
 ;-----------------------------------------------------------------------;
 ; ENTRY:								;
@@ -29357,6 +29360,8 @@ COMPNAME:
 	; 28/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM (1991) Transient portion offset 431Fh
 
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM (1994) Transient portion offset 4AE3h
 cparse:
 	xor	ax,ax
 	mov	[STARTEL],di		; No path element (Is DI correct?)
@@ -29642,13 +29647,21 @@ Store_swt:
 	pop	es
 	; 28/03/2023
 	; MSDOS 3.3
-	;mov	di,SWITCH_LIST ; "VBAPW"
+	;;mov	di,SWITCH_LIST ; "VBAPW"
 	; MSDOS 6.0
-	mov	di,switch_list ; "?VBAPW"
+	;mov	di,switch_list ; "?VBAPW"
+	; 14/06/*2023
+	; MSDOS 6.22
+	mov	di,switch_list ; "-Y?VBAPW"
+
 	; MSDOS 3.3
 	;mov	cx,SWCOUNT ; 5
 	; MSDOS 6.0
-	mov	cx,6  ; SWCOUNT = 6
+	;mov	cx,6  ; SWCOUNT = 6
+	; 14/06/2023
+	; MSDOS 6.22
+	mov	cx,8  ; SWCOUNT = 8	
+
 	;or	bp,FBADSWITCH  ; 4000h
 	or	bp,4000h
 	repne	scasb
@@ -29683,6 +29696,7 @@ move_char:
 ; PARSE.ASM, MSDOS 6.0, 1991
 ;============================================================================
 ; 29/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 
 ; -----------------------------
 ; (PSDATA.INC, MSDOS 6.0, 1991)
@@ -29704,7 +29718,7 @@ $P_Plus 	   equ	"+"             ;AN000;
 $P_Minus	   equ	"-"             ;AN000;
 $P_Rparen	   equ	")"             ;AN000;
 $P_Lparen	   equ	"("             ;AN000;
-;(deleted ;AN025;) $P_SQuote	      equ  "'"
+;(deleted ;AN025;) $P_SQuote equ  "'"
 $P_DQuote	   equ	'"'             ;AN000;
 $P_NULL 	   equ	0		;AN000;
 $P_TAB		   equ	9		;AN000;
@@ -30242,6 +30256,8 @@ cmd_parse:
 	; 29/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:44E7h
 
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:4CABh
 sysparse:
 	mov	word [cs:$P_Flags],0	;AC034; Clear all internal flags
 	mov	[cs:$P_ORIG_ORD],cx	;AN039; ORIGINAL ORDINAL FROM CX
@@ -30488,6 +30504,8 @@ $P_Single_Exit: 			;AN000;
 	; 31/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:4671h
 
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:4E35h
 $P_Chk_Pos_Control:
 	push	ax			;AN000;
 	;mov	ax,[es:bx+$P_CONTROL_BLK.$P_Match_Flag]
@@ -30506,7 +30524,7 @@ $P_CPC00:				;AN000;
 	test	ax,$P_Optional		;AN000; yes, then is it optional ?
 	jnz	short $P_CPC02		;AN000;
 
-	mov	word [cs:$P_RC],$P_Op_Missing
+	mov	word [cs:$P_RC],$P_Op_Missing ; 2
 					;AC034; no, then error	 3/17/87
 	jmp	short $P_CPC_Exit	;AN000;
 $P_CPC02:				;AN000;
@@ -30545,6 +30563,7 @@ $P_CPC_Exit:				;AN000;
 ;***********************************************************************
 
 	; 31/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_Chk_Key_Control:			;AN000;
 	stc				;AN000;this logic works when the KeySW
 	retn				;AN000;is reset.
@@ -30563,14 +30582,16 @@ $P_Chk_Key_Control:			;AN000;
 ;***********************************************************************
 
 	; 31/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_Search_KEYorSW:
 	push	bp			;AN000;
 	push	cx			;AN000;
 	mov	cl,[es:bx+$P_CONTROL_BLK.$P_nid]
 	;mov	cl,[es:bx+8]		;AN000; Get synonym count
-	xor	ch,ch			;AN000; and set it to cx
-	or	cx,cx			;AN000; No synonyms specified ?
+	; 14/06/2023
+	;xor	ch,ch			;AN000; and set it to cx
+	;or	cx,cx			;AN000; No synonyms specified ?
+	or	cl,cl
 	jz	short $P_KEYorSW_Not_Found
 					;AN000; then indicate not found by CY
 	lea	bp,[es:bx+$P_CONTROL_BLK.$P_KEYorSW]
@@ -30599,7 +30620,7 @@ $P_KEYorSW_Exit:			;AN000;
 ;***********************************************************************
 
 	; 31/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_MoveBP_NUL:
 $P_MBP_Loop:				;AN000;
 	;cmp	byte [es:bp+0],0
@@ -30627,7 +30648,9 @@ $P_MBP_Exit:				;AN000;
 ;***********************************************************************
 
 	; 31/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	;
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:4E9Ah 
 $P_Chk_SW_Control:
 	or	byte [cs:$P_Flags2],$P_SW_Cmp
 	;or	byte [cs:$P_Flags2],10h	;AC034; Indicate switch for later string comparison
@@ -30725,7 +30748,7 @@ $P_Chk_SW_Single_Exit:			;AN000;
 ;***********************************************************************
 
 	; 31/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_Fill_Result:
 	push	di			;AN000;
 	mov	di,[es:bx+$P_CONTROL_BLK.$P_Result_Buf]
@@ -30850,7 +30873,7 @@ $P_RLT_Exit:				;AN000;
 ;***********************************************************************
 
 	; 31/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_Check_Match_Flags:
 	mov	byte [cs:$P_err_flag],$P_NULL ; 0
 					;AN033;AC034;; clear filespec error flag.
@@ -30981,7 +31004,7 @@ $P_Match2_Exit: 			;AN033;
 ;***********************************************************************
 
 	; 31/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_Remove_Colon:
 	push	ax			;AN000;
 	push	si			;AN000;
@@ -31036,7 +31059,7 @@ $P_RCOL01:				;AN000;
 ;***********************************************************************
 
 	; 31/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_Do_CAPS_String:
 	push	si			;AN000;
 	push	dx			;AN000;
@@ -31078,7 +31101,7 @@ $P_DCS_Exit:				;AN000;
 ;***********************************************************************
 
 	; 31/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_Do_CAPS_Char:
 	cmp	al,$P_ASCII80	; 80h	;AN000; need upper case table ?
 	jae	short $P_DCC_Go		;AN000;
@@ -31103,7 +31126,7 @@ $P_DCC_Go:				;AN000;
 	cmp	dl,$P_DOSTBL_File ; 4	;AN000; Use file CAPS table ?
 	je	short $P_DCC00		;AN000;
 	; 27/04/2023
-	lea	di,[$P_Char_CAP_Ptr]	;AC034; or use char CAPS table ?
+	lea	di,$P_Char_CAP_Ptr	;AC034; or use char CAPS table ?
 $P_DCC00:				;AN000;
 	cmp	[cs:di],dl		;AN000; already got table address ?
 	je	short $P_DCC01		;AN000; if no,
@@ -31180,6 +31203,7 @@ $P_CAPS_Ret:				;AN000;
 ;***********************************************************************
 
 	; 31/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_SValue:
 	push	ax			;AN000;
 	;or	byte [cs:$P_Flags2],80h
@@ -31211,6 +31235,8 @@ $P_Sval01:				;AN000;
 	; 31/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:4955h
 
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.2 COMMAND.COM - TRANGROUP:5119h
 $P_Value:
 	push	ax			;AN000;
 	push	cx			;AN000;
@@ -31397,6 +31423,7 @@ $P_Value_Exit:				;AN000;
 ;***********************************************************************
 
 	; 31/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_Check_OVF:
 	pushf				;AN000;
 	test	byte [cs:$P_Flags2],$P_Neg ; 2
@@ -31427,6 +31454,7 @@ $P_0099Err2:	; 31/03/2023
 ;***********************************************************************
 
 	; 31/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_0099:
 	cmp	al,"0"                  ;AN000;
 	;jb	short $P_0099Err	;AN000;  must be 0 =< al =< 9
@@ -31462,7 +31490,7 @@ $P_0099:
 ;***********************************************************************
 
 	; 31/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_Simple_String:
 	push	ax			;AN000;
 	push	bx			;AN000;
@@ -31548,7 +31576,7 @@ $P_Sim_Exit0:				;AN000;
 ;***********************************************************************
 
 	; 01/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_String_Comp:
 	push	ax			;AN000;
 	push	bp			;AN000;
@@ -31691,7 +31719,7 @@ $P_SCOM_Exit:				;AN000;
 ;***********************************************************************
 
 	; 03/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_Date_Format:
 	push	ax			;AN000;
 	push	cx			;AN000;
@@ -31800,6 +31828,7 @@ $P_Date_Format_Exit:			;AN000;
 ;***********************************************************************
 
 	; 03/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_Set_CDI:
 	; 18/04/2023
 	lea	si,$P_Country_Info	;AC034;
@@ -31811,7 +31840,7 @@ $P_Set_CDI:
 	; 03/04/2023
 	jne	short $P_Set_CDI_Exit
 $P_Read_CDI:				;AN000; else read CDI thru DOS
-	push	ds			;AN000;
+	push	ds	þþhh		;AN000;
 	push	dx			;AN000;
 	push	ax			;AN000;
 	push	cs			;AC023;
@@ -31843,6 +31872,7 @@ $P_Set_CDI_Exit:			;AN000;
 ;***********************************************************************
 
 	; 03/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_Get_DecNum:
 	push	cx			;AN000;
 	push	dx			;AN000;
@@ -31942,7 +31972,7 @@ $P_GetNum_Exit: 			;AN000;
 ;***********************************************************************
 
 	; 03/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_Time_Format:				;AN000;
 	push	ax			;AN000;
 	push	cx			;AN000;
@@ -32113,7 +32143,7 @@ $P_Time_Format_Exit:			;AN000;
 ;***********************************************************************
 
 	; 05/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_Time_2412:				;AN000;
 	push	ax			;AN000;
 	push	si			;AN000;
@@ -32188,6 +32218,9 @@ $P_T1200:				;AN000; "P" found
 
 	; 05/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:4DF0h
+
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:55B4h
 $P_File_Format:
 	push	ax			;AN000;
 	push	di			;AN000;
@@ -32269,11 +32302,12 @@ $P_Drv_Only_Exit:			;AN000; (tm14)
 ;***********************************************************************
 
 	; 05/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_FileSp_Chk:
 	push	bx			;AN000;
 	push	cx			;AN000;
 	;lea	bx,[cs:$P_FileSp_Char]	;AC034; special character table
-	lea	bx,$P_FileSp_Char
+	lea	bx,$P_FileSp_Char ; "[]|<>+=;\""
 	mov	cx,$P_FileSp_Len ; 9
 	;mov	cx,9			;AN000; load length of it
 $P_FileSp_Loop: 			;AN000;
@@ -32304,6 +32338,7 @@ $P_FileSp_Exit: 			;AN000;
 ;***********************************************************************
 
 	; 05/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_Drive_Format:
 	push	ax			;AN000;
 	push	dx			;AN000;
@@ -32362,7 +32397,7 @@ $P_Drv_Exit:				;AN000;
 ;***********************************************************************
 
 	; 05/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_Skip_Delim:				;AN000;
 $P_Skip_Delim_Loop:			;AN000;
 	lodsb				;AN000;
@@ -32414,7 +32449,7 @@ $P_Skip_Delim_Exit:			;AN000; in this case, need
 ;***********************************************************************
 
 	; 05/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_Chk_EOL:
 	push	bx			;AN000;
 	push	cx			;AN000;
@@ -32463,7 +32498,7 @@ $P_Chk_EOL_Exit:			;AN000;
 ;***********************************************************************
 
 	; 06/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_Chk_Delim:
 	push	bx			;AN000;
 	push	cx			;AN000;
@@ -32554,7 +32589,7 @@ $P_No_Set_Extra:			;AN027;
 ;***********************************************************************
 
 	; 06/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_Chk_Switch:
 	; 18/04/2023
 	lea	bp,$P_STRING_BUF	;AN020;AC034; BP=OFFSET of $P_String_Buf even in group addressing
@@ -32616,7 +32651,7 @@ $P_STRUC_L1:				;AN000;
 ;***************************************************************************
 
 	; 06/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
 $P_Chk_DBCS:
 	push	ds			;AN000;
 	push	si			;AN000;
@@ -32697,6 +32732,8 @@ $P_DBCS_EXIT:				;AN000;
 
 	; 06/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:4FF7h
+	; 14/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:57BBh
 ;cmd_parse:
 	;call	sysparse		;AN000;
 	;retn				;AN000;
@@ -32711,6 +32748,7 @@ append_parse:
 ; TPRINTF.ASM, MSDOS 6.0, 1991
 ;============================================================================
 ; 07/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
 
 ; ----------------------------
 ; MSDOS 6.0, MSGSERV.ASM, 1991
@@ -32734,6 +32772,9 @@ endstruc
 
 	; 07/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM (1991) Transient portion offset 4FFFh
+
+	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM (1994) Transient portion offset 57C3h
 
 Printf_Init:
 	call	std_printf
@@ -32781,6 +32822,9 @@ std_eprintf:
 	; 07/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM (1991) Transient portion offset 5012h
 
+	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM (1994) Transient portion offset 57D6h
+
 std_printf:
 	mov	word [PRINTF_HANDLE],1 		;AC000;Print to STDOUT
 
@@ -32802,12 +32846,17 @@ new_printf:
 
 	mov	si,dx				;AN000;Get offset of message number
 	lodsw					;AN000;load message number
-	push	ax				;AN000;save it
-	lodsb					;AN000;get number of substitutions
-	mov	cl,al				;AN000;set up CX as # of subst
-	; 07/04/2023
-	;xor	ch,ch				;AN000;SI now points to subst list
-	pop	ax				;AN000;get message number back
+	; 15/06/2023
+	;push	ax				;AN000;save it
+	;lodsb					;AN000;get number of substitutions
+	;mov	cl,al				;AN000;set up CX as # of subst
+	;; 07/04/2023
+	;;xor	ch,ch				;AN000;SI now points to subst list
+	;pop	ax				;AN000;get message number back
+	; 15/06/2023
+	mov	cl,[si]
+	inc	si
+
 	;cmp	cx,0				;AN000;Any substitutions?
 	; 07/04/2023
 	and	cx,cx
@@ -32960,6 +33009,7 @@ print_err_exit: 				;AC000;
 ;****************************************************************
 
 	; 07/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
 TSYSLOADMSG:
 	push	bx				;AN000;
 	call	SYSLOADMSG			;AN000; call routine
@@ -32981,6 +33031,7 @@ TSYSLOADMSG:
 ;****************************************************************
 
 	; 07/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
 TSYSGETMSG:
 	push	cx				;AN000;
 	call	SYSGETMSG			;AN000; call routine
@@ -32991,6 +33042,7 @@ TSYSGETMSG:
 ; MSGSERV.ASM, MSDOS 6.0, 1991
 ;============================================================================
 ; 07/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
 
 ; ---------------------------------------------------------------------------
 ; MODULE NAME: MSGSERV.SAL
@@ -33161,6 +33213,9 @@ endstruc				;;AN000;;
 	; 07/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:5107h
 
+	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:58CBh
+
 SYSLOADMSG:
 	push	ax				;;AN000;
 	push	bx				;;AN000;
@@ -33309,7 +33364,7 @@ SYSLOADMSG:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 	; 07/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
 $M_GET_DBCS_VEC:
 	push	ax				;;AN000;; Save character to check
 	push	si				;;AN000;;
@@ -33355,6 +33410,7 @@ $MIF23:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 	; 07/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
 
 	utility_msg_class equ 0FFh ; 18/04/2023
 
@@ -33369,8 +33425,10 @@ SYSGETMSG:
 	jc	short $MIF31
 	
 	cmp	dh,utility_msg_class ; 0FFh	;;AN000;; Were utility messages requested?
-	clc					;;AN000;;
+	;clc					;;AN000;;
 	je	short $MIF32			;;AN000;;
+	; 15/06/2023
+	clc	
 
 	push	es				;;AN000;;
 	;pop	ds				;;AN000;;
@@ -33402,7 +33460,7 @@ $MIF31:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 	; 07/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
 $M_GET_MSG_ADDRESS:
 	push	si				;;AN000;;
 	push	bx				;;AN000;;
@@ -33520,7 +33578,7 @@ $MEN36:
 		; 01h not installed, can't install
 		; FFh installed
 
-	cmp	al, 0FFh ; IFSFUNC_INSTALLED	;;AN006;; Is it installed?
+	cmp	al,0FFh ; IFSFUNC_INSTALLED	;;AN006;; Is it installed?
 	pop	ax				;;AN006;; Restore msg number
 	jne	short $MIF57			;;AN006;; No (not installed)
 
@@ -33586,6 +33644,7 @@ $M_MYRET:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 	; 07/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
 $M_SET_LEN_IN_CX:			
 	push	di				;;AN006;; Save position
 	push	ax				;;AN006;;
@@ -33612,13 +33671,14 @@ $M_SET_LEN_IN_CX:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 	; 07/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
 $M_FIND_SPECIFIED_MSG:
 	cmp	bx,1				;;AN004;; Do we have an address to CALL?
 	jne	short $MIF64
 	cmp	word [$M_RT+$M_RES_ADDRS.$M_DISK_PROC_ADDR],-1
 	;cmp	word [$M_RT+40],-1 ; 0FFFFh	;;AN004;; Do we have an address to CALL?
-	jne	short $MIF64
+	; 15/06/2023
+	je	short $MIF64
 
 	cmp	ax,0FFFFh ; $M_SPECIAL_MSG_NUM	;;AN004;; Are we displaying a default Ext Err?
 	jne	short $MIF65
