@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 6.22 Command Interpreter) - RETRO DOS v4.2 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 15/06/2023 (v6.22) ((Previous: 05/05/2023 COMMAND.COM v5.0))
+; Last Update: 18/06/2023 (v6.22) ((Previous: 05/05/2023 COMMAND.COM v5.0))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
 ; ----------------------------------------------------------------------------
@@ -817,8 +817,12 @@ endstruc
 ;MINOR_VERSION	EQU 30
 
 ; 09/01/2023 - Retro DOS v4.0 (& v4.1)
-MAJOR_VERSION	EQU 5		; Major DOS version
-MINOR_VERSION	EQU 0		; Minor DOS version
+;MAJOR_VERSION	EQU 5		; Major DOS version
+;MINOR_VERSION	EQU 0		; Minor DOS version
+
+; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
+MAJOR_VERSION	EQU 6		; Major DOS version
+MINOR_VERSION	EQU 22		; Minor DOS version
 
 EXPECTED_VERSION EQU (MINOR_VERSION<<8)+MAJOR_VERSION	
 
@@ -2432,6 +2436,10 @@ MySeg1:		dw	0
 MySeg2:		dw	0
 ResTest: 	dw	0
 Res_Tpa:	dw	0	; original tpa (not rounded to 64k)
+
+; 18/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
+Y_Flag:		dw	0	
+
 TranVarEnd:	; label	byte
 
 OldErrNo:	dw	0
@@ -2514,8 +2522,8 @@ fInHigh:	db	0
 fUmbTiny:	db	0
 SegLoad:	dw	0
 UmbLoad:	db	0
-UmbUsed:	db	times MAXUMB db 0 ; db MAXUMB dup (?)
-UmbSize:	dw	times MAXUMB dw 0 ; dw MAXUMB dup (?)
+UmbUsed:	times MAXUMB db 0 ; db MAXUMB dup (?)
+UmbSize:	times MAXUMB dw 0 ; dw MAXUMB dup (?)
 fm_umb:		db	0
 fm_strat:	db	0
 fm_argc:	db	0
@@ -7080,14 +7088,14 @@ NoAutSet:
 
 	;;mov	ax,OPEN shl 8
 	mov	ax,3D00h ; 21/01/2023
-	;mov	ax,OPEN*256 ; 3D00h  ; open for read
+	;mov	ax,OPEN*256 ; 3D00h	; open for read
 	int	21h			; see if autoexec.bat exists
 	jc	short noabat
 	mov	bx,ax
 	mov	ah,3Eh ; 21/01/2023
 	;mov	ah,CLOSE  ; 3Eh
 	int	21h
-	jmp	short Drv0		; go process autoexec
+	jmp	Drv0			; go process autoexec
 
 noabat:
 	push	ax
@@ -7159,7 +7167,7 @@ noabat:
 	jmp	short Drv0			; 3/3/kk
 
 NoKabat:					; 3/3/kk
-	call	far [Triage_Add]		; get extended error
+	call	far [triage_add]		; get extended error
 	cmp	ax,65				; network access denied?
 	jnz	short OpenErr 			; no - go deallocate batch
 
@@ -7179,7 +7187,6 @@ OpenErr:
 	mov	word [Batch],0		; after dealloc in case of ^c
 	mov	byte [EchoFlag],1
 	mov	word [Nest],0		; indicate no batch in progress
-
 ;DoDttm:
 	;mov	ax,offset TranGroup:Datinit
 	mov	ax,DATINIT
@@ -8627,8 +8634,8 @@ cXMMexit:
 	;db "25/9/2018 ETAN"
 	; 30/01/2023
 	;db "30/1/2023 ETAN"	
-	; 15/06/2023
-	db "15/6/2023 ETAN"	
+	; 18/06/2023
+	db "18/6/2023 ETAN"	
 	db 0
 
 ; 30/01/2023
@@ -9627,7 +9634,7 @@ ISNOBAT:
 	cmp	word [SingleCom],0
 	jz	short REGCOM
 	; 07/06/2023 - MSDOS 6.22 COMMAND.COM
-	mov	si,[SEMIPERMCOM] ;  MSDOS 6.0
+	mov	si,[SemiPermCom] ;  MSDOS 6.0
 	;mov	si,0FFFFh 	 ;  MSDOS 3.3 & MSDOS 5.0
 	xchg	si,[SingleCom]
 	mov	di,COMBUF+2
@@ -15071,6 +15078,28 @@ CmpType:
 
 ; ---------------------------------------------------------------------------
 
+;***	CmpCratio - compare entries by compression ratio
+;
+;	ENTRY	ES:BX = ptr to one entry
+;		ES:BP = ptr to another entry
+;
+;	EXIT	BX = unchanged
+;		BP = unchanged
+;		Condition flags set for same, above, or below
+;		 comparing BX entry to BP entry.
+;
+;	USED:	AX
+
+	; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
+CmpCratio:
+	;mov	al,es:[bx].compratio
+	mov	al,[es:bx+21]	
+	;cmp	al,es:[bp].compratio
+	cmp     al,[es:bp+21]
+	retn
+
+; ---------------------------------------------------------------------------
+
 ;***	DefaultAttr - set default attribute conditions
 ;
 ;	ENTRY	nothing
@@ -15656,7 +15685,7 @@ GetNext:
 	;mov	ah,Dir_Search_Next	; AH = DOS Find Next function code
 GetFrstNxt:
 	; 07/06/2023
-	mov	dx,FCB_7 ; mov dx,55h
+	mov	dx,FCB-7 ; mov dx,55h
 	;
 	int	21h			; call DOS
 	shl	al,1			; CY = set if error
@@ -17262,7 +17291,7 @@ dcrRet:
 dtrRet:		; 08/06/2023
 	retn
 
-DisplayCompRatio	;endp
+;DisplayCompRatio	;endp
 
 ;endif
 
@@ -17704,7 +17733,6 @@ ocvf_swap_info:
 	je	short ocvf_got_host	;yes, 1st swap info call returned host
 
 	mov	bl,cl			;no, use swapped host, orig seq #
-
 ocvf_got_host:
 	; Build the filename of the Compressed Volume File
 
@@ -17742,7 +17770,7 @@ ocvf_1:	xor	ah,ah			; convert seq # to ascii
 	stosb
 	mov	al,ah
 	;loop	@b
-	lopp	ocvf_1
+	loop	ocvf_1
 
 	cld
 
@@ -17770,7 +17798,12 @@ ocvf_1:	xor	ah,ah			; convert seq # to ascii
 	;mov	dx,szCVF
 	mov	dx,di ; *
 	int	21h
-	jc	short ocvf_error
+	;jc	short ocvf_error
+	; 18/06/2023
+	jnc	short ocvf_2
+ocvf_error:	; 18/06/2023
+	stc				;indicate failure
+	retn
 ocvf_2:
 	mov	[fhCVF],ax		; success, save CVF file handle
 
@@ -17791,8 +17824,8 @@ ocvf_2:
 					; yes...
 ocvf_error1:
 	call	CloseCVF
-
-ocvf_error:
+	; 18/06/2023
+;ocvf_error:
 	stc				;indicate failure
 	;jmp	short ocvf_ret
 	retn
@@ -17824,7 +17857,7 @@ ovcf_set_size:
 
 	; Lastly, setup the FAT buffers
 ocvf_set_buf:
-	mov	ax,[BytCnt]		; if >= 32k TPA space available,
+	mov	ax,[BYTCNT]		; if >= 32k TPA space available,
 	mov	[savBytCnt],ax		;   setup larger FAT buffers
 	cmp	ax,32*1024  ; 8000h
 	jae	short ocvf_big_buf
@@ -17856,7 +17889,7 @@ ocvf_big_buf:
 
 	sub	ax,bx			; reduce TPA size by size of FAT buffers
 	and	ax,0FE00h		; init code rounds BytCnt down to multiple of
-	mov	[BytCnt],ax		;   512 bytes -- a no-op with some buf sizes.
+	mov	[BYTCNT],ax		;   512 bytes -- a no-op with some buf sizes.
 
 	mov	bx,[TPA]		; buffers in the TPA
 	mov	[segFATBuf],bx
@@ -18328,12 +18361,12 @@ cfb_common:
 	mov	ax,[MDBPB+24h]
 	inc	ax
 	;mul	word [MDBPB.dos_bpb.cbPerSec]
-	mul	word [MSBPB+0Bh]	; DX:AX = MDFAT file offset
+	mul	word [MDBPB+0Bh]	; DX:AX = MDFAT file offset
 
 	mov	bx,[entInBuf]
 	xor	cx,cx			; CX:BX = 32 bit cluster #
 	;add	bx,[MDBPB.cluFirstData]
-	add	bx,[MSBPB+2Dh]
+	add	bx,[MDBPB+2Dh]
 	adc	cx,cx			; CX:BX = MDFAT entry #
 
 	shl	bx,1
@@ -20030,7 +20063,7 @@ CTTY:
 	;jnz	short ctty_error	;AN000; YES -ERROR
 	; 10/06/2023
 	inc	ax  ; cmp ax,-1
-	jz	shoret ctty_err  ; 0FFFFh -> 0
+	jz	short ctty_error  ; 0FFFFh -> 0
 	dec	ax  ; cmp ax,0
 	jnz	short ctty_error  ; 1 -> 0
 	; ax = 0
@@ -24161,8 +24194,8 @@ date_end:
 
 PRMTDAT:
 	; Print "Current date is
-
 	call	GetDate 		;AN000; get date for output
+
 	xchg	dh,dl			;AN000; switch month & day
 	mov	[CurDat_yr],cx		;AC000; put year into message control block
 	mov	[CurDat_mo_day],dx	;AC000; put month and day into message control block
@@ -27010,7 +27043,7 @@ NOT_SLASHV:
 	jz	short NOT_SLASHY2
 NOT_SLASHY1:
 	or	bp,4000h		; FBadSwitch (Repetitive)
-	;				; Set up bad switch
+NOT_SLASHY2:				; Set up bad switch
 	mov	byte [cox_y_override],0	; cox_y setting will be used
 CHK_SLASHY0:
 	test    bp,80h
@@ -27068,7 +27101,7 @@ CHK_SLASHY4:
 NOT_BAD_SWITCH:
 	popf				; restore CParse flags
 	jc	short CHECKDONE		; found CR
-	jmp	short DESTSCAN		; continue scanning for destination
+	jmp	DESTSCAN		; continue scanning for destination
 TESTP2:
 	popf	; (*)			; restore CParse flags
 	jc	short CHECKDONE		; found CR
@@ -27090,7 +27123,7 @@ GOTPLUS:
 	mov	[DestInfo],bh		; save CParse info flags
 	mov	word [DestSwitch],0	; clear destination switches
 	pop	si			; SI = ptr into cmd line again
-	jmp	short DESTSCAN		;AC018; continue scanning for dest
+	jmp	DESTSCAN		;AC018; continue scanning for dest
 
 CHECKDONE:
 	;	We reached the CR. The destination scan is finished.
@@ -27507,7 +27540,7 @@ MELDO0:
 	;				; no, overwrite question (must be confirmed)
 	;call	get_answer_YNA
 	;jb	short MELDO2    	; answer is no
-	;cmp	byte [Concat1],0
+	;cmp	byte [Concat],0
 	;jnz	short MELDO
 	;cmp	byte [cox_dest_file],0	; is there a (valid) target file ?
 	;jnz	short DOREAD    	; yes
@@ -27518,19 +27551,20 @@ MELDO2:
 	cmp	byte [Concat],0
 	jz	short MELDO4
 MELDO3:
-	mov	byte [DestClosed]],1
-	jmp	short ENDCOPY
+	mov	byte [DestClosed],1
+	jmp	ENDCOPY
 MELDO4:
 	call	SEARCHNEXT
 	jz	short NEXTAMBIG
 	cmp	byte [cox_src_file],0
 	;jz	short MELDO5
-	;jmp	short NEXTSRC
-	; 12/06/2023
-	jnz	short NEXTSRC
+	;jmp	NEXTSRC
+	; 18/06/2023
+	jnz	short NEXTSRCJ
 MELDO5:
 	mov	byte [DestClosed],1
-	jmp	short NEXTSRC
+NEXTSRCJ:	; 18/06/2023
+	jmp	NEXTSRC
 
 	; 12/06/2023
 MELDO1:
@@ -27539,7 +27573,7 @@ MELDO1:
 					; no, overwrite question (must be confirmed)
 	call	get_answer_YNA
 	jb	short MELDO2    	; answer is no
-	cmp	byte [Concat1],0
+	cmp	byte [Concat],0
 	jnz	short MELDO
 	cmp	byte [cox_dest_file],0	; is there a (valid) target file ?
 	jnz	short DOREAD    	; yes
@@ -27597,7 +27631,7 @@ NOFLUSH:
 	jnz	short NEXTSRCJ		; not found - finished with 
 					;   this source spec
 	mov	byte [DestClosed],0	; 'destination not closed'
-	jmp	short NEXTAMBIG		; do next ambig match
+	jmp	NEXTAMBIG		; do next ambig match
 
 DOMELCOPY:
 	cmp	byte [MELCOPY],0FFh
@@ -27641,9 +27675,10 @@ SCANSRC2:
 
 	mov	byte [NOWRITE],0
 MELDOJ:
-	jmp	short MELDO
-NEXTSRCJ:
-	jmp	NEXTSRC
+	jmp	MELDO
+	; 18/06/2023
+;NEXTSRCJ:
+	;jmp	NEXTSRC
 
 NEXTMEL:
 	call	CLOSEDEST
@@ -31840,7 +31875,7 @@ $P_Set_CDI:
 	; 03/04/2023
 	jne	short $P_Set_CDI_Exit
 $P_Read_CDI:				;AN000; else read CDI thru DOS
-	push	ds	þþhh		;AN000;
+	push	ds			;AN000;
 	push	dx			;AN000;
 	push	ax			;AN000;
 	push	cs			;AC023;
@@ -32787,7 +32822,6 @@ Printf_Crlf:
 	; 07/04/2023
 	jmp	CRLF2
 
-
 ;****************************************************************
 ;*
 ;* ROUTINE:	STD_PRINTF/STD_EPRINTF
@@ -33468,8 +33502,8 @@ $M_GET_MSG_ADDRESS:
 	xor	cx,cx				;;AN000;; Use CX as an size
 $MDO36:
 	cmp	dh,utility_msg_class ; -1	;;AN000;; Were utility messages requested?
-	jne	short $MIF37			;;AN000;; No			
-	
+	jne	short $MIF37			;;AN000;; No
+
 	; 07/04/2023
 	;;mov	di,[si+89CAh] ; MSDOS 5.0 COMMAND.COM ($M_RT at offset 899Eh)
 	mov	di,[si+$M_RT+$M_RES_ADDRS.$M_CLASS_ADDRS]
@@ -33484,7 +33518,7 @@ $MIF37:
 	;;les	di,[si+89AEh] ; MSDOS 5.0 COMMAND.COM ($M_RT at offset 899Eh)
 	les	di,[si+$M_RT+$M_RES_ADDRS.$M_PARSE_COMMAND]
 	;les	di,[si+$M_RT+16]		;;AN000;; Get address of class
-	
+
 	; 07/04/2023
 	;mov	bx,es ; *			;;AN000;;
 	jmp	short $MEN39
@@ -33526,7 +33560,7 @@ $MEN37:						;;AN000;;
 	;jmp	short $MEN47 ; **-
 	jmp	short $MEN36 ; **-
 $MIF47:
-	mov	[$M_RT+$M_RES_ADDRS.$M_MSG_NUM],AX
+	mov	[$M_RT+$M_RES_ADDRS.$M_MSG_NUM],ax
 	;mov	[$M_RT+72],ax			;;AN000;; Save message number
 	mov	ax,0FFFFh ; $M_SPECIAL_MSG_NUM	;;AN000;; Set special message number
 	mov	bp,1 ; $M_ONE_REPLACE		;;AN000;; Set one replace in message
@@ -33841,6 +33875,7 @@ SYSDISPMSG:
 
 	;; Get address of the message requested
 	call	$M_GET_MSG_ADDRESS		;;AN000;; Scan thru classes to find message
+
 	or	cx,cx				;;AN000;; Was message found?
 	jz	short $MIF93
 						;;AN000;; Yes, Message address in ES:DI
@@ -35259,12 +35294,12 @@ $MEN333:
 	push	dx
 	mov	ah,38h	 ; International
 	xor	al,al
-	lea	dx,$M_RT_$M_TEMP_BUF
+	lea	dx,[$M_RT+$M_RES_ADDRS.$M_TEMP_BUF]
 	int	21h		; DOS - 2+ - GET COUNTRY-DEPENDENT INFORMATION
 				; get current-country info
 				; DS:DX -> buffer for returned info
 	jnb	short $MEN341		; (use country depended thousand separator)
-	mov	byte [$M_RT_$M_THOU_SEPARA],','
+	mov	byte [$M_RT+$M_COUNTRY_INFO.$M_THOU_SEPARA],','
 $MEN341:
 	mov	al,[si+$M_SUBLIST_STRUC.$M_S_PAD]
 	;mov	al,[si+0Ah]		; (save pad character)
@@ -35694,7 +35729,6 @@ $MIF386:
 
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:6123h
-
 $M_WAIT_FOR_INPUT:
 	push	cx				;;AN000;; Save CX
 	push	dx				;;AN000;; Save DX
@@ -35870,17 +35904,17 @@ $MIF391:
 	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:615Fh
 InitVar:	; proc	near
-	push	ax
-	push	cx
-	push	di
-	push	es
+	;push	ax
+	;push	cx
+	;push	di
+	push	es ; * es = ds
 	mov	es,[RESSEG]		;Point ES into appropriate data segment
 	xor	ax,ax
 	;mov	[es:fUmbTiny],al	;Shrink UMBs? (made 1 if /S given)
 	;mov	[es:fInHigh],al		;Set to 1 when DH/LH has been called
-	mov	[es:finHigh],ax ; 16/06/2023
+	mov	[es:fInHigh],ax ; 16/06/2023
 	mov	[es:SegLoad],ax		;Load Address (seg), used for DH only
-	mov	[es:UmbLoad],0FFh ;UNSPECIFIED
+	mov	byte [es:UmbLoad],0FFh ;UNSPECIFIED
 					;Later is the # of the 1st spec'd UMB
 	mov	[es:fm_argc],al		;Start with zero args having been read
 
@@ -35895,10 +35929,10 @@ InitVar:	; proc	near
 	mov	di,UmbSize		;on the UmbSize array,
 	rep	stosw			;	Store 0
 
-	pop	es
-	pop	di
-	pop	cx
-	pop	ax
+	pop	es ; * es = ds
+	;pop	di
+	;pop	cx
+	;pop	ax
  	retn
 
 ;InitVar endp
@@ -35912,65 +35946,102 @@ InitVar:	; proc	near
 ; USES    : Flags, fm_umb, fm_strat
 ; -----------------------------------------------------------------------------
 
-burada kaldým... 16/06/2023
+	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+FixMem:
+	;push	ax
+	;push	bx
+	;push	cx
+	;push	dx
+	push	es
 
-	public	FixMem
+	call	fm_link			; Link in UMBs
 
-FixMem	proc	near
+	call	UmbHead			; Get first upper-memory MCB address (0x9FFF)
+	jc	short fmX		; (if couldn't get it, leave now).
 
-	pushreg	<ax, bx, cx, dx, es>
+	mov	es,ax			; It returns in AX, so move it to ES.
 
-	call	fm_link		; Link in UMBs
-
-	call	UmbHead		; Get first upper-memory MCB address (0x9FFF)
-	jc	fmX		; (if couldn't get it, leave now).
-
-	mov	es, ax		; It returns in AX, so move it to ES.
-
-;
 ; - Walk MCB Chain ------------------------------------------------------------
-;
 
-	xor	dx, dx		; We're keeping the address of the last MCB
-	mov 	cx, dx		; in CX... and the last owner
-	inc	dx		; in dx as we go through the loop:
+	xor	dx,dx			; We're keeping the address of the last MCB
+	mov 	cx,dx			; in CX... and the last owner
+	inc	dx			; in dx as we go through the loop:
 
 ; ------------------------------------------
 ; FM10--DX  = last MCB's owner's PSP address
 ;       CX  = last MCB's address (segment)
 ; ------------------------------------------
 
-fm10:	mov	al, es:[arena_signature]	; if 'Z', don't repeat loop
-	mov	bx, es:[arena_owner]		; if not zero, do nothing
-	or	bx, dx				; dx was owner of previous MCB
-	jnz	fm30				; If not both zero, don't cat.
+fm10:	
+	mov	al,[es:arena_signature]	; if 'Z', don't repeat loop
+	;mov	al,[es:0]
+	mov	bx,[es:arena_owner]	; if not zero, do nothing
+	;mov	bx,[es:1]
+	or	bx,dx			; dx was owner of previous MCB
+	jnz	short fm30		; If not both zero, don't cat.
 
-	; - Coalesce memory blocks at ES:00 and CX:00 -------------------------
+; - Coalesce memory blocks at ES:00 and CX:00 ---------------------------------
 
-fm20:	mov	bx, es:[arena_size]		; Grab this block's Size,
-	mov	es, cx				; Go back to prev MCB's address
-	mov	es:[arena_signature], al	; & move the SECOND sig here
+fm20:	
+	mov	bx,[es:arena_size]	; Grab this block's Size,
+	;mov	bx,[es:3]
+	mov	es,cx			; Go back to prev MCB's address
+	mov	[es:arena_signature], al ; & move the SECOND sig here
+	;mov	[es:0],al
 
-	add	bx, es:[arena_size]		; Size += first MCB's size
-	add	bx, 1h				; And add one for the header
-	mov	es:[arena_size], bx		; Write the size
+	add	bx,[es:arena_size]	; Size += first MCB's size
+	;add	bx,1			; And add one for the header
+	inc	bx
+	mov	[es:arena_size],bx	; Write the size
 
 	; ---------------------------------------------------------------------
+fm30:	
+	mov	cx,es			; Put this address on the stack
+	mov	dx,[es:arena_owner]	; And remember its owner
+	;mov	dx,[es:1]
 
-fm30:	mov	cx, es			; Put this address on the stack
-	mov	dx, es:[arena_owner]	; And remember its owner
+	;NextMCB es,bx			; Move to the next MCB
+	
+	mov	bx,es
+	;add	bx,[es:3]
+	add	bx,[es:arena_size]
+	inc	bx
+	mov	es,bx
 
-	NextMCB	es, bx			; Move to the next MCB
+	;cmp	al,'Z'	; cmp al,5Ah
+	cmp	al,arena_signature_end
+	jnz	short fm10		; If signature != 'Z', there are more.
+fmX:	
+	call	fm_unlink		; Unlink UMBs
 
-	cmp	al, arena_signature_end
-	jnz	fm10			; If signature != 'Z', there are more.
+	pop	es
+	;pop	dx
+	;pop	cx
+	;pop	bx
+	;pop	ax
+	retn
 
-fmX:	call	fm_unlink		; Unlink UMBs
+; -----------------------------------------------------------------------------
+; 16/06/2023
 
-	popreg	<es, dx, cx, bx, ax>
-	ret
-
-FixMem	endp
+;INT 21h - DOS 5+ - GET OR SET UMB LINK STATE
+; .......................................................
+;     AH = 58h
+;     AL = subfunction
+;	02h get UMB link state
+;	    Return:
+;		AL = current link state
+;		  00h - UMBs not part of DOS memory chain
+;		  01h - UMBs in DOS memory chain
+;	03h set UMB link state
+;	    BX = new link state
+;		0000h - remove UMBs from DOS memory chain
+;		0001h - add UMBs to DOS memory chain
+;
+;Return: CF clear if successful
+;	CF set on error
+;	AX = error code (01h) (see #01680)
+; .......................................................
 
 ; -----------------------------------------------------------------------------
 ;*** fm_link - links UMBs not already linked in
@@ -35981,18 +36052,26 @@ FixMem	endp
 ; USES:     AX, BX, fm_umb
 ; -----------------------------------------------------------------------------
 
-fm_link	proc	near
-	mov	ax, DOS_CHECK_UMBLINK
+	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+fm_link:
+	mov	ax,5802h ; DOS_CHECK_UMBLINK
 	int	21h			; Current link-state is now in al
 
-	putdata	fm_umb, al		; So store it in fm_umb for later
+	;putdata fm_umb,al		; So store it in fm_umb for later
 
-	mov	ax, DOS_SET_UMBLINK
-	mov	bx, 1
+	;push	es
+	;mov	es,[RESSEG]
+	;mov	[es:fm_umb],al
+	;pop	es
+	push	ds
+	mov	ds,[RESSEG]
+	mov	[fm_umb],al
+	pop	ds
+
+	mov	ax,5803h ; DOS_SET_UMBLINK
+	mov	bx,1
 	int	21h
-
-	ret
-fm_link	endp
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** fm_unlink - unlinks UMBs if fm_umb is set to 0
@@ -36002,14 +36081,20 @@ fm_link	endp
 ; ERROR:    None
 ; USES:     AX, BX
 ; -----------------------------------------------------------------------------
+	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+fm_unlink:
+	xor	bx,bx
+	
+	;getdata bl,fm_umb		; fm_umb already has the old link-state
 
-fm_unlink	proc	near
-	xor	bx, bx
-	getdata	bl, fm_umb		; fm_umb already has the old link-state
-	mov	ax, DOS_SET_UMBLINK
+	push    ds
+	mov     ds,[RESSEG]
+	mov     bl,[fm_umb]
+	pop     ds
+	
+	mov	ax,5803h ; DOS_SET_UMBLINK
 	int	21h			; so just use that, and call int 21h
-	ret
-fm_unlink	endp
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** ParseVar - parses [/S][/L:umb[,size][;umb[,size]]*] and builds the table
@@ -36022,21 +36107,25 @@ fm_unlink	endp
 ; -----------------------------------------------------------------------------
 ; Error codes (in AX if carry set on return):
 ;
-PV_InvArg	equ	1	; Invalid argument passed
-PV_BadUMB	equ	2	; Bad UMB number passed (duplicate?)
-PV_InvSwt	equ	3	; Unrecognized switch passed
+
+;PV_InvArg	equ	1	; Invalid argument passed
+;PV_BadUMB	equ	2	; Bad UMB number passed (duplicate?)
+;PV_InvSwt	equ	3	; Unrecognized switch passed
+
 ;
 ; This routine exects ES:SI to point to a string much like the following:
 ;    "/S/L:1,200;2 module options"
 ; Optionally, the string can begin with whitespace; neither /S nor /L is
 ; required, though that's what this routine is supposed to parse.
 ;
-optS		equ	'S'	; /S
-optL		equ	'L'	; /L:...
+
+;optS		equ	'S'	; /S
+;optL		equ	'L'	; /L:...
+
 ;
 ; -----------------------------------------------------------------------------
 ; LoadHigh has a list of arguments, returned by cparse, which is used to create
-; a command-line for spawning a child process.  For a typical LH command, say,
+; a command-line for spawning a child process. For a typical LH command, say,
 ;     lh /l:1,1000;2 print/d:lpt2
 ; the arguments would look like (one per line):
 ;     lh
@@ -36048,9 +36137,9 @@ optL		equ	'L'	; /L:...
 ;     /d
 ;     :lpt2
 ; In short, if "print" were, say, "43", there'd be no way to determine which
-; arg was the filename.  So, inside this routine, we keep a running counter
+; arg was the filename. So, inside this routine, we keep a running counter
 ; of the number of arguments LH will need to skip in order to get to the
-; program name.  The "lh" is implicit--it'll always have to skip that.  So if
+; program name. The "lh" is implicit--it'll always have to skip that. So if
 ; there's no "/l" or "/s", fm_argc will be 0 ... other than that, 1 is added
 ; for:
 ;    Each /L
@@ -36058,60 +36147,85 @@ optL		equ	'L'	; /L:...
 ;    Each UMB number (they follow ":" or ";")
 ;    Each UMB size   (they follow ",")
 ; So, in the above example, fm_argc would be 4-- and LH would skip right to
-; "print".  Note that InitVar initializes fm_argc to zero.
+; "print". Note that InitVar initializes fm_argc to zero.
 ; -----------------------------------------------------------------------------
 
-	public	ParseVar
-
-ParseVar	proc	near
-	pushreg	<di, ds, es>
-
-	push	es		; Make DS:SI point to it, as well as ES:SI
-	pop	ds		; (regardless if we're in devhigh or loadhigh)
+	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:6216h
+ParseVar:	; proc	near
+	;push	di
+	;push	ds ; *
+	;push	es
+	;
+	; 16/06/2023
+	; es = ds (from 'ParseLhCmd')
+	;push	es		; Make DS:SI point to it, as well as ES:SI
+	;pop	ds		; (regardless if we're in devhigh or loadhigh)
+	
 	cld
 
 ; ------------------------------------------------
 ; PV10--ES:SI = any whitespace on the command-line
 ; ------------------------------------------------
 
-pv10:	lodsb			; here, ES:SI=="  /L..."--must eat whitespace
+pv10:	
+	lodsb			; here, ES:SI=="  /L..."--must eat whitespace
 	call	isWhite
-	jz	pv10		;       ES:SI==" /L..."--keep eating.
-	cmp	al, SWTCH
-	jz	pv20		;       ES:SI=="/L..."--go process a switch
+	jz	short pv10	;       ES:SI==" /L..."--keep eating.
+	cmp	al,'/' ; SWTCH
+	je	short pv20	;       ES:SI=="/L..."--go process a switch
 
 	dec	si		; Backup--it's now "odule options", and we need
 	clc			; that "m" we just read (or whatever it is).
-	jmp short pvX		; Then return with carry clear == we're done.
+	jmp	short pvX	; Then return with carry clear == we're done.
+pv20:
+	lodsb			; Just read 'S' or 'L', hopefully
 
-pv20:	lodsb			; Just read 'S' or 'L', hopefully
-	toUpper	al		; So we make it upper-case, and...
-	cmp	al, optS	; just read 'S'?
-	jnz	pv30
+	;toUpper al		; So we make it upper-case, and...
+	and	al,0DFh
+
+	cmp	al,'S' ; optS	; just read 'S'?
+	jne	short pv30
 
 	call	incArgc		; If it's /S, it's another arg for LH to skip.
 
-	putdata	fUmbTiny, 1	; /S, so ES:SI=="  /L..." or " module opts", or
-	jmp short pv10		; possibly even "/L...".
+	;putdata fUmbTiny,1	; /S, so ES:SI=="  /L..." or " module opts", or
 
-pv30:	cmp	al, optL	; If it's not 'L' either, then 'tis a bad
-	jnz	pvE1		; switch!
+	;push	es
+	;mov	es,[RESSEG]
+	;mov	byte [es:fUmbTiny],1
+	;pop	es
+	push	ds
+	mov	ds,[RESSEG]
+	mov	byte [fUmbTiny],1
+	pop	ds
+
+	jmp	short pv10	; possibly even "/L...".
+pv30:	
+	cmp	al,'L' ; optL	; If it's not 'L' either, then it's a bad
+	jne	short pvE1	; switch!
 
 	call	incArgc		; If it's /L, it's another arg for LH to skip.
 
 	call	parseL
-	jnc	pv10		; If no carry, go back and look for more
+	jnc	short pv10	; If no carry, go back and look for more
 
 	dec	si		; Else, back up and exit.
-	jmp short pvErr		; AX has already been set by parseL
-
-pvE1:	mov	ax, PV_InvSwt	; Unrecognized switch passed
-pvErr:	dec	si
+	jmp	short pvErr	; AX has already been set by parseL
+pvE1:	
+	mov	ax,3 ; PV_InvSwt
+				; Unrecognized switch passed
+pvErr:
+	dec	si
 	dec	si
 	stc
-pvX:	popreg	<es, ds, di>
-	ret
-ParseVar	endp
+pvX:	
+	;pop	es
+	;pop	ds ; *
+	;pop	di
+	retn
+
+;ParseVar endp
 
 ; -----------------------------------------------------------------------------
 ;*** parseL - parses ":nnnn[,nnnn][;nnnn[,nnnn]]*" for ParseVar
@@ -36127,46 +36241,47 @@ ParseVar	endp
 ; makes sure the app /L: is reported as being the culprit.
 ; -----------------------------------------------------------------------------
 
-parseL	proc	near
-
+	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+parseL:
 	lodsb
-	cmp	al, ':'		; Make sure they did /L:
-	jnz	plE1		; If they didn't, return with carry set.
+	cmp	al,':'		; Make sure they did /L:
+	jne	short plE1	; If they didn't, return with carry set.
 
 ; ------------------------------------------
 ; PL10--ES:SI = a UMB number, after /L: or ;
 ; ------------------------------------------
 
-pl10:	call	GetXNum		; After this, 'tis ",size" or ";umb" or " mod"
-	jc	plE2		; And error if it's a bad number.
+pl10:
+	call	GetXNum		; After this, 'tis ",size" or ";umb" or " mod"
+	jc	short plE2	; And error if it's a bad number.
 	call	convUMB		; Convert any address to a UMB number
 
-	mov	cl, al		; Remember the UMB number
+	mov	cl,al	; !*	; Remember the UMB number
 	call	stowUMB		; Mark this UMB # as used;
-	jc	plE2		; If it was already marked, it'll error
+	jc	short plE2	; If it was already marked, it'll error
 
 	call	incArgc		; Each UMB number is another arg for LH to skip
 
 	lodsb
-	cmp	al, ';'		; Did "umb;" ?
-	jz	pl10		; Yep: go back and get another UMB.
+	cmp	al,';'		; Did "umb;" ?
+	je	short pl10	; Yep: go back and get another UMB.
 
 	call	isWhite		; Did "umb " ?
-	jz	plX		; Yep: return (it'll go back to whitespace)
+	jz	short plX	; Yep: return (it'll go back to whitespace)
 
 	call	isEOL		; Did "umb" ?
-	jz	plSwX		; If so, backup and exit like everything's ok
+	jz	short plSwX	; If so, backup and exit like everything's ok
 
-	cmp	al, SWTCH	; Did "umb/" ? (as in, "/L:1,100;2/S")
-	jz	plSwX		; If so, back up ES:SI one character and return
+	cmp	al,'/' ; SWTCH	; Did "umb/" ? (as in, "/L:1,100;2/S")
+	je	short plSwX	; If so, back up ES:SI one character and return
 
-	cmp	al, ','		; Did "umb," ?
-	jnz	plE1		; Just what the heck DID they do? Return error.
+	cmp	al,','		; Did "umb," ?
+	jne	short plE1	; Just what the heck DID they do? Return error.
 
 ; --- Read a size -------------------------------------------------------------
 
 	call	GetXNum		; Stop on "size;" or "size " or anything else
-	jc	plE1		; And error if it's a bad size.
+	jc	short plE1	; And error if it's a bad size.
 
 	call	toPara		; Convert from bytes to paragraphs
 
@@ -36175,33 +36290,36 @@ pl10:	call	GetXNum		; After this, 'tis ",size" or ";umb" or " mod"
 	call	incArgc		; Each UMB size is another arg for LH to skip
 
 	lodsb
-	cmp	al, ';'		; They did "umb,size;", so get another UMB.
-	jz	pl10		;
+	cmp	al,';'		; They did "umb,size;", so get another UMB.
+	je	short pl10		;
 
 	call	isWhite		; Did it end with whitespace?
-	jz	plX		; If so, we're done here--go back.
+	jz	short plX	; If so, we're done here--go back.
 
 	call	isEOL		; Did they do "umb,size" and end??? (stupid)
-	jz	plSwX		; If so, backup and exit like everything's ok
+	jz	short plSwX	; If so, backup and exit like everything's ok
 
-	cmp	al, SWTCH	; Did they do "umb,size/" ?
-	jz	plSwX		; If so, again, we're done here.
-
-plE1:	mov	ax, PV_InvArg	; If not, we don't know WHAT they did...
+	cmp	al,'/' ; SWTCH	; Did they do "umb,size/" ?
+	je	short plSwX	; If so, again, we're done here.
+plE1:	
+	mov	ax,1 ; PV_InvArg
+				; If not, we don't know WHAT they did...
 	dec	si
 	stc
-	ret
-
-plE2:	mov	ax, PV_BadUMB	; In this case, they've specified a UMB twice
-	stc
-	ret
-
-plSwX:	dec	si		; If we hit a '/' character, back up one char
+	retn
+plE2:
+	; cf = 1 
+	mov	ax,2 ; PV_BadUMB
+				; In this case, they've specified a UMB twice
+	;stc
+	retn
+plSwX:
+	dec	si		; If we hit a '/' character, back up one char
 				; so the whitespace checker will see it too.
-
-plX:	clc			; Then just return with carry clear, so
-	ret			; ParseVar will go about its business.
-parseL	endp
+plX:
+	; cf = 0
+	;clc			; Then just return with carry clear, so
+	retn			; ParseVar will go about its business.
 
 ; -----------------------------------------------------------------------------
 ;*** incArgc - increments fm_argc, for use with LoadHigh command-line parsing
@@ -36212,52 +36330,76 @@ parseL	endp
 ; USES:     fm_argc, flags
 ; -----------------------------------------------------------------------------
 
-incArgc	proc	near
-	push	ax
+	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+incArgc:
+	;push	ax
 
-	getdata	al, fm_argc	; Obtain previous value of fm_argc,
-	inc	al		; Increment it,
-	putdata	fm_argc, al	; And store it right back.
+	;;getdata al,fm_argc	; Obtain previous value of fm_argc,
+	;
+	;push	ds		; getdata (macro)
+	;			; getdata al, fm_argc
+	;mov	ds,[RESSEG]
+	;mov	al,[fm_argc]	; Obtain previous value of fm_argc,
+	;pop	ds
+	;
+	;inc	al		; Increment it,
+	;
+	;;putdata fm_argc,al	; And store it right back.
+	;
+	;push	es		; putdata (macro)
+	;			; putdata fm_argc, al
+	;mov	es,[RESSEG]
+	;mov	[es:fm_argc],al	; and store it right back.
+	;pop	es
 
-	pop	ax
-	ret
-incArgc	endp
+	; 16/06/2023
+	push	ds
+	mov	ds,[RESSEG]
+	inc	byte [fm_argc]	; increment fm_argc
+	pop	ds
+
+	;pop	ax
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** isEOL - returns with ZF set iff AL contains CR or LF, or 0
 ; -----------------------------------------------------------------------------
 ; ENTRY:    AL contains character to test
-; EXIT:     ZF set iff AL contains CR or LF, or 0
+; EXIT:     ZF set if AL contains CR or LF, or 0
 ; ERROR:    None
 ; USES:     ZF
 ; -----------------------------------------------------------------------------
 
-isEOL	proc	near
-	cmp	al, 0		; Null-terminator
-	jz	ieX
-	cmp	al, CR		; Carriage Return
-	jz	ieX
-	cmp	al, LF		; LineFeed
-ieX:	ret
-isEOL	endp
+	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+isEOL:
+	;cmp	al,0		; Null-terminator
+	and	al,al
+	jz	short ieX
+	cmp	al,0Dh ; CR	; Carriage Return
+	je	short ieX
+	cmp	al,0Ah ; LF	; LineFeed
+ieX:
+	retn
+
 
 ; -----------------------------------------------------------------------------
 ;*** isWhite - returns with ZF set iff AL contains whitespace (or "=")
 ; -----------------------------------------------------------------------------
 ; ENTRY:    AL contains character to test
-; EXIT:     ZF set iff AL contains space, tab, or equals
+; EXIT:     ZF set if AL contains space, tab, or equals
 ; ERROR:    None
 ; USES:     ZF
 ; -----------------------------------------------------------------------------
 
-isWhite	proc	near
-	cmp	al, ' '		; Space
-	jz	iwX
-	cmp	al, '='		; Equals (treat as whitespace)
-	jz	iwX
-	cmp	al, TAB		; Tab
-iwX:	ret
-isWhite	endp
+	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+isWhite:
+	cmp	al,' '		; Space
+	je	short iwX
+	cmp	al,'='		; Equals (treat as whitespace)
+	je	short iwX
+	cmp	al,09h ; TAB	; Tab
+iwX:
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** unMarkUMB - marks a given UMB as unused, even if previously marked used
@@ -36268,22 +36410,51 @@ isWhite	endp
 ; USES:     Flags, variables in highvar.inc
 ; -----------------------------------------------------------------------------
 
-unMarkUMB	proc	near
-	pushreg	<ax, bx, di, es>
-	dataseg	es
+	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+unMarkUMB:
+	;;pushreg <ax,bx,di,es>
+	;push	ax ; ***
+	
+	;push	bx ; **
+	
+	;push	di
+	;push	es
+	push	ds ; *	
 
-	xor	ah, ah
-	mov	bx, ax
-	mov	es:UmbUsed[bx], 0
-	cmp	UmbLoad, al
-	jnz	umu10
+	;;dataseg es
+	;mov	es,[RESSEG]
 
-	mov	UmbLoad, 0	; If unmarked the load UMB, load into convent.
+	mov	ds,[RESSEG] ; *
+	
+	;xor	ah,ah ; 0
+	;mov	bx,ax
+	;mov	byte [es:bx+UmbUsed],0
+	;mov	[bx+UmbUsed],ah ; marks the UMB as unused
+	mov	bl,al
+	xor	bh,bh ; 0	
+	mov	[bx+UmbUsed],bh ; 0 ; **
 
-umu10:	popreg	<es, di, bx, ax>
-	normseg	es
-	ret
-unMarkUMB	endp
+	;cmp	[es:UmbLoad],al
+	;jnz	short umu10
+	cmp	[UmbLoad],al
+	jne	short umu10
+
+	;mov	byte [es:UmbLoad],0
+	;mov	[UmbLoad],ah	; If unmarked the load UMB, load into convent.
+	mov	[UmbLoad],bh ; 0 ; **
+umu10:	
+	pop	ds ; *
+	;;popreg <es,di,bx,ax>
+	;pop	es
+	;pop	di
+	
+	;pop	bx ; **
+	
+	;pop	ax ; ***
+
+	;;normseg es
+	
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** stowUMB - marks a given UMB as used, if it hasn't been so marked before
@@ -36297,40 +36468,66 @@ unMarkUMB	endp
 ; USES:     AX, Flags, variables in highvar.inc
 ; -----------------------------------------------------------------------------
 
-stowUMB	proc	near
-	cmp	al, MAXUMB
-	jb	su10
+	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+stowUMB:
+	cmp	al,16 ; MAXUMB
+	jb	short su10
 	stc
-	ret			; Ooops-- UMB>=MAXUMB
+	retn			; Ooops-- UMB>=MAXUMB
+su10:
+	;pushreg <bx,di,si,ds,es>
+	;dataseg es		; Point ES into appropriate data segment
+	;dataseg ds		; Point DS into appropriate data segment
 
-su10:	pushreg	<bx, di, si, ds, es>
+	;push	bx ; **
+	
+	;push	di
+	;push	si
 
-	dataseg	es		; Point ES into appropriate data segment
-	dataseg	ds		; Point DS into appropriate data segment
+	push	ds ; *
 
-	cmp	UmbLoad, UNSPECIFIED	; If this, we haven't been here before
-	jne	su20
-	mov	UmbLoad, al	; So remember this UMB as the load UMB slot.
+	;push	es
+	;mov	es,[RESSEG]
+	mov	ds,[RESSEG]
 
-su20:	or	al, al		; If they gave UMB 0, there's really nothing
-	jz	su30		; that we should do here.
+	cmp	byte [UmbLoad],0FFh ; UNSPECIFIED
+				; If this, we haven't been here before
+	jne	short su20
+	mov	[UmbLoad],al	; So remember this UMB as the load UMB slot.
+su20:	
+	or	al,al		; If they gave UMB 0, there's really nothing
+	jz	short su30	; that we should do here.
 
-	mov	bl, al
-	xor	bh, bh
-	mov	ax, 1		; Now, AX = 1, and BX = UMB Number
+	;mov	bl,al
+	;xor	bh,bh
+	;mov	ax,1		; Now, AX = 1, and BX = UMB Number
+	xor	ah,ah
+	mov	bx,ax
+	mov	al,1
 
-	xchg	ES:UmbUsed[bx], al
+	;xchg	[es:bx+UmbUsed],al
+	xchg	[bx+UmbUsed],al
 
-	or	al, al		; If it was already 1, then al==1... and that
-	jz	su30		; means an error.
+	or	al,al		; If it was already 1, then al==1... and that
+	jz	short su30	; means an error.
 
-	stc			; OOOPS!  This one's been used before.  :(
+	stc			; OOOPS! This one's been used before. :(
+su30:	
+	;popreg	<es,ds,si,di,bx>
+	;normseg ds
+	;normseg es
+	;retn
 
-su30:	popreg	<es, ds, si, di, bx>
-	normseg	ds
-	normseg	es
-	ret
-stowumb	endp
+	;pop	es
+	
+	pop	ds ; *
+	
+	;pop	si
+	;pop	di
+	
+	;pop	bx ; **
+
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** stowSiz - marks a given UMB as having a given minimum size
@@ -36340,20 +36537,37 @@ stowumb	endp
 ; ERROR:    None
 ; USES:     AX, DX, Flags, variables in highvar.inc
 ; -----------------------------------------------------------------------------
+	
+	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+stowSiz:
+	;pushreg <bx,di,es>
+	;dataseg es		; Point ES into appropriate data seg
 
-stowSiz	proc	near
-	pushreg	<bx, di, es>
-	dataseg	es			; Point ES into appropriate data seg
+	;push	bx ; **
+	
+	;push	di
+	;push	es
+	;mov	es,[RESSEG]
+	push	ds ; *
+	mov	ds,[RESSEG]
 
-	mov	bl, cl			; Now bl==UMB number, AX==size
-	mov	bh, 0			;     bx==UMB number, AX==size
-	shl	bl, 1			;     bx==offset into array, AX=size
-	mov	es:UmbSize[bx], ax	; Store the size
+	mov	bl,cl		; Now bl==UMB number, AX==size
+	mov	bh,0		;     bx==UMB number, AX==size
+	shl	bl,1		;     bx==offset into array, AX=size
+	;mov	[es:bx+UmbSize],ax
+	mov	[bx+UmbSize],ax	; Store the size
 
-	popreg	<es, di, bx>
-	normseg	es			; Return ES to where it was
-	ret
-stowSiz	endp
+	pop	ds ; *
+
+	;popreg	<es,di,bx>
+	;normseg es		; Return ES to where it was
+
+	;pop	es
+	;pop	di
+	
+	;pop	bx ; **
+
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** toDigit - converts a character-digit to its binary counterpart
@@ -36367,44 +36581,50 @@ stowSiz	endp
 ; USES:     CL, Flags
 ; -----------------------------------------------------------------------------
 ; If the string is preceeded with "0x", the value is read as hexadecimal; else,
-; as decimal.  After a read, you may check the radix by examining gnradix--it
+; as decimal. After a read, you may check the radix by examining gnradix--it
 ; will be 10 or 16.
 ; -----------------------------------------------------------------------------
 
-public	gnradix
-gnradix	dw	?		; Must be a word--16x16 multiplication
+	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:6358h
+gnradix:
+	dw	0		; Must be a word--16x16 multiplication
 
-toDigit	proc	near
-	cmp	gnradix, 16
-	jnz	td20		; Don't check hex digits if radix isn't 16
+	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:635Ah
+toDigit:
+	;cmp	word [gnradix],16
+	cmp	byte [gnradix],16
+	jne	short td20	; Don't check hex digits if radix isn't 16
 
-	cmp	cl, 'a'
-	jb	td10
-	cmp	cl, 'f'
-	ja	tdE		; Nothing valid above 'z' at all...
-	sub	cl, 'a'-10	; Make 'a'==10 and return.
+	cmp	cl,'a'
+	jb	short td10
+	cmp	cl,'f'
+	ja	short tdE	; Nothing valid above 'z' at all...
+	sub	cl,'a'-10 ; 57h	; Make 'a'==10 and return.
 ;	clc			; <- CLC is implicit from last SUB
-	ret
-
-td10:	cmp	cl, 'A'
-	jb	td20		; Below 'A'?  Not a letter...
-	cmp	cl, 'F'
-	ja	tdE		; Above 'F'?  Not a digit.
-	sub	cl, 'A'-10	; Make 'A'==10 and return.
+	retn
+td10:
+	cmp	cl,'A'
+	jb	short td20	; Below 'A'?  Not a letter...
+	cmp	cl,'F'
+	ja	short tdE	; Above 'F'?  Not a digit.
+	sub	cl,'A'-10 ; 37h	; Make 'A'==10 and return.
 ;	clc			; <- CLC is implicit from last SUB
-	ret
-
-td20:	cmp	cl, '0'		; If less than zero,
-	jb	tdE		; Done.
-	cmp	cl, '9'		; Or, if greater than nine,
-	ja	tdE		; Done.
-	sub	cl, '0'		; Okay--make '0'==0 and return.
+tdErr:
+	retn
+td20:
+	cmp	cl,'0'		; If less than zero,
+	;jb	short tdE	; Done.
+	jb	short tdErr ; cf = 1
+	cmp	cl,'9'		; Or, if greater than nine,
+	ja	short tdE	; Done.
+	sub	cl,'0'	  ; 30h	; Okay--make '0'==0 and return.
 ;	clc			; <- CLC is implicit from last SUB
-	ret
-
-tdE:	stc
-	ret
-todigit	endp
+	retn
+tdE:
+	stc
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** GetXNum - reads a 32-bit ASCII number at ES:SI and returns it in DX:AX
@@ -36415,37 +36635,44 @@ todigit	endp
 ; USES:     ES:SI, DX, AX, Flags, gnradix
 ; -----------------------------------------------------------------------------
 ; If the string is preceeded with "0x", the value is read as hexadecimal; else,
-; as decimal.  After a read, you may check the radix by examining gnradix--it
+; as decimal. After a read, you may check the radix by examining gnradix--it
 ; will be 10 or 16.
 ; -----------------------------------------------------------------------------
 
-	public	GetXNum
-
-GetXNum	proc	near
-	pushreg	<bx, cx, ds>
+	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+GetXNum:
+	;pushreg <bx,cx,ds>
+	
+	;push	bx ; **
+	push	cx ; *
+	
+	;push	ds
 
 	cld
-	xor	ax, ax
-	xor	bx, bx
-	xor	cx, cx
-	xor	dx, dx			; Start with 0 (makes sense)
+	xor	ax,ax
+	xor	bx,bx
+	xor	cx,cx
+	xor	dx,dx		; Start with 0 (makes sense)
 
-	mov	gnradix, 10		; And default to a radix of 10 (dec)
+	;mov	word [gnradix],10 ; And default to a radix of 10 (dec)
+	mov	byte [gnradix],10
 
-	mov	cl, byte ptr es:[si]	; Now AX=0, BX=0, CH=0/CL=char, DX=0
+	mov	cl,[es:si]	; Now AX=0, BX=0, CH=0/CL=char, DX=0
 	call	toDigit
-	jc	gxnE			; If it's not a digit, leave now.
+	jc	short gxnE	; If it's not a digit, leave now.
 
-	or	cl, cl
-	jnz	gxn20			; Doesn't have '0x'
-	mov	cl, byte ptr es:[si+1]
-	cmp	cl, 'x'			; Either 'x'...
-	jz	gxn10
-	cmp	cl, 'X'			; ...or 'X' means it's hexadecimal
-	jnz	gxn20
+	or	cl,cl
+	jnz	short gxn20	; Doesn't have '0x'
+	mov	cl,[es:si+1]
+	cmp	cl,'x'		; Either 'x'...
+	je	short gxn10
+	cmp	cl,'X'		; ...or 'X' means it's hexadecimal
+	jne	short gxn20
 
-gxn10:	mov	gnradix, 16
-	inc	si			; Since we read "0x", march over it.
+gxn10:
+	;mov	word [gnradix],16
+	mov	byte [gnradix],16
+	inc	si		; Since we read "0x", march over it.
 	inc	si
 
 ; ------------------------------------------------------
@@ -36455,29 +36682,41 @@ gxn10:	mov	gnradix, 16
 ;        CH    = 0
 ; ------------------------------------------------------
 
-gxn20:	mov	cl, byte ptr es:[si]	; Now DX:AX=current total, CH=0/CL=char
+gxn20:
+	mov	cl,[es:si]	; Now DX:AX=current total, CH=0/CL=char
 	inc	si
 
 	call	toDigit		; Accepts only valid digits, A-F -> 10-16
-	jc	gxnQ		; <- Ah... wasn't a digit.  Stop.
+	jc	short gxnQ	; <- Ah... wasn't a digit. Stop.
 
 	call	mul32		; Multiply DX:AX by gnradix
-	jc	gxnX		; (if it's too big, error out)
+	jc	short gxnX	; (if it's too big, error out)
 
-	add	ax, cx		; Add the digit
-	adc	dx, bx		; (BX is 0!)--Adds 1 iff last add wrapped
-	jc	gxnX		; If _that_ wrapped, it's too big.
-	jmp short gxn20
+	add	ax,cx		; Add the digit
+	adc	dx,bx		; (BX is 0!)--Adds 1 if last add wrapped
+	;jc	short gxnX	; If _that_ wrapped, it's too big.
+	;jmp	short gxn20
+	jnc	short gxn20
+gxnE:
+	; cf = 1
+	;stc			; In this case, we need to set the carry
+	;jmp	short gxnX	; and leave--there were no digits given.
+;gxnQ:
+	;dec	si		; Don't read in the offensive character.
+	;clc			; And clear carry, so they know it's okay.
+gxnX:
+	;popreg	<ds,cx,bx>
 
-gxnE:	stc			; In this case, we need to set the carry
-	jmp short gxnX		; and leave--there were no digits given.
+	;pop	ds
 
-gxnQ:	dec	si		; Don't read in the offensive character.
-	clc			; And clear carry, so they know it's okay.
+	pop	cx ; *
+	;pop	bx ; **
 
-gxnX:	popreg	<ds, cx, bx>
-	ret
-GetXNum	endp
+	retn
+gxnQ:
+	dec	si
+	clc
+	jmp	short gxnX
 
 ; -----------------------------------------------------------------------------
 ;*** mul32 - multiplies the number in DX:AX by gnradix
@@ -36488,25 +36727,25 @@ GetXNum	endp
 ; USES:    Flags, AX, DX
 ; -----------------------------------------------------------------------------
 
-mul32	proc	near
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+mul32:
 	push	ax		; DX=old:hi, AX=old:lo, TOS=old:lo, BX=0
-	mov	ax, dx		; DX=old:hi, AX=old:hi, TOS=old:lo, BX=0
-	mul	gnradix		; DX=?,      AX=new:hi, TOS=old:lo, BX=0
-	jc	m32E		; Too big?
+	mov	ax,dx		; DX=old:hi, AX=old:hi, TOS=old:lo, BX=0
+	mul	word [gnradix]	; DX=?,      AX=new:hi, TOS=old:lo, BX=0
+	jc	short m32E	; Too big?
 
-	mov	dx, ax		; DX=new:hi, AX=new:hi, TOS=old:lo, BX=0
+	mov	dx,ax		; DX=new:hi, AX=new:hi, TOS=old:lo, BX=0
 	pop	ax		; DX=new:hi, AX=old:lo, TOS=orig,   BX=0
 
-	xchg	dx, bx		; DX=0,      AX=old:lo, TOS=orig,   BX=new:hi
-	mul	gnradix		; DX=carry,  AX=new:lo, TOS=orig,   BX=new:hi
-	xchg	dx, bx		; DX=new:hi, AX=new:lo, TOS=orig,   BX=carry
-	add	dx, bx		; DX=new:hi, AX=new:lo, TOS=orig,   BX=carry
-	xor	bx, bx		; DX=new:hi, AX=new:lo, TOS=orig,   BX=0
-	ret
-
-m32E:	pop	ax
-	ret
-mul32	endp
+	xchg	dx,bx		; DX=0,      AX=old:lo, TOS=orig,   BX=new:hi
+	mul	word [gnradix]	; DX=carry,  AX=new:lo, TOS=orig,   BX=new:hi
+	xchg	dx,bx		; DX=new:hi, AX=new:lo, TOS=orig,   BX=carry
+	add	dx,bx		; DX=new:hi, AX=new:lo, TOS=orig,   BX=carry
+	xor	bx,bx		; DX=new:hi, AX=new:lo, TOS=orig,   BX=0
+	retn
+m32E:
+	pop	ax
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** toPara - divides DX:AX by 16; result in AX only (discards extra DX data)
@@ -36517,22 +36756,22 @@ mul32	endp
 ; USES:    Flags, AX, DX
 ; -----------------------------------------------------------------------------
 ; Note: The 386 has a 32-bit SHR, which would work perfectly for this... but we
-;       can't ensure a 386 host machine.  Sorry.
+;       can't ensure a 386 host machine. Sorry.
 ; -----------------------------------------------------------------------------
 
-toPara	proc	near
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+toPara:
 	push	cx		; DX:AX=HHHH hhhh hhhh hhhh:LLLL llll llll llll
 
-	mov	cl, 4		;
-	shr	ax, cl		; DX:AX=HHHH hhhh hhhh hhhh:0000 LLLL llll llll
-	xchg	ax, dx		; DX:AX=0000 LLLL llll llll:HHHH hhhh hhhh hhhh
-	mov	cl, 12
-	shl	ax, cl		; DX:AX=0000 LLLL llll llll:hhhh 0000 0000 0000
-	or	ax, dx		;    AX=hhhh LLLL llll llll
+	mov	cl,4		;
+	shr	ax,cl		; DX:AX=HHHH hhhh hhhh hhhh:0000 LLLL llll llll
+	xchg	ax,dx		; DX:AX=0000 LLLL llll llll:HHHH hhhh hhhh hhhh
+	mov	cl,12
+	shl	ax,cl		; DX:AX=0000 LLLL llll llll:hhhh 0000 0000 0000
+	or	ax,dx		;    AX=hhhh LLLL llll llll
 
 	pop	cx
-	ret
-toPara	endp
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** UmbHead - returns in AX the address of the first UMB block (0x9FFF)
@@ -36548,25 +36787,39 @@ toPara	endp
 ; machines (all of 'em I've seen), it changes to 0x9FFF at that point.
 ; -----------------------------------------------------------------------------
 
-	public	UmbHead
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+UmbHead:
+	;pushreg <si,ds,es>
+	
+	;push	si
+	;push	ds
+	;push	es
 
-UmbHead	proc	near
-	pushreg	<si, ds, es>
-
-	mov	ah, DOS_GET_DOS_LISTS	; Call int 21h, function 52h...
+	mov	ah,52h	; DOS_GET_DOS_LISTS
+					; Call int 21h, function 52h...
 	int	21h
+			; DOS - 2+ internal - GET LIST OF LISTS
+			; Return: ES:BX -> DOS list of lists
 
-	mov	ax, es:[DOS_UMB_HEAD]	; And read what's in ES:[008C]
-	cmp	ax, 0FFFFh
-	jz	uhE			; If it's 0xFFFF, it's an error...
+	;mov	ax,[es:DOS_UMB_HEAD]	; And read what's in ES:[008C]
+	mov	ax,[es:8Ch]
+	cmp	ax,0FFFFh
+	;je	short uhE		; If it's 0xFFFF, it's an error...
 
-	clc				; Else, it isn't (CLC done by prev cmp)
-	jmp short uhX
+	;clc				; Else, it isn't (CLC done by prev cmp)
+	;jmp	short uhX
+	; 17/06/2023
+	cmc	; cf = 0 <--> cf = 1
+uhE:
+	;stc
+uhX:	
+	;popreg	<es,ds,si>
+	
+	;pop	es
+	;pop	ds
+	;pop	si
 
-uhE:	stc
-uhX:	popreg	<es, ds, si>
-	ret
-UmbHead	endp
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** isSysMCB - sets ZF iff ES points to an MCB owned by "SC" + (8 or 9)
@@ -36576,22 +36829,25 @@ UmbHead	endp
 ; USES:   Flags
 ; -----------------------------------------------------------------------------
 
-isSysMCB	proc	near
-	push	ax
-
-	mov	ax, es:[arena_owner]	; Check the owner...
-	cmp	ax, SystemPSPOwner	; 8 (for US OR Japan) is valid
-	jz	ism10
-	cmp	ax, JapanPSPOwner	; 9 (for Japan) is valid
-	jz	ism10
-	jmp short ismX			; Anything else isn't.
-
-ism10:	mov	ax, word ptr es:[arena_name]	; Check the name...
-	cmp	ax, 'CS'
-
-ismX:	pop	ax
-	ret
-isSysMCB	endp
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+isSysMCB:
+	;push	ax
+	
+	;mov	ax,[es:1]
+	mov	ax,[es:arena_owner]	; Check the owner...
+	cmp	ax,8 ; SystemPSPOwner	; 8 (for US OR Japan) is valid
+	jz	short ism10
+	cmp	ax,9 ; JapanPSPOwner	; 9 (for Japan) is valid
+	;jz	short ism10
+	;jmp	short ismX		; Anything else isn't.
+	jnz	short ismX
+ism10:
+	;mov	ax,[es:8]
+	mov	ax,[es:arena_name]	; Check the name...
+	cmp	ax,'SC' ; cmp ax,4353h
+ismX:
+	;pop	ax
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** AddrToUmb - converts a segment address in AX to its appropriate UMB number
@@ -36608,16 +36864,21 @@ isSysMCB	endp
 ;    addr of last UM sys MCB <-> TOM      = invalid; returns #0xFFFF
 ; -----------------------------------------------------------------------------
 
-AddrToUmb	proc	near
-	pushreg	<cx, dx, es>
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+AddrToUmb:
+	;pushreg <cx,dx,es>
+	
+	;push	cx
+	;push	dx
+	push	es
 
-	mov	dx, ax		; DX = address to search for
+	mov	dx,ax		; DX = address to search for
 
 	call	UmbHead		; AX = first segment
-	jc	atuE		; If it couldn't get it, error out.
+	jc	short atuE	; If it couldn't get it, error out.
 
-	mov	es, ax		; ES = first UMB segment
-	xor	cx, cx		; Pretend we're on UMB 0 for now... (cx = UMB#)
+	;mov	es,ax ; *	; ES = first UMB segment
+	xor	cx,cx		; Pretend we're on UMB 0 for now... (cx = UMB#)
 
 ; ----------------------------------------
 ; ATU10--ES - Current MCB address
@@ -36625,40 +36886,57 @@ AddrToUmb	proc	near
 ;        CX - Current UMB #
 ; ----------------------------------------
 
-atu10:	mov	ax, es
-        cmp	ax, dx		; Present segment >= given segment?
-	jae	atuX		; Yep--done.
+	; 17/06/2023
+atu10:
+	mov	es,ax ; *
+;atu10:
+	;mov	ax,es
+        cmp	ax,dx		; Present segment >= given segment?
+	jae	short atuX	; Yep--done.
 
 	call	isSysMCB	; Returns with ZF set if this is a system MCB
-	jnz	atu20
+	jnz	short atu20
 
 	inc	cx		; If it _was_ a system MCB, we're in a new UMB.
+atu20:
+	;mov	al,[es:0]
+	mov	al,[es:arena_signature]
+	;cmp	al,'Z' ; 5Ah
+	cmp	al,arena_signature_end
+	je	short atu30	; 'Z' means this was the last MCB... that's it.
 
-atu20:	mov	al, es:[arena_signature]
-	cmp	al, arena_signature_end
-	jz	atu30		; 'Z' means this was the last MCB... that's it.
-
-	NextMCB	es, ax
-
-	jmp short atu10
+	;NextMCB es,ax
+	mov	ax,es
+	;add	ax,[es:3]	; NextMCB (macro)
+	add	ax,[es:arena_size]
+	inc	ax
+	;mov	es,ax ; * ; 17/06/2023
+	jmp	short atu10
 
 ; -----------------------------------------------------------------------------
 ; if we get to atu30, they specified a number that was past the last MCB.
 ; make sure it's not _inside_ that MCB before we return an error condition.
 ; -----------------------------------------------------------------------------
 
-atu30:	mov	ax, es
-	add	ax, es:[arena_size]
-	cmp	ax, dx		; Present >= given?
-	jae	atuX		; Yep! It _was_ inside.
-
-atuE:	xor	cx, cx		; Else, fall through with UMB # == -1
+atu30:
+	mov	ax,es
+	;add	ax,[es:3]
+	add	ax,[es:arena_size]
+	cmp	ax,dx		; Present >= given?
+	jae	short atuX	; Yep! It _was_ inside.
+atuE:
+	xor	cx,cx		; Else, fall through with UMB # == -1
 	dec	cx		; (that makes it return 0xFFFF and sets CF)
+atuX:	
+	mov	ax,cx		; Return the UMB number in AX
+	
+	;popreg	<es,dx,cx>
 
-atuX:	mov	ax, cx		; Return the UMB number in AX
-	popreg	<es, dx, cx>
-	ret
-AddrToUmb	endp
+	pop	es
+	;pop	dx
+	;pop	cx
+	
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** convUMB - checks after GetXNum to convert an address to a UMB number
@@ -36672,15 +36950,17 @@ AddrToUmb	endp
 ; USES:   Flags, AX
 ; -----------------------------------------------------------------------------
 
-convUMB	proc	near
-	cmp	gnradix, 16
-	jnz	cu10		; If it didn't read in hex, it's not an address
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+convUMB:
+	;cmp	word [gnradix],16
+	cmp	byte [gnradix],16
+	jne	short cu10	; If it didn't read in hex, it's not an address
 	call	AddrToUmb	; Else, convert the address to a UMB number
-	cmp	ax, 0FFFFh
-	jnz	cu10
-	inc	ax		; If too high, ignore it (make it conventional)
-cu10:	ret
-convUMB	endp
+	cmp	ax,0FFFFh
+	jne	short cu10
+	inc	ax ; ax = 0	; If too high, ignore it (make it conventional)
+cu10:
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** setUMBs - links umbs and sets allocation strategy for a load
@@ -36693,34 +36973,51 @@ convUMB	endp
 ; USES:   Flags, fm_umb, fm_strat
 ; -----------------------------------------------------------------------------
 
-setUMBs	proc	near
-	pushreg	<ax, bx>
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+setUMBs:
+	;pushreg <ax,bx>
+	
+	;push	ax
+	;push	bx
 
 	call	fm_link
 
-ifdef HV_LoadHigh
-	mov	ax, DOS_CHECK_STRATEGY
+	mov	ax,5800h ; DOS_CHECK_STRATEGY
 	int	21h
 
-	putdata	fm_strat, al	; Store the current strategy for later restore
+	;putdata fm_strat,al	; Store the current strategy for later restore
 
-	and	ax, 007Fh	; 0000.0000.0111.1111 == All that other stuff
-	push	ax		; Watch this carefully...
+	;push	es
+	;mov	es,[RESSEG]
+	;mov	[es:fm_strat],al ; store the current strategy
+	;pop	es
+	push	ds ; *
+	mov	ds,[RESSEG]
+	mov	[fm_strat],al
+	;pop	ds ; *
+
+	and	ax,007Fh	; 0000.0000.0111.1111 == All that other stuff
+	push	ax ; **		; Watch this carefully...
 
 	call	loadLow		; returns al==0 if load low, al==1 if loadhigh
-	ror	al, 1		; Shift that to al==0 or al==0x80
+	ror	al,1		; Shift that to al==0 or al==0x80
 
-	pop	bx		; ...pushed as AX above
-	or	bl, al		; Now we have 0000.0000.?111.1111 in BX;
+	pop	bx ; **		; ...pushed as AX above
+	
+	pop	ds ; *
+	
+	or	bl,al		; Now we have 0000.0000.?111.1111 in BX;
 
-	mov	ax, DOS_SET_STRATEGY ; with ? ==1 if load highfirst.  Perfect!
-
+	mov	ax,5801h ; DOS_SET_STRATEGY
+				; with ? ==1 if load highfirst. Perfect!
 	int	21h
-endif
 
-	popreg	<bx, ax>
-	ret
-setUMBs	endp
+	;popreg	<bx,ax>
+
+	;pop	bx
+	;pop	ax
+
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** loadLow - returns AL==0 if UMB0 == 0, else AL==1
@@ -36737,29 +37034,38 @@ setUMBs	endp
 ; such that the load UMB is too small, and shouldn't be used.
 ; -----------------------------------------------------------------------------
 
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+loadLow:
+	;push	ds ; *	
+	
+	;dataseg ds		; Point DS into appropriate data segment
+	;mov	ds,[RESSEG]
 
-loadLow	proc	near
-	push	ds
-	dataseg	ds		; Point DS into appropriate data segment
+	; * ; ds = [RESSEG] from 'setUMBs') ; 17/06/2023
 
-	mov	al, UmbLoad
-	cmp	al, UNSPECIFIED
-	jnz	ll10
+	mov	al,[UmbLoad]
+	cmp	al,0FFh ; UNSPECIFIED
+	jne	short ll10
 
-	mov	al, 1		; Return with AL==1 && STC if no UMBs specified
+	;mov	al,1		; Return with AL==1 && STC if no UMBs specified
 	stc
-	jmp short llX
+	;jmp	short llX
+	jmp	short lly ; 17/06/2023
+ll10:
+	or	al,al		; AL=the load UMB: Is it == 0?
+	jz	short llX	; Yep... CF==0 (from OR) && AL=0, so just exit
+	; cf= 0
 
-ll10:	or	al, al		; AL=the load UMB: Is it == 0?
-	jz	llX		; Yep... CF==0 (from OR) && AL=0, so just exit
-
-	mov	al, 1
-	clc
-
-llX:	pop	ds		; Return DS to where it was
-	normseg	ds		;
-	ret
-loadLow	endp
+	;mov	al,1
+	;clc	
+lly:		; 17/06/2023
+	mov	al,1
+llX:
+	;pop	ds ; *		; Return DS to where it was
+	
+	;normseg ds		;
+	
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** HideUMBs - links UMBs and hides upper-memory as appropriate
@@ -36770,52 +37076,74 @@ loadLow	endp
 ; USES:   Flags, fm_strat, fm_umb
 ; -----------------------------------------------------------------------------
 
-	public	HideUMBs
-
-HideUMBs	proc
-	pushreg	<ax, cx, ds, es>
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:64D0h
+HideUMBs:
+	;pushreg <ax,cx,ds,es>
+	
+	;push	ax
+	;push	cx
+	;push	ds
+	;push	es
 
 	call	UmbTest		; See if we REALLY linked in anything...
-	jc	husX		; ...if not, there's nothing for us to do.
+	jc	short husX	; ...if not, there's nothing for us to do.
 
 	call	FixMem		; Concatenate adjacent free MCBs in upper mem
 	call	setUMBs		; Link UMBs and set memory-allocation strategy
 
-	putdata	fInHigh, 1	; Remember that we're now running high
+	;putdata fInHigh,1	; Remember that we're now running high
+	;push	es
+	;mov	es,[RESSEG]
+	;mov	byte [es:fInHigh], 1
+	;			; remember that we're now running high
+	;pop	es
+	push	ds
+	mov	ds,[RESSEG]
+	mov	byte [fInHigh], 1
+	pop	ds
 
 	call	GetLoadUMB	; See if they gave us a list to leave free
-	cmp	al, UNSPECIFIED	; If they didn't,
-	jz	husX		; then we shouldn't do this loop:
+	cmp	al,0FFh	; UNSPECIFIED
+				; If they didn't,
+	je	short husX	; then we shouldn't do this loop:
 
-	xor	cx, cx
+	xor	cx,cx
 
 ; -----------------------------------------------
 ; HUS10-CX - UMB number (after inc, 1==first UMB)
 ; -----------------------------------------------
 
-hus10:	inc	cx		; For each UMB:
-	cmp	cx, MaxUMB
-	jae	hus20
+hus10:
+	inc	cx		; For each UMB:
+	cmp	cx,16 ; MAXUMB
+	jae	short hus20
 
-	mov	al, cl		; (stopping as soon as we're outside of the
-	push	es
+	mov	al,cl		; (stopping as soon as we're outside of the
+	; 17/06/2023
+	;push	es
 	call	findumb		; valid range of UMBs)
-	pop	es		; push/pop: trash what findumb finds.  :-)
-	jc	hus20
+	;pop	es		; push/pop: trash what findumb finds.  :-)
+	jc	short hus20
 
 	call	hideUMB?	; hide what we need to hide.
 
-	jmp short hus10
-
-hus20:	call	GetLoadUMB	; Now check if they offered /L:0
-	or	al, al		; --Is the load UMB 0? (-1==unspecified)
-	jnz	husX		; If not, we're done.
+	jmp	short hus10
+hus20:
+	call	GetLoadUMB	; Now check if they offered /L:0
+	or	al,al		; --Is the load UMB 0? (-1==unspecified)
+	jnz	short husX	; If not, we're done.
 
 	call	hl_unlink	; If so, however, fix UMBs and strategy.
+husX:
+	;popreg	<es,ds,cx,ax>
+	
+	;pop	es
+	;pop	ds
+	;pop	cx
+	;pop	ax
 
-husX:	popreg	<es, ds, cx, ax>
-	ret
-HideUMBs	endp
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** GetLoadUMB - Returns the load UMB number in AL (-1 if not specified)
@@ -36826,42 +37154,16 @@ HideUMBs	endp
 ; USES:   Flags, AX
 ; -----------------------------------------------------------------------------
 
-	public	GetLoadUMB
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+GetLoadUMB:
+	;getdata al,UmbLoad
 
-GetLoadUMB	proc	near
-	getdata	al, UmbLoad
-	ret
-GetLoadUMB	endp
+	push    ds
+	mov     ds,[RESSEG]   ; getdata (macro)
+	mov     al,[UmbLoad]
+	pop     ds
 
-; -----------------------------------------------------------------------------
-;*** GetLoadSize - Returns the load UMB minimum size (0 if not specified)
-; -----------------------------------------------------------------------------
-; ENTRY:  None
-; EXIT:   AX == load UMB minimum size
-; ERROR:  None
-; USES:   Flags, AX
-; -----------------------------------------------------------------------------
-
-	public	GetLoadSize
-
-GetLoadSize	proc	near
-	pushreg	<bx, si, ds>
-	dataseg	ds
-
-	mov	al, UmbLoad
-
-	xor	ah, ah			;    ax==UMB
-	mov	bx, offset DS:UmbSize	;                     bx==array
-	shl	al, 1	                ;    ax==offset
-	add	ax, bx			;    ax==element index
-	mov	si, ax			; ds:si==element index
-
-	lodsw				;    ax==size
-
-	popreg	<ds, si, bx>
-	normseg	ds
-	ret
-GetLoadSize	endp
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** GetSize - Returns the UMB in AL's minimum size (0 if not specified)
@@ -36872,65 +37174,33 @@ GetLoadSize	endp
 ; USES:   Flags, AX
 ; -----------------------------------------------------------------------------
 
-GetSize	proc	near
-	pushreg	<bx, si, ds>
-	dataseg	ds
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+GetSize:
+	;pushreg <bx,si,ds>
+	;push	bx
+	;push	si
+	push	ds
+	
+	;dataseg ds
+	mov	ds,[RESSEG]
 
-	xor	ah, ah			;    ax==UMB
-	mov	bx, offset DS:UmbSize	;                     bx==array
-	shl	al, 1	                ;    ax==offset
-	add	ax, bx			;    ax==element index
-	mov	si, ax			; ds:si==element index
+	xor	ah,ah			;    ax==UMB
+	;mov	bx,offset UmbSize
+	mov	bx,UmbSize		;    bx==array
+	shl	al,1	                ;    ax==offset
+	;add	ax,bx			;    ax==element index
+	;mov	si,ax			; ds:si==element index
+	;lodsw				;    ax==size
+	add	bx,ax
+	mov	ax,[bx]
 
-	lodsw				;    ax==size
+	;popreg	<ds,si,bx>
+	pop	ds
+	;pop	si
+	;pop	bx
 
-	popreg	<ds, si, bx>
-	normseg	ds
-	ret
-GetSize	endp
-
-; -----------------------------------------------------------------------------
-;*** StoLoadUMB - Overrides the load UMB number with what's in AL
-; -----------------------------------------------------------------------------
-; ENTRY:   AL == new load UMB
-; EXIT:    None
-; ERROR:   None
-; USES:    Flags, AX
-; -----------------------------------------------------------------------------
-; CAUTION: Should only be used if /L:... was used.  Logically, that is the only
-;          time you would ever need this, so that's okay.
-; -----------------------------------------------------------------------------
-
-	public	StoLoadUMB
-
-StoLoadUMB	proc	near
-	putdata	UmbLoad, al
-	ret
-StoLoadUMB	endp
-
-; -----------------------------------------------------------------------------
-;*** StoLoadSize - Overrides the load UMB minimum size with what's in AX
-; -----------------------------------------------------------------------------
-; ENTRY:  AL == new load size
-; EXIT:   None
-; ERROR:  None
-; USES:   Flags, AX
-; -----------------------------------------------------------------------------
-
-	public	StoLoadSize
-
-StoLoadSize	proc
-	push	dx
-
-	getdata	dl, UmbLoad		; Put UMB# in DL and size in AX
-	cmp	dl, UNSPECIFIED
-	jz	sls10
-
-	call	stowsiz			; We've got a function to do just this
-
-sls10:	pop	dx
-	ret
-StoLoadSize	endp
+	;normseg ds
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** hideUMB - marks as HIDDEN all FREE elements in UMB passed as AL
@@ -36941,35 +37211,51 @@ StoLoadSize	endp
 ; USES:     Flags
 ; -----------------------------------------------------------------------------
 
-hideUMB	proc	near
-	pushreg	<ax, es>
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+hideUMB:
+	;pushreg <ax,es>
+	
+	;push	ax
+	;push	es
 
-	call	findUMB		; Returns with carry if err, else ES == MCB
-	jc	huX
+	call	findumb		; Returns with carry if err, else ES == MCB
+	jc	short huX
 
 ; ------------------------------------------------
 ; HU10--ES - MCB inside UMB; if it's a system MCB,
 ;            we're not in the same UMB, so exit.
 ; ------------------------------------------------
 
-hu10:	call	isSysMCB	; Returns with ZF set if owner is SYSTEM
-	jz	huX		; If it is, we've finished the UMB.
+hu10:
+	call	isSysMCB	; Returns with ZF set if owner is SYSTEM
+	jz	short huX	; If it is, we've finished the UMB.
 	call	isFreeMCB	; Returns with ZF set if owner is 0
-	jnz	hu20
+	jnz	short hu20
 
 	call	hideMCB
+hu20:
+	;mov	al,[es:0]
+	mov	al,[es:arena_signature]
+	;cmp	al,'Z'
+	cmp	al,arena_signature_end
+	je	short huX	; 'Z' means this was the last MCB... that's it.
 
-hu20:	mov	al, es:[arena_signature]
-	cmp	al, arena_signature_end
-	jz	huX		; 'Z' means this was the last MCB... that's it.
+	;NextMCB es,ax		; Go on forward.
 
-	NextMCB	es, ax		; Go on forward.
+ 	mov	ax,es		; NextMCB (macro)
+	;add	ax,[es:3]
+	add	ax,[es:arena_size]
+	inc	ax
+	mov	es,ax
 
-	jmp short hu10
+	jmp	short hu10
+huX:
+	;popreg	<es,ax>
+	
+	;pop	es
+	;pop	ax
 
-huX:	popreg	<es, ax>
-	ret
-hideUMB	endp
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** isTiny - returns with ZF set if user didn't specify /S
@@ -36980,13 +37266,19 @@ hideUMB	endp
 ; USES:     Flags
 ; -----------------------------------------------------------------------------
 
-isTiny	proc	near
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+isTiny:
 	push	ax
-	getdata	al, fUmbTiny
-	or	al, al
+
+	;getdata al,fUmbTiny
+	push    ds
+	mov     ds,[RESSEG]   ; getdata (macro)
+	mov     al,[fUmbTiny]
+	pop     ds
+
+	or	al,al
 	pop	ax
-	ret
-isTiny	endp
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** isFreeMCB - returns with ZF set if current MCB (ES:0) is FREE
@@ -36997,10 +37289,11 @@ isTiny	endp
 ; USES:     Flags
 ; -----------------------------------------------------------------------------
 
-isFreeMCB	proc	near
-	or	ES:[arena_owner], 0
-	ret
-isFreeMCB	endp
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+isFreeMCB:
+	;or	word [es:1],0
+	or	word [es:arena_owner],0
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** hideMCB - marks as HIDDEN the MCB at ES:0
@@ -37011,14 +37304,17 @@ isFreeMCB	endp
 ; USES:     None
 ; -----------------------------------------------------------------------------
 
-hideMCB	proc	near
-	mov	es:[arena_owner], SystemPSPOwner
-	mov	word ptr es:[arena_name+0], 'IH'
-	mov	word ptr es:[arena_name+2], 'DD'
-	mov	word ptr es:[arena_name+4], 'NE'
-	mov	word ptr es:[arena_name+6], '  '
-	ret
-hideMCB	endp
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+hideMCB:
+	;mov	word [es:1],8
+	mov	word [es:arena_owner],8 ; SystemPSPOwner
+	;mov	word [es:8],4948h     ; 'HIDDEN  ' 
+	mov	word [es:arena_name+0], 'HI' ; 4948h
+	mov	word [es:arena_name+2], 'DD' ; 4444h
+	mov	word [es:arena_name+4], 'EN' ; 4E45h
+	;mov	word [es:14],2020h
+	mov	word [es:arena_name+6], '  ' ; 2020h 
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** unHideMCB - marks as FREE the MCB at ES:0
@@ -37029,17 +37325,20 @@ hideMCB	endp
 ; USES:     None
 ; -----------------------------------------------------------------------------
 
-unHideMCB	proc	near
-	push	ax
-	mov	es:[arena_owner], FreePSPOwner
-	mov	ax, '  '
-	mov	word ptr es:[arena_name+0], ax
-	mov	word ptr es:[arena_name+2], ax
-	mov	word ptr es:[arena_name+4], ax
-	mov	word ptr es:[arena_name+6], ax
-	pop	ax
-	ret
-unHideMCB	endp
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+unHideMCB:
+	;push	ax
+	;mov	word [es:1],0
+	mov	word [es:arena_owner],0 ; FreePSPOwner
+	mov	ax, '  '  ; mov ax,2020h
+	;mov	[es:8],ax
+	mov	[es:arena_name+0],ax
+	mov	[es:arena_name+2],ax
+	mov	[es:arena_name+4],ax
+	;mov	[es:14],ax
+	mov	[es:arena_name+6],ax
+	;pop	ax
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** findUMB - makes ES:0 point to the first MCB in UMB given as AL
@@ -37051,16 +37350,22 @@ unHideMCB	endp
 ; USES:     Flags, ES
 ; -----------------------------------------------------------------------------
 
-findUMB	proc	near
-	pushreg	<ax, cx, dx>
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+findumb:
+	;pushreg <ax,cx,dx>
+	
+	;push	ax
+	push	cx
+	push	dx
 
-	xor	ah, ah		; Zap ah, so al==ax
+	xor	ah,ah		; Zap ah, so al==ax
 
-	mov	dx, ax		; Store the to-be-found UMB number in DX
+	mov	dx,ax		; Store the to-be-found UMB number in DX
 
 	call	UmbHead		; Returns first UMB segment in AX
-	mov	es, ax
-	xor	cx, cx		; Pretend we're on UMB 0 for now...
+
+	mov	es,ax
+	xor	cx,cx		; Pretend we're on UMB 0 for now...
 
 ; ---------------------------------------------
 ; FU10--CX - This UMB number; 0 == conventional
@@ -37068,26 +37373,40 @@ findUMB	proc	near
 ;       ES - The current MCB address
 ; ---------------------------------------------
 
-fu10:	cmp	cx, dx		; If CX==DX, we've found the UMB we're
-	jz	fuX		; searching for--so exit.
+fu10:	
+	cmp	cx,dx		; If CX==DX, we've found the UMB we're
+	je	short fuX	; searching for--so exit.
 
 	call	isSysMCB	; Returns with ZF set if owner is SYSTEM
-	jnz	fu20
+	jnz	short fu20
 
 	inc	cx		; If it _was_ SYSTEM, we're in a new UMB.
+fu20:
+	;mov	al,[es:0]
+	mov	al,[es:arena_signature]
+	;cmp	al,'Z'
+	cmp	al,arena_signature_end
+	je	short fuE	; 'Z' means this was the last MCB... that's it.
 
-fu20:	mov	al, es:[arena_signature]
-	cmp	al, arena_signature_end
-	jz	fuE		; 'Z' means this was the last MCB... that's it.
+	;NextMCB es,ax		; Go on forward.
 
-	NextMCB	es, ax		; Go on forward.
+ 	mov	ax,es		; NextMCB (macro)
+	;add	ax,[es:3]
+	add	ax,[es:arena_size]
+	inc	ax
+	mov	es,ax
 
-	jmp short fu10
-
-fuE:	stc
-fuX:	popreg	<dx, cx, ax>	; The address is already in ES.
-	ret
-findUMB	endp
+	jmp	short fu10
+fuE:
+	stc
+fuX:
+	;popreg	<dx,cx,ax>	; The address is already in ES.
+	
+	pop	dx
+	pop	cx
+	
+	;pop	ax
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** BigFree - makes ES:0 point to the largest free MCB in UMB given as AL
@@ -37098,16 +37417,19 @@ findUMB	endp
 ; USES:     Flags, ES
 ; -----------------------------------------------------------------------------
 
-	public	BigFree
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:6624h
+BigFree:
+	;pushreg <bx,cx>
+	
+	;push	bx
+	push	cx
 
-BigFree	proc	near
-	pushreg	<bx, cx>
+	call	findumb			; Returns with CF if err, else ES==MCB
+	jc	short bfX		; (would be "jc bfE"; it just does stc)
 
-	call	findUMB			; Returns with CF if err, else ES==MCB
-	jc	bfX			; (would be "jc bfE"; it just does stc)
-
-	xor	bx, bx			; Segment address of largest free MCB
-	xor	cx, cx			; Size of largest free MCB
+	xor	bx,bx			; Segment address of largest free MCB
+	xor	cx,cx			; Size of largest free MCB
 
 ; ---------------------------------------------
 ; BF10--ES - Current MCB address
@@ -37115,36 +37437,50 @@ BigFree	proc	near
 ;       CX - Size of largest free MCB so far
 ; ---------------------------------------------
 
-bf10:	call	isSysMCB		; If we've left the MCB, we're done.
-	jz	bf30
+bf10:
+	call	isSysMCB		; If we've left the MCB, we're done.
+	jz	short bf30
 
 	call	isFreeMCB		; Returns with ZF set if owner is 0
-	jnz	bf20
+	jnz	short bf20
 
-	cmp	cx, es:[arena_size]	; Compare sizes...
-	jg	bf20			; Unless we're bigger,
+	;cmp	cx,[es:3]
+	cmp	cx,[es:arena_size]	; Compare sizes...
+	jg	short bf20		; Unless we're bigger,
 
-	mov	bx, es			; Store this new element's address,
-	mov	cx, es:[arena_size]	; and its size.
+	mov	bx,es			; Store this new element's address,
+	;mov	cx,[es:3]
+	mov	cx,[es:arena_size]	; and its size.
+bf20:
+	;mov	al,[es:0]
+	mov	al,[es:arena_signature]
+	;cmp	al,'Z'  ; 5Ah
+	cmp	al,arena_signature_end
+	je	short bf30		; 'Z' means this was the last MCB.
 
-bf20:	mov	al, es:[arena_signature]
-	cmp	al, arena_signature_end
-	jz	bf30			; 'Z' means this was the last MCB.
+	;NextMCB es,ax			; Go on forward.
 
-	NextMCB	es, ax			; Go on forward.
+	mov	ax,es 
+	;add	ax,[es:3]
+	add	ax,[es:arena_size]
+	inc	ax
+	mov	es,ax
 
-	jmp short bf10
+	jmp	short bf10
+bf30:
+	mov	es,bx			; Return the address
+	mov	ax,cx			; Return the size
+	or	bx,bx
+	jnz	short bfX		; (if size==0, there's nothing free)
+bfE:
+	stc
+bfX:
+	;popreg	<cx,bx>
 
-bf30:	mov	es, bx			; Return the address
-	mov	ax, cx			; Return the size
-	or	bx, bx
-	jnz	bfX			; (if size==0, there's nothing free)
+	pop	cx
+	;pop	bx
 
-bfE:	stc
-bfX:	popreg	<cx, bx>
-
-	ret
-BigFree	endp
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** isSpecified - sets ZF if UMB in AL wasn't specified in DH/LH line.
@@ -37155,17 +37491,24 @@ BigFree	endp
 ; USES:     Flags
 ; -----------------------------------------------------------------------------
 
-isSpecified	proc	near
-	push	ax
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+isSpecified:
+	;push	ax
 
-	xor	bh, bh
-	mov	bl, al
-	getdata	al, DS:UmbUsed[bx]
-	or	al, al			; Sets ZF if al==0 (ie, if unspecified)
+	xor	bh,bh
+	mov	bl,al
 
-	pop	ax
-	ret
-isSpecified	endp
+	;getdata al,DS:UmbUsed[bx]
+
+	push	ds
+	mov	ds,[RESSEG]
+	mov	al,[bx+UmbUsed]
+	pop     ds
+
+	or	al,al		; Sets ZF if al==0 (ie, if unspecified)
+
+	;pop	ax
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** shrinkMCB - breaks an MCB into two pieces, the lowest one's size==AX
@@ -37178,54 +37521,78 @@ isSpecified	endp
 ; If the size of the to-be-split MCB isn't at least 0x20 bytes greater than
 ; the specified new size, the split is useless; if it's onnly 0x10 bytes, that
 ; 0x10 will be used to make a header that mentions a 0-byte free space, and
-; that just sucks up 0x10 bytes for nothing.  So we make 0x20 bytes the
+; that just sucks up 0x10 bytes for nothing. So we make 0x20 bytes the
 ; minimum for performing a split.
 ; -----------------------------------------------------------------------------
 
-MIN_SPLIT_SIZE	equ	20h
+;MIN_SPLIT_SIZE	equ 20h
 
-shrinkMCB	proc	near
-	pushreg	<bx, cx, es>
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:667Ah
+shrinkMCB:
+	;pushreg <bx,cx,es>
 
-	mov	bx, ax			; Move things around... and
-	mov	ax, es			; save this one for later.
+	;push	bx
+	push	cx ; *
+	psuh	es ; **
 
-	mov	cx, es:[arena_size]
-	sub	cx, MIN_SPLIT_SIZE
-	cmp	bx, cx			; {New size} vs {Current Size-20h}
-	ja	smE			; if wanted_size > cur-20h, abort.
+	mov	bx,ax			; Move things around... and
+	mov	ax,es			; save this one for later.
 
-	mov	dl, es:[arena_signature]
-	mov	cx, es:[arena_size]
+	mov	cx,[es:arena_size]
+	sub	cx,32 ; sub cx,MIN_SPLIT_SIZE
+	;cmp	bx,cx			; {New size} vs {Current Size-20h}
+	;ja	short smE		; if wanted_size > cur-20h, abort.
+	cmp	cx,bx
+	jb	short smE ; cf = 1 (***)
 
-	mov	word ptr es:[arena_size], bx
-	mov	byte ptr es:[arena_signature], 'M'
+	;mov	dl,[es:0]
+	mov	dl,[es:arena_signature]
 
-	add	ax, bx
+	;;mov	cx,[es:3]
+	;mov	cx,[es:arena_size] ; *!
+
+	mov	[es:arena_size],bx
+	;mov	byte [es:0],'M' ; 4Dh
+	mov	byte [es:arena_signature],'M'
+
+	add	ax,bx
 	inc	ax
-	mov	es, ax			; Move to new arena area
+	mov	es,ax			; Move to new arena area
 
-	mov	ax, cx
-	sub	ax, bx
+	;mov	ax,cx ; !*
+	mov	ax,[es:arena_size] ; *!
+	sub	ax,bx
 	dec	ax			; And prepare the new size
 
-	mov	byte ptr es:[arena_signature], dl
-	mov	word ptr es:[arena_owner], 0
-	mov	word ptr es:[arena_size], ax
-	mov	ax, '  '
-	mov	word ptr es:[arena_name+0], ax
-	mov	word ptr es:[arena_name+2], ax
-	mov	word ptr es:[arena_name+4], ax
-	mov	word ptr es:[arena_name+6], ax
+	;mov	[es:0],dl
+	mov	[es:arena_signature],dl
+	;;mov	word [es:1],0
+	;mov	word [es:arena_owner],0
+	;mov	[es:3],ax
+	mov	[es:arena_size],ax
+	mov	ax,'  ' ; mov ax,2020h
+	;mov	[es:8],ax
+	mov	[es:arena_name+0],ax
+	mov	[es:arena_name+2],ax
+	mov	[es:arena_name+4],ax
+	;mov	[es:14],ax
+	mov	[es:arena_name+6],ax
 
-	clc
-	jmp short smX
+	;clc
+	xor	ax,ax
+	mov	[es:arena_owner],ax ; 0
+	; cf = 0
+	;jmp	short smX
+smE:
+	;stc	 ; cf = 1 (***)
+smX:
+	;popreg	<es,cx,bx>
+	pop	es ; **
+	pop	cx ; *
+	pop	bx
 
-smE:	stc
-
-smX:	popreg	<es, cx, bx>
-	ret
-shrinkMCB	endp
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** hideUMB? - hides as appropriate the UMB in CL
@@ -37255,199 +37622,86 @@ shrinkMCB	endp
 ; ENDIF
 ; -----------------------------------------------------------------------------
 
-hideUMB?	proc
-	pushreg	<bx, dx, es>
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:66D7h
+hideUMB?:
+	;pushreg <bx,dx,es>
 
-	mov	al, cl
+	;push	bx
+	;push	dx
+	;push	es
+
+	mov	al,cl
 	call	isSpecified	; Returns ZF set if al's umb was NOT specified
-	jz	hu?20
+	;jz	short hu?20
+	; 17/06/2023
+	jz	short hu?25 ; *
 
-	mov	al, cl		; Retrieve the size of the largest
+	mov	al,cl		; Retrieve the size of the largest
 	call	BigFree		; free element in AX; put its address in ES
-	jc	hu?20		; Oops.  Errors mean skip this part.
+	;jc	short hu?20	; Oops. Errors mean skip this part.
+	; 17/06/2023
+	jc	short hu?X ; **
 
 	push	ax		; TOS==size of BigFree in UMB (popped as BX)
-	mov	al, cl		; Retrieve the user's specified
+	mov	al,cl		; Retrieve the user's specified
 	call	GetSize		; minimum size for this umb (into AX)
 	pop	bx		; Now BX==BigFree, AX==Specified Size
 
-	or	ax, ax		; If they didn't specify one,
-	jz	hu?20		; Skip over all this.
+	or	ax,ax		; If they didn't specify one,
+	;jz	short hu?20	; Skip over all this.
+	; 17/06/2023
+	jnz	short hu?X ; **
 
-	cmp	ax, bx		; Ah... if (specified > max free)
-	jbe	hu?10
+	cmp	ax,bx		; Ah... if (specified > max free)
+	jbe	short hu?10
 
-	mov	al, cl		;    Then mark that UMB as unused.  Nya nya.
+	mov	al,cl		;  Then mark that UMB as unused. Nya nya.
 	call	unMarkUMB
-	jmp short hu?20
-
-hu?10:	call	isTiny		; Returns ZF clear if user specified /S
-	jz	hu?20
+	;jmp	short hu?20 ; ***
+	; 17/06/2023
+	; ('isSpecified' would return with ZF=1) ; ***
+	jmp	short hu?25
+hu?10:
+	call	isTiny		; Returns ZF clear if user specified /S
+	;jz	short hu?20
+	; 17/06/2023
+	; ('isSpecified' would return with ZF=0) ; **
+	jz	short hu?X
 
 	call	shrinkMCB	; They specified /S, so shrink the MCB to AX
-	jc	hu?20		; Ah... if didn't shrink after all, skip this:
+	;jc	short hu?20	; Ah... if didn't shrink after all, skip this:
+	; 17/06/2023
+	; ('isSpecified' would return with ZF=0) ; **
+	jc	short hu?X
 
-	mov	dx, es
-	jmp short hu?30		; Skip the spec check.. we wanna hide this one.
-
-hu?20:	mov	ax, cx
+	mov	dx,es
+	jmp	short hu?30	; Skip the spec check.. we wanna hide this one.
+hu?20:
+	;mov	al,cl
+	mov	ax,cx
 	call	isSpecified	; If they specified this UMB, we're done...
-	jnz	hu?X		; so leave.
-
-	xor	dx, dx
-
-hu?30:	mov	al, cl
+	jnz	short hu?X ; **	; so leave.
+hu?25:	; 17/06/2023 ; *
+	xor	dx,dx
+hu?30:
+	mov	al,cl
 
 	call	hideUMB		; Hides everything in UMB #al
 
-	or	dx, dx		; Did we shrink a UMB?  If not, DX==0,
-	jz	hu?X		; So we should leave.
+	or	dx,dx		; Did we shrink a UMB? If not, DX==0,
+	jz	short hu?X	; So we should leave.
 
-	mov	es, dx		; Ah, but if it isn't, DX==the MCB's address;
+	mov	es,dx		; Ah, but if it isn't, DX==the MCB's address;
 	call	unHideMCB	; Un-hides the lower portion of that MCB.
+hu?X:
+	;popreg	<es,dx,bx>
 
-hu?X:	popreg	<es, dx, bx>
-	ret
-hideUMB?	endp
+	;pop	es
+	;pop	dx
+	;pop	bx
 
-; -----------------------------------------------------------------------------
-;*** UnFreeze - Marks FROZEN elements as FREE
-; -----------------------------------------------------------------------------
-; Entry:  None
-; Exit:   None; all 8+FROZEN elements are marked as FREE, from any UMB.
-; Error:  None
-; Uses:   Flags
-; -----------------------------------------------------------------------------
-
-	public  UnFreeze
-
-UnFreeze	proc	near
-	pushreg	<ax, es>
-
-	call	UmbHead		; Returns with carry if err, else ES == MCB
-	jc	ufX
-
-	mov	es, ax
-
-; ------------------------------
-; UF10--ES - Current MCB address
-; ------------------------------
-
-uf10:	call	isFrozMCB	; Returns with ZF set if MCB is FROZEN
-	jnz	uf20
-	call	unHideMCB
-
-uf20:	mov	al, es:[arena_signature]
-
-	cmp	al, arena_signature_end
-	jz	ufX		; 'Z' means this was the last MCB... that's it.
-
-	NextMCB	es, ax		; Go on forward.
-	jmp short uf10
-
-ufX:	popreg	<es, ax>
-	ret
-UnFreeze	endp
-
-; -----------------------------------------------------------------------------
-;*** isFrozMCB - returns with ZF set if current MCB (ES:0) is FROZEN
-; -----------------------------------------------------------------------------
-; ENTRY:    ES:0 should point to an MCB
-; EXIT:     ZF set if MCB is frozen, else !ZF
-; ERROR:    None
-; USES:     Flags
-; -----------------------------------------------------------------------------
-
-isFrozMCB	proc	near
-	push	ax
-
-	mov	ax, es:[arena_owner]	; Check the owner...
-	cmp	ax, SystemPSPOwner	; 8 (for US OR Japan) is valid
-	jnz	ifmX
-
-	mov	ax, word ptr es:[arena_name]
-	cmp	ax, 'RF'
-	jnz	ifmX
-	mov	ax, word ptr es:[arena_name+2]
-	cmp	ax, 'ZO'
-	jnz	ifmX
-	mov	ax, word ptr es:[arena_name+4]
-	cmp	ax, 'NE'
-	jnz	ifmX
-	mov	ax, word ptr es:[arena_name+6]
-	cmp	ax, '  '
-
-ifmX:	pop	ax
-	ret
-isFrozMCB	endp
-
-; -----------------------------------------------------------------------------
-;*** frezMCB - marks as 8+FROZEN the MCB at ES:0
-; -----------------------------------------------------------------------------
-; ENTRY:    ES:0 should point to an MCB
-; EXIT:     None; MCB frozen
-; ERROR:    None
-; USES:     None
-; -----------------------------------------------------------------------------
-
-frezMCB	proc	near
-	mov	es:[arena_owner], SystemPSPOwner
-	mov	word ptr es:[arena_name+0], 'RF'
-	mov	word ptr es:[arena_name+2], 'ZO'
-	mov	word ptr es:[arena_name+4], 'NE'
-	mov	word ptr es:[arena_name+6], '  '
-	ret
-frezMCB	endp
-
-; -----------------------------------------------------------------------------
-;*** FreezeUM - Marks FROZEN all UM elements now FREE, save those in load UMB
-; -----------------------------------------------------------------------------
-; Entry:  None
-; Exit:   None; all free elements not in load UMB marked as 8+FROZEN
-; Error:  None
-; Uses:   Flags
-; -----------------------------------------------------------------------------
-
-FreezeUM	proc	near
-	pushreg	<ax, cx, dx, es>
-
-	call	GetLoadUMB
-	xor	ah, ah		; Zap ah, so al==ax
-	mov	dx, ax		; Store the load UMB in DX, so we can skip it
-
-	call	UmbHead		; Returns first UMB segment in AX
-	mov	es, ax
-	xor	cx, cx		; Pretend we're on UMB 0 for now...
-
-; -----------------------------------------
-; FUM10--ES - Current MCB address
-;        CX - Current UMB number
-;        DX - UMB number to skip (load UMB)
-; -----------------------------------------
-
-fum10:	call	isSysMCB	; Returns with ZF set if owner is SYSTEM
-	jnz	fum20
-
-	inc	cx		; If it _was_ SYSTEM, we're in a new UMB.
-
-fum20:	cmp	cx, dx		; If this is the load UMB, we don't want to
-	jz	fum30		; freeze anything... so skip that section.
-
-	call	isFreeMCB	; Oh.  If it's not free, we can't freeze it
-	jnz	fum30		; either.
-
-	call	frezMCB
-
-fum30:	mov	al, es:[arena_signature]
-	cmp	al, arena_signature_end
-	jz	fumX		; 'Z' means this was the last MCB... that's it.
-
-	NextMCB	es, ax		; Go on forward.
-	jmp short fum10
-
-fumX:	popreg	<es, dx, cx, ax>
-	ret
-FreezeUM	endp
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** UmbTest - returns with carry set if UMBs are not available, else CF==false
@@ -37458,20 +37712,29 @@ FreezeUM	endp
 ; USES:     CF (AX,BX,DS,ES pushed 'cause they're used by others)
 ; -----------------------------------------------------------------------------
 
-	public	UmbTest
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+UmbTest:
+	;pushreg <ax,bx,ds,es>
+	
+	;push	ax
+	;push	bx
+	;push	ds
+	;push	es
 
-UmbTest	proc	near
-	pushreg	<ax, bx, ds, es>
+	call	fm_link		; Link in UMBs (if not already linked)
+	call	WalkMem		; Check to see if they're really linked
+	pushf			; And remember what we found out
+	call	fm_unlink	; Unlink UMBs (if WE have linked 'em)
+	popf			; And restore what we found out.
 
-	call	fm_link			; Link in UMBs (if not already linked)
-	call	WalkMem			; Check to see if they're really linked
-	pushf				; And remember what we found out
-	call	fm_unlink		; Unlink UMBs (if WE have linked 'em)
-	popf				; And restore what we found out.
-
-	popreg	<es, ds, bx, ax>
-	ret
-UmbTest	endp
+	;popreg	<es,ds,bx,ax>
+	
+	;pop	es
+	;pop	ds
+	;pop	bx
+	;pop	ax
+	
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** WalkMem - travels memory chain and returns carry clear iff UMBs are linked
@@ -37482,32 +37745,57 @@ UmbTest	endp
 ; USES:     Flags
 ; -----------------------------------------------------------------------------
 
-WalkMem	proc	near
-	pushreg	<ax, bx, es>
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+WalkMem:
+	;pushreg <ax,bx,es>
+	
+	;push	ax
+	;push	bx
+	push	es
 
-	mov	ah, DOS_GET_DOS_LISTS	; Call int 21h, function 52h...
+	mov	ah,52h ; DOS_GET_DOS_LISTS
+				; Call int 21h, function 52h...
 	int	21h
 
-	mov	ax, es:[bx -2]
-	mov	es, ax
+	mov	ax,[es:bx-2]
+	;mov	es,ax ; *
 
 ; ------------------------------
 ; UM10: ES = Current MCB pointer
 ; ------------------------------
 
-um10:	mov	al, es:[arena_signature]
-	cmp	al, arena_signature_end
-	jz	um20			; If signature == 'Z', hay no more.
+um10:	
+	mov	es,ax ; *
 
-	NextMCB	es, bx			; Move to the next MCB
-	jmp short um10			; And restart the loop.
+	;mov	al,[es:0]
+	mov	al,[es:arena_signature]
+	;cmp	al,'Z' ; 5Ah
+	cmp	al,arena_signature_end
+	je	short um20	; If signature == 'Z', hay no more.
 
-um20:	mov	ax, es
-	cmp	ax, 9FFFh		; This sets CF iff ax < 9FFF.
+	;NextMCB es,bx		; Move to the next MCB
+	
+	;mov	bx,es
+	;;add	bx,[es:3]
+	;add	bx,[es:arena_size]
+	;inc	bx
+	;mov	es,bx
+	mov	ax,es
+	add	ax,[es:arena_size]
+	inc	ax
+	;mov	es,ax ; *
 
-	popreg	<es, bx, ax>
-	ret
-WalkMem	endp
+	jmp	short um10	; And restart the loop.
+um20:
+	mov	ax,es
+	cmp	ax,9FFFh	; This sets CF if ax < 9FFF.
+
+	;popreg	<es,bx,ax>
+	pop	es
+	;pop	bx
+	;pop	ax
+
+	retn
 
 ; -----------------------------------------------------------------------------
 ;*** hl_unlink - unlinks UMBs if fm_umb is set to 0; restores strategy too
@@ -37518,21 +37806,37 @@ WalkMem	endp
 ; USES:     AX, BX
 ; -----------------------------------------------------------------------------
 
-hl_unlink	proc	near
-	xor	bh, bh
-	getdata	bl, fm_umb		; Restore original link-state
-	mov	ax, DOS_SET_UMBLINK
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:681Ch
+hl_unlink:
+	push	ds ; *
+
+	xor	bh,bh
+	;getdata bl,fm_umb	; Restore original link-state
+
+	;push	ds
+	mov	ds,[RESSEG]
+	mov	bl,[fm_umb]	; Restore original link-state
+	;pop	ds
+	
+	mov	ax,5803h ; DOS_SET_UMBLINK
 	int	21h
 
-ifdef HV_LoadHigh
-	xor	bh, bh
-	getdata	bl, fm_strat		; Restore original mem-alloc strategy
+	xor	bh,bh
 
-	mov	ax, DOS_SET_STRATEGY
+	;getdata bl,fm_strat	; Restore original mem-alloc strategy
+
+	;push	ds
+	;mov	ds,[RESSEG]
+	mov	bl,[fm_strat]	;Restore original mem-alloc strategy
+	;pop	ds
+
+	mov	ax,5801h ; DOS_SET_STRATEGY
 	int	21h
-endif
-	ret
-hl_unlink	endp
+
+	pop	ds ; *
+
+	retn
 
 ;============================================================================
 ; LOADHIGH.ASM, MSDOS 6.0, 1991
@@ -37600,20 +37904,24 @@ iCmdLine	equ	81h		; PSP:81h points to command-line
 
 	; 13/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:5927h
-	; MSDOS 5.0 COMMAND.COM only ! (MSDOS 6.0 code is different)
+
+	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:683Fh
 LoadHigh:
 	push	ds
 	pop	es
-
-	call	SkipLhDelims
+	
+	; 16/06/2023
+	;call	SkipLhDelims	; MSDOS 5.0 !
 
 ;Get command tail to be passed to the program. This includes any whitespace
 ;chars between the program name and its parameters as well.
 ;On return, ds:si points at the start of the command tail.
 
-	push	si
+	; 16/06/2023
+	;push	si		; MSDOS 5.0 !
 	call	ParseLhCmd
-	pop	si
+	;pop	si		; MSDOS 5.0 !	
 	jc	short LhErr
 	
 	call	SetupCmdLine		;setup pgm's command line
@@ -37657,6 +37965,8 @@ LhErr:
 ;	prepare the command-line for that program.
 ; ---------------------------------------------------------------------------
 
+; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+%if 0
 	; 13/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:5944h
 	; MSDOS 5.0 COMMAND.COM only ! (MSDOS 6.0 code is different)
@@ -37695,6 +38005,54 @@ PLhCmd1:
 	stc
 PLhCmd2:
 	retn
+%endif
+
+	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:6857h
+	; MSDOS 6.0
+ParseLhCmd:
+	;assume	ds:TRANGROUP, es:TRANGROUP
+	
+	;mov	si,81h
+	mov	si,iCmdLine	;ds:si points at command line
+
+	; es = ds (from 'LoadHigh') 
+	;push	es		;Store ES 'cause we're gonna change it:
+
+	;push	ds
+	;pop	es		;Make sure es:si points to cmd line as well
+
+	call	InitVar		;Initialize data for ParseVar
+
+	call	ParseVar	;And parse the command line
+
+	;pop	es		;Restore ES now; we're done with it.
+
+	jnc	short plcC	;If no error, continue on our way.
+
+	cmp	ax,2 ; PV_BadUMB
+				;Bad UMB passed?
+	jne	short plc10
+	;mov	dx,offset TRANGROUP:LhBadUMB_Ptr
+	mov	dx,LhBadUMB_Ptr
+	stc
+	retn
+plc10:	
+	;mov	dx,offset TRANGROUP:LhInvSwt_Ptr
+	mov	dx,LhInvSwt_Ptr
+	cmp	ax,3 ; PV_InvSwt
+				;Unrecognized switch passed?
+	je	short plc20
+	;mov	dx,offset TRANGROUP:LhInvArg_Ptr
+	mov	dx,LhInvArg_Ptr
+plc20:
+	stc
+	retn
+plcC:
+	;call	LhCopyFilename	;copy filename into our buffer
+	;retn			;Return-- carry=status
+	; 16/06/2023
+	;jmp	short LhCopyFilename
 
 ; ---------------------------------------------------------------------------
 
@@ -37733,7 +38091,7 @@ PLhCmd2:
 ;
 ;	ENTRY	ds:si points at primary argument (filename)
 ;
-;	EXIT	Carry set -- filename has wildcards.  In this event, DX will
+;	EXIT	Carry set -- filename has wildcards. In this event, DX will
 ;				already contain an appropriate error number.
 ;		Carry clear -- filename has been copied as needed; DS:SI
 ;				points to first character (most likely space)
@@ -37747,6 +38105,8 @@ PLhCmd2:
 ; If there are any wildcards in the filename, then we have an error
 ; ---------------------------------------------------------------------------
 
+; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+%if 0
 	; 13/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:5984h
 	; MSDOS 5.0 COMMAND.COM only ! (MSDOS 6.0 code is different)
@@ -37778,8 +38138,75 @@ lhfilerr:
 	stc
 	jmp	short lhfilerr2
 
+%endif
+
+	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:6881h
+	; MSDOS 6.0
+LhCopyFilename:
+	;assume	ds:TRANGROUP, es:TRANGROUP
+
+	;mov	di,offset TRANGROUP:ExecPath
+	mov	di,EXECPATH
+
+	;mov	cx,0	; Copied zero characters
+	sub	cx,cx
+;@@:
+lhcpfn1:
+	lodsb
+	cmp	al,'*'			;wildcard?
+	je	short lhfilerr		;yes, error
+	cmp	al,'?'			;wildcard?
+	je	short lhfilerr		;yes, error
+
+	cmp	al,0Dh			;carriage return?
+	;jz	@f
+	je	short lhcpfn2
+	cmp	al,'/' ; SwitChar	;'/'?
+	;jz	@f
+	je	short lhcpfn2
+	or	al,al			;EOS?
+	;jz	@f
+	jz	short lhcpfn2
+	cmp	al,' '			;Space?
+	;jz	@f
+	je	short lhcpfn2
+	
+	;or	al,al
+	;;jz	@f
+	;je	short lhcpfn2	
+
+	stosb				;store char
+	inc	cx			;And remember that we did one more
+	;jmp	short @b
+	jmp	short lhcpfn1
+;@@:
+lhcpfn2:
+	xor	al,al			;Indicate EOS reached
+	stosb				;store char
+
+	or	cx,cx			;If we didn't copy any characters,
+	jz	short lhmissing	; they didn't give a filename.
+
+	dec	si			;Move back to the delimiting character
+	; cf = 0
+	;clc				;And indicate no error occurred
+	retn
+lhfilerr:
+	;mov	dx,offset TRANGROUP:LhInvFil_Ptr
+	mov	dx,LhInvFil_Ptr		;"Invalid Filename" ; M016
+	stc
+	retn
+lhmissing:
+	;mov	dx,offset TRANGROUP:ReqParmMiss
+	mov	dx,ReqParmMiss		;"Required parm missing"
+	stc
+	retn
+
 ; ---------------------------------------------------------------------------
 	
+; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM 
+%if 0
 	; 14/04/2023
 	; 13/04/2023
 	; MSDOS 5.0 COMMAND.COM only !
@@ -37817,6 +38244,8 @@ stfn2:
 	dec	si
 	retn
 
+%endif
+
 ; ---------------------------------------------------------------------------
 
 ;***	SetupCmdLine -- prepare command line for the program
@@ -37835,7 +38264,9 @@ stfn2:
 
 	; 14/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:59BEh
-	; MSDOS 5.0 COMMAND.COM only ! (MSDOS 6.0 code is different)
+
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:68BEh
 SetupCmdLine:
 	;mov	di,81h
 	mov	di,iCmdLine
@@ -37845,10 +38276,14 @@ SetCmdL1:
 	lodsb
 	stosb
 	inc	cl			;update count
+	
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.0
 	; 14/04/2023
 	; * ; MSDOS 6.0 only !
-	;or	al,al	; *
-	;jz	short SetCmdL2 ; *
+	or	al,al	; *
+	jz	short SetCmdL2 ; *
+	
 	cmp	al,0Dh			;carriage return?
 	jnz	short SetCmdL1		;no, continue storing
 SetCmdL2:
@@ -37870,6 +38305,7 @@ SetCmdL2:
 ; ---------------------------------------------------------------------------
 	
 	; 14/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
 LhSetupErrMsg:
 	mov	byte [msg_disp_class],ext_msg_class ; 1
 	mov	dx,extend_buf_ptr
@@ -37878,6 +38314,8 @@ LhSetupErrMsg:
 
 ; ---------------------------------------------------------------------------
 
+; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM 
+%if 0
 	; 14/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:59DFh
 	; MSDOS 5.0 COMMAND.COM only !
@@ -37929,6 +38367,7 @@ set_umblink:
 	int	21h	; DOS - 3+ - GET/SET MEMORY ALLOCATION STRATEGY
 			; AL = function code: (DOS 5beta) set UMB link state
 	retn
+%endif
 
 ; ---------------------------------------------------------------------------
 
@@ -37944,7 +38383,9 @@ set_umblink:
 
 	; 14/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:5A0Fh
-	; MSDOS 5.0 COMMAND.COM only ! (MSDOS 6.0 code is different)
+
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:68E3h
 SetupPath:
 
 ;Juggle around the argv pointers to make argv[1] into argv[0]. This is 
@@ -37966,6 +38407,31 @@ SetupPath:
 	;mov	bx,11
 	mul	bx			;dx:ax = size of argument lists
 
+	; 17/06/2023 - Retro DOS 4.2 COMMAND.COM
+	; --------------------------------------
+	; MSDOS 6.0
+
+	;getdata cl,fm_argc		;CL = number of arguments to skip
+	push	ds              ; getdata (macro)
+	mov	ds,[RESSEG]
+	mov	cl,[fm_argc]
+	pop	ds
+	
+	inc	cl			;Skip one arg, to get over "lh"
+
+;Move argv[1]..argv[n] to argv[0]..argv[n-1]. Here, AX == the overall size
+;of the argument lists.
+
+argloop:
+	jcxz	argdone			;If we've finished copying args, leave.
+
+	dec	cx			;One less time we'll go through this.
+
+	push	ax			;Copy ( size of remaining list ) bytes
+	push	cx			;And remember how many args there were
+
+	; --------------------------------------
+
 	; 14/04/2023
 	mov	cx,ax			;size to move
 
@@ -37985,9 +38451,27 @@ SetupPath:
 	;dec	arg.argvcnt		;Fake one less argument, and
 	;dec	word [ARG_ARGVCNT]
 	dec	word [ARG+ARG_UNIT.argvcnt]
+
+	; 17/06/2023 - Retro DOS 4.2 COMMAND.COM
+	; --------------------------------------
+	; MSDOS 6.0
+	
+	;sub	ax,ARGV_ELE.SIZE ; 11	;there's one argument we don't copy.
+
+	pop	cx
+	pop	ax			;Restore the size of the arg list
+	; 17/06/2023
+	;jmp	short argloop
+	
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	sub	ax,ARGV_ELE.SIZE ; 11
+	ja	short argloop
+	; --------------------------------------
 	
 ; Done moving... argv[0] is now the child program's name, and [1] its first arg
 
+	; 17/06/2023
+argdone:
 	call	path_search		;look in the path
 
 ;ax = 0, no file found
@@ -38023,194 +38507,245 @@ lhsp_errret:				; M016
 
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:5A44h
 
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:6930h
+
 ; ---------------------------------------------------------------------------
 ; Class 3 message table/structure
 ; ---------------------------------------------------------------------------
 
 $M_CLASS_3_STRUC:
 	db 0FFh			; $M_CLASS_ID (Class identifer)
-	dw 5			; $M_COMMAND_VER (COMMAND.COM version)
-	db 162			; Total number of messages
+	;dw 5			; $M_COMMAND_VER (COMMAND.COM version)
+	;db 162			; Total number of messages
+	; 17/06/2023
+	dw 1606h		; MSDOS 6.22 COMMAND.COM (hb=22,lb=6)	
+	db 187			; Total number of messages
 $M_ID_3_1:
 	; (MSDOS 5.0 COMMAND.COM - TRANGROUP:5A48h)
 	dw 1020			; Message Number = 1020
-	dw MSG_1020-$+2 ; 288h	; Message offset from message number (5A48h+0288h=5CD0h)
+	;dw MSG_1020-$+2 ; 288h	; Message offset from message number (5A48h+0288h=5CD0h)
+	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
+	dw MSG_1020-$+2 ; 2ECh	; Message offset from message number (6934h+02ECh=6C20h)
 $M_ID_3_2:
 	dw 1015			; Message Number = 1015
-	dw MSG_1015-$+2 ; 294h  ; Message offset from message number (5A4Ch+0294h=5CE0h)
+	;dw MSG_1015-$+2 ; 294h ; Message offset from message number (5A4Ch+0294h=5CE0h)
+	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
+	dw MSG_1015-$+2 ; 2F8h	; Message offset from message number (6938h+02F8h=6C30h)
 $M_ID_3_3:	; 26/04/2023
-	dw 1004,MSG_1004-$ ; 692
-	dw 1026,MSG_1026-$ ; 714
-	dw 1031,MSG_1031-$ ; 730
-	dw 1035,MSG_1035-$ ; 741
-	dw 1062,MSG_1062-$ ; 752
-	dw 1028,MSG_1028-$ ; 763
-	dw 1045,MSG_1045-$ ; 793
-	dw 1041,MSG_1041-$ ; 818
-	dw 1042,MSG_1042-$ ; 848
+			; 17/06/2023
+	dw 1004,MSG_1004-$ ; 792
+	dw 1026,MSG_1026-$ ; 814
+	dw 1031,MSG_1031-$ ; 830
+	dw 1035,MSG_1035-$ ; 841
+	dw 1062,MSG_1062-$ ; 852
+	dw 1028,MSG_1028-$ ; 863
+	dw 1045,MSG_1045-$ ; 893
+	dw 1041,MSG_1041-$ ; 918
+	dw 1042,MSG_1042-$ ; 948
 $M_ID_3_12:
-	dw 1043,MSG_1043-$ ; 871
-	dw 1002,MSG_1002-$ ; 899
-	dw 1003,MSG_1003-$ ; 935
-	dw 1007,MSG_1007-$ ; 959
-	dw 1008,MSG_1008-$ ; 982
-	dw 1009,MSG_1009-$ ; 1000
-	dw 1010,MSG_1010-$ ; 1017
-	dw 1011,MSG_1011-$ ; 1045
-	dw 1014,MSG_1014-$ ; 1068
-	dw 1016,MSG_1016-$ ; 1081
-	dw 1017,MSG_1017-$ ; 1119
-	dw 1018,MSG_1018-$ ; 1152
+	dw 1043,MSG_1043-$ ; 971
+	dw 1002,MSG_1002-$ ; 999
+	dw 1003,MSG_1003-$ ; 1035
+	dw 1007,MSG_1007-$ ; 1059
+	dw 1008,MSG_1008-$ ; 1082
+	dw 1009,MSG_1009-$ ; 1100
+	dw 1010,MSG_1010-$ ; 1117
+	dw 1011,MSG_1011-$ ; 1145
+	dw 1014,MSG_1014-$ ; 1168
+	dw 1016,MSG_1016-$ ; 1181
+	dw 1017,MSG_1017-$ ; 1219
+	dw 1018,MSG_1018-$ ; 1252
 $M_ID_3_24:
-	dw 1019,MSG_1019-$ ; 1168
-	dw 1021,MSG_1021-$ ; 1176
-	dw 1022,MSG_1022-$ ; 1202
-	dw 1023,MSG_1023-$ ; 1237
-	dw 1024,MSG_1024-$ ; 1277
-	dw 1025,MSG_1025-$ ; 1296
-	dw 1027,MSG_1027-$ ; 1316
-	dw 1029,MSG_1029-$ ; 1345
-	dw 1030,MSG_1030-$ ; 1359
-	dw 1032,MSG_1032-$ ; 1370
-	dw 1033,MSG_1033-$ ; 1390
-	dw 1034,MSG_1034-$ ; 1408
-	dw 1036,MSG_1036-$ ; 1426
-	dw 1037,MSG_1037-$ ; 1443
-	dw 1038,MSG_1038-$ ; 1456
-	dw 1039,MSG_1039-$ ; 1471
+	dw 1019,MSG_1019-$ ; 1268
+	dw 1021,MSG_1021-$ ; 1276
+	dw 1022,MSG_1022-$ ; 1302
+	dw 1023,MSG_1023-$ ; 1337
+	dw 1024,MSG_1024-$ ; 1377
+	dw 1025,MSG_1025-$ ; 1396
+	dw 1027,MSG_1027-$ ; 1416
+	dw 1029,MSG_1029-$ ; 1445
+	dw 1030,MSG_1030-$ ; 1459
+	dw 1032,MSG_1032-$ ; 1470
+	dw 1033,MSG_1033-$ ; 1490
+	dw 1034,MSG_1034-$ ; 1508
+	dw 1036,MSG_1036-$ ; 1526
+	dw 1037,MSG_1037-$ ; 1543
+	dw 1038,MSG_1038-$ ; 1556
+	dw 1039,MSG_1039-$ ; 1571
 $M_ID_3_40:
-	dw 1040,MSG_1040-$ ; 1528
-	dw 1044,MSG_1044-$ ; 1545
-	dw 1046,MSG_1046-$ ; 1561
-	dw 1047,MSG_1047-$ ; 1612
-	dw 1048,MSG_1048-$ ; 1633
-	dw 1049,MSG_1049-$ ; 1647
-	dw 1050,MSG_1050-$ ; 1653
-	dw 1051,MSG_1051-$ ; 1680
-	dw 1052,MSG_1052-$ ; 1693
-	dw 1053,MSG_1053-$ ; 1712
-	dw 1054,MSG_1054-$ ; 1746
+	dw 1040,MSG_1040-$ ; 1628
+	dw 1044,MSG_1044-$ ; 1645
+	dw 1046,MSG_1046-$ ; 1661
+	dw 1047,MSG_1047-$ ; 1712
+	dw 1048,MSG_1048-$ ; 1733
+	dw 1049,MSG_1049-$ ; 1747
+	dw 1050,MSG_1050-$ ; 1753
+	dw 1051,MSG_1051-$ ; 1780
+	dw 1052,MSG_1052-$ ; 1793
+	dw 1053,MSG_1053-$ ; 1812
+	dw 1054,MSG_1054-$ ; 1846
 $M_ID_3_51:
-	dw 1055,MSG_1055-$ ; 1781
-	dw 1056,MSG_1056-$ ; 1791
-	dw 1057,MSG_1057-$ ; 1802
-	dw 1059,MSG_1059-$ ; 1811
-	dw 1060,MSG_1060-$ ; 1812
-	dw 1061,MSG_1061-$ ; 1812
-	dw 1063,MSG_1063-$ ; 1834
-	dw 1064,MSG_1064-$ ; 1833
-	dw 1065,MSG_1065-$ ; 1832
-	dw 1066,MSG_1066-$ ; 1831
-	dw 1067,MSG_1067-$ ; 1830
-	dw 1068,MSG_1068-$ ; 1828
-	dw 1069,MSG_1069-$ ; 1835
-	dw 1070,MSG_1070-$ ; 1835
-	dw 1071,MSG_1071-$ ; 1834
-	dw 1072,MSG_1072-$ ; 1833
+	dw 1055,MSG_1055-$ ; 1881
+	dw 1056,MSG_1056-$ ; 1891
+	dw 1057,MSG_1057-$ ; 1902
+	dw 1059,MSG_1059-$ ; 1911
+	dw 1060,MSG_1060-$ ; 1912
+	dw 1061,MSG_1061-$ ; 1912
+	dw 1063,MSG_1063-$ ; 1934
+	dw 1064,MSG_1064-$ ; 1933
+	dw 1065,MSG_1065-$ ; 1932
+	dw 1066,MSG_1066-$ ; 1931
+	dw 1067,MSG_1067-$ ; 1930
+	dw 1068,MSG_1068-$ ; 1928
+	dw 1069,MSG_1069-$ ; 1935
+	dw 1070,MSG_1070-$ ; 1935
+	dw 1071,MSG_1071-$ ; 1934
+	dw 1072,MSG_1072-$ ; 1933
 $M_ID_3_67:
-	dw 1073,MSG_1073-$ ; 1838
-	dw 1074,MSG_1074-$ ; 1843
-	dw 1075,MSG_1075-$ ; 1848
-	dw 1076,MSG_1076-$ ; 1850
-	dw 1077,MSG_1077-$ ; 1849
-	dw 1078,MSG_1078-$ ; 1853
-	dw 1079,MSG_1079-$ ; 1876
-	dw 1080,MSG_1080-$ ; 1883
-	dw 1081,MSG_1081-$ ; 1901
-	dw 1084,MSG_1084-$ ; 1940
-	dw 1090,MSG_1090-$ ; 1952
-	dw 1091,MSG_1091-$ ; 1962
-	dw 1092,MSG_1092-$ ; 1972
-	dw 1093,MSG_1093-$ ; 1982
-	dw 1094,MSG_1094-$ ; 1999
-	dw 1095,MSG_1095-$ ; 2024
-	dw 1096,MSG_1096-$ ; 2049
-$M_ID_3_84:
-	dw 1200,MSG_1200-$ ; 2094
-	dw 1300,MSG_1300-$ ; 2091
-	dw 1320,MSG_1320-$ ; 2222
-	dw 1321,MSG_1321-$ ; 2282
-	dw 1340,MSG_1340-$ ; 2391
-	dw 1341,MSG_1341-$ ; 2479
-	dw 1342,MSG_1342-$ ; 2574
-	dw 1360,MSG_1360-$ ; 2716
-	dw 1400,MSG_1400-$ ; 2740
-	dw 1401,MSG_1401-$ ; 2882
-	dw 1402,MSG_1402-$ ; 2983
-	dw 1403,MSG_1403-$ ; 3098
-	dw 1404,MSG_1404-$ ; 3160
-	dw 1420,MSG_1420-$ ; 3292
-	dw 1440,MSG_1440-$ ; 3427
-	dw 1441,MSG_1441-$ ; 3469
-$M_ID_3_100:
-	dw 1460,MSG_1460-$ ; 3597
-	dw 1461,MSG_1461-$ ; 3694
-	dw 1462,MSG_1462-$ ; 3822
-	dw 1480,MSG_1480-$ ; 3898
-	dw 1481,MSG_1481-$ ; 4057
-	dw 1482,MSG_1482-$ ; 4147
-	dw 1483,MSG_1483-$ ; 4241
-	dw 1484,MSG_1484-$ ; 4360
-	dw 1485,MSG_1485-$ ; 4548
-	dw 1486,MSG_1486-$ ; 4700
-	dw 1487,MSG_1487-$ ; 4847
-	dw 1488,MSG_1488-$ ; 4946
-$M_ID_3_112:
-	dw 1500,MSG_1500-$ ; 5089
-	dw 1520,MSG_1520-$ ; 5148
-	dw 1540,MSG_1540-$ ; 5206
-	dw 1541,MSG_1541-$ ; 5296
-	dw 1542,MSG_1542-$ ; 5400
-	dw 1560,MSG_1560-$ ; 5456
-	dw 1561,MSG_1561-$ ; 5508
-	dw 1562,MSG_1562-$ ; 5629
-	dw 1563,MSG_1563-$ ; 5673
-	dw 1564,MSG_1564-$ ; 5712
-	dw 1565,MSG_1565-$ ; 5770
-	dw 1566,MSG_1566-$ ; 5819
-	dw 1567,MSG_1567-$ ; 5860
-	dw 1568,MSG_1568-$ ; 5978
-	dw 1580,MSG_1580-$ ; 6051
-$M_ID_3_127:
-	dw 1600,MSG_1600-$ ; 6119
-	dw 1601,MSG_1601-$ ; 6144
-	dw 1602,MSG_1602-$ ; 6224
-	dw 1620,MSG_1620-$ ; 6298
-	dw 1621,MSG_1621-$ ; 6382
-	dw 1622,MSG_1622-$ ; 6508
-	dw 1640,MSG_1640-$ ; 6580
-	dw 1641,MSG_1641-$ ; 6629
-	dw 1660,MSG_1660-$ ; 6757
-	dw 1680,MSG_1680-$ ; 6824
-	dw 1700,MSG_1700-$ ; 6858
-	dw 1720,MSG_1720-$ ; 7032
-	dw 1740,MSG_1740-$ ; 7111
-	dw 1741,MSG_1741-$ ; 7199
-	dw 1760,MSG_1760-$ ; 7310
-	dw 1780,MSG_1780-$ ; 7383
-$M_ID_3_143:
-	dw 1800,MSG_1800-$ ; 7487
-	dw 1801,MSG_1801-$ ; 7561
-	dw 1820,MSG_1820-$ ; 7645
-	dw 1821,MSG_1821-$ ; 7713
-	dw 1840,MSG_1840-$ ; 7848
-	dw 1860,MSG_1860-$ ; 7919
-	dw 1861,MSG_1861-$ ; 8006
-	dw 1862,MSG_1862-$ ; 8073
-	dw 1863,MSG_1863-$ ; 8195
-	dw 1864,MSG_1864-$ ; 8354
-	dw 1865,MSG_1865-$ ; 8453
-	dw 1866,MSG_1866-$ ; 8556
-	dw 1880,MSG_1880-$ ; 8656
-	dw 1881,MSG_1881-$ ; 8772
-	dw 1882,MSG_1882-$ ; 8894
-	dw 1883,MSG_1883-$ ; 8977
-	dw 1900,MSG_1900-$ ; 9136
-	dw 1920,MSG_1920-$ ; 9156
-	dw 1921,MSG_1921-$ ; 9200
-$M_ID_3_162:
-	dw 1922			; Message Number = 1922
-	dw MSG_1922-$ ; 9285	; Message offset from message number (5CCCh+2445h=8111h)
+	dw 1073,MSG_1073-$ ; 1939
+	dw 1074,MSG_1074-$ ; 1945
+	dw 1075,MSG_1075-$ ; 1951
+	dw 1076,MSG_1076-$ ; 1953
+	dw 1077,MSG_1077-$ ; 1952
+	dw 1078,MSG_1078-$ ; 1956
+	dw 1079,MSG_1079-$ ; 1979
+	dw 1080,MSG_1080-$ ; 1986
+	dw 1081,MSG_1081-$ ; 2004
+	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
+	dw 1082,MSG_1082-$ ; 2043	
+	dw 1083,MSG_1083-$ ; 2047	
+	;
+	dw 1084,MSG_1084-$ ; 2046
+	dw 1090,MSG_1090-$ ; 2058
+	dw 1091,MSG_1091-$ ; 2068
+	dw 1092,MSG_1092-$ ; 2078
+	dw 1093,MSG_1093-$ ; 2088
+	dw 1094,MSG_1094-$ ; 2105
+	dw 1095,MSG_1095-$ ; 2130
+	dw 1096,MSG_1096-$ ; 2155
+	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
+	dw 1097,MSG_1097-$ ; 2200
+	dw 1098,MSG_1098-$ ; 2225
+	dw 1099,MSG_1099-$ ; 2250
+	dw 1100,MSG_1100-$ ; 2268
+	dw 1101,MSG_1101-$ ; 2302
+	dw 1102,MSG_1102-$ ; 2313
+	dw 1103,MSG_1103-$ ; 2367
+	dw 1104,MSG_1104-$ ; 2390
+	dw 1105,MSG_1105-$ ; 2390 ; TRANGROUP:6AA8h 
+;$M_ID_3_84:
+$M_ID_3_95: ; 17/06/2023	
+	dw 1200,MSG_1200-$ ; 2391
+	dw 1300,MSG_1300-$ ; 2388
+	dw 1320,MSG_1320-$ ; 2519
+	dw 1321,MSG_1321-$ ; 2579
+	dw 1340,MSG_1340-$ ; 2688
+	dw 1341,MSG_1341-$ ; 2776
+	dw 1342,MSG_1342-$ ; 2871
+	dw 1360,MSG_1360-$ ; 3013
+	dw 1400,MSG_1400-$ ; 3037
+	dw 1401,MSG_1401-$ ; 3190
+	dw 1402,MSG_1402-$ ; 3291
+	dw 1403,MSG_1403-$ ; 3406
+	dw 1404,MSG_1404-$ ; 3466 ; TRANGROUP:6ADCh 
+	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
+	dw 1405,MSG_1405-$ ; 3579 ; TRANGROUP:6AE0h 
+	dw 1406,MSG_1406-$ ; 3690
+	dw 1407,MSG_1407-$ ; 3753 ; (MSG_1404 for MSDOS 5.0 COMMAND.COM)
+	;
+	dw 1420,MSG_1420-$ ; 3885
+	dw 1440,MSG_1440-$ ; 4020
+	dw 1441,MSG_1441-$ ; 4110
+;$M_ID_3_100:
+$M_ID_3_114: ; 17/06/2023
+	dw 1460,MSG_1460-$ ; 4238
+	dw 1461,MSG_1461-$ ; 4335
+	dw 1462,MSG_1462-$ ; 4463
+	dw 1480,MSG_1480-$ ; 4539
+	dw 1481,MSG_1481-$ ; 4673
+	dw 1482,MSG_1482-$ ; 4700
+	dw 1483,MSG_1483-$ ; 4777
+	dw 1484,MSG_1484-$ ; 4863
+	dw 1485,MSG_1485-$ ; 4986
+	dw 1486,MSG_1486-$ ; 5106
+	dw 1487,MSG_1487-$ ; 5252
+	dw 1488,MSG_1488-$ ; 5319
+	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
+	dw 1489,MSG_1489-$ ; 5443
+	dw 1490,MSG_1490-$ ; 5505
+	dw 1491,MSG_1491-$ ; 5529
+	dw 1492,MSG_1492-$ ; 5608
+	dw 1493,MSG_1493-$ ; 5751
+	dw 1494,MSG_1494-$ ; 5770
+;$M_ID_3_112:
+$M_ID_3_132: ; 17/06/2023
+	dw 1500,MSG_1500-$ ; 5796
+	dw 1520,MSG_1520-$ ; 5855
+	dw 1540,MSG_1540-$ ; 5913
+	dw 1541,MSG_1541-$ ; 6003
+	dw 1542,MSG_1542-$ ; 6107
+	dw 1560,MSG_1560-$ ; 6163
+	dw 1561,MSG_1561-$ ; 6215
+	dw 1562,MSG_1562-$ ; 6336
+	dw 1563,MSG_1563-$ ; 6380
+	dw 1564,MSG_1564-$ ; 6419
+	dw 1565,MSG_1565-$ ; 6477
+	dw 1566,MSG_1566-$ ; 6526
+	dw 1567,MSG_1567-$ ; 6567
+	dw 1568,MSG_1568-$ ; 6685
+	dw 1580,MSG_1580-$ ; 6758
+;$M_ID_3_127:
+$M_ID_3_147: ; 17/06/2023
+	dw 1600,MSG_1600-$ ; 6826
+	dw 1601,MSG_1601-$ ; 6851
+	dw 1602,MSG_1602-$ ; 6931
+	dw 1620,MSG_1620-$ ; 7088
+	dw 1621,MSG_1621-$ ; 7172
+	dw 1622,MSG_1622-$ ; 7298
+	dw 1640,MSG_1640-$ ; 7370
+	dw 1641,MSG_1641-$ ; 7412
+	dw 1660,MSG_1660-$ ; 7540
+	dw 1680,MSG_1680-$ ; 7607
+	dw 1700,MSG_1700-$ ; 7641
+	dw 1720,MSG_1720-$ ; 7815
+	dw 1740,MSG_1740-$ ; 7894
+	dw 1741,MSG_1741-$ ; 7982
+	dw 1760,MSG_1760-$ ; 8093
+	dw 1780,MSG_1780-$ ; 8166
+;$M_ID_3_143:
+$M_ID_3_163: ; 17/06/2023
+	dw 1800,MSG_1800-$ ; 8270
+	dw 1801,MSG_1801-$ ; 8344
+	dw 1820,MSG_1820-$ ; 8428
+	dw 1821,MSG_1821-$ ; 8496
+	dw 1840,MSG_1840-$ ; 8631
+	dw 1860,MSG_1860-$ ; 8702
+	dw 1861,MSG_1861-$ ; 8789
+	dw 1862,MSG_1862-$ ; 8856
+	dw 1863,MSG_1863-$ ; 8978
+	dw 1864,MSG_1864-$ ; 9137
+	dw 1865,MSG_1865-$ ; 9236
+	dw 1866,MSG_1866-$ ; 9339
+	dw 1880,MSG_1880-$ ; 9439
+	dw 1881,MSG_1881-$ ; 9555
+	dw 1882,MSG_1882-$ ; 9677
+	dw 1883,MSG_1883-$ ; 9760
+	dw 1900,MSG_1900-$ ; 9919
+	dw 1920,MSG_1920-$ ; 9939
+	dw 1921,MSG_1921-$ ; 9983
+;$M_ID_3_162:
+$M_ID_3_182: ; 17/06/2023
+	dw 1922,MSG_1922-$ ; 9285
+	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
+	dw 1923,MSG_1923-$ ; 10316
+	dw 1924,MSG_1924-$ ; 10446
+	dw 1925,MSG_1925-$ ; 10570
+	dw 1926,MSG_1926-$ ; 10698
+$M_ID_3_187:	; 17/06/2023
+	dw 1927			; Message Number = 1927
+	dw MSG_1927-$	; 10782	; Message offset from message number
+				; (Msg addr: 6C1Ch+2A1Eh = TRANGROUP:963Ah)
 
 ; ---------------------------------------------------------------------------
 ; Class 3 messages
@@ -38218,6 +38753,9 @@ $M_ID_3_162:
 	
 	; 14/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:5CD0h
+
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:6C20h
 
 MSG_1020:	; COMMON4
 	db 15	; (MSG_1015-MSG_1020)-1
@@ -38374,6 +38912,8 @@ MSG_1054:
 	db 'Cannot do binary reads from a device',0Dh,0Ah
 
 	; (MSDOS 5.0 COMMAND.COM - TRANGROUP:6205h)
+	; 17/06/2023
+	; (MSDOS 6.22 COMMAND.COM - TRANGROUP:7155h)
 MSG_1055:
 	db 13
 	db 'BREAK is %1',0Dh,0Ah
@@ -38420,15 +38960,23 @@ MSG_1070:	; CRLF
 MSG_1071:
 	db 2
 	db '%1'
+	; 17/06/2023 - Retro DOS 4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:71C5h
 MSG_1072:
-	db 8
-	db 'mm-dd-yy'
+	;db 8
+	;db 'mm-dd-yy'
+	db 9
+	db 'mm-dd-yy',0
 MSG_1073:
-	db 8
-	db 'dd-mm-yy'
+	;db 8
+	;db 'dd-mm-yy'
+	db 9
+	db 'dd-mm-yy',0
 MSG_1074:
-	db 8
-	db 'yy-mm-dd'
+	;db 8
+	;db 'yy-mm-dd'
+	db 9
+	db 'yy-mm-dd',0
 MSG_1075:
 	db 5
 	db '%1 %2'
@@ -38450,6 +38998,15 @@ MSG_1080:
 MSG_1081:
 	db 42
 	db '(Error occurred in environment variable)',0Dh,0Ah
+	;
+	; 17/06/2023 - Retro DOS 4.2 COMMAND.COM
+MSG_1082:
+        db 7
+	db ' [Y/N]?'
+MSG_1083:
+	db 2
+	db 'YN'
+	;
 MSG_1084:
 	db 15
 	db '(continuing %1)'
@@ -38475,10 +39032,44 @@ MSG_1096:
 	db 48
 	db 'Cannot open specified country information file',0Dh,0Ah
 
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:7320h
+MSG_1097:
+	db 28
+	db 'LoadHigh: Invalid argument',0Dh,0Ah
+MSG_1098:
+	db 28
+	db 'Required parameter missing',0Dh,0Ah
+MSG_1099:
+	db 21
+	db 'Unrecognized switch',0Dh,0Ah
+MSG_1100:
+	db 37
+	db 'A bad UMB number has been specified',0Dh,0Ah
+MSG_1101:
+	db 14
+	db '  %1.%2 to 1.0'
+MSG_1102:
+	db 57
+	db '                 %1.%2 to 1.0 average compression ratio',0Dh,0Ah
+MSG_1103:
+	db 26
+	db 'Overwrite %1 (Yes/No/All)?'
+MSG_1104:
+	db 3
+_Y_es:	db 'Y'
+_N_o:	db 'N'
+_A_ll:	db 'A'
+	; (MSDOS 6.22 COMMAND.COM - TRANGROUP:73FEh)
+MSG_1105:
+	db 4
+	db '    '
+	
 	; (MSDOS 5.0 COMMAND.COM - TRANGROUP:63C2h)
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:7403h
 MSG_1200:
 	db 0	; /? unimplemented
-	; (MSDOS 5.0 COMMAND.COM - TRANGROUP:63C3h)
+	; (MSDOS 6.22 COMMAND.COM - TRANGROUP:7404h)
 MSG_1300:
 	db 134
 	db 'Sets or clears extended CTRL+C checking.',0Dh,0Ah
@@ -38522,11 +39113,19 @@ MSG_1360:
 	db 0Dh,0Ah
 	db 'CLS',0Dh,0Ah
 MSG_1400:
-	db 145
+	;db 145
+	;db 'Copies one or more files to another location.',0Dh,0Ah
+	;db 0Dh,0Ah
+	;db 'COPY [/A | /B] source [/A | /B] [+ source [/A | /B] [+ ...]] [destination',0Dh,0Ah
+	;db '  [/A | /B]] [/V]',0Dh,0Ah
+	;db 0Dh,0Ah
+	
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; (MSDOS 6.22 COMMAND.COM - TRANGROUP:76A9h)
 	db 'Copies one or more files to another location.',0Dh,0Ah
 	db 0Dh,0Ah
 	db 'COPY [/A | /B] source [/A | /B] [+ source [/A | /B] [+ ...]] [destination',0Dh,0Ah
-	db '  [/A | /B]] [/V]',0Dh,0Ah
+	db '  [/A | /B]] [/V] [/Y | /-Y]',0Dh,0Ah
 	db 0Dh,0Ah
 MSG_1401:
 	db 104
@@ -38537,10 +39136,29 @@ MSG_1402:
 	db '  /B           Indicates a binary file.',0Dh,0Ah
 	db '  destination  Specifies the directory and/or filename for the new file(s).',0Dh,0Ah
 MSG_1403:	
-	db 65
+	;db 65  ;  MSDOS 5.0
+	; 17/06/2023
+	db 63 ; MSDOS 6.22	
 	db '  /V           Verifies that new files are written correctly.',0Dh,0Ah
-	db 0Dh,0Ah
+	;db 0Dh,0Ah ; MSDOS 5.0
+
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:7866h
 MSG_1404:
+        db 116
+	db '  /Y           Suppresses prompting to confirm you want to overwrite an',0Dh,0Ah
+	db '               existing destination file.',0Dh,0Ah
+MSG_1405:
+	db 114
+	db '  /-Y          Causes prompting to confirm you want to overwrite an',0Dh,0Ah
+	db '               existing destination file.',0Dh,0Ah
+	db 0Dh,0Ah
+MSG_1406:
+	db 66
+	db 'The switch /Y may be preset in the COPYCMD environment variable.',0Dh,0Ah
+
+;MSG_1404: ; MSDOS 5.0 (TRANGROUP:681Ch)
+MSG_1407:  ; MSDOS 6.22	(TRANGROUP:7991h)
 	db 135
 	db 'To append files, specify a single file for destination, but multiple files',0Dh,0Ah
 	db 'for source (using wildcards or file1+file2+file3 format).',0Dh,0Ah
@@ -38552,10 +39170,20 @@ MSG_1420:
 	db 0Dh,0Ah
 	db '  device   The terminal device you want to use, such as COM1.',0Dh,0Ah
 MSG_1440:
-	db 45
+	;db 45
+	;db 'Displays or sets the date.',0Dh,0Ah
+	;db 0Dh,0Ah
+	;db 'DATE [date]',0Dh,0Ah
+	;db 0Dh,0Ah
+
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; (MSDOS 6.22 COMMAND.COM - TRANGROUP:7AA4h)
+	db 93
 	db 'Displays or sets the date.',0Dh,0Ah
 	db 0Dh,0Ah
-	db 'DATE [date]',0Dh,0Ah
+	db 'DATE [mm-dd-yy]',0Dh,0Ah
+	db 0Dh,0Ah
+	db '  mm-dd-yy    Sets the date you specify.',0Dh,0Ah
 	db 0Dh,0Ah
 MSG_1441:
 	db 131
@@ -38575,6 +39203,10 @@ MSG_1461:
 MSG_1462:
 	db 79
 	db '  /P                      Prompts for confirmation before deleting each file.',0Dh,0Ah
+
+; 17/06/2023
+%if 0	; MSDOS 5.0 DIR Help messages 
+
 MSG_1480:
 	db 162
 	db 'Displays a list of files and subdirectories in a directory.',0Dh,0Ah
@@ -38616,6 +39248,67 @@ MSG_1488:
 	db 146
 	db 'Switches may be preset in the DIRCMD environment variable.  Override',0Dh,0Ah
 	db 'preset switches by prefixing any switch with - (hyphen)--for example, /-W.',0Dh,0Ah
+%endif
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:7CBFh
+MSG_1480:
+	db 137
+	db 'Displays a list of files and subdirectories in a directory.',0Dh,0Ah
+	db 0Dh,0Ah
+	db 'DIR [drive:][path][filename] [/P] [/W] [/A[[:]attribs]] [/O[[:]sortord]]',0Dh,0Ah
+MSG_1481:
+	db 30
+	db '    [/S] [/B] [/L] [/C[H]]',0Dh,0Ah
+	db 0Dh,0Ah
+MSG_1482:
+	db 80
+	db '  [drive:][path][filename]   Specifies drive, directory, and/or files to list.',0Dh,0Ah
+MSG_1483:
+	db 89
+	db '  /P      Pauses after each screenful of information.',0Dh,0Ah
+	db '  /W      Uses wide list format.',0Dh,0Ah
+MSG_1484:
+	db 126
+	db '  /A      Displays files with specified attributes.',0Dh,0Ah
+	db '  attribs   D  Directories   R  Read-only files         H  Hidden files',0Dh,0Ah
+MSG_1485:
+	db 123
+	db '            S  System files  A  Files ready to archive  -  Prefix meaning "not"',0Dh,0Ah
+	db '  /O      List by files in sorted order.',0Dh,0Ah
+MSG_1486:
+	db 149
+	db '  sortord   N  By name (alphabetic)       S  By size (smallest first)',0Dh,0Ah
+	db '            E  By extension (alphabetic)  D  By date & time (earliest first)',0Dh,0Ah
+MSG_1487:
+	db 70
+	db '            G  Group directories first    -  Prefix to reverse order',0Dh,0Ah
+MSG_1488:
+	db 127
+	db '            C  By compression ratio (smallest first)',0Dh,0Ah
+	db '  /S      Displays files in specified directory and all subdirectories.',0Dh,0Ah
+MSG_1489:
+	db 65
+	db '  /B      Uses bare format (no heading information or summary).',0Dh,0Ah
+MSG_1490:
+	db 27
+	db '  /L      Uses lowercase.',0Dh,0Ah
+MSG_1491:
+	db 82
+	db '  /C[H]   Displays file compression ratio; /CH uses host allocation unit size.',0Dh,0Ah
+	db 0Dh,0Ah
+MSG_1492:
+	db 146
+	db 'Switches may be preset in the DIRCMD environment variable.  Override',0Dh,0Ah
+	db 'preset switches by prefixing any switch with - (hyphen)--for example, /-W.',0Dh,0Ah
+MSG_1493:
+	db 22
+	db '    [/S] [/B] [/L]',0Dh,0Ah
+	db 0Dh,0Ah
+MSG_1494:
+	db 29
+	db '  /L      Uses lowercase.',0Dh,0Ah
+	db 0Dh,0Ah
+
 MSG_1500:
 	db 62
 	db 'Quits the COMMAND.COM program (command interpreter).',0Dh,0Ah
@@ -38698,8 +39391,16 @@ MSG_1601:
 	db 'REN [drive:][path]filename1 filename2',0Dh,0Ah
 	db 0Dh,0Ah
 MSG_1602:
-	db 77
+	;db 77
+	;db 'Note that you cannot specify a new drive or path for your destination file.',0Dh,0Ah
+
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:8697h
+MSG_1602:
+	db 160
 	db 'Note that you cannot specify a new drive or path for your destination file.',0Dh,0Ah
+	db 0Dh,0Ah
+	db 'Use MOVE to rename a directory, or to move files from one directory to another.',0Dh,0Ah
 MSG_1620:
 	db 87
 	db 'Displays, sets, or removes MS-DOS environment variables.',0Dh,0Ah
@@ -38715,8 +39416,16 @@ MSG_1622:
 	db 75
 	db 'Type SET without parameters to display the current environment variables.',0Dh,0Ah
 MSG_1640:
-	db 52
-	db 'Displays or sets the system time.',0Dh,0Ah
+	;db 52
+	;db 'Displays or sets the system time.',0Dh,0Ah
+	;db 0Dh,0Ah
+	;db 'TIME [time]',0Dh,0Ah
+	;db 0Dh,0Ah
+
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; (MSDOS 6.22 COMMAND.COM - TRANGROUP:885Eh)
+	db 45
+	db 'Displays or sets the time.',0Dh,0Ah
 	db 0Dh,0Ah
 	db 'TIME [time]',0Dh,0Ah
 	db 0Dh,0Ah
@@ -38855,19 +39564,67 @@ MSG_1920:
 	db 'Loads a program into the upper memory area.',0Dh,0Ah
 	db 0Dh,0Ah
 MSG_1921:
-	db 88
+	;db 88
+	;db 'LOADHIGH [drive:][path]filename [parameters]',0Dh,0Ah
+	;db 'LH [drive:][path]filename [parameters]',0Dh,0Ah
+	;db 0Dh,0Ah
+
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:9303h
+	db 157
 	db 'LOADHIGH [drive:][path]filename [parameters]',0Dh,0Ah
-	db 'LH [drive:][path]filename [parameters]',0Dh,0Ah
+	db 'LOADHIGH [/L:region1[,minsize1][;region2[,minsize2]...] [/S]]',0Dh,0Ah
+	db '         [drive:][path]filename [parameters]',0Dh,0Ah
 	db 0Dh,0Ah
+	
+	; (MSDOS 5.0 COMMAND.COM - TRANGROUP:8111h)
+;MSG_1922: 	; MSDOS 5.0 COMMAND.COM
+	;db 113
+	;db '  parameters   Specifies any command-line information required by the',0Dh,0Ah
+	;db '               program you want to load.',0Dh,0Ah
+
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:93A1h
 MSG_1922:
-	db 113
-	db '  parameters   Specifies any command-line information required by the',0Dh,0Ah
-	db '               program you want to load.',0Dh,0Ah
+	db 182
+	db '/L:region1[,minsize1][;region2[,minsize2]]...',0Dh,0Ah
+	db '            Specifies the region(s) of memory into which to load',0Dh,0Ah
+	db '            the program.  Region1 specifies the number of the first',0Dh,0Ah
+MSG_1923:
+	db 133
+	db '            memory region; minsize1 specifies the minimum size, if',0Dh,0Ah
+	db '            any, for region1.  Region2 and minsize2 specify the',0Dh
+	db 0Ah
+MSG_1924:
+	db 127
+	db '            number and minimum size of the second region, if any.',0Dh,0Ah
+	db '            You can specify as many regions as you want.',0Dh,0Ah
+	db 0Dh,0Ah
+MSG_1925:
+	db 131
+	db '/S          Shrinks a UMB to its minimum size while the program',0Dh,0Ah
+	db '            is loading.  /S is normally used only by MemMaker.',0Dh,0Ah
+	db 0Dh,0Ah
+MSG_1926:
+	db 87
+	db '[drive:][path]filename',0Dh,0Ah
+	db '            Specifies the location and name of the program.',0Dh,0Ah
+	db 0Dh,0Ah
+
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:963Ah
+MSG_1927:
+	db 90
+	db 'parameters  Specifies any command-line information required by',0Dh,0Ah
+	db '            the program.',0Dh,0Ah
 
 ; ---------------------------------------------------------------------------
 
 	; 15/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:8183h
+
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:9695h
 
 ; --------------- S U B R O U T I N E ---------------------------------------
 
@@ -38877,10 +39634,15 @@ $M_CLS_3:
 	lea	di,$M_CLASS_3_STRUC ; LEA DI,$M_CLASS_3_STRUC
 	; 15/04/2023
 	;add	cx,10053	; ADD CX,$-$M_CLASS_3_STRUC ; 8189h-5A44h
+	; 17/06/2023
+	add	cx,11627	; ADD CX,$-$M_CLASS_3_STRUC ; 969Bh-6930h
 	retn
 
 	; 15/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:818Eh
+
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:96A0h
 
 ; ---------------------------------------------------------------------------
 ; Class 1 messages
@@ -38888,7 +39650,9 @@ $M_CLS_3:
 	
 $M_CLASS_1_STRUC:
 	db 1			; $M_CLASS_ID
-	dw 5			; EXPECTED_VERSION (COMMAND.COM version)
+	;dw 5			; EXPECTED_VERSION (COMMAND.COM version)
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	dw 1606h  ; MSDOS 6.22 COMMAND.COM
 	db 4			; Class_1_MessageCount
 $M_ID_1_1:
 	dw 2			; Message Number = 2
@@ -38922,6 +39686,9 @@ EXTEND999:
 	; 15/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:81E6h
 
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:96F8h
+
 ; --------------- S U B R O U T I N E ---------------------------------------
 $M_MSGSERV_1:
 	push	cs
@@ -38929,10 +39696,15 @@ $M_MSGSERV_1:
 	lea	di,$M_CLASS_1_STRUC
 	; 15/04/2023
 	;add	cx,94		; $-$M_CLASS_1_STRUC ; 81ECh-818Eh
+			; 17/06/2023 MSDOS 6.22 COMMAND.COM
+				; 96FEh-96A0h = 5Eh = 94
 	retn
 
 	; 15/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:81F0h
+
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:9702h
 
 ; ---------------------------------------------------------------------------
 ; Class 2 messages
@@ -38940,7 +39712,9 @@ $M_MSGSERV_1:
 	
 $M_CLASS_2_STRUC:
 	db 2			; $M_CLASS_ID
-	dw 5			; EXPECTED_VERSION (COMMAND.COM version)
+	;dw 5			; EXPECTED_VERSION (COMMAND.COM version)
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	dw 1606h  ; MSDOS 6.22 COMMAND.COM
 	db 1			; Class_2_MessageCount
 $M_ID_2_1:
 	dw 0FFFFh		; Message Number = -1
@@ -38955,21 +39729,29 @@ PARSE999:
 	; 15/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:8207h
 
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:9719h
+
 ; --------------- S U B R O U T I N E ---------------------------------------
 $M_MSGSERV_2:
 	push	cs
 	pop	es
 	lea	di,$M_CLASS_2_STRUC
 	; 15/04/2023
-	;add	cx,29	; $-$M_CLASS_2_STRUC ; 820Dh-81F0h
+	;add	cx,29		; $-$M_CLASS_2_STRUC ; 820Dh-81F0h
+			; 17/06/2023 MSDOS 6.22 COMMAND.COM
+				; 971Fh-9702h = 1Dh = 29
 	retn
 
 ;============================================================================
 ; TRANMSG.ASM, MSDOS 6.0, 1991
 ;============================================================================
 ; 15/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
 
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:8211h
+	
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:9723h
 
 ;****************************************************
 ;* TRANSIENT MESSAGE POINTERS & SUBSTITUTION BLOCKS *
@@ -39081,7 +39863,11 @@ dirmes_ptr:
 	dw	Dir_Num			;AN000;offset of arg
 	dw	0			;AN000;segment of arg
 	db	1			;AN000;first subst
-	db	0A1h ; Right_Align+Unsgn_Bin_Word
+	; MSDOS 5.0 COMMAND.COM
+	;db	0A1h ; Right_Align+Unsgn_Bin_Word
+	; 17/06/2023
+screen_f_3:
+	db	0E1h ; MSDOS 6.22 COMMAND.COM
 					;AN000;binary to decimal
 	db	9			;AN000;maximum width
 	db	9			;AN000;minimum width
@@ -39096,10 +39882,20 @@ bytmes_ptr:
 	dw	Bytes_Free		;AN000;offset of arg
 	dw	0			;AN000;segment of arg
 	db	1			;AN000;first subst
-	db	0B1h ; Right_Align+Unsgn_Bin_DWord
+	; MSDOS 5.0 COMMAND.COM
+	;db	0B1h ; Right_Align+Unsgn_Bin_DWord
+	; 17/06/2023
+screen_f_6:
+	db	0F1h
 					;AN000;long binary to decimal
-	db	28			;AN000;maximum width
-	db	28			;AN000;minimum width
+	; MSDOS 5.0 COMMAND.COM
+	;db	28			;AN000;maximum width
+	;db	28			;AN000;minimum width
+	; 17/06/2023
+screen_f_7:
+	db	32 ; MSDOS 6.22 COMMAND.COM
+	db	32
+
 	db	blank ; 20h		;AN000;pad character
 
 ;  "Invalid drive specification",13,10
@@ -39523,10 +40319,19 @@ disp_file_size_ptr:
 	dw	File_Size_Low		;AN000;offset of arg
 	dw	0			;AN000;segment of arg
 	db	1			;AN000;first subst
-	db	0B1h ; Right_Align+Unsgn_Bin_DWord
+	; MSDOS 5.0 COMMAND.COM
+	;db	0B1h ; Right_Align+Unsgn_Bin_DWord
+	; 17/06/2023
+screen_f_1:
+	db	0F1h ; MSDOS 6.22 COMMAND.COM
 					;AN000;long binary to decimal
-	db	10			;AN000;maximum width
-	db	10			;AN000;minimum width
+	; MSDOS 5.0 COMMAND.COM
+	;db	10			;AN000;maximum width
+	;db	10			;AN000;minimum width
+screen_f_2:
+	db	14 ; MSDOS 6.22 COMMAND.COM		
+	db	14
+	
 	db	blank ; 20h		;AN000;pad character
 
 ;  unformatted string output
@@ -39554,6 +40359,11 @@ tab_ptr:
 dmes_ptr:
 	dw	1068			;AN000;message number
 	db	no_subst ; 0		;AN000;number of subst
+
+	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
+space_4_ptr :
+	dw	1105 
+	db	no_subst ; 0
 
 ;  destructive back space
 dback_ptr:
@@ -39660,16 +40470,25 @@ MD_EXISTS_PTR:
 bytes_ptr:
 	dw	1079			; message number
 	db	1			; number of subst
-        db	parm_block_size ; 11	; size of sublist
-        db	0			; reserved
-        dw	FileSiz			; offset of arg
-        dw	0			; segment of arg
-        db	1			; first subst
-        db	0B1h ; Right_Align+Unsgn_Bin_DWord
+	db	parm_block_size ; 11	; size of sublist
+	db	0			; reserved
+	dw	FileSiz			; offset of arg
+	dw	0			; segment of arg
+	db	1			; first subst
+	; MSDOS 5.0 COMMAND.COM
+	;db	0B1h ; Right_Align+Unsgn_Bin_DWord
+	; 17/06/2023
+screen_f_4:
+	db	0F1h ; MSDOS 6.22 COMMAND.COM
 					; long binary to decimal
-        db	10			; maximum width
-        db	10			; minimum width
-        db	blank ; 20h		; pad character
+	; MSDOS 5.0 COMMAND.COM
+	;db	10			; maximum width
+	;db	10			; minimum width
+screen_f_5:
+	db	14 ; MSDOS 6.22 COMMAND.COM
+	db	14	
+
+	db	blank ; 20h		; pad character
 
 ;  "Total:",13,10
 total_ptr:
@@ -39680,6 +40499,15 @@ total_ptr:
 errparsenv_ptr:
 	dw	1081			; message number
 	db	no_subst ; 0		; number of subst
+
+	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
+	; (MSDOS 6.22 COMMAN.COM - TRANGROUP:996Ah)
+cox_Y_quest_ptr:
+	dw	1082
+	db	no_subst ; 0
+cox_Y_answ_ptr:
+	dw	1083
+	db	no_subst ; 0
 
 ;  "(continuing %1)",13,10
 dircont_ptr:
@@ -39741,7 +40569,8 @@ NoCntry_Ptr:
 
 ; 15/04/2023
 ; MSDOS 6.0 COMMAND.COM only !
-%if 0
+; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
+;%if 0
 
 ;* The next four errors emulate those reported by the normal parse
 ;  mechanism, with a little more accurate wording; that parser has been
@@ -39768,10 +40597,61 @@ LhInvSwt_Ptr:
 LhBadUMB_Ptr:
 	dw	1100
 	db	no_subst ; 0
-%endif		
+;%endif	
+
+	; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:99AAh
+
+DirCompRatio_Ptr:
+	dw	1101			;message number
+	db	2			;number of subst
+	db	parm_block_size ; 11	;size of sublist
+	db	0			;reserved
+	dw	Dir_CRatio_1		;offset of arg
+	dw	0			;segment of arg
+	db	1			;first subst
+	db	91h			;format
+	db	2			;maximum width
+	db	2			;minimum width
+	db	blank ; 20h		;pad character
+	db	parm_block_size  ; 11	;size of sublist
+	db	0			; reserved
+	dw	Dir_CRatio_2		;offset of arg
+	dw	0			;segment of arg
+	db	2			;second subst
+	db	11h			;format
+	db	1			;maximum width
+	db	1			;minimum width
+	db	blank ; 20h		;pad character
+
+AveCompRatio_Ptr:
+	dw	1102			;message number
+	db	2			;number of subst
+	db	parm_block_size ; 11	;size of sublist
+	db	0			;reserved
+	dw	Dir_CRatio_1		;offset of arg
+	dw	0			;segment of arg
+	db	1			;first subst
+	db	91h			;format
+	db	2			;maximum width
+	db	2			;minimum width
+	db	blank ; 20h		;pad character
+	db	parm_block_size  ; 11	;size of sublist
+	db	0			; reserved
+	dw	Dir_CRatio_2		;offset of arg
+	dw	0			;segment of arg
+	db	2			;second subst
+	db	11h			;format
+	db	1			;maximum width
+	db	1			;minimum width
+	db	blank ; 20h		;pad character
 
 	; 15/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:8483h
+
+	; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:99DCh
+
 ; ---------------------------------------------------------------------------
 
 PATH_TEXT:
@@ -39787,6 +40667,7 @@ DirEnvVar:
 ; TDATA.ASM, MSDOS 6.0, 1991
 ;============================================================================
 ; 15/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
 
 	; 15/04/2023
 	db	0
@@ -39794,11 +40675,18 @@ align 2
 
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:849Eh
 ; ---------------------------------------------------------------------------
-	db 0
+	; 18/06/2023
+	;db	0
+
 ; Lists of help message numbers for internal commands and /?
 
+	; 18/06/2023
 ;;NoHelpMsgs:
-	dw	1200,0		;M014
+	;dw	1200,0		;M014
+
+	; 18/06/2023
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:99F7h
+
 BreakHelpMsgs:
 	dw	1300,0
 ChcpHelpMsgs:
@@ -39808,7 +40696,9 @@ CdHelpMsgs:
 ClsHelpMsgs:
 	dw	1360,0
 CopyHelpMsgs:
-	dw	1400,1401,1402,1403,1404,0
+	;dw	1400,1401,1402,1403,1404,0
+	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
+	dw	1400,1401,1402,1403,1404,1405,1406,1407,0
 CttyHelpMsgs:
 	dw	1420,0
 DateHelpMsgs:
@@ -39817,8 +40707,9 @@ DelHelpMsgs:
 	dw	1460,1461,1462,0
 DirHelpMsgs:
 	dw	1480,1481,1482,1483,1484,1485,1486,1487,1488
+	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM 
 	; MSDOS 6.0 COMMAND.COM
-	;dw	1489,1490,1491,1492
+	dw	1489,1490,1491,1492
 	dw	0
 ExitHelpMsgs:
 	dw	1500,0
@@ -39864,13 +40755,14 @@ TruenameHelpMsgs:
 	 dw	1900,0		;M014
 LoadhighHelpMsgs:
 	dw	1920,1921,1922
+	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM 
 	; MSDOS 6.0 COMMAND.COM
-	;dw	1923,1924,1925,1926,1927 ;M014
+	dw	1923,1924,1925,1926,1927 ;M014
 	dw	0
 
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:8578h
 CLSSTRING:
-	db	4,01Bh,"[2J"		; ANSI Clear screen
+	db	4,1Bh,"[2J"		; ANSI Clear screen
 
 PROMPT_TABLE:
 	db	"B"
@@ -40070,7 +40962,11 @@ exeext:	db	".EXE"
 batext:	db	".BAT"
 
 switch_list:
-	db	"?VBAPW"		; flags we can recognize
+	; MSDOS 5.0 (& 6.0) COMMAND.COM
+	;db	"?VBAPW"		; flags we can recognize
+	; 18/06/2023
+	; MSDOS 6.22 COMMAND.COM
+	db "-Y?VBAPW"
 
 AttrLtrs:
 	db	"RHSvDA"		; attribute letters for DIR
@@ -40082,9 +40978,11 @@ AttrLtrs:
 ;	being matched (by an uppercase comparison).
 
 OrderLtrs:
-	db	"NEDSG"			; sort order letters for DIR
+	; MSDOS 5.0
+	;db	"NEDSG"			; sort order letters for DIR
+	; 18/06/2023
 	; MSDOS 6.0 COMMAND.COM
-	;db	"NEDSGC"		; sort order letters for DIR
+	db	"NEDSGC"		; sort order letters for DIR
 
 ;	Sort order letters stand for file name, extension,
 ;	date/time, size, grouped (directory files before others),
@@ -40387,11 +41285,13 @@ DIR_SW_VALUED:
 	dw	PARSE1_OUTPUT		; result buffer
 	dw	NULL_VALUE_LIST		; don't validate value
 
-	db	2
+	; 18/06/2023
+	;db	2
 
 ; MSDOS 6.0 COMMAND.COM
 ;ifdef DBLSPACE_HOOKS
-;	db	3		; 3 'synonyms'
+	; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
+	db	3		; 3 'synonyms'
 ;else
 ;	db	2		; 2 'synonyms'
 ;endif
@@ -40403,7 +41303,9 @@ DIR_SW_O:
 
 ; MSDOS 6.0 COMMAND.COM
 ;ifdef DBLSPACE_HOOKS
-;DIR_SW_C	db	"/C",0
+	; 18/06/2023
+DIR_SW_C:
+	db	"/C",0
 ;endif
 
 DIR_SW_UNVALUED:
@@ -40413,13 +41315,17 @@ DIR_SW_UNVALUED:
 	dw	NO_VALUES
 
 	; 15/04/2023 - Retro DOS v4.0 COMMAND.COM
-	;db	12
+	;;db	12
+	
+	; 18/06/2023
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:8839h
-	db	14		; 14 'synonyms' !?
+	;db	14		; 14 'synonyms' !?
 
 ; MSDOS 6.0 COMMAND.COM
 ;ifdef DBLSPACE_HOOKS
-;	db	13		; 13 'synonyms'
+	; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:9DB0h
+	db	13		; 13 'synonyms'
 ;else
 ;	db	12		; 12 'synonyms'
 ;endif
@@ -40448,24 +41354,29 @@ DIR_SW_L:
 	db	"/L",0		;M010
 DIR_SW_NEG_L:
 	db	"/-L",0 	;M010
+
+	; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
 ; MSDOS 6.0 COMMAND.COM (DBLSPACE_HOOKS)
-;DIR_SW_NEG_C:
-;	db	"/-C",0
+DIR_SW_NEG_C:
+	db	"/-C",0
 
 ; Here's a list of pointers to DIR's switch synonyms, for easier
 ; identification. Order is critical - DIR routines rely on the
 ; specific order in this list. Negated options appear at odd 
 ; positions in the list, and simple on/off options appear first.
 
-Dir_Sw_Ptrs:
-	; MSDOS 5.0 COMMAND.COM
-	dw	DIR_SW_NEG_W 
-Dir_Sw_Ptrs_2:			; list of ptrs to switch synonyms
-	; MSDOS 6.0 COMMAND.COM
-	;dw	DIR_SW_NEG_C
-	;dw	DIR_SW_C
-	;dw	DIR_SW_NEG_W
-	
+	; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:9DE0h
+Dir_Sw_Ptrs:			; list of ptrs to switch synonyms
+	; 18/06/2023
+	; MSDOS 6.0 COMMAND.COM ; *
+	dw	DIR_SW_NEG_C	; * 
+Dir_Sw_Ptrs_2:
+	dw	DIR_SW_C	; *
+	; MSDOS 5.0 COMMAND.COM	
+;Dir_Sw_Ptrs:
+	dw	DIR_SW_NEG_W
+;Dir_Sw_Ptrs_2:
 	dw	DIR_SW_W
 	dw	DIR_SW_NEG_P
 	dw	DIR_SW_P
@@ -40561,18 +41472,32 @@ LoadHi_Parms:
 TempVarName:
 	db	"TEMP=",0
 
-	; 16/04/2023
-TRANDATAEND:		; TRANGROUP:88C2h
+	; 16/04/2023 - Retro DOS v4.0 (MSDOS 5.0) COMMAND.COM
+;TRANDATAEND:		; TRANGROUP:88C2h
+
+	; 18/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
+copycmd:
+	db 'COPYCMD='
+sCVFRoot:
+	db '\DBLSPACE.'
+
+	; 18/06/2023
+	; MSDOS 6.22 COMMAND.COM
+TRANDATAEND:		; TRANGROUP:9E53h
 
 ;============================================================================
 ; PSDATA.INC, MSDOS 6.0, 1991
 ;============================================================================
 ; 15/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
 
 ; 18/04/2023
 TRANSPACESTART:
 
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:88C2h
+	
+	; 18/06/2023
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:9E53h
 
 ;********************** Local Data *************************************
 
@@ -40653,8 +41578,12 @@ $P_err_flag:
 ; MSGSERV.ASM, MSDOS 6.0, 1991
 ;============================================================================
 ; 15/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
 
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:899Eh
+
+	; 18/06/2023
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:9F2Fh
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -40671,6 +41600,7 @@ $M_RT:
 ; COPYRIGHT.INC, MSDOS 6.0, 1993
 ;============================================================================
 ; 15/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
 
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:8A2Bh
 ; ---------------------------------------------------------------------------
@@ -40680,19 +41610,27 @@ $M_RT:
 ;;9/21 - Added international translations, language passed through COUNTRY macro
 ;;B49,50 - changed version to 6 and copyright to 1993
 ; ---------------------------------------------------------------------------
-
-;;ifdef USA
-;MsDosVer6_CCopy:
-;	db	"MS DOS Version 6 (C)Copyright 1981-1993 Microsoft Corp "
-;	db	"Licensed Material - Property of Microsoft "
-;	db	"All rights reserved "
-;endif
-
-; 15/04/2023
-MsDosVer5_CCopy:
-	db	"MS DOS Version 5.00 (C)Copyright 1981-1991 Microsoft Corp "
+	
+	; 18/06/2023
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:9FBCh
+;ifdef USA
+MsDosVer6_CCopy:
+	; MSDOS 6.0
+	;db	"MS DOS Version 6 (C)Copyright 1981-1993 Microsoft Corp "
+	; 18/06/2023
+	; MSDOS 6.22
+	db	"MS DOS Version 6 (C)Copyright 1981-1994 Microsoft Corp "
 	db	"Licensed Material - Property of Microsoft "
 	db	"All rights reserved "
+;endif
+
+; ---------------------------------------------------------------------------
+; 18/06/2023
+; 15/04/2023
+;MsDosVer5_CCopy:
+	;db	"MS DOS Version 5.00 (C)Copyright 1981-1991 Microsoft Corp "
+	;db	"Licensed Material - Property of Microsoft "
+	;db	"All rights reserved "
 ; ---------------------------------------------------------------------------
 ; 15/04/2023
 	; 16/04/2023 - 21/04/2023
@@ -40703,10 +41641,19 @@ MsDosVer5_CCopy:
 	;db	'by Erdogan Tan - 05/05/2023'
 	;db	0
 
+	; 18/06/2023
+	;db 	0
+	;db	0Dh,0Ah
+	;db	'Retro DOS v4.2 COMMAND.COM '
+	;db	0
+	;db	'by Erdogan Tan - 18/6/2023'
+	;db	0
+
 ;============================================================================
 ; TPRINTF.ASM, MSDOS 6.0, 1991
 ;============================================================================
 ; 15/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
 
 PRINTF_HANDLE:
 	dw	0		;AC000;
@@ -40715,6 +41662,7 @@ PRINTF_HANDLE:
 ; TSPC.ASM, MSDOS 6.0, 1991
 ;============================================================================
 ; 15/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
 
 ;TITLE	COMMAND Transient Uninitialized DATA
 
@@ -40731,6 +41679,9 @@ PRINTF_HANDLE:
 ; ---------------------------------------------------------------------------
 
 	; MSDOS 5.0 COMMAND.COM (1991) Transient portion offset 8AA5h
+
+	; 18/06/2023
+	; MSDOS 6.22 COMMAND.COM (1994) Transient portion offset 0A033h
 
 SRCXNAME: times	DIRSTRLEN+20 db 0 ; 87	; buffer for name translate
 TRGXNAME: times	DIRSTRLEN+20 db 0 ; 87	; buffer for name translate
@@ -40781,6 +41732,13 @@ DestClosed:
 SPECDRV:
 	db 0
 BYTCNT:	dw 0			; Size of buffer between RES and TRANS
+
+; 18/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
+;ifdef DBLSPACE_HOOKS
+savBytCnt: ; MSDOS 6.0
+	dw 0
+;endif
+	
 NXTADD:	dw 0
 FRSTSRCH:
 	db 0
@@ -40805,7 +41763,56 @@ FileCntTotal:
 FileSizTotal:
 	dd 0			; total file size u.b. DIR
 
+	; 18/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM (1994) Transient portion offset 0A33Fh
+	; MSDOS 6.0
+;ifdef DBLSPACE_HOOKS
+ccluUsed:
+	dw 0			; count of DOS clusters used
+ccluUsedDir:
+	dw 0			
+ccluUsedTotal:
+	dw 0			
+csecUsed:
+	dd 0			; count of comp sectors used
+csecUsedDir:
+	dd 0			
+csecUsedTotal:
+	dd 0			
+
+; Note:  keep FileCntTotal through csecUsedTotal together!
+
+fhCVF:
+	dw 0			; Compressed Volume File handle
+szCVF:
+	times	16 db 0		; "X:\\12345678.123\0"
+MDBPB:
+	;MD_BPB	<>		; Extended MagicDrv BPB
+	times	64 db 0
+csecPerCluster:
+	db 0			; sectors/cluster for ratio calc
+fUseHostSize:
+	db 0			; NZ if using host cluster size
+cFATEntries:
+	dw 0			; # FAT entries in buffers
+entInBuf:
+	dw 0			; 1st entry # in FAT buffers
+segFATBuf:
+	dw 0			; seg of DOS & MD FAT buffers
+pbufDOSFAT:
+	dw 0			; off of DOS FAT buffer
+pbufMDFAT:
+	dw 0			; off of MD FAT buffer
+bufDOSFAT:
+	;times (cRES_FAT_ENTRIES*2) db 0
+	times 64 db 0	 	; small DOS FAT buffer
+bufMDFAT:
+	;times (cRES_FAT_ENTRIES*4) db 0
+	times 128 db 0		; small MD FAT buffer
+;endif
+
 	; MSDOS 5.0 COMMAND.COM (1991) Transient portion offset 8DAFh
+	; MSDOS 6.22 COMMAND.COM (1994) Transient portion offset 0A46Fh
 CHARBUF:
 	times	80 db 0		;line byte character buffer for xenix write
 DESTFCB2:
@@ -40831,6 +41838,9 @@ DIRBUF_FSIZ_L  equ DIRBUF+36  ; word
 DIRBUF_FSIZ_H  equ DIRBUF+38  ; word
 
 	; 16/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+
+	; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:0A584h
 SDIRBUF:
 	times 12 db 0	
 _Bits:
@@ -40867,6 +41877,16 @@ cpyflag:
 	db 0
 Dir_Num:
 	dw 0
+
+	; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.0
+;ifdef DBLSPACE_HOOKS
+Dir_CRatio_1:
+	db 0
+Dir_CRatio_2:
+	db 0
+;endif
+
 Bytes_Free:
 	dd 0
 
@@ -40946,6 +41966,19 @@ OFilePtr_Lo:
 OFilePtr_Hi:
 	dw 0			; 1st source is also destination
 OCtrlZ:	db 0			; original ctrl+Z for COPY when ditto
+
+	; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:0A76Bh
+cox_sublist_buff:
+	times 11 db 0
+cox_y_override:
+	db 0
+cox_dest_file:
+	db 0
+cox_src_file:
+	db 0
+
+	; (MSDOS 6.22 COMMAND.COM - TRANGROUP:0A779h)
 BATHAND:
 	dw 0			; Batch handle
 STARTEL:
@@ -40956,6 +41989,8 @@ ELPOS:	db 0
 ; 28/03/2023 - Retro DOS v4.0 COMMAND.COM
 ; MSDOS 5.0
 SKPDEL:
+	; 18/06/2023
+	db 0	; MSDOS 6.22 (& MSDOS 5.0)  	
 SOURCE:	times 11 db 0
 
 ext_entered:
@@ -41014,6 +42049,9 @@ KPARSE:	db 0	; 3/3/KK
 ;comptr		dw	?		; ptr into combuf
 
 	; MSDOS 5.0 COMMAND.COM (1991) Transient portion offset 9105h
+
+	; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM (1994) Transient portion offset 0A7D5h
 ARG:
 ARG_ARGV:
 ARGV0_ARGPOINTER:
@@ -41051,6 +42089,8 @@ ARG_ARGFORCOMBUF:
 	times 128 db 0  ; times COMBUFLEN db 0 
 
 	; MSDOS 5.0 COMMAND.COM (1991) Transient portion offset 9649h
+	; 18/06/2023
+	; MSDOS 6.22 COMMAND.COM (1994) Transient portion offset 0AD19h
 ARGBUF_PTR:
 	dw 0			; index for argv[].argpointer
 TPBUF:	times 128 db 0		; temporary buffer
@@ -41071,6 +42111,9 @@ COMPTR:	dw 0			; ptr into combuf
 FINDBUFLEN equ FIND_BUF.size ; 43
 
 	; MSDOS 5.0 COMMAND.COM (1991) Transient portion offset 96CFh
+
+	; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:0AD9Fh
 
 FBUF:	times FINDBUFLEN db 0	; times 43 db 0
 FBUF_PNAME equ FBUF+30		; packed name, 13 bytes
@@ -41106,12 +42149,22 @@ search_error:
 
 	; MSDOS 5.0 COMMAND.COM (1991) Transient portion offset 9751h
 
+	; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:0AE21h
+
 IF_NOT_COUNT:
 	dw 0
 zflag:	db 0
+
+align 2	; 18/06/2023
+
 	times 256 db 0 
+
 	; 16/04/2023
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:9854h
+
+	; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:0AF24h
 STACK:
 
 ;INTERNATVARS	internat_block <>
@@ -41249,8 +42302,14 @@ DRIVE_NUMBER:
 
 	; 18/04/2023
 	; 16/04/2023
-;TRANSPACEEND: ; 98C5h ; End of MSDOS 5.0 COMMAND.COM (1991) Transient portion
+;TRANSPACEEND:	; 98C5h
+		; End of MSDOS 5.0 COMMAND.COM (1991) Transient portion
+
+	; 18/06/2023
+;TRANSPACEEND:	; 0AF95h 
+		; End of MSDOS 6.22 COMMAND.COM (1994) Transient portion
 
 ; ----------------------------------------------------------------------------
+; 18/06/2023
 ; 20/04/2023
 TRANSPACEEND equ ($-TRANSIENTSTART)	; Transient portion size
