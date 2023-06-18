@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 6.22 Command Interpreter) - RETRO DOS v4.2 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 18/06/2023 (v6.22) ((Previous: 05/05/2023 COMMAND.COM v5.0))
+; Last Update: 19/06/2023 (v6.22) ((Previous: 05/05/2023 COMMAND.COM v5.0))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
 ; ----------------------------------------------------------------------------
@@ -8634,8 +8634,8 @@ cXMMexit:
 	;db "25/9/2018 ETAN"
 	; 30/01/2023
 	;db "30/1/2023 ETAN"	
-	; 18/06/2023
-	db "18/6/2023 ETAN"	
+	; 19/06/2023
+	db "19/6/2023 ETAN"	
 	db 0
 
 ; 30/01/2023
@@ -39122,6 +39122,7 @@ MSG_1400:
 	
 	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; (MSDOS 6.22 COMMAND.COM - TRANGROUP:76A9h)
+	db 156 ; 19/06/2023	
 	db 'Copies one or more files to another location.',0Dh,0Ah
 	db 0Dh,0Ah
 	db 'COPY [/A | /B] source [/A | /B] [+ source [/A | /B] [+ ...]] [destination',0Dh,0Ah
@@ -41641,12 +41642,13 @@ MsDosVer6_CCopy:
 	;db	'by Erdogan Tan - 05/05/2023'
 	;db	0
 
+	; 19/06/2023
 	; 18/06/2023
 	;db 	0
 	;db	0Dh,0Ah
 	;db	'Retro DOS v4.2 COMMAND.COM '
 	;db	0
-	;db	'by Erdogan Tan - 18/6/2023'
+	;db	'by Erdogan Tan - 19/6/2023'
 	;db	0
 
 ;============================================================================
