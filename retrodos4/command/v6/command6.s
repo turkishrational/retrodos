@@ -38743,8 +38743,8 @@ $M_ID_3_182: ; 17/06/2023
 	dw 1925,MSG_1925-$ ; 10570
 	dw 1926,MSG_1926-$ ; 10698
 $M_ID_3_187:	; 17/06/2023
-	dw 1927			; Message Number = 1927
-	dw MSG_1927-$	; 10782	; Message offset from message number
+	dw 1927	; 19/06/2023	; Message Number = 1927
+	dw MSG_1927-$+2	; 10782	; Message offset from message number
 				; (Msg addr: 6C1Ch+2A1Eh = TRANGROUP:963Ah)
 
 ; ---------------------------------------------------------------------------
