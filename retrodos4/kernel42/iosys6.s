@@ -1,13 +1,13 @@
 ; ****************************************************************************
 ; IOSYS6.S (MSDOS 6.0 IO.SYS) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 04/01/2023 - Retro DOS v4.2 (Prev: 28/12/2022, Retro DOS v4.1)
+; Last Update: 25/06/2023 - Retro DOS v4.2 (Prev: 28/12/2022, Retro DOS v4.1)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
 ; Assembler: NASM version 2.15 (2.11)
 ; ----------------------------------------------------------------------------
-;	   ((nasm iosys5.s -l iosys5.lst -o IOSYS5.BIN -Z error.txt)) 	
+;	   ((nasm iosys6.s -l iosys6.lst -o IOSYS6.BIN -Z error.txt)) 	
 ; ----------------------------------------------------------------------------
 
 ; 30/12/2022 - Retro DOS v4.2 Kernel -dosbios- ('iosys6.s')
@@ -7523,7 +7523,7 @@ unpack:
 		mov	ds, si
 		mov	si, bx		; next cluster
 		test	byte [cs:fbigfat], 40h	; fbig
-					; 16 bit fat?jh
+					; 16 bit fat?
 		jnz	short unpack16	; yes
 		shr	si, 1		; 12 bit fat. si=si/2
 					; si = clus + clus/2
@@ -7535,7 +7535,8 @@ unpack:
 		pop	dx
 		mov	ax, [bx]	; save it into ax
 		jnz	short even_odd	; if not a splitted fat, check even-odd.
-		mov	al, [bx]	; splitted fat
+		; 25/06/2023
+		;mov	al, [bx]	; splitted fat
 		mov	[cs:temp_cluster], al
 		inc	si		; (next	byte)
 		push	dx
@@ -7639,7 +7640,7 @@ get_fat_sector:
 		push	ds
 		mov	ax, si
 		mov	cx, [cs:md_sectorsize] ; 512
-		div	cx		; ax=sector number, dx = offset
+		div	cx		; ax = sector number, dx = offset
 		nop
 
 		; Get rid of the assumption that
@@ -8396,6 +8397,9 @@ prn_stat:				; 2C7h:251h = 70h:27C1h
 
 prnstat:				
 		mov	ah, 2		; set command for get status
+					; PRINTER - GET	STATUS
+					; DX = printer port (0-3)
+					; Return: AH = status
 
 ; =============== S U B	R O U T	I N E =======================================
 
@@ -8409,9 +8413,7 @@ prnstat:
 
 prnop:	
 		mov	dx, [auxnum]	; get printer number
-		int	17h		; PRINTER - GET	STATUS
-					; DX = printer port (0-3)
-					; Return: AH = status
+		int	17h		
 
 	; This check was added to see if this is a case of no
 	; printer being installed. This tests checks to be sure
@@ -8672,8 +8674,8 @@ auxin:
 		test	ah, 0Eh		; flag_frame|flag_parity|flag_overrun
 		;jnz	short arbad	; skip if any error bits set
 		;retn
-		; 18/12/2022
-		jnz	short auxin_retn
+		; 25/06/2023 (BugFix)
+		jz	short auxin_retn
 ; ---------------------------------------------------------------------------
 
 arbad:					
