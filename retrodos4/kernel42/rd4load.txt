@@ -1,7 +1,7 @@
      1                                  ; ****************************************************************************
      2                                  ; RD4LOAD.S (Retro DOS v4 KERNEL LOADER) -IO.SYS- by ERDOGAN TAN - 22/12/2022
      3                                  ; ----------------------------------------------------------------------------
-     4                                  ; Last Update: 23/12/2022 (Modified IO.SYS loader) 
+     4                                  ; Last Update: 24/12/2022 (Modified IO.SYS loader) 
      5                                  ; ----------------------------------------------------------------------------
      6                                  ; Beginning: 22/12/2022 (Retro DOS 4.0 Kernel Loader, Fake IO.SYS)
      7                                  ; ----------------------------------------------------------------------------
@@ -55,1007 +55,1307 @@
     55                                  ;
     56                                  ; ===========================================================================
     57                                  
-    58                                  ;
-    59                                  ;----------------------------------------------------------------------------
-    60                                  ;
-    61                                  ; M056 : Added RPL support, so that RPL's fake INT 13 code can be safe from
-    62                                  ;		SYSINIT & transient portion of COMMAND.COM
-    63                                  ;
-    64                                  ;----------------------------------------------------------------------------
-    65                                  		
-    66                                  		[ORG 0]			; segment 0x0070h
-    67                                  
-    68                                  START$:
-    69 00000000 EB31                    		jmp	short SaveInputValues
-    70                                  ; 20/12/2022
-    71                                  ; 09/12/2022
-    72                                  ; ---------------------------------------------------------------------------
-    73 00000002 0500                    SysVersion:	dw 5			; expected_version	
-    74                                  ;MyStacks:	db 256 dup(0)		; local stack
-    75                                  ; 22/12/2022
-    76                                  ; 20/12/2022
-    77                                  ;MyStacks:	dw 102 dup(0)		; local stack
-    78 00000004 0000                    NumHeads:	dw 0			
-    79 00000006 0000                    ClusterSize:	db 2 dup(0)	
-    80 00000008 0000                    StartSecL:	dw 0			
-    81 0000000A 0000                    StartSecH:	dw 0			
-    82 0000000C 0000                    TempH:		dw 0			; for 32 bit calculation
-    83                                  ; 23/12/2022
-    84                                  ;TempCluster:	db 2 dup(0)		; temporary place for cluster number
-    85 0000000E FFFF                    LastFatSector:	db 2 dup(0FFh)		; fat sec # start from 1st FAT entry
-    86 00000010 0000                    SectorCount:	dw 0			
-    87 00000012 0000                    SecPerFat:	dw 0			
-    88 00000014 0000                    HiddenSectorsL:	dw 0			
-    89 00000016 0000                    HiddenSectorsH:	dw 0			
-    90 00000018 0000                    BytesPerSec:	dw 0			
-    91 0000001A 0000                    ReservSectors:	db 2 dup(0)		
-    92 0000001C 0000                    CurrentCluster:	db 2 dup(0)		
-    93                                  ; 23/12/2022
-    94                                  ;NextBioLocation: db 2 dup(0)		
-    95 0000001E 0000                    FirstSectorL:	dw 0			
-    96 00000020 0000                    FirstSectorH:	dw 0			
-    97 00000022 0000                    TotalSectorsL:	dw 0			; max. number of sectors
-    98 00000024 0000                    TotalSectorsH:	dw 0			
-    99 00000026 0000                    SecPerTrack:	db 2 dup(0)		
-   100 00000028 00                      BootDrive:	db 0			
-   101 00000029 00                      Fatsize:	db 0			
-   102 0000002A 00                      MediaByte:	db 0			
-   103 0000002B 00                      EndOfFile:	db 0			
-   104 0000002C 00000000                OrgDasdPtr:	db 4 dup(0)		
-   105 00000030 0000                    FatSegment:	db 2 dup(0)		
-   106 00000032 00                      SecPerCluster:	db 0			
-   107                                  ; ---------------------------------------------------------------------------
-   108                                  
-   109                                  ; SaveInputValuess
-   110                                  ; ---------------------------------------------------------------------------
-   111                                  ; INPUT:     none
-   112                                  ;
-   113                                  ;   dl = int 13 drive number we booted from
-   114                                  ;   ch = media byte
-   115                                  ;   bx = first data sector (low) on disk (0-based)
-   116                                  ;   ds:si = original rom bios diskette parameter table.
-   117                                  ;
-   118                                  ; if an extended boot record, then ax will be the first data sector
-   119                                  ; high word. save ax and set FirstSectorH according to ax if it is an
-   120                                  ; extended boot record.
-   121                                  ;
-   122                                  ;   ax = first data sector (high) on disk ;
-   123                                  ; OUTPUT:
-   124                                  ;
-   125                                  ;   bx = first data sector on disk
-   126                                  ;
-   127                                  ;   MediaByte = input ch
-   128                                  ;   BootDrive = input dl
-   129                                  ;   FirstSectorL = input bx
-   130                                  ;   FirstSectorH = input AX, if an extended boot record.;j.k.
-   131                                  ;   TotalSectorsL = maximum sector number in this media ;j.k.
-   132                                  ;   TotalSectorsH = high word of the above
-   133                                  ;   HiddenSectorsL = hidden secotrs
-   134                                  ;   HiddenSectorsH
-   135                                  ;   ReservSectors = reserved sectors
-   136                                  ;   SecPerTrack = sectors/track
-   137                                  ;   NumHeads = heads/cylinder
-   138                                  ;
-   139                                  ;   ds = 0
-   140                                  ;   AX,DX,SI destroyed
-   141                                  ;
-   142                                  ; calls:     none
-   143                                  ; ---------------------------------------------------------------------------
-   144                                  ;FUNCTION:
-   145                                  ; save input information and bpb informations from the boot record.
-   146                                  ; ---------------------------------------------------------------------------
+    58                                  ;----------------------------------------------------------------------------
+    59                                  		[ORG 0]			; segment 0x0070h
+    60                                  ;----------------------------------------------------------------------------
+    61                                  
+    62                                  START$:
+    63 00000000 EB2E                    		jmp	short SaveInputValues
+    64                                  
+    65                                  ; 24/12/2022
+    66                                  ; 23/12/2022
+    67                                  ; 20/12/2022
+    68                                  ; 09/12/2022
+    69                                  ; ---------------------------------------------------------------------------
+    70 00000002 0500                    SysVersion:	dw 5			; expected_version	
+    71 00000004 0000                    ClusterSize:	dw 0
+    72 00000006 0000                    StartSecL:	dw 0
+    73 00000008 0000                    StartSecH:	dw 0
+    74 0000000A 0000                    TempH:		dw 0			; for 32 bit calculation
+    75                                  ;TempCluster:	dw 0
+    76                                  ;HiddenSectorsL: dw 0
+    77                                  ;HiddenSectorsH: dw 0
+    78                                  ;ReservSectors:	dw 0
+    79 0000000C FFFF                    LastFatSector:	dw 0FFFFh		; fat sec # start from 1st FAT entry
+    80 0000000E 0000                    SectorCount:	dw 0
+    81 00000010 0000                    CurrentCluster:	dw 0	; *!*
+    82 00000012 0000                    BytesPerSec:	dw 0
+    83 00000014 0000                    SecPerCluster:	dw 0
+    84                                  ;RootDirEntries: dw 0
+    85 00000016 0000                    SecPerFat:	dw 0
+    86 00000018 0000                    SecPerTrack:	dw 0
+    87 0000001A 0000                    NumHeads:	dw 0
+    88 0000001C 0000                    TotalSectorsL:	dw 0			; max. number of sectors
+    89 0000001E 0000                    TotalSectorsH:	dw 0
+    90 00000020 0000                    FirstSectorL:	dw 0
+    91 00000022 0000                    FirstSectorH:	dw 0
+    92 00000024 00                      BootDrive:	db 0
+    93 00000025 00                      Fatsize:	db 0
+    94 00000026 00                      MediaByte:	db 0
+    95 00000027 00                      EndOfFile:	db 0
+    96 00000028 00000000                OrgDasdPtr:	dd 0
+    97                                  ;FatSegment:	dw 0
+    98 0000002C 0000                    FatStartSecL:	dw 0
+    99 0000002E 0000                    FatStartSecH:	dw 0
+   100                                  
+   101                                  ; ---------------------------------------------------------------------------
+   102                                  
+   103                                  ; SaveInputValuess
+   104                                  ; ---------------------------------------------------------------------------
+   105                                  ; INPUT:     none
+   106                                  ;
+   107                                  ;   dl = int 13 drive number we booted from
+   108                                  ;   ch = media byte
+   109                                  ;   bx = first data sector (low) on disk (0-based)
+   110                                  ;   ds:si = original rom bios diskette parameter table.
+   111                                  ;
+   112                                  ; if an extended boot record, then ax will be the first data sector
+   113                                  ; high word. save ax and set FirstSectorH according to ax if it is an
+   114                                  ; extended boot record.
+   115                                  ;
+   116                                  ;   ax = first data sector (high) on disk ;
+   117                                  ; OUTPUT:
+   118                                  ;
+   119                                  ;   bx = first data sector on disk
+   120                                  ;
+   121                                  ;   MediaByte = input ch
+   122                                  ;   BootDrive = input dl
+   123                                  ;   FirstSectorL = input bx
+   124                                  ;   FirstSectorH = input AX, if an extended boot record.;j.k.
+   125                                  ;   TotalSectorsL = maximum sector number in this media ;j.k.
+   126                                  ;   TotalSectorsH = high word of the above
+   127                                  ;   HiddenSectorsL = hidden secotrs
+   128                                  ;   HiddenSectorsH
+   129                                  ;   ReservSectors = reserved sectors
+   130                                  ;   SecPerTrack = sectors/track
+   131                                  ;   NumHeads = heads/cylinder
+   132                                  ;
+   133                                  ;   ds = 0
+   134                                  ;   AX,DX,SI destroyed
+   135                                  ;
+   136                                  ; calls:     none
+   137                                  ; ---------------------------------------------------------------------------
+   138                                  ;FUNCTION:
+   139                                  ; save input information and bpb informations from the boot record.
+   140                                  ; ---------------------------------------------------------------------------
+   141                                  
+   142                                  Sec9 equ 522h
+   143                                  ; 20/12/2022	
+   144                                  DskAddr	equ 1Eh*4 ; 7Eh
+   145                                  ; 22/12/2022
+   146                                  ;StackPtr equ MyStacks+(NumHeads-MyStacks)
    147                                  
-   148                                  Sec9 equ 522h
-   149                                  ; 20/12/2022	
-   150                                  DskAddr	equ 1Eh*4 ; 7Eh
-   151                                  ; 22/12/2022
-   152                                  ;StackPtr equ MyStacks+(NumHeads-MyStacks)
-   153                                  
-   154                                  ; ---------------------------------------------------------------------------
-   155                                  
-   156                                  		; 23/12/2022
-   157                                  		; (registers from MSDOS 5.0 boot sector)
-   158                                  		; ss = 0
-   159                                  		; sp = 7C00h
-   160                                  		; ds = 0
-   161                                  		; es = 0
-   162                                  		; ax:bx = absolute disk address for cluster 2 (data start)
-   163                                  		; dl = [BootDrv] = [7C24h]
-   164                                  		; ch = [MediaByte] = [7C15h]
-   165                                  		; ds:si = rom bios disk(ette) params table address (INT 1Eh)
-   166                                  		; 0:500h = root dir buffer (1st sector of the root dir)
-   167                                  
-   168                                  SaveInputValues:
-   169 00000033 2E891E[1E00]            		mov	[cs:FirstSectorL], bx ; physical disk address (lw)
-   170                                  					; includes hidden secs and reservd secs	
-   171 00000038 2E882E[2A00]            		mov	[cs:MediaByte], ch
-   172 0000003D 2E8816[2800]            		mov	[cs:BootDrive], dl
-   173 00000042 2E8936[2C00]            		mov	[cs:OrgDasdPtr], si
-   174 00000047 1E                      		push	ds
-   175 00000048 2E8F06[2E00]            		pop	word [cs:OrgDasdPtr+2]
-   176 0000004D 31C9                    		xor	cx, cx		; segment 0 (obviously)
-   177 0000004F 8ED9                    		mov	ds, cx		; ZERO
-   178                                  		; 13/12/2022
-   179                                  		; es = 0 (just before jumping to start of IO.SYS) 
-   180                                  		;push	es ; !
-   181                                  		;mov	es, cx
-   182                                  		; es = 0
-   183                                  		;mov	si, [DskAddr]	; 0000h:0078h (Int 1Eh)
-   184                                  		;mov	ds, [DskAddr+2]	; DS:SI -> current table
-   185                                  		; 20/12/2022
-   186 00000051 BE2205                  		mov	si, Sec9
-   187 00000054 89F7                    		mov	di, si
-   188 00000056 87367800                		xchg	si, [DskAddr]
-   189 0000005A 870E7A00                		xchg	cx, [DskAddr+2]
-   190 0000005E 8ED9                    		mov	ds, cx
-   191                                  		;mov	di, Sec9	; 522h  ; ES:DI -> new table
-   192 00000060 B90B00                  		mov	cx, 11			; taken from ibmboot.asm
-   193 00000063 FC                      		cld
-   194 00000064 F3A4                    		rep movsb		; copy table
-   195                                  		;push	es
-   196                                  		;pop	ds		; ds = 0
-   197                                  		; 20/12/2022
-   198 00000066 8ED9                    		mov	ds, cx ; 0
-   199                                  		;mov	word [DskAddr], Sec9 ; 522h
-   200                                  		;mov	[DskAddr+2], ds	; point disk parm vector to new table
-   201                                  		; 23/12/2022
-   202                                  		;pop	es ; !
-   203                                  		; es = 0
-   204                                  		; ds = 0
-   205                                  		; ss = 0
-   206 00000068 8B0E0B7C                		mov	cx, [7C0Bh] 	; BootSector.ext_boot_bpb.BPB_bytespersector
-   207 0000006C 2E890E[1800]            		mov	[cs:BytesPerSec], cx
-   208 00000071 8A0E0D7C                		mov	cl, [7C0Dh]	; BootSector.ext_boot_bpb.BPB_sectorspercluster
-   209 00000075 2E880E[3200]            		mov	[cs:SecPerCluster], cl
-   210 0000007A 8B0E187C                		mov	cx, [7C18h]	; BootSector.ext_boot_bpb.BPB_sectorspertrack	
-   211 0000007E 2E890E[2600]            		mov	[cs:SecPerTrack], cx
-   212 00000083 8B0E1A7C                		mov	cx, [7C1Ah]	; BootSector.ext_boot_bpb.BPB_heads
-   213 00000087 2E890E[0400]            		mov	[cs:NumHeads], cx
-   214 0000008C 8B0E167C                		mov	cx, [7C16h]	; BootSector.ext_boot_bpb.BPB_sectorsperfat
-   215 00000090 2E890E[1200]            		mov	[cs:SecPerFat], cx
-   216 00000095 8B0E0E7C                		mov	cx, [7C0Eh]	; BootSector.ext_boot_bpb.BPB_reservedsectors	
-   217 00000099 2E890E[1A00]            		mov	[cs:ReservSectors], cx
-   218 0000009E 8B0E1C7C                		mov	cx, [7C1Ch]	; BootSector.ext_boot_bpb.BPB_hiddensectors
-   219 000000A2 2E890E[1400]            		mov	[cs:HiddenSectorsL], cx
-   220 000000A7 8B0E137C                		mov	cx, [7C13h]	; BootSector.ext_boot_bpb.BPB_totalsectors
-   221 000000AB 2E890E[2200]            		mov	[cs:TotalSectorsL], cx
-   222                                  
-   223                                  		; First of all, check if it the boot record is an extended one.
-   224                                  		; This is just a safe guard in case some user just "copy" the
-   225                                  		; 4.00 iosys.com to a media with a conventional boot record.
-   226                                  
-   227                                  		; 22/12/2022
-   228 000000B0 803E267C29              		cmp	byte [7C26h], 29h ; ext_boot_signature
-   229 000000B5 751D                    		jne	short relocate
-   230 000000B7 2EA3[2000]              		mov	[cs:FirstSectorH], ax ; ax = first data sector (high) on disk
-   231                                  					; physical disk address (hw)
-   232                                  					; includes hidden secs and reservd secs	
-   233 000000BB A11E7C                  		mov	ax, [7C1Eh]
-   234 000000BE 2EA3[1600]              		mov	[cs:HiddenSectorsH], ax
-   235                                  		; 10/12/2022
-   236 000000C2 09C9                    		or	cx, cx
-   237                                  		;cmp	cx, 0		; cx set already before (=totalsectors)
+   148                                  ; 24/12/2022
+   149                                  ; 22/12/2022
+   150                                  KernelFirstClustr equ 53Ah	; The 1st cluster address of 'MSDOS.SYS' file
+   151                                  				; in the root directory entry.
+   152                                  
+   153                                  ; ---------------------------------------------------------------------------
+   154                                  
+   155                                  		; 23/12/2022
+   156                                  		; (registers from MSDOS 5.0 boot sector)
+   157                                  		; ss = 0
+   158                                  		; sp = 7C00h
+   159                                  		; ds = 0
+   160                                  		; es = 0
+   161                                  		; ax:bx = absolute disk address for cluster 2 (data start)
+   162                                  		; dl = [BootDrv] = [7C24h]
+   163                                  		; ch = [MediaByte] = [7C15h]
+   164                                  		; ds:si = rom bios disk(ette) params table address (INT 1Eh)
+   165                                  		; 0:500h = root dir buffer (1st sector of the root dir)
+   166                                  
+   167                                  SaveInputValues:
+   168                                  		; 24/12/2022
+   169 00000030 1E                      		push	ds
+   170 00000031 0E                      		push	cs
+   171 00000032 1F                      		pop	ds 
+   172                                  		;mov	[cs:FirstSectorL], bx ; first data sector (low word)
+   173                                  		;mov	[cs:MediaByte], ch
+   174                                  		;mov	[cs:BootDrive], dl
+   175                                  		;mov	[cs:OrgDasdPtr], si
+   176                                  		;push	ds
+   177                                  		;pop	word [cs:OrgDasdPtr+2]
+   178 00000033 891E[2000]              		mov	[FirstSectorL], bx
+   179 00000037 891E[0600]              		mov	[StartSecL], bx ; **!**
+   180 0000003B 882E[2600]              		mov	[MediaByte], ch
+   181 0000003F 8816[2400]              		mov	[BootDrive], dl
+   182 00000043 8936[2800]              		mov	[OrgDasdPtr], si
+   183 00000047 8F06[2A00]              		pop	word [OrgDasdPtr+2]
+   184                                  	
+   185 0000004B 31C9                    		xor	cx, cx		; segment 0 (obviously)
+   186 0000004D 8ED9                    		mov	ds, cx		; ZERO
+   187                                  		; 23/12/2022
+   188                                  		; es = 0 (just before jumping to start of IO.SYS) 
+   189                                  		;push	es ; !
+   190                                  		;mov	es, cx
+   191                                  		; es = 0
+   192                                  		;mov	si, [DskAddr]	; 0000h:0078h (Int 1Eh)
+   193                                  		;mov	ds, [DskAddr+2]	; DS:SI -> current table
+   194                                  		; 20/12/2022
+   195 0000004F BE2205                  		mov	si, Sec9
+   196 00000052 89F7                    		mov	di, si
+   197 00000054 87367800                		xchg	si, [DskAddr]
+   198 00000058 870E7A00                		xchg	cx, [DskAddr+2]
+   199 0000005C 8ED9                    		mov	ds, cx
+   200                                  		;mov	di, Sec9	; 522h  ; ES:DI -> new table
+   201 0000005E B90B00                  		mov	cx, 11			; taken from ibmboot.asm
+   202 00000061 FC                      		cld
+   203 00000062 F3A4                    		rep movsb		; copy table
+   204                                  		;push	es
+   205                                  		;pop	ds		; ds = 0
+   206                                  		; 20/12/2022
+   207 00000064 8ED9                    		mov	ds, cx ; 0
+   208                                  		;mov	word [DskAddr], Sec9 ; 522h
+   209                                  		;mov	[DskAddr+2], ds	; point disk parm vector to new table
+   210                                  		; 23/12/2022
+   211                                  		;pop	es ; !
+   212                                  		; es = 0
+   213                                  		; ds = 0
+   214                                  		; ss = 0
+   215                                  ; 24/12/2022
+   216                                  %if 0
+   217                                  		mov	cx, [7C0Bh] 	; BootSector.ext_boot_bpb.BPB_bytespersector
+   218                                  		mov	[cs:BytesPerSec], cx
+   219                                  		mov	cl, [7C0Dh]	; BootSector.ext_boot_bpb.BPB_sectorspercluster
+   220                                  		mov	[cs:SecPerCluster], cl
+   221                                  		mov	cx, [7C18h]	; BootSector.ext_boot_bpb.BPB_sectorspertrack	
+   222                                  		mov	[cs:SecPerTrack], cx
+   223                                  		mov	cx, [7C1Ah]	; BootSector.ext_boot_bpb.BPB_heads
+   224                                  		mov	[cs:NumHeads], cx
+   225                                  		mov	cx, [7C16h]	; BootSector.ext_boot_bpb.BPB_sectorsperfat
+   226                                  		mov	[cs:SecPerFat], cx
+   227                                  		mov	cx, [7C0Eh]	; BootSector.ext_boot_bpb.BPB_reservedsectors	
+   228                                  		mov	[cs:ReservSectors], cx
+   229                                  		mov	cx, [7C1Ch]	; BootSector.ext_boot_bpb.BPB_hiddensectors
+   230                                  		mov	[cs:HiddenSectorsL], cx
+   231                                  		mov	cx, [7C13h]	; BootSector.ext_boot_bpb.BPB_totalsectors
+   232                                  		mov	[cs:TotalSectorsL], cx
+   233                                  
+   234                                  		; First of all, check if it the boot record is an extended one.
+   235                                  		; This is just a safe guard in case some user just "copy" the
+   236                                  		; 4.00 iosys.com to a media with a conventional boot record.
+   237                                  
    238                                  		; 22/12/2022
-   239 000000C4 750E                    		jnz	short relocate
-   240 000000C6 A1207C                  		mov	ax, [7C20h]	; BootSector.ext_boot_bpb.BPB_bigtotalsectors
-   241 000000C9 2EA3[2200]              		mov	[cs:TotalSectorsL], ax
-   242 000000CD A1227C                  		mov	ax, [7C22h]	; BootSector.ext_boot_bpb.BPB_bigtotalsectors+2
-   243 000000D0 2EA3[2400]              		mov	[cs:TotalSectorsH], ax
-   244                                  
-   245                                  ; ---------------------------------------------------------------------------
-   246                                  		
-   247                                  relocate:
-   248                                  		; 23/12/2022
-   249                                  		; (set fat buffer segment at the end of loader)
-   250                                  
-   251                                  		FATBUFSEGM equ 70h+(((EndOfLoader-START$)+15)>>4)
-   252                                  						 ; paragraph alignment
-   253                                  		
-   254 000000D4 2EC706[3000]D000        		mov	word [cs:FatSegment], FATBUFSEGM
-   255                                  
-   256                                  ; ---------------------------------------------------------------------------
-   257                                  SetupStack:	
-   258                                  		; 22/12/2022
-   259                                  		;cli
-   260                                  		;xor	ax, ax
-   261                                  		;mov	ss, ax
-   262                                  		;mov	sp, 700h
-   263                                  		;sti
-   264                                  
-   265                                  ; ---------------------------------------------------------------------------
-   266                                  ; 23/12/2022
-   267                                  ; Write loading message
-   268                                  			
-   269 000000DB 0E                      		push	cs
-   270 000000DC 1F                      		pop	ds
-   271 000000DD BE[E803]                		mov	si, loading_msg
-   272 000000E0 E8AC02                  		call	WriteTTY
-   273                                  
-   274                                  ; FindClusterSize
-   275                                  ; ---------------------------------------------------------------------------
-   276                                  ;
-   277                                  ; INPUT:     bpb information in loaded boot record at 0:7c00h
-   278                                  ;
-   279                                  ; OUTPUT:
-   280                                  ;
-   281                                  ;	ds = 0
-   282                                  ;	ax = bytes/cluster
-   283                                  ;	bx = sectors/cluster
-   284                                  ;	si destroyed
-   285                                  ; calls:     none
-   286                                  ;----------------------------------------------------------------------------
-   287                                  ;
-   288                                  ; get bytes/sector from bpb
-   289                                  ;
-   290                                  ; get sectors/cluster from bpb
-   291                                  ;
-   292                                  ; bytes/cluster = bytes/sector * sector/cluster
-   293                                  ; ---------------------------------------------------------------------------
-   294                                  
-   295                                  FindClusterSize:
-   296                                  
-   297                                  ;for the time being just ASSUME the boot record is valid and the bpb is there.
-   298                                  
-   299 000000E3 31C0                    		xor	ax, ax
-   300 000000E5 8ED8                    		mov	ds, ax
-   301 000000E7 A10B7C                  		mov	ax, [7C0Bh]	; get bpb bytes/sector
-   302 000000EA 31DB                    		xor	bx, bx
-   303 000000EC 8A1E0D7C                		mov	bl, [7C0Dh]	; get sectors/cluster
-   304 000000F0 F7E3                    		mul	bx
-   305 000000F2 2EA3[0600]              		mov	[cs:ClusterSize], ax
-   306                                  
-   307                                  ; CalcFatSize
-   308                                  ; ---------------------------------------------------------------------------
-   309                                  ;
-   310                                  ; NOTES:
-   311                                  ;
-   312                                  ;   Determine if fat is 12 or 16 bit fat. 12 bit fat if floppy, read mbr
-   313                                  ;   to find out what system id byte is.
-   314                                  ;
-   315                                  ; INPUT:
-   316                                  ;
-   317                                  ; OUTPUT:
-   318                                  ;
-   319                                  ;   CS:FatSize = FAT_12_BIT or FAT_16_BIT
-   320                                  ;   all other registers destroyed
-   321                                  ;
-   322                                  ; ---------------------------------------------------------------------------
-   323                                  
-   324                                  CalcFatSize:
-   325 000000F6 2EC606[2900]01          		mov	byte [cs:Fatsize], 1 ; FAT_12_BIT (assume)
-   326 000000FC 2E8B16[2400]            		mov	dx, [cs:TotalSectorsH]
-   327 00000101 2EA1[2200]              		mov	ax, [cs:TotalSectorsL] ; DX:AX = total disk sectors
-   328 00000105 2E2B06[1A00]            		sub	ax, [cs:ReservSectors]
-   329 0000010A 83DA00                  		sbb	dx, 0		; DX:AX	= Total	avail sectors
-   330 0000010D 2E8B1E[1200]            		mov	bx, [cs:SecPerFat]
-   331 00000112 D1E3                    		shl	bx, 1		; (Assume 2 FATs)
-   332 00000114 29D8                    		sub	ax, bx
-   333 00000116 83DA00                  		sbb	dx, 0
-   334 00000119 8B1E117C                		mov	bx, [7C11h]	; Root directory entry count
-   335 0000011D B104                    		mov	cl, 4
-   336 0000011F D3EB                    		shr	bx, cl		; BX = Total directory sectors
-   337 00000121 29D8                    		sub	ax, bx
-   338 00000123 83DA00                  		sbb	dx, 0		; DX:AX	= Sectors in data area
-   339 00000126 31C9                    		xor	cx, cx
-   340 00000128 8A0E0D7C                		mov	cl, [7C0Dh]	; Sectors per cluster
-   341 0000012C 50                      		push	ax
-   342 0000012D 89D0                    		mov	ax, dx
-   343 0000012F 31D2                    		xor	dx, dx
-   344 00000131 F7F1                    		div	cx
-   345 00000133 2EA3[0C00]              		mov	[cs:TempH], ax	; AX = Total number of clusters
-   346 00000137 58                      		pop	ax
-   347 00000138 F7F1                    		div	cx
-   348 0000013A 3DF60F                  		cmp	ax, 4086	; 4096-10
-   349 0000013D 7206                    		jb	short ReadInFirstClusters ; 12 bit FAT
-   350 0000013F 2EC606[2900]04          		mov	byte [cs:Fatsize], 4 ; FAT_16_BIT
-   351                                  
-   352                                  ; 22/12/2022
-   353                                  ;----------------------------------------------------------------------------
-   354                                  ; HERE IS DIFFERENT THAN IO.SYS LOADER (MSLOAD)
-   355                                  ; FOLLOWING CODE HAS BEEN MODIFIED FOR LOADING RETRO DOS KERNEL (MSDOS.SYS)
-   356                                  ;----------------------------------------------------------------------------
-   357                                  
-   358                                  ; 22/12/2022
-   359                                  KernelFirstClustr equ 53Ah	; The 1st cluster address of 'MSDOS.SYS' file
-   360                                  				; in the root directory entry.
-   361                                  
-   362                                  KernelInitSegment equ 1000h	; Address where the kernel will be loaded
+   239                                  		cmp	byte [7C26h], 29h ; ext_boot_signature
+   240                                  		jne	short relocate
+   241                                  		mov	[cs:FirstSectorH], ax ; first data sector (high word)
+   242                                  		mov	ax, [7C1Eh]
+   243                                  		mov	[cs:HiddenSectorsH], ax
+   244                                  		; 10/12/2022
+   245                                  		or	cx, cx
+   246                                  		;cmp	cx, 0		; cx set already before (=totalsectors)
+   247                                  		; 22/12/2022
+   248                                  		jnz	short relocate
+   249                                  		mov	ax, [7C20h]	; BootSector.ext_boot_bpb.BPB_bigtotalsectors
+   250                                  		mov	[cs:TotalSectorsL], ax
+   251                                  		mov	ax, [7C22h]	; BootSector.ext_boot_bpb.BPB_bigtotalsectors+2
+   252                                  		mov	[cs:TotalSectorsH], ax
+   253                                  %endif
+   254                                  		; 24/12/2022
+   255 00000066 50                      		push	ax  ; * ; first data sector (high word)
+   256                                  		
+   257 00000067 0E                      		push	cs
+   258 00000068 07                      		pop	es
+   259                                  
+   260                                  		; get the 1st cluster of MSDOS.SYS 
+   261 00000069 A13A05                  		mov	ax, [KernelFirstClustr] ; [053Ah]
+   262 0000006C BF[1000]                		mov	di, CurrentCluster  
+   263 0000006F AB                      		stosw	 ; *!* ; Initialize CurrentCluster to this cluster
+   264                                  		; di = offset BytesPerSec 
+   265                                  		
+   266 00000070 BE0B7C                  		mov	si, 07C0Bh	; boot sector's bpb, BytesPerSector
+   267                                  		;mov	di, BytesPerSec
+   268 00000073 A5                      		movsw	; BytesPerSec
+   269 00000074 A4                      		movsb	; SecPerCluster
+   270 00000075 47                      		inc	di ; skip high byte of SecPerCluster word (it is 0)
+   271 00000076 AD                      		lodsw	; ReservSectors
+   272 00000077 89C3                    		mov	bx, ax ; save ReservSectors in bx
+   273 00000079 AC                      		lodsb	; skip NumFats
+   274                                  		;movsw	; RootDirEntries ; !
+   275 0000007A AD                      		lodsw	; skip NUmDirEntries ; !
+   276 0000007B AD                      		lodsw	; TotalSectorsL
+   277 0000007C 89C1                    		mov	cx, ax ; save TotalSectorsL in cx
+   278 0000007E AC                      		lodsb	; skip MediaByte
+   279 0000007F A5                      		movsw	; SecPerFat
+   280 00000080 A5                      		movsw 	; SecPerTrack
+   281 00000081 A5                      		movsw	; NumHeads
+   282 00000082 AD                      		lodsw	; HiddenSectorsL
+   283 00000083 50                      		push 	ax ; **	; HiddenSectorsL
+   284 00000084 AD                      		lodsw	; HiddenSectorsH
+   285 00000085 89C2                    		mov	dx, ax	; save HiddenSectorsH in dx
+   286 00000087 AD                      		lodsw	
+   287 00000088 50                      		push	ax ; *** ; BigTotalSecs lw
+   288 00000089 AD                      		lodsw
+   289 0000008A 50                      		push	ax ; **** ; BigTotalSecs hw
+   290 0000008B AD                      		lodsw	; skip BootDrv and CurrentHead
+   291                                  
+   292 0000008C 89C8                    		mov	ax, cx ; TotalSectorsL
+   293                                  
+   294 0000008E 89F5                    		mov	bp, si		
+   295                                   
+   296 00000090 59                      		pop	cx ; **** ; BigTotalSecs hw
+   297                                  
+   298 00000091 5E                      		pop	si ; *** ; BigTotalSecs lw
+   299                                  
+   300 00000092 0E                      		push	cs
+   301 00000093 1F                      		pop	ds
+   302                                  		
+   303                                  		; ss = 0
+   304                                  		; bp = 7C26h
+   305                                  		
+   306 00000094 807E0029                		cmp	byte [bp], 29h  ; ext_boot_signature
+   307 00000098 7407                    		je	short ext_boot_sec_1
+   308                                  
+   309 0000009A AB                      		stosw	; TotalSectorsL
+   310                                  
+   311                                  		;pop	ax ; *** ; discard BigTotalSecs lw
+   312 0000009B 58                      		pop	ax ; ** ; HiddenSectorsL
+   313 0000009C 5A                      		pop	dx ; * ; discard 1st data sector hw
+   314 0000009D 31D2                    		xor	dx, dx ; 0
+   315 0000009F EB14                    		jmp	short set_fat_start
+   316                                  ext_boot_sec_1:
+   317                                  		; 24/12/2022
+   318                                  		;pop	si ; *** ; BigTotalSecs lw
+   319 000000A1 09C0                    		or	ax, ax  ; TotalSectorsL (16 bit total sectors)
+   320 000000A3 7505                    		jnz	short ext_boot_sec_2 ; (*)
+   321                                  
+   322                                  		; (32 bit total sectors)
+   323 000000A5 89F0                    		mov	ax, si ; BigTotalSecs lw 
+   324 000000A7 AB                      		stosw	; TotalSectorsL	
+   325 000000A8 89C8                    		mov	ax, cx ; BigTotalSecs hw
+   326                                  ext_boot_sec_2:
+   327 000000AA AB                      		stosw	; TotalSectorsH or TotalSectorsL (*)
+   328 000000AB 58                      		pop	ax ; ** ; HiddenSectorsL
+   329                                  		;pop	word [FirstSectorH] ; * ; 1st data sector hw
+   330 000000AC 59                      		pop	cx ; * ; [FirstSectorH] ; 1st data sector hw
+   331 000000AD 890E[2200]              		mov	[FirstSectorH], cx
+   332 000000B1 890E[0800]              		mov	[StartSecH], cx ; **!**	
+   333                                  
+   334                                  		; here, DI points to FatStartSecL
+   335                                  set_fat_start:
+   336                                  		; 24/12/2022
+   337                                  		; dx:ax = HiddenSectors
+   338                                  		; bx = ReservSectors
+   339                                  
+   340 000000B5 01D8                    		add 	ax, bx
+   341 000000B7 83D200                  		adc	dx, 0
+   342                                  
+   343                                  		;mov	[FatStartSecL], ax
+   344                                  		;mov	[FatStartSecH], dx		
+   345                                  
+   346 000000BA BF[2C00]                		mov	di, FatStartSecL
+   347 000000BD AB                      		stosw
+   348 000000BE 89D0                    		mov	ax, dx
+   349 000000C0 AB                      		stosw		
+   350                                  		
+   351                                  ; --------------------------------------------------------------------------- 
+   352                                  
+   353                                  relocate:
+   354                                  		; 23/12/2022
+   355                                  		; (set fat buffer segment at the end of loader)
+   356                                  
+   357                                  		FATBUFSEGM equ 70h+(((EndOfLoader-START$)+15)>>4)
+   358                                  						 ; paragraph alignment
+   359                                  		
+   360                                  		; 24/12/2022
+   361                                  		;mov	word [cs:FatSegment], FATBUFSEGM
+   362                                  		FATSEGMENT equ FATBUFSEGM
    363                                  
-   364                                  ; ---------------------------------------------------------------------------
-   365                                  
-   366                                  		; 23/12/2022	
-   367                                  		; 22/12/2022	
-   368                                  ReadInFirstClusters:
-   369                                  		;mov	ax, [53Ah]
-   370 00000145 A13A05                  		mov	ax, [KernelFirstClustr]
-   371                                  		; 23/12/2022
-   372 00000148 2EA3[1C00]              		mov	[cs:CurrentCluster], ax ; Initialize to this cluster
-   373                                  
-   374                                  					; MSDOS.SYS First Cluster
-   375 0000014C 48                      		dec	ax		; Root dir buffer at 500h (segment=0)
-   376                                  					; MSDOS.SYS first cluster ptr at 53Ah
-   377 0000014D 48                      		dec	ax		; AX = word [53Ah] - 2
-   378                                  
-   379 0000014E 2E8B0E[1E00]            		mov	cx, [cs:FirstSectorL] ;	Put starting sector of disk data
-   380 00000153 2E890E[0800]            		mov	[cs:StartSecL], cx    ; area in StartSecH:StartSecL
-   381 00000158 2E8B0E[2000]            		mov	cx, [cs:FirstSectorH]
-   382 0000015D 2E890E[0A00]            		mov	[cs:StartSecH], cx
-   383 00000162 31C9                    		xor	cx, cx
-   384 00000164 2E8A0E[3200]            		mov	cl, [cs:SecPerCluster]
-   385 00000169 F7E1                    		mul	cx		; DX:AX = logical start sector
-   386 0000016B 2E0106[0800]            		add	[cs:StartSecL], ax
-   387 00000170 2E1116[0A00]            		adc	[cs:StartSecH], dx
-   388                                  					; abs start sector for next read of
-   389                                  					; the rest of the last loader cluster
-   390                                  		; 22/12/2022
-   391 00000175 BF0010                  		mov	di, KernelInitSegment
-   392                                  		;mov	di, 1000h	; MSDOS.SYS initial (loading) segment
-   393 00000178 8EC7                    		mov	es, di
-   394 0000017A 31FF                    		xor	di, di		; 1000h:0000h
-   395 0000017C 29C0                    		sub	ax, ax
-   396 0000017E 2EA0[3200]              		mov	al, [cs:SecPerCluster]
-   397                                  					; Read in the entire last cluster
-   398 00000182 2EA3[1000]              		mov	[cs:SectorCount], ax
-   399                                  
-   400 00000186 E85E00                  		call	ReadSectors
-   401                                  
-   402                                  		; 22/12/2022
-   403                                  		;mov	[cs:NextBioLocation], di
-   404                                  
-   405                                  ; GetContigClusters
-   406                                  ; ---------------------------------------------------------------------------
-   407                                  ;
-   408                                  ; NOTES: go find clusters as long as they are contiguous
-   409                                  ;
-   410                                  ;
-   411                                  ; INPUT:
-   412                                  ;   CS:NextBioLocation
-   413                                  ;   CS:
-   414                                  ;
-   415                                  ; OUTPUT:
-   416                                  ;
-   417                                  ; calls: GetNextFatEntry
-   418                                  ; ---------------------------------------------------------------------------
-   419                                  ;
-   420                                  ;Set CS:SectorCount to sectors per cluster
-   421                                  ;
-   422                                  ;Call GetNextFatEntry to get next cluster in file
-   423                                  ;
-   424                                  ;Call check_for_eof
-   425                                  ;
-   426                                  ;if (nc returned)
-   427                                  ;
-   428                                  ;   {call GetNextFatEntry
-   429                                  ;
-   430                                  ;    if (new cluster is contig to old cluster)
-   431                                  ;	{add sectors per cluster to CS:SectorCount
-   432                                  ;
-   433                                  ;	 call check_for_eof
-   434                                  ;
-   435                                  ;	 if (nc returned)
-   436                                  ;
-   437                                  ; ---------------------------------------------------------------------------
-   438                                  
-   439                                  ; 09/12/2022
-   440                                  ; END_OF_FILE equ 0FFh
-   441                                  ; DosLoadSeg equ 70h
+   364                                  		; 24/12/2022
+   365                                  		; ds = cs
+   366                                  
+   367                                  ; ---------------------------------------------------------------------------
+   368                                  SetupStack:	
+   369                                  		; 22/12/2022
+   370                                  		;cli
+   371                                  		;xor	ax, ax
+   372                                  		;mov	ss, ax
+   373                                  		;mov	sp, 700h
+   374                                  		;sti
+   375                                  
+   376                                  ; ---------------------------------------------------------------------------
+   377                                  ; 23/12/2022
+   378                                  ; Write loading message
+   379                                  		
+   380                                  		; 24/12/2022	
+   381                                  		;push	cs
+   382                                  		;pop	ds
+   383 000000C1 BE[1F03]                		mov	si, loading_msg
+   384 000000C4 E8FF01                  		call	WriteTTY
+   385                                  
+   386                                  ; FindClusterSize
+   387                                  ; ---------------------------------------------------------------------------
+   388                                  ;
+   389                                  ; INPUT:     bpb information in loaded boot record at 0:7c00h
+   390                                  ;
+   391                                  ; OUTPUT:
+   392                                  ;
+   393                                  ;	ds = 0
+   394                                  ;	ax = bytes/cluster
+   395                                  ;	bx = sectors/cluster
+   396                                  ;	si destroyed
+   397                                  ; calls:     none
+   398                                  ;----------------------------------------------------------------------------
+   399                                  ;
+   400                                  ; get bytes/sector from bpb
+   401                                  ;
+   402                                  ; get sectors/cluster from bpb
+   403                                  ;
+   404                                  ; bytes/cluster = bytes/sector * sector/cluster
+   405                                  ; ---------------------------------------------------------------------------
+   406                                  
+   407                                  FindClusterSize:
+   408                                  
+   409                                  ;for the time being just ASSUME the boot record is valid and the bpb is there.
+   410                                  
+   411                                  		; 24/12/2022
+   412                                  		; ds = cs
+   413                                  		;xor	ax, ax
+   414                                  		;mov	ds, ax
+   415                                  		;mov	ax, [7C0Bh]	; get bpb bytes/sector
+   416                                  		; 24/12/2022
+   417 000000C7 A1[1200]                		mov	ax, [BytesPerSec]
+   418                                  		;xor	bx, bx
+   419                                  		;mov	bl, [7C0Dh]	; get sectors/cluster
+   420                                  		;mul	bx
+   421 000000CA F726[1400]              		mul	word [SecPerCluster]
+   422                                  		;mov	[cs:ClusterSize], ax
+   423                                  		; 24/12/2022
+   424 000000CE A3[0400]                		mov	[ClusterSize], ax
+   425                                  
+   426                                  ; CalcFatSize
+   427                                  ; ---------------------------------------------------------------------------
+   428                                  ;
+   429                                  ; NOTES:
+   430                                  ;
+   431                                  ;   Determine if fat is 12 or 16 bit fat. 12 bit fat if floppy, read mbr
+   432                                  ;   to find out what system id byte is.
+   433                                  ;
+   434                                  ; INPUT:
+   435                                  ;
+   436                                  ; OUTPUT:
+   437                                  ;
+   438                                  ;   CS:FatSize = FAT_12_BIT or FAT_16_BIT
+   439                                  ;   all other registers destroyed
+   440                                  ;
+   441                                  ; ---------------------------------------------------------------------------
    442                                  
-   443                                  GetContigClusters:			
-   444 00000189 30E4                    		xor	ah, ah
-   445 0000018B 2EA0[3200]              		mov	al, [cs:SecPerCluster]	; Assume we will get one cluster
-   446 0000018F 2EA3[1000]              		mov	[cs:SectorCount], ax	; Sector count = sectors in 1 cluster
-   447 00000193 2EFF36[1000]            		push	word [cs:SectorCount]
-   448 00000198 E81B01                  		call	GetNextFatEntry		; Returns next cluster to read in AX	
-   449 0000019B 2E8F06[1000]            		pop	word [cs:SectorCount]
-   450 000001A0 2EA3[1C00]              		mov	[cs:CurrentCluster], ax ; Update the last one found
-   451 000001A4 2E803E[2B00]FF          		cmp	byte [cs:EndOfFile], 0FFh ; END_OF_FILE
-   452 000001AA 7423                    		je	short GoToBioInit ; 23/12/2022
-   453                                  		; 22/12/2022
-   454                                  		;xor	dx, dx ; * (not required)
-   455                                  		; 10/12/2022
-   456                                  		;sub	ax, 2			; Zero base the cluster
-   457 000001AC 48                      		dec	ax
-   458 000001AD 48                      		dec	ax
-   459 000001AE 30ED                    		xor	ch, ch
-   460 000001B0 2E8A0E[3200]            		mov	cl, [cs:SecPerCluster]
-   461 000001B5 F7E1                    		mul	cx ; *			; How many sectors (before next cluster) 
-   462 000001B7 2E0306[1E00]            		add	ax, [cs:FirstSectorL]	; See where the data sector starts
-   463 000001BC 2E1316[2000]            		adc	dx, [cs:FirstSectorH]
-   464 000001C1 2EA3[0800]              		mov	[cs:StartSecL], ax	; Save it (used by ReadSectors)
-   465 000001C5 2E8916[0A00]            		mov	[cs:StartSecH], dx
-   466                                  		; 22/12/2022
-   467                                  		;mov	di, [cs:NextBioLocation] ; Get where to put code
-   468                                  		;push	word [cs:SectorCount]	; Save how many sectors
-   469 000001CA E81A00                  		call	ReadSectors
-   470                                  		;pop	ax			; Get back total sectors read in
-   471                                  		;mul	word [cs:BytesPerSec]	; Get number of bytes we loaded
-   472                                  		;add	[cs:NextBioLocation], ax ; Point to where to load next	
-   473 000001CD EBBA                    		jmp	short GetContigClusters
-   474                                  ; ---------------------------------------------------------------------------
-   475                                  
-   476                                  ; GoToBioInit
-   477                                  ; ---------------------------------------------------------------------------
-   478                                  ;
-   479                                  ; NOTES:
-   480                                  ;
-   481                                  ;  Set up required registers for iosys, then jump to it (70:0)
-   482                                  ;
-   483                                  ; INPUT:     none
-   484                                  ;
-   485                                  ;   CS:MediaByte = media byte
-   486                                  ;   CS:BootDrive = int 13 drive number we booted from
-   487                                  ;   CS:FirstSectorL = first data sector on disk (low) (0-based)
-   488                                  ;   CS:FirstSectorH = first data sector on disk (high)
-   489                                  ;
-   490                                  ; OUTPUT:
-   491                                  ;
-   492                                  ;   required by msinit
-   493                                  ;   DL = int 13 drive number we booted from
-   494                                  ;   CH = media byte
-   495                                  ;   BX = first data sector on disk (0-based)
-   496                                  ;   AX = first data sector on disk (high)
-   497                                  ;   DI = sectors/fat for the boot media.
-   498                                  ;
-   499                                  ; calls:     none
-   500                                  ; ---------------------------------------------------------------------------
-   501                                  ;
-   502                                  ; set up registers for msinit then do far jmp
-   503                                  ;
-   504                                  ; ---------------------------------------------------------------------------
-   505                                  
-   506                                  GoToBioInit:
-   507                                  		; 22/12/2022
-   508                                  		; Set registers just as Retro DOS v2/v3 boot sector sets them
-   509                                  		
-   510                                  		; these are not necessary
-   511                                  		;xor	ax, ax
-   512                                  		;mov	ds, ax
-   513                                  		;mov	bp, 7C00h
-   514                                  		;cli
-   515                                  		;mov	ss, ax
-   516                                  		;mov	sp, bp
-   517                                  		;sti
-   518                                  	
-   519                                  		; 23/12/2022
-   520 000001CF 0E                      		push	cs
-   521 000001D0 1F                      		pop	ds
-   522 000001D1 BE[0704]                		mov	si, crlf
-   523 000001D4 E8B801                  		call	WriteTTY
-   524                                  		
-   525 000001D7 8A36[2A00]              		mov	dh, [MediaByte] ; Restore regs required for msint
-   526 000001DB 8A16[2800]              		mov	dl, [BootDrive] ; Physical drv number we booted from.
-   527 000001DF A1[2200]                		mov	ax, [TotalSectorsL]
-   528                                  
-   529                                  		; 22/12/2022
-   530                                  		; (far jump to Retro DOS kernel start address)
-   531 000001E2 EA00000010              		jmp	1000h:0	; Far jump to MSDOS.SYS address	(KERNEL)
-   532                                  
-   533                                  ; =============== S U B	R O U T	I N E =======================================
-   534                                  
-   535                                  ; ReadSectors
-   536                                  ; ---------------------------------------------------------------------------
-   537                                  ; notES:
-   538                                  ;
-   539                                  ;  read in the CS:SectorCount number of sectors at ES:di
-   540                                  ;
-   541                                  ;
-   542                                  ; INPUT:
-   543                                  ;
-   544                                  ;   DI = OFFSET of start of read
-   545                                  ;   ES = segment of read
-   546                                  ;   CS:SectorCount = number of sectors to read
-   547                                  ;   CS:StartSecL = starting sector (low)
-   548                                  ;   CS:StartSecH = starting sector (high)
-   549                                  ;   following is bpb info that must be setup prior to call
-   550                                  ;   CS:NumHeads
-   551                                  ;   CS:number_of_sectors
-   552                                  ;   CS:BootDrive
-   553                                  ;   CS:SecPerTrack
-   554                                  ;
-   555                                  ; OUTPUT:
-   556                                  ;
-   557                                  ;   AX,BX,CX,DX,SI,DI destroyed
-   558                                  ; ---------------------------------------------------------------------------
-   559                                  ; divide start sector by sectors per track
-   560                                  ; the remainder is the actual sector number, 0 based
-   561                                  ;
-   562                                  ; increment actual sector number to get 1 based
-   563                                  ;
-   564                                  ; the quotient is the number of tracks - divide by heads to get the cyl
-   565                                  ;
-   566                                  ; the remainder is actual head, the quotient is cylinder
-   567                                  ;
-   568                                  ; figure the number of sectors in that track, set al to this
-   569                                  ;
-   570                                  ; do the read
-   571                                  ;
-   572                                  ; if error, do reset, then redo the int 13h
-   573                                  ;
-   574                                  ; if successful read, subtract # sectors read from SectorCount, add to logical
-   575                                  ; sector, add #sectors read * BytesPerSec to bx;
-   576                                  ;
-   577                                  ; if SectorCount <> 0 do next read
-   578                                  ; ---------------------------------------------------------------------------
-   579                                  
-   580                                  		; 22/12/2022
-   581                                  ReadSectors:
-   582 000001E7 B90500                  		mov	cx, 5			; 5 retries
-   583                                  
-   584                                  		; Convert a logical sector into track/sector/head. AX has the
-   585                                  		; logical sector number
-   586                                  TryRead:
-   587 000001EA 51                      		push	cx
-   588 000001EB 2EA1[0800]              		mov	ax, [cs:StartSecL]	; Get starting sector
-   589 000001EF 2E8B16[0A00]            		mov	dx, [cs:StartSecH]
-   590 000001F4 50                      		push	ax
-   591 000001F5 89D0                    		mov	ax, dx
-   592 000001F7 31D2                    		xor	dx, dx
-   593 000001F9 2EF736[2600]            		div	word [cs:SecPerTrack]	
-   594 000001FE 2EA3[0C00]              		mov	[cs:TempH], ax
-   595 00000202 58                      		pop	ax
-   596 00000203 2EF736[2600]            		div	word [cs:SecPerTrack]	; [TempH]:ax = track,
-   597                                  						; dx = sector number
-   598                                  
-   599 00000208 2E8B1E[2600]            		mov	bx, [cs:SecPerTrack]	; Get number of sectors we can
-   600                                  						; read in this track
-   601 0000020D 29D3                    		sub	bx, dx
-   602 0000020F 89DE                    		mov	si, bx
-   603                                  
-   604 00000211 2E3936[1000]            		cmp	[cs:SectorCount], si	; Is possible sectors in track more
-   605 00000216 7305                    		jnb	short GotLength		; than what we need to read?
-   606 00000218 2E8B36[1000]            		mov	si, [cs:SectorCount]	; Yes, only read what we need to
-   607                                  GotLength:
-   608                                  		; 23/12/2022
-   609                                  		; dma boundary check for >64K reads
-   610 0000021D 09FF                    		or	di, di
-   611 0000021F 7423                    		jz	short dma_boundary_ok ; no problem for the 1st read
-   612 00000221 2E803E[2800]80          		cmp	byte [cs:BootDrive], 80h
-   613 00000227 731B                    		jnb	short dma_boundary_ok ; no problem for hard disks
-   614 00000229 83FE01                  		cmp	si, 1
-   615 0000022C 7616                    		jna	short dma_boundary_ok ; 1 sector read will not cause to
-   616                                  					      ; boundary error	
-   617                                  dma_boundary_chk:
-   618 0000022E 52                      		push	dx
-   619 0000022F 50                      		push	ax
-   620 00000230 89F0                    		mov	ax, si
-   621 00000232 29D2                    		sub	dx, dx
-   622 00000234 2EF726[1800]            		mul	word [cs:BytesPerSec]
-   623                                  		; 23/12/2022
-   624                                  		; If di> 0 -> es = 1000h
-   625                                  		;mov	bx, es
-   626                                  		;mov	cl, 4
-   627                                  		;shl	bx, cl ; convert paragraphs to bytes
-   628                                  		;; bx = segment start position (for 64K memory sections)
-   629                                  		;add	bx, ax ; byte count to read
-   630 00000239 89C3                    		mov	bx, ax ; byte count to read
-   631 0000023B 58                      		pop	ax
-   632 0000023C 5A                      		pop	dx
-   633 0000023D 01FB                    		add	bx, di ; add current buffer offset to byte count
-   634 0000023F 7303                    		jnc	short dma_boundary_ok
-   635                                  		; Sector count must be decreased to prevent DMA boundary error!
-   636 00000241 4E                      		dec	si
-   637 00000242 EBEA                    		jmp	short dma_boundary_chk
-   638                                  dma_boundary_ok:				
-   639                                  		;inc	dl			; Sector numbers are 1-based
-   640                                  		; 18/12/2022
-   641 00000244 42                      		inc	dx
-   642 00000245 88D3                    		mov	bl, dl			; Start sector in BL
-   643 00000247 2E8B16[0C00]            		mov	dx, [cs:TempH]		; DX:AX = Track
-   644 0000024C 50                      		push	ax
-   645 0000024D 89D0                    		mov	ax, dx
-   646 0000024F 31D2                    		xor	dx, dx
-   647 00000251 2EF736[0400]            		div	word [cs:NumHeads]	; Start cyl in AX, head in dl
-   648 00000256 2EA3[0C00]              		mov	[cs:TempH], ax
-   649 0000025A 58                      		pop	ax
-   650 0000025B 2EF736[0400]            		div	word [cs:NumHeads]	; [TempH]:AX = Cylinder, DX = Head
+   443                                  CalcFatSize:
+   444                                  		; 24/12/2022
+   445                                  		; ds = cs
+   446 000000D1 C606[2500]01            		mov	byte [Fatsize], 1
+   447                                  		;mov	byte [cs:Fatsize], 1 ; FAT_12_BIT (assume)
+   448                                  		;mov	dx, [cs:TotalSectorsH]
+   449                                  		;mov	ax, [cs:TotalSectorsL] ; DX:AX = total disk sectors
+   450 000000D6 8B16[1E00]              		mov	dx, [TotalSectorsH]
+   451 000000DA A1[1C00]                		mov	ax, [TotalSectorsL] ; DX:AX = total disk sectors
+   452                                  		;;;		
+   453                                  ; 24/12/2202
+   454                                  %if 0
+   455                                  		sub	ax, [ReservSectors]
+   456                                  		;sub	ax, [cs:ReservSectors]
+   457                                  		sbb	dx, 0		; DX:AX	= Total	avail sectors
+   458                                  		;mov	bx, [cs:SecPerFat]
+   459                                  		mov	bx, [SecPerFat]
+   460                                  		shl	bx, 1		; (Assume 2 FATs)
+   461                                  		sub	ax, bx
+   462                                  		sbb	dx, 0
+   463                                  		;mov	bx, [7C11h]	; Root directory entry count
+   464                                  		mov	bx, [RootDirEntries]
+   465                                  		mov	cl, 4
+   466                                  		shr	bx, cl		; BX = Total directory sectors
+   467                                  		sub	ax, bx
+   468                                  		sbb	dx, 0		; DX:AX	= Sectors in data area
+   469                                  %endif
+   470                                  		; 24/12/2022
+   471 000000DD 2B06[2000]              		sub	ax, [FirstSectorL] ; total sectors - start of data
+   472 000000E1 1B16[2200]              		sbb	dx, [FirstSectorH]
+   473                                  				; DX:AX	= Sectors in data area
+   474                                  		;;;
+   475                                  		;xor	cx, cx
+   476                                  		;mov	cl, [7C0Dh]	; Sectors per cluster
+   477 000000E5 8B0E[1400]              		mov	cx, [SecPerCluster] ; *#*
+   478 000000E9 50                      		push	ax
+   479 000000EA 89D0                    		mov	ax, dx
+   480 000000EC 31D2                    		xor	dx, dx
+   481 000000EE F7F1                    		div	cx  ; *#*
+   482                                  		; 24/12/2022
+   483                                  		;;mov	[cs:TempH], ax	; AX = Total number of clusters
+   484                                  		;mov	[TempH], ax
+   485 000000F0 58                      		pop	ax
+   486 000000F1 F7F1                    		div	cx  ; *#*
+   487 000000F3 3DF60F                  		cmp	ax, 4086	; 4096-10
+   488 000000F6 7205                    		jb	short ReadInFirstClusters ; 12 bit FAT
+   489                                  		;mov	byte [cs:Fatsize], 4 ; FAT_16_BIT
+   490 000000F8 C606[2500]04            		mov	byte [Fatsize], 4 ; FAT_16_BIT
+   491                                  
+   492                                  ; 22/12/2022
+   493                                  ;----------------------------------------------------------------------------
+   494                                  ; HERE IS DIFFERENT THAN IO.SYS LOADER (MSLOAD)
+   495                                  ; FOLLOWING CODE HAS BEEN MODIFIED FOR LOADING RETRO DOS KERNEL (MSDOS.SYS)
+   496                                  ;----------------------------------------------------------------------------
+   497                                  
+   498                                  ; 22/12/2022
+   499                                  
+   500                                  KernelInitSegment equ 1000h	; Address where the kernel will be loaded
+   501                                  
+   502                                  ; ---------------------------------------------------------------------------
+   503                                  
+   504                                  		; 23/12/2022	
+   505                                  		; 22/12/2022	
+   506                                  ReadInFirstClusters:
+   507                                  		; 24/12/2022
+   508                                  		;;mov	ax, [53Ah]
+   509                                  		;mov	ax, [ss:KernelFirstClustr] ; [ss:053Ah] 
+   510                                  		;; 23/12/2022
+   511                                  		;;mov	[cs:CurrentCluster], ax ; Initialize to this cluster
+   512                                  		; 24/12/2022
+   513                                  		; ds = cs
+   514                                  		;mov	[CurrentCluster], ax
+   515                                  
+   516                                  		; 24/12/2022
+   517                                  		; [currentCluster] = the 1st cluster of MSDOS.SYS ; *!*
+   518 000000FD A1[1000]                		mov	ax, [CurrentCluster]
+   519                                  					; MSDOS.SYS First Cluster
+   520 00000100 48                      		dec	ax		; Root dir buffer at 500h (segment=0)
+   521                                  					; MSDOS.SYS first cluster ptr at 53Ah
+   522 00000101 48                      		dec	ax		; AX = word [53Ah] - 2
+   523                                  
+   524                                  ; 24/12/2022
+   525                                  %if 0
+   526                                  		mov	cx, [cs:FirstSectorL] ;	Put starting sector of disk data
+   527                                  		mov	[cs:StartSecL], cx    ; area in StartSecH:StartSecL
+   528                                  		mov	cx, [cs:FirstSectorH]
+   529                                  		mov	[cs:StartSecH], cx
+   530                                  		xor	cx, cx
+   531                                  		mov	cl, [cs:SecPerCluster]
+   532                                  		mul	cx		; DX:AX = logical start sector
+   533                                  		add	[cs:StartSecL], ax
+   534                                  		adc	[cs:StartSecH], dx
+   535                                  					; abs start sector for next read of
+   536                                  					; the rest of the last loader cluster
+   537                                  %endif
+   538                                  		; 24/12/2022
+   539                                  		; ds = cs
+   540                                  		;mov	cx, [FirstSectorL] ; Put starting sector of disk data
+   541                                  		;mov	[StartSecL], cx	   ; area in StartSecH:StartSecL
+   542                                  		;mov	cx, [FirstSectorH]
+   543                                  		;mov	[StartSecH], cx
+   544                                  		; [StartSecL] = [FirstSectorL] ; **!**
+   545                                  		; [StartSecH] = [FirstSectorH] ; **!**
+   546                                  
+   547                                  		; ax = cluster index (cluster number - 2)
+   548                                  
+   549                                  		;;xor	cx, cx
+   550                                  		;;mov	cl, [SecPerCluster]
+   551                                  		;mov	cx, [SecPerCluster] ; ch = 0
+   552                                  		; cx = [SecPerCluster]  ; *#* ; 24/12/2022
+   553 00000102 F7E1                    		mul	cx		; DX:AX = logical start sector
+   554                                  		; 24/12/2022
+   555 00000104 0106[0600]              		add	[StartSecL], ax
+   556 00000108 1116[0800]              		adc	[StartSecH], dx
+   557                                  					; abs start sector for next read of
+   558                                  					; the rest of the last loader cluster
+   559                                  		; 22/12/2022
+   560 0000010C BF0010                  		mov	di, KernelInitSegment
+   561                                  		;mov	di, 1000h	; MSDOS.SYS initial (loading) segment
+   562 0000010F 8EC7                    		mov	es, di
+   563 00000111 31FF                    		xor	di, di		; 1000h:0000h
+   564                                  		; 24/12/2022
+   565                                  		; cx = [SecPerCluster]
+   566                                  		;mov	ax, [SecPerCluster]
+   567                                  		;;sub	ax, ax
+   568                                  		;;mov	al, [SecPerCluster]
+   569 00000113 89C8                    		mov	ax, cx
+   570                                  					; Read in the entire last cluster
+   571 00000115 A3[0E00]                		mov	[SectorCount], ax ; ah = 0
+   572                                  
+   573 00000118 E84800                  		call	ReadSectors
+   574                                  
+   575                                  		; 22/12/2022
+   576                                  		;mov	[cs:NextBioLocation], di
+   577                                  
+   578                                  ; GetContigClusters
+   579                                  ; ---------------------------------------------------------------------------
+   580                                  ;
+   581                                  ; NOTES: go find clusters as long as they are contiguous
+   582                                  ;
+   583                                  ;
+   584                                  ; INPUT:
+   585                                  ;   CS:NextBioLocation
+   586                                  ;   CS:
+   587                                  ;
+   588                                  ; OUTPUT:
+   589                                  ;
+   590                                  ; calls: GetNextFatEntry
+   591                                  ; ---------------------------------------------------------------------------
+   592                                  ;
+   593                                  ;Set CS:SectorCount to sectors per cluster
+   594                                  ;
+   595                                  ;Call GetNextFatEntry to get next cluster in file
+   596                                  ;
+   597                                  ;Call check_for_eof
+   598                                  ;
+   599                                  ;if (nc returned)
+   600                                  ;
+   601                                  ;   {call GetNextFatEntry
+   602                                  ;
+   603                                  ;    if (new cluster is contig to old cluster)
+   604                                  ;	{add sectors per cluster to CS:SectorCount
+   605                                  ;
+   606                                  ;	 call check_for_eof
+   607                                  ;
+   608                                  ;	 if (nc returned)
+   609                                  ;
+   610                                  ; ---------------------------------------------------------------------------
+   611                                  
+   612                                  ; 09/12/2022
+   613                                  ; END_OF_FILE equ 0FFh
+   614                                  ; DosLoadSeg equ 70h
+   615                                  
+   616                                  		; 24/12/2022
+   617                                  GetContigClusters:
+   618                                  
+   619                                  ; 24/12/2022
+   620                                  %if 0			
+   621                                  		xor	ah, ah
+   622                                  		mov	al, [cs:SecPerCluster]	; Assume we will get one cluster
+   623                                  		mov	[cs:SectorCount], ax	; Sector count = sectors in 1 cluster
+   624                                  		push	word [cs:SectorCount]
+   625                                  		call	GetNextFatEntry		; Returns next cluster to read in AX	
+   626                                  		pop	word [cs:SectorCount]
+   627                                  		mov	[cs:CurrentCluster], ax ; Update the last one found
+   628                                  		cmp	byte [cs:EndOfFile], 0FFh ; END_OF_FILE
+   629                                  		je	short GoToBioInit ; 23/12/2022
+   630                                  		; 22/12/2022
+   631                                  		;xor	dx, dx ; * (not required)
+   632                                  		; 10/12/2022
+   633                                  		;sub	ax, 2			; Zero base the cluster
+   634                                  		dec	ax
+   635                                  		dec	ax
+   636                                  		xor	ch, ch
+   637                                  		mov	cl, [cs:SecPerCluster]
+   638                                  		mul	cx ; *			; How many sectors (before next cluster) 
+   639                                  		add	ax, [cs:FirstSectorL]	; See where the data sector starts
+   640                                  		adc	dx, [cs:FirstSectorH]
+   641                                  		mov	[cs:StartSecL], ax	; Save it (used by ReadSectors)
+   642                                  		mov	[cs:StartSecH], dx
+   643                                  		; 22/12/2022
+   644                                  		;mov	di, [cs:NextBioLocation] ; Get where to put code
+   645                                  		;push	word [cs:SectorCount]	; Save how many sectors
+   646                                  		call	ReadSectors
+   647                                  		;pop	ax			; Get back total sectors read in
+   648                                  		;mul	word [cs:BytesPerSec]	; Get number of bytes we loaded
+   649                                  		;add	[cs:NextBioLocation], ax ; Point to where to load next	
+   650                                  		jmp	short GetContigClusters
    651                                  
-   652                                  			; At this moment, we assume that TempH = 0,
-   653                                  			; ax <= 1024, dx <= 255
-   654                                  
-   655 00000260 88D6                    		mov	dh, dl
-   656                                  		
-   657 00000262 B106                    		mov	cl, 6
-   658 00000264 D2E4                    		shl	ah, cl			; Shift cyl high bits up
-   659 00000266 08DC                    		or	ah, bl			; Mix in with sector bits
-   660 00000268 88C5                    		mov	ch, al			; Setup cyl low
-   661 0000026A 88E1                    		mov	cl, ah			; Setup cyl/high - sector
-   662 0000026C 89FB                    		mov	bx, di			; Get back OFFSET
-   663 0000026E 2E8A16[2800]            		mov	dl, [cs:BootDrive]	; Get drive
-   664 00000273 89F0                    		mov	ax, si			; Get number of sectors to read (al)
-   665 00000275 B402                    		mov	ah, 2			; Read sectors
-   666                                  		; 23/12/2022
-   667                                  		;push	ax
-   668                                  		;push	di
-   669                                  
-   670                                  			; Issue one read request. ES:BX have the transfer address,
-   671                                  			; AL is the number of sectors.	
-   672                                  
-   673 00000277 CD13                    		int	13h		; DISK - READ SECTORS INTO MEMORY
-   674                                  					; AL = number of sectors to read, CH = track, CL = sector
-   675                                  					; DH = head, DL	= drive, ES:BX -> buffer to fill
-   676                                  					; Return: CF set on error, AH =	status,	AL = number of sectors read
-   677                                  		; 23/12/2022
-   678                                  		;pop	di
-   679                                  		;pop	ax
-   680                                  
-   681                                  		; 23/12/2022
-   682 00000279 B400                    		mov	ah, 0
-   683                                  		
-   684 0000027B 59                      		pop	cx		; Get retry count back
-   685 0000027C 7310                    		jnc	short ReadOk	; 23/12/2022
-   686                                  		; 23/12/2022
-   687                                  		;mov	bx, di		; Get offset
-   688                                  		; ah = 0
-   689                                  		;xor	ah, ah
-   690                                  		; 23/12/2022
-   691                                  		;push	cx
-   692 0000027E 2E8A16[2800]            		mov	dl, [cs:BootDrive]
-   693                                  		; 23/12/2022
-   694                                  		;push	di
-   695 00000283 CD13                    		int	13h		; DISK - RESET DISK SYSTEM
-   696                                  					; DL = drive (if bit 7 is set both hard	disks and floppy disks reset)
-   697                                  		; 23/12/2022
-   698                                  		;pop	di
-   699                                  		;pop	cx
-   700 00000285 49                      		dec	cx
-   701 00000286 7403                    		jz	short ReadError
-   702 00000288 E95FFF                  		jmp	TryRead
-   703                                  ; ---------------------------------------------------------------------------
-   704                                  
-   705                                  ReadError:				
-   706 0000028B E9E500                  		jmp	ErrorOut
-   707                                  ; ---------------------------------------------------------------------------
-   708                                  
-   709                                  ReadOk:
-   710                                  		; 23/12/2022			
-   711                                  		; ah = 0
-   712                                  		; 22/12/2022
-   713                                  		;xor	ah, ah		; Mask out read command, just get # read
-   714                                  		; ch = 0
-   715 0000028E 88C1                    		mov	cl, al
-   716                                  
-   717                                  		; 22/12/2022
-   718                                  		; cx = ax = read (sector) count	
-   719                                  		;mov	bx, [cs:BytesPerSec]	; Bytes per sector
-   720                                  		;mul	bx			; Get total bytes read	
-   721 00000290 2EF726[1800]            		mul	word [cs:BytesPerSec]
-   722 00000295 01C7                    		add	di, ax			; Add it to OFFSET
-   723 00000297 7307                    		jnc	short read_next_sector
-   724 00000299 8CC3                    		mov	bx, es
-   725                                  		;add	bx, 1000h
-   726 0000029B 80C710                  		add	bh, 10h
-   727 0000029E 8EC3                    		mov	es, bx
-   728                                  read_next_sector:
-   729                                  		; 22/12/2022
-   730 000002A0 2E290E[1000]            		sub	[cs:SectorCount], cx
-   731                                  		;sub	[cs:SectorCount], ax ; Bump number down
-   732 000002A5 740E                    		jz	short EndRead
-   733 000002A7 2E010E[0800]            		add	[cs:StartSecL], cx
-   734                                  		;add	[cs:StartSecL], ax	; Where to start next time
-   735 000002AC 2E8316[0A00]00          		adc	word [cs:StartSecH], 0
-   736 000002B2 E932FF                  		jmp	ReadSectors
-   737                                  ; ---------------------------------------------------------------------------
-   738                                  	
-   739                                  EndRead:				
-   740 000002B5 C3                      		retn
-   741                                  
-   742                                  ; =============== S U B	R O U T	I N E =======================================
-   743                                  
-   744                                  ; GetNextFatEntry
-   745                                  ; ---------------------------------------------------------------------------
-   746                                  ;
-   747                                  ; NOTES:
-   748                                  ;
-   749                                  ;   given the last cluster found, this will return the next cluster of
-   750                                  ;   iosys. if the last cluster is (f)ff8 - (f)fff, then the final cluster
-   751                                  ;   of iosys has been loaded, and control is passed to goto_iosys
-   752                                  ;   msload can handle maximum fat area size of 128 kb.
-   753                                  ;
-   754                                  ; INPUT:
-   755                                  ;
-   756                                  ;    CS:CurrentCluster
-   757                                  ;    CS:FatSize
-   758                                  ;
-   759                                  ; OUTPUT:
-   760                                  ;
-   761                                  ;   CS:CurrentCluster (updated)
-   762                                  ;
-   763                                  ; calls:  GetFatSector
-   764                                  ; ---------------------------------------------------------------------------
-   765                                  ; get CurrentCluster
-   766                                  ;
-   767                                  ; if (16 bit fat)
-   768                                  ;    {if (CurrentCluster = fff8 - ffff)
-   769                                  ;	 {jmp goto_iosys}
-   770                                  ;     else
-   771                                  ;	{get OFFSET by multiply cluster by 2}
+   652                                  %endif
+   653                                  		; 24/12/2022
+   654                                  		; ds = cs
+   655                                  
+   656 0000011B A1[1400]                		mov	ax, [SecPerCluster]	; Assume we will get one cluster
+   657 0000011E A3[0E00]                		mov	[SectorCount], ax	; Sector count = sectors in 1 cluster
+   658                                  		;push	word [SectorCount]
+   659 00000121 50                      		push	ax
+   660 00000122 E8E300                  		call	GetNextFatEntry		; Returns next cluster to read in AX	
+   661 00000125 8F06[0E00]              		pop	word [SectorCount]
+   662 00000129 A3[1000]                		mov	[CurrentCluster], ax	; Update the last one found
+   663                                  
+   664 0000012C 803E[2700]FF            		cmp	byte [EndOfFile], 0FFh	; END_OF_FILE
+   665 00000131 741A                    		je	short GoToBioInit ; 23/12/2022
+   666                                  		; 22/12/2022
+   667                                  		;xor	dx, dx ; * (not required)
+   668                                  		; 10/12/2022
+   669                                  		;sub	ax, 2			; Zero base the cluster
+   670 00000133 48                      		dec	ax
+   671 00000134 48                      		dec	ax
+   672                                  		; 24/12/2022
+   673                                  		; ax = cluster index
+   674                                  		;mov	cx, [SecPerCluster]
+   675                                  		;mul	cx ; *			; How many sectors (before next cluster) 
+   676 00000135 F726[1400]              		mul	word [SecPerCluster]
+   677 00000139 0306[2000]              		add	ax, [FirstSectorL]	; See where the data sector starts
+   678 0000013D 1316[2200]              		adc	dx, [FirstSectorH]
+   679 00000141 A3[0600]                		mov	[StartSecL], ax		; Save it (used by ReadSectors)
+   680 00000144 8916[0800]              		mov	[StartSecH], dx
+   681                                  			
+   682 00000148 E81800                  		call	ReadSectors
+   683                                  				; ES:DI = (the next) buffer address for next read
+   684                                  		
+   685 0000014B EBCE                    		jmp	short GetContigClusters
+   686                                  
+   687                                  ; ---------------------------------------------------------------------------
+   688                                  
+   689                                  ; GoToBioInit
+   690                                  ; ---------------------------------------------------------------------------
+   691                                  ;
+   692                                  ; NOTES:
+   693                                  ;
+   694                                  ;  Set up required registers for iosys, then jump to it (70:0)
+   695                                  ;
+   696                                  ; INPUT:     none
+   697                                  ;
+   698                                  ;   CS:MediaByte = media byte
+   699                                  ;   CS:BootDrive = int 13 drive number we booted from
+   700                                  ;   CS:FirstSectorL = first data sector on disk (low) (0-based)
+   701                                  ;   CS:FirstSectorH = first data sector on disk (high)
+   702                                  ;
+   703                                  ; OUTPUT:
+   704                                  ;
+   705                                  ;   required by msinit
+   706                                  ;   DL = int 13 drive number we booted from
+   707                                  ;   CH = media byte
+   708                                  ;   BX = first data sector on disk (0-based)
+   709                                  ;   AX = first data sector on disk (high)
+   710                                  ;   DI = sectors/fat for the boot media.
+   711                                  ;
+   712                                  ; calls:     none
+   713                                  ; ---------------------------------------------------------------------------
+   714                                  ;
+   715                                  ; set up registers for msinit then do far jmp
+   716                                  ;
+   717                                  ; ---------------------------------------------------------------------------
+   718                                  
+   719                                  GoToBioInit:
+   720                                  		; 22/12/2022
+   721                                  		; Set registers just as Retro DOS v2/v3 boot sector sets them
+   722                                  		
+   723                                  		; these are not necessary
+   724                                  		;xor	ax, ax
+   725                                  		;mov	ds, ax
+   726                                  		;mov	bp, 7C00h
+   727                                  		;cli
+   728                                  		;mov	ss, ax
+   729                                  		;mov	sp, bp
+   730                                  		;sti
+   731                                  	
+   732                                  		; 23/12/2022
+   733                                  		;push	cs
+   734                                  		;pop	ds
+   735                                  		;mov	si, crlf
+   736                                  		; 24/12/2022
+   737                                  		; ds = cs
+   738 0000014D BE[3F03]                		mov	si, ok_msg
+   739 00000150 E87301                  		call	WriteTTY
+   740                                  		
+   741 00000153 8A36[2600]              		mov	dh, [MediaByte] ; Restore regs required for msint
+   742 00000157 8A16[2400]              		mov	dl, [BootDrive] ; Physical drv number we booted from.
+   743 0000015B A1[1C00]                		mov	ax, [TotalSectorsL]
+   744                                  
+   745                                  		; 22/12/2022
+   746                                  		; (far jump to Retro DOS kernel start address)
+   747 0000015E EA00000010              		jmp	1000h:0	; Far jump to MSDOS.SYS address	(KERNEL)
+   748                                  
+   749                                  ; =============== S U B	R O U T	I N E =======================================
+   750                                  
+   751                                  ; ReadSectors
+   752                                  ; ---------------------------------------------------------------------------
+   753                                  ; notES:
+   754                                  ;
+   755                                  ;  read in the CS:SectorCount number of sectors at ES:di
+   756                                  ;
+   757                                  ;
+   758                                  ; INPUT:
+   759                                  ;
+   760                                  ;   DI = OFFSET of start of read
+   761                                  ;   ES = segment of read
+   762                                  ;   CS:SectorCount = number of sectors to read
+   763                                  ;   CS:StartSecL = starting sector (low)
+   764                                  ;   CS:StartSecH = starting sector (high)
+   765                                  ;   following is bpb info that must be setup prior to call
+   766                                  ;   CS:NumHeads
+   767                                  ;   CS:number_of_sectors
+   768                                  ;   CS:BootDrive
+   769                                  ;   CS:SecPerTrack
+   770                                  ;
+   771                                  ; OUTPUT:
    772                                  ;
-   773                                  ; else
-   774                                  ;    {if (CurrentCluster = ff8 - fff)
-   775                                  ;	 {jmp goto_iosys}
-   776                                  ;     else
-   777                                  ;	{get OFFSET by	- multiply cluster by 3
-   778                                  ;
-   779                                  ;	 rotate right to divide by 2
-   780                                  ;
-   781                                  ;	 if (cy set - means odd number)
-   782                                  ;	    {shr 4 times to keep high twelve bits}
+   773                                  ;   AX,BX,CX,DX,SI,DI destroyed
+   774                                  ; ---------------------------------------------------------------------------
+   775                                  ; divide start sector by sectors per track
+   776                                  ; the remainder is the actual sector number, 0 based
+   777                                  ;
+   778                                  ; increment actual sector number to get 1 based
+   779                                  ;
+   780                                  ; the quotient is the number of tracks - divide by heads to get the cyl
+   781                                  ;
+   782                                  ; the remainder is actual head, the quotient is cylinder
    783                                  ;
-   784                                  ;	 else
-   785                                  ;	    {and with 0fffh to keep low 12 bits}
-   786                                  ;	}
-   787                                  ;    }
-   788                                  ;
-   789                                  ; ---------------------------------------------------------------------------
-   790                                  
-   791                                  ; 09/12/2022
-   792                                  ; FAT_12_BIT equ 1
-   793                                  ; NOT_END_OF_FILE equ 0  ; ~END_OF_FILE ; END_OF_FILE equ 0FFh
-   794                                  
-   795                                  GetNextFatEntry:			
-   796 000002B6 06                      		push	es
-   797 000002B7 2EA1[3000]              		mov	ax, [cs:FatSegment]
-   798 000002BB 8EC0                    		mov	es, ax		; ES-> FAT area segment
-   799                                  		; 09/12/2022
-   800                                  		;mov	byte [cs:EndOfFile], END_OF_FILE
-   801 000002BD 2EC606[2B00]FF          		mov	byte [cs:EndOfFile], 0FFh ; Assume last cluster
-   802 000002C3 2EA1[1C00]              		mov	ax, [cs:CurrentCluster] ; Get last cluster
-   803                                  		;cmp	byte [cs:FatSize], FAT_12_BIT
-   804 000002C7 2E803E[2900]01          		cmp	byte [cs:Fatsize], 1
-   805 000002CD 7538                    		jne	short Got16Bit	; 23/12/2022
-   806 000002CF 89C6                    		mov	si, ax
-   807 000002D1 D1E8                    		shr	ax, 1
-   808 000002D3 01C6                    		add	si, ax		; SI = AX * 1.5 = AX + AX/2
-   809                                  		; 23/12/2022
-   810                                  		;push	dx
-   811                                  		;xor	dx, dx
-   812 000002D5 29D2                    		sub	dx, dx ; 23/12/2022
-   813 000002D7 E84900                  		call	GetFatSector
-   814                                  		; 23/12/2022
-   815                                  		;pop	dx
-   816 000002DA 7510                    		jnz	short ClusterOk
-   817 000002DC 268A07                  		mov	al, [es:bx]
-   818                                  		; 22/12/2022
-   819                                  		;mov	[cs:TempCluster], al
-   820                                  		;push	ax ; (*)
-   821 000002DF 46                      		inc	si
-   822                                  		; 23/12/2022
-   823                                  		;push	dx
-   824 000002E0 31D2                    		xor	dx, dx
-   825 000002E2 E83E00                  		call	GetFatSector	; Read next fat sector
-   826                                  		; 23/12/2022
-   827                                  		;pop	dx
-   828                                  		; 22/12/2022
-   829                                  		;mov	al, [es:0]
-   830                                  		;mov	[cs:TempCluster+1], al
-   831                                  		;mov	ax, [cs:TempCluster]
-   832                                  		; 22/12/2022
-   833                                  		;pop	ax ; (*) 
-   834 000002E5 268A260000              		mov	ah, [es:0]
-   835 000002EA EB03                    		jmp	short EvenOdd
-   836                                  ; ---------------------------------------------------------------------------
-   837                                  
-   838                                  ClusterOk:				
-   839 000002EC 268B07                  		mov	ax, [es:bx]
-   840                                  EvenOdd:	
-   841                                  		; 10/12/2022		
-   842 000002EF 2EF606[1C00]01          		test	byte [cs:CurrentCluster], 1 ; 09/12/2022
-   843                                  		;test	word [cs:CurrentCluster], 1 ; Was last cluster odd?
-   844 000002F5 7505                    		jnz	short OddResult		; If not zero it was odd
-   845 000002F7 25FF0F                  		and	ax, 0FFFh		; Keep low 12 bits
-   846 000002FA EB04                    		jmp	short TestEOF
-   847                                  ; ---------------------------------------------------------------------------
-   848                                  
-   849                                  OddResult:				
-   850 000002FC B104                    		mov	cl, 4			; Keep high 12 bits for odd
-   851 000002FE D3E8                    		shr	ax, cl
-   852                                  TestEOF:				
-   853 00000300 3DF80F                  		cmp	ax, 0FF8h		; Is it last cluster?
-   854 00000303 731C                    		jnb	short GotClusterDone	; Yep, all done here
-   855 00000305 EB14                    		jmp	short NotLastCluster
-   856                                  ; ---------------------------------------------------------------------------
-   857                                  
-   858                                  Got16Bit:
-   859                                  		; 23/12/2022				
-   860                                  		;push	dx
-   861                                  		;xor	dx, dx
-   862 00000307 29D2                    		sub	dx, dx ; 23/12/2022
-   863 00000309 D1E0                    		shl	ax, 1			; Multiply cluster by 2
-   864 0000030B 83D200                  		adc	dx, 0
-   865 0000030E 89C6                    		mov	si, ax			; Get the final buffer OFFSET
-   866 00000310 E81000                  		call	GetFatSector
-   867                                  		; 23/12/2022
-   868                                  		;pop	dx
-   869 00000313 268B07                  		mov	ax, [es:bx]
-   870 00000316 83F8F8                  		cmp	ax, 0FFF8h
-   871 00000319 7306                    		jnb	short GotClusterDone
-   872                                  NotLastCluster:				
-   873                                  		;mov	byte [cs:EndOfFile], NOT_END_OF_FILE ; ~END_OF_FILE
-   874 0000031B 2EC606[2B00]00          		mov	byte [cs:EndOfFile], 0	; Assume not last cluster
-   875                                  GotClusterDone:				
-   876 00000321 07                      		pop	es
-   877 00000322 C3                      		retn
-   878                                  
-   879                                  ; =============== S U B	R O U T	I N E =======================================
-   880                                  
-   881                                  ; GetFatSector
-   882                                  ; ---------------------------------------------------------------------------
-   883                                  ;function: find and read the corresponding fat sector into ES:0
-   884                                  ;
-   885                                  ;in). SI = offset value (starting from fat entry 0) of fat entry to find.
-   886                                  ;     ES = fat sector segment
-   887                                  ;     CS:BytesPerSec
-   888                                  ;
-   889                                  ;out). corresponding fat sector read in.
-   890                                  ;      BX = offset value of the corresponding fat entry in the fat sector.
-   891                                  ;      CX destroyed.
-   892                                  ;      zero flag set if the fat entry is splitted, i.e. when 12 bit fat entry
-   893                                  ;      starts at the last byte of the fat sector. in this case, the caller
-   894                                  ;      should save this byte, and read the next fat sector to get the rest
-   895                                  ;      of the fat entry value. (this will only happen with the 12 bit fat).
-   896                                  ;
-   897                                  ; ---------------------------------------------------------------------------
-   898                                  
-   899                                  		; 22/12/2022
-   900                                  GetFatSector:				
-   901 00000323 50                      		push	ax
-   902 00000324 56                      		push	si
-   903 00000325 57                      		push	di
-   904 00000326 89F0                    		mov	ax, si
-   905 00000328 2E8B0E[1800]            		mov	cx, [cs:BytesPerSec]
-   906 0000032D F7F1                    		div	cx			; AX = Sector number, DX = Offset
-   907 0000032F 2E3B06[0E00]            		cmp	ax, [cs:LastFatSector]	; The same fat sector?
-   908 00000334 7434                    		je	short SplitChk		; Don't need to read it again.
-   909 00000336 2EA3[0E00]              		mov	[cs:LastFatSector], ax
-   910 0000033A 52                      		push	dx
-   911 0000033B 31D2                    		xor	dx, dx
-   912 0000033D 2E0306[1400]            		add	ax, [cs:HiddenSectorsL]
-   913 00000342 2E1316[1600]            		adc	dx, [cs:HiddenSectorsH]
-   914 00000347 2E0306[1A00]            		add	ax, [cs:ReservSectors]
-   915 0000034C 83D200                  		adc	dx, 0
-   916 0000034F 2EA3[0800]              		mov	[cs:StartSecL], ax
-   917 00000353 2E8916[0A00]            		mov	[cs:StartSecH], dx	; Set up for ReadSectors
-   918                                  					
-   919 00000358 2EC706[1000]0100        		mov	word [cs:SectorCount], 1 ; 1 sector
-   920 0000035F 31FF                    		xor	di, di
-   921 00000361 E883FE                  		call	ReadSectors
-   922 00000364 5A                      		pop	dx
-   923 00000365 2E8B0E[1800]            		mov	cx, [cs:BytesPerSec]
-   924                                  SplitChk:				
-   925 0000036A 49                      		dec	cx			; CX = SECTOR SIZE - 1
-   926 0000036B 39CA                    		cmp	dx, cx			; If last byte of sector, splitted entry.
-   927 0000036D 89D3                    		mov	bx, dx			; set bx to dx
-   928 0000036F 5F                      		pop	di
-   929 00000370 5E                      		pop	si
-   930 00000371 58                      		pop	ax
-   931                                  EndWrite:		; 10/12/2022
-   932 00000372 C3                      		retn
-   933                                  
-   934                                  ; ---------------------------------------------------------------------------
-   935                                  
-   936                                  ErrorOut:				
-   937 00000373 0E                      		push	cs
-   938 00000374 1F                      		pop	ds
-   939 00000375 BE[9D03]                		mov	si, NonSystemDiskMsg ; "\r\nNon-System disk or disk error\r\nRe"...
-   940 00000378 E81400                  		call	WriteTTY
-   941                                  
-   942                                  		; Wait for a keypress on the keyboard.
-   943                                  		; Use the bios keyboard interrupt.
-   944                                  
-   945 0000037B 30E4                    		xor	ah, ah
-   946 0000037D CD16                    		int	16h		; KEYBOARD - READ CHAR FROM BUFFER, WAIT IF EMPTY
-   947                                  					; Return: AH = scan code, AL = character
-   948                                  
-   949                                  		; We have to restore the address of the original rom disk
-   950                                  		; parameter table to the location at [0:DskAddr]. The address
-   951                                  		; of this original table has been saved previously in
-   952                                  		; 0:OrgDasdPtr and 0:OrgDasdPtr+2. After this table address
-   953                                  		; has been restored we can reboot by invoking the bootstrap
-   954                                  		; loader bios interrupt.
-   955                                  
-   956                                  		; 23/12/2022
-   957                                  		;xor	bx, bx
-   958                                  		;mov	ds, bx
-   959                                  		;les	bx, [OrgDasdPtr] ; Wrong DS segment !
-   960                                  					 ; (Erdogan Tan, 23/12/2022)
-   961 0000037F C41E[2C00]              		les	bx, [OrgDasdPtr] ; Correct DS segment = CS
-   962                                  		
-   963                                  		; 23/12/2022
-   964 00000383 16                      		push	ss ; 0
-   965 00000384 1F                      		pop	ds
-   966                                  		; ds = 0		
-   967                                  
-   968 00000385 BE7800                  		mov	si, DskAddr	; (Int 1Eh)
-   969 00000388 891C                    		mov	[si], bx	; restore offset		
-   970 0000038A 8C4402                  		mov	[si+2], es	; restore segment
-   971                                  
-   972 0000038D CD19                    		int	19h		; reboot
-   973                                  
-   974                                  ; =============== S U B	R O U T	I N E =======================================
-   975                                  
-   976                                  ; WriteTTY
-   977                                  ; ---------------------------------------------------------------------------
-   978                                  ; in) DS:si -> asciiz string.
-   979                                  ;
-   980                                  ; WriteTTY the character in al to the screen.
-   981                                  ; use video service 'write teletype to active page' (ROM_TTY)
-   982                                  ; use normal character attribute
-   983                                  ; ---------------------------------------------------------------------------
-   984                                  
-   985                                  WriteTTY:				
-   986 0000038F AC                      		lodsb
-   987 00000390 08C0                    		or	al, al
-   988 00000392 74DE                    		jz	short EndWrite
-   989                                  		;mov	AH, ROM_TTY	; 09/12/2022
-   990 00000394 B40E                    		mov	ah, 0Eh
-   991 00000396 B307                    		mov	bl, 7		; "normal" attribute
-   992 00000398 CD10                    		int	10h		; - VIDEO - WRITE CHARACTER AND	ADVANCE	CURSOR (TTY WRITE)
-   993                                  					; AL = character, BH = display page (alpha modes)
-   994                                  					; BL = foreground color	(graphics modes)
-   995 0000039A EBF3                    		jmp	short WriteTTY
-   996                                  ; ---------------------------------------------------------------------------
-   997                                  
-   998                                  ; 10/12/2022	
-   999                                  ;EndWrite:				
-  1000                                  ;		retn
-  1001                                  
-  1002                                  ; ---------------------------------------------------------------------------
+   784                                  ; figure the number of sectors in that track, set al to this
+   785                                  ;
+   786                                  ; do the read
+   787                                  ;
+   788                                  ; if error, do reset, then redo the int 13h
+   789                                  ;
+   790                                  ; if successful read, subtract # sectors read from SectorCount, add to logical
+   791                                  ; sector, add #sectors read * BytesPerSec to bx;
+   792                                  ;
+   793                                  ; if SectorCount <> 0 do next read
+   794                                  ; ---------------------------------------------------------------------------
+   795                                  
+   796                                  		; 24/12/2022
+   797                                  		; 22/12/2022
+   798                                  ReadSectors:
+   799 00000163 B90500                  		mov	cx, 5			; 5 retries
+   800                                  
+   801                                  		; Convert a logical sector into track/sector/head. AX has the
+   802                                  		; logical sector number
+   803                                  TryRead:
+   804                                  		; 24/12/2022
+   805                                  		; ds = cs
+   806 00000166 51                      		push	cx
+   807                                  		;mov	ax, [cs:StartSecL]	; Get starting sector
+   808                                  		;mov	dx, [cs:StartSecH]
+   809 00000167 A1[0600]                		mov	ax, [StartSecL]		; Get starting sector
+   810 0000016A 8B16[0800]              		mov	dx, [StartSecH]
+   811 0000016E 50                      		push	ax
+   812 0000016F 89D0                    		mov	ax, dx
+   813 00000171 31D2                    		xor	dx, dx
+   814                                  		;;div	word [cs:SecPerTrack]
+   815                                  		;div	word [SecPerTrack]	
+   816                                  		; 24/12/2022
+   817 00000173 8B1E[1800]              		mov	bx, [SecPerTrack]
+   818 00000177 F7F3                    		div	bx
+   819 00000179 A3[0A00]                		mov	[TempH], ax
+   820                                  		;mov	[cs:TempH], ax
+   821 0000017C 58                      		pop	ax
+   822 0000017D F7F3                    		div	bx
+   823                                  		;div	word [SecPerTrack]
+   824                                  		;;div	word [cs:SecPerTrack]	; [TempH]:ax = track,
+   825                                  						; dx = sector number
+   826                                  
+   827                                  		;mov	bx, [cs:SecPerTrack]	; Get number of sectors we can
+   828                                  						; read in this track
+   829 0000017F 29D3                    		sub	bx, dx
+   830                                  		;mov	si, bx
+   831 00000181 8B36[0E00]              		mov	si, [SectorCount]
+   832                                  
+   833 00000185 39DE                    		cmp	si, bx
+   834 00000187 7602                    		jna	short GotLength
+   835                                  		;cmp	[SectorCount], si
+   836                                  		;;cmp	[cs:SectorCount], si	; Is possible sectors in track more
+   837                                  		;jnb	short GotLength		; than what we need to read?
+   838 00000189 89DE                    		mov	si, bx
+   839                                  		;mov	si, [SectorCount]
+   840                                  		;;mov	si, [cs:SectorCount]	; Yes, only read what we need to
+   841                                  GotLength:
+   842                                  		; 23/12/2022
+   843                                  		; dma boundary check for >64KB reads
+   844                                  		; 24/12/2022
+   845                                  		; Also, Segment Override risk !
+   846 0000018B 09FF                    		or	di, di
+   847 0000018D 741A                    		jz	short dma_boundary_ok ; no problem for the 1st read
+   848                                  		; 24/12/2022
+   849                                  		;cmp	byte [BootDrive], 80h
+   850                                  		;;cmp	byte [cs:BootDrive], 80h
+   851                                  		;jnb	short dma_boundary_ok ; no problem for hard disks
+   852                                  dma_boundary_chk:
+   853                                  		; 24/12/2022
+   854 0000018F 83FE01                  		cmp	si, 1
+   855 00000192 7615                    		jna	short dma_boundary_ok 
+   856                                  				; 1 sector read will not cause a boundary error			
+   857 00000194 52                      		push	dx
+   858 00000195 50                      		push	ax
+   859 00000196 89F0                    		mov	ax, si
+   860 00000198 29D2                    		sub	dx, dx
+   861                                  		; 24/12/2022
+   862 0000019A F726[1200]              		mul	word [BytesPerSec]
+   863                                  		;mul	word [cs:BytesPerSec]
+   864                                  		; 23/12/2022
+   865                                  		; If di > 0 -> es = 1000h (or 2000h)
+   866                                  		;mov	bx, es
+   867                                  		;mov	cl, 4
+   868                                  		;shl	bx, cl ; convert paragraphs to bytes
+   869                                  		;; bx = segment start position (for 64K memory sections)
+   870                                  		;add	bx, ax ; byte count to read
+   871 0000019E 89C3                    		mov	bx, ax ; byte count to read
+   872 000001A0 58                      		pop	ax
+   873 000001A1 5A                      		pop	dx
+   874 000001A2 01FB                    		add	bx, di ; add current buffer offset to byte count
+   875 000001A4 7303                    		jnc	short dma_boundary_ok
+   876                                  		; Sector count must be decreased to prevent
+   877                                  		; DMA boundary error or segment override risk!
+   878 000001A6 4E                      		dec	si
+   879 000001A7 EBE6                    		jmp	short dma_boundary_chk
+   880                                  dma_boundary_ok:				
+   881                                  		;inc	dl			; Sector numbers are 1-based
+   882                                  		; 18/12/2022
+   883 000001A9 42                      		inc	dx
+   884 000001AA 88D3                    		mov	bl, dl			; Start sector in BL
+   885                                  		; 24/12/2022
+   886 000001AC 8B16[0A00]              		mov	dx, [TempH]		; DX:AX = Track
+   887                                  		;mov	dx, [cs:TempH]		; DX:AX = Track
+   888 000001B0 50                      		push	ax
+   889 000001B1 89D0                    		mov	ax, dx
+   890 000001B3 31D2                    		xor	dx, dx
+   891                                  		; 24/12/2022
+   892 000001B5 F736[1A00]              		div	word [NumHeads]
+   893                                  		;div	word [cs:NumHeads]	; Start cyl in AX, head in dl
+   894                                  		;mov	[TempH], ax
+   895                                  		;;mov	[cs:TempH], ax
+   896 000001B9 58                      		pop	ax
+   897 000001BA F736[1A00]              		div	word [NumHeads]
+   898                                  		;div	word [cs:NumHeads]	; [TempH]:AX = Cylinder, DX = Head
+   899                                  
+   900                                  			; At this moment, we assume that TempH = 0,
+   901                                  			; ax <= 1024, dx <= 255
+   902                                  
+   903 000001BE 88D6                    		mov	dh, dl
+   904                                  		
+   905 000001C0 B106                    		mov	cl, 6
+   906 000001C2 D2E4                    		shl	ah, cl			; Shift cyl high bits up
+   907 000001C4 08DC                    		or	ah, bl			; Mix in with sector bits
+   908 000001C6 88C5                    		mov	ch, al			; Setup cyl low
+   909 000001C8 88E1                    		mov	cl, ah			; Setup cyl/high - sector
+   910 000001CA 89FB                    		mov	bx, di			; Get back OFFSET
+   911                                  		; 24/12/2022
+   912 000001CC 8A16[2400]              		mov	dl, [BootDrive]		; Get drive
+   913                                  		;mov	dl, [cs:BootDrive]	; Get drive
+   914 000001D0 89F0                    		mov	ax, si			; Get number of sectors to read (al)
+   915 000001D2 B402                    		mov	ah, 2			; Read sectors
+   916                                  		; 23/12/2022
+   917                                  		;push	ax
+   918                                  		;push	di
+   919                                  
+   920                                  			; Issue one read request. ES:BX have the transfer address,
+   921                                  			; AL is the number of sectors.	
+   922                                  
+   923 000001D4 CD13                    		int	13h		; DISK - READ SECTORS INTO MEMORY
+   924                                  					; AL = number of sectors to read, CH = track, CL = sector
+   925                                  					; DH = head, DL	= drive, ES:BX -> buffer to fill
+   926                                  					; Return: CF set on error, AH =	status,	AL = number of sectors read
+   927                                  		; 23/12/2022
+   928                                  		;pop	di
+   929                                  		;pop	ax
+   930                                  
+   931                                  		; 23/12/2022
+   932 000001D6 B400                    		mov	ah, 0
+   933                                  		
+   934 000001D8 59                      		pop	cx		; Get retry count back
+   935 000001D9 730A                    		jnc	short ReadOk	; 23/12/2022
+   936                                  		
+   937                                  		; 23/12/2022
+   938                                  		;mov	bx, di		; Get offset
+   939                                  		; ah = 0
+   940                                  		;xor	ah, ah
+   941                                  		; 23/12/2022
+   942                                  		;push	cx
+   943                                  		; 24/12/2022
+   944                                  		;mov	dl, [BootDrive]
+   945                                  		;;mov	dl, [cs:BootDrive]
+   946                                  		; 23/12/2022
+   947                                  		;push	di
+   948 000001DB CD13                    		int	13h		; DISK - RESET DISK SYSTEM
+   949                                  					; DL = drive (if bit 7 is set both hard	disks and floppy disks reset)
+   950                                  		; 23/12/2022
+   951                                  		;pop	di
+   952                                  		;pop	cx
+   953 000001DD 49                      		dec	cx
+   954 000001DE 7402                    		jz	short ReadError
+   955 000001E0 EB84                    		jmp	TryRead
+   956                                  ; ---------------------------------------------------------------------------
+   957                                  
+   958                                  ReadError:				
+   959 000001E2 E9C700                  		jmp	ErrorOut
+   960                                  ; ---------------------------------------------------------------------------
+   961                                  
+   962                                  ReadOk:
+   963                                  		; 23/12/2022			
+   964                                  		; ah = 0
+   965                                  		; 22/12/2022
+   966                                  		;xor	ah, ah		; Mask out read command, just get # read
+   967                                  		; ch = 0
+   968 000001E5 88C1                    		mov	cl, al
+   969                                  
+   970                                  		; 22/12/2022
+   971                                  		; cx = ax = read (sector) count	
+   972                                  		;mov	bx, [cs:BytesPerSec]	; Bytes per sector
+   973                                  		;mul	bx			; Get total bytes read	
+   974                                  		; 24/12/2022
+   975                                  		; ds = cs
+   976 000001E7 F726[1200]              		mul	word [BytesPerSec]
+   977                                  		;mul	word [cs:BytesPerSec]
+   978 000001EB 01C7                    		add	di, ax			; Add it to OFFSET
+   979 000001ED 7307                    		jnc	short read_next_sector
+   980 000001EF 8CC3                    		mov	bx, es
+   981                                  		;add	bx, 1000h
+   982 000001F1 80C710                  		add	bh, 10h
+   983 000001F4 8EC3                    		mov	es, bx
+   984                                  read_next_sector:
+   985                                  		; 24/12/2022
+   986                                  		; ds = cs
+   987                                  		; 22/12/2022
+   988 000001F6 290E[0E00]              		sub	[SectorCount], cx
+   989                                  		;sub	[cs:SectorCount], cx
+   990                                  		;;sub	[cs:SectorCount], ax	; Bump number down
+   991 000001FA 7472                    		jz	short EndRead
+   992 000001FC 010E[0600]              		add	[StartSecL], cx
+   993                                  		;add	[cs:StartSecL], cx
+   994                                  		;;add	[cs:StartSecL], ax	; Where to start next time
+   995 00000200 8316[0800]00            		adc	word [StartSecH], 0
+   996                                  		;adc	word [cs:StartSecH], 0
+   997 00000205 E95BFF                  		jmp	ReadSectors
+   998                                  ; ---------------------------------------------------------------------------
+   999                                  		
+  1000                                  		; 24/12/2022
+  1001                                  ;EndRead:				
+  1002                                  		;retn
   1003                                  
-  1004                                  ; 09/12/2022
-  1005                                  ;include msbio.cl1
-  1006                                  
-  1007                                  		; 22/12/2022
-  1008                                  		; 20/12/2022
-  1009                                  		; 18/12/2022
-  1010 0000039C 00                      		db 0	; (word alignment)
-  1011                                  NonSystemDiskMsg:
-  1012 0000039D 0D0A                    		db 0Dh,0Ah
-  1013 0000039F 4E6F6E2D5379737465-     		db 'Non-System disk or disk error',0Dh,0Ah
-  1013 000003A8 6D206469736B206F72-
-  1013 000003B1 206469736B20657272-
-  1013 000003BA 6F720D0A           
-  1014 000003BE 5265706C6163652061-     		db 'Replace and press any key when ready',0Dh,0Ah,0
-  1014 000003C7 6E6420707265737320-
-  1014 000003D0 616E79206B65792077-
-  1014 000003D9 68656E207265616479-
-  1014 000003E2 0D0A00             
-  1015                                  ;EndOfLoader:
-  1016                                  		; 22/12/2022
-  1017 000003E5 A101                    		dw 01A1h	; 10/12/2022
-  1018                                  
-  1019                                  ; ---------------------------------------------------------------------------
-  1020                                  
-  1021                                  ; 23/12/2022
-  1022 000003E7 00                      		db 0
-  1023 000003E8 0D0A                    loading_msg:	db 0Dh, 0Ah
-  1024 000003EA 4C6F6164696E67204B-     		db 'Loading Kernel MSDOS.SYS ... '
-  1024 000003F3 65726E656C204D5344-
-  1024 000003FC 4F532E535953202E2E-
-  1024 00000405 2E20               
-  1025                                  crlf:
-  1026 00000407 0D0A00                  		db 0Dh, 0Ah, 0
-  1027                                  
-  1028                                  ; ---------------------------------------------------------------------------
-  1029                                  
-  1030                                  ; 22/12/2022
-  1031                                  ; (set file size to 1536 bytes)
-  1032                                  
-  1033                                  SignatureSize equ EndOfLoader - signature
-  1034                                  
-  1035                                  FillingSpace equ ($-START$)+SignatureSize
-  1036                                  
-  1037 0000040A FF<rep 1B0h>            times		1536-FillingSpace db 0FFh ; db 90h
-  1038                                  
-  1039 000005BA 00                      signature:	db 0
-  1040 000005BB 0D0A                    		db 0Dh, 0Ah
-  1041 000005BD 526574726F20444F53-     		db 'Retro DOS v4 Kernel Loader (Fake IO.SYS) '
-  1041 000005C6 207634204B65726E65-
-  1041 000005CF 6C204C6F6164657220-
-  1041 000005D8 2846616B6520494F2E-
-  1041 000005E1 5359532920         
-  1042 000005E6 0D0A                    		db 0Dh,0Ah
-  1043 000005E8 6279204572646F6761-     		db 'by Erdogan Tan [2022]'
-  1043 000005F1 6E2054616E205B3230-
-  1043 000005FA 32325D             
-  1044 000005FD 0D0A00                  		db  0Dh, 0Ah, 0
-  1045                                  EndOfLoader:
+  1004                                  ; =============== S U B	R O U T	I N E =======================================
+  1005                                  
+  1006                                  ; GetNextFatEntry
+  1007                                  ; ---------------------------------------------------------------------------
+  1008                                  ;
+  1009                                  ; NOTES:
+  1010                                  ;
+  1011                                  ;   given the last cluster found, this will return the next cluster of
+  1012                                  ;   iosys. if the last cluster is (f)ff8 - (f)fff, then the final cluster
+  1013                                  ;   of iosys has been loaded, and control is passed to goto_iosys
+  1014                                  ;   msload can handle maximum fat area size of 128 kb.
+  1015                                  ;
+  1016                                  ; INPUT:
+  1017                                  ;
+  1018                                  ;    CS:CurrentCluster
+  1019                                  ;    CS:FatSize
+  1020                                  ;
+  1021                                  ; OUTPUT:
+  1022                                  ;
+  1023                                  ;   CS:CurrentCluster (updated)
+  1024                                  ;
+  1025                                  ; calls:  GetFatSector
+  1026                                  ; ---------------------------------------------------------------------------
+  1027                                  ; get CurrentCluster
+  1028                                  ;
+  1029                                  ; if (16 bit fat)
+  1030                                  ;    {if (CurrentCluster = fff8 - ffff)
+  1031                                  ;	 {jmp goto_iosys}
+  1032                                  ;     else
+  1033                                  ;	{get OFFSET by multiply cluster by 2}
+  1034                                  ;
+  1035                                  ; else
+  1036                                  ;    {if (CurrentCluster = ff8 - fff)
+  1037                                  ;	 {jmp goto_iosys}
+  1038                                  ;     else
+  1039                                  ;	{get OFFSET by	- multiply cluster by 3
+  1040                                  ;
+  1041                                  ;	 rotate right to divide by 2
+  1042                                  ;
+  1043                                  ;	 if (cy set - means odd number)
+  1044                                  ;	    {shr 4 times to keep high twelve bits}
+  1045                                  ;
+  1046                                  ;	 else
+  1047                                  ;	    {and with 0fffh to keep low 12 bits}
+  1048                                  ;	}
+  1049                                  ;    }
+  1050                                  ;
+  1051                                  ; ---------------------------------------------------------------------------
+  1052                                  
+  1053                                  ; 09/12/2022
+  1054                                  ; FAT_12_BIT equ 1
+  1055                                  ; NOT_END_OF_FILE equ 0  ; ~END_OF_FILE ; END_OF_FILE equ 0FFh
+  1056                                  
+  1057                                  GetNextFatEntry:			
+  1058 00000208 06                      		push	es
+  1059                                  		; 24/12/2022
+  1060 00000209 B8D000                  		mov	ax, FATSEGMENT	; FATBUFSEGM
+  1061                                  		;mov	ax, [cs:FatSegment]
+  1062 0000020C 8EC0                    		mov	es, ax		; ES-> FAT area segment
+  1063                                  		; 09/12/2022
+  1064                                  		;;mov	byte [cs:EndOfFile], END_OF_FILE
+  1065                                  		;mov	byte [cs:EndOfFile], 0FFh ; Assume last cluster
+  1066                                  		;mov	ax, [cs:CurrentCluster] ; Get last cluster
+  1067                                  		; 24/12/2022
+  1068                                  		; ds = cs
+  1069 0000020E C606[2700]FF            		mov	byte [EndOfFile], 0FFh ; Assume last cluster
+  1070 00000213 A1[1000]                		mov	ax, [CurrentCluster] ; Get last cluster
+  1071 00000216 803E[2500]01            		cmp	byte [Fatsize], 1
+  1072                                  		;;cmp	byte [cs:FatSize], FAT_12_BIT
+  1073                                  		;cmp	byte [cs:Fatsize], 1
+  1074 0000021B 7537                    		jne	short Got16Bit	; 23/12/2022
+  1075 0000021D 89C6                    		mov	si, ax
+  1076 0000021F D1E8                    		shr	ax, 1
+  1077 00000221 01C6                    		add	si, ax		; SI = AX * 1.5 = AX + AX/2
+  1078                                  		; 23/12/2022
+  1079                                  		;push	dx
+  1080                                  		;xor	dx, dx
+  1081 00000223 29D2                    		sub	dx, dx ; 23/12/2022
+  1082 00000225 E84700                  		call	GetFatSector
+  1083                                  		; 23/12/2022
+  1084                                  		;pop	dx
+  1085 00000228 7510                    		jnz	short ClusterOk
+  1086 0000022A 268A07                  		mov	al, [es:bx]
+  1087                                  		; 22/12/2022
+  1088                                  		;mov	[cs:TempCluster], al
+  1089                                  		;push	ax ; (*)
+  1090 0000022D 46                      		inc	si
+  1091                                  		; 23/12/2022
+  1092                                  		;push	dx
+  1093 0000022E 31D2                    		xor	dx, dx
+  1094 00000230 E83C00                  		call	GetFatSector	; Read next fat sector
+  1095                                  		; 23/12/2022
+  1096                                  		;pop	dx
+  1097                                  		; 22/12/2022
+  1098                                  		;mov	al, [es:0]
+  1099                                  		;mov	[cs:TempCluster+1], al
+  1100                                  		;mov	ax, [cs:TempCluster]
+  1101                                  		; 22/12/2022
+  1102                                  		;pop	ax ; (*) 
+  1103 00000233 268A260000              		mov	ah, [es:0]
+  1104 00000238 EB03                    		jmp	short EvenOdd
+  1105                                  ; ---------------------------------------------------------------------------
+  1106                                  
+  1107                                  ClusterOk:				
+  1108 0000023A 268B07                  		mov	ax, [es:bx]
+  1109                                  EvenOdd:	
+  1110                                  		; 24/12/2022
+  1111                                  		; ds = cs
+  1112 0000023D F606[1000]01            		test	byte [CurrentCluster], 1
+  1113                                  		; 10/12/2022		
+  1114                                  		;test	byte [cs:CurrentCluster], 1 ; 09/12/2022
+  1115                                  		;;test	word [cs:CurrentCluster], 1 ; Was last cluster odd?
+  1116 00000242 7505                    		jnz	short OddResult		; If not zero it was odd
+  1117 00000244 25FF0F                  		and	ax, 0FFFh		; Keep low 12 bits
+  1118 00000247 EB04                    		jmp	short TestEOF
+  1119                                  ; ---------------------------------------------------------------------------
+  1120                                  
+  1121                                  OddResult:				
+  1122 00000249 B104                    		mov	cl, 4			; Keep high 12 bits for odd
+  1123 0000024B D3E8                    		shr	ax, cl
+  1124                                  TestEOF:				
+  1125 0000024D 3DF80F                  		cmp	ax, 0FF8h		; Is it last cluster?
+  1126 00000250 731B                    		jnb	short GotClusterDone	; Yep, all done here
+  1127 00000252 EB14                    		jmp	short NotLastCluster
+  1128                                  ; ---------------------------------------------------------------------------
+  1129                                  
+  1130                                  Got16Bit:
+  1131                                  		; 23/12/2022				
+  1132                                  		;push	dx
+  1133                                  		;xor	dx, dx
+  1134 00000254 29D2                    		sub	dx, dx ; 23/12/2022
+  1135 00000256 D1E0                    		shl	ax, 1			; Multiply cluster by 2
+  1136 00000258 83D200                  		adc	dx, 0
+  1137 0000025B 89C6                    		mov	si, ax			; Get the final buffer OFFSET
+  1138 0000025D E80F00                  		call	GetFatSector
+  1139                                  		; 23/12/2022
+  1140                                  		;pop	dx
+  1141 00000260 268B07                  		mov	ax, [es:bx]
+  1142 00000263 83F8F8                  		cmp	ax, 0FFF8h
+  1143 00000266 7305                    		jnb	short GotClusterDone
+  1144                                  NotLastCluster:	
+  1145                                  		; 24/12/2022
+  1146                                  		; ds = cs			
+  1147                                  		;;mov	byte [cs:EndOfFile], NOT_END_OF_FILE ; ~END_OF_FILE
+  1148                                  		;mov	byte [cs:EndOfFile], 0	; Assume not last cluster
+  1149 00000268 C606[2700]00            		mov	byte [EndOfFile], 0	; Assume not last cluster
+  1150                                  GotClusterDone:				
+  1151 0000026D 07                      		pop	es
+  1152                                  		; 24/12/2022
+  1153                                  EndRead:
+  1154 0000026E C3                      		retn
+  1155                                  
+  1156                                  ; =============== S U B	R O U T	I N E =======================================
+  1157                                  
+  1158                                  ; GetFatSector
+  1159                                  ; ---------------------------------------------------------------------------
+  1160                                  ;function: find and read the corresponding fat sector into ES:0
+  1161                                  ;
+  1162                                  ;in). SI = offset value (starting from fat entry 0) of fat entry to find.
+  1163                                  ;     ES = fat sector segment
+  1164                                  ;     CS:BytesPerSec
+  1165                                  ;
+  1166                                  ;out). corresponding fat sector read in.
+  1167                                  ;      BX = offset value of the corresponding fat entry in the fat sector.
+  1168                                  ;      CX destroyed.
+  1169                                  ;      zero flag set if the fat entry is splitted, i.e. when 12 bit fat entry
+  1170                                  ;      starts at the last byte of the fat sector. in this case, the caller
+  1171                                  ;      should save this byte, and read the next fat sector to get the rest
+  1172                                  ;      of the fat entry value. (this will only happen with the 12 bit fat).
+  1173                                  ;
+  1174                                  ; ---------------------------------------------------------------------------
+  1175                                  
+  1176                                  		; 24/12/2022
+  1177                                  		; 22/12/2022
+  1178                                  GetFatSector:				
+  1179 0000026F 50                      		push	ax
+  1180 00000270 56                      		push	si
+  1181 00000271 57                      		push	di
+  1182 00000272 89F0                    		mov	ax, si
+  1183                                  		; 24/12/2022
+  1184                                  		; ds = cs
+  1185                                  		;mov	cx, [cs:BytesPerSec]
+  1186                                  		;div	cx			; AX = Sector number, DX = Offset
+  1187 00000274 F736[1200]              		div	word [BytesPerSec]
+  1188 00000278 3B06[0C00]              		cmp	ax, [LastFatSector]
+  1189                                  		;cmp	ax, [cs:LastFatSector]	; The same fat sector?
+  1190 0000027C 7421                    		je	short SplitChk		; Don't need to read it again.
+  1191 0000027E A3[0C00]                		mov	[LastFatSector], ax
+  1192                                  		;mov	[cs:LastFatSector], ax
+  1193 00000281 52                      		push	dx
+  1194                                  		; 24/12/2022
+  1195 00000282 31D2                    		xor	dx, dx
+  1196                                  		;add	ax, [cs:HiddenSectorsL]
+  1197                                  		;adc	dx, [cs:HiddenSectorsH]
+  1198                                  		;add	ax, [cs:ReservSectors]
+  1199                                  		;adc	dx, 0
+  1200                                  		; 24/12/2022
+  1201                                  		; ds = cs
+  1202 00000284 0306[2C00]              		add	ax, [FatStartSecL]
+  1203 00000288 1316[2E00]              		adc	dx, [FatStartSecH]
+  1204 0000028C A3[0600]                		mov	[StartSecL], ax
+  1205 0000028F 8916[0800]              		mov	[StartSecH], dx		; Set up for ReadSectors
+  1206                                  		;mov	[cs:StartSecL], ax
+  1207                                  		;mov	[cs:StartSecH], dx	; Set up for ReadSectors
+  1208                                  		
+  1209 00000293 C706[0E00]0100          		mov	word [SectorCount], 1 ; 1 sector			
+  1210                                  		;mov	word [cs:SectorCount], 1 ; 1 sector
+  1211 00000299 31FF                    		xor	di, di ; 0
+  1212                                  		; es:di = FATSEGMENT:0000h
+  1213 0000029B E8C5FE                  		call	ReadSectors
+  1214 0000029E 5A                      		pop	dx
+  1215                                  		; 24/12/2022
+  1216                                  		;mov	cx, [cs:BytesPerSec]
+  1217                                  SplitChk:
+  1218                                  		; 24/12/2022
+  1219 0000029F 8B0E[1200]              		mov	cx, [BytesPerSec]				
+  1220 000002A3 49                      		dec	cx			; CX = SECTOR SIZE - 1
+  1221 000002A4 39CA                    		cmp	dx, cx			; If last byte of sector, splitted entry.
+  1222 000002A6 89D3                    		mov	bx, dx			; set bx to dx
+  1223 000002A8 5F                      		pop	di
+  1224 000002A9 5E                      		pop	si
+  1225 000002AA 58                      		pop	ax
+  1226                                  EndWrite:		; 10/12/2022
+  1227 000002AB C3                      		retn
+  1228                                  
+  1229                                  ; ---------------------------------------------------------------------------
+  1230                                  
+  1231                                  ErrorOut:	
+  1232                                  		; 24/12/2022
+  1233                                  		; ds = cs		
+  1234                                  		;push	cs
+  1235                                  		;pop	ds
+  1236 000002AC BE[D402]                		mov	si, NonSystemDiskMsg ; "\r\nNon-System disk or disk error\r\nRe"...
+  1237 000002AF E81400                  		call	WriteTTY
+  1238                                  
+  1239                                  		; Wait for a keypress on the keyboard.
+  1240                                  		; Use the bios keyboard interrupt.
+  1241                                  
+  1242 000002B2 30E4                    		xor	ah, ah
+  1243 000002B4 CD16                    		int	16h		; KEYBOARD - READ CHAR FROM BUFFER, WAIT IF EMPTY
+  1244                                  					; Return: AH = scan code, AL = character
+  1245                                  
+  1246                                  		; We have to restore the address of the original rom disk
+  1247                                  		; parameter table to the location at [0:DskAddr]. The address
+  1248                                  		; of this original table has been saved previously in
+  1249                                  		; 0:OrgDasdPtr and 0:OrgDasdPtr+2. After this table address
+  1250                                  		; has been restored we can reboot by invoking the bootstrap
+  1251                                  		; loader bios interrupt.
+  1252                                  
+  1253                                  		; 23/12/2022
+  1254                                  		;xor	bx, bx
+  1255                                  		;mov	ds, bx
+  1256                                  		;les	bx, [OrgDasdPtr] ; Wrong DS segment !
+  1257                                  					 ; (Erdogan Tan, 23/12/2022)
+  1258 000002B6 C41E[2800]              		les	bx, [OrgDasdPtr] ; Correct DS segment = CS
+  1259                                  		
+  1260                                  		; 23/12/2022
+  1261 000002BA 16                      		push	ss ; 0
+  1262 000002BB 1F                      		pop	ds
+  1263                                  		; ds = 0		
+  1264                                  
+  1265 000002BC BE7800                  		mov	si, DskAddr	; (Int 1Eh)
+  1266 000002BF 891C                    		mov	[si], bx	; restore offset		
+  1267 000002C1 8C4402                  		mov	[si+2], es	; restore segment
+  1268                                  
+  1269 000002C4 CD19                    		int	19h		; reboot
+  1270                                  
+  1271                                  ; =============== S U B	R O U T	I N E =======================================
+  1272                                  
+  1273                                  ; WriteTTY
+  1274                                  ; ---------------------------------------------------------------------------
+  1275                                  ; in) DS:si -> asciiz string.
+  1276                                  ;
+  1277                                  ; WriteTTY the character in al to the screen.
+  1278                                  ; use video service 'write teletype to active page' (ROM_TTY)
+  1279                                  ; use normal character attribute
+  1280                                  ; ---------------------------------------------------------------------------
+  1281                                  
+  1282                                  WriteTTY:				
+  1283 000002C6 AC                      		lodsb
+  1284 000002C7 08C0                    		or	al, al
+  1285 000002C9 74E0                    		jz	short EndWrite
+  1286                                  		;mov	AH, ROM_TTY	; 09/12/2022
+  1287 000002CB B40E                    		mov	ah, 0Eh
+  1288 000002CD B307                    		mov	bl, 7		; "normal" attribute
+  1289 000002CF CD10                    		int	10h		; - VIDEO - WRITE CHARACTER AND	ADVANCE	CURSOR (TTY WRITE)
+  1290                                  					; AL = character, BH = display page (alpha modes)
+  1291                                  					; BL = foreground color	(graphics modes)
+  1292 000002D1 EBF3                    		jmp	short WriteTTY
+  1293                                  ; ---------------------------------------------------------------------------
+  1294                                  
+  1295                                  ; 10/12/2022	
+  1296                                  ;EndWrite:				
+  1297                                  ;		retn
+  1298                                  
+  1299                                  ; ---------------------------------------------------------------------------
+  1300                                  
+  1301                                  ; 09/12/2022
+  1302                                  ;include msbio.cl1
+  1303                                  
+  1304                                  		; 22/12/2022
+  1305                                  		; 20/12/2022
+  1306                                  		; 18/12/2022
+  1307 000002D3 00                      		db 0	; (word alignment)
+  1308                                  NonSystemDiskMsg:
+  1309 000002D4 0D0A                    		db 0Dh,0Ah
+  1310 000002D6 4E6F6E2D5379737465-     		db 'Non-System disk or disk error',0Dh,0Ah
+  1310 000002DF 6D206469736B206F72-
+  1310 000002E8 206469736B20657272-
+  1310 000002F1 6F720D0A           
+  1311 000002F5 5265706C6163652061-     		db 'Replace and press any key when ready',0Dh,0Ah,0
+  1311 000002FE 6E6420707265737320-
+  1311 00000307 616E79206B65792077-
+  1311 00000310 68656E207265616479-
+  1311 00000319 0D0A00             
+  1312                                  ;EndOfLoader:
+  1313                                  		; 22/12/2022
+  1314 0000031C A101                    		dw 01A1h	; 10/12/2022
+  1315                                  
+  1316                                  ; ---------------------------------------------------------------------------
+  1317                                  
+  1318                                  ; 23/12/2022
+  1319 0000031E 00                      		db 0
+  1320 0000031F 0D0A                    loading_msg:	db 0Dh, 0Ah
+  1321 00000321 4C6F6164696E67204B-     		db 'Loading Kernel MSDOS.SYS ... '
+  1321 0000032A 65726E656C204D5344-
+  1321 00000333 4F532E535953202E2E-
+  1321 0000033C 2E20               
+  1322                                  ; 24/12/2022
+  1323 0000033E 00                      		db 0
+  1324 0000033F 4F4B2E20                ok_msg:		db 'OK. '
+  1325                                  crlf:
+  1326 00000343 0D0A00                  		db 0Dh, 0Ah, 0
+  1327                                  
+  1328                                  ; ---------------------------------------------------------------------------
+  1329                                  
+  1330                                  ; 22/12/2022
+  1331                                  ; (set file size to 1536 bytes)
+  1332                                  
+  1333                                  SignatureSize equ EndOfLoader - signature
+  1334                                  
+  1335                                  FillingSpace equ ($-START$)+SignatureSize
+  1336                                  
+  1337 00000346 FF<rep 274h>            times		1536-FillingSpace db 0FFh ; db 90h
+  1338                                  
+  1339 000005BA 00                      signature:	db 0
+  1340 000005BB 0D0A                    		db 0Dh, 0Ah
+  1341 000005BD 526574726F20444F53-     		db 'Retro DOS v4 Kernel Loader (Fake IO.SYS) '
+  1341 000005C6 207634204B65726E65-
+  1341 000005CF 6C204C6F6164657220-
+  1341 000005D8 2846616B6520494F2E-
+  1341 000005E1 5359532920         
+  1342 000005E6 0D0A                    		db 0Dh,0Ah
+  1343 000005E8 6279204572646F6761-     		db 'by Erdogan Tan [2022]'
+  1343 000005F1 6E2054616E205B3230-
+  1343 000005FA 32325D             
+  1344 000005FD 0D0A00                  		db  0Dh, 0Ah, 0
+  1345                                  EndOfLoader:

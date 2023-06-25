@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RD4LOAD.S (Retro DOS v4 KERNEL LOADER) -IO.SYS- by ERDOGAN TAN - 22/12/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 23/12/2022 (Modified IO.SYS loader) 
+; Last Update: 24/12/2022 (Modified IO.SYS loader) 
 ; ----------------------------------------------------------------------------
 ; Beginning: 22/12/2022 (Retro DOS 4.0 Kernel Loader, Fake IO.SYS)
 ; ----------------------------------------------------------------------------
@@ -55,55 +55,49 @@
 ;
 ; ===========================================================================
 
-;
 ;----------------------------------------------------------------------------
-;
-; M056 : Added RPL support, so that RPL's fake INT 13 code can be safe from
-;		SYSINIT & transient portion of COMMAND.COM
-;
-;----------------------------------------------------------------------------
-		
 		[ORG 0]			; segment 0x0070h
+;----------------------------------------------------------------------------
 
 START$:
 		jmp	short SaveInputValues
+
+; 24/12/2022
+; 23/12/2022
 ; 20/12/2022
 ; 09/12/2022
 ; ---------------------------------------------------------------------------
 SysVersion:	dw 5			; expected_version	
-;MyStacks:	db 256 dup(0)		; local stack
-; 22/12/2022
-; 20/12/2022
-;MyStacks:	dw 102 dup(0)		; local stack
-NumHeads:	dw 0			
-ClusterSize:	db 2 dup(0)	
-StartSecL:	dw 0			
-StartSecH:	dw 0			
+ClusterSize:	dw 0
+StartSecL:	dw 0
+StartSecH:	dw 0
 TempH:		dw 0			; for 32 bit calculation
-; 23/12/2022
-;TempCluster:	db 2 dup(0)		; temporary place for cluster number
-LastFatSector:	db 2 dup(0FFh)		; fat sec # start from 1st FAT entry
-SectorCount:	dw 0			
-SecPerFat:	dw 0			
-HiddenSectorsL:	dw 0			
-HiddenSectorsH:	dw 0			
-BytesPerSec:	dw 0			
-ReservSectors:	db 2 dup(0)		
-CurrentCluster:	db 2 dup(0)		
-; 23/12/2022
-;NextBioLocation: db 2 dup(0)		
-FirstSectorL:	dw 0			
-FirstSectorH:	dw 0			
+;TempCluster:	dw 0
+;HiddenSectorsL: dw 0
+;HiddenSectorsH: dw 0
+;ReservSectors:	dw 0
+LastFatSector:	dw 0FFFFh		; fat sec # start from 1st FAT entry
+SectorCount:	dw 0
+CurrentCluster:	dw 0	; *!*
+BytesPerSec:	dw 0
+SecPerCluster:	dw 0
+;RootDirEntries: dw 0
+SecPerFat:	dw 0
+SecPerTrack:	dw 0
+NumHeads:	dw 0
 TotalSectorsL:	dw 0			; max. number of sectors
-TotalSectorsH:	dw 0			
-SecPerTrack:	db 2 dup(0)		
-BootDrive:	db 0			
-Fatsize:	db 0			
-MediaByte:	db 0			
-EndOfFile:	db 0			
-OrgDasdPtr:	db 4 dup(0)		
-FatSegment:	db 2 dup(0)		
-SecPerCluster:	db 0			
+TotalSectorsH:	dw 0
+FirstSectorL:	dw 0
+FirstSectorH:	dw 0
+BootDrive:	db 0
+Fatsize:	db 0
+MediaByte:	db 0
+EndOfFile:	db 0
+OrgDasdPtr:	dd 0
+;FatSegment:	dw 0
+FatStartSecL:	dw 0
+FatStartSecH:	dw 0
+
 ; ---------------------------------------------------------------------------
 
 ; SaveInputValuess
@@ -151,6 +145,11 @@ DskAddr	equ 1Eh*4 ; 7Eh
 ; 22/12/2022
 ;StackPtr equ MyStacks+(NumHeads-MyStacks)
 
+; 24/12/2022
+; 22/12/2022
+KernelFirstClustr equ 53Ah	; The 1st cluster address of 'MSDOS.SYS' file
+				; in the root directory entry.
+
 ; ---------------------------------------------------------------------------
 
 		; 23/12/2022
@@ -166,16 +165,26 @@ DskAddr	equ 1Eh*4 ; 7Eh
 		; 0:500h = root dir buffer (1st sector of the root dir)
 
 SaveInputValues:
-		mov	[cs:FirstSectorL], bx ; physical disk address (lw)
-					; includes hidden secs and reservd secs	
-		mov	[cs:MediaByte], ch
-		mov	[cs:BootDrive], dl
-		mov	[cs:OrgDasdPtr], si
+		; 24/12/2022
 		push	ds
-		pop	word [cs:OrgDasdPtr+2]
+		push	cs
+		pop	ds 
+		;mov	[cs:FirstSectorL], bx ; first data sector (low word)
+		;mov	[cs:MediaByte], ch
+		;mov	[cs:BootDrive], dl
+		;mov	[cs:OrgDasdPtr], si
+		;push	ds
+		;pop	word [cs:OrgDasdPtr+2]
+		mov	[FirstSectorL], bx
+		mov	[StartSecL], bx ; **!**
+		mov	[MediaByte], ch
+		mov	[BootDrive], dl
+		mov	[OrgDasdPtr], si
+		pop	word [OrgDasdPtr+2]
+	
 		xor	cx, cx		; segment 0 (obviously)
 		mov	ds, cx		; ZERO
-		; 13/12/2022
+		; 23/12/2022
 		; es = 0 (just before jumping to start of IO.SYS) 
 		;push	es ; !
 		;mov	es, cx
@@ -203,6 +212,8 @@ SaveInputValues:
 		; es = 0
 		; ds = 0
 		; ss = 0
+; 24/12/2022
+%if 0
 		mov	cx, [7C0Bh] 	; BootSector.ext_boot_bpb.BPB_bytespersector
 		mov	[cs:BytesPerSec], cx
 		mov	cl, [7C0Dh]	; BootSector.ext_boot_bpb.BPB_sectorspercluster
@@ -227,9 +238,7 @@ SaveInputValues:
 		; 22/12/2022
 		cmp	byte [7C26h], 29h ; ext_boot_signature
 		jne	short relocate
-		mov	[cs:FirstSectorH], ax ; ax = first data sector (high) on disk
-					; physical disk address (hw)
-					; includes hidden secs and reservd secs	
+		mov	[cs:FirstSectorH], ax ; first data sector (high word)
 		mov	ax, [7C1Eh]
 		mov	[cs:HiddenSectorsH], ax
 		; 10/12/2022
@@ -241,9 +250,106 @@ SaveInputValues:
 		mov	[cs:TotalSectorsL], ax
 		mov	ax, [7C22h]	; BootSector.ext_boot_bpb.BPB_bigtotalsectors+2
 		mov	[cs:TotalSectorsH], ax
-
-; ---------------------------------------------------------------------------
+%endif
+		; 24/12/2022
+		push	ax  ; * ; first data sector (high word)
 		
+		push	cs
+		pop	es
+
+		; get the 1st cluster of MSDOS.SYS 
+		mov	ax, [KernelFirstClustr] ; [053Ah]
+		mov	di, CurrentCluster  
+		stosw	 ; *!* ; Initialize CurrentCluster to this cluster
+		; di = offset BytesPerSec 
+		
+		mov	si, 07C0Bh	; boot sector's bpb, BytesPerSector
+		;mov	di, BytesPerSec
+		movsw	; BytesPerSec
+		movsb	; SecPerCluster
+		inc	di ; skip high byte of SecPerCluster word (it is 0)
+		lodsw	; ReservSectors
+		mov	bx, ax ; save ReservSectors in bx
+		lodsb	; skip NumFats
+		;movsw	; RootDirEntries ; !
+		lodsw	; skip NUmDirEntries ; !
+		lodsw	; TotalSectorsL
+		mov	cx, ax ; save TotalSectorsL in cx
+		lodsb	; skip MediaByte
+		movsw	; SecPerFat
+		movsw 	; SecPerTrack
+		movsw	; NumHeads
+		lodsw	; HiddenSectorsL
+		push 	ax ; **	; HiddenSectorsL
+		lodsw	; HiddenSectorsH
+		mov	dx, ax	; save HiddenSectorsH in dx
+		lodsw	
+		push	ax ; *** ; BigTotalSecs lw
+		lodsw
+		push	ax ; **** ; BigTotalSecs hw
+		lodsw	; skip BootDrv and CurrentHead
+
+		mov	ax, cx ; TotalSectorsL
+
+		mov	bp, si		
+ 
+		pop	cx ; **** ; BigTotalSecs hw
+
+		pop	si ; *** ; BigTotalSecs lw
+
+		push	cs
+		pop	ds
+		
+		; ss = 0
+		; bp = 7C26h
+		
+		cmp	byte [bp], 29h  ; ext_boot_signature
+		je	short ext_boot_sec_1
+
+		stosw	; TotalSectorsL
+
+		;pop	ax ; *** ; discard BigTotalSecs lw
+		pop	ax ; ** ; HiddenSectorsL
+		pop	dx ; * ; discard 1st data sector hw
+		xor	dx, dx ; 0
+		jmp	short set_fat_start
+ext_boot_sec_1:
+		; 24/12/2022
+		;pop	si ; *** ; BigTotalSecs lw
+		or	ax, ax  ; TotalSectorsL (16 bit total sectors)
+		jnz	short ext_boot_sec_2 ; (*)
+
+		; (32 bit total sectors)
+		mov	ax, si ; BigTotalSecs lw 
+		stosw	; TotalSectorsL	
+		mov	ax, cx ; BigTotalSecs hw
+ext_boot_sec_2:
+		stosw	; TotalSectorsH or TotalSectorsL (*)
+		pop	ax ; ** ; HiddenSectorsL
+		;pop	word [FirstSectorH] ; * ; 1st data sector hw
+		pop	cx ; * ; [FirstSectorH] ; 1st data sector hw
+		mov	[FirstSectorH], cx
+		mov	[StartSecH], cx ; **!**	
+
+		; here, DI points to FatStartSecL
+set_fat_start:
+		; 24/12/2022
+		; dx:ax = HiddenSectors
+		; bx = ReservSectors
+
+		add 	ax, bx
+		adc	dx, 0
+
+		;mov	[FatStartSecL], ax
+		;mov	[FatStartSecH], dx		
+
+		mov	di, FatStartSecL
+		stosw
+		mov	ax, dx
+		stosw		
+		
+; --------------------------------------------------------------------------- 
+
 relocate:
 		; 23/12/2022
 		; (set fat buffer segment at the end of loader)
@@ -251,7 +357,12 @@ relocate:
 		FATBUFSEGM equ 70h+(((EndOfLoader-START$)+15)>>4)
 						 ; paragraph alignment
 		
-		mov	word [cs:FatSegment], FATBUFSEGM
+		; 24/12/2022
+		;mov	word [cs:FatSegment], FATBUFSEGM
+		FATSEGMENT equ FATBUFSEGM
+
+		; 24/12/2022
+		; ds = cs
 
 ; ---------------------------------------------------------------------------
 SetupStack:	
@@ -265,9 +376,10 @@ SetupStack:
 ; ---------------------------------------------------------------------------
 ; 23/12/2022
 ; Write loading message
-			
-		push	cs
-		pop	ds
+		
+		; 24/12/2022	
+		;push	cs
+		;pop	ds
 		mov	si, loading_msg
 		call	WriteTTY
 
@@ -296,13 +408,20 @@ FindClusterSize:
 
 ;for the time being just ASSUME the boot record is valid and the bpb is there.
 
-		xor	ax, ax
-		mov	ds, ax
-		mov	ax, [7C0Bh]	; get bpb bytes/sector
-		xor	bx, bx
-		mov	bl, [7C0Dh]	; get sectors/cluster
-		mul	bx
-		mov	[cs:ClusterSize], ax
+		; 24/12/2022
+		; ds = cs
+		;xor	ax, ax
+		;mov	ds, ax
+		;mov	ax, [7C0Bh]	; get bpb bytes/sector
+		; 24/12/2022
+		mov	ax, [BytesPerSec]
+		;xor	bx, bx
+		;mov	bl, [7C0Dh]	; get sectors/cluster
+		;mul	bx
+		mul	word [SecPerCluster]
+		;mov	[cs:ClusterSize], ax
+		; 24/12/2022
+		mov	[ClusterSize], ax
 
 ; CalcFatSize
 ; ---------------------------------------------------------------------------
@@ -322,32 +441,53 @@ FindClusterSize:
 ; ---------------------------------------------------------------------------
 
 CalcFatSize:
-		mov	byte [cs:Fatsize], 1 ; FAT_12_BIT (assume)
-		mov	dx, [cs:TotalSectorsH]
-		mov	ax, [cs:TotalSectorsL] ; DX:AX = total disk sectors
-		sub	ax, [cs:ReservSectors]
+		; 24/12/2022
+		; ds = cs
+		mov	byte [Fatsize], 1
+		;mov	byte [cs:Fatsize], 1 ; FAT_12_BIT (assume)
+		;mov	dx, [cs:TotalSectorsH]
+		;mov	ax, [cs:TotalSectorsL] ; DX:AX = total disk sectors
+		mov	dx, [TotalSectorsH]
+		mov	ax, [TotalSectorsL] ; DX:AX = total disk sectors
+		;;;		
+; 24/12/2202
+%if 0
+		sub	ax, [ReservSectors]
+		;sub	ax, [cs:ReservSectors]
 		sbb	dx, 0		; DX:AX	= Total	avail sectors
-		mov	bx, [cs:SecPerFat]
+		;mov	bx, [cs:SecPerFat]
+		mov	bx, [SecPerFat]
 		shl	bx, 1		; (Assume 2 FATs)
 		sub	ax, bx
 		sbb	dx, 0
-		mov	bx, [7C11h]	; Root directory entry count
+		;mov	bx, [7C11h]	; Root directory entry count
+		mov	bx, [RootDirEntries]
 		mov	cl, 4
 		shr	bx, cl		; BX = Total directory sectors
 		sub	ax, bx
 		sbb	dx, 0		; DX:AX	= Sectors in data area
-		xor	cx, cx
-		mov	cl, [7C0Dh]	; Sectors per cluster
+%endif
+		; 24/12/2022
+		sub	ax, [FirstSectorL] ; total sectors - start of data
+		sbb	dx, [FirstSectorH]
+				; DX:AX	= Sectors in data area
+		;;;
+		;xor	cx, cx
+		;mov	cl, [7C0Dh]	; Sectors per cluster
+		mov	cx, [SecPerCluster] ; *#*
 		push	ax
 		mov	ax, dx
 		xor	dx, dx
-		div	cx
-		mov	[cs:TempH], ax	; AX = Total number of clusters
+		div	cx  ; *#*
+		; 24/12/2022
+		;;mov	[cs:TempH], ax	; AX = Total number of clusters
+		;mov	[TempH], ax
 		pop	ax
-		div	cx
+		div	cx  ; *#*
 		cmp	ax, 4086	; 4096-10
 		jb	short ReadInFirstClusters ; 12 bit FAT
-		mov	byte [cs:Fatsize], 4 ; FAT_16_BIT
+		;mov	byte [cs:Fatsize], 4 ; FAT_16_BIT
+		mov	byte [Fatsize], 4 ; FAT_16_BIT
 
 ; 22/12/2022
 ;----------------------------------------------------------------------------
@@ -356,8 +496,6 @@ CalcFatSize:
 ;----------------------------------------------------------------------------
 
 ; 22/12/2022
-KernelFirstClustr equ 53Ah	; The 1st cluster address of 'MSDOS.SYS' file
-				; in the root directory entry.
 
 KernelInitSegment equ 1000h	; Address where the kernel will be loaded
 
@@ -366,16 +504,25 @@ KernelInitSegment equ 1000h	; Address where the kernel will be loaded
 		; 23/12/2022	
 		; 22/12/2022	
 ReadInFirstClusters:
-		;mov	ax, [53Ah]
-		mov	ax, [KernelFirstClustr]
-		; 23/12/2022
-		mov	[cs:CurrentCluster], ax ; Initialize to this cluster
+		; 24/12/2022
+		;;mov	ax, [53Ah]
+		;mov	ax, [ss:KernelFirstClustr] ; [ss:053Ah] 
+		;; 23/12/2022
+		;;mov	[cs:CurrentCluster], ax ; Initialize to this cluster
+		; 24/12/2022
+		; ds = cs
+		;mov	[CurrentCluster], ax
 
+		; 24/12/2022
+		; [currentCluster] = the 1st cluster of MSDOS.SYS ; *!*
+		mov	ax, [CurrentCluster]
 					; MSDOS.SYS First Cluster
 		dec	ax		; Root dir buffer at 500h (segment=0)
 					; MSDOS.SYS first cluster ptr at 53Ah
 		dec	ax		; AX = word [53Ah] - 2
 
+; 24/12/2022
+%if 0
 		mov	cx, [cs:FirstSectorL] ;	Put starting sector of disk data
 		mov	[cs:StartSecL], cx    ; area in StartSecH:StartSecL
 		mov	cx, [cs:FirstSectorH]
@@ -387,15 +534,41 @@ ReadInFirstClusters:
 		adc	[cs:StartSecH], dx
 					; abs start sector for next read of
 					; the rest of the last loader cluster
+%endif
+		; 24/12/2022
+		; ds = cs
+		;mov	cx, [FirstSectorL] ; Put starting sector of disk data
+		;mov	[StartSecL], cx	   ; area in StartSecH:StartSecL
+		;mov	cx, [FirstSectorH]
+		;mov	[StartSecH], cx
+		; [StartSecL] = [FirstSectorL] ; **!**
+		; [StartSecH] = [FirstSectorH] ; **!**
+
+		; ax = cluster index (cluster number - 2)
+
+		;;xor	cx, cx
+		;;mov	cl, [SecPerCluster]
+		;mov	cx, [SecPerCluster] ; ch = 0
+		; cx = [SecPerCluster]  ; *#* ; 24/12/2022
+		mul	cx		; DX:AX = logical start sector
+		; 24/12/2022
+		add	[StartSecL], ax
+		adc	[StartSecH], dx
+					; abs start sector for next read of
+					; the rest of the last loader cluster
 		; 22/12/2022
 		mov	di, KernelInitSegment
 		;mov	di, 1000h	; MSDOS.SYS initial (loading) segment
 		mov	es, di
 		xor	di, di		; 1000h:0000h
-		sub	ax, ax
-		mov	al, [cs:SecPerCluster]
+		; 24/12/2022
+		; cx = [SecPerCluster]
+		;mov	ax, [SecPerCluster]
+		;;sub	ax, ax
+		;;mov	al, [SecPerCluster]
+		mov	ax, cx
 					; Read in the entire last cluster
-		mov	[cs:SectorCount], ax
+		mov	[SectorCount], ax ; ah = 0
 
 		call	ReadSectors
 
@@ -440,7 +613,11 @@ ReadInFirstClusters:
 ; END_OF_FILE equ 0FFh
 ; DosLoadSeg equ 70h
 
-GetContigClusters:			
+		; 24/12/2022
+GetContigClusters:
+
+; 24/12/2022
+%if 0			
 		xor	ah, ah
 		mov	al, [cs:SecPerCluster]	; Assume we will get one cluster
 		mov	[cs:SectorCount], ax	; Sector count = sectors in 1 cluster
@@ -471,6 +648,42 @@ GetContigClusters:
 		;mul	word [cs:BytesPerSec]	; Get number of bytes we loaded
 		;add	[cs:NextBioLocation], ax ; Point to where to load next	
 		jmp	short GetContigClusters
+
+%endif
+		; 24/12/2022
+		; ds = cs
+
+		mov	ax, [SecPerCluster]	; Assume we will get one cluster
+		mov	[SectorCount], ax	; Sector count = sectors in 1 cluster
+		;push	word [SectorCount]
+		push	ax
+		call	GetNextFatEntry		; Returns next cluster to read in AX	
+		pop	word [SectorCount]
+		mov	[CurrentCluster], ax	; Update the last one found
+
+		cmp	byte [EndOfFile], 0FFh	; END_OF_FILE
+		je	short GoToBioInit ; 23/12/2022
+		; 22/12/2022
+		;xor	dx, dx ; * (not required)
+		; 10/12/2022
+		;sub	ax, 2			; Zero base the cluster
+		dec	ax
+		dec	ax
+		; 24/12/2022
+		; ax = cluster index
+		;mov	cx, [SecPerCluster]
+		;mul	cx ; *			; How many sectors (before next cluster) 
+		mul	word [SecPerCluster]
+		add	ax, [FirstSectorL]	; See where the data sector starts
+		adc	dx, [FirstSectorH]
+		mov	[StartSecL], ax		; Save it (used by ReadSectors)
+		mov	[StartSecH], dx
+			
+		call	ReadSectors
+				; ES:DI = (the next) buffer address for next read
+		
+		jmp	short GetContigClusters
+
 ; ---------------------------------------------------------------------------
 
 ; GoToBioInit
@@ -517,9 +730,12 @@ GoToBioInit:
 		;sti
 	
 		; 23/12/2022
-		push	cs
-		pop	ds
-		mov	si, crlf
+		;push	cs
+		;pop	ds
+		;mov	si, crlf
+		; 24/12/2022
+		; ds = cs
+		mov	si, ok_msg
 		call	WriteTTY
 		
 		mov	dh, [MediaByte] ; Restore regs required for msint
@@ -577,6 +793,7 @@ GoToBioInit:
 ; if SectorCount <> 0 do next read
 ; ---------------------------------------------------------------------------
 
+		; 24/12/2022
 		; 22/12/2022
 ReadSectors:
 		mov	cx, 5			; 5 retries
@@ -584,44 +801,68 @@ ReadSectors:
 		; Convert a logical sector into track/sector/head. AX has the
 		; logical sector number
 TryRead:
+		; 24/12/2022
+		; ds = cs
 		push	cx
-		mov	ax, [cs:StartSecL]	; Get starting sector
-		mov	dx, [cs:StartSecH]
+		;mov	ax, [cs:StartSecL]	; Get starting sector
+		;mov	dx, [cs:StartSecH]
+		mov	ax, [StartSecL]		; Get starting sector
+		mov	dx, [StartSecH]
 		push	ax
 		mov	ax, dx
 		xor	dx, dx
-		div	word [cs:SecPerTrack]	
-		mov	[cs:TempH], ax
+		;;div	word [cs:SecPerTrack]
+		;div	word [SecPerTrack]	
+		; 24/12/2022
+		mov	bx, [SecPerTrack]
+		div	bx
+		mov	[TempH], ax
+		;mov	[cs:TempH], ax
 		pop	ax
-		div	word [cs:SecPerTrack]	; [TempH]:ax = track,
+		div	bx
+		;div	word [SecPerTrack]
+		;;div	word [cs:SecPerTrack]	; [TempH]:ax = track,
 						; dx = sector number
 
-		mov	bx, [cs:SecPerTrack]	; Get number of sectors we can
+		;mov	bx, [cs:SecPerTrack]	; Get number of sectors we can
 						; read in this track
 		sub	bx, dx
-		mov	si, bx
+		;mov	si, bx
+		mov	si, [SectorCount]
 
-		cmp	[cs:SectorCount], si	; Is possible sectors in track more
-		jnb	short GotLength		; than what we need to read?
-		mov	si, [cs:SectorCount]	; Yes, only read what we need to
+		cmp	si, bx
+		jna	short GotLength
+		;cmp	[SectorCount], si
+		;;cmp	[cs:SectorCount], si	; Is possible sectors in track more
+		;jnb	short GotLength		; than what we need to read?
+		mov	si, bx
+		;mov	si, [SectorCount]
+		;;mov	si, [cs:SectorCount]	; Yes, only read what we need to
 GotLength:
 		; 23/12/2022
-		; dma boundary check for >64K reads
+		; dma boundary check for >64KB reads
+		; 24/12/2022
+		; Also, Segment Override risk !
 		or	di, di
 		jz	short dma_boundary_ok ; no problem for the 1st read
-		cmp	byte [cs:BootDrive], 80h
-		jnb	short dma_boundary_ok ; no problem for hard disks
-		cmp	si, 1
-		jna	short dma_boundary_ok ; 1 sector read will not cause to
-					      ; boundary error	
+		; 24/12/2022
+		;cmp	byte [BootDrive], 80h
+		;;cmp	byte [cs:BootDrive], 80h
+		;jnb	short dma_boundary_ok ; no problem for hard disks
 dma_boundary_chk:
+		; 24/12/2022
+		cmp	si, 1
+		jna	short dma_boundary_ok 
+				; 1 sector read will not cause a boundary error			
 		push	dx
 		push	ax
 		mov	ax, si
 		sub	dx, dx
-		mul	word [cs:BytesPerSec]
+		; 24/12/2022
+		mul	word [BytesPerSec]
+		;mul	word [cs:BytesPerSec]
 		; 23/12/2022
-		; If di> 0 -> es = 1000h
+		; If di > 0 -> es = 1000h (or 2000h)
 		;mov	bx, es
 		;mov	cl, 4
 		;shl	bx, cl ; convert paragraphs to bytes
@@ -632,7 +873,8 @@ dma_boundary_chk:
 		pop	dx
 		add	bx, di ; add current buffer offset to byte count
 		jnc	short dma_boundary_ok
-		; Sector count must be decreased to prevent DMA boundary error!
+		; Sector count must be decreased to prevent
+		; DMA boundary error or segment override risk!
 		dec	si
 		jmp	short dma_boundary_chk
 dma_boundary_ok:				
@@ -640,14 +882,20 @@ dma_boundary_ok:
 		; 18/12/2022
 		inc	dx
 		mov	bl, dl			; Start sector in BL
-		mov	dx, [cs:TempH]		; DX:AX = Track
+		; 24/12/2022
+		mov	dx, [TempH]		; DX:AX = Track
+		;mov	dx, [cs:TempH]		; DX:AX = Track
 		push	ax
 		mov	ax, dx
 		xor	dx, dx
-		div	word [cs:NumHeads]	; Start cyl in AX, head in dl
-		mov	[cs:TempH], ax
+		; 24/12/2022
+		div	word [NumHeads]
+		;div	word [cs:NumHeads]	; Start cyl in AX, head in dl
+		;mov	[TempH], ax
+		;;mov	[cs:TempH], ax
 		pop	ax
-		div	word [cs:NumHeads]	; [TempH]:AX = Cylinder, DX = Head
+		div	word [NumHeads]
+		;div	word [cs:NumHeads]	; [TempH]:AX = Cylinder, DX = Head
 
 			; At this moment, we assume that TempH = 0,
 			; ax <= 1024, dx <= 255
@@ -660,7 +908,9 @@ dma_boundary_ok:
 		mov	ch, al			; Setup cyl low
 		mov	cl, ah			; Setup cyl/high - sector
 		mov	bx, di			; Get back OFFSET
-		mov	dl, [cs:BootDrive]	; Get drive
+		; 24/12/2022
+		mov	dl, [BootDrive]		; Get drive
+		;mov	dl, [cs:BootDrive]	; Get drive
 		mov	ax, si			; Get number of sectors to read (al)
 		mov	ah, 2			; Read sectors
 		; 23/12/2022
@@ -683,13 +933,16 @@ dma_boundary_ok:
 		
 		pop	cx		; Get retry count back
 		jnc	short ReadOk	; 23/12/2022
+		
 		; 23/12/2022
 		;mov	bx, di		; Get offset
 		; ah = 0
 		;xor	ah, ah
 		; 23/12/2022
 		;push	cx
-		mov	dl, [cs:BootDrive]
+		; 24/12/2022
+		;mov	dl, [BootDrive]
+		;;mov	dl, [cs:BootDrive]
 		; 23/12/2022
 		;push	di
 		int	13h		; DISK - RESET DISK SYSTEM
@@ -718,7 +971,10 @@ ReadOk:
 		; cx = ax = read (sector) count	
 		;mov	bx, [cs:BytesPerSec]	; Bytes per sector
 		;mul	bx			; Get total bytes read	
-		mul	word [cs:BytesPerSec]
+		; 24/12/2022
+		; ds = cs
+		mul	word [BytesPerSec]
+		;mul	word [cs:BytesPerSec]
 		add	di, ax			; Add it to OFFSET
 		jnc	short read_next_sector
 		mov	bx, es
@@ -726,18 +982,24 @@ ReadOk:
 		add	bh, 10h
 		mov	es, bx
 read_next_sector:
+		; 24/12/2022
+		; ds = cs
 		; 22/12/2022
-		sub	[cs:SectorCount], cx
-		;sub	[cs:SectorCount], ax ; Bump number down
+		sub	[SectorCount], cx
+		;sub	[cs:SectorCount], cx
+		;;sub	[cs:SectorCount], ax	; Bump number down
 		jz	short EndRead
-		add	[cs:StartSecL], cx
-		;add	[cs:StartSecL], ax	; Where to start next time
-		adc	word [cs:StartSecH], 0
+		add	[StartSecL], cx
+		;add	[cs:StartSecL], cx
+		;;add	[cs:StartSecL], ax	; Where to start next time
+		adc	word [StartSecH], 0
+		;adc	word [cs:StartSecH], 0
 		jmp	ReadSectors
 ; ---------------------------------------------------------------------------
-	
-EndRead:				
-		retn
+		
+		; 24/12/2022
+;EndRead:				
+		;retn
 
 ; =============== S U B	R O U T	I N E =======================================
 
@@ -794,14 +1056,21 @@ EndRead:
 
 GetNextFatEntry:			
 		push	es
-		mov	ax, [cs:FatSegment]
+		; 24/12/2022
+		mov	ax, FATSEGMENT	; FATBUFSEGM
+		;mov	ax, [cs:FatSegment]
 		mov	es, ax		; ES-> FAT area segment
 		; 09/12/2022
-		;mov	byte [cs:EndOfFile], END_OF_FILE
-		mov	byte [cs:EndOfFile], 0FFh ; Assume last cluster
-		mov	ax, [cs:CurrentCluster] ; Get last cluster
-		;cmp	byte [cs:FatSize], FAT_12_BIT
-		cmp	byte [cs:Fatsize], 1
+		;;mov	byte [cs:EndOfFile], END_OF_FILE
+		;mov	byte [cs:EndOfFile], 0FFh ; Assume last cluster
+		;mov	ax, [cs:CurrentCluster] ; Get last cluster
+		; 24/12/2022
+		; ds = cs
+		mov	byte [EndOfFile], 0FFh ; Assume last cluster
+		mov	ax, [CurrentCluster] ; Get last cluster
+		cmp	byte [Fatsize], 1
+		;;cmp	byte [cs:FatSize], FAT_12_BIT
+		;cmp	byte [cs:Fatsize], 1
 		jne	short Got16Bit	; 23/12/2022
 		mov	si, ax
 		shr	ax, 1
@@ -838,9 +1107,12 @@ GetNextFatEntry:
 ClusterOk:				
 		mov	ax, [es:bx]
 EvenOdd:	
+		; 24/12/2022
+		; ds = cs
+		test	byte [CurrentCluster], 1
 		; 10/12/2022		
-		test	byte [cs:CurrentCluster], 1 ; 09/12/2022
-		;test	word [cs:CurrentCluster], 1 ; Was last cluster odd?
+		;test	byte [cs:CurrentCluster], 1 ; 09/12/2022
+		;;test	word [cs:CurrentCluster], 1 ; Was last cluster odd?
 		jnz	short OddResult		; If not zero it was odd
 		and	ax, 0FFFh		; Keep low 12 bits
 		jmp	short TestEOF
@@ -869,11 +1141,16 @@ Got16Bit:
 		mov	ax, [es:bx]
 		cmp	ax, 0FFF8h
 		jnb	short GotClusterDone
-NotLastCluster:				
-		;mov	byte [cs:EndOfFile], NOT_END_OF_FILE ; ~END_OF_FILE
-		mov	byte [cs:EndOfFile], 0	; Assume not last cluster
+NotLastCluster:	
+		; 24/12/2022
+		; ds = cs			
+		;;mov	byte [cs:EndOfFile], NOT_END_OF_FILE ; ~END_OF_FILE
+		;mov	byte [cs:EndOfFile], 0	; Assume not last cluster
+		mov	byte [EndOfFile], 0	; Assume not last cluster
 GotClusterDone:				
 		pop	es
+		; 24/12/2022
+EndRead:
 		retn
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -896,32 +1173,50 @@ GotClusterDone:
 ;
 ; ---------------------------------------------------------------------------
 
+		; 24/12/2022
 		; 22/12/2022
 GetFatSector:				
 		push	ax
 		push	si
 		push	di
 		mov	ax, si
-		mov	cx, [cs:BytesPerSec]
-		div	cx			; AX = Sector number, DX = Offset
-		cmp	ax, [cs:LastFatSector]	; The same fat sector?
+		; 24/12/2022
+		; ds = cs
+		;mov	cx, [cs:BytesPerSec]
+		;div	cx			; AX = Sector number, DX = Offset
+		div	word [BytesPerSec]
+		cmp	ax, [LastFatSector]
+		;cmp	ax, [cs:LastFatSector]	; The same fat sector?
 		je	short SplitChk		; Don't need to read it again.
-		mov	[cs:LastFatSector], ax
+		mov	[LastFatSector], ax
+		;mov	[cs:LastFatSector], ax
 		push	dx
+		; 24/12/2022
 		xor	dx, dx
-		add	ax, [cs:HiddenSectorsL]
-		adc	dx, [cs:HiddenSectorsH]
-		add	ax, [cs:ReservSectors]
-		adc	dx, 0
-		mov	[cs:StartSecL], ax
-		mov	[cs:StartSecH], dx	; Set up for ReadSectors
-					
-		mov	word [cs:SectorCount], 1 ; 1 sector
-		xor	di, di
+		;add	ax, [cs:HiddenSectorsL]
+		;adc	dx, [cs:HiddenSectorsH]
+		;add	ax, [cs:ReservSectors]
+		;adc	dx, 0
+		; 24/12/2022
+		; ds = cs
+		add	ax, [FatStartSecL]
+		adc	dx, [FatStartSecH]
+		mov	[StartSecL], ax
+		mov	[StartSecH], dx		; Set up for ReadSectors
+		;mov	[cs:StartSecL], ax
+		;mov	[cs:StartSecH], dx	; Set up for ReadSectors
+		
+		mov	word [SectorCount], 1 ; 1 sector			
+		;mov	word [cs:SectorCount], 1 ; 1 sector
+		xor	di, di ; 0
+		; es:di = FATSEGMENT:0000h
 		call	ReadSectors
 		pop	dx
-		mov	cx, [cs:BytesPerSec]
-SplitChk:				
+		; 24/12/2022
+		;mov	cx, [cs:BytesPerSec]
+SplitChk:
+		; 24/12/2022
+		mov	cx, [BytesPerSec]				
 		dec	cx			; CX = SECTOR SIZE - 1
 		cmp	dx, cx			; If last byte of sector, splitted entry.
 		mov	bx, dx			; set bx to dx
@@ -933,9 +1228,11 @@ EndWrite:		; 10/12/2022
 
 ; ---------------------------------------------------------------------------
 
-ErrorOut:				
-		push	cs
-		pop	ds
+ErrorOut:	
+		; 24/12/2022
+		; ds = cs		
+		;push	cs
+		;pop	ds
 		mov	si, NonSystemDiskMsg ; "\r\nNon-System disk or disk error\r\nRe"...
 		call	WriteTTY
 
@@ -1022,6 +1319,9 @@ NonSystemDiskMsg:
 		db 0
 loading_msg:	db 0Dh, 0Ah
 		db 'Loading Kernel MSDOS.SYS ... '
+; 24/12/2022
+		db 0
+ok_msg:		db 'OK. '
 crlf:
 		db 0Dh, 0Ah, 0
 
