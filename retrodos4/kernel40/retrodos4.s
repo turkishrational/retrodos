@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RETRODOS.SYS (MSDOS 5.0 Kernel) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 25/06/2023 (Previous: 31/12/2022)
+; Last Update: 14/08/2023 (Previous: 22/07/2023)
 ; ----------------------------------------------------------------------------
 ; Beginning: 25/05/2018 (Retro DOS 3.0), 26/12/2018 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -4635,7 +4635,9 @@ pfr_ok:
 		cmp	cl, [eot]	; may set carry
 		;jbe	short eot_ok
 		; 09/12/2022
-		jne	short eotok
+		;jne	short eotok  ; wrong ! 14/08/2023
+		; 14/08/2023
+		jbe	short eotok
 		mov	[eot], cl
 ;eot_ok:					
 eotok:
@@ -5133,9 +5135,11 @@ configdone:
 		mov	cl, 4
 		shr	di, cl		
 		; 10/12/2022
-		add	di, 70h	 ; KERNEL_SEGMENT (in fact: IO.SYS loading segment)
+		;add	di, 70h		; KERNEL_SEGMENT (in fact: IO.SYS loading segment)
 		; 19/10/2022 - Temporary !
 		;db	81h, 0C7h, 70h, 0 ; add di, 0070h
+		; 13/08/2023
+		add	di, 70h
 		mov	[DosDataSg], di	; where	the dos	data segment will be
 
 ; 21/12/2022 - Retro DOS v4.0 (MSDOS 5.0 combined/single kernel file)
@@ -5700,7 +5704,9 @@ oknotmini:
 		cmp	byte [cs:bx+2], 90h ; yes, is the next one a nop?
 		jnz	short invalid_boot_record
 check_1_ok:				
-		mov	bx, 159h	; disksector+EXT_BOOT.BPB
+		; 14/08/2023
+		mov	bx, disksector+EXT_BOOT.BPB ; disksector+11
+		;mov	bx, 159h	; disksector+EXT_BOOT.BPB
 					; point	to the bpb in the boot record
 		mov	al, [cs:bx+10]	; [bx+EBPB.MEDIADESCRIPTOR]
 					; get the mediadescriptor byte
@@ -5893,9 +5899,11 @@ already_nonz:
 		pop	es
 		push	cs
 		pop	ds
+		; 13/08/2023
+		mov	bp, MOVMEDIAIDS ; mov_media_ids
 		; 18/12/2022
-		mov	bp, mov_media_ids
-		;mov	bp, 751h	; mov_media_ids
+		;mov	bp, mov_media_ids
+		;;mov	bp, 751h	; mov_media_ids
 					; at 2C7h:751h = 70h:2CC1h
 					; set volume id, systemid, serial.
 		push	cs		; simulate far call
@@ -30854,7 +30862,9 @@ szdev1:
 	;
 	; 01/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
 	cmp     ax,[cs:DevSizeOption]
-	ja      short szdev2
+	;ja	short szdev2
+	; 14/08/2023
+	jnb	short szdev2
 	mov     ax,[cs:DevSizeOption]
 	; 12/12/2022
 	clc
@@ -31157,8 +31167,9 @@ sd_ret:		; cf=?
 	;stc
 	; 11/12/2022
 ;sd_ret: 
+	; 22/07/2023
 	; 12/04/2019
-	retn
+	;retn
 
 ; 12/04/2019 - Retro DOS v4.0
 
