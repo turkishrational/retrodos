@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; IOSYS5.S (MSDOS 5.0 IO.SYS) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 25/06/2023 - Retro DOS v4.1 (Prev: 25/12/2022, Retro DOS v4.0)
+; Last Update: 14/08/2023 - Retro DOS v4.1 (Previous: 22/07/2023)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -5123,7 +5123,9 @@ pfr_ok:
 		cmp	cl, [eot]	; may set carry
 		;jbe	short eot_ok
 		; 09/12/2022
-		jne	short eotok
+		;jne	short eotok  ; wrong ! 14/08/2023
+		; 14/08/2023
+		jbe	short eotok
 		mov	[eot], cl
 ;eot_ok:					
 eotok:
@@ -5612,9 +5614,11 @@ configdone:
 		mov	cl, 4
 		shr	di, cl		
 		; 10/12/2022
-		add	di, 70h		; KERNEL_SEGMENT (in fact: IO.SYS loading segment)
+		;add	di, 70h		; KERNEL_SEGMENT (in fact: IO.SYS loading segment)
 		; 19/10/2022 - Temporary !
 		;db	81h, 0C7h, 70h, 0 ; add di, 0070h
+		; 14/08/2023
+		add	di, 70h
 		mov	[DosDataSg], di	; where	the dos	data segment will be
 		mov	ax, [drvfat]	; get drive and	fat id
 		; 22/12/2022
@@ -5946,9 +5950,11 @@ norm_ret:
 ;***************************************************************************
 
 sethard:	; proc near		
+		; 14/08/2023
+		; ds = cs = BIOSDATA
 		push	di
 		push	bx
-		push	ds
+		;push	ds  ; ds = cs = BIOSDATA ; 14/08/2023
 		push	es
 		mov	[di+5],	bl	; [di+BDS.drivelet]
 		mov	[di+4],	dl	; [di+BDS.drivenum]
@@ -6040,7 +6046,10 @@ setret:
 ;  BDS_BPB.BPB_BIGTOTALSECTORS entry to make it a conventional bpb format.
 
 set2:					
-		mov	[cs:rom_drv_num], dl
+		; 14/08/2023
+		; ds = cs = BIOSDATA segment (0070h)
+		mov	[rom_drv_num], dl
+		;mov	[cs:rom_drv_num], dl
 			; save the rom bios drive number we are handling now.
 		mov	ax, [es:bx+4]	; hidden sectors (start	sector)
 		mov	dx, [es:bx+6]
@@ -6081,7 +6090,9 @@ okdrive_1:
 		div	bx		; (sectors)dx:ax / (BDS.secpertrack)bx =
 					; (track)temp_h:ax + (sector)dx
 		; 17/10/2022
-		mov	[cs:temp_h], ax
+		;mov	[cs:temp_h], ax
+		; 14/08/2023 (ds=cs)
+		mov	[temp_h], ax
 		pop	ax
 		div	bx
 		mov	cl, dl
@@ -6090,12 +6101,16 @@ okdrive_1:
 		mov	bl, [di+15h]	; [di+BDS.heads]
 		push	ax
 		xor	dx, dx
-		mov	ax, [cs:temp_h]
+		;mov	ax, [cs:temp_h]
+		mov	ax, [temp_h] ; 14/08/2023
 		div	bx
-		mov	[cs:temp_h], ax
+		;mov	[cs:temp_h], ax
+		mov	[temp_h], ax ; 14/08/2023
 		pop	ax
-		div	bx		;  dl is head, ax is cylinder
-		cmp	word [cs:temp_h], 0
+		div	bx		; dl is head, ax is cylinder
+		; 14/08/2023 (ds=cs)
+		cmp	word [temp_h], 0
+		;cmp	word [cs:temp_h], 0
 		ja	short setret_brdg ; exceeds the	limit of int 13h
 		cmp	ax, 1024
 		ja	short setret_brdg ; exceeds the	limit of int 13h
@@ -6125,7 +6140,11 @@ oknotmini:
 		mov	ch, al		; ch is	cylinder (low 8	bits)
 					; cl is	sector + 2 high	bits of	cylinder
 		mov	dh, dl		; dh is	head
-		mov	dl, [cs:rom_drv_num] ; dl is drive number
+		
+		; 14/08/2023 (ds=cs)
+		mov	dl, [rom_drv_num]
+		;mov	dl, [cs:rom_drv_num] ; dl is drive number
+
 
 ; cl is sector + 2 high bits of cylinder
 ; ch is low 8 bits of cylinder
@@ -6153,28 +6172,40 @@ oknotmini:
 ; is correct. we can, therefore, suck out all the relevant statistics on the
 ; media if we recognize the version number.
 
-		mov	bx, disksector
+		; 14/08/2023
+		;mov	bx, disksector	; BIOSDATA:014Eh ; MSDOS 6.21 ; 11/08/2023
+					; BIOSDATA:0152h ; PCDOS 7.1 IBMBIO.COM
 		push	bx
 		push	ax
-		cmp	byte [cs:bx], 0E9h ; is it a near jump?
+		; 14/08/2023
+		; ds = cs = BIOSDATA segment ('disksector:' is in BIOSDATA) 
+		cmp	byte [bx], 0E9h
+		;cmp	byte [cs:bx], 0E9h ; is it a near jump?
 		jz	short check_1_ok ; yes
-		cmp	byte [cs:bx], 0EBh ; is it a short jump?
+		cmp	byte [bx], 0EBh
+		;cmp	byte [cs:bx], 0EBh ; is it a short jump?
 		jnz	short invalid_boot_record ; no
-		cmp	byte [cs:bx+2], 90h ; yes, is the next one a nop?
-		jnz	short invalid_boot_record
-check_1_ok:				
-		mov	bx, 159h	; disksector+EXT_BOOT.BPB
+		cmp	byte [bx+2], 90h
+		;cmp	byte [cs:bx+2], 90h ; yes, is the next one a nop?
+		jnz	short invalid_boot_record ; no, invalid bs ; 11/08/2023
+check_1_ok:	
+		; 14/08/2023			
+		mov	bx, disksector+11 ; disksector+EXT_BOOT.BPB
+		;mov	bx, 159h	; disksector+EXT_BOOT.BPB
 					; point	to the bpb in the boot record
-		mov	al, [cs:bx+10]	; [bx+EBPB.MEDIADESCRIPTOR]
+		;mov	al, [cs:bx+10]	; [bx+EBPB.MEDIADESCRIPTOR]
+		mov	al, [bx+10] ; 14/08/2023 
 					; get the mediadescriptor byte
 		and	al, 0F0h	; mask off low nibble
 		cmp	al, 0F0h	; is high nibble = 0Fh?
 		jnz	short invalid_boot_record ; no,	invalid	boot record
-		cmp	word [cs:bx], 512 ; [bx+EBPB.BYTESPERSECTOR]
+		;cmp	word [cs:bx], 512 ; [bx+EBPB.BYTESPERSECTOR]
+		cmp	word [bx], 512 ; 14/08/2023
 		jnz	short invalid_boot_record ; invalidate non 512 byte sectors
 
 check2_ok:				; yes, mediadescriptor ok.
-		mov	al, [cs:bx+2]	; now make sure	that
+		mov	al, [bx+2] ; 14/08/2023
+		;mov	al, [cs:bx+2]	; now make sure that
 					; the sectorspercluster	is
 					; a power of 2
 					;
@@ -6193,23 +6224,8 @@ invalid_boot_record:
 		pop	bx
 		jmp	unknown		; jump to invalid boot record
 					; unformatted or illegal media.
+	; 14/08/2023	
 ; ---------------------------------------------------------------------------
-
-valid_boot_record:			
-		pop	ax
-		pop	bx
-
-; Signature found. Now check version.
-
-		cmp	word [cs:bx+8], '2.' ; 03/10/2022 (NASM syntax)
-		;cmp	word ptr cs:[bx+8], 2E32h ; '2.'
-		jnz	short try5
-		cmp	byte [cs:bx+0Ah], '0' ; 03/10/2022 (NASM syntax)
-		;cmp	byte ptr cs:[bx+0Ah], 30h ; '0'
-		jnz	short try5
-		jmp	short copybpb
-; ---------------------------------------------------------------------------
-
 setret_brdg:				
 		jmp	setret
 ; ---------------------------------------------------------------------------
@@ -6219,15 +6235,50 @@ unknown3_0_j:
 					; although, content might be bad.
 ; ---------------------------------------------------------------------------
 
+valid_boot_record:			
+		pop	ax
+		pop	bx
+
+; Signature found. Now check version.
+
+		; 14/08/2023
+		cmp	word [bx+8], '2.'
+		;cmp	word [cs:bx+8], '2.' ; 03/10/2022 (NASM syntax)
+		;;cmp	word ptr cs:[bx+8], 2E32h ; '2.'
+		jnz	short try5
+		cmp	byte [bx+10], '0'
+		;cmp	byte [cs:bx+0Ah], '0' ; 03/10/2022 (NASM syntax)
+		;;cmp	byte ptr cs:[bx+0Ah], 30h ; '0'
+		; 14/08/2023
+		;jnz	short try5
+		;jmp	short copybpb
+		jz	short copybpb
+
+	; 14/08/2023
+; ---------------------------------------------------------------------------
+;
+;setret_brdg:				
+;		jmp	setret
+; ---------------------------------------------------------------------------
+;
+;unknown3_0_j:				
+;		jmp	unknown3_0	; legally formatted media,
+;					; although, content might be bad.
+; ---------------------------------------------------------------------------
+
 try5:					
 		call	cover_fdisk_bug
 
 ; see if it is an os2 signature
 
-		cmp	word [cs:bx+8], '0.' ; 03/10/2022 (NASM syntax)
-		;cmp	word ptr cs:[bx+8], 2E30h ; '0.'
+		; 14/08/2023
+		; ds = cs = BIOSDATA segment
+		cmp	word [bx+8], '0.'
+		;cmp	word [cs:bx+8], '0.' ; 03/10/2022 (NASM syntax)
+		;;cmp	word ptr cs:[bx+8], 2E30h ; '0.'
 		jnz	short no_os2
-		mov	al, [cs:bx+7]	; 17/10/2022 (NASM syntax)
+		mov	al, [bx+7] ; 12/08/2023
+		;mov	al, [cs:bx+7]	; 17/10/2022 (NASM syntax)
 		sub	al, '1'
 		;sub	al, 31h		; '1'
 		and	al, 0FEh
@@ -6238,15 +6289,19 @@ try5:
 ; no os2 signature, this is to check for real dos versions
 
 no_os2:					
-		cmp	word [cs:bx+8], '3.' ; 03/10/2022 (NASM syntax)
-		;cmp	word ptr cs:[bx+8], 2E33h ; '3.'
+		; 14/08/2023
+		; ds = cs = BIOSDATA
+		cmp	word [bx+8], '3.'			
+		;cmp	word [cs:bx+8], '3.' ; 03/10/2022 (NASM syntax)
+		;;cmp	word ptr cs:[bx+8], 2E33h ; '3.'
 		jb	short unknown3_0_j ; must be 2.1 boot record.
 					; do not trust it, but still legal.
 		jnz	short copybpb	; honor	os2 boot record
 					; or dos 4.0 version
-		cmp	byte [cs:bx+10], '1'
-		;cmp	byte ptr cs:[bx+0Ah], 31h ; '1'
-		jb	short unknown3_0_j ; if version >=	3.1, then o.k.
+		cmp	byte [bx+10], '1' ; 14/08/2023
+		;cmp	byte [cs:bx+10], '1'
+		;;cmp	byte ptr cs:[bx+0Ah], 31h ; '1'
+		jb	short unknown3_0_j ; if version >= 3.1, then o.k.
 copybpb:
 
 ; 03/10/2022
@@ -6266,11 +6321,15 @@ copybpb:
 		; 10/12/2022
 		; (number of FATs optimization)
 		mov	si, disksector+11 ; disksector+0Bh
-		;mov	cl, [cs:disksector+10h] ; Number of FATs (may be 2 or 1)
-		mov	cl, [cs:si+05h]
-		
-		cmp	byte [cs:si+1Bh], 29h ; 10/12/2022	
-		;cmp	byte [cs:disksector+26h], 29h ; 17/10/2022
+		;;mov	cl, [cs:disksector+10h] ; Number of FATs (may be 2 or 1)
+		;mov	cl, [cs:si+05h]
+		; 14/08/2023
+		; ds = cs = BIOSDATA segment (0070h)
+		mov	cl, [si+05h] ; number of FATs
+
+		cmp	byte [si+1Bh], 29h ; 14/08/2023
+		;cmp	byte [cs:si+1Bh], 29h ; 10/12/2022	
+		;;cmp	byte [cs:disksector+26h], 29h ; 17/10/2022
 					; [disksector+EXT_BOOT.SIG]
 					; EXT_BOOT_SIGNATURE
 		jnz	short copybpb_fat ; conventional fat system
@@ -6293,11 +6352,14 @@ copybpb:
 ; non fat based	media.
 
 		push	di
-		push	ds
+		; 14/08/2023
+		;push	ds  ; ds = cs = BIOSDATA segment
 		push	ds
 		pop	es
-		push	cs
-		pop	ds
+		; 14/08/2023
+		; ds = cs
+		;push	cs
+		;pop	ds
 
 		; 10/12/2022
 		; (number of FATs optimization)
@@ -6324,24 +6386,36 @@ copybpb:
 		;cmp	word [cs:si+17h], 0	; [cs:si+EBPB.BIGTOTALSECTORS+2]
 		;jnz	short already_nonz
 
+		; 14/08/2023
+		; ds = cs = BIOSDATA segment (0070h)
+
 		; 18/12/2022
-		cmp	[cs:si+8], cx ; 0	; [cs:si+EBPB.TOTALSECTORS]
+		;cmp	[cs:si+8], cx ; 0	; [cs:si+EBPB.TOTALSECTORS]
+		; 14/08/2023
+		cmp	[si+8], cx ; 0
 		jnz	short already_nonz
-					     ; how about big_total?
-		cmp	word [cs:si+15h], cx ; 0 ; [cs:si+EBPB.BIGTOTALSECTORS]
-		jnz	short already_nonz   ; we're okay if any are != 0
-		cmp	word [cs:si+17h], cx ; 0 ; [cs:si+EBPB.BIGTOTALSECTORS+2]
+					     	; how about big_total?
+		;cmp	[cs:si+15h], cx ; 0 	; [cs:si+EBPB.BIGTOTALSECTORS]
+		; 14/08/2023
+		cmp	[si+15h], cx ; 0
+		jnz	short already_nonz	; we're okay if any are != 0
+		;cmp	[cs:si+17h], cx ; 0  	; [cs:si+EBPB.BIGTOTALSECTORS+2]
+		cmp	[si+17h], cx ; 0
 		jnz	short already_nonz
 
 ; now let's copy the values from the partition table (now in the BDS)
 ; into the BPB in the boot sector buffer, before they get copied back.
 
 		mov	ax, [di+8]	; [di+BDS.totalsecs16]
-		mov	[cs:si+8], ax	; [cs:si+EBPB.TOTALSECTORS]
+		; 14/08/2023
+		;mov	[cs:si+8], ax	; [cs:si+EBPB.TOTALSECTORS]
+		mov	[si+8], ax
 		mov	ax, [di+15h]	; [di+BDS.totalsecs32]
-		mov	[cs:si+15h], ax	; [cs:si+EBPB.BIGTOTALSECTORS]
+		;mov	[cs:si+15h], ax	; [cs:si+EBPB.BIGTOTALSECTORS]
+		mov	[si+15h], ax
 		mov	ax, [di+17h]	; [di+BDS.totalsecs32+2]
-		mov	[cs:si+17h], ax	; [cs:si+EBPB.BIGTOTALSECTORS+2]
+		;mov	[cs:si+17h], ax	; [cs:si+EBPB.BIGTOTALSECTORS+2]
+		mov	[si+17h], ax
 
 already_nonz:	
 		; 18/12/2022
@@ -6356,16 +6430,20 @@ already_nonz:
 		pop	es
 		push	cs
 		pop	ds
+		; 14/08/2023
+		mov	bp, MOVMEDIAIDS ; mov_media_ids
 		; 18/12/2022
-		mov	bp, mov_media_ids
-		;mov	bp, 751h	; mov_media_ids
+		;mov	bp, mov_media_ids
+		;;mov	bp, 751h	; mov_media_ids
 					; at 2C7h:751h = 70h:2CC1h
 					; set volume id, systemid, serial.
 		push	cs		; simulate far call
 		call	call_bios_code
-		push	es
-		pop	ds
-		pop	es
+		; 14/08/2023
+		; ds = cs = es
+		;push	es
+		;pop	ds
+		;pop	es
 		jmp	goodret
 ; ---------------------------------------------------------------------------
 
@@ -6396,21 +6474,26 @@ copybpb_fat:
 		;;mov	si, 159h	; disksector+EXT_BOOT.BPB
 					; cs:si	-> bpb in boot
 		xor	dx, dx
-		mov	ax, [cs:si+8]	; [cs:si+EBPB.TOTALSECTORS]
+		; 14/08/2023
+		; ds = cs = BIOSDATA segment (0070h)
+		mov	ax, [si+8]
+		;mov	ax, [cs:si+8]	; [cs:si+EBPB.TOTALSECTORS]
 					; get totsec from boot sec
 		or	ax, ax
 		jnz	short copy_totsec ; if non zero, use that
-		mov	ax, [cs:si+15h]	; [cs:si+EBPB.BIGTOTALSECTORS]
+		mov	ax, [si+15h] ; 12/08/2023
+		;mov	ax, [cs:si+15h]	; [cs:si+EBPB.BIGTOTALSECTORS]
 					; get the big version
 					; (32 bit total	sectors)
-		mov	dx, [cs:si+17h]	; [cs:si+EBPB.BIGTOTALSECTORS+2]
+		mov	dx, [si+17h] ; 12/08/2023
+		;mov	dx, [cs:si+17h]	; [cs:si+EBPB.BIGTOTALSECTORS+2]
 		; 10/12/2022
 		; (number of FATs optimization)
 		; CL = number of FATs (2 or 1) 
 		mov	bx, dx		; see if it is a big zero
 		or	bx, ax
 		jnz	short copy_totsec
-			; screw it. it	was bogus.
+			; screw it. it was bogus.
 		mov	ax, [di+1Bh]	; [di+BDS.totalsecs32]
 		mov	dx, [di+1Dh]	; [di+BDS.totalsecs32+2]
 		jmp	short fat_big_small
@@ -6437,13 +6520,19 @@ fat_big_small:
 ;Do not assume 1 reserved sector. Update the reserved sector field in BDS 
 ;from the BPB on the disk
 				
-		mov	bx, [cs:si+3]	; [cs:si+EBPB.RESERVEDSECTORS]
+		; 14/08/2023
+		; ds = cs = BIOSDATA segment (0070h)
+				
+		mov	bx, [si+3]
+		;mov	bx, [cs:si+3]	; [cs:si+EBPB.RESERVEDSECTORS]
 					; get #reserved_sectors	from BPB
 		mov	[di+9],	bx	; [di+BDS.resectors]
 					; update BDS field
 		sub	ax, bx
 		sbb	dx, 0		; update the count
-		mov	bx, [cs:si+0Bh]	; [cs:si+EBPB.SECTORSPERFAT]
+		; 14/08/2023
+		mov	bx, [si+0Bh]
+		;mov	bx, [cs:si+0Bh]	; [cs:si+EBPB.SECTORSPERFAT]
 					; bx = sectors/fat
 		mov	[di+11h], bx	; [di+BDS.fatsecs]
 					; set in bds bpb
@@ -6453,12 +6542,13 @@ fat_big_small:
 		;dec	cl ; *
 		; 18/12/2022
 		dec	cx ; *
-		shl	bx, cl			
+		shl	bx, cl
 		;shl	bx, 1	; =*?=	; always 2 fats
 		
 		sub	ax, bx		; sub #	fat sectors
 		sbb	dx, 0
-		mov	bx, [cs:si+6]	; [cs:si+EBPB.ROOTENTRIES]
+		mov	bx, [si+6] ; 14/08/2023
+		;mov	bx, [cs:si+6]	; [cs:si+EBPB.ROOTENTRIES]
 					; # root entries
 		mov	[di+0Ch], bx	; [di+BDS.direntries]
 					; set in bds bpb
@@ -6469,7 +6559,8 @@ fat_big_small:
 					; dx:ax	now contains the
 					; # of data sectors
 		xor	cx, cx ; *
-		mov	cl, [cs:si+2]	; [cs:si+EBPB.SECTORSPERCLUSTER]
+		mov	cl, [si+2] ; 14/08/2023
+		;mov	cl, [cs:si+2]	; [cs:si+EBPB.SECTORSPERCLUSTER]
 					; sectors per cluster
 		mov	[di+8],	cl	; [di+BDS.secperclus]
 					; set in bios bpb
@@ -6477,11 +6568,14 @@ fat_big_small:
 		mov	ax, dx
 		xor	dx, dx
 		div	cx		; cx = sectors per cluster
-		mov	[cs:temp_h], ax	; [temp_h]:ax now contains the
+		; 14/08/2023 (ds=cs)
+		mov	[temp_h], ax
+		;mov	[cs:temp_h], ax	; [temp_h]:ax now contains the
 					; # clusters.
 		pop	ax
 		div	cx
-		cmp	word [cs:temp_h], 0
+		;cmp	word [cs:temp_h], 0
+		cmp	word [temp_h], 0 ; 14/08/2023
 		ja	short toobig_ret ; too big cluster number
 		cmp	ax, 0FF6h	; 4096-10
 					; is this 16-bit fat?
@@ -6494,8 +6588,10 @@ copymediaid:
 		push	es
 		push	ds
 		pop	es
-		push	cs
-		pop	ds
+		; 14/08/2023
+		; ds = cs = BIOSDATA
+		;push	cs
+		;pop	ds
 		; 17/10/2022
 		mov	bp, MOVMEDIAIDS
 		;mov	bp, 751h	; mov_media_ids
@@ -6503,15 +6599,19 @@ copymediaid:
 					; copy filesys_id, volume label
 		push	cs		; simulate far call
 		call	call_bios_code
-		push	es
-		pop	ds
+		; 14/08/2023
+		;push	es
+		;pop	ds
 		pop	es
 		jmp	massage_bpb	; now final check for bpb info
 					; and return.
 ; ---------------------------------------------------------------------------
 
 toobig_ret:				
-		or	byte [cs:fbigfat], 80h
+		; 14/08/2023 (ds=cs=BIOSDATA)
+		or	byte [fbigfat], 80h ; ftoobig
+		;or	byte [cs:fbigfat], 80h ; ftoobig 
+					; too big (32 bit clust #) for FAT16
 		jmp	goodret		; still	drive letter is	assigned
 					; but useless. to big for
 					; current pc dos fat file system
@@ -6534,10 +6634,13 @@ unknown3_0:
 		mov	si, disktable2
 
 scan:					
-		cmp	dx, [cs:si]
+		;cmp	dx, [cs:si]	; total sectors hw
+		; 14/08/2023 (ds=cs)
+		cmp	dx, [si] 
 		jb	short gotparm
 		ja	short scan_next
-		cmp	ax, [cs:si+2]
+		;cmp	ax, [cs:si+2]	; total sectors lw
+		cmp	ax, [si+2]
 		jbe	short gotparm
 
 scan_next:				
@@ -6549,10 +6652,14 @@ gotparm:
 		mov	cl, [si+8]	; fat size for fbigfat flag
 		;or	ds:fbigfat, cl
 		; 17/10/2022
-		or	[fbigfat], cl
-		mov	cx, [cs:si+4]	; ch = number of sectors per cluster
-					; cl = log base	2 of ch
-		mov	dx, [cs:si+6]	; dx = number of root dir entries
+		or	[fbigfat], cl	; (fbig flag, 40h or 0) ; 08/08/2023
+		; 14/08/2023
+		; ds = cs = BIOSDATA
+		mov	cx, [si+4]
+		;mov	cx, [cs:si+4]	; ch = number of sectors per cluster
+					; cl = log base 2 of ch
+		mov	dx, [si+6]
+		;mov	dx, [cs:si+6]	; dx = number of root dir entries
 
 ; now calculate size of fat table
 
@@ -6562,6 +6669,12 @@ gotparm:
 		mov	ax, [di+1Bh]	; [di+BDS.totalsecs32]
 		mov	[di+8],	ch	; [di+BDS.secperclus]
 					; save sectors per cluster
+
+		; 14/08/2023
+		mov	bl, [fbigfat]
+		mov	[di+1Fh], bl	; [di+BDS.fatsiz] ; fat	size flag
+		test	bl, 40h
+
 		; 17/10/2022
 		test	byte [fbigfat], 40h
 		;test	ds:fbigfat, 40h	; fbig
@@ -6618,10 +6731,11 @@ dobig:
 		; FATsz	= (TmpVal1+(TmpVal2-1))/TmpVal2
 		; (If FATType == FAT16,	BPB_FATSz16 = LOWORD(FATSz))
 		
-		add	ax, bx		; ax = t-r-d+256*spc+2
-		adc	dx, 0
-		sub	ax, 1		; ax = t-r-d+256*spc+1
-		sbb	dx, 0
+					; dx:ax = TmpVal1, bx = TmpVal2
+		add	ax, bx		; 
+		adc	dx, 0		; dx:ax = TmpVal1+TmpVal2
+		sub	ax, 1		
+		sbb	dx, 0		; dx:ax = TmpVal1+TmpVal2-1
 
 ; assuming dx in the table will never be bigger than bx.
 
@@ -6632,23 +6746,33 @@ dobig:
 
 ; now, set the default filesys_id, volume label, serial number
 
-		;mov	bl, ds:fbigfat
-		; 17/10/2022
-		mov	bl, [fbigfat]
-		mov	[di+1Fh], bl	; [di+BDS.fatsiz] ; fat	size flag
+		; 14/08/2023
+		; [di+1Fh] = [fbigfat]
+		;
+		;;mov	bl, ds:fbigfat
+		;; 17/10/2022
+		;mov	bl, [fbigfat]
+		;mov	[di+1Fh], bl	; [di+BDS.fatsiz] ; fat	size flag
 
-		push	ds
+		; 14/08/2023
+		;push	ds ; ds = cs = BIOSDATA
 		push	ds
 		pop	es
-		push	cs
-		pop	ds
+		; 14/08/2023 
+		; ds = cs = BIOSDATA
+		;push	cs
+		;pop	ds
 		; 17/10/2022
 		mov	bp, CLEARIDS
 		;mov	bp, 5D9h	; clear_ids
 					; at 2C7h:5D9h = 70h:2B49h
+					; at BIOSCODE:06ABh
+					;	in PCDOS 7.1 IBMBIO.COM
 		push	cs
 		call	call_bios_code
-		pop	ds
+
+		; 14/08/2023
+		;pop	ds ; ds = cs = BIOSDATA
 
 ; at this point, in bpb of bds table, BDS_BPB.BPB_BIGTOTALSECTORS which is
 ; set according to the partition information. we are going to
@@ -6659,10 +6783,13 @@ dobig:
 ; are not going to change the bpb information from the boot record.
 
 massage_bpb:
-		; 12/12/2022
-		mov	bl, [fbigfat]
-		mov	[di+1Fh], bl	; [di+BDS.fatsiz]
-					; set size of fat on media
+		; 14/08/2023
+		; [di+1Fh] = [fbigfat]
+		;
+		;; 12/12/2022
+		;mov	bl, [fbigfat]
+		;mov	[di+1Fh], bl	; [di+BDS.fatsiz]
+		;			; set size of fat on media
 		;
 		mov	dx, [di+1Dh]	; [di+BDS.totalsecs32+2]
 		mov	ax, [di+1Bh]	; [di+BDS.totalsecs32]
@@ -6696,7 +6823,7 @@ ret_hard_err:
 		; 12/12/2022
 goodret2:					
 		pop	es
-		pop	ds
+		;pop	ds	; ds = cs = BIOSDATA ; 14/08/2023
 		pop	bx
 		pop	di
 		retn
@@ -6713,29 +6840,42 @@ goodret2:
 
 		; 17/10/2022
 cover_fdisk_bug:	
+		; 14/08/2023		; ds = cs
 		push	ax
 		push	dx
 		push	si
-		cmp	byte [cs:disksector+26h], 29h
+		; 14/08/2023
+		cmp	byte [disksector+26h], 29h
+		;cmp	byte [cs:disksector+26h], 29h
 					; [disksector+EXT_BOOT.SIG],
 					; EXT_BOOT_SIGNATURE
 		jz	short cfb_retit	; if extended bpb, then	>= pc dos 4.00
-		cmp	word [cs:bx+7], 3031h ; '10' ; os2 1.0 = ibm 10.0
-		jnz	short cfb_chk_BPB_TOTALSECTORS
-		cmp	byte [cs:bx+10], '0'
+		cmp	word [bx+7], 3031h
+		;cmp	word [cs:bx+7], 3031h ; '10' ; os2 1.0 = ibm 10.0
+		jnz	short cfb_chk_totalsecs ; 14/08/2023
+		cmp	byte [bx+10], '0'
+		;cmp	byte [cs:bx+10], '0'
 		jnz	short cfb_retit
-cfb_chk_BPB_TOTALSECTORS:
+cfb_chk_totalsecs:
 		; 17/10/2022		
 		mov	si, disksector+11 ; 14Eh+0Bh
 		;mov	si, 159h	; disksector+EXT_BOOT.BPB
-		cmp	word [cs:si+8], 0 ; [cs:si+EBPB.TOTALSECTORS]
+		; 14/08/2023
+		cmp	word [si+8], 0
+		;cmp	word [cs:si+8], 0 ; [cs:si+EBPB.TOTALSECTORS]
 					; just to make sure.
 		jz	short cfb_retit
-		mov	ax, [cs:si+8]	; [cs:si+EBPB.TOTALSECTORS]
-		add	ax, [cs:si+11h]	; [cs:si+EBPB.HIDDENSECTORS]
+		;mov	ax, [cs:si+8]	; [cs:si+EBPB.TOTALSECTORS]
+		;add	ax, [cs:si+11h]	; [cs:si+EBPB.HIDDENSECTORS]
+		; 14/08/2023
+		mov	ax, [si+8]
+		add	ax, [si+11h]
+
 		jnb	short cfb_retit
-		jnz	short cfb_retit	; if carry set and ax=0
-		dec	word [cs:si+8]	; 0 -> 0FFFFh
+		jnz	short cfb_retit
+					; if carry set and ax=0
+		dec	word [si+8]
+		;dec	word [cs:si+8]	; 0 -> 0FFFFh
 					; then decrease	BPB_TOTALSECTORS by 1
 		sub	word [di+1Bh], 1 ; [di+BDS.totalsecs32]
 		sbb	word [di+1Dh], 0 ; [di+BDS.totalsecs32+2]
@@ -6747,9 +6887,9 @@ cfb_retit:
 
 ; ---------------------------------------------------------------------------
 
-word2		dw 2			
-word3		dw 3			
-word512		dw 512			
+word2:		dw 2			
+word3:		dw 3			
+word512:	dw 512			
 
 ; =============== S U B	R O U T	I N E =======================================
 
@@ -7110,10 +7250,12 @@ fmpgot_cont:
 					; Return: CF set on error, AH =	status,	AL = number of sectors read
 		jb	short fmpnextfound
 		mov	bx, 3C2h	; 1C2h+bootbias
-		push	es
+
+		; 14/08/2023
+		;push	es
 		call	setmini		; install a mini disk.
 					; bx value saved.
-		pop	es
+		;pop	es  ; 14/08/2023
 		jb	short fmpnextchain
 		call	xinstall_bds	; -- install the bdsm into table
 fmpnextchain:				
@@ -7134,7 +7276,9 @@ setmini:	; 'setmini' is called from 'find_mini_partition' procedure
 	
 		push	di
 		push	bx
-		push	ds
+		; 14/08/2023
+		; ds = cs = BIOSDATA segment
+		;push	ds
 		push	es
 setmini_1:				
 		cmp	byte [es:bx], 1 ; FAT12 partition
@@ -7148,7 +7292,8 @@ setmini_1:
 		jnz	short setmini_1
 		stc
 		pop	es
-		pop	ds
+		; 14/08/2023
+		;pop	ds
 		pop	bx
 		pop	di
 		retn
@@ -18430,8 +18575,11 @@ okld:
 
 	;mov	ax,(EXEC<<8) + 0
 	; 23/10/2022
-	xor	ax,ax
-	mov	ah,4Bh        
+	;xor	ax,ax
+	;mov	ah,4Bh        
+	; 14/08/2023
+	;mov	ax,4B00h
+	mov	ax,(EXEC<<8)
 
 	stc                     ; in case of int 24
         int     21h             ; go start up command
@@ -21363,7 +21511,9 @@ buildloop:
 	; 11/12/2022
 	;mov	byte [es:bp+allocbyte],free	; mov [es:bp+0],0
 	; 25/10/2022
-	mov	byte [es:bp],free
+	;mov	byte [es:bp],free
+	; 14/08/2023
+	mov	[es:bp],al ; 0 ; free
 	mov	[es:bp+intlevel],al	; ax = 0
 	;mov	[es:bp+1],al
 	mov	[es:bp+savedsp],ax
@@ -23069,8 +23219,10 @@ _$P_SW_Manager:				;AN000;
 	add	bx,ax			;AN000; now bx points to maxs
 	mov	cl,[es:bx]		;AN000;
 	xor	ch,ch			;AN000; cx = maxs
-	or	cx,cx			;AN000; at least one switch ?
-	jz	short _$P_SW_Not_Found 	;AN000;
+	;or	cx,cx			;AN000; at least one switch ?
+	;jz	short _$P_SW_Not_Found 	;AN000;
+	; 14/08/2023
+	jcxz	_$P_SW_Not_Found	; no
 
 	inc	bx			;AN000; now bx points to 1st CONTROL address
 
@@ -23103,8 +23255,10 @@ _$P_Key_Manager: 			;AN000;
 	add	bx,ax			;AN000; now bx points to maxk
 	mov	cl,[es:bx]		;AN000;
 	xor	ch,ch			;AN000; cx = maxk
-	or	cx,cx			;AN000; at least one keyword ?
-	je	short _$P_Key_Not_Found	;AN000;
+	;or	cx,cx			;AN000; at least one keyword ?
+	;jz	short _$P_Key_Not_Found	;AN000;
+	; 14/08/2023
+	jcxz	_$P_Key_Not_Found	; no
 
 	inc	bx			;AN000; now bx points to 1st CONTROL
 
@@ -23174,8 +23328,10 @@ _$P_CPC00:				;AN000;
 
 _$P_CPC02:				;AN000;
 	push	ax			;AN000;
-	mov	al,_$P_String		;AN000; if it is optional return NULL
-	mov	ah,_$P_No_Tag		;AN000; no item tag indication
+	;mov	al,_$P_String		;AN000; if it is optional return NULL
+	;mov	ah,_$P_No_Tag		;AN000; no item tag indication
+	; 14/08/2023
+	mov	ax,(_$P_No_Tag<<8)|_$P_String
 	call	_$P_Fill_Result		;AN000;
 	pop	ax			;AN000;
 	jmp	short _$P_CPC_Exit	;AN000;
@@ -23226,8 +23382,10 @@ _$P_Search_KEYorSW:			;AN000;
 	push	cx			;AN000;
 	mov	cl,[es:bx+_$P_Control_Blk.nid] ;AN000; Get synonym count
 	xor	ch,ch			;AN000; and set it to cx
-	or	cx,cx			;AN000; No synonyms specified ?
-	jz	short _$P_KEYorSW_Not_Found ;AN000; then indicate not found by CY
+	;or	cx,cx			;AN000; No synonyms specified ?
+	;jz	short _$P_KEYorSW_Not_Found ;AN000; then indicate not found by CY
+	; 14/08/2023
+	jcxz	_$P_KEYorSW_Not_Found
 
 	;lea	bp,[es:bx+_$P_Control_Blk.KEYorSW] ;AN000; BP points to the 1st synonym
 	; 25/10/2022
@@ -23344,8 +23502,10 @@ _$P_Chk_SW_Err0: 			;AN000;
 
 _$P_Chk_SW_Exit: 			;AN000;
 	push	ax			;AN000;
-	mov	al,_$P_String		;AN000; set
-	mov	ah,_$P_No_Tag		;AN000;    result
+	;mov	al,_$P_String		;AN000;
+	;mov	ah,_$P_No_Tag		;AN000;
+	; 14/08/2023
+	mov	ax,(_$P_No_Tag<<8)|_$P_String
 	call	_$P_Fill_Result		;AN000; 	 buffer
 	pop	ax			;AN000;
 	clc				;AN000;
@@ -23505,8 +23665,10 @@ _$P_Check_Match_Flags:
 	push	dx			;AN000; (tm12)
 	push	di			;AN000; (tm12)
 	mov	word [cs:_$P_RC],_$P_Syntax ;AC034; (tm12)
-	mov	ah,_$P_No_Tag		;AN000; (tm12)
-	mov	al,_$P_String		;AN000; (tm12)
+	;mov	ah,_$P_No_Tag		;AN000; (tm12)
+	;mov	al,_$P_String		;AN000; (tm12)
+	; 14/08/2023
+	mov	ax,(_$P_No_Tag<<8)|_$P_String
 	call	_$P_Fill_Result		;AN000; (tm12)
 	pop	di			;AN000; (tm12)
 	pop	dx			;AN000; (tm12)
@@ -23528,7 +23690,9 @@ _$P_Bridge:
 ; 12/12/2022
 _$P_Mat:
 _$P_Match03:				;AN000;
-	test	ax,_$P_Num_Val		;AN000; Numeric value
+	;test	ax,_$P_Num_Val ; 8000h	;AN000; Numeric value
+	; 14/08/2023
+	test	ah,(_$P_Num_Val>>8) ; 80h
 	jz	short _$P_Match04	;AN000;
 
 	mov	word [cs:_$P_RC],_$P_No_Error ;AC034; assume no error
@@ -23536,7 +23700,9 @@ _$P_Match03:				;AN000;
 	cmp	word [cs:_$P_RC],_$P_Syntax ;AC034; if error, examine the next type
 	jne	short _$P_Match_Exit	;AN000;
 _$P_Match04:				;AN000;
-	test	ax,_$P_SNum_Val		;AN000; Signed numeric value
+	;test	ax,_$P_SNum_Val ; 4000h	;AN000; Signed numeric value
+	; 14/08/2023
+	test	ah,(_$P_SNum_Val>>8) ; 40h
 	jz	short _$P_Match05	;AN000;
 
 	mov	word [cs:_$P_RC],_$P_No_Error ;AC034; assume no error
@@ -23544,7 +23710,9 @@ _$P_Match04:				;AN000;
 	cmp	word [cs:_$P_RC],_$P_Syntax ;AC034; if error, examine the next type
 	jne	short _$P_Match_Exit	;AN000;
 _$P_Match05:				;AN000;
-	test	ax,_$P_Drv_Only		;AN000; Drive only
+	;test	ax,_$P_Drv_Only ; 100h	;AN000; Drive only
+	; 14/08/2023
+	test	ah,(_$P_Drv_Only>>8) ; 1
 	jz	short _$P_Match06	;AN000;
 
 	mov	word [cs:_$P_RC],_$P_No_Error ;AC034; assume no error
@@ -23553,7 +23721,9 @@ _$P_Match05:				;AN000;
 	cmp	word [cs:_$P_RC],_$P_Syntax ;AC034; if error, examine the next type
 	jne	short _$P_Match_Exit	;AN000;
 _$P_Match06:				;AN000;
-	test	ax,_$P_File_Spc		;AN000; File spec
+	;test	ax,_$P_File_Spc ; 200h	;AN000; File spec
+	; 14/08/2023
+	test	ah,(_$P_File_Spc>>8) ; 2
 	jz	short _$P_Match07	;AN000;
 
 	mov	word [cs:_$P_RC],_$P_No_Error ;AC034; assume no error
@@ -23561,7 +23731,9 @@ _$P_Match06:				;AN000;
 	cmp	word [cs:_$P_RC],_$P_Syntax ;AC034; if error, examine the next type
 	jne	short _$P_Match_Exit	;AN000;
 _$P_Match07:				;AN000;
-	test	ax,_$P_Simple_S		;AN000; Simple string
+	;test	ax,_$P_Simple_S	; 2000h	;AN000; Simple string
+	; 14/08/2023
+	test	ah,(_$P_Simple_S>>8) ; 20h
 	jz	short _$P_Match09	;AN000;
 
 	mov	word [cs:_$P_RC],_$P_No_Error ;AC034; assume no error
@@ -23687,7 +23859,9 @@ _$P_Do_CAPS_Char:
 	ja	short _$P_CAPS_Ret	;AN000;   if yes, make CAPS
 
 	and	al,_$P_Make_Upper ;0DFh ;AN000;   else do nothing.
-	jmp	short _$P_CAPS_Ret	;AN000;
+	;jmp	short _$P_CAPS_Ret	;AN000;
+	; 14/08/2023
+	retn
 
 _$P_DCC_Go:				;AN000;
 	push	bx			;AN000;
@@ -23712,11 +23886,15 @@ _$P_DCC00:				;AN000;
 					;(Note: this used to push CS.  BUG...
 	pop	es			;AN000;   ES reg, required for
 					;get extended country information
-	mov	ah,_$P_DOS_Get_TBL	;AN000; get extended CDI
-	mov	al,dl			;AN000; upper case table
-	mov	bx,_$P_DOSTBL_Def	;AN000; get active CON
-	mov	cx,_$P_DOSTBL_BL 	;AN000; buffer length
-	mov	dx,_$P_DOSTBL_Def	;AN000; get for default code page
+	;mov	al,dl ; function	;AN000; upper case table
+	; 14/08/2023
+	xchg	ax,dx
+	mov	ah,_$P_DOS_Get_TBL ; 65h ;AN000; get extended CDI
+	mov	bx,_$P_DOSTBL_Def ; -1	;AN000; get active CON
+	mov	cx,_$P_DOSTBL_BL ; 5	;AN000; buffer length
+	;mov	dx,_$P_DOSTBL_Def	;AN000; get for default code page
+	; 14/08/2023
+	mov	dx,bx ; 0FFFFh
 					;DI already set to point to buffer
 	int	21h			;AN000; es:di point to buffer that
 					;now has been filled in with info
@@ -23730,8 +23908,10 @@ _$P_DCC01:				;AN000;
 ; by the previous GET COUNTRY INFO DOS call.  This usage of ES is made
 ; regardless of which base reg is currently the cs reg.
 
-	mov	bx,[cs:di+_$P_DOS_TBL.Off] ;AN000; get offset of table
-	mov	es,[cs:di+_$P_DOS_TBL.Seg] ;AN000; get segment of table
+	; 14/08/2023
+	;mov	bx,[cs:di+_$P_DOS_TBL.Off] ;AN000; get offset of table
+	;mov	es,[cs:di+_$P_DOS_TBL.Seg] ;AN000; get segment of table
+	les	bx,[cs:di+_$P_DOS_TBL.Off]
 	inc	bx			;AC035; add '2' to
 	inc	bx			;AC035;  BX reg
 					;AN000; skip length field
@@ -23855,11 +24035,15 @@ _$P_Value01:				;AN000; / nval =0
 	mov	si,[es:bx+_$P_Control_Blk.Value_List] ;AN000; si points to value list
 	mov	al,[es:si]		;AN000; get nval
 	cmp	al,_$P_nval_None 	;AN000; no value list ?
-	jne	short _$P_Value02	;AN000;
+	;*jne	short _$P_Value02	;AN000;
+	;* 14/08/2023
+	je	short _$P_Value05
 
-	mov	al,_$P_Number		;AN000; Set type
-	mov	ah,_$P_No_Tag		;AN000; No ITEM_TAG set
-	jmp	short _$P_Value_Exit	;AN000;
+	;mov	al,_$P_Number		;AN000; Set type
+	;mov	ah,_$P_No_Tag		;AN000; No ITEM_TAG set
+	; 14/08/2023
+	;*mov	ax,(_$P_No_Tag<<8)|_$P_Number
+	;*jmp	short _$P_Value_Exit	;AN000;
 
 	; 26/10/2022 (MSDOS 5.0 IO.SYS, SYSINIT compatibility)
 	; (SYSINIT:1BA5h)
@@ -23913,9 +24097,10 @@ _$P_SVal_In:				;AN000;
 	jl	short _$P_Val_Found	;AN000;
 
 	cmp	dx,[es:si+_$P_Val_List.Val_YL]	;AN000; comp dx with YL
-	jg	short _$P_Val02_Next	;AN000;
-
-	jmp	short _$P_Val_Found	;AN000;
+	;jg	short _$P_Val02_Next	;AN000;
+	;jmp	short _$P_Val_Found	;AN000;
+	; 14/08/2023
+	jng	short _$P_Val_Found
 
 _$P_Val02_Next:				;AN000;
 	add	si,_$P_Len_Range 	;AN000;
@@ -23923,8 +24108,11 @@ _$P_Val02_Next:				;AN000;
 	jne	short _$P_Val02_Loop	;AN000;
 					; / Not found
 	mov	word [cs:_$P_RC],_$P_Out_Of_Range ;AC034;
-	mov	al,_$P_Number		;AN000;
-	mov	ah,_$P_No_Tag		;AN000; No ITEM_TAG set
+	;mov	al,_$P_Number		;AN000;
+	;mov	ah,_$P_No_Tag		;AN000; No ITEM_TAG set
+_$P_Value05:		;* 14/08/2023
+	; 14/08/2023
+	mov	ax,(_$P_No_Tag<<8)|_$P_Number
 	jmp	short _$P_Value_Exit	;AN000;
 
 _$P_Val_Found:				;AN000;
@@ -23967,8 +24155,10 @@ _$P_Value03:				;AN000; / nval = 2
 
 _$P_Value_Err:				;AN000;
 	mov	word [cs:_$P_RC],_$P_Syntax ;AC034;
-	mov	al,_$P_String		;AN000; Set type
-	mov	ah,_$P_No_Tag		;AN000; No ITEM_TAG set
+	;mov	al,_$P_String		;AN000; Set type
+	;mov	ah,_$P_No_Tag		;AN000; No ITEM_TAG set
+	; 14/08/2023
+	mov	ax,(_$P_No_Tag<<8)|_$P_String
 _$P_Value_Exit:				;AN000;
 	call	_$P_Fill_Result		;AN000;
 	pop	si			;AN000;
@@ -24009,7 +24199,9 @@ _$P_COVF:				;AN000;
 	retn				;AN000; CY=0 means no overflow
 
 _$P_COVF00:				;AN000;
+_$P_0099Err: ; 14/08/2023
 	stc				;AN000; and CY=1 means overflow
+_$P_0099Err2: ; 14/08/2023
 	retn				;AN000;
 
 ;***********************************************************************
@@ -24038,10 +24230,11 @@ _$P_0099:
 	;clc				;AN000; indicate no error
 	retn				;AN000;
 
-_$P_0099Err:				;AN000;
-	stc				;AN000; indicate error
-_$P_0099Err2: ; 12/12/2022	
-	retn				;AN000;
+	; 14/08/2023
+;_$P_0099Err:				;AN000;
+;	stc				;AN000; indicate error
+;_$P_0099Err2: ; 12/12/2022	
+;	retn				;AN000;
 
 ;***********************************************************************
 ; _$P_Simple_String
@@ -24377,14 +24570,18 @@ _$P_FileF_RLT:				;AN000;
 	pop	di			;AN000;
 _$P_FileF02:				;AN000;
 	pop	ax			;AN000; (tm14)
-	test	ax,_$P_File_Spc		;AN000; (tm14)
+	;test	ax,_$P_File_Spc	; 200h	;AN000; (tm14)
+	; 14/08/2023
+	test	ah,(_$P_File_Spc>>8) ; 2
 	jz	short _$P_Drv_Only_Exit	;AN000; (tm14)
 
 	push	ax			;AN000;  (tm14)
-
-	mov	ah,_$P_No_Tag		;AN000; set
-	mov	al,_$P_File_Spec 	;AN000;    result
-	call	_$P_Fill_Result		;AN000; 	 buffer to file spec
+	;mov	ah,_$P_No_Tag		;AN000; set
+	;mov	al,_$P_File_Spec 	;AN000; result
+	; 14/08/2023
+	mov	ax,(_$P_No_Tag<<8)|_$P_File_Spec ; 0FF05h
+					      ; set result
+	call	_$P_Fill_Result		;AN000; buffer to file spec
 	pop	ax			;AN000;
 
 _$P_Drv_Only_Exit:			;AN000; (tm14)
@@ -24474,9 +24671,12 @@ _$P_DrvF00:				;AN000;
 
 	sub	al,"a"-1                ;AN000; make text drive to binary drive
 	mov	dl,al			;AN000; set
-	mov	ah,_$P_No_Tag		;AN000;    result
-	mov	al,_$P_Drive		;AN000; 	 buffer
-	call	_$P_Fill_Result		;AN000; 	       to drive
+	;mov	ah,_$P_No_Tag		;AN000; result
+	;mov	al,_$P_Drive		;AN000; buffer
+	; 08/07/2023
+	mov	ax,(_$P_No_Tag<<8)|_$P_Drive ; 0FF06h
+					      ; set result buffer
+	call	_$P_Fill_Result		;AN000; to drive
 	jmp	short _$P_Drv_Exit	;AN000;
 
 _$P_Drv_Err:				;AN000;
@@ -24519,13 +24719,18 @@ _$P_Skip_Delim_Loop:			;AN000;
 	jz	short _$P_Skip_Delim_Loop ;AN000; if no, loop
 
 	test	byte [cs:_$P_Flags2],_$P_SW+_$P_equ ;AC034; /x , or xxx=zzz , (tm08)
-	jz	short _$P_Exit_At_Extra	;AN000; no switch, no keyword (tm08)
+	;jz	short _$P_Exit_At_Extra	;AN000; no switch, no keyword (tm08)
+	; 14/08/2023
+	; cf=0
+	jnz	short _$P_Skip_Delim_Exit
+	retn
 
 	;dec	si			;AN000; backup si for next call (tm08)
 	;jmp	short _$P_Exit_At_Extra	;AN000; else exit w/ CY off
 	; 12/12/2022
 	; cf=0
-	jmp	short _$P_Skip_Delim_Exit
+	; 14/08/2023
+	;jmp	short _$P_Skip_Delim_Exit
 
 _$P_Skip_Delim_CY:			;AN000;
 	stc				;AN000; indicate EOL
@@ -24535,8 +24740,9 @@ _$P_Skip_Delim_NCY:			;AN000;
 	clc				;AN000; indicate non delim
 _$P_Skip_Delim_Exit:			;AN000; in this case, need
 	dec	si			;AN000;  backup index pointer
+	; 14/08/2023
 	; 12/12/2022
-_$P_Exit_At_Extra:	 ; cf=0
+;_$P_Exit_At_Extra:	 ; cf=0
 	retn				;AN000;
 
 	; 12/12/2022
@@ -24577,21 +24783,25 @@ _$P_Chk_EOL:
 	mov	bl,[es:di+_$P_PARMS_Blk.Len_Extra_Delim]
 					;AN000; get length of delimiter list
 	add	bx,_$P_Len_PARMS 	;AN000; skip it
+	; 14/08/2023
+	xor	cx,cx ; *
 	cmp	byte [es:bx+di],_$P_I_Use_Default ;AN000; No extra EOL character ?
 	je	short _$P_Chk_EOL_NZ	;AN000;
-
-	;xor	cx,cx			;AN000; Get number of extra character
-	xor	ch,ch
-	mov	cl,[es:bx+di]		;AN000;
+	; 14/08/2023
+	;;xor	cx,cx			;AN000; Get number of extra character
+	;xor	ch,ch ; *
+	mov	cl,[es:bx+di]		;AN000; 
 _$P_Chk_EOL_Loop:			;AN000;
 	inc	bx			;AN000;
 	cmp	al,[es:bx+di]		;AN000; Check extra EOL character
 	je	short _$P_Chk_EOL_Exit 	;AN000;
-
 	loop	_$P_Chk_EOL_Loop 	;AN000;
-
+	; 14/08/2023
+	; cx=0
 _$P_Chk_EOL_NZ:				;AN000;
-	cmp	al,_$P_CR		;AN000; reset ZF
+	;cmp	al,_$P_CR		;AN000; reset ZF
+	; 14/08/2023
+	inc	cx  ; zf=0 (cx=1) ; *
 _$P_Chk_EOL_Exit:			;AN000;
 	pop	cx			;AN000;
 	pop	bx			;AN000;
@@ -24629,6 +24839,11 @@ _$P_Chk_Delim:
 	cmp	al,_$P_Comma		;AN000; Comma ?
 	je	short _$P_Chk_Delim_Exit0 ;AN000;
 
+; Note: _$P_Chk_Delim00 part of code is nonsense here
+;        because _$P_Space = _$P_DBSP1 = 20h
+;        Erdogan Tan - 14/08/2023
+;_$P_Chk_Delim00:
+%if 0
 	; 26/10/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
 _$P_Chk_Delim00: 			;AN000;
 	cmp	al,_$P_DBSP1	; 20h	;AN000; 1st byte of DBCS Space ?
@@ -24641,6 +24856,7 @@ _$P_Chk_Delim00: 			;AN000;
 	inc	si			;AN000; make si point to next character
 	cmp	al,al			;AN000; Set ZF
 	jmp	short _$P_Chk_Delim_Exit ;AN000;
+%endif
 
 _$P_Chk_Delim01: 			;AN000;
 	cmp	byte [es:di-_$P_PARMS_Blk.Num_Extra],_$P_I_Have_Delim 
@@ -24652,8 +24868,10 @@ _$P_Chk_Delim01: 			;AN000;
 	;mov	cl,[es:di+3]
 	mov	cl,[es:di+_$P_PARMS_Blk.Len_Extra_Delim] 
 					;AN000; get length of delimiter list
-	or	cx,cx			;AN000; No extra Delim character ?
-	jz	short _$P_Chk_Delim_NZ 	;AN000;
+	;or	cx,cx			;AN000; No extra Delim character ?
+	;jz	short _$P_Chk_Delim_NZ 	;AN000;
+	; 14/08/2023
+	jcxz	_$P_Chk_Delim_NZ
 
 	mov	bx,_$P_Len_PARMS-1 ; 3	;AN000; set bx to 1st extra delimiter
 _$P_Chk_Delim_Loop:			;AN000;
@@ -24664,7 +24882,10 @@ _$P_Chk_Delim_Loop:			;AN000;
 	loop	_$P_Chk_Delim_Loop	;AN000; examine all extra delimiter
 
 _$P_Chk_Delim_NZ:			;AN000;
-	cmp	al,_$P_Space		;AN000; reset ZF
+	;cmp	al,_$P_Space		;AN000; reset ZF
+	; 14/08/2023
+	; cx=0 here
+	inc	cx ; cx=1, zf=0
 _$P_Chk_Delim_Exit:			;AN000;
 _$P_ChkDfin:				;AN000;
 	pop	cx			;AN000;
@@ -24707,8 +24928,11 @@ _$P_No_Set_Extra:			;AN027;
 ;***********************************************************************
 
 _$P_Chk_Switch:
-	;lea	bp,[cs:_$P_STRING_BUF]	;AN020;AC034
-	lea	bp,[_$P_STRING_BUF]	; BP=OFFSET of _$P_String_Buf even in group addressing
+	;;lea	bp,[cs:_$P_STRING_BUF]	;AN020;AC034
+	;lea	bp,[_$P_STRING_BUF]	;BP=OFFSET of _$P_String_Buf even in group addressing
+	; 14/08/2023
+	mov	bp,_$P_STRING_BUF
+
 ;	.IF <BX NE BP> THEN		;AN020;IF not first char THEN
 	cmp	bx,bp			;AN000;
 	je	short _$P_STRUC_L2	;AN000;
@@ -24769,10 +24993,12 @@ _$P_Chk_DBCS:
 	push	ds			;AN000;
 	push	si			;AN000;
 	push	bx			;AN000; (tm11)
-	
-	cmp	word [cs:_$P_DBCSEV_SEG],0 ;AC034; ALREADY SET ?
-	jne	short _$P_DBCS00	;AN000;
-
+	;cmp	word [cs:_$P_DBCSEV_SEG],0 ;AC034; ALREADY SET ?
+	;jne	short _$P_DBCS00	;AN000;
+	; 14/08/2023
+	mov	si,[cs:_$P_DBCSEV_SEG]
+	and	si,si ; 0 ?
+	jnz	short _$P_DBCS00 ; already set
 	push	ax			;AN000;
 	push	ds			;AN000; (tm11)
 	push	cx			;AN000;
@@ -24780,9 +25006,10 @@ _$P_Chk_DBCS:
 	push	di			;AN000;
 	push	bp			;AN000;
 	push	es			;AN000;
-	xor	si,si			;AN000;
-	mov	ds,si			;AN000;
-	MOV	ax,_$P_DOS_GetEV ; 6300h ;AN000; GET DBCS EV CALL
+	; si = 0 ; 14/08/2023
+	;xor	si,si			;AN000;
+	mov	ds,si ; 0		;AN000;
+	mov	ax,_$P_DOS_GetEV ; 6300h ;AN000; GET DBCS EV CALL
 	int	21h			;AN000;
 		; DOS - 3.2+ only - GET DOUBLE BYTE CHARACTER SET LEAD TABLE
 	mov	bx,ds			;AN000; (tm11)
@@ -24795,33 +25022,28 @@ _$P_Chk_DBCS:
 	pop	ds			;AN000; (tm11)
 	pop	ax			;AN000;
 	jz	short _$P_NON_DBCS	;AN000;
-
 _$P_DBCS02:				;AN000;
 	mov	[cs:_$P_DBCSEV_OFF],si	;AC034; save EV offset
 	mov	[cs:_$P_DBCSEV_SEG],bx	;AC034; save EV segment (tm11)
 _$P_DBCS00:				;AN000;
-	mov	si,[cs:_$P_DBCSEV_OFF]	;AC034; load EV offset
-	mov	ds,[cs:_$P_DBCSEV_SEG]	;AC034; and segment
-
+	;mov	si,[cs:_$P_DBCSEV_OFF]	;AC034; load EV offset
+	;mov	ds,[cs:_$P_DBCSEV_SEG]	;AC034; and segment
+	; 14/08/2023
+	lds	si,[cs:_$P_DBCSEV_OFF]
 _$P_DBCS_LOOP:				;AN000;
 	cmp	word [si],0		;AN000; zero vector ?
 	je	short _$P_NON_DBCS	;AN000; then exit
-
 	cmp	al,[si] 		;AN000;
 	jb	short _$P_DBCS01	;AN000; Check if AL is in
-
 	cmp	al,[si+1]		;AN000;   range of
 	ja	short _$P_DBCS01	;AN000;      the vector
-
 	stc				;AN000; if yes, indicate DBCS and exit
 	jmp	short _$P_DBCS_EXIT	;AN000;
-
 _$P_DBCS01:				;AN000;
 	inc	si			;AC035; add '2' to
 	inc	si			;AC035;  SI reg
 					;AN000; get next vector
 	jmp	short _$P_DBCS_LOOP	;AN000; loop until zero vector found
-
 _$P_NON_DBCS:				;AN000;
 	; 12/12/2022
 	; cf=0
@@ -28864,7 +29086,9 @@ fm20:	mov	bx,[es:ARENA.SIZE]	; Grab this block's Size,
 	mov	[es:ARENA.SIGNATURE],al ; & move the SECOND sig here
 
 	add	bx,[es:ARENA.SIZE]	; Size += first MCB's size
-	add	bx,1			; And add one for the header
+	;add	bx,1			; And add one for the header
+	; 14/08/2023
+	inc	bx
 	mov	[es:ARENA.SIZE],bx	; Write the size
 
 	; ---------------------------------------------------------------------
@@ -29636,16 +29860,21 @@ AddrToUmb:
 	call	UmbHead		; AX = first segment
 	jc	short atuE	; If it couldn't get it, error out.
 
-	mov	es,ax		; ES = first UMB segment
-	xor	cx,cx		; Pretend we're on UMB 0 for now... (cx = UMB#)
+	; 14/08/2023
+	;mov	es,ax ; *	; ES = first UMB segment
+	xor	cx,cx ; 0	; Pretend we're on UMB 0 for now... (cx = UMB#)
 
+	; 22/07/2023
+atu10:
+	mov	es,ax ; * ; ** ; 14/08/2023
 ; ----------------------------------------
 ; ATU10--ES - Current MCB address
 ;        DX - Address given for conversion
 ;        CX - Current UMB #
 ; ----------------------------------------
 
-atu10:	mov	ax,es
+;atu10:	
+	;mov	ax,es ; * ; 14/08/2023
         cmp	ax,dx		; Present segment >= given segment?
 	jae	short atuX	; Yep--done.
 
@@ -29654,18 +29883,23 @@ atu10:	mov	ax,es
 
 	inc	cx		; If it _was_ a system MCB, we're in a new UMB.
 atu20:	
-	mov	al,[es:ARENA.SIGNATURE]
-	cmp	al,arena_signature_end  ; 'Z'
+	;mov	al,[es:ARENA.SIGNATURE]
+	;cmp	al,arena_signature_end  ; 'Z'
+	; 14/08/2023
+	; ax = es
+	;mov	ax,es ; **
+	add	ax,[es:ARENA.SIZE]
+	cmp	byte [es:ARENA.SIGNATURE],arena_signature_end
 	je	short atu30		; 'Z' means this was the last MCB... that's it.
 
-	;NextMCB es, ax
+	;NextMCB es,ax
 
-	mov     ax,es
-	;add	ax,[es:3]
-	add     ax,[es:ARENA.SIZE]
-	inc     ax
-	mov     es,ax
-	
+	;mov	ax,es ; **
+	;;add	ax,[es:3]
+	;add	ax,[es:ARENA.SIZE]
+	inc	ax
+	; 14/08/2023
+	;mov	es,ax ; *
 	jmp	short atu10
 
 ; -----------------------------------------------------------------------------
@@ -29674,15 +29908,17 @@ atu20:
 ; -----------------------------------------------------------------------------
 
 atu30:	
-	mov	ax,es
-	add	ax,[es:ARENA.SIZE]
+	; 14/08/2023
+	; ax = es + [es:ARENA.SIZE] 
+	;mov	ax,es ; **
+	;add	ax,[es:ARENA.SIZE] ; **
 	cmp	ax,dx		; Present >= given?
 	jae	short atuX	; Yep! It _was_ inside.
 atuE:	
-	xor	cx,cx		; Else, fall through with UMB # == -1
+	xor	cx,cx ; 0	; Else, fall through with UMB # == -1
 	dec	cx		; (that makes it return 0xFFFF and sets CF)
 atuX:	
-	mov	ax, cx		; Return the UMB number in AX
+	mov	ax,cx		; Return the UMB number in AX
 	
 	pop	es	
 	pop	dx
@@ -29705,9 +29941,13 @@ convUMB:
 	cmp	word [cs:gnradix],16
 	jne	short cu10	; If it didn't read in hex, it's not an address
 	call	AddrToUmb	; Else, convert the address to a UMB number
-	cmp	ax,0FFFFh
-	jne	short cu10
-	inc	ax		; If too high, ignore it (make it conventional)
+;cmp	ax,0FFFFh
+	;jne	short cu10
+	;inc	ax		; If too high, ignore it (make it conventional)
+	; 14/08/2023
+	inc	ax
+	jz	short cu10	; If too high, ignore it (make it conventional)
+	dec	ax
 cu10:	
 	retn
 
@@ -31310,7 +31550,10 @@ szdev1:
 	;
 	; 01/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
 	cmp     ax,[cs:DevSizeOption]
-	ja      short szdev2
+	;ja	short szdev2
+	; 14/08/2023
+	jnb	short szdev2
+
 	mov     ax,[cs:DevSizeOption]
 	; 12/12/2022
 	clc
@@ -31357,8 +31600,10 @@ ExecDev:
 	mov	bx,cs
 	mov	es,bx
 	mov	bx,DevExecAddr		;es:bx points to parameters
-	mov	al,3	; (load program only)
-	mov	ah,EXEC ; 4Bh
+	;mov	al,3	; (load program only)
+	;mov	ah,EXEC ; 4Bh
+	; 04/07/2023
+	mov	ax,(EXEC<<8)|03h
 	int	21h			;load in the device driver
  		; DOS - 2+ - LOAD OR EXECUTE (EXEC)
 		; DS:DX -> ASCIZ filename
@@ -31869,7 +32114,12 @@ umb_allocate:
 	;call	far [cs:DevXMSAddr]
 
 	cmp	ax,1			; Q: was the reqst successful
-	jne	short ua_err		; N: error
+	;jne	short ua_err		; N: error
+	; 14/08/2023
+	jna	short ua_done ; if ax=1 then cf=0, else cf=1 (ax=0)
+ua_err:
+	stc	
+
 	;clc
 	; 02/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
 	; 12/12/2022
@@ -31878,9 +32128,10 @@ umb_allocate:
 ua_done:
 	pop	ax
 	retn
-ua_err:
-	stc
-	jmp	short ua_done
+	; 14/08/2023
+;ua_err:
+	;stc
+	;jmp	short ua_done
 
 ;---------------------------------------------------------------------------
 ;
@@ -32366,10 +32617,14 @@ setparms:
 	;inc	bl			; get it correct for ioctl call
 					; (1=a,2=b...)
 	mov	dx,deviceparameters
-	mov	ah,IOCTL ; 44h
-	mov	al,GENERIC_IOCTL ; 0Dh
-	mov	ch,RAWIO ; 8
-	mov	cl,SET_DEVICE_PARAMETERS ; 40h
+	;mov	ah,IOCTL ; 44h
+	;mov	al,GENERIC_IOCTL ; 0Dh
+	; 14/08/2023
+	mov	ax,(IOCTL<<8)|GENERIC_IOCTL
+	;mov	ch,RAWIO ; 8
+	;mov	cl,SET_DEVICE_PARAMETERS ; 40h
+	; 14/08/2023
+	mov	cx,(RAWIO<<8)|SET_DEVICE_PARAMETERS 
 	int	21h
 
 ; 01/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
