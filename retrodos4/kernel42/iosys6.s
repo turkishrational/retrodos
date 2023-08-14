@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; IOSYS6.S (MSDOS 6.0 IO.SYS) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 25/06/2023 - Retro DOS v4.2 (Prev: 28/12/2022, Retro DOS v4.1)
+; Last Update: 05/08/2023 - Retro DOS v4.2 (Prev: 28/12/2022, Retro DOS v4.1)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -6592,9 +6592,14 @@ gotparm:
 		mov	ax, [di+1Bh]	; [di+BDS.totalsecs32]
 		mov	[di+8],	ch	; [di+BDS.secperclus]
 					; save sectors per cluster
+		
+		; 05/08/2023 - Retro DOS v4.2 IO:SYS (optimization)
+		mov	bl, [fbigfat]
+		mov	[di+1Fh], bl	; [di+BDS.fatsiz] ; fat	size flag
+		test	bl, 40h
 		; 17/10/2022
-		test	byte [fbigfat], 40h
-		;test	ds:fbigfat, 40h	; fbig
+		;test	byte [fbigfat], 40h
+		;;test	ds:fbigfat, 40h	; fbig
 					; if (fbigfat)
 		jnz	short dobig	; goto dobig; (16 bit fat)
 
@@ -6662,10 +6667,13 @@ dobig:
 
 ; now, set the default filesys_id, volume label, serial number
 
-		;mov	bl, ds:fbigfat
-		; 17/10/2022
-		mov	bl, [fbigfat]
-		mov	[di+1Fh], bl	; [di+BDS.fatsiz] ; fat	size flag
+		; 05/08/2023
+		; [di+1Fh] = [fbigfat]
+		;
+		;;mov	bl, ds:fbigfat
+		;; 17/10/2022
+		;mov	bl, [fbigfat]
+		;mov	[di+1Fh], bl	; [di+BDS.fatsiz] ; fat	size flag
 
 		push	ds
 		push	ds
@@ -6689,10 +6697,13 @@ dobig:
 ; are not going to change the bpb information from the boot record.
 
 massage_bpb:
-		; 12/12/2022
-		mov	bl, [fbigfat]
-		mov	[di+1Fh], bl	; [di+BDS.fatsiz]
-					; set size of fat on media
+		; 05/08/2023
+		; [di+1Fh] = [fbigfat]
+		;
+		;; 12/12/2022
+		;mov	bl, [fbigfat]
+		;mov	[di+1Fh], bl	; [di+BDS.fatsiz]
+		;			; set size of fat on media
 		;
 		mov	dx, [di+1Dh]	; [di+BDS.totalsecs32+2]
 		mov	ax, [di+1Bh]	; [di+BDS.totalsecs32]
@@ -14031,19 +14042,20 @@ next_bds:
 					; set next pointer to null
 		pop	ds
 
+; 01/07/2023 - Retro DOS v4.2 (MSDOS 6.22 IO.SYS - BIOSCODE:1785h)
 ; 16/10/2022 (MSDOS 6.0 Code)
-;
+
 ; **** If the new drive has a higher EOT value, we must alter the
 ;      'eot' variable appropriately.
-;
-;		; 01/06/2019
-;		;mov	al,[es:di+52]
-;		mov	al,[es:di+BDS.rsecpertrack]
-;
-;		cmp	al,[eot]
-;		jbe	short _eot_ok
-;		mov	[eot],al
 
+		; 01/06/2019
+		mov	al,[es:di+52]
+		; 22/07/2023
+		;mov	al,[es:di+BDS.rsecpertrack]
+		cmp	al,[eot]
+		jbe	short _eot_ok
+		mov	[eot],al
+_eot_ok:
 		retn
 
 ; ---------------------------------------------------------------------------
@@ -16701,27 +16713,28 @@ found02:
 	cmp	[es:bp],ax		; check for offset into table
 	jne	short foundbad02
 
-	;mov	ax,es			; point ss,sp to the new stack
-	;mov	es,bp
-	;mov	bp,sp
-	;mov	bp,[bp+6]
-	;mov	ss,ax
-	;mov	sp,es
-	;mov	es,ax
-	;mov	bp,[cs:bp]
+	; 02/07/2023 (MSDOS 6.21 SYSINIT code)
+	mov	ax,es			; point ss,sp to the new stack
+	mov	es,bp
+	mov	bp,sp
+	mov	bp,[bp+6]
+	mov	ss,ax
+	mov	sp,es
+	mov	es,ax
+	mov	bp,[cs:bp]
 
-	; 21/10/2022 (MSDOS 5.0 code SYSINIT code)
-	push    bp
-	mov     bp,sp
-	mov     ax,[bp+8]
-	pop     bp
-	push    es
-	pop     ss
-	mov     sp,bp
-	mov     bp,ax
+	; 21/10/2022 (MSDOS 5.0 SYSINIT code)
+	;push    bp
+	;mov     bp,sp
+	;mov     ax,[bp+8]
+	;pop     bp
+	;push    es
+	;pop     ss
+	;mov     sp,bp
+	;mov     bp,ax
 	; 11/12/2022
-	;mov	bp,[cs:bp+0]	
-	mov	bp,[cs:bp]	
+	;;mov	bp,[cs:bp+0]	
+	;mov	bp,[cs:bp]	
 
 	pushf				; go execute the real interrupt handler
 	; 11/12/2022
@@ -18300,13 +18313,13 @@ skip_free_sysinitbase:
 	; 12/12/2022
 	; ds = cs
 	cmp	byte [runhigh],0	
-	je	short _@@@@
+	je	short _@@@_ ; 04/07/2023
 
 	call	InstVDiskHeader	; Install VDISK header (allocates some mem from DOS)
 
 ; ----------------------------------------------------------------------------
 
-_@@@@:
+_@@@_:
 	; 12/12/2022
 	; ds = cs
 	; 22/10/2022
@@ -18617,8 +18630,11 @@ no_envdata:
 
 	;mov	ax,(EXEC<<8) + 0
 	; 23/10/2022
-	xor	ax,ax
-	mov	ah,4Bh        
+	;xor	ax,ax
+	;mov	ah,4Bh
+	; 04/07/2023
+	;mov	ax,4B00h
+	mov	ax,(EXEC<<8)
 
 	stc                     ; in case of int 24
         int     21h             ; go start up command
@@ -19734,6 +19750,7 @@ ClrdVDISKHead:	times 32 db 0		; db 32 dup (0)
 
 ClrVDISKHeader:	; proc	near
 
+;; 04/07/2023 - Retro DOS v4.2 IO.SYS (optimized)
 ;;-----------------------------------------------------------	      ;I070
 ;; The following workaround get around a problem with the	      ;I070
 ;; Tortugas and PS/2 30-286 BIOS when password server mode	      ;I070
@@ -21632,7 +21649,9 @@ buildloop:
 	; 11/12/2022
 	;mov	byte [es:bp+allocbyte],free	; mov [es:bp+0],0
 	; 25/10/2022
-	mov	byte [es:bp],free
+	;mov	byte [es:bp],free
+	; 06/07/2023
+	mov	[es:bp],al ; 0 ; free
 	mov	[es:bp+intlevel],al	; ax = 0
 	;mov	[es:bp+1],al
 	mov	[es:bp+savedsp],ax
@@ -21654,7 +21673,7 @@ buildloop:
 	push	ds
 	mov	ax,0F000h		;look at the model byte
 	mov	ds,ax
-	cmp	byte [0FFFEh],0F9h ; mdl_convert ;convertible?
+	cmp	byte [0FFFEh],0F9h ; mdl_convert ; convertible?
 	pop	ds
 	jne	short skip_disablenmis
 
@@ -23342,8 +23361,10 @@ _$P_SW_Manager:				;AN000;
 	add	bx,ax			;AN000; now bx points to maxs
 	mov	cl,[es:bx]		;AN000;
 	xor	ch,ch			;AN000; cx = maxs
-	or	cx,cx			;AN000; at least one switch ?
-	jz	short _$P_SW_Not_Found 	;AN000;
+	;or	cx,cx			;AN000; at least one switch ?
+	;jz	short _$P_SW_Not_Found 	;AN000;
+	; 07/07/2023
+	jcxz	_$P_SW_Not_Found	; no
 
 	inc	bx			;AN000; now bx points to 1st CONTROL address
 
@@ -23376,8 +23397,10 @@ _$P_Key_Manager: 			;AN000;
 	add	bx,ax			;AN000; now bx points to maxk
 	mov	cl,[es:bx]		;AN000;
 	xor	ch,ch			;AN000; cx = maxk
-	or	cx,cx			;AN000; at least one keyword ?
-	je	short _$P_Key_Not_Found	;AN000;
+	;or	cx,cx			;AN000; at least one keyword ?
+	;jz	short _$P_Key_Not_Found	;AN000;
+	; 07/07/2023
+	jcxz	_$P_Key_Not_Found	; no
 
 	inc	bx			;AN000; now bx points to 1st CONTROL
 
@@ -23447,8 +23470,10 @@ _$P_CPC00:				;AN000;
 
 _$P_CPC02:				;AN000;
 	push	ax			;AN000;
-	mov	al,_$P_String		;AN000; if it is optional return NULL
-	mov	ah,_$P_No_Tag		;AN000; no item tag indication
+	;mov	al,_$P_String		;AN000; if it is optional return NULL
+	;mov	ah,_$P_No_Tag		;AN000; no item tag indication
+	; 07/07/2023
+	mov	ax,(_$P_No_Tag<<8)|_$P_String
 	call	_$P_Fill_Result		;AN000;
 	pop	ax			;AN000;
 	jmp	short _$P_CPC_Exit	;AN000;
@@ -23499,8 +23524,10 @@ _$P_Search_KEYorSW:			;AN000;
 	push	cx			;AN000;
 	mov	cl,[es:bx+_$P_Control_Blk.nid] ;AN000; Get synonym count
 	xor	ch,ch			;AN000; and set it to cx
-	or	cx,cx			;AN000; No synonyms specified ?
-	jz	short _$P_KEYorSW_Not_Found ;AN000; then indicate not found by CY
+	;or	cx,cx			;AN000; No synonyms specified ?
+	;jz	short _$P_KEYorSW_Not_Found ;AN000; then indicate not found by CY
+	; 07/07/2023
+	jcxz	_$P_KEYorSW_Not_Found
 
 	;lea	bp,[es:bx+_$P_Control_Blk.KEYorSW] ;AN000; BP points to the 1st synonym
 	; 25/10/2022
@@ -23617,9 +23644,11 @@ _$P_Chk_SW_Err0: 			;AN000;
 
 _$P_Chk_SW_Exit: 			;AN000;
 	push	ax			;AN000;
-	mov	al,_$P_String		;AN000; set
-	mov	ah,_$P_No_Tag		;AN000;    result
-	call	_$P_Fill_Result		;AN000; 	 buffer
+	;mov	al,_$P_String		;AN000;
+	;mov	ah,_$P_No_Tag		;AN000;
+	; 07/07/2023
+	mov	ax,(_$P_No_Tag<<8)|_$P_String
+	call	_$P_Fill_Result		;AN000; set result buffer
 	pop	ax			;AN000;
 	clc				;AN000;
 _$P_Chk_SW_Single_Exit:			;AN000;
@@ -23778,8 +23807,10 @@ _$P_Check_Match_Flags:
 	push	dx			;AN000; (tm12)
 	push	di			;AN000; (tm12)
 	mov	word [cs:_$P_RC],_$P_Syntax ;AC034; (tm12)
-	mov	ah,_$P_No_Tag		;AN000; (tm12)
-	mov	al,_$P_String		;AN000; (tm12)
+	;mov	ah,_$P_No_Tag		;AN000; (tm12)
+	;mov	al,_$P_String		;AN000; (tm12)
+	; 07/07/2023
+	mov	ax,(_$P_No_Tag<<8)|_$P_String
 	call	_$P_Fill_Result		;AN000; (tm12)
 	pop	di			;AN000; (tm12)
 	pop	dx			;AN000; (tm12)
@@ -23801,7 +23832,9 @@ _$P_Bridge:
 ; 12/12/2022
 _$P_Mat:
 _$P_Match03:				;AN000;
-	test	ax,_$P_Num_Val		;AN000; Numeric value
+	;test	ax,_$P_Num_Val ; 8000h	;AN000; Numeric value
+	; 07/07/2023
+	test	ah,(_$P_Num_Val>>8) ; 80h
 	jz	short _$P_Match04	;AN000;
 
 	mov	word [cs:_$P_RC],_$P_No_Error ;AC034; assume no error
@@ -23809,7 +23842,9 @@ _$P_Match03:				;AN000;
 	cmp	word [cs:_$P_RC],_$P_Syntax ;AC034; if error, examine the next type
 	jne	short _$P_Match_Exit	;AN000;
 _$P_Match04:				;AN000;
-	test	ax,_$P_SNum_Val		;AN000; Signed numeric value
+	;test	ax,_$P_SNum_Val ; 4000h	;AN000; Signed numeric value
+	; 07/07/2023
+	test	ah,(_$P_SNum_Val>>8) ; 40h
 	jz	short _$P_Match05	;AN000;
 
 	mov	word [cs:_$P_RC],_$P_No_Error ;AC034; assume no error
@@ -23817,7 +23852,9 @@ _$P_Match04:				;AN000;
 	cmp	word [cs:_$P_RC],_$P_Syntax ;AC034; if error, examine the next type
 	jne	short _$P_Match_Exit	;AN000;
 _$P_Match05:				;AN000;
-	test	ax,_$P_Drv_Only		;AN000; Drive only
+	;test	ax,_$P_Drv_Only ; 100h	;AN000; Drive only
+	; 07/07/2023
+	test	ah,(_$P_Drv_Only>>8) ; 1
 	jz	short _$P_Match06	;AN000;
 
 	mov	word [cs:_$P_RC],_$P_No_Error ;AC034; assume no error
@@ -23826,7 +23863,9 @@ _$P_Match05:				;AN000;
 	cmp	word [cs:_$P_RC],_$P_Syntax ;AC034; if error, examine the next type
 	jne	short _$P_Match_Exit	;AN000;
 _$P_Match06:				;AN000;
-	test	ax,_$P_File_Spc		;AN000; File spec
+	;test	ax,_$P_File_Spc ; 200h	;AN000; File spec
+	; 07/07/2023
+	test	ah,(_$P_File_Spc>>8) ; 2
 	jz	short _$P_Match07	;AN000;
 
 	mov	word [cs:_$P_RC],_$P_No_Error ;AC034; assume no error
@@ -23834,7 +23873,9 @@ _$P_Match06:				;AN000;
 	cmp	word [cs:_$P_RC],_$P_Syntax ;AC034; if error, examine the next type
 	jne	short _$P_Match_Exit	;AN000;
 _$P_Match07:				;AN000;
-	test	ax,_$P_Simple_S		;AN000; Simple string
+	;test	ax,_$P_Simple_S	; 2000h	;AN000; Simple string
+	; 07/07/2023
+	test	ah,(_$P_Simple_S>>8) ; 20h
 	jz	short _$P_Match09	;AN000;
 
 	mov	word [cs:_$P_RC],_$P_No_Error ;AC034; assume no error
@@ -23960,7 +24001,9 @@ _$P_Do_CAPS_Char:
 	ja	short _$P_CAPS_Ret	;AN000;   if yes, make CAPS
 
 	and	al,_$P_Make_Upper ;0DFh ;AN000;   else do nothing.
-	jmp	short _$P_CAPS_Ret	;AN000;
+	;jmp	short _$P_CAPS_Ret	;AN000;
+	; 07/07/2023
+	retn
 
 _$P_DCC_Go:				;AN000;
 	push	bx			;AN000;
@@ -23985,11 +24028,15 @@ _$P_DCC00:				;AN000;
 					;(Note: this used to push CS.  BUG...
 	pop	es			;AN000;   ES reg, required for
 					;get extended country information
-	mov	ah,_$P_DOS_Get_TBL	;AN000; get extended CDI
-	mov	al,dl			;AN000; upper case table
-	mov	bx,_$P_DOSTBL_Def	;AN000; get active CON
-	mov	cx,_$P_DOSTBL_BL 	;AN000; buffer length
-	mov	dx,_$P_DOSTBL_Def	;AN000; get for default code page
+	;mov	al,dl ; function	;AN000; upper case table
+	; 07/07/2023
+	xchg	ax,dx
+	mov	ah,_$P_DOS_Get_TBL ; 65h ;AN000; get extended CDI
+	mov	bx,_$P_DOSTBL_Def ; -1	;AN000; get active CON
+	mov	cx,_$P_DOSTBL_BL ; 5	;AN000; buffer length
+	;mov	dx,_$P_DOSTBL_Def	;AN000; get for default code page
+	; 07/07/2023
+	mov	dx,bx ; 0FFFFh
 					;DI already set to point to buffer
 	int	21h			;AN000; es:di point to buffer that
 					;now has been filled in with info
@@ -24004,7 +24051,10 @@ _$P_DCC01:				;AN000;
 ; regardless of which base reg is currently the cs reg.
 
 	mov	bx,[cs:di+_$P_DOS_TBL.Off] ;AN000; get offset of table
-	mov	es,[cs:di+_$P_DOS_TBL.Seg] ;AN000; get segment of table
+	;mov	bx,[cs:di+_$P_DOS_TBL.Off] ;AN000; get offset of table
+	;mov	es,[cs:di+_$P_DOS_TBL.Seg] ;AN000; get segment of table
+	; 07/07/2023
+	les	bx,[cs:di+_$P_DOS_TBL.Off]
 	inc	bx			;AC035; add '2' to
 	inc	bx			;AC035;  BX reg
 					;AN000; skip length field
@@ -24040,10 +24090,13 @@ _$P_CAPS_Ret:				;AN000;
 	; 26/10/2022 - Retro DOS v4.0
 	; (MSDOS 5.0 IO.SYS - SYSINIT:1B0Bh)
 
+	; 07/07/2023 - Retro DOS v4.2 IO.SYS (optimization)
+	; (MSDOS 6.21 IO.SYS - SYSINIT:1C46h)  	
 _$P_SValue:				;AN000; when signed value here
 	push	ax			;AN000;
 	or	byte [cs:_$P_Flags2],_$P_Signed ;AC034; indicate a signed numeric
 	and	byte [cs:_$P_Flags2],0FFh-_$P_Neg ;AC034; assume positive value
+	;and	byte [cs:_$P_Flags2],~_$P_Neg ; 07/07/2023 
 	mov	al,[cs:si]		;AN000; get sign
 	cmp	al,_$P_Plus		;AN000; "+" ?
 	je	short _$P_SVal00	;AN000;
@@ -24060,6 +24113,9 @@ _$P_Sval01:				;AN000;
 	retn
 
 ;***********************************************************************
+
+	; 07/07/2023 - Retro DOS v4.2 IO.SYS (optimization)
+	; (MSDOS 6.21 IO.SYS - SYSINIT:1C6Ah)
 
 	; 26/10/2022
 _$P_Value:				;AN000;
@@ -24080,6 +24136,11 @@ _$P_Value_Loop:				;AN000;
 
 	xor	ah,ah			;AN000;
 	mov	bp,ax			;AN000; save binary number
+
+; 08/07/2023 - Retro DOS v4.2 IO.SYS (optimization)
+; Ref: Disassembled PCDOS 7.1 IBMBIO.COM SYSINIT code
+;				Erdogan Tan - July 2023 
+%if 0
 	shl	dx,1			;AN000; to have 2*x
 	rcl	cx,1			;AN000; shift left w/ carry
 	call	_$P_Check_OVF		;AN000; Overflow occurred ?
@@ -24109,7 +24170,46 @@ _$P_Value_Loop:				;AN000;
 
 	inc	si			;AN000; update pointer
 	jmp	short _$P_Value_Loop	;AN000; loop until NULL encountered
-;
+;_$P_Value_Err0:
+%endif
+;****
+%if 1
+; 08/07/2023 - Retro DOS v4.2 IO.SYS (optimization)
+	; (PCDOS 7.1 IBMBIO.COM - SYSINIT:2130h)
+
+	xor	ah,ah
+	mov	bp,ax			; save binary number
+	call	_$P_Value_2x_OVF 	; multiply cx:dx by 2 and then check overflow
+	mov	bx,dx			; ax:bx = 2*(cx:dx)
+	mov	ax,cx
+	call	_$P_Value_2x_OVF 	; multiply cx:dx by 2 and then check overflow
+	call	_$P_Value_2x_OVF 	; multiply cx:dx by 2 and then check overflow
+	add	dx,bx			; 8*(cx:dx)+2*(cx:dx) = 10*(cx:dx)
+	adc	cx,ax
+	call	_$P_Value_Chk_Add_OVF
+	add	dx,bp			; Add the current one degree decimal
+					; if carry, add 1 to high 16bit
+	adc	cx,0
+	call	_$P_Value_Chk_Add_OVF	; Overflow occurred ?
+					; then error, exit (without return here)
+	inc	si			; update pointer
+	jmp	short _$P_Value_Loop
+
+_$P_Value_2x_OVF:
+	shl	dx,1 			; to have 2*x
+	rcl	cx,1			; shift left w/ carry
+_$P_Value_Chk_Add_OVF:
+	call	_$P_Check_OVF		; check overflow (for the last shift or add)
+	jc	short _$P_Value_OVF
+	retn
+_$P_Value_OVF:
+	inc	sp 			; skip "call" return address to the caller
+	inc	sp
+
+;_$P_Value_Err0:	
+%endif
+;****
+
 _$P_Value_Err0:				;AN000;
 	pop	bx			;AN000;
 	jmp	_$P_Value_Err		;AN000; Bridge
@@ -24124,15 +24224,19 @@ _$P_Value00:				;AN000;
 	add	dx,1			;AN000; |
 	adc	cx,0			;AN000; +
 
-_$P_Value01:				;AN000; / nval =0
+_$P_Value01:				;AN000; / nval = 0
 	mov	si,[es:bx+_$P_Control_Blk.Value_List] ;AN000; si points to value list
 	mov	al,[es:si]		;AN000; get nval
 	cmp	al,_$P_nval_None 	;AN000; no value list ?
-	jne	short _$P_Value02	;AN000;
+	;*jne	short _$P_Value02	;AN000;
+	;* 07/07/2023
+	je	short _$P_Value05
 
-	mov	al,_$P_Number		;AN000; Set type
-	mov	ah,_$P_No_Tag		;AN000; No ITEM_TAG set
-	jmp	short _$P_Value_Exit	;AN000;
+	;mov	al,_$P_Number		;AN000; Set type
+	;mov	ah,_$P_No_Tag		;AN000; No ITEM_TAG set
+	; 07/07/2023
+	;*mov	ax,(_$P_No_Tag<<8)|_$P_Number
+	;*jmp	short _$P_Value_Exit	;AN000;
 
 	; 26/10/2022 (MSDOS 5.0 IO.SYS, SYSINIT compatibility)
 	; (SYSINIT:1BA5h)
@@ -24186,9 +24290,10 @@ _$P_SVal_In:				;AN000;
 	jl	short _$P_Val_Found	;AN000;
 
 	cmp	dx,[es:si+_$P_Val_List.Val_YL]	;AN000; comp dx with YL
-	jg	short _$P_Val02_Next	;AN000;
-
-	jmp	short _$P_Val_Found	;AN000;
+	;jg	short _$P_Val02_Next	;AN000;
+	;jmp	short _$P_Val_Found	;AN000;
+	; 07/07/2023
+	jng	short _$P_Val_Found
 
 _$P_Val02_Next:				;AN000;
 	add	si,_$P_Len_Range 	;AN000;
@@ -24196,8 +24301,11 @@ _$P_Val02_Next:				;AN000;
 	jne	short _$P_Val02_Loop	;AN000;
 					; / Not found
 	mov	word [cs:_$P_RC],_$P_Out_Of_Range ;AC034;
-	mov	al,_$P_Number		;AN000;
-	mov	ah,_$P_No_Tag		;AN000; No ITEM_TAG set
+	;mov	al,_$P_Number		;AN000;
+	;mov	ah,_$P_No_Tag		;AN000; No ITEM_TAG set
+_$P_Value05:		;* 07/07/2023
+	; 07/07/2023
+	mov	ax,(_$P_No_Tag<<8)|_$P_Number
 	jmp	short _$P_Value_Exit	;AN000;
 
 _$P_Val_Found:				;AN000;
@@ -24240,8 +24348,10 @@ _$P_Value03:				;AN000; / nval = 2
 
 _$P_Value_Err:				;AN000;
 	mov	word [cs:_$P_RC],_$P_Syntax ;AC034;
-	mov	al,_$P_String		;AN000; Set type
-	mov	ah,_$P_No_Tag		;AN000; No ITEM_TAG set
+	;mov	al,_$P_String		;AN000; Set type
+	;mov	ah,_$P_No_Tag		;AN000; No ITEM_TAG set
+	; 07/07/2023
+	;mov	ax,(_$P_No_Tag<<8)|_$P_String
 _$P_Value_Exit:				;AN000;
 	call	_$P_Fill_Result		;AN000;
 	pop	si			;AN000;
@@ -24296,6 +24406,8 @@ _$P_COVF00:				;AN000;
 ;	     CY = 0 : AL contains binary value
 ;***********************************************************************
 
+; 08/07/2023 - Retro DOS v4.2 IO.SYS (optimization)
+%if 0
 _$P_0099:
 	cmp	al,"0"                  ;AN000;
 	;jb	short _$P_0099Err	;AN000; must be 0 =< al =< 9
@@ -24315,6 +24427,21 @@ _$P_0099Err:				;AN000;
 	stc				;AN000; indicate error
 _$P_0099Err2: ; 12/12/2022	
 	retn				;AN000;
+%endif
+
+; 08/07/2023 - Retro DOS v4.2 IO.SYS (optimization)
+%if 1
+_$P_0099:
+	cmp	al,"0"                  ; cmp al,30h
+	jb	short _$P_0099Err	; must be 0 =< al =< 9
+	cmp	al,"9"+1                ; cmp al,3Ah  
+	cmc				; cf=0 -> cf=1
+	jb	short _$P_0099Err
+	sub	al,"0"	; sub al,30h 	; make char -> bin
+	; cf=0
+_$P_0099Err:	; cf=1
+	retn
+%endif	
 
 ;***********************************************************************
 ; _$P_Simple_String
@@ -24650,14 +24777,18 @@ _$P_FileF_RLT:				;AN000;
 	pop	di			;AN000;
 _$P_FileF02:				;AN000;
 	pop	ax			;AN000; (tm14)
-	test	ax,_$P_File_Spc		;AN000; (tm14)
+	;test	ax,_$P_File_Spc	; 200h	;AN000; (tm14)
+	; 08/07/2023
+	test	ah,(_$P_File_Spc>>8) ; 2
 	jz	short _$P_Drv_Only_Exit	;AN000; (tm14)
 
-	push	ax			;AN000;  (tm14)
-
-	mov	ah,_$P_No_Tag		;AN000; set
-	mov	al,_$P_File_Spec 	;AN000;    result
-	call	_$P_Fill_Result		;AN000; 	 buffer to file spec
+	push	ax			;AN000; (tm14)
+	;mov	ah,_$P_No_Tag		;AN000; set
+	;mov	al,_$P_File_Spec 	;AN000; result
+	; 08/07/2023
+	mov	ax,(_$P_No_Tag<<8)|_$P_File_Spec ; 0FF05h
+					      ; set result
+	call	_$P_Fill_Result		;AN000; buffer to file spec
 	pop	ax			;AN000;
 
 _$P_Drv_Only_Exit:			;AN000; (tm14)
@@ -24742,14 +24873,17 @@ _$P_DrvF00:				;AN000;
 	cmp	al,"a"                  ;AN000; drive letter must
 	jb	short _$P_Drv_Err	;AN000; in range of
 
-	cmp	al,"z"                  ;AN000; "a" - "z"
+	cmp	al,"z"                  ;AN000; "a"-"z"
 	ja	short _$P_Drv_Err	;AN000; if no, error
 
 	sub	al,"a"-1                ;AN000; make text drive to binary drive
 	mov	dl,al			;AN000; set
-	mov	ah,_$P_No_Tag		;AN000;    result
-	mov	al,_$P_Drive		;AN000; 	 buffer
-	call	_$P_Fill_Result		;AN000; 	       to drive
+	;mov	ah,_$P_No_Tag		;AN000; result
+	;mov	al,_$P_Drive		;AN000; buffer
+	; 08/07/2023
+	mov	ax,(_$P_No_Tag<<8)|_$P_Drive ; 0FF06h
+					      ; set result buffer
+	call	_$P_Fill_Result		;AN000; to drive
 	jmp	short _$P_Drv_Exit	;AN000;
 
 _$P_Drv_Err:				;AN000;
@@ -24792,13 +24926,18 @@ _$P_Skip_Delim_Loop:			;AN000;
 	jz	short _$P_Skip_Delim_Loop ;AN000; if no, loop
 
 	test	byte [cs:_$P_Flags2],_$P_SW+_$P_equ ;AC034; /x , or xxx=zzz , (tm08)
-	jz	short _$P_Exit_At_Extra	;AN000; no switch, no keyword (tm08)
+	;jz	short _$P_Exit_At_Extra	;AN000; no switch, no keyword (tm08)
+	; 08/07/2023
+	; cf=0
+	jnz	short _$P_Skip_Delim_Exit
+	retn
 
 	;dec	si			;AN000; backup si for next call (tm08)
 	;jmp	short _$P_Exit_At_Extra	;AN000; else exit w/ CY off
 	; 12/12/2022
 	; cf=0
-	jmp	short _$P_Skip_Delim_Exit
+	; 08/07/2023
+	;jmp	short _$P_Skip_Delim_Exit
 
 _$P_Skip_Delim_CY:			;AN000;
 	stc				;AN000; indicate EOL
@@ -24808,8 +24947,9 @@ _$P_Skip_Delim_NCY:			;AN000;
 	clc				;AN000; indicate non delim
 _$P_Skip_Delim_Exit:			;AN000; in this case, need
 	dec	si			;AN000;  backup index pointer
+	; 08/07/2023
 	; 12/12/2022
-_$P_Exit_At_Extra:	 ; cf=0
+;_$P_Exit_At_Extra:	 ; cf=0
 	retn				;AN000;
 
 	; 12/12/2022
@@ -24833,38 +24973,38 @@ _$P_Chk_EOL:
 	push	cx			;AN000;
 	cmp	al,_$P_CR		;AN000; Carriage return ?
 	je	short _$P_Chk_EOL_Exit 	;AN000;
-
 	cmp	al,_$P_NULL		;AN000; zero ?
 	je	short _$P_Chk_EOL_Exit 	;AN000;
-
 ;IF LFEOLSW				;AN028; IF LF TO BE ACCEPTED AS EOL
 	cmp	al,_$P_LF		;AN000; Line feed ?
 	je	short _$P_Chk_EOL_Exit 	;AN000;
 ;ENDIF					;AN028;
-
 	cmp	byte [es:di+_$P_PARMS_Blk.Num_Extra],_$P_I_Have_EOL 
 					;AN000; EOL character specified ?
 	jb	short _$P_Chk_EOL_Exit 	;AN000;
-
 	xor	bx,bx			;AN000;
 	mov	bl,[es:di+_$P_PARMS_Blk.Len_Extra_Delim]
 					;AN000; get length of delimiter list
 	add	bx,_$P_Len_PARMS 	;AN000; skip it
+	; 08/07/2023
+	xor	cx,cx ; *
 	cmp	byte [es:bx+di],_$P_I_Use_Default ;AN000; No extra EOL character ?
 	je	short _$P_Chk_EOL_NZ	;AN000;
-
-	;xor	cx,cx			;AN000; Get number of extra character
-	xor	ch,ch
-	mov	cl,[es:bx+di]		;AN000;
+	; 08/07/2023
+	;;xor	cx,cx			;AN000; Get number of extra character
+	;xor	ch,ch ; *
+	mov	cl,[es:bx+di]		;AN000; 
 _$P_Chk_EOL_Loop:			;AN000;
 	inc	bx			;AN000;
 	cmp	al,[es:bx+di]		;AN000; Check extra EOL character
 	je	short _$P_Chk_EOL_Exit 	;AN000;
-
 	loop	_$P_Chk_EOL_Loop 	;AN000;
-
+	; 08/07/2023
+	; cx=0
 _$P_Chk_EOL_NZ:				;AN000;
-	cmp	al,_$P_CR		;AN000; reset ZF
+	;cmp	al,_$P_CR		;AN000; reset ZF
+	; 08/07/2023
+	inc	cx  ; zf=0  (cx=1) ; *
 _$P_Chk_EOL_Exit:			;AN000;
 	pop	cx			;AN000;
 	pop	bx			;AN000;
@@ -24886,6 +25026,10 @@ _$P_Chk_EOL_Exit:			;AN000;
 ; Vars:  _$P_Terminator(W), _$P_Flags(W)
 ;***********************************************************************
 
+	; 08/07/2023 - Retro DOS v4.2 IO.SYS (optimization)
+	; MSDOS 6.21 IO.SYS - SYSINIT:1FAEh
+	; (PCDOS 7.1 IBMBIO.COM - SYSINIT:2451h) ; (Retro DOS v5.0)
+
 _$P_Chk_Delim:
 	push	bx			;AN000;
 	push	cx			;AN000;
@@ -24902,6 +25046,13 @@ _$P_Chk_Delim:
 	cmp	al,_$P_Comma		;AN000; Comma ?
 	je	short _$P_Chk_Delim_Exit0 ;AN000;
 
+; Note: _$P_Chk_Delim00 part of code is nonsense here
+;        because _$P_Space = _$P_DBSP1 = 20h
+;        Erdogan Tan - 08/07/2023 - Retro DOS v4.2 IO.SYS (optimization)
+;_$P_Chk_Delim00:
+	; (PCDOS 7.1 IBMBIO.COM - SYSINIT:246Bh)
+	; (MSDOS 6.21 IO.SYS - SYSINIT:1FC8h)
+%if 0
 	; 26/10/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
 _$P_Chk_Delim00: 			;AN000;
 	cmp	al,_$P_DBSP1	; 20h	;AN000; 1st byte of DBCS Space ?
@@ -24914,6 +25065,7 @@ _$P_Chk_Delim00: 			;AN000;
 	inc	si			;AN000; make si point to next character
 	cmp	al,al			;AN000; Set ZF
 	jmp	short _$P_Chk_Delim_Exit ;AN000;
+%endif
 
 _$P_Chk_Delim01: 			;AN000;
 	cmp	byte [es:di-_$P_PARMS_Blk.Num_Extra],_$P_I_Have_Delim 
@@ -24925,8 +25077,10 @@ _$P_Chk_Delim01: 			;AN000;
 	;mov	cl,[es:di+3]
 	mov	cl,[es:di+_$P_PARMS_Blk.Len_Extra_Delim] 
 					;AN000; get length of delimiter list
-	or	cx,cx			;AN000; No extra Delim character ?
-	jz	short _$P_Chk_Delim_NZ 	;AN000;
+	;or	cx,cx			;AN000; No extra Delim character ?
+	;jz	short _$P_Chk_Delim_NZ 	;AN000;
+	; 08/07/2023
+	jcxz	_$P_Chk_Delim_NZ
 
 	mov	bx,_$P_Len_PARMS-1 ; 3	;AN000; set bx to 1st extra delimiter
 _$P_Chk_Delim_Loop:			;AN000;
@@ -24937,7 +25091,10 @@ _$P_Chk_Delim_Loop:			;AN000;
 	loop	_$P_Chk_Delim_Loop	;AN000; examine all extra delimiter
 
 _$P_Chk_Delim_NZ:			;AN000;
-	cmp	al,_$P_Space		;AN000; reset ZF
+	;cmp	al,_$P_Space		;AN000; reset ZF
+	; 08/07/2023
+	; cx=0 here
+	inc	cx ; cx=1, zf=0
 _$P_Chk_Delim_Exit:			;AN000;
 _$P_ChkDfin:				;AN000;
 	pop	cx			;AN000;
@@ -24954,7 +25111,6 @@ _$P_Chk_Delim_Exit0:			;AN000;
 _$P_No_Set_Extra:			;AN027;
 	cmp	al,al			;AN000; set ZF
 	jmp	short _$P_Chk_Delim_Exit ;AN000;
-
 
 ;***********************************************************************
 ; _$P_Chk_Switch;
@@ -24980,8 +25136,11 @@ _$P_No_Set_Extra:			;AN027;
 ;***********************************************************************
 
 _$P_Chk_Switch:
-	;lea	bp,[cs:_$P_STRING_BUF]	;AN020;AC034
-	lea	bp,[_$P_STRING_BUF]	;BP=OFFSET of _$P_String_Buf even in group addressing
+	;;lea	bp,[cs:_$P_STRING_BUF]	;AN020;AC034
+	;lea	bp,[_$P_STRING_BUF]	;BP=OFFSET of _$P_String_Buf even in group addressing
+	; 08/07/2023
+	mov	bp,_$P_STRING_BUF
+
 ;	.IF <BX NE BP> THEN		;AN020;IF not first char THEN
 	cmp	bx,bp			;AN000;
 	je	short _$P_STRUC_L2	;AN000;
@@ -25042,10 +25201,12 @@ _$P_Chk_DBCS:
 	push	ds			;AN000;
 	push	si			;AN000;
 	push	bx			;AN000; (tm11)
-	
-	cmp	word [cs:_$P_DBCSEV_SEG],0 ;AC034; ALREADY SET ?
-	jne	short _$P_DBCS00	;AN000;
-
+	;cmp	word [cs:_$P_DBCSEV_SEG],0 ;AC034; ALREADY SET ?
+	;jne	short _$P_DBCS00	;AN000;
+	; 08/07/2023
+	mov	si,[cs:_$P_DBCSEV_SEG]
+	and	si,si ; 0 ?
+	jnz	short _$P_DBCS00 ; already set
 	push	ax			;AN000;
 	push	ds			;AN000; (tm11)
 	push	cx			;AN000;
@@ -25053,9 +25214,10 @@ _$P_Chk_DBCS:
 	push	di			;AN000;
 	push	bp			;AN000;
 	push	es			;AN000;
-	xor	si,si			;AN000;
-	mov	ds,si			;AN000;
-	MOV	ax,_$P_DOS_GetEV ; 6300h ;AN000; GET DBCS EV CALL
+	; si = 0 ; 08/07/2023
+	;xor	si,si			;AN000;
+	mov	ds,si ; 0		;AN000;
+	mov	ax,_$P_DOS_GetEV ; 6300h ;AN000; GET DBCS EV CALL
 	int	21h			;AN000;
 		; DOS - 3.2+ only - GET DOUBLE BYTE CHARACTER SET LEAD TABLE
 	mov	bx,ds			;AN000; (tm11)
@@ -25068,33 +25230,28 @@ _$P_Chk_DBCS:
 	pop	ds			;AN000; (tm11)
 	pop	ax			;AN000;
 	jz	short _$P_NON_DBCS	;AN000;
-
 _$P_DBCS02:				;AN000;
 	mov	[cs:_$P_DBCSEV_OFF],si	;AC034; save EV offset
 	mov	[cs:_$P_DBCSEV_SEG],bx	;AC034; save EV segment (tm11)
 _$P_DBCS00:				;AN000;
-	mov	si,[cs:_$P_DBCSEV_OFF]	;AC034; load EV offset
-	mov	ds,[cs:_$P_DBCSEV_SEG]	;AC034; and segment
-
+	;mov	si,[cs:_$P_DBCSEV_OFF]	;AC034; load EV offset
+	;mov	ds,[cs:_$P_DBCSEV_SEG]	;AC034; and segment
+	; 08/07/2023
+	lds	si,[cs:_$P_DBCSEV_OFF]
 _$P_DBCS_LOOP:				;AN000;
 	cmp	word [si],0		;AN000; zero vector ?
 	je	short _$P_NON_DBCS	;AN000; then exit
-
 	cmp	al,[si] 		;AN000;
 	jb	short _$P_DBCS01	;AN000; Check if AL is in
-
 	cmp	al,[si+1]		;AN000;   range of
 	ja	short _$P_DBCS01	;AN000;      the vector
-
 	stc				;AN000; if yes, indicate DBCS and exit
 	jmp	short _$P_DBCS_EXIT	;AN000;
-
 _$P_DBCS01:				;AN000;
 	inc	si			;AC035; add '2' to
 	inc	si			;AC035;  SI reg
 					;AN000; get next vector
 	jmp	short _$P_DBCS_LOOP	;AN000; loop until zero vector found
-
 _$P_NON_DBCS:				;AN000;
 	; 12/12/2022
 	; cf=0
@@ -25149,6 +25306,10 @@ endstruc
 
 	; 26/10/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
 	; (SYSINIT:1F48h)
+
+	; 08/07/2023 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
+	; MSDOS 6.21 IO.SYS - SYSINIT:2083h
+	; (PCDOS 7.1 IBMBIO.COM - SYSINIT:251Dh) ; (Retro DOS v5.0)
 
 ; buffer = [n | n,m] {/e}
 
@@ -25548,9 +25709,10 @@ swit_parms:
 
 swit_parmsx:
 	dw	0		; no positionals
-	;db	5               ; # of switches
+	; 08/07/2023 - Retro DOS v4.2 (MSDOS 6.21 IO.SYS, SYSINIT)
+	db	5               ; # of switches
 	; 27/10/2022 - Retro DOS v4.0 (MSDOS 5.0 IO.SYS, SYSINIT)
-	db	3
+	;db	3
 	dw	swit_k_ctrl	; /k control
 	; 01/01/2023 - Retro DOS v4.2 ; *
 	dw	swit_n_ctrl ; * ; /n control (for MULTI_CONFIG only)
@@ -26734,6 +26896,9 @@ tryu_4:
 ; (SYSINIT:2642h)
 ; 28/10/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
 ;%if 0
+; 10/07/2023 - Retro DOS v4.2 IO.SYS (optimized)
+; MSDOS 6.21 IO.SYS - SYSINIT:2642h
+%if 1
 	; 01/01/2023
 	; ds = cs
 	call	UmbTest			; See if UMBs are around...
@@ -26747,9 +26912,8 @@ tryu_4:
 	;jmp	short LoadDevice
 	; 01/01/2023
 	jc	short LoadDevice ; bl = 0
-
+%endif
 ;%endif
-
 ;------------------------------------------------------------------------------
 ; END PATCH TO CHECK FOR NON-EXISTANT UMBs   -- t-richj 7-21-92
 ;------------------------------------------------------------------------------
@@ -26868,8 +27032,11 @@ LoadDevice2:
 ;%if 0
 	mov	byte [ConvLoad],1	; Doesn't matter if DeviceHi==0
 
-	mov	al,[DeviceHi]		; If not using upper memory,
+	; 22/07/2023
+	;mov	al,[DeviceHi]		; If not using upper memory,
 	or	byte [DeviceHi],0	; Skip all this and go on to
+	; 10/07/2023
+	;or	al,al
 	jz	short DevConvLoad	; the actual load.
 
 	;call	GetLoadUMB		; Returns first UMB spec'ed in AX
@@ -27171,7 +27338,10 @@ badnumblock2:	; 31/12/2022 (ds=cs)
 erase_dev_do:				; modified to show message "error in config.sys..."
 	
 	;call	CheckDoubleSpace ; MSDOS 6.21 IO.SYS SYSINIT:27BBh
-	
+				; (Note: 'call CheckDoubleSpace'
+				; has been removed at 'erase_dev_do:' pos
+				; in PCDOS 7.1 IBMBIO.COM - SYSINIT:2CBAh)
+				; Erdogan Tan - 10/07/2023
 	pop	si ; ++
 	pop	es ; + ; 31/12/2022
 
@@ -27402,7 +27572,9 @@ coffj3:
 	
 	; 31/12/2022 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
 	; (SYSINIT:2919h)
-	;call	CheckProtmanArena
+	; 11/07/2023
+	call	CheckProtmanArena
+	
 	; 02/11/2022 (MSDOS 5.0 IO.SYS compatibility)
 	;;call	CheckProtmanArena	; adjust alloclim if Protman$ just
 ;					;  created a bogus arena to try
@@ -28300,8 +28472,11 @@ storeshell:
 endofshell:
      	mov     byte [di],0		; zero-terminate the filename (or
 					; the command-line as the case may be)
-	call	getchr
-skipline:
+	; 11/07/2023 - Retro DOS v4.2 IO.SYS (optimization)
+	; MSDOS 6.21 IO.SYS - SYSINIT:2C33h
+	; PCDOS 7.1 IBMBIO.COM - SYSINIT:314Eh
+	;call	getchr
+skipline:		; MSDOS 6.21 IO.SYS - SYSINIT:2C33h
 	cmp     al,lf	; 0Ah		; the safest way to eat the rest of
 	je	short endofline		; the line: watch for ever-present LF
 	call	getchr
@@ -28713,27 +28888,29 @@ tryz:
 ; 31/12/2022 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
 ; (SYSINIT:2D5Dh)
 
+; 11/07/2023 - Retro DOS v4.2 IO.SYS (optimization)
+
 ; 30/10/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
 ;
+;***	CheckProtmanArena -- special hack for adjusting alloclim with Protman$
 ;
-;;***	CheckProtmanArena -- special hack for adjusting alloclim with Protman$
-;;
-;;	adjusts alloclim if Protman$ reduced our arena through a manual hack.
+;	adjusts alloclim if Protman$ reduced our arena through a manual hack.
 ;
-;CheckProtmanArena:
-;	push	es
-;	mov	ax,[cs:area]	; get our arena header
-;	dec	ax
-;	mov	es,ax
-;	add	ax,[es:3]	; find end of arena
-;	inc	ax
-;	cmp	ax,[cs:ALLOCLIM] ; is it less than alloclim?
-;	ja	short CheckProtmanDone
-;
-;	mov	[cs:ALLOCLIM],ax ; reduce alloclim then
-;CheckProtmanDone:
-;	pop	es
-;	retn
+CheckProtmanArena:
+	push	es
+	mov	ax,[cs:area]	; get our arena header
+	dec	ax
+	mov	es,ax
+	;add	ax,[es:ARENA.SIZE]
+	add	ax,[es:3]	; find end of arena
+	inc	ax
+	cmp	ax,[cs:ALLOCLIM] ; is it less than alloclim?
+	ja	short CheckProtmanDone
+
+	mov	[cs:ALLOCLIM],ax ; reduce alloclim then
+CheckProtmanDone:
+	pop	es
+	retn
 
 ;------------------------------------------------------------------------------
 
@@ -29424,7 +29601,9 @@ fm20:	mov	bx,[es:ARENA.SIZE]	; Grab this block's Size,
 	mov	[es:ARENA.SIGNATURE],al ; & move the SECOND sig here
 
 	add	bx,[es:ARENA.SIZE]	; Size += first MCB's size
-	add	bx,1			; And add one for the header
+	;add	bx,1			; And add one for the header
+	; 11/07/2023
+	inc	bx
 	mov	[es:ARENA.SIZE],bx	; Write the size
 
 	; ---------------------------------------------------------------------
@@ -30270,16 +30449,21 @@ AddrToUmb:
 	call	UmbHead		; AX = first segment
 	jc	short atuE	; If it couldn't get it, error out.
 
-	mov	es,ax		; ES = first UMB segment
-	xor	cx,cx		; Pretend we're on UMB 0 for now... (cx = UMB#)
+	; 22/07/2023
+	;mov	es,ax ; *	; ES = first UMB segment
+	xor	cx,cx ; 0	; Pretend we're on UMB 0 for now... (cx = UMB#)
 
+	; 22/07/2023
+atu10:
+	mov	es,ax ; * ; ** ; 22/07/2023
 ; ----------------------------------------
 ; ATU10--ES - Current MCB address
 ;        DX - Address given for conversion
 ;        CX - Current UMB #
 ; ----------------------------------------
 
-atu10:	mov	ax,es
+;atu10:	
+	;mov	ax,es ; * ; 18/07/2023
         cmp	ax,dx		; Present segment >= given segment?
 	jae	short atuX	; Yep--done.
 
@@ -30288,18 +30472,23 @@ atu10:	mov	ax,es
 
 	inc	cx		; If it _was_ a system MCB, we're in a new UMB.
 atu20:	
-	mov	al,[es:ARENA.SIGNATURE]
-	cmp	al,arena_signature_end  ; 'Z'
+	;mov	al,[es:ARENA.SIGNATURE]
+	;cmp	al,arena_signature_end  ; 'Z'
+	; 22/07/2023
+	; ax = es
+	;mov	ax,es ; **
+	add	ax,[es:ARENA.SIZE]
+	cmp	byte [es:ARENA.SIGNATURE],arena_signature_end
 	je	short atu30		; 'Z' means this was the last MCB... that's it.
 
-	;NextMCB es, ax
+	;NextMCB es,ax
 
-	mov     ax,es
-	;add	ax,[es:3]
-	add     ax,[es:ARENA.SIZE]
-	inc     ax
-	mov     es,ax
-	
+	;mov	ax,es ; **
+	;;add	ax,[es:3]
+	;add	ax,[es:ARENA.SIZE]
+	inc	ax
+	; 22/07/2023
+	;mov	es,ax ; *
 	jmp	short atu10
 
 ; -----------------------------------------------------------------------------
@@ -30308,12 +30497,14 @@ atu20:
 ; -----------------------------------------------------------------------------
 
 atu30:	
-	mov	ax,es
-	add	ax,[es:ARENA.SIZE]
+	; 22/07/2023
+	; ax = es + [es:ARENA.SIZE] 
+	;mov	ax,es ; **
+	;add	ax,[es:ARENA.SIZE] ; **
 	cmp	ax,dx		; Present >= given?
 	jae	short atuX	; Yep! It _was_ inside.
 atuE:	
-	xor	cx,cx		; Else, fall through with UMB # == -1
+	xor	cx,cx ; 0	; Else, fall through with UMB # == -1
 	dec	cx		; (that makes it return 0xFFFF and sets CF)
 atuX:	
 	mov	ax,cx		; Return the UMB number in AX
@@ -30375,6 +30566,10 @@ cu10:
 ;
 ;%endif
 
+; 18/07/2023 - Retro DOS v4.2 IO.SYS (optimization)
+; loadLow subroutine is not used anywhere of IO.SYS 6.22 (& 5.0)
+%if 0
+
 ; -----------------------------------------------------------------------------
 ;*** loadLow - returns AL==0 if UMB0 == 0, else AL==1
 ; -----------------------------------------------------------------------------
@@ -30385,7 +30580,7 @@ cu10:
 ; USES:   Flags, fm_strat, fm_umb
 ; -----------------------------------------------------------------------------
 ; We want to set the memory strategy to LOW_FIRST if the user specified a
-; load UMB, and it is 0.  That 0 can be either from the user having _specified_
+; load UMB, and it is 0. That 0 can be either from the user having _specified_
 ; zero (/L:0;...), or from having specified a too-big min size (/L:1,99999999)
 ; such that the load UMB is too small, and shouldn't be used.
 ; -----------------------------------------------------------------------------
@@ -30418,6 +30613,8 @@ ll10:
 ;llX:
 	;pop	ds		; Return DS to where it was
 	;retn
+
+%endif
 
 ; -----------------------------------------------------------------------------
 ;*** HideUMBs - links UMBs and hides upper-memory as appropriate
@@ -30666,6 +30863,7 @@ sls10:
 ; USES:     Flags
 ; -----------------------------------------------------------------------------
 
+
 	; 01/01/2023 - Retro DOS v4.2
 hideUMB:
 	; 02/01/2023
@@ -30690,8 +30888,10 @@ hu10:	call	isSysMCB	; Returns with ZF set if owner is SYSTEM
 
 	call	hideMCB
 hu20:	
-	mov	al,[es:ARENA.SIGNATURE]
-	cmp	al,arena_signature_end  ;'Z'
+	;mov	al,[es:ARENA.SIGNATURE]
+	;cmp	al,arena_signature_end  ;'Z'
+	; 19/07/2023
+	cmp	byte [es:ARENA.SIGNATURE],'Z'
 	jz	short huX	; 'Z' means this was the last MCB... that's it.
 
 	;NextMCB es,ax		; Go on forward.
@@ -30825,16 +31025,20 @@ findUMB:
 	mov	dx,ax		; Store the to-be-found UMB number in DX
 
 	call	UmbHead		; Returns first UMB segment in AX
-	mov	es,ax
+	; 22/07/2023
+	;mov	es,ax ; *
 	xor	cx,cx		; Pretend we're on UMB 0 for now...
 
+	; 22/07/2023
+fu10:
+	mov	es,ax ; * ; **
 ; ---------------------------------------------
 ; FU10--CX - This UMB number; 0 == conventional
 ;       DX - The UMB number they're looking for
 ;       ES - The current MCB address
 ; ---------------------------------------------
 
-fu10:	
+;fu10:	
 	cmp	cx,dx		; If CX==DX, we've found the UMB we're
 	je	short fuX	; searching for--so exit.
 
@@ -30843,17 +31047,21 @@ fu10:
 
 	inc	cx		; If it _was_ SYSTEM, we're in a new UMB.
 fu20:	
-	mov	al,[es:ARENA.SIGNATURE]
-	cmp	al,arena_signature_end ; 'Z'
+	;mov	al,[es:ARENA.SIGNATURE]
+	;cmp	al,arena_signature_end ; 'Z'
+	; 19/07/2023
+	cmp	byte [es:ARENA.SIGNATURE],arena_signature_end 
 	je	short fuE	; 'Z' means this was the last MCB... that's it.
 
 	;NextMCB es,ax		; Go on forward.
-	mov     ax,es
+	; 22/07/2023
+	; ax = es
+	;mov	ax,es ; * ; 22/07/2023
 	;add	ax,[es:3]
-	add     ax,[es:ARENA.SIZE]
-	inc     ax
-	mov     es,ax
-
+	add	ax,[es:ARENA.SIZE]
+	inc	ax
+	; 22/07/2023
+	;mov	es,ax ; **
 	jmp	short fu10
 fuE:	
 	stc
@@ -30903,17 +31111,23 @@ bf10:
 	mov	ax,[es:ARENA.SIZE]
 	;cmp	cx,[es:ARENA.SIZE]	; Compare sizes...
 	cmp	cx,ax
-	jg	short bf20		; Unless we're bigger,
+	;jg	short bf20		; Unless we're bigger,
+	; 19/07/2023
+	jge	short bf20
 
 	mov	bx,es			; Store this new element's address,
 	;mov	cx,[es:ARENA.SIZE]	; and its size.
 	mov	cx,ax
 
-bf20:	mov	al,[es:ARENA.SIGNATURE]
-	cmp	al,arena_signature_end	; 'Z'
+bf20:	
+	;mov	al,[es:ARENA.SIGNATURE]
+	;cmp	al,arena_signature_end	; 'Z'
+	; 19/07/2023
+	;cmp	byte [es:0],'Z'
+	cmp	byte [es:ARENA.SIGNATURE],arena_signature_end
 	jz	short bf30		; 'Z' means this was the last MCB.
 
-	;NextMCB es,ax		; Go on forward.
+	;NextMCB es,ax			; Go on forward.
 	mov     ax,es
 	;add	ax,[es:3]
 	add     ax,[es:ARENA.SIZE]
@@ -31173,7 +31387,6 @@ hu_X:
 ; -----------------------------------------------------------------------------
 
 	; 03/01/2023 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
-
 UnFreeze:
 	; 03/01/2023
 	;push	ax
@@ -31182,28 +31395,34 @@ UnFreeze:
 	call	UmbHead		; Returns with carry if err, else ES == MCB
 	jc	short ufX
 
-	mov	es,ax
+	; 22/07/2023
+uf10:
+	mov	es,ax ; *
 
 ; ------------------------------
 ; UF10--ES - Current MCB address
 ; ------------------------------
 
-uf10:	call	isFrozMCB	; Returns with ZF set if MCB is FROZEN
+;uf10:	
+	call	isFrozMCB	; Returns with ZF set if MCB is FROZEN
 	jnz	short uf20
 	call	unHideMCB
 uf20:	
-	mov	al,[es:ARENA.SIGNATURE]
-
-	cmp	al,arena_signature_end ; 'Z'
-	jz	short ufX	; 'Z' means this was the last MCB... that's it.
+	;mov	al,[es:ARENA.SIGNATURE]
+	;cmp	al,arena_signature_end ; 'Z'
+	; 22/07/2023
+	cmp	byte [es:ARENA.SIGNATURE],arena_signature_end ; 'Z'
+	jz	short ufX	; 'Z' means this was the last MCB.. that's it.
 
 	;NextMCB es,ax		; Go on forward.
-	mov     ax,es
+	; 22/07/2023
+	; ax = es
+	;mov	ax,es ; *
 	;add	ax,[es:3]
-	add     ax,[es:ARENA.SIZE]
-	inc     ax
-	mov     es,ax
-
+	add	ax,[es:ARENA.SIZE]
+	inc	ax
+	; 22/07/2023
+	;mov	es,ax
 	jmp	short uf10
 ufX:	
 	pop	es
@@ -31291,8 +31510,13 @@ FreezeUM:
 	mov	dx,ax		; Store the load UMB in DX, so we can skip it
 
 	call	UmbHead		; Returns first UMB segment in AX
-	mov	es,ax
+	; 22/07/2023
+	;mov	es,ax ; *
 	xor	cx,cx		; Pretend we're on UMB 0 for now...
+
+	; 22/07/2023
+fum10:
+	mov	es,ax ; *
 
 ; -----------------------------------------
 ; FUM10--ES - Current MCB address
@@ -31300,7 +31524,8 @@ FreezeUM:
 ;        DX - UMB number to skip (load UMB)
 ; -----------------------------------------
 
-fum10:	call	isSysMCB	; Returns with ZF set if owner is SYSTEM
+;fum10:	
+	call	isSysMCB	; Returns with ZF set if owner is SYSTEM
 	jnz	short fum20
 
 	inc	cx		; If it _was_ SYSTEM, we're in a new UMB.
@@ -31314,17 +31539,21 @@ fum20:
 
 	call	frezMCB
 fum30:	
-	mov	al,[es:ARENA.SIGNATURE]
-	cmp	al,arena_signature_end ; 'Z'
-	je	short fumX	; 'Z' means this was the last MCB... that's it.
+	;mov	al,[es:ARENA.SIGNATURE]
+	;cmp	al,arena_signature_end ; 'Z'
+	; 22/07/2023
+	cmp	byte [es:ARENA.SIGNATURE],arena_signature_end ; 'Z'
+	je	short fumX	; 'Z' means this was the last MCB.. that's it.
 
 	;NextMCB es, ax		; Go on forward.
-	mov     ax,es
+	; 22/07/2023
+	; ax = es
+	;mov	ax,es
 	;add	ax,[es:3]
-	add     ax,[es:ARENA.SIZE]
-	inc     ax
-	mov     es,ax
-	
+	add	ax,[es:ARENA.SIZE]
+	inc	ax
+	; 22/07/2023
+	;mov	es,ax ; *
 	jmp	short fum10
 
 fumX:	pop	es
@@ -31389,29 +31618,42 @@ WalkMem:
 	int	21h
 
 	mov	ax,[es:bx-2]
-	mov	es,ax
+	; 22/07/2023
+um10:
+	mov	es,ax ; * ; **
 
 ; ------------------------------
 ; UM10: ES = Current MCB pointer
 ; ------------------------------
 
-um10:	mov	al,[es:ARENA.SIGNATURE]
-	cmp	al,arena_signature_end ; 'Z'
+;um10:
+	;mov	al,[es:ARENA.SIGNATURE]
+	;cmp	al,arena_signature_end ; 'Z'
+	; 22/07/2023
+	cmp	byte [es:ARENA.SIGNATURE],arena_signature_end ; 'Z'
 	je	short um20		; If signature == 'Z', hay no more.
 
 	;NextMCB es,bx			; Move to the next MCB
 
-	mov     bx,es
-	;add	bx,[es:3]
-	add     bx,[es:ARENA.SIZE]
-	inc     bx
-	mov     es,bx
-		
+	;mov	bx,es
+	;;add	bx,[es:3]
+	;add	bx,[es:ARENA.SIZE]
+	;inc	bx
+	;mov	es,bx
+	; 22/07/2023
+	; ax = es
+	;mov	ax,es ; *
+	add	ax,[es:ARENA.SIZE]
+	inc	ax
+	;mov	es,ax ; **
+	
 	jmp	short um10		; And restart the loop.
 um20:	
-	mov	ax,es
+	; 22/07/2023
+	; ax = es
+	;mov	ax,es
 
-	cmp	ax,9FFFh		; This sets CF iff ax < 9FFF.
+	cmp	ax,9FFFh		; This sets CF if ax < 9FFF.
 
 	;pop	es ; ?
 	;;pop	ds ; ? ; 01/01/2023 (MSDOS 6.21 IO.SYS, SYSINIT:353Dh)
@@ -31584,23 +31826,27 @@ FreeUMBs:
 
 	call	HeadUmb		; Returns with carry if err, else ES == MCB
 	jc	short fusX
-
+fus10:
 	mov	es,ax		; Prepare for the loop; ES = current MCB addr.
-fus10:	
+;fus10:	
 	call	isHideMCB	; Returns with ZF set if owner is 0
 	jnz	short fus20
 	call	freeMCB
 fus20:	   
-	mov	al,[es:ARENA.SIGNATURE]
-	cmp	al,arena_signature_end ; 'Z'
+	;mov	al,[es:ARENA.SIGNATURE]
+	;cmp	al,arena_signature_end ; 'Z'
+	; 22/07/2023
+	cmp	byte [es:ARENA.SIGNATURE],arena_signature_end ; 'Z'
 	jz	short fusX	; That means this was the last MCB--that's it.
-
-	mov	ax,es
+	
+	; 22/07/2023
+	; ax = es
+	;mov	ax,es
 	add	ax,[es:ARENA.SIZE]
 	inc	ax
-	mov	es,ax		; Go on forward.
-
-	jmp	short fus10
+	; 22/07/2023
+	;mov	es,ax
+	jmp	short fus10	; Go on forward.
 fusX:	
 	pop	es
 	pop	ax
@@ -31790,10 +32036,10 @@ InitDevLoad:
 	pushf
 	call	UnFreeze		; Then unhide everything frozen
 	popf
-
-	jc	short InitForLo		; (if carry, it's loading low)
-
-	jmp	short InitForHi
+	;jc	short InitForLo		; (if carry, it's loading low)
+	;jmp	short InitForHi
+	; 06/07/2023 - Retro DOS v4.2 IO.SYS (optimization)
+	jmp	short idl0
 
 ;%endif ; 01/11/2022
 
@@ -31807,6 +32053,7 @@ InitForConv:
 	jnc	short InitForHi		; yes, we have
 	call	ShrinkUMB		; shrink the current UMB in use
 	call	GetUMBForDev		; else try to allocate new UMB
+idl0: ; 06/07/2023
 	jc	short InitForLo		; we didn't succeed, so load
 					;  in low memory
 InitForHi:
@@ -32105,26 +32352,35 @@ SizeDevice:
 	jc	short sd_close		; did seek fail (impossible)
 	add	ax,15			; para convert
 	adc	dx,0
-	test	dx,0FFF0h		; size > 0ffff paras ?
-	jz	short szdev1		; no
+	test	dx,0FFF0h		; size > 0ffffh paras ?
+	;jz	short szdev1		; no
+	; 22/07/2023
+	jz	short sd_ctp
 	mov	word [cs:DevSize],0FFFFh ; invalid device size
 					; assuming that we fail later
 	jmp	short sd_close
-szdev1:
+sd_ctp:	
+	; 22/07/2023
+;szdev1:
 	mov	cl,4			; convert it to paras
 	shr	ax,cl
 	mov	cl,12
 	shl	dx,cl
-	or	ax,dx
+	or	ax,dx ; * ; cf=0
 	;
+	; 22/07/2023 - Retro DOS v4.2 IO.SYS (optimized)
+	; MSDOS 6.22 IO:SYS - SYSINIT:37A6h 
 	; 01/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
-	cmp     ax,[cs:DevSizeOption]
-	ja      short szdev2
-	mov     ax,[cs:DevSizeOption]
+	;cmp	ax,[cs:DevSizeOption]
+	;ja	short szdev2
+	;mov	ax,[cs:DevSizeOption]
 	; 12/12/2022
-	clc
-szdev2:
-	mov	[cs:DevSize],ax		; save file size
+	;clc
+;szdev2:
+	mov	[cs:DevSize],ax		; save file size (in paragraps)
+	; 22/07/2023
+	;clc ; cf=0 ; *	; CLC is not needed here
+			; (OR instruction clears CF) - E.TAN 22/07/2023
 
 	; 01/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
 	; 12/12/2022
@@ -32161,14 +32417,16 @@ ExecDev:
 	mov	bx,[cs:DevLoadAddr]
 	mov	[cs:DevExecAddr],bx	; Load the parameter block
 					;  block for exec with
-					;  Load address
+					;  load address
 	mov	[cs:DevExecReloc],bx
 	mov	bx,cs
 	mov	es,bx
-	mov	bx,DevExecAddr		;es:bx points to parameters
-	mov	al,3	; (load program only)
-	mov	ah,EXEC ; 4Bh
-	int	21h			;load in the device driver
+	mov	bx,DevExecAddr		; es:bx points to parameters
+	;mov	al,3	; (load program only)
+	;mov	ah,EXEC ; 4Bh
+	; 04/07/2023
+	mov	ax,(EXEC<<8)|03h
+	int	21h			; load in the device driver
  		; DOS - 2+ - LOAD OR EXECUTE (EXEC)
 		; DS:DX -> ASCIZ filename
 		; ES:BX -> parameter block
@@ -32404,7 +32662,9 @@ ParseSize:
 	jne	short ps_no_size
 	mov	al,[es:si+4]
 	call	delim
-	jne	short ps_no_size
+	;jne	short ps_no_size
+	; 22/07/2023
+	jne	short ps_no_size_2 ; cf=0 here
 	add	si,5
 	call	GetHexNum
 	jc	short ps_err
@@ -32413,6 +32673,11 @@ ParseSize:
 	;mov	[cs:DevSizeOption],ax
 	mov	[DevSizeOption],ax
 	call	SkipDelim
+	; 22/07/2023
+ps_no_size_2:
+	; cf = 0
+	retn
+
 	; 02/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
 	;mov	bx,si
 ps_no_size:	
@@ -32434,8 +32699,9 @@ sd_ret:		; cf=?
 	;stc
 	; 11/12/2022
 ;sd_ret: 
+	; 22/07/2023
 	; 12/04/2019
-	retn
+	;retn
 
 ; 12/04/2019 - Retro DOS v4.0
 
@@ -32478,7 +32744,7 @@ sd_next_char:
 
 ; 13/05/2019
 
-	; 036/01/2023 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
+	; 03/01/2023 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
 	; (SYSINIT:38C5h)
 
 	; 01/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
@@ -32693,7 +32959,12 @@ umb_allocate:
 	;call	far [cs:DevXMSAddr]
 
 	cmp	ax,1			; Q: was the reqst successful
-	jne	short ua_err		; N: error
+	;jne	short ua_err		; N: error
+	; 27/07/2023 - Retro DOS v4.2 IO.SYS (optimization)
+	jna	short ua_done ; if ax=1 then cf=0, else cf=1 (ax=0)
+ua_err:
+	stc	
+
 	;clc
 	; 02/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
 	; 12/12/2022
@@ -32702,9 +32973,10 @@ umb_allocate:
 ua_done:
 	pop	ax
 	retn
-ua_err:
-	stc
-	jmp	short ua_done
+	; 27/07/2023
+;ua_err:
+	;stc
+	;jmp	short ua_done
 
 ;---------------------------------------------------------------------------
 ;
@@ -33192,53 +33464,78 @@ setparms:
 	;inc	bl			; get it correct for ioctl call
 					; (1=a,2=b...)
 	mov	dx,deviceparameters
-	mov	ah,IOCTL ; 44h
-	mov	al,GENERIC_IOCTL ; 0Dh
-	mov	ch,RAWIO ; 8
-	mov	cl,SET_DEVICE_PARAMETERS ; 40h
+	;mov	ah,IOCTL ; 44h
+	;mov	al,GENERIC_IOCTL ; 0Dh
+	; 04/07/2023
+	mov	ax,(IOCTL<<8)|GENERIC_IOCTL
+	;mov	ch,RAWIO ; 8
+	;mov	cl,SET_DEVICE_PARAMETERS ; 40h
+	; 04/07/2023
+	mov	cx,(RAWIO<<8)|SET_DEVICE_PARAMETERS 
 	int	21h
 
-; 01/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
+; 27/07/2023 - Retro DOS v4.2 IO.SYS (optimization)
+	mov	ah,[switches]
+	;mov	al,[deviceparameters+20]
+	mov	al,[deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.BPB_SECTORSPERTRACK]
+	mov	cl,[drive]
 ;
+;; 01/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
 ;	;;mov	ax,Bios_Data		; get Bios_Data segment
 ;	;mov	ax,KERNEL_SEGMENT ; 70h
 ;	; 21/10/2022
-;	mov	ax,DOSBIODATASEG ; 0070h	
-;	mov	ds,ax			; set Bios_Data segment
+;	;mov	ax,DOSBIODATASEG ; 0070h	
+;	;mov	ds,ax			; set Bios_Data segment
 ;
-;	test	word [cs:switches],flagec35 ; 4
-;	jz	short not_ec35
-
-	; 01/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
-	;test	word [switches],flagec35 ; 4
-	; 12/12/2022
-	test	byte [switches],flagec35 ; 4
-	jz	short eot_ok
-
+;	; 27/07/2023
+;	;;test	word [cs:switches],flagec35 ; 4
+;	;test	byte [cs:switches],flagec35
+;	;jz	short not_ec35
+;
+;	; 27/07/2023
+;	; 01/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
+;	;;test	word [switches],flagec35 ; 4
+;	; 12/12/2022
+;	;test	byte [switches],flagec35 ; 4
+;	;jz	short eot_ok
+;	
 	;mov	cl,[cs:drive]		; which drive was this for?
 	; 02/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
-	mov	cl,[drive]
-	mov	ax,DOSBIODATASEG ; 0070h	
-	mov	ds,ax	
+	;mov	cl,[drive]
+	; 27/07/2023
+	;mov	ax,DOSBIODATASEG ; 0070h	
+	;mov	ds,ax
 
-	mov	al,1			; assume drive 0
-	shl	al,cl			; set proper bit depending on drive
-	;or	[531h],al ; (MSDOS 6.21 IO.SYS Offset SYINIT:3EACh)
-	or	[ec35_flag],al		; set the bit in the permanent flags
+	mov	dx,DOSBIODATASEG
+	mov	ds,dx
 
+	test	ah,flagec35	; test byte [cs:switches],flagec35
+	jz	short not_ec35
+
+	;mov	al,1			; assume drive 0
+	;shl	al,cl			; set proper bit depending on drive
+	;;or	[531h],al ; (MSDOS 6.21 IO.SYS Offset SYINIT:3EACh)
+	;or	[ec35_flag],al		; set the bit in the permanent flags
+	; 27/07/2023
+	mov	ah,1
+	shl	ah,cl
+	or	[ec35_flag],ah
+
+; 07/07/2023 - Retro DOS v4.2 IO.SYS (optimization)
+;	MSDOS 6.21 IO.SYS - SYINIT:3EB0h	
 ; 01/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
-;
-;not_ec35:
-;;	Now adjust the BIOS's EOT variable if our new drive has more
-;;	sectors per track than any old ones.
-;
-;	;mov	al,[cs:deviceparameters+20]
-;	mov	al,[cs:deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.BPB_SECTORSPERTRACK]
-;	;cmp	al,[12Ch] ; (MSDOS 6.21 IO.SYS Offset SYINIT:3EB4h)
-;	cmp	al,[EOT]
-;	jbe	short eot_ok
-;	mov	[EOT],al
+not_ec35:
+;	Now adjust the BIOS's EOT variable if our new drive has more
+;	sectors per track than any old ones.
 
+	; 27/07/2023
+	;;mov	al,[cs:deviceparameters+20]
+	;mov	al,[cs:deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.BPB_SECTORSPERTRACK]
+	
+	;cmp	al,[12Ch] ; (MSDOS 6.21 IO.SYS Offset SYINIT:3EB4h)
+	cmp	al,[eot]
+	jbe	short eot_ok
+	mov	[eot],al
 eot_ok:
 	pop	dx			; fix up all the registers
 	pop	cx
@@ -33894,12 +34191,22 @@ findcom:
 	cmp	byte [es:di],CONFIG_SEMICOLON  ; ';'
 	je	short semicolon
 loopcom:
-	mov	al,[es:di]
+	;mov	al,[es:di]
+	;inc	di
+	;and	al,~20h ; 0DFh		; force upper case
+	;inc	si                      ; compare to byte @es:di
+	;cmp	al,[si-1]
+	; 28/07/2023 - Retro DOS v4.2 IO.SYS (optimization)
+	mov	ah,[es:di]
 	inc	di
-	and	al,~20h ; 0DFh		; force upper case
-	inc	si                      ; compare to byte @es:di
-	cmp	al,[si-1]
-	loope	loopcom
+	and	ah,~20h ; 0DFh		
+	lodsb			; mov al,[si]
+				; inc si
+	;cmp	al,ah
+	;loope	loopcom
+	; 28/07/2023
+	xor	ah,al		; result: ah = 0 (*) if ah = al
+	loopz	loopcom
 ;else
 ;	repe	cmpsb
 ;endif
@@ -33907,12 +34214,17 @@ loopcom:
 	; 03/01/2023 - Retro DOS v4.2
 	;repe	cmpsb
 
-	lahf
+	; 28/07/2023
+	;lahf
         add     si,cx                   ; bump to next position without affecting flags
-	sahf
+	;sahf
         lodsb                           ; get indicator letter
-	jnz	short findcom
-        cmp     byte [es:di],cr		; the next char might be cr,lf
+	;jnz	short findcom
+        ; 28/07/2023
+	or	ah,ah			; (*)
+	jnz	short findcom		
+	
+	cmp     byte [es:di],cr		; the next char might be cr,lf
 	je	short gotcom0 		; such as in "rem",cr,lf case.
 	cmp	byte [es:di],lf
 	je	short gotcom0
@@ -34623,7 +34935,9 @@ menu_color:
         call    get_number	; get first number
         and     bl,0Fh		; first # is foreground color (for low nibble)
         mov     ch,bl           ; save it in CH
-        and     dl,0F0h         ;
+	; 01/08/2023 - Retro DOS v4.2 IO.SYS (optimization) by Erdogan Tan 
+	; (high nibble of dl is 0)
+	;and	dl,0F0h         ;
         or      dl,bl           ;
         call    delim           ; did we hit a delimiter
         jne	short check_color ; no, all done
@@ -34700,9 +35014,10 @@ menu_default:
         mov     si,bx           ;
         call    get_number      ; get number (of seconds for timeout)
         cmp     bl,90           ; limit it to a reasonable number
-        jb	short timeout_ok ; (besides, 99 is the largest # my simple
-        mov     bl,90           ;  display function can handle)
-timeout_ok:                     ;
+	;jb	short timeout_ok ; (besides, 99 is the largest # my simple
+        jna	short timeout_ok ; 01/08/2023
+	mov     bl,90           ;  display function can handle)
+timeout_ok:                    ;
         mov     [secTimeOut],bl ;
 timeout_skip:
         jmp     short menu_nextitem
@@ -35766,9 +36081,13 @@ not_down:
 not_f8:
         cmp     al,3Fh          ; F5 function key?
         jne	short to_input_key ; no
+	; 02/08/2023 - Retro DOS v4.2 IO.SYS (optimization)
+	; MSDOS 6.21 IO.SYS - SYSINIT:49EBh
+	; (PCDOS 7.1 IBMBIO.COM - SYSINIT:4C32h)
+	or	byte [bQueryOpt],4 ; no more queries
         mov     bx,-1           ; special return code (-1) indicating clean boot
         mov     al,' '          ; don't want to display anything really;
-        jmp     short disp_input; just want to display the cr/lf sequence...
+        jmp     short disp_input ; just want to display the cr/lf sequence...
 
 normal_key:
         cmp     al,0Dh          ; Enter?
@@ -36009,9 +36328,10 @@ skip_delim:	; returns carry set if eol/eof
 ;
 ;----------------------------------------------------------------------------
 
-skip_opt_line:
-        cmp     al,lf ; 0Ah
-        je	short skip_line_done
+; 03/08/2023 - Retro DOS v4.2 IO.SYS (optimization)
+;skip_opt_line:
+;	cmp     al,lf ; 0Ah
+;	je	short skip_line_done
      
 	; fall into skip_line
 
@@ -36042,6 +36362,7 @@ skip_opt_line:
 skip_line:
         call    get_char
         jc	short skip_line_done
+skip_opt_line:	; 03/08/2023 - Retro DOS v4.2 IO.SYS (optimization)
         cmp     al,lf ; 0Ah
         jne	short skip_line
 skip_line_done:
@@ -36373,8 +36694,9 @@ disable_autoexec:
 	or      word [bQueryOpt],102h	; [bDefBlock] = 1
 	mov     dx,'D ' ; 2044h
 dae_1:
-        ;mov	al,[def_swchr]
-	mov     al,[command_line-1]     ; get default switchchar
+	; 03/08/2023 - Retro DOS v4.2 IO.SYS (optimization)
+        mov	al,[def_swchr]
+	;mov	al,[command_line-1]     ; get default switchchar
         or      al,al                   ; anything there?
         jz	short disable_exit	; no, disable_autoexec already called
         mov     bl,[command_line]       ;
@@ -37053,6 +37375,10 @@ ricb_exit:
 
 ;----------------------------------------------------------------------------
 
+;! set_country_path procedure is not called from anywhere !
+; Erdogan Tan - 04/08/2023
+%if 0
+
 set_country_path:
 
 ;----------------------------------------------------------------------------
@@ -37143,6 +37469,8 @@ cdletter_no:
 cdletter_exit:
 	pop	ax
 	retn
+
+%endif
 
 ;----------------------------------------------------------------------------
 
@@ -37532,7 +37860,42 @@ devp.devattr:
 devp.cylinders:
 	dw	80	; A_DEVICEPARAMETERS.DP_CYLINDERS
 
-	times	286	db 0
+; 04/08/2023 - Retro DOS v4.2 IO.SYS (optimization)
+
+	;times	286	db 0
+devp.mediatype:		; A_DEVICEPARAMETERS.DP_MEDIATYPE
+	db	0
+devp.bpb:		; A_DEVICEPARAMETERS.DP_BPB
+devp.bps:		; A_DEVICEPARAMETERS.DP_BPB+A_BPB.BPB_BYTESPERSECTOR
+	dw	0
+devp.secperclus:	; A_DEVICEPARAMETERS.DP_BPB+A_BPB.BPB_SECTORSPERCLUSTER	
+	db	0	
+	dw	0	; A_DEVICEPARAMETERS.DP_BPB+A_BPB.BPB_RESERVEDSECTORS
+	db	0	; A_DEVICEPARAMETERS.DP_BPB+A_BPB.BPB_NUMBEROFFATS
+	dw	0	; A_DEVICEPARAMETERS.DP_BPB+A_BPB.BPB_ROOTENTRIES
+devp.totalsecs:		; A_DEVICEPARAMETERS.DP_BPB+A_BPB.BPB_TOTALSECTORS
+	dw	0
+devp.mediaid:		; A_DEVICEPARAMETERS.DP_BPB+A_BPB.BPB_MEDIADESCRIPTOR
+	db	0
+	dw	0	; A_DEVICEPARAMETERS.DP_BPB+A_BPB.BPB_SECTORSPERFAT
+devp.spt:		; A_DEVICEPARAMETERS.DP_BPB+A_BPB.BPB_SECTORSPERTRACK
+	dw	0
+devp.heads:		; A_DEVICEPARAMETERS.DP_BPB+A_BPB.BPB_HEADS
+	dw	0	
+
+	;times	68 db 0	; PCDOS 7.1  (FAT32 BPB)
+	;times	14 db 0	; MSDOS 6.21
+	dw	0	; A_DEVICEPARAMETERS.DP_BPB+A_BPB.BPB_HIDDENSECTORS
+	dw	0
+	dw	0	; A_DEVICEPARAMETERS.DP_BPB+A_BPB.BPB_BIGTOTALSECTORS
+	dw	0
+	times	6 db 0	
+
+devp.trktblents:
+	dw	0	; A_DEVICEPARAMETERS.DP_TRACKTABLEENTRIES
+devp.sectbl:		; A_DEVICEPARAMETERS.DP_SECTORTABLE
+	times	252 db 0 ; MAX_SECTORS_IN_TRACK * A_SECTORTABLE.size
+			; 63*4 bytes
 
 ; 01/01/2023 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
 ; (SYSINIT:5430h)
@@ -37722,6 +38085,8 @@ OnOff2:	db	'OFF'
 
 _$PauseMsg:
 	db	'Press any key to continue . . .',0Dh,0Ah,'$'
+	; 04/08/2023 (PCDOS 7.10 - IBMBIO.COM SYSINIT:590Dh)
+	;db	'Press any key to continue...',0Dh,0Ah,'$'
 _$CleanMsg:
 	db	'MS-DOS is bypassing your CONFIG.SYS and AUTOEXEC.BAT files.',0Dh,0Ah,'$'
 _$InterMsg:
@@ -37730,6 +38095,9 @@ _$MenuHeader:
 	db	0Dh,0Ah
 	db	'  MS-DOS 6.2 Startup Menu',0Dh,0Ah
 	db	'  =======================',0Dh,0Ah,'$'
+	; 04/08/2023 (PCDOS 7.10 - IBMBIO.COM SYSINIT:59A7h)
+	;db	'  PC DOS 7.1 Startup Menu',0Dh,0Ah
+	;db	'  ========================',0Dh,0Ah,'$' ; 0CDh = (ALT 205)
 _$MenuPrmpt:
 	db	'  Enter a choice: $'
 _$StatusLine:
@@ -37737,6 +38105,8 @@ _$StatusLine:
 	db	'and AUTOEXEC.BAT [ ]$'
 _$InterPrmpt:
 	db	' [Y,N]?$'
+	; 04/08/2023
+	;db	' [Y,N,ESC]?$' ; PCDOS 7.1 - IBMBIO.COM 
 _$YES:	db	'YES$'
 _$NO:	db	'NO $'
 _$TimeOut:
