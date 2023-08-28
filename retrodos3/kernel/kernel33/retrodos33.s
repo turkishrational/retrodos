@@ -2,7 +2,7 @@
 ; RETRODOS.SYS (MSDOS 3.3 Kernel) - RETRO DOS v3.3 (for Windows 3.1)
 ; -Modified Retro DOS v3 for Windows 3.1 compatibility-		by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 15/09/2022 (Previous: 03/08/2019)
+; Last Update: 28/08/2023 (BugFix) - (Previous: 15/09/2022)
 ; ----------------------------------------------------------------------------
 ; Beginning: 24/02/2018 (Retro DOS 2.0), 25/05/2018 (Retro DOS 3.0)
 ; ----------------------------------------------------------------------------
@@ -10366,6 +10366,9 @@ NOT_PROCESS_OTHER:
 				      ; (FD BPB Tables are in SYINIT section)
 		;mov	si,word ptr [si+bx]	; get address of BPB
 		mov	si,[si+bx]
+
+		; 28/08/2023 (BugFix)
+		add	si,SYSINIT_START
 Set_RecBPB:
 		;lea	di,[di].RBytePerSec	; es:di -> RecBPB
 		lea	di,[di+BDS.RBytePerSec]
