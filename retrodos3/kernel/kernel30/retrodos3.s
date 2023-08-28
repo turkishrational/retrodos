@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RETRODOS.SYS (MSDOS 3.3 Kernel) - RETRO DOS v3.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 22/11/2022 (BugFix) - (Previous: 03/08/2019)
+; Last Update: 28/08/2023 (BugFix) - (Previous: 22/11/2022)
 ; ----------------------------------------------------------------------------
 ; Beginning: 24/02/2018 (Retro DOS 2.0), 25/05/2018 (Retro DOS 3.0)
 ; ----------------------------------------------------------------------------
@@ -10097,7 +10097,6 @@ No_Round_Up:
 		;mov	[di].RcSecFat,ax
 		mov	[di+BDS.RcSecFat],ax
 		jmp	short Go_To_Next_BDS
-
 NOT_PROCESS_OTHER:
 		shl	bx,1			; bx is word index into table of BPBs
 		;mov	si,offset BPBTable
@@ -10106,6 +10105,9 @@ NOT_PROCESS_OTHER:
 				      ; (FD BPB Tables are in SYINIT section)
 		;mov	si,word ptr [si+bx]	; get address of BPB
 		mov	si,[si+bx]
+
+		; 28/08/2023 (BugFix)
+		add	si,SYSINIT_START
 Set_RecBPB:
 		;lea	di,[di].RBytePerSec	; es:di -> RecBPB
 		lea	di,[di+BDS.RBytePerSec]
