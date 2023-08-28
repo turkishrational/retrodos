@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RETRODOS.SYS (MSDOS 3.3 Kernel) - RETRO DOS v3.2 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 16/12/2022 (BugFix) - (Previous: 22/11/2022)
+; Last Update: 28/08/2023 (BugFix) - (Previous: 16/12/2022)
 ; ----------------------------------------------------------------------------
 ; Beginning: 25/05/2018 (Retro DOS 3.0), 29/06/2019 (Retro DOS 3.1)
 ; ----------------------------------------------------------------------------
@@ -12277,6 +12277,9 @@ NOT_PROCESS_OTHER:
 				      ; (FD BPB Tables are in SYINIT section)
 		;mov	si,[si+bx]	; get address of bpb
 		mov	si,[BPB_Table+bx]
+	
+		; 28/08/2023 (BugFix)
+		add	si,SYSINIT_START
 Set_RecBPB:
 		;lea	di,[di+39]
 		lea	di,[di+BDS.rbytespersec] ; es:di -> RecBPB
