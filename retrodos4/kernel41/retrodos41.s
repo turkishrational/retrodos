@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RETRODOS.SYS (MSDOS 5.0 Kernel) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 14/08/2023 - Retro DOS v4.1 (Previous: 22/07/2023)
+; Last Update: 28/08/2023 - Retro DOS v4.1 (Previous: 22/07/2023)
 ; ----------------------------------------------------------------------------
 ; Beginning: 25/05/2018 (Retro DOS 3.0), 26/12/2018 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -6556,7 +6556,14 @@ not_process_other:
 		; 10/12/2022
 		;mov	si, [BPBTABLE+bx]
 		; 13/12/2022
-		mov	si, [SYSINITOFFSET+bpbtable+bx]
+		;mov	si, [SYSINITOFFSET+bpbtable+bx] ; wrong ! 14/08/2023
+		; 14/08/2023
+		SYSINIT_OFFSET equ (SYSINITSEG-DOSBIODATASEG<<4)
+							; correct offset
+		mov	si, [bx+SYSINIT_OFFSET+bpbtable]
+		
+		; 28/08/2023
+		add	si, SYSINIT_OFFSET
 set_recbpb:				
 		lea	di, [di+27h]	; [di+BDS.R_BPB]
 					; es:di	-> recbpb

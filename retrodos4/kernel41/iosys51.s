@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; IOSYS5.S (MSDOS 5.0 IO.SYS) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 14/08/2023 - Retro DOS v4.1 (Previous: 22/07/2023)
+; Last Update: 28/08/2023 - Retro DOS v4.1 (Previous: 22/07/2023)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -6887,9 +6887,9 @@ cfb_retit:
 
 ; ---------------------------------------------------------------------------
 
-word2:		dw 2			
-word3:		dw 3			
-word512:	dw 512			
+word2:		dw 2
+word3:		dw 3
+word512:	dw 512	
 
 ; =============== S U B	R O U T	I N E =======================================
 
@@ -7021,8 +7021,15 @@ not_process_other:
 		;mov	si, [bx+si]	; get address of bpb
 		; 10/12/2022
 		;mov	si, [BPBTABLE+bx]
-		; 13/12/2022
-		mov	si, [SYSINITOFFSET+bpbtable+bx]
+				; 13/12/2022
+		;mov	si, [SYSINITOFFSET+bpbtable+bx] ; wrong ! 14/08/2023
+		; 14/08/2023
+		SYSINIT_OFFSET equ (SYSINITSEG-DOSBIODATASEG<<4)
+							; correct offset
+		mov	si, [bx+SYSINIT_OFFSET+bpbtable]
+
+		; 28/08/2023
+		add	si, SYSINIT_OFFSET
 set_recbpb:				
 		lea	di, [di+27h]	; [di+BDS.R_BPB]
 					; es:di	-> recbpb
@@ -18576,7 +18583,7 @@ okld:
 	;mov	ax,(EXEC<<8) + 0
 	; 23/10/2022
 	;xor	ax,ax
-	;mov	ah,4Bh        
+	;mov	ah,4Bh
 	; 14/08/2023
 	;mov	ax,4B00h
 	mov	ax,(EXEC<<8)
