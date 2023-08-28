@@ -2,7 +2,7 @@
 ; FDISK2.ASM (FDISK2.COM) //// MSDOS 5.0-6.22 Hard Disk Partitioning Utility
 ; 	     by Erdogan Tan				  (for MSDOS/WINDOWS)
 ; ****************************************************************************
-; Last Update: 28/01/2019
+; Last Update: 22/12/2022 (Previous: 28/01/2019)
 ; ----------------------------------------------------------------------------
 ; Beginning: 06/11/2018
 ; ----------------------------------------------------------------------------
@@ -7405,7 +7405,7 @@ gdi_2:
 		; 14/12/2018
 		cmp	al,1
 		jnb	short gdi_4 ; bp = 0
-		
+	
 		; cf = 1 ; *
 ;gdi_7:
 		;/* No drives present */
@@ -7596,6 +7596,12 @@ get_drive_parameters:
 		and	ah,1 ; check cf
 		jz	short gdprm_2
 gdprm_1:
+		; 22/12/2022
+		; clear screen (black background)
+		mov	bh, 7
+		call	RVI_CLS
+		mov	byte [mono_flag],1
+
 		;push	word [error_1_seg]
 		push	ds ; 17/11/2018
 		push	word [error_1_off]
@@ -40299,7 +40305,9 @@ incorrect_dos_version:
 
 fdisk_program_msg:
 		db	0Dh,0Ah
-		db	'FDISK utility (v2) by Erdogan Tan - 2019'
+		;db	'FDISK utility (v2) by Erdogan Tan - 2019'
+		; 22/12/2022
+		db	'FDISK utility (v2) by Erdogan Tan [2019-2022]'
 		db	0Dh,0Ah,0
 
 print_fdisk_program_msg:
