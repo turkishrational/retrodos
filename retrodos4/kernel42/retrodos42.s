@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RETRODOS.SYS (MSDOS 6.0 Kernel) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 14/08/2023 - Retro DOS v4.2 (Modified MSDOS 6.22)
+; Last Update: 28/08/2023 - Retro DOS v4.2 (Modified MSDOS 6.22)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0), 28/12/2022 (Retro DOS 4.1, MSDOS 5.0)
 ; ----------------------------------------------------------------------------
@@ -877,6 +877,7 @@ Win386_InitDone		equ	08h	; Win386 initialization is complete
 ; DOS BIOS (IO.SYS) DATA SEGMENT 
 ;=============================================================================
 ; 09/12/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
+; 30/12/2022 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
 
 section .BIOSDATA vstart=0
 
@@ -1528,6 +1529,9 @@ i13x:		dw 154Bh, 2C7h		; i13z
 					; at 2C7h:154Bh	= 70h:3ABBh
 %endif
 
+; 30/12/2022
+; (IOSYSCODESEG is 2CCh for MSDOS 6.21 IO.SYS)
+
 ; 09/12/2022
 cdev:		dw chardev_entry, IOSYSCODESEG
 ttticks:	dw time_to_ticks, IOSYSCODESEG
@@ -1893,7 +1897,7 @@ DisableA20:
 ;*									*
 ;************************************************************************
 
-int19:					
+int19:
 		push	cs
 		pop	ds
 		; 07/08/2023 - Retro DOS v4.2 IO.SYS (optimization)
@@ -2037,7 +2041,7 @@ Old15_j:		; 07/08/2023
 ;
 ;-----------------------------------------------------------------------------
 
-EraseVDiskHead:	; proc near		
+EraseVDiskHead:	; proc near
 		; 07/08/2023 - Retro DOS v4.2 IO.SYS (optimization)
 		; PCDOS 7.1 IBMBIO.COM - BIOSDATA:07C1h
 		;push	ax
@@ -2057,7 +2061,7 @@ EraseVDiskHead:	; proc near
 		pop	es
 		pop	di
 		pop	cx
-		;pop	ax ; 07/08/2023	
+		;pop	ax ; 07/08/2023
 		retn
 
 ; ----------------------------------------------------------------------------
@@ -2074,7 +2078,7 @@ EraseVDiskHead:	; proc near
 ; 07/08/2023 - Retro DOS v4.2 IO.SYS (optimization)
 %if 0
 int_2f:		
-		jmp	far [cs:bcode_i2f] ; 16/10/2022			
+		jmp	far [cs:bcode_i2f] ; 16/10/2022
 		;jmp	dword ptr cs:bcode_i2f ; far [cs:bcode_i2f]
 
 ; ----------------------------------------------------------------------------
@@ -2084,7 +2088,7 @@ int_2f:
 ;	 It's not as if this is a really speed critical function.
 ;	 might as well do whatever's most compact.
 
-i2f_dskentry:				
+i2f_dskentry:
 		jmp	dsk_entry
 
 ; ----------------------------------------------------------------------------
@@ -2224,7 +2228,7 @@ FreeHMAPtr:	dw 0FFFFh
 ; 17/10/2022
 MoveDOSIntoHMA:	dw FTRYTOMOVDOSHI	; 09/12/2022
 		dw SYSINITSEG		; 08/08/2023
-					; 0544h for PCDOS 7.1 IBMBIO.COM	
+					; 0544h for PCDOS 7.1 IBMBIO.COM
 					; 0473h for MSDOS 6.21 IO.SYS
 ;SR;
 ; A communication block has been setup between the DOS and the BIOS. All
@@ -2900,7 +2904,7 @@ no_hookit:
 
 ; ----------------------------------------------------------------------------
 
-mebbe_hookit:				
+mebbe_hookit:
 		cmp	dl, 80h
 		jb	short no_hookit
 		push	ds
@@ -2912,7 +2916,7 @@ mebbe_hookit:
 		;mov	ds, ax
 		;pop	ax
 		push	40h
-		pop	ds		
+		pop	ds
 
 		pushf
 		;call	cs:Old13
@@ -3133,7 +3137,7 @@ read_real_date:	; proc near
 		jmp	r_d_ret
 ;-----------------------------------------------------------------------------
 
-read_ok:				
+read_ok:
 		mov	[bin_date_time], ch
 		mov	[bin_date_time+1], cl
 		mov	[bin_date_time+2], dh
@@ -3184,10 +3188,10 @@ century_19:
 					; possibly account for a leap day
 ;-----------------------------------------------------------------------------
 
-leap_year:				
+leap_year:
 		cmp	byte [bin_date_time+2], 2 ; is	month february?
 		jbe	short no_leap_adjustment ; jan or feb. no leap day yet.
-leap_adjustment:			
+leap_adjustment:
 		;inc	word [cs:daycnt2] ; account for leap day
 		; 08/08/2023
 		inc	word [daycnt2]
@@ -3216,7 +3220,7 @@ no_leap_adjustment:
 		;			; get #	days in	previous months
 		;add	[cs:daycnt2], ax
 
-		; 08/08/2023 - Retro DOS v4.2 IO.SYS (optimization)		
+		; 08/08/2023 - Retro DOS v4.2 IO.SYS (optimization)
 		; PCDOS 7.1 IBMBIO.COM - BIOSDATA:1907h
 		mov	ah, 0
 		mov	si, month_tab
@@ -3224,7 +3228,7 @@ r_d_sum_loop:
 		lodsb
 		add	[daycnt2], ax
 		loop	r_d_sum_loop
-r_d_ret:				
+r_d_ret:
 		;mov	si, [cs:daycnt2]
 		; 08/08/2023
 		mov	si, [daycnt2]
@@ -3280,7 +3284,7 @@ r_t_ret:
 
 ;   in_bin converts bin_date_time values from bcd to bin
 
-in_bin:		; proc near		
+in_bin:		; proc near
 		mov	al, [bin_date_time] ; century or hours
 		call	bcd_to_bin
 		mov	[bin_date_time], al
@@ -3301,7 +3305,7 @@ in_bin:		; proc near
 ;   a binary representation in al
 ;   ah is destroyed
 
-bcd_to_bin:	; proc near		
+bcd_to_bin:	; proc near
 		mov	ah, al
 		and	al, 0Fh
 		mov	cl, 4
@@ -3314,7 +3318,7 @@ bcd_to_bin:	; proc near
 ;   date_verify loosely checks bcd date values to be in range
 ;   in bin_date_time
 
-date_verify:	; proc near		
+date_verify:	; proc near
 		cmp	byte [bin_date_time], 20h ; century check
 		ja	short date_error
 		jz	short century_20 ; jmp in 21th century
@@ -3326,7 +3330,7 @@ date_verify:	; proc near
 		;jb	short date_error
 		; 12/12/2022
 		jb	short date_err2
-century_20:				
+century_20:
 		cmp	byte [bin_date_time+1], 99h ; year check
 		ja	short date_error
 		cmp	byte [bin_date_time+2], 12h ; month check
@@ -3347,7 +3351,7 @@ century_20:
 		retn
 ;-----------------------------------------------------------------------------
 
-date_error:				
+date_error:
 		stc
 date_err2:
 		retn
@@ -3357,7 +3361,7 @@ date_err2:
 ; time_verify very loosely checks bcd date values to be in range
 ; in bin_date_time
 
-time_verify:	; proc near		
+time_verify:	; proc near
 		cmp	byte [bin_date_time], 24h ; hour check
 		ja	short time_error
 		cmp	byte [bin_date_time+1], 59h ; minute check
@@ -3370,7 +3374,7 @@ time_verify:	; proc near
 		; 12/12/2022
 		cmp	byte  [bin_date_time+2], 5Ah	
 time_error:
-bv_error:	
+bv_error:
 		cmc	; cf=0 -> cf=1, cf=1 -> cf=0
 		retn
 
@@ -3385,10 +3389,10 @@ bv_error:
 ;   bcd_verify checks values in bin_date_time to be valid
 ;   bcd numerals.  carry set if any nibble out of range
 
-bcd_verify:	; proc near		
+bcd_verify:	; proc near
 		mov	cx, 4		; 4 bytes to check
 		mov	bx, bin_date_time
-bv_loop:				
+bv_loop:
 		mov	al, [bx]	; get a	bcd number (0..99)
 		mov	ah, al
 		and	ax, 0F00Fh	; 10's place in high ah, 1's in al
@@ -3410,7 +3414,7 @@ bv_loop:
 ; ----------------------------------------------------------------------------
 
 		; 12/12/2022
-;bv_error:				
+;bv_error:
 		;stc			; set error flag
 		;retn
 
@@ -4778,7 +4782,7 @@ pfr_ok:
 		; 14/08/2023
 		jbe	short eotok
 		mov	[eot], cl
-;eot_ok:					
+;eot_ok:
 eotok:
 		; 20/12/2022
 		pop	es ; ((*)) es = cs = ds		
@@ -5636,7 +5640,7 @@ norm_ret:
 ;	MUST PRESERVE ES:!!!!
 ;***************************************************************************
 
-sethard:	; proc near		
+sethard:	; proc near
 		; 12/08/2023
 		; ds = cs = BIOSDATA
 		push	di
@@ -5673,7 +5677,7 @@ sethard:	; proc near
 ; The first 'active' partition is 00, the second is 01....
 ;   then the remainder of the 'primary' but non-active partitions
 
-act_part:				
+act_part:
 		test	byte [es:bx-4], 80h ; is the partition active?
 		jz	short no_act	; no
 		cmp	byte [es:bx], 1 ; reject if partitiontype != 1, 4 or 6
@@ -5697,7 +5701,7 @@ no_act:
 
 ; Now scan the non-active partitions
 
-get_primary:				
+get_primary:
 		test	byte [es:bx-4], 80h
 		jnz	short not_prim	; we've already scanned
 					; the ACTIVE ones
@@ -5707,11 +5711,11 @@ get_primary:
 		jz	short got_prim
 		cmp	byte [es:bx], 6
 		jnz	short not_prim
-got_prim:				
+got_prim:
 		or	dh, dh		; is this our target partition?
 		jz	short set2
 		dec	dh
-not_prim:				
+not_prim:
 		add	bx, 16
 		cmp	bx, 402h	; 202h+bootbias
 		jnz	short get_primary ; loop till we've gone through table
@@ -5751,7 +5755,7 @@ set2:
 		adc	dx, [es:bx+10]
 		jnb	short okdrive
 		or	byte [fbigfat], 80h ; ftoobig
-okdrive:				
+okdrive:
 		mov	ax, [es:bx+4]
 		mov	[di+17h], ax	; [di+BDS.hiddensecs]
 					; BPB_HIDDENSECTORS = p->partitionbegin
@@ -5766,7 +5770,7 @@ okdrive:
 		ja	short okdrive_1
 		cmp	ax, 64		; if (p->partitionlength < 64)
 		jb	short setret	; return -1;
-okdrive_1:				
+okdrive_1:
 		mov	dx, [di+19h]	; [di+BDS.hiddensecs+2]
 		mov	ax, [di+17h]	; [di+BDS.hiddensecs]
 		xor	bx, bx		; boot sector number - for mini	disk
@@ -5875,7 +5879,7 @@ oknotmini:
 		cmp	byte [bx+2], 90h
 		;cmp	byte [cs:bx+2], 90h ; yes, is the next one a nop?
 		jnz	short invalid_boot_record ; no, invalid bs ; 11/08/2023
-check_1_ok:	
+check_1_ok:
 		; 11/08/2023
 		mov	bx, disksector+EXT_BOOT.BPB ; disksector+11
 		;mov	bx, 159h	; disksector+EXT_BOOT.BPB
@@ -5901,12 +5905,12 @@ check2_ok:				; yes, mediadescriptor ok.
 		or	al, al		; is it zero?
 		jz	short invalid_boot_record ; yes, invalid boot record
 
-ck_power_of_two:			
+ck_power_of_two:
 		shr	al, 1		; shift until first bit emerges
 		jnb	short ck_power_of_two
 		jz	short valid_boot_record
 
-invalid_boot_record:			
+invalid_boot_record:
 		pop	ax
 		pop	bx
 		jmp	unknown		; jump to invalid boot record
@@ -5914,16 +5918,16 @@ invalid_boot_record:
 
 ; ---------------------------------------------------------------------------
 	; 12/08/2023
-setret_brdg:				
+setret_brdg:
 		jmp	setret
 ; ---------------------------------------------------------------------------
 
-unknown3_0_j:				
+unknown3_0_j:
 		jmp	unknown3_0	; legally formatted media,
 					; although, content might be bad.
 ; ---------------------------------------------------------------------------
 
-valid_boot_record:			
+valid_boot_record:
 		pop	ax
 		pop	bx
 
@@ -5948,12 +5952,12 @@ valid_boot_record:
 ;		jmp	setret
 ; ---------------------------------------------------------------------------
 ;
-;unknown3_0_j:				
+;unknown3_0_j:
 ;		jmp	unknown3_0	; legally formatted media,
 ;					; although, content might be bad.
 ; ---------------------------------------------------------------------------
 
-try5:					
+try5:
 		call	cover_fdisk_bug
 
 ; see if it is an os2 signature
@@ -5975,7 +5979,7 @@ try5:
 
 ; no os2 signature, this is to check for real dos versions
 
-no_os2:		
+no_os2:
 		; 12/08/2023
 		; ds = cs = BIOSDATA
 		cmp	word [bx+8], '3.'			
@@ -6107,7 +6111,7 @@ copybpb:
 already_nonz:	
 		; 18/12/2022
 		; cx = 0
-		mov	cl, 25		
+		mov	cl, 25
 		;mov	cx, 25		; A_BPB.size - 6 ; Use SMALL version!
 		rep movsb
 		;pop	ds
@@ -6163,7 +6167,7 @@ CLEARIDS equ clear_ids
 copybpb_fat:
 		; 10/12/2022
 		; (number of FATs optimization)
-		; SI = disksector+11				
+		; SI = disksector+11
 		; 17/10/2022
 		;mov	si, disksector+11
 		;;mov	si, 159h	; disksector+EXT_BOOT.BPB
@@ -6279,7 +6283,7 @@ fat_big_small:
 		or	byte [fbigfat], 40h
 		;or	ds:fbigfat, 40h	; fbig
 					; 16 bit fat
-copymediaid:				
+copymediaid:
 		push	es
 		push	ds
 		pop	es
@@ -6302,7 +6306,7 @@ copymediaid:
 					; and return.
 ; ---------------------------------------------------------------------------
 
-toobig_ret:	
+toobig_ret:
 		; 12/08/2023 (ds=cs=BIOSDATA)
 		or	byte [fbigfat], 80h ; ftoobig
 		;or	byte [cs:fbigfat], 80h ; ftoobig 
@@ -6312,7 +6316,7 @@ toobig_ret:
 					; current pc dos fat file system
 ; ---------------------------------------------------------------------------
 
-unknown:	
+unknown:
 		; 12/12/2022
 		or	byte [di+24h], 02h			
 		;or	word [di+23h], 200h ; [di+BDS.flags]
@@ -6322,7 +6326,7 @@ unknown:
 ; the boot signature may not be	recognizable,
 ; but we should	try and	read it	anyway.
 
-unknown3_0:				
+unknown3_0:
 		mov	dx, [di+1Dh]	; skip setting unformatted_media bit
 					; [di+BDS.totalsecs32+2]
 		mov	ax, [di+1Bh]	; [di+BDS.totalsecs32]
@@ -6341,7 +6345,7 @@ scan_next:
 		jmp	short scan	; covers upto 512 mb media
 ; ---------------------------------------------------------------------------
 
-gotparm:				
+gotparm:
 		mov	cl, [si+8]	; fat size for fbigfat flag
 		;or	ds:fbigfat, cl
 		; 17/10/2022
@@ -6512,7 +6516,7 @@ massage_bpb:
 		;mov	word [di+1Bh], 0 ; [di+BDS.totalsecs32]
 		; 12/12/2022
 		mov	[di+1Bh], dx ; 0 
-goodret:				
+goodret:
 		;;mov	bl, ds:fbigfat
 		; 12/12/2022
 		;; 17/10/2022
@@ -6522,7 +6526,7 @@ goodret:
 		clc
 ret_hard_err:
 		; 12/12/2022
-goodret2:					
+goodret2:
 		pop	es
 		;pop	ds	; ds = cs = BIOSDATA ; 12/08/2023
 		pop	bx
@@ -6589,9 +6593,9 @@ cfb_retit:
 
 ; ---------------------------------------------------------------------------
 
-word2:		dw 2			
-word3:		dw 3			
-word512:	dw 512			
+word2:		dw 2
+word3:		dw 3
+word512:	dw 512
 
 ; =============== S U B	R O U T	I N E =======================================
 
@@ -6724,7 +6728,14 @@ not_process_other:
 		; 10/12/2022
 		;mov	si, [BPBTABLE+bx]
 		; 13/12/2022
-		mov	si, [SYSINITOFFSET+bpbtable+bx]
+		;mov	si, [SYSINITOFFSET+bpbtable+bx] ; wrong ! 14/08/2023
+		; 14/08/2023
+		SYSINIT_OFFSET equ (SYSINITSEG-DOSBIODATASEG<<4)
+							; correct offset
+		mov	si, [bx+SYSINIT_OFFSET+bpbtable]
+
+		; 28/08/2023
+		add	si, SYSINIT_OFFSET
 set_recbpb:				
 		lea	di, [di+27h]	; [di+BDS.R_BPB]
 					; es:di -> recbpb
@@ -6973,7 +6984,7 @@ fmpgot_cont:
 		;pop	es  ; 13/08/2023
 		jc	short fmpnextchain
 		call	xinstall_bds	; -- install the bdsm into table
-fmpnextchain:				
+fmpnextchain:
 		jmp	fmpnext		; let's find out
 					; if we	have any chained partition
 ; ---------------------------------------------------------------------------
@@ -7014,7 +7025,7 @@ setmini_1:
 		retn
 
 ; ---------------------------------------------------------------------------
-setmini_2:				
+setmini_2:
 		jmp	set2		; branch into middle of sethard
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -7030,7 +7041,7 @@ setmini_2:
 ;	drvmax >=26 : carry RESET!, error flag set for message later
 ;			trash ax
 
-dmax_check:	
+dmax_check:
 		cmp	byte [drvmax], 26 ; checks for drvmax < 26
 		jb	short dmax_ok	; return with carry if okay
 		push	es
@@ -7052,7 +7063,7 @@ dmax_check:
 		;;pop	es
 		;
 		;mov	byte [SYSINIT+toomanydrivesflag],1
-dmax_ok:				
+dmax_ok:
 		retn
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -7617,7 +7628,7 @@ _seg_reinit:
 		;mov	cx, 4		; (end_BC_entries - cdev)/4
 		; 10/08/2023
 		mov	cx, 3 ; (PCDOS 7.1)
-_seg_reinit_1:				
+_seg_reinit_1:
 		stosw			; modify Bios_Code entry points
 		inc	di
 		inc	di
@@ -8850,7 +8861,7 @@ no_cmos_1:
 		sti
 no_cmos_2:
 		; 12/12/2022
-		; cf=0				
+		; cf=0
 		;clc
 		retn
 
@@ -8860,7 +8871,7 @@ no_cmos_2:
 ; PCDOS 7.1 IBMBIO.COM - BIOSCODE:0440h
 %if 1 
 
-; CMOS Clock setting support routines used by MSCLOCK.		
+; CMOS Clock setting support routines used by MSCLOCK.
 ; Warning!!! This code will be dynamically relocated by MSINIT.
 
 daycnttoday:	; proc near
@@ -9480,7 +9491,7 @@ Check_Time_Of_Access:
 
 ; ---------------------------------------------------------------------------
 
-timepassed:				
+timepassed:
 		cmp	dx, 36		; 18*2 ; 18.2 tics per second.
 					; min elapsed time? (2 seconds)
 		jbe	short timecheck_ret ; yes, presume no change
@@ -9488,7 +9499,7 @@ timepassed:
 		; everything indicates that we do not know what has happened.
 timecheck_unk:				
 		dec	si		; presume i don't know
-timecheck_ret:				
+timecheck_ret:
 		; 11/08/2023
 		;mov	[accesscount], al
 		retn
@@ -9583,7 +9594,7 @@ SetPtrSav:	; return point for dsk_init
 ;size_of_EXT_BOOT_VOL_LABEL equ 11
 ;size_of_EXT_SYSTEM_ID equ 8
 
-clear_ids:		
+clear_ids:
 		push	di
 		xor	cx, cx		; no serial number
 		mov	[es:di+57h], cx	; [es:di+BDS.vol_serial]
@@ -12941,7 +12952,7 @@ i2f_iret:
 		iret
 ; ---------------------------------------------------------------------------
 
-mine:					
+mine:
 		cmp	al, 0F8h 		; iret on reserved functions
 		jnb	short i2f_iret
 		or	al, al			; a get installed state request?
@@ -12950,7 +12961,7 @@ mine:
 		jmp	short i2f_iret
 ; ---------------------------------------------------------------------------
 
-disp_func:				
+disp_func:
 		cmp	al, 1			; request for installing bds?
 		jz	short do_subfun_01
 		cmp	al, 3			; get bds vector?
@@ -34959,8 +34970,9 @@ menu_color:
         mov     ch,bl           ; save it in CH
 	; 01/08/2023 - Retro DOS v4.2 IO.SYS (optimization) by Erdogan Tan 
 	; (high nibble of dl is 0)
-	;and	dl,0F0h         ;
-        or      dl,bl           ;
+	;and	dl,0F0h         ; (low nibble of dl would be zero)
+        ;or	dl,bl		; (low nibble of dl is 7) ! 14/08/2023
+	mov	dl,bl	; 14/08/2023	 	
         call    delim           ; did we hit a delimiter
         jne	short check_color ; no, all done
         call    get_number	; get next number
