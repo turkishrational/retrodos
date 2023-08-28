@@ -1,7 +1,7 @@
      1                                  ; ****************************************************************************
      2                                  ; RETRODOS.SYS (MSDOS 3.3 Kernel) - RETRO DOS v3.1 by ERDOGAN TAN
      3                                  ; ----------------------------------------------------------------------------
-     4                                  ; Last Update: 22/11/2022 (BugFix) - (Previous: 03/08/2019)
+     4                                  ; Last Update: 28/08/2023 (BugFix) - (Previous: 22/11/2022)
      5                                  ; ----------------------------------------------------------------------------
      6                                  ; Beginning: 25/05/2018 (Retro DOS 3.0), 29/06/2019 (Retro DOS 3.1)
      7                                  ; ----------------------------------------------------------------------------
@@ -9851,21 +9851,21 @@
   8984                                  
   8985                                  ;;Rev 3.30 Modification -----------------------------------------------
   8986 00002ADD BE[E800]                		mov	si,COM4DEV 
-  8987 00002AE0 E80306                  		call	AUX_INIT
+  8987 00002AE0 E80706                  		call	AUX_INIT
   8988 00002AE3 BE[D600]                		mov	si,COM3DEV
-  8989 00002AE6 E8FD05                  		call	AUX_INIT
+  8989 00002AE6 E80106                  		call	AUX_INIT
   8990                                  ;;End of Modification -----------------------------------------------
   8991 00002AE9 BE[C400]                		mov	SI,COM2DEV
-  8992 00002AEC E8F705                  		call	AUX_INIT		;INIT COM2
+  8992 00002AEC E8FB05                  		call	AUX_INIT		;INIT COM2
   8993 00002AEF BE[7400]                		mov	SI,COM1DEV
-  8994 00002AF2 E8F105                  		call	AUX_INIT		;INIT COM1
+  8994 00002AF2 E8F505                  		call	AUX_INIT		;INIT COM1
   8995                                  
   8996 00002AF5 BE[B200]                		mov	SI,LPT3DEV
-  8997 00002AF8 E8E305                  		call	PRINT_INIT		;INIT LPT3
+  8997 00002AF8 E8E705                  		call	PRINT_INIT		;INIT LPT3
   8998 00002AFB BE[9800]                		mov	SI,LPT2DEV
-  8999 00002AFE E8DD05                  		call	PRINT_INIT		;INIT LPT2
+  8999 00002AFE E8E105                  		call	PRINT_INIT		;INIT LPT2
   9000 00002B01 BE[8600]                		mov	SI,LPT1DEV
-  9001 00002B04 E8D705                  		call	PRINT_INIT		;INIT LPT1
+  9001 00002B04 E8DB05                  		call	PRINT_INIT		;INIT LPT1
   9002                                  
   9003 00002B07 31D2                    		xor	DX,DX
   9004 00002B09 8EDA                    		mov	DS,DX			;TO INITIALIZE PRINT SCREEN VECTOR
@@ -10084,7 +10084,7 @@
   9217 00002BBF 0E                      		PUSH	CS
   9218 00002BC0 07                      		POP	ES
   9219                                  
-  9220 00002BC1 E88706                  		call	CMOS_CLOCK_READ  ;Before doing anything if CMOS clock,
+  9220 00002BC1 E88B06                  		call	CMOS_CLOCK_READ  ;Before doing anything if CMOS clock,
   9221                                  				 ;then set the system time accordingly.
   9222                                  				 ;Also, reset the cmos clock rate.
   9223                                  
@@ -10362,7 +10362,7 @@
   9495                                  ; *** DoMini routine will use [DRVMAX] value for the start of the logical
   9496                                  ; *** drive number of Mini disk(s).
   9497                                  
-  9498 00002D59 E8C003                  		call    DoMini		;For setting up mini disks, if found
+  9498 00002D59 E8C403                  		call    DoMini		;For setting up mini disks, if found
   9499                                  
   9500                                  ; End of drive initialization.
   9501                                  
@@ -10583,7 +10583,7 @@
   9716                                  		; 03/06/2018
   9717 00002E75 803E[6D00]00            		CMP	BYTE [fHave96],0
   9718 00002E7A 7503                    		JNZ	SHORT ReadDos
-  9719 00002E7C E87B02                  		call	PURGE_96TPI	;mjb001 eliminate calls to 96tpi hoohah
+  9719 00002E7C E87F02                  		call	PURGE_96TPI	;mjb001 eliminate calls to 96tpi hoohah
   9720                                  
   9721                                  ReadDos:
   9722                                  		; 06/07/2019
@@ -10607,7 +10607,7 @@
   9740                                  		; 03/06/2018 - Retro DOS v3.0
   9741                                  		;JMP	SYSINIT
   9742                                  		; 05/07/2018
-  9743 00002E82 E96D04                  		jmp	_SYSINIT ; GOINIT
+  9743 00002E82 E97104                  		jmp	_SYSINIT ; GOINIT
   9744                                  
   9745                                  ;-----------------------------------------------------------------------------
   9746                                  ; 03/06/2018 - Retro DOS v3.0
@@ -10990,7 +10990,7 @@
  10123                                  		;lea	si,[di].BytePerSec	; ds:si -> BPB for hard file
  10124 0000308B 8D7506                  		lea	si,[di+BDS.BytePerSec]
  10125                                  
- 10126 0000308E EB38                    		jmp	short Set_RecBPB
+ 10126 0000308E EB3C                    		jmp	short Set_RecBPB
  10127                                  NotHardFF:
  10128 00003090 0E                      		push	cs
  10129 00003091 1F                      		pop	ds
@@ -11023,7 +11023,7 @@
  10156                                  No_Round_Up:
  10157                                  		;mov	[di].RcSecFat,ax
  10158 000030BC 894538                  		mov	[di+BDS.RcSecFat],ax
- 10159 000030BF EB0F                    		jmp	short Go_To_Next_BDS
+ 10159 000030BF EB13                    		jmp	short Go_To_Next_BDS
  10160                                  
  10161                                  NOT_PROCESS_OTHER:
  10162 000030C1 D1E3                    		shl	bx,1			; bx is word index into table of BPBs
@@ -11033,614 +11033,617 @@
  10166                                  				      ; (FD BPB Tables are in SYINIT section)
  10167                                  		;mov	si,word ptr [si+bx]	; get address of BPB
  10168 000030C6 8B30                    		mov	si,[si+bx]
- 10169                                  Set_RecBPB:
- 10170                                  		;lea	di,[di].RBytePerSec	; es:di -> RecBPB
- 10171 000030C8 8D7D2D                  		lea	di,[di+BDS.RBytePerSec]
- 10172 000030CB B91900                  		mov	cx,BPBSIZ
- 10173 000030CE F3A4                    		REP	MOVSB			; MOVE BPBSIZ BYTES
- 10174                                  Go_To_Next_BDS:
- 10175 000030D0 5F                      		pop	di
- 10176 000030D1 07                      		pop	es			; restore pointer to BDS
- 10177                                  		;mov	bx,word ptr es:[di].link+2
- 10178                                  		;mov	di,word ptr es:[di].link
- 10179 000030D2 268B5D02                		mov	bx,[es:di+BDS.Link+2]
- 10180                                  		;mov	di,[es:di+BDS.Link]
- 10181 000030D6 268B3D                  		mov	di,[es:di] ; 05/07/2019
- 10182 000030D9 8EC3                    		mov	es,bx
- 10183 000030DB E97DFF                  		jmp	NextBDS
- 10184                                  
- 10185                                  ; ----------------------------------------------------------------------------
- 10186                                  ; 03/06/2018 - Retro DOS v3.0
+ 10169                                  
+ 10170                                  		; 28/08/2023 (BugFix)
+ 10171 000030C8 81C6[2033]              		add	si,SYSINIT_START
+ 10172                                  Set_RecBPB:
+ 10173                                  		;lea	di,[di].RBytePerSec	; es:di -> RecBPB
+ 10174 000030CC 8D7D2D                  		lea	di,[di+BDS.RBytePerSec]
+ 10175 000030CF B91900                  		mov	cx,BPBSIZ
+ 10176 000030D2 F3A4                    		REP	MOVSB			; MOVE BPBSIZ BYTES
+ 10177                                  Go_To_Next_BDS:
+ 10178 000030D4 5F                      		pop	di
+ 10179 000030D5 07                      		pop	es			; restore pointer to BDS
+ 10180                                  		;mov	bx,word ptr es:[di].link+2
+ 10181                                  		;mov	di,word ptr es:[di].link
+ 10182 000030D6 268B5D02                		mov	bx,[es:di+BDS.Link+2]
+ 10183                                  		;mov	di,[es:di+BDS.Link]
+ 10184 000030DA 268B3D                  		mov	di,[es:di] ; 05/07/2019
+ 10185 000030DD 8EC3                    		mov	es,bx
+ 10186 000030DF E979FF                  		jmp	NextBDS
  10187                                  
- 10188                                  
- 10189                                  ; SI POINTS TO DEVICE HEADER
- 10190                                  ;
- 10191                                  ;  4/22/86 - print_init, aux_init is modified to eliminate the
- 10192                                  ;  self-modifying code.
- 10193                                  
- 10194                                  PRINT_INIT:
- 10195 000030DE E80F00                  		call	GET_DEVICE_NUMBER
- 10196 000030E1 B401                    		mov	ah,1		;initalize printer port
- 10197 000030E3 CD17                    		int	17h		;call ROM-Bios routine
- 10198 000030E5 C3                      		retn
- 10199                                  
- 10200                                  AUX_INIT:
- 10201 000030E6 E80700                  		call	GET_DEVICE_NUMBER
- 10202 000030E9 B0A3                    		mov	al,RSINIT	;2400,N,1,8 (MSEQU.INC)
- 10203 000030EB B400                    		mov	ah,0		;initalize AUX port
- 10204 000030ED CD14                    		int	14h		;call ROM-Bios routine
- 10205 000030EF C3                      		retn
- 10206                                  
- 10207                                  GET_DEVICE_NUMBER:
- 10208                                  ;SI -> device header
- 10209                                  		; 16/06/2018
- 10210 000030F0 2E8A440D                		MOV	AL,[CS:SI+13]	;GET DEVICE NUMBER FROM THE NAME
- 10211                                  		;MOV	AL,[SI+13]
- 10212 000030F4 2C31                    		SUB	AL,"1"
- 10213 000030F6 98                      		CBW
- 10214 000030F7 89C2                    		MOV	DX,AX
- 10215 000030F9 C3                      		RETN
- 10216                                  
- 10217                                  ; ----------------------------------------------------------------------------
- 10218                                  
- 10219                                  ;
- 10220                                  ;   purge_96tpi NOP's calls to 96tpi support.
- 10221                                  ;
- 10222                                  PURGE_96TPI:
- 10223 000030FA 1E                      		PUSH	DS
- 10224 000030FB 06                      		PUSH	ES
- 10225                                  
- 10226 000030FC 0E                      		push	cs			;mjb001
- 10227 000030FD 07                      		pop	es			;mjb001
- 10228 000030FE 0E                      		push	cs			;mjb001
- 10229 000030FF 1F                      		pop	ds			;mjb001
- 10230                                  		
- 10231 00003100 BE[F529]                		MOV	SI,PatchTable
- 10232                                  PatchLoop:
- 10233 00003103 AD                      		LODSW
- 10234 00003104 89C1                    		MOV	CX,AX
- 10235 00003106 E309                    		JCXZ	PatchDone
- 10236 00003108 AD                      		LODSW
- 10237 00003109 89C7                    		MOV	DI,AX
- 10238 0000310B B090                    		MOV	AL,90h
- 10239 0000310D F3AA                    		REP	STOSB
- 10240 0000310F EBF2                    		JMP	short PatchLoop
- 10241                                  
- 10242                                  PatchDone:
- 10243 00003111 BF[2507]                		mov	di,TABLE_PATCH		;ARR 2.42
- 10244 00003114 B8[F606]                		MOV	AX,EXIT
- 10245 00003117 AB                      		STOSW
- 10246 00003118 AB                      		STOSW
- 10247                                  
- 10248 00003119 07                      		POP	ES
- 10249 0000311A 1F                      		POP	DS
- 10250 0000311B C3                      		retn				;mjb001
- 10251                                  
- 10252                                  ; ----------------------------------------------------------------------------
- 10253                                  ; 03/06/2018 - Retro DOS v3.0
- 10254                                  ; (19/03/2018 - Retro DOS v2.0)
- 10255                                  
- 10256                                  ;Mini disk initialization routine. Called right after DoHard - 4/7/86
- 10257                                  ; DoMini **************************************************************** 
- 10258                                  ; **CS=DS=ES=code							
- 10259                                  ; **DoMini will search for every extended partition in the system, and
- 10260                                  ;   initialize it.							
- 10261                                  ; **BDSM stands for BDS table for Mini disk and located right after the
- 10262                                  ;   label End96Tpi. End_Of_BDSM will have the offset value of the ending
- 10263                                  ;   address of BDSM table.						 
- 10264                                  ; **BDSM is the same as usual BDS except that TIM_LO, TIM_HI entries are
- 10265                                  ;   overlapped and used to id mini disk and the number of Hidden_trks.
- 10266                                  ;   Right now, they are called as IsMini, Hidden_Trks respectively.
- 10267                                  ; **DoMini will use the same routine in SETHARD routine after label SET1
- 10268                                  ;   to save coding.							
- 10269                                  ; **DRVMAX determined in DoHard routine will be used for the next
- 10270                                  ;   available logical mini disk drive number.	
- 10271                                  ;								
- 10272                                  ; Input: DRVMAX, DSKDRVS					
- 10273                                  ;								
- 10274                                  ; Output: MiniDisk installed. BDSM table established and installed to BDS.
- 10275                                  ;	  num_mini_dsk - number of mini disks installed in the system.
- 10276                                  ;	  End_Of_BDSM - ending offset address of BDSM.		
- 10277                                  ;								
- 10278                                  ;									
- 10279                                  ; Called modules:						
- 10280                                  ;		  GetBoot, WRMSG, int 13h (AH=8, Rom)		
- 10281                                  ;		  FIND_MINI_PARTITION (new), Install_BDSM (new),
- 10282                                  ;		  SetMini (new, it will use SET1 routine)	
- 10283                                  ; Variables used: End_Of_BDSM, numh, mininum, num_mini_dsk,	
- 10284                                  ;		  Rom_Minidsk_num, Mini_HDLIM, Mini_SECLIM		
- 10285                                  ;		  BDSMs, BDSM_type (struc), START_BDS			
- 10286                                  ;***********************************************************************
- 10287                                  ;
- 10288                                  
- 10289                                  DoMini:
- 10290                                  		;push	ax			;Do I need to do this?
+ 10188                                  ; ----------------------------------------------------------------------------
+ 10189                                  ; 03/06/2018 - Retro DOS v3.0
+ 10190                                  
+ 10191                                  
+ 10192                                  ; SI POINTS TO DEVICE HEADER
+ 10193                                  ;
+ 10194                                  ;  4/22/86 - print_init, aux_init is modified to eliminate the
+ 10195                                  ;  self-modifying code.
+ 10196                                  
+ 10197                                  PRINT_INIT:
+ 10198 000030E2 E80F00                  		call	GET_DEVICE_NUMBER
+ 10199 000030E5 B401                    		mov	ah,1		;initalize printer port
+ 10200 000030E7 CD17                    		int	17h		;call ROM-Bios routine
+ 10201 000030E9 C3                      		retn
+ 10202                                  
+ 10203                                  AUX_INIT:
+ 10204 000030EA E80700                  		call	GET_DEVICE_NUMBER
+ 10205 000030ED B0A3                    		mov	al,RSINIT	;2400,N,1,8 (MSEQU.INC)
+ 10206 000030EF B400                    		mov	ah,0		;initalize AUX port
+ 10207 000030F1 CD14                    		int	14h		;call ROM-Bios routine
+ 10208 000030F3 C3                      		retn
+ 10209                                  
+ 10210                                  GET_DEVICE_NUMBER:
+ 10211                                  ;SI -> device header
+ 10212                                  		; 16/06/2018
+ 10213 000030F4 2E8A440D                		MOV	AL,[CS:SI+13]	;GET DEVICE NUMBER FROM THE NAME
+ 10214                                  		;MOV	AL,[SI+13]
+ 10215 000030F8 2C31                    		SUB	AL,"1"
+ 10216 000030FA 98                      		CBW
+ 10217 000030FB 89C2                    		MOV	DX,AX
+ 10218 000030FD C3                      		RETN
+ 10219                                  
+ 10220                                  ; ----------------------------------------------------------------------------
+ 10221                                  
+ 10222                                  ;
+ 10223                                  ;   purge_96tpi NOP's calls to 96tpi support.
+ 10224                                  ;
+ 10225                                  PURGE_96TPI:
+ 10226 000030FE 1E                      		PUSH	DS
+ 10227 000030FF 06                      		PUSH	ES
+ 10228                                  
+ 10229 00003100 0E                      		push	cs			;mjb001
+ 10230 00003101 07                      		pop	es			;mjb001
+ 10231 00003102 0E                      		push	cs			;mjb001
+ 10232 00003103 1F                      		pop	ds			;mjb001
+ 10233                                  		
+ 10234 00003104 BE[F529]                		MOV	SI,PatchTable
+ 10235                                  PatchLoop:
+ 10236 00003107 AD                      		LODSW
+ 10237 00003108 89C1                    		MOV	CX,AX
+ 10238 0000310A E309                    		JCXZ	PatchDone
+ 10239 0000310C AD                      		LODSW
+ 10240 0000310D 89C7                    		MOV	DI,AX
+ 10241 0000310F B090                    		MOV	AL,90h
+ 10242 00003111 F3AA                    		REP	STOSB
+ 10243 00003113 EBF2                    		JMP	short PatchLoop
+ 10244                                  
+ 10245                                  PatchDone:
+ 10246 00003115 BF[2507]                		mov	di,TABLE_PATCH		;ARR 2.42
+ 10247 00003118 B8[F606]                		MOV	AX,EXIT
+ 10248 0000311B AB                      		STOSW
+ 10249 0000311C AB                      		STOSW
+ 10250                                  
+ 10251 0000311D 07                      		POP	ES
+ 10252 0000311E 1F                      		POP	DS
+ 10253 0000311F C3                      		retn				;mjb001
+ 10254                                  
+ 10255                                  ; ----------------------------------------------------------------------------
+ 10256                                  ; 03/06/2018 - Retro DOS v3.0
+ 10257                                  ; (19/03/2018 - Retro DOS v2.0)
+ 10258                                  
+ 10259                                  ;Mini disk initialization routine. Called right after DoHard - 4/7/86
+ 10260                                  ; DoMini **************************************************************** 
+ 10261                                  ; **CS=DS=ES=code							
+ 10262                                  ; **DoMini will search for every extended partition in the system, and
+ 10263                                  ;   initialize it.							
+ 10264                                  ; **BDSM stands for BDS table for Mini disk and located right after the
+ 10265                                  ;   label End96Tpi. End_Of_BDSM will have the offset value of the ending
+ 10266                                  ;   address of BDSM table.						 
+ 10267                                  ; **BDSM is the same as usual BDS except that TIM_LO, TIM_HI entries are
+ 10268                                  ;   overlapped and used to id mini disk and the number of Hidden_trks.
+ 10269                                  ;   Right now, they are called as IsMini, Hidden_Trks respectively.
+ 10270                                  ; **DoMini will use the same routine in SETHARD routine after label SET1
+ 10271                                  ;   to save coding.							
+ 10272                                  ; **DRVMAX determined in DoHard routine will be used for the next
+ 10273                                  ;   available logical mini disk drive number.	
+ 10274                                  ;								
+ 10275                                  ; Input: DRVMAX, DSKDRVS					
+ 10276                                  ;								
+ 10277                                  ; Output: MiniDisk installed. BDSM table established and installed to BDS.
+ 10278                                  ;	  num_mini_dsk - number of mini disks installed in the system.
+ 10279                                  ;	  End_Of_BDSM - ending offset address of BDSM.		
+ 10280                                  ;								
+ 10281                                  ;									
+ 10282                                  ; Called modules:						
+ 10283                                  ;		  GetBoot, WRMSG, int 13h (AH=8, Rom)		
+ 10284                                  ;		  FIND_MINI_PARTITION (new), Install_BDSM (new),
+ 10285                                  ;		  SetMini (new, it will use SET1 routine)	
+ 10286                                  ; Variables used: End_Of_BDSM, numh, mininum, num_mini_dsk,	
+ 10287                                  ;		  Rom_Minidsk_num, Mini_HDLIM, Mini_SECLIM		
+ 10288                                  ;		  BDSMs, BDSM_type (struc), START_BDS			
+ 10289                                  ;***********************************************************************
+ 10290                                  ;
  10291                                  
- 10292 0000311C BF[711E]                		mov	di,BDSMs		;from now on, DI points to BDSM
- 10293 0000311F B280                    		mov	dl,80h 			;look at first hard drive
- 10294 00003121 B408                    		mov	ah,08h			;get drive parameters
- 10295 00003123 CD13                    		int	13h			;call ROM-Bios
- 10296 00003125 80FA00                  		cmp	dl, 0
- 10297 00003128 7451                    		jz	short DoMiniRet		;no hard file? Then exit.
- 10298 0000312A 8816[E229]              		mov	[numh],dl		;save the number of hard files.
- 10299 0000312E 31C0                    		xor	ax,ax
- 10300 00003130 A0[6A00]                		mov	al,[DRVMAX]
- 10301 00003133 A2[E329]                		mov	[mininum],al		;this will be logical drive letter
- 10302                                  						;for mini disk to start with.
- 10303                                  
- 10304 00003136 D1E0                    		shl	ax,1			;ax=number of devices. word bndry
- 10305 00003138 53                      		push	bx
- 10306 00003139 BB[E405]                		mov	bx,DSKDRVS
- 10307 0000313C 01C3                    		add	bx,ax
- 10308 0000313E 891E[EA29]              		mov	[Mini_BPB_ptr],BX	;Mini_BPB_ptr points to first avlb
- 10309                                  						;spot in DskDrvs for Mini disk
- 10310                                  						;which points to BPB area of BDSM.
- 10311 00003142 5B                      		pop	bx
- 10312                                  
- 10313 00003143 C606[E529]80            		mov	byte [Rom_Minidsk_num],80h
- 10314                                  DoMiniBegin:
- 10315 00003148 FEC6                    		inc	dh			;Get # of heads (conv to 1 based)
- 10316 0000314A 31C0                    		xor	ax,ax
- 10317 0000314C 88F0                    		mov	al,dh
- 10318 0000314E A3[E629]                		mov	[Mini_HDLIM],ax		;save it.
- 10319 00003151 31C0                    		xor	ax,ax
- 10320 00003153 80E13F                  		and	cl,3Fh	 		;Get # of sectors/track
- 10321 00003156 88C8                    		mov	al,cl
- 10322 00003158 A3[E829]                		mov	[Mini_SECLIM],ax 	;and save it.
- 10323                                  
- 10324 0000315B 8A16[E529]              		mov	dl,[Rom_Minidsk_num]	;drive number <DL>
- 10325 0000315F E837FD                  		call	GETBOOT 		;rd master boot rec 7c0:BootBias
- 10326 00003162 7203                    		jc	short DoMiniNext
- 10327 00003164 E81500                  		call	FIND_MINI_PARTITION
- 10328                                  DoMiniNext:
- 10329 00003167 FE0E[E229]              		dec	byte [numh]
- 10330 0000316B 740E                    		jz	short DoMiniRet
- 10331 0000316D FE06[E529]              		inc	byte [Rom_Minidsk_num] 	;Next hard file
- 10332 00003171 8A16[E529]              		mov	dl,[Rom_Minidsk_num]	;look at next hard drive
- 10333 00003175 B408                    		mov	ah,08h			;get drive parameters
- 10334 00003177 CD13                    		int	13h			;call ROM-Bios
- 10335 00003179 EBCD                    		jmp	short DoMiniBegin
- 10336                                  
- 10337                                  DoMiniRet:
- 10338                                  		;pop	ax
- 10339                                  FmpRet: 			; 19/03/2018 -  Retro DOS v2.0
- 10340 0000317B C3                      		retn
- 10341                                  
- 10342                                  ;Find_Mini_Partition tries to find every Extended partition on a disk.
- 10343                                  ;At entry:	DI -> BDSM entry
- 10344                                  ;		ES:BX -> 07C0:BootBias - Master Boot Record
- 10345                                  ;		Rom_Minidsk_num - ROM drive number
- 10346                                  ;		MiniNum - Logical drive number
- 10347                                  ;		Mini_HDLIM, Mini_SECLIM 
- 10348                                  ;
- 10349                                  ;Called routine: SETMINI which uses SET1 (in SETHARD routine)
- 10350                                  ;Variables & equates used from orig BIOS - flags, fNon_Removable, fBigfat
+ 10292                                  DoMini:
+ 10293                                  		;push	ax			;Do I need to do this?
+ 10294                                  
+ 10295 00003120 BF[711E]                		mov	di,BDSMs		;from now on, DI points to BDSM
+ 10296 00003123 B280                    		mov	dl,80h 			;look at first hard drive
+ 10297 00003125 B408                    		mov	ah,08h			;get drive parameters
+ 10298 00003127 CD13                    		int	13h			;call ROM-Bios
+ 10299 00003129 80FA00                  		cmp	dl, 0
+ 10300 0000312C 7451                    		jz	short DoMiniRet		;no hard file? Then exit.
+ 10301 0000312E 8816[E229]              		mov	[numh],dl		;save the number of hard files.
+ 10302 00003132 31C0                    		xor	ax,ax
+ 10303 00003134 A0[6A00]                		mov	al,[DRVMAX]
+ 10304 00003137 A2[E329]                		mov	[mininum],al		;this will be logical drive letter
+ 10305                                  						;for mini disk to start with.
+ 10306                                  
+ 10307 0000313A D1E0                    		shl	ax,1			;ax=number of devices. word bndry
+ 10308 0000313C 53                      		push	bx
+ 10309 0000313D BB[E405]                		mov	bx,DSKDRVS
+ 10310 00003140 01C3                    		add	bx,ax
+ 10311 00003142 891E[EA29]              		mov	[Mini_BPB_ptr],BX	;Mini_BPB_ptr points to first avlb
+ 10312                                  						;spot in DskDrvs for Mini disk
+ 10313                                  						;which points to BPB area of BDSM.
+ 10314 00003146 5B                      		pop	bx
+ 10315                                  
+ 10316 00003147 C606[E529]80            		mov	byte [Rom_Minidsk_num],80h
+ 10317                                  DoMiniBegin:
+ 10318 0000314C FEC6                    		inc	dh			;Get # of heads (conv to 1 based)
+ 10319 0000314E 31C0                    		xor	ax,ax
+ 10320 00003150 88F0                    		mov	al,dh
+ 10321 00003152 A3[E629]                		mov	[Mini_HDLIM],ax		;save it.
+ 10322 00003155 31C0                    		xor	ax,ax
+ 10323 00003157 80E13F                  		and	cl,3Fh	 		;Get # of sectors/track
+ 10324 0000315A 88C8                    		mov	al,cl
+ 10325 0000315C A3[E829]                		mov	[Mini_SECLIM],ax 	;and save it.
+ 10326                                  
+ 10327 0000315F 8A16[E529]              		mov	dl,[Rom_Minidsk_num]	;drive number <DL>
+ 10328 00003163 E833FD                  		call	GETBOOT 		;rd master boot rec 7c0:BootBias
+ 10329 00003166 7203                    		jc	short DoMiniNext
+ 10330 00003168 E81500                  		call	FIND_MINI_PARTITION
+ 10331                                  DoMiniNext:
+ 10332 0000316B FE0E[E229]              		dec	byte [numh]
+ 10333 0000316F 740E                    		jz	short DoMiniRet
+ 10334 00003171 FE06[E529]              		inc	byte [Rom_Minidsk_num] 	;Next hard file
+ 10335 00003175 8A16[E529]              		mov	dl,[Rom_Minidsk_num]	;look at next hard drive
+ 10336 00003179 B408                    		mov	ah,08h			;get drive parameters
+ 10337 0000317B CD13                    		int	13h			;call ROM-Bios
+ 10338 0000317D EBCD                    		jmp	short DoMiniBegin
+ 10339                                  
+ 10340                                  DoMiniRet:
+ 10341                                  		;pop	ax
+ 10342                                  FmpRet: 			; 19/03/2018 -  Retro DOS v2.0
+ 10343 0000317F C3                      		retn
+ 10344                                  
+ 10345                                  ;Find_Mini_Partition tries to find every Extended partition on a disk.
+ 10346                                  ;At entry:	DI -> BDSM entry
+ 10347                                  ;		ES:BX -> 07C0:BootBias - Master Boot Record
+ 10348                                  ;		Rom_Minidsk_num - ROM drive number
+ 10349                                  ;		MiniNum - Logical drive number
+ 10350                                  ;		Mini_HDLIM, Mini_SECLIM 
  10351                                  ;
- 10352                                  
- 10353                                  FIND_MINI_PARTITION:
- 10354 0000317C 81C3C201                		add	bx,1C2h			;BX -> system id.
- 10355                                  FmpNext:
- 10356                                  		; 05/07/2019 - Retro DOS v3.1
- 10357 00003180 26803F05                		cmp	byte [ES:BX],5		; 5 = extended partition ID.
- 10358 00003184 740A                    		je	short FmpGot
- 10359 00003186 83C310                  		add	bx,16			; for next entry
- 10360 00003189 81FB0204                		cmp	bx,202h+BootBias ; 402h
- 10361 0000318D 75F1                    		jnz	short FmpNext
- 10362                                  		;jmp	short FmpRet		;not found extended partition
- 10363 0000318F C3                      		retn
- 10364                                  FmpGot:
- 10365 00003190 31C0                    		xor	ax,ax
- 10366 00003192 0C01                    		or	al,fNon_Removable ; 1
- 10367 00003194 094529                  		or	[DI+BDS.Flags],ax
- 10368 00003197 C6452805                		mov	byte [DI+BDS.FormFactor],ffHardFile ; 5
- 10369 0000319B C606[A429]00            		mov	byte [fBigFAT],0	;assume 12 bit Fat.
- 10370 000031A0 A1[E629]                		mov	ax,[Mini_HDLIM]
- 10371 000031A3 894515                  		mov	[DI+BDS.HDLIM],ax
- 10372 000031A6 A1[E829]                		mov	ax,[Mini_SECLIM]
- 10373 000031A9 894513                  		mov	[DI+BDS.SECLIM],ax
- 10374 000031AC A0[E529]                		mov	al,[Rom_Minidsk_num]
- 10375 000031AF 884504                  		mov	[DI+BDS.DriveNum],al	;set physical number
- 10376 000031B2 A0[E329]                		mov	al,[mininum]
- 10377 000031B5 884505                  		mov	[DI+BDS.DriveLet],al	;set logical number
- 10378                                  
- 10379 000031B8 26837F0840              		cmp	word [ES:BX+8],64 ;**With current BPB, only lower word	
- 10380                                  					; is meaningful.			
- 10381 000031BD 74BC                    		je	short FmpRet	;should be bigger than 64 sectors at least
- 10382 000031BF 83EB04                  		sub	bx,4		;let BX point to the start of the entry 
- 10383 000031C2 268A7702                		mov	dh,[ES:BX+2]						
- 10384 000031C6 80E6C0                  		and	dh,11000000b		;get higher bits of cyl 
- 10385 000031C9 D0C6                    		rol	dh,1
- 10386 000031CB D0C6                    		rol	dh,1	
- 10387 000031CD 268A5703                		mov	dl,[ES:BX+3]		;cyl byte
- 10388 000031D1 89554F                  		mov	[DI+BDSM.Hidden_Trks],dx ;set hidden trks
- 10389                                  ;** Now, read the volume boot record into BootBias.
- 10390 000031D4 268B4F02                		mov	cx,[ES:BX+2]		;cylinder,cylinder/sector
- 10391 000031D8 268A7701                		mov	dh,[ES:BX+1]		;head
- 10392 000031DC 8A16[E529]              		mov	dl,[Rom_Minidsk_num]	;drive
- 10393                                  		; 03/07/2018
- 10394                                  		;mov	ax,7C0h 		;
- 10395 000031E0 A1[132A]                		mov	ax,[init_bootseg]
- 10396 000031E3 8EC0                    		mov	es,ax			;buffer segment
- 10397 000031E5 BB0002                  		mov	bx,BootBias ; 200h	;buffer offset
- 10398 000031E8 B80102                  		mov	ax,0201h		;read,1 sector
- 10399 000031EB CD13                    		int	13h			;call ROM-Bios routine
- 10400 000031ED 728C                    		jc	short FmpRet		;cannot continue.
- 10401 000031EF BBC203                  		mov	bx,1C2h+BootBias ; 3C2h
- 10402                                  
- 10403 000031F2 E810FD                  		call	SetMini 		;install a mini disk. BX value saved.
- 10404 000031F5 7225                    		jc	short FmpNextChain
+ 10352                                  ;Called routine: SETMINI which uses SET1 (in SETHARD routine)
+ 10353                                  ;Variables & equates used from orig BIOS - flags, fNon_Removable, fBigfat
+ 10354                                  ;
+ 10355                                  
+ 10356                                  FIND_MINI_PARTITION:
+ 10357 00003180 81C3C201                		add	bx,1C2h			;BX -> system id.
+ 10358                                  FmpNext:
+ 10359                                  		; 05/07/2019 - Retro DOS v3.1
+ 10360 00003184 26803F05                		cmp	byte [ES:BX],5		; 5 = extended partition ID.
+ 10361 00003188 740A                    		je	short FmpGot
+ 10362 0000318A 83C310                  		add	bx,16			; for next entry
+ 10363 0000318D 81FB0204                		cmp	bx,202h+BootBias ; 402h
+ 10364 00003191 75F1                    		jnz	short FmpNext
+ 10365                                  		;jmp	short FmpRet		;not found extended partition
+ 10366 00003193 C3                      		retn
+ 10367                                  FmpGot:
+ 10368 00003194 31C0                    		xor	ax,ax
+ 10369 00003196 0C01                    		or	al,fNon_Removable ; 1
+ 10370 00003198 094529                  		or	[DI+BDS.Flags],ax
+ 10371 0000319B C6452805                		mov	byte [DI+BDS.FormFactor],ffHardFile ; 5
+ 10372 0000319F C606[A429]00            		mov	byte [fBigFAT],0	;assume 12 bit Fat.
+ 10373 000031A4 A1[E629]                		mov	ax,[Mini_HDLIM]
+ 10374 000031A7 894515                  		mov	[DI+BDS.HDLIM],ax
+ 10375 000031AA A1[E829]                		mov	ax,[Mini_SECLIM]
+ 10376 000031AD 894513                  		mov	[DI+BDS.SECLIM],ax
+ 10377 000031B0 A0[E529]                		mov	al,[Rom_Minidsk_num]
+ 10378 000031B3 884504                  		mov	[DI+BDS.DriveNum],al	;set physical number
+ 10379 000031B6 A0[E329]                		mov	al,[mininum]
+ 10380 000031B9 884505                  		mov	[DI+BDS.DriveLet],al	;set logical number
+ 10381                                  
+ 10382 000031BC 26837F0840              		cmp	word [ES:BX+8],64 ;**With current BPB, only lower word	
+ 10383                                  					; is meaningful.			
+ 10384 000031C1 74BC                    		je	short FmpRet	;should be bigger than 64 sectors at least
+ 10385 000031C3 83EB04                  		sub	bx,4		;let BX point to the start of the entry 
+ 10386 000031C6 268A7702                		mov	dh,[ES:BX+2]						
+ 10387 000031CA 80E6C0                  		and	dh,11000000b		;get higher bits of cyl 
+ 10388 000031CD D0C6                    		rol	dh,1
+ 10389 000031CF D0C6                    		rol	dh,1	
+ 10390 000031D1 268A5703                		mov	dl,[ES:BX+3]		;cyl byte
+ 10391 000031D5 89554F                  		mov	[DI+BDSM.Hidden_Trks],dx ;set hidden trks
+ 10392                                  ;** Now, read the volume boot record into BootBias.
+ 10393 000031D8 268B4F02                		mov	cx,[ES:BX+2]		;cylinder,cylinder/sector
+ 10394 000031DC 268A7701                		mov	dh,[ES:BX+1]		;head
+ 10395 000031E0 8A16[E529]              		mov	dl,[Rom_Minidsk_num]	;drive
+ 10396                                  		; 03/07/2018
+ 10397                                  		;mov	ax,7C0h 		;
+ 10398 000031E4 A1[132A]                		mov	ax,[init_bootseg]
+ 10399 000031E7 8EC0                    		mov	es,ax			;buffer segment
+ 10400 000031E9 BB0002                  		mov	bx,BootBias ; 200h	;buffer offset
+ 10401 000031EC B80102                  		mov	ax,0201h		;read,1 sector
+ 10402 000031EF CD13                    		int	13h			;call ROM-Bios routine
+ 10403 000031F1 728C                    		jc	short FmpRet		;cannot continue.
+ 10404 000031F3 BBC203                  		mov	bx,1C2h+BootBias ; 3C2h
  10405                                  
- 10406 000031F7 E82500                  		call	INSTALL_BDSM		;install the BDSM into the BDS table
- 10407 000031FA FE06[E329]              		inc	byte [mininum] 		;increase the logical drive number for next
- 10408 000031FE FE06[E429]              		inc	byte [num_mini_dsk]	;increase the number of mini disk installed.
- 10409                                  
- 10410 00003202 53                      		push	bx			;now, set the DskDrvs pointer to BPB info.
- 10411 00003203 8B1E[EA29]              		mov	bx,[Mini_BPB_ptr]
- 10412                                  		;lea	si,[di].BytePerSec	;points to BPB of BDSM
- 10413 00003207 8D7506                  		lea	si,[di+BDSM.mBytePerSec]
- 10414 0000320A 8937                    		mov	[bx],si
- 10415 0000320C FF06[EA29]              		inc	word [Mini_BPB_ptr]	;advance to the next address
- 10416 00003210 FF06[EA29]              		inc	word [Mini_BPB_ptr]
- 10417 00003214 5B                      		pop	bx							 
- 10418                                  								 
- 10419                                  		;add	DI,type BDSM_type	;adjust to the next BDSM table entry. 
- 10420 00003215 83C751                  		add	DI,BDSM.size  ; 81
- 10421 00003218 893E[E029]              		mov	[End_Of_BDSM],DI	;set the ending address of BDSM table to this. 
- 10422                                  
- 10423                                  FmpNextChain:
- 10424 0000321C E961FF                  		jmp	FmpNext		;let's find out if we have any chained partition
- 10425                                  ;FmpRet: 								 
- 10426                                  ;		retn
- 10427                                  
- 10428                                  ;SetMini:								 
- 10429                                  ;		push	di							 
- 10430                                  ;		push	bx							 
- 10431                                  ;		push	ds							 
- 10432                                  ;		jmp	short SET1	;will be returned to Find mini partition routine.
- 10433                                  ;					;Some logic has been added to SET1 to 
- 10434                                  ;					;deal with Mini disks.				  ;3.30
- 10435                                  														  ;3.30
- 10436                                  ;									 
- 10437                                  ;Install BDSM installs a BDSM (pointed by DS:DI) into the end of the current 
- 10438                                  ;linked list of BDS.							 
- 10439                                  ;Also, set the current BDSM pointer segment to DS.			 
- 10440                                  ;At entry: DS:DI -> BDSM						 
- 10441                                  ;
- 10442                                  									 
- 10443                                  INSTALL_BDSM:								 
- 10444 0000321F 50                      		push	ax							 
- 10445 00003220 56                      		push	si							 
- 10446 00003221 06                      		push	es							 
- 10447                                  									 
- 10448                                  		;les	si, dword ptr cs:START_BDS	;start of the beginning of list
- 10449 00003222 C436[FA00]              		les	si, [START_BDS]
- 10450                                  I_BDSM_Next:								 
- 10451 00003226 26833CFF                		cmp	word [es:si], -1		;end of the list?	 
- 10452 0000322A 740B                    		jz	short I_BDSM_New						 
- 10453                                  		;mov	si, [es:si+BDSM.mLink]
- 10454 0000322C 268B34                  		mov	si, [es:si] ; 05/07/2019				 
- 10455 0000322F 268B4402                		mov	ax, [es:si+BDSM.mLink+2]	;next pointer		 
- 10456 00003233 8EC0                    		mov	es, ax							 
- 10457 00003235 EBEF                    		jmp	short I_BDSM_Next					 
- 10458                                  I_BDSM_New:								 
- 10459 00003237 8CD8                    		mov	ax, ds							 
- 10460 00003239 894502                  		mov	[di+BDSM.mLink+2], ax	;BDSM segment had not been initialized.
- 10461 0000323C 26894402                		mov	[es:si+BDSM.mLink+2], ax				 
- 10462                                  		;mov	[es:si+BDSM.mLink], di
- 10463 00003240 26893C                  		mov	[es:si], di ; 05/07/2019				 
- 10464                                  		;mov	word [di+BDSM.mLink], -1	;make sure it is a null ptr.
- 10465 00003243 C705FFFF                		mov	word [di], -1 ; 05/07/2019 
- 10466                                  I_BDSM_ret:								 
- 10467 00003247 07                      		pop	es							 
- 10468 00003248 5E                      		pop	si							 
- 10469 00003249 58                      		pop	ax							 
- 10470 0000324A C3                      		retn								 
- 10471                                  									 
- 10472                                  ;**End of mini disk initialization**	; 4/7/86
- 10473                                  
- 10474                                  ; ----------------------------------------------------------------------------
- 10475                                  ; 03/06/2018 - Retro DOS v3.0
+ 10406 000031F6 E80CFD                  		call	SetMini 		;install a mini disk. BX value saved.
+ 10407 000031F9 7225                    		jc	short FmpNextChain
+ 10408                                  
+ 10409 000031FB E82500                  		call	INSTALL_BDSM		;install the BDSM into the BDS table
+ 10410 000031FE FE06[E329]              		inc	byte [mininum] 		;increase the logical drive number for next
+ 10411 00003202 FE06[E429]              		inc	byte [num_mini_dsk]	;increase the number of mini disk installed.
+ 10412                                  
+ 10413 00003206 53                      		push	bx			;now, set the DskDrvs pointer to BPB info.
+ 10414 00003207 8B1E[EA29]              		mov	bx,[Mini_BPB_ptr]
+ 10415                                  		;lea	si,[di].BytePerSec	;points to BPB of BDSM
+ 10416 0000320B 8D7506                  		lea	si,[di+BDSM.mBytePerSec]
+ 10417 0000320E 8937                    		mov	[bx],si
+ 10418 00003210 FF06[EA29]              		inc	word [Mini_BPB_ptr]	;advance to the next address
+ 10419 00003214 FF06[EA29]              		inc	word [Mini_BPB_ptr]
+ 10420 00003218 5B                      		pop	bx							 
+ 10421                                  								 
+ 10422                                  		;add	DI,type BDSM_type	;adjust to the next BDSM table entry. 
+ 10423 00003219 83C751                  		add	DI,BDSM.size  ; 81
+ 10424 0000321C 893E[E029]              		mov	[End_Of_BDSM],DI	;set the ending address of BDSM table to this. 
+ 10425                                  
+ 10426                                  FmpNextChain:
+ 10427 00003220 E961FF                  		jmp	FmpNext		;let's find out if we have any chained partition
+ 10428                                  ;FmpRet: 								 
+ 10429                                  ;		retn
+ 10430                                  
+ 10431                                  ;SetMini:								 
+ 10432                                  ;		push	di							 
+ 10433                                  ;		push	bx							 
+ 10434                                  ;		push	ds							 
+ 10435                                  ;		jmp	short SET1	;will be returned to Find mini partition routine.
+ 10436                                  ;					;Some logic has been added to SET1 to 
+ 10437                                  ;					;deal with Mini disks.				  ;3.30
+ 10438                                  														  ;3.30
+ 10439                                  ;									 
+ 10440                                  ;Install BDSM installs a BDSM (pointed by DS:DI) into the end of the current 
+ 10441                                  ;linked list of BDS.							 
+ 10442                                  ;Also, set the current BDSM pointer segment to DS.			 
+ 10443                                  ;At entry: DS:DI -> BDSM						 
+ 10444                                  ;
+ 10445                                  									 
+ 10446                                  INSTALL_BDSM:								 
+ 10447 00003223 50                      		push	ax							 
+ 10448 00003224 56                      		push	si							 
+ 10449 00003225 06                      		push	es							 
+ 10450                                  									 
+ 10451                                  		;les	si, dword ptr cs:START_BDS	;start of the beginning of list
+ 10452 00003226 C436[FA00]              		les	si, [START_BDS]
+ 10453                                  I_BDSM_Next:								 
+ 10454 0000322A 26833CFF                		cmp	word [es:si], -1		;end of the list?	 
+ 10455 0000322E 740B                    		jz	short I_BDSM_New						 
+ 10456                                  		;mov	si, [es:si+BDSM.mLink]
+ 10457 00003230 268B34                  		mov	si, [es:si] ; 05/07/2019				 
+ 10458 00003233 268B4402                		mov	ax, [es:si+BDSM.mLink+2]	;next pointer		 
+ 10459 00003237 8EC0                    		mov	es, ax							 
+ 10460 00003239 EBEF                    		jmp	short I_BDSM_Next					 
+ 10461                                  I_BDSM_New:								 
+ 10462 0000323B 8CD8                    		mov	ax, ds							 
+ 10463 0000323D 894502                  		mov	[di+BDSM.mLink+2], ax	;BDSM segment had not been initialized.
+ 10464 00003240 26894402                		mov	[es:si+BDSM.mLink+2], ax				 
+ 10465                                  		;mov	[es:si+BDSM.mLink], di
+ 10466 00003244 26893C                  		mov	[es:si], di ; 05/07/2019				 
+ 10467                                  		;mov	word [di+BDSM.mLink], -1	;make sure it is a null ptr.
+ 10468 00003247 C705FFFF                		mov	word [di], -1 ; 05/07/2019 
+ 10469                                  I_BDSM_ret:								 
+ 10470 0000324B 07                      		pop	es							 
+ 10471 0000324C 5E                      		pop	si							 
+ 10472 0000324D 58                      		pop	ax							 
+ 10473 0000324E C3                      		retn								 
+ 10474                                  									 
+ 10475                                  ;**End of mini disk initialization**	; 4/7/86
  10476                                  
- 10477                                  CMOS_CLOCK_READ:
- 10478                                  														  ;3.30
- 10479                                  ; IN ORDER TO DETERMINE IF THERE IS A CLOCK PRESENT IN THE SYSTEM, THE FOLLOWING 
- 10480                                  ; NEEDS TO BE DONE.							 
- 10481 0000324B 50                      		PUSH	AX							 
- 10482 0000324C 51                      		PUSH	CX							 
- 10483 0000324D 52                      		PUSH	DX							 
- 10484 0000324E 55                      		PUSH	BP							 
- 10485                                  									 
- 10486 0000324F 31ED                    		XOR	BP,BP							 
- 10487                                  LOOP_CLOCK:								 
- 10488 00003251 31C9                    		XOR	CX,CX							 
- 10489 00003253 31D2                    		XOR	DX,DX							 
- 10490 00003255 B402                    		MOV	AH,2			;READ REAL TIME CLOCK
- 10491 00003257 CD1A                    		INT	1Ah			;CALL ROM-BIOS ROUTINE
- 10492 00003259 83F900                  		CMP	CX,0							 
- 10493 0000325C 7512                    		JNZ	short CLOCK_PRESENT						 
- 10494                                  									 
- 10495 0000325E 83FA00                  		CMP	DX,0							 
- 10496 00003261 750D                    		JNZ	short CLOCK_PRESENT						 
+ 10477                                  ; ----------------------------------------------------------------------------
+ 10478                                  ; 03/06/2018 - Retro DOS v3.0
+ 10479                                  
+ 10480                                  CMOS_CLOCK_READ:
+ 10481                                  														  ;3.30
+ 10482                                  ; IN ORDER TO DETERMINE IF THERE IS A CLOCK PRESENT IN THE SYSTEM, THE FOLLOWING 
+ 10483                                  ; NEEDS TO BE DONE.							 
+ 10484 0000324F 50                      		PUSH	AX							 
+ 10485 00003250 51                      		PUSH	CX							 
+ 10486 00003251 52                      		PUSH	DX							 
+ 10487 00003252 55                      		PUSH	BP							 
+ 10488                                  									 
+ 10489 00003253 31ED                    		XOR	BP,BP							 
+ 10490                                  LOOP_CLOCK:								 
+ 10491 00003255 31C9                    		XOR	CX,CX							 
+ 10492 00003257 31D2                    		XOR	DX,DX							 
+ 10493 00003259 B402                    		MOV	AH,2			;READ REAL TIME CLOCK
+ 10494 0000325B CD1A                    		INT	1Ah			;CALL ROM-BIOS ROUTINE
+ 10495 0000325D 83F900                  		CMP	CX,0							 
+ 10496 00003260 7512                    		JNZ	short CLOCK_PRESENT						 
  10497                                  									 
- 10498 00003263 83FD01                  		CMP	BP,1			; READ AGAIN AFTER A SLIGHT DELAY, IN CASE CLOCK
- 10499 00003266 741B                    		JZ	short NO_READDATE	; WAS AT ZERO SETTING.		 
+ 10498 00003262 83FA00                  		CMP	DX,0							 
+ 10499 00003265 750D                    		JNZ	short CLOCK_PRESENT						 
  10500                                  									 
- 10501 00003268 45                      		INC	BP			; ONLY PERFORM DELAY ONCE.	 
- 10502 00003269 B90040                  		MOV	CX,4000H						 
- 10503                                  DELAY:									 
- 10504 0000326C E2FE                    		LOOP	DELAY							 
- 10505 0000326E EBE1                    		JMP	LOOP_CLOCK						 
- 10506                                  									 
- 10507                                  CLOCK_PRESENT:								 
- 10508                                  		;mov	byte [cs:HaveCMOSClock], 1 ; Set the flag for cmos clock 
- 10509 00003270 C606[8A04]01            		mov	byte [HaveCMOSClock], 1
- 10510                                  									 
- 10511 00003275 E81000                  		call	CMOSCK			; Reset CMOS clock rate that may be  
- 10512                                  						; possibly destroyed by CP DOS and 
- 10513                                  						; POST routine did not restore that.			 
- 10514 00003278 56                       		PUSH	SI							 
- 10515 00003279 E87BF5                  		CALL	READ_REAL_DATE		;READ REAL-TIME CLOCK FOR DATE 
- 10516                                  									 
- 10517 0000327C FA                      		CLI			 
- 10518 0000327D 8936[8804]              		MOV	[DAYCNT],SI		;SET SYSTEM DATE		 
- 10519 00003281 FB                      		STI			 
- 10520 00003282 5E                      		POP	SI			 
- 10521                                  NO_READDATE:								 
- 10522 00003283 5D                      		POP	BP							 
- 10523 00003284 5A                      		POP	DX							 
- 10524 00003285 59                      		POP	CX							 
- 10525 00003286 58                      		POP	AX							 
- 10526 00003287 C3                      		RETN								 
- 10527                                  				 
- 10528                                  ;									 
- 10529                                  ; 10/28/86								 
- 10530                                  ; THE FOLLOWING CODE IS WRITTEN BY JACK GULLEY IN ENGINEERING GROUP. 
- 10531                                  ; CP DOS IS CHANGING CMOS CLOCK RATE FOR ITS OWN PURPOSES AND IF THE 
- 10532                                  ; USE COLD BOOT THE SYSTEM TO USE PC DOS WHILE RUNNING CP DOS, THE CMOS 
- 10533                                  ; CLOCK RATE ARE STILL SLOW WHICH SLOW DOWN DISK OPERATIONS OF PC DOS 
- 10534                                  ; WHICH USES CMOS CLOCK. PC DOS IS PUT THIS CODE IN MSINIT TO FIX THIS 
- 10535                                  ; PROBLEM AT THE REQUEST OF CP DOS. 				 
- 10536                                  ; THE PROGRAM IS MODIFIED TO BE RUN ON MSINIT. Equates are defined in CMOSEQU.INC. 
- 10537                                  ; This program will be called by CMOS_Clock_Read procedure. 	 
- 10538                                  ;									 
- 10539                                  ;  The following code CMOSCK is used to insure that the CMOS has not	 
- 10540                                  ;	had its rate controls left in an invalid state on older AT's.
+ 10501 00003267 83FD01                  		CMP	BP,1			; READ AGAIN AFTER A SLIGHT DELAY, IN CASE CLOCK
+ 10502 0000326A 741B                    		JZ	short NO_READDATE	; WAS AT ZERO SETTING.		 
+ 10503                                  									 
+ 10504 0000326C 45                      		INC	BP			; ONLY PERFORM DELAY ONCE.	 
+ 10505 0000326D B90040                  		MOV	CX,4000H						 
+ 10506                                  DELAY:									 
+ 10507 00003270 E2FE                    		LOOP	DELAY							 
+ 10508 00003272 EBE1                    		JMP	LOOP_CLOCK						 
+ 10509                                  									 
+ 10510                                  CLOCK_PRESENT:								 
+ 10511                                  		;mov	byte [cs:HaveCMOSClock], 1 ; Set the flag for cmos clock 
+ 10512 00003274 C606[8A04]01            		mov	byte [HaveCMOSClock], 1
+ 10513                                  									 
+ 10514 00003279 E81000                  		call	CMOSCK			; Reset CMOS clock rate that may be  
+ 10515                                  						; possibly destroyed by CP DOS and 
+ 10516                                  						; POST routine did not restore that.			 
+ 10517 0000327C 56                       		PUSH	SI							 
+ 10518 0000327D E877F5                  		CALL	READ_REAL_DATE		;READ REAL-TIME CLOCK FOR DATE 
+ 10519                                  									 
+ 10520 00003280 FA                      		CLI			 
+ 10521 00003281 8936[8804]              		MOV	[DAYCNT],SI		;SET SYSTEM DATE		 
+ 10522 00003285 FB                      		STI			 
+ 10523 00003286 5E                      		POP	SI			 
+ 10524                                  NO_READDATE:								 
+ 10525 00003287 5D                      		POP	BP							 
+ 10526 00003288 5A                      		POP	DX							 
+ 10527 00003289 59                      		POP	CX							 
+ 10528 0000328A 58                      		POP	AX							 
+ 10529 0000328B C3                      		RETN								 
+ 10530                                  				 
+ 10531                                  ;									 
+ 10532                                  ; 10/28/86								 
+ 10533                                  ; THE FOLLOWING CODE IS WRITTEN BY JACK GULLEY IN ENGINEERING GROUP. 
+ 10534                                  ; CP DOS IS CHANGING CMOS CLOCK RATE FOR ITS OWN PURPOSES AND IF THE 
+ 10535                                  ; USE COLD BOOT THE SYSTEM TO USE PC DOS WHILE RUNNING CP DOS, THE CMOS 
+ 10536                                  ; CLOCK RATE ARE STILL SLOW WHICH SLOW DOWN DISK OPERATIONS OF PC DOS 
+ 10537                                  ; WHICH USES CMOS CLOCK. PC DOS IS PUT THIS CODE IN MSINIT TO FIX THIS 
+ 10538                                  ; PROBLEM AT THE REQUEST OF CP DOS. 				 
+ 10539                                  ; THE PROGRAM IS MODIFIED TO BE RUN ON MSINIT. Equates are defined in CMOSEQU.INC. 
+ 10540                                  ; This program will be called by CMOS_Clock_Read procedure. 	 
  10541                                  ;									 
- 10542                                  ;	It checks for an AT model byte "FC" with a submodel type of
- 10543                                  ;	00, 01, 02, 03 or 06 and resets the periodic interrupt rate	 
- 10544                                  ;	bits incase POST has not done it. This initilization routine	 
- 10545                                  ;	is only needed once when DOS loads. It should be ran as soon	 
- 10546                                  ;	as possible to prevent slow diskette access.			 
- 10547                                  ;									 
- 10548                                  ;	This code exposes one to DOS clearing CMOS setup done by a	 
- 10549                                  ;	resident program that hides and re-boots the system.		 
+ 10542                                  ;  The following code CMOSCK is used to insure that the CMOS has not	 
+ 10543                                  ;	had its rate controls left in an invalid state on older AT's.
+ 10544                                  ;									 
+ 10545                                  ;	It checks for an AT model byte "FC" with a submodel type of
+ 10546                                  ;	00, 01, 02, 03 or 06 and resets the periodic interrupt rate	 
+ 10547                                  ;	bits incase POST has not done it. This initilization routine	 
+ 10548                                  ;	is only needed once when DOS loads. It should be ran as soon	 
+ 10549                                  ;	as possible to prevent slow diskette access.			 
  10550                                  ;									 
- 10551                                  CMOSCK:					; CHECK AND RESET RTC RATE BITS 
- 10552                                  									 
- 10553                                  ;Model byte and Submodel byte were already determined in MSINIT.	 
- 10554 00003288 50                      		push	ax
- 10555                                  
- 10556                                  	; 16/06/2018 - Retro DOS v3.0
- 10557                                  
- 10558                                  	; 19/03/2018 (Model: 0FCh, Sub Model: 01h, REF: AMIBIOS Prog. Guide)							 
- 10559                                  
- 10560                                  	;cmp	cs:Model_byte, 0FCh ;check for PC-AT model byte	 
- 10561 00003289 803E[A205]FC            		cmp	byte [MODEL_BYTE],0FCh	
- 10562                                  	;			 	; EXIT IF NOT "FC" FOR A PC-AT
- 10563 0000328E 7523                    		JNE	short CMOSCK9	; Exit if not an AT model	 
- 10564                                  									 
- 10565                                  	;CMP	cs:Secondary_Model_Byte,06H  ; Is it 06 for the industral AT 
- 10566 00003290 803E[A305]06            		CMP	byte [Secondary_Model_Byte],06h
- 10567 00003295 7407                    		JE	short CMOSCK4 	; Go reset CMOS periodic rate if 06 
- 10568                                  	;CMP	cs:Secondary_Model_Byte,04H  ; Is it 00, 01, 02, or 03	 
- 10569 00003297 803E[A305]04            		cmp	byte [Secondary_Model_Byte],04h
- 10570 0000329C 7315                    		JNB	short CMOSCK9 	; EXIT if problem fixed by POST  
- 10571                                  					; Also,Secondary_model_byte = 0 
- 10572                                  					;   when AH=0c0h, int 15h failed.
- 10573                                  CMOSCK4:				;	RESET THE CMOS PERIODIC RATE 
- 10574                                  					;  Model=FC submodel=00,01,02,03 or 06 
- 10575                                  
- 10576                                  		;mov	al,CMOS_REG_A or NMI	;NMI disabled on return
- 10577 0000329E B08A                    		mov	al,CMOS_REG_A + NMI	
- 10578 000032A0 B426                    		mov	ah,00100110b		;Set divider & rate selection
- 10579 000032A2 E83000                  		call	CMOS_WRITE
- 10580                                  
- 10581                                  		;mov	al,CMOS_REG_B or NMI	;NMI disabled on return
- 10582 000032A5 B08B                    		mov	al,CMOS_REG_B + NMI	
- 10583 000032A7 E80B00                  		call	CMOS_READ
- 10584 000032AA 2407                    		and	al,00000111b		;clear SET,PIE,AIE,UIE,SQWE
- 10585 000032AC 88C4                    		mov	ah,al
- 10586 000032AE B00B                    		mov	al,CMOS_REG_B		;NMI enabled on return
- 10587 000032B0 E82200                  		call	CMOS_WRITE
- 10588                                  
- 10589                                  CMOSCK9:					; EXIT ROUTINE		 
- 10590 000032B3 58                      		pop	ax							 
- 10591 000032B4 C3                      		RETN				; RETurn to caller		 
- 10592                                  						;  Flags modifyied		 
- 10593                                  							 
- 10594                                  ;--- CMOS_READ ----------------------------------------------------------------- 
- 10595                                  ;		READ BYTE FROM CMOS SYSTEM CLOCK CONFIGURATION TABLE	       :
- 10596                                  ;									       :
- 10597                                  ; INPUT: (AL)=	CMOS TABLE ADDRESS TO BE READ				       :
- 10598                                  ;		BIT    7 = 0 FOR NMI ENABLED AND 1 FOR NMI DISABLED ON EXIT    :
- 10599                                  ;		BITS 6-0 = ADDRESS OF TABLE LOCATION TO READ		       :
- 10600                                  ;									       :
- 10601                                  ; OUTPUT: (AL)	VALUE AT LOCATION (AL) MOVED INTO (AL).  IF BIT 7 OF (AL) WAS  :
- 10602                                  ;		ON THEN NMI LEFT DISABLED.  DURING THE CMOS READ BOTH NMI AND  :
- 10603                                  ;		NORMAL INTERRUPTS ARE DISABLED TO PROTECT CMOS DATA INTEGRITY. :
- 10604                                  ;		THE CMOS ADDRESS REGISTER IS POINTED TO A DEFAULT VALUE AND    :
- 10605                                  ;		THE INTERRUPT FLAG RESTORED TO THE ENTRY STATE ON RETURN.      :
- 10606                                  ;		ONLY THE (AL) REGISTER AND THE NMI STATE IS CHANGED.	       :
- 10607                                  ;------------------------------------------------------------------------------- 
- 10608                                  									 
- 10609                                  CMOS_READ:				; READ LOCATION (AL) INTO (AL) 
- 10610 000032B5 9C                      		PUSHF			; SAVE INTERRUPT ENABLE STATUS AND FLAGS 
- 10611                                  
- 10612 000032B6 FA                      		cli
- 10613 000032B7 53                      		push	bx
- 10614 000032B8 50                      		push	ax		;save user NMI state
- 10615 000032B9 0C80                    		or	al,NMI		;disable NMI for us
- 10616 000032BB E670                    		out	CMOS_PORT,al
- 10617 000032BD 90                      		nop			;undocumented delay needed
- 10618 000032BE E471                    		in	al,CMOS_DATA	;get data value
- 10619                                  
- 10620                                  		 ;set NMI state to user specified 
- 10621 000032C0 89C3                    		mov	bx,ax		;save data value
- 10622 000032C2 58                      		pop	ax		;get user NMI
- 10623 000032C3 2480                    		and	al,NMI
- 10624 000032C5 0C0F                    		or	al,CMOS_SHUT_DOWN
- 10625 000032C7 E670                    		out	CMOS_PORT,al
- 10626 000032C9 90                      		nop
- 10627 000032CA E471                    		in	al,CMOS_DATA
- 10628                                  
- 10629 000032CC 89D8                    		mov	ax,bx		;data value
- 10630 000032CE 5B                      		pop	bx
+ 10551                                  ;	This code exposes one to DOS clearing CMOS setup done by a	 
+ 10552                                  ;	resident program that hides and re-boots the system.		 
+ 10553                                  ;									 
+ 10554                                  CMOSCK:					; CHECK AND RESET RTC RATE BITS 
+ 10555                                  									 
+ 10556                                  ;Model byte and Submodel byte were already determined in MSINIT.	 
+ 10557 0000328C 50                      		push	ax
+ 10558                                  
+ 10559                                  	; 16/06/2018 - Retro DOS v3.0
+ 10560                                  
+ 10561                                  	; 19/03/2018 (Model: 0FCh, Sub Model: 01h, REF: AMIBIOS Prog. Guide)							 
+ 10562                                  
+ 10563                                  	;cmp	cs:Model_byte, 0FCh ;check for PC-AT model byte	 
+ 10564 0000328D 803E[A205]FC            		cmp	byte [MODEL_BYTE],0FCh	
+ 10565                                  	;			 	; EXIT IF NOT "FC" FOR A PC-AT
+ 10566 00003292 7523                    		JNE	short CMOSCK9	; Exit if not an AT model	 
+ 10567                                  									 
+ 10568                                  	;CMP	cs:Secondary_Model_Byte,06H  ; Is it 06 for the industral AT 
+ 10569 00003294 803E[A305]06            		CMP	byte [Secondary_Model_Byte],06h
+ 10570 00003299 7407                    		JE	short CMOSCK4 	; Go reset CMOS periodic rate if 06 
+ 10571                                  	;CMP	cs:Secondary_Model_Byte,04H  ; Is it 00, 01, 02, or 03	 
+ 10572 0000329B 803E[A305]04            		cmp	byte [Secondary_Model_Byte],04h
+ 10573 000032A0 7315                    		JNB	short CMOSCK9 	; EXIT if problem fixed by POST  
+ 10574                                  					; Also,Secondary_model_byte = 0 
+ 10575                                  					;   when AH=0c0h, int 15h failed.
+ 10576                                  CMOSCK4:				;	RESET THE CMOS PERIODIC RATE 
+ 10577                                  					;  Model=FC submodel=00,01,02,03 or 06 
+ 10578                                  
+ 10579                                  		;mov	al,CMOS_REG_A or NMI	;NMI disabled on return
+ 10580 000032A2 B08A                    		mov	al,CMOS_REG_A + NMI	
+ 10581 000032A4 B426                    		mov	ah,00100110b		;Set divider & rate selection
+ 10582 000032A6 E83000                  		call	CMOS_WRITE
+ 10583                                  
+ 10584                                  		;mov	al,CMOS_REG_B or NMI	;NMI disabled on return
+ 10585 000032A9 B08B                    		mov	al,CMOS_REG_B + NMI	
+ 10586 000032AB E80B00                  		call	CMOS_READ
+ 10587 000032AE 2407                    		and	al,00000111b		;clear SET,PIE,AIE,UIE,SQWE
+ 10588 000032B0 88C4                    		mov	ah,al
+ 10589 000032B2 B00B                    		mov	al,CMOS_REG_B		;NMI enabled on return
+ 10590 000032B4 E82200                  		call	CMOS_WRITE
+ 10591                                  
+ 10592                                  CMOSCK9:					; EXIT ROUTINE		 
+ 10593 000032B7 58                      		pop	ax							 
+ 10594 000032B8 C3                      		RETN				; RETurn to caller		 
+ 10595                                  						;  Flags modifyied		 
+ 10596                                  							 
+ 10597                                  ;--- CMOS_READ ----------------------------------------------------------------- 
+ 10598                                  ;		READ BYTE FROM CMOS SYSTEM CLOCK CONFIGURATION TABLE	       :
+ 10599                                  ;									       :
+ 10600                                  ; INPUT: (AL)=	CMOS TABLE ADDRESS TO BE READ				       :
+ 10601                                  ;		BIT    7 = 0 FOR NMI ENABLED AND 1 FOR NMI DISABLED ON EXIT    :
+ 10602                                  ;		BITS 6-0 = ADDRESS OF TABLE LOCATION TO READ		       :
+ 10603                                  ;									       :
+ 10604                                  ; OUTPUT: (AL)	VALUE AT LOCATION (AL) MOVED INTO (AL).  IF BIT 7 OF (AL) WAS  :
+ 10605                                  ;		ON THEN NMI LEFT DISABLED.  DURING THE CMOS READ BOTH NMI AND  :
+ 10606                                  ;		NORMAL INTERRUPTS ARE DISABLED TO PROTECT CMOS DATA INTEGRITY. :
+ 10607                                  ;		THE CMOS ADDRESS REGISTER IS POINTED TO A DEFAULT VALUE AND    :
+ 10608                                  ;		THE INTERRUPT FLAG RESTORED TO THE ENTRY STATE ON RETURN.      :
+ 10609                                  ;		ONLY THE (AL) REGISTER AND THE NMI STATE IS CHANGED.	       :
+ 10610                                  ;------------------------------------------------------------------------------- 
+ 10611                                  									 
+ 10612                                  CMOS_READ:				; READ LOCATION (AL) INTO (AL) 
+ 10613 000032B9 9C                      		PUSHF			; SAVE INTERRUPT ENABLE STATUS AND FLAGS 
+ 10614                                  
+ 10615 000032BA FA                      		cli
+ 10616 000032BB 53                      		push	bx
+ 10617 000032BC 50                      		push	ax		;save user NMI state
+ 10618 000032BD 0C80                    		or	al,NMI		;disable NMI for us
+ 10619 000032BF E670                    		out	CMOS_PORT,al
+ 10620 000032C1 90                      		nop			;undocumented delay needed
+ 10621 000032C2 E471                    		in	al,CMOS_DATA	;get data value
+ 10622                                  
+ 10623                                  		 ;set NMI state to user specified 
+ 10624 000032C4 89C3                    		mov	bx,ax		;save data value
+ 10625 000032C6 58                      		pop	ax		;get user NMI
+ 10626 000032C7 2480                    		and	al,NMI
+ 10627 000032C9 0C0F                    		or	al,CMOS_SHUT_DOWN
+ 10628 000032CB E670                    		out	CMOS_PORT,al
+ 10629 000032CD 90                      		nop
+ 10630 000032CE E471                    		in	al,CMOS_DATA
  10631                                  
- 10632 000032CF 0E                      		PUSH	CS		; *PLACE CODE SEGMENT IN STACK AND 
- 10633 000032D0 E80100                  		CALL	CMOS_POPF	; *HANDLE POPF FOR B- LEVEL 80286 
- 10634 000032D3 C3                      		RETN			; RETURN WITH FLAGS RESTORED	 
- 10635                                  									 
- 10636                                  CMOS_POPF:				; POPF FOR LEVEL B- PARTS  
- 10637 000032D4 CF                      		IRET			; RETURN FAR AND RESTORE FLAGS	 
+ 10632 000032D0 89D8                    		mov	ax,bx		;data value
+ 10633 000032D2 5B                      		pop	bx
+ 10634                                  
+ 10635 000032D3 0E                      		PUSH	CS		; *PLACE CODE SEGMENT IN STACK AND 
+ 10636 000032D4 E80100                  		CALL	CMOS_POPF	; *HANDLE POPF FOR B- LEVEL 80286 
+ 10637 000032D7 C3                      		RETN			; RETURN WITH FLAGS RESTORED	 
  10638                                  									 
- 10639                                  							 
- 10640                                  ;--- CMOS_WRITE ----------------------------------------------------------------
- 10641                                  ;		WRITE BYTE TO CMOS SYSTEM CLOCK CONFIGURATION TABLE	       :
- 10642                                  ;									       :
- 10643                                  ; INPUT: (AL)=	CMOS TABLE ADDRESS TO BE WRITTEN TO			       :
- 10644                                  ;		BIT    7 = 0 FOR NMI ENABLED AND 1 FOR NMI DISABLED ON EXIT    :
- 10645                                  ;		BITS 6-0 = ADDRESS OF TABLE LOCATION TO WRITE		       :
- 10646                                  ;	 (AH)=	NEW VALUE TO BE PLACED IN THE ADDRESSED TABLE LOCATION	       :
- 10647                                  ;									       :
- 10648                                  ; OUTPUT:	VALUE IN (AH) PLACED IN LOCATION (AL) WITH NMI LEFT DISABLED   :
- 10649                                  ;		IF BIT 7 OF (AL) IS ON.  DURING THE CMOS UPDATE BOTH NMI AND   :
- 10650                                  ;		NORMAL INTERRUPTS ARE DISABLED TO PROTECT CMOS DATA INTEGRITY. :
- 10651                                  ;		THE CMOS ADDRESS REGISTER IS POINTED TO A DEFAULT VALUE AND    :
- 10652                                  ;		THE INTERRUPT FLAG RESTORED TO THE ENTRY STATE ON RETURN.      :
- 10653                                  ;		ONLY THE CMOS LOCATION AND THE NMI STATE IS CHANGED.	       :
- 10654                                  ;-------------------------------------------------------------------------------
- 10655                                  									 
- 10656                                  CMOS_WRITE:				; WRITE (AH) TO LOCATION (AL) 
- 10657 000032D5 9C                      		PUSHF			; SAVE INTERRUPT ENABLE STATUS AND FLAGS 
- 10658 000032D6 50                      		PUSH	AX		; SAVE WORK REGISTER VALUES	 
- 10659                                  
- 10660 000032D7 FA                      		cli
- 10661 000032D8 50                      		push	ax		;save user NMI state
- 10662 000032D9 0C80                    		or	al,NMI		;disable NMI for us
- 10663 000032DB E670                    		out	CMOS_PORT,al
- 10664 000032DD 90                      		nop
- 10665 000032DE 88E0                    		mov	al,ah
- 10666 000032E0 E671                    		out	CMOS_DATA,al	;write data
- 10667                                  
- 10668                                  		 ;set NMI state to user specified 
- 10669 000032E2 58                      		pop	ax 		;get user NMI
- 10670 000032E3 2480                    		and	al,NMI
- 10671 000032E5 0C0F                    		or	al,CMOS_SHUT_DOWN
- 10672 000032E7 E670                    		out	CMOS_PORT,al
- 10673 000032E9 90                      		nop
- 10674 000032EA E471                    		in	al,CMOS_DATA
- 10675                                  
- 10676 000032EC 58                      		POP	AX		; RESTORE WORK REGISTERS	 
- 10677 000032ED 0E                      		PUSH	CS		; *PLACE CODE SEGMENT IN STACK AND 
- 10678 000032EE E8E3FF                  		CALL	CMOS_POPF	; *HANDLE POPF FOR B- LEVEL 80286 
- 10679 000032F1 C3                      		RETN
- 10680                                  
- 10681                                  ;-----------------------------------------------------------------------------
- 10682                                  ; 03/06/2018 - Retro DOS v3.0 
- 10683                                  	
- 10684                                  		; 07/04/2018 - Retro DOS v2.0
- 10685                                  
- 10686                                  ; *** SYSINIT1.ASM ***
- 10687                                  ; ----------------------------------------------------------------------------
- 10688                                  ; START OF MSDOS 3.3 SYSINIT CODE - SYSINIT1.ASM - 24/07/1987
- 10689                                  ; ----------------------------------------------------------------------------
- 10690                                  ; 02/06/2018 - Retro DOS v3.0	
- 10691                                  ; 25/03/2018 - Retro DOS v2.0
- 10692                                  
- 10693                                  _SYSINIT: 	; 05/07/2018
- 10694                                  		;JMP	GOINIT
+ 10639                                  CMOS_POPF:				; POPF FOR LEVEL B- PARTS  
+ 10640 000032D8 CF                      		IRET			; RETURN FAR AND RESTORE FLAGS	 
+ 10641                                  									 
+ 10642                                  							 
+ 10643                                  ;--- CMOS_WRITE ----------------------------------------------------------------
+ 10644                                  ;		WRITE BYTE TO CMOS SYSTEM CLOCK CONFIGURATION TABLE	       :
+ 10645                                  ;									       :
+ 10646                                  ; INPUT: (AL)=	CMOS TABLE ADDRESS TO BE WRITTEN TO			       :
+ 10647                                  ;		BIT    7 = 0 FOR NMI ENABLED AND 1 FOR NMI DISABLED ON EXIT    :
+ 10648                                  ;		BITS 6-0 = ADDRESS OF TABLE LOCATION TO WRITE		       :
+ 10649                                  ;	 (AH)=	NEW VALUE TO BE PLACED IN THE ADDRESSED TABLE LOCATION	       :
+ 10650                                  ;									       :
+ 10651                                  ; OUTPUT:	VALUE IN (AH) PLACED IN LOCATION (AL) WITH NMI LEFT DISABLED   :
+ 10652                                  ;		IF BIT 7 OF (AL) IS ON.  DURING THE CMOS UPDATE BOTH NMI AND   :
+ 10653                                  ;		NORMAL INTERRUPTS ARE DISABLED TO PROTECT CMOS DATA INTEGRITY. :
+ 10654                                  ;		THE CMOS ADDRESS REGISTER IS POINTED TO A DEFAULT VALUE AND    :
+ 10655                                  ;		THE INTERRUPT FLAG RESTORED TO THE ENTRY STATE ON RETURN.      :
+ 10656                                  ;		ONLY THE CMOS LOCATION AND THE NMI STATE IS CHANGED.	       :
+ 10657                                  ;-------------------------------------------------------------------------------
+ 10658                                  									 
+ 10659                                  CMOS_WRITE:				; WRITE (AH) TO LOCATION (AL) 
+ 10660 000032D9 9C                      		PUSHF			; SAVE INTERRUPT ENABLE STATUS AND FLAGS 
+ 10661 000032DA 50                      		PUSH	AX		; SAVE WORK REGISTER VALUES	 
+ 10662                                  
+ 10663 000032DB FA                      		cli
+ 10664 000032DC 50                      		push	ax		;save user NMI state
+ 10665 000032DD 0C80                    		or	al,NMI		;disable NMI for us
+ 10666 000032DF E670                    		out	CMOS_PORT,al
+ 10667 000032E1 90                      		nop
+ 10668 000032E2 88E0                    		mov	al,ah
+ 10669 000032E4 E671                    		out	CMOS_DATA,al	;write data
+ 10670                                  
+ 10671                                  		 ;set NMI state to user specified 
+ 10672 000032E6 58                      		pop	ax 		;get user NMI
+ 10673 000032E7 2480                    		and	al,NMI
+ 10674 000032E9 0C0F                    		or	al,CMOS_SHUT_DOWN
+ 10675 000032EB E670                    		out	CMOS_PORT,al
+ 10676 000032ED 90                      		nop
+ 10677 000032EE E471                    		in	al,CMOS_DATA
+ 10678                                  
+ 10679 000032F0 58                      		POP	AX		; RESTORE WORK REGISTERS	 
+ 10680 000032F1 0E                      		PUSH	CS		; *PLACE CODE SEGMENT IN STACK AND 
+ 10681 000032F2 E8E3FF                  		CALL	CMOS_POPF	; *HANDLE POPF FOR B- LEVEL 80286 
+ 10682 000032F5 C3                      		RETN
+ 10683                                  
+ 10684                                  ;-----------------------------------------------------------------------------
+ 10685                                  ; 03/06/2018 - Retro DOS v3.0 
+ 10686                                  	
+ 10687                                  		; 07/04/2018 - Retro DOS v2.0
+ 10688                                  
+ 10689                                  ; *** SYSINIT1.ASM ***
+ 10690                                  ; ----------------------------------------------------------------------------
+ 10691                                  ; START OF MSDOS 3.3 SYSINIT CODE - SYSINIT1.ASM - 24/07/1987
+ 10692                                  ; ----------------------------------------------------------------------------
+ 10693                                  ; 02/06/2018 - Retro DOS v3.0	
+ 10694                                  ; 25/03/2018 - Retro DOS v2.0
  10695                                  
- 10696                                  ; ..SYSINIT DATA .............................................................
- 10697                                  
- 10698                                  GOINIT:
- 10699                                  		; 03/07/2018
- 10700                                  Move_Myself:
- 10701                                  		; 03/05/2018
- 10702                                  		; 25/02/2018 - Retro DOS 2.0 - MSDOS 2.0 "SYSINIT.ASM"
- 10703                                  		; (Modified for Retro DOS 2.0, for NASM 'incbin' method)
- 10704                                  
- 10705                                  		SYSINITSIZE	EQU  sysinit_code_end - sysinit_code_start
- 10706                                  
- 10707                                  		; 28/03/2018
- 10708                                          	;CLD
- 10709 000032F2 BE[2033]                        	MOV     SI,SYSINIT_START   ; MSSTACK (05/07/2018)
- 10710 000032F5 31FF                            	XOR     DI,DI
- 10711                                  		; 19/03/2018
- 10712                                  	       	;mov	CX,[SYSINIT_START+MEMORY_SIZE]
- 10713                                  		; 05/07/2018
- 10714 000032F7 8B0E[9E35]              	       	mov	CX,[SYSINIT+MEMORY_SIZE]
- 10715                                  
- 10716 000032FB B8FE17                  		MOV	AX,SYSINITSIZE + 15 ; 03/05/2018
- 10717 000032FE D1E8                    		SHR     AX,1                    ; Divide by 16 for paras
- 10718 00003300 D1E8                    		SHR     AX,1
- 10719 00003302 D1E8                    		SHR     AX,1
- 10720 00003304 D1E8                    		SHR     AX,1
- 10721 00003306 29C1                    		SUB     CX,AX
- 10722 00003308 8EC1                    		MOV     ES,CX ; SYSINITSEG = [MEMORY_SIZE] - (SYSIZE+15)/16
- 10723 0000330A B9F017                  		MOV     CX,SYSINITSIZE + 1
- 10724 0000330D D1E9                    		SHR     CX,1                    ; Divide by 2 to get words
- 10725 0000330F F3A5                    		REP     MOVSW                   ; RELOCATE SYSINIT
- 10726                                  
- 10727 00003311 06                      		PUSH    ES
- 10728                                  		;XOR	AX,AX ; 0
- 10729                                  		;PUSH	AX
- 10730                                  
- 10731                                  		; 03/07/2018
- 10732                                  		;PUSH	CX ; 0
- 10733                                  		; 07/07/2019
- 10734                                  		; 29/06/2019 - Retro DOS v3.1
- 10735 00003312 B86002                  		mov	ax,0260h ; ((**)) ; 'sysinit:' offset in SYSINIT2.ASM
- 10736                                  		;mov	ax,07F0h ; 01/07/2019
- 10737 00003315 50                      		push	ax
- 10738                                  
- 10739 00003316 CB                      		RETF	; far jump to final location of SYSINIT code
- 10740 00003317 90<rep 9h>              align 16
+ 10696                                  _SYSINIT: 	; 05/07/2018
+ 10697                                  		;JMP	GOINIT
+ 10698                                  
+ 10699                                  ; ..SYSINIT DATA .............................................................
+ 10700                                  
+ 10701                                  GOINIT:
+ 10702                                  		; 03/07/2018
+ 10703                                  Move_Myself:
+ 10704                                  		; 03/05/2018
+ 10705                                  		; 25/02/2018 - Retro DOS 2.0 - MSDOS 2.0 "SYSINIT.ASM"
+ 10706                                  		; (Modified for Retro DOS 2.0, for NASM 'incbin' method)
+ 10707                                  
+ 10708                                  		SYSINITSIZE	EQU  sysinit_code_end - sysinit_code_start
+ 10709                                  
+ 10710                                  		; 28/03/2018
+ 10711                                          	;CLD
+ 10712 000032F6 BE[2033]                        	MOV     SI,SYSINIT_START   ; MSSTACK (05/07/2018)
+ 10713 000032F9 31FF                            	XOR     DI,DI
+ 10714                                  		; 19/03/2018
+ 10715                                  	       	;mov	CX,[SYSINIT_START+MEMORY_SIZE]
+ 10716                                  		; 05/07/2018
+ 10717 000032FB 8B0E[9E35]              	       	mov	CX,[SYSINIT+MEMORY_SIZE]
+ 10718                                  
+ 10719 000032FF B8FE17                  		MOV	AX,SYSINITSIZE + 15 ; 03/05/2018
+ 10720 00003302 D1E8                    		SHR     AX,1                    ; Divide by 16 for paras
+ 10721 00003304 D1E8                    		SHR     AX,1
+ 10722 00003306 D1E8                    		SHR     AX,1
+ 10723 00003308 D1E8                    		SHR     AX,1
+ 10724 0000330A 29C1                    		SUB     CX,AX
+ 10725 0000330C 8EC1                    		MOV     ES,CX ; SYSINITSEG = [MEMORY_SIZE] - (SYSIZE+15)/16
+ 10726 0000330E B9F017                  		MOV     CX,SYSINITSIZE + 1
+ 10727 00003311 D1E9                    		SHR     CX,1                    ; Divide by 2 to get words
+ 10728 00003313 F3A5                    		REP     MOVSW                   ; RELOCATE SYSINIT
+ 10729                                  
+ 10730 00003315 06                      		PUSH    ES
+ 10731                                  		;XOR	AX,AX ; 0
+ 10732                                  		;PUSH	AX
+ 10733                                  
+ 10734                                  		; 03/07/2018
+ 10735                                  		;PUSH	CX ; 0
+ 10736                                  		; 07/07/2019
+ 10737                                  		; 29/06/2019 - Retro DOS v3.1
+ 10738 00003316 B86002                  		mov	ax,0260h ; ((**)) ; 'sysinit:' offset in SYSINIT2.ASM
+ 10739                                  		;mov	ax,07F0h ; 01/07/2019
+ 10740 00003319 50                      		push	ax
  10741                                  
- 10742                                  ; ----------------------------------------------------------------------------
- 10743                                  ; MSDOS 3.3 -IBMBIO.COM- SYSINIT CODE -will be relocated-
- 10744                                  ; ----------------------------------------------------------------------------
- 10745                                  ; 11/06/2018 - Retro DOS v3.0 
- 10746                                  
- 10747                                  SYSINIT_START equ $
- 10748                                  
- 10749                                  ; 07/07/2019
- 10750                                  ; 29/06/2019 - Retro DOS v3.1
- 10751                                  ; (NOTE: Following address is sysinit code start address after msstack code
- 10752                                  ;  in 'sysinit2.asm', it is 0252h for current SYSINIT, 29/06/2019)	
- 10753                                  SYSINIT equ SYSINIT_START + 0260h ; ((**))
- 10754                                  ;SYSINIT equ SYSINIT_START + 07F0h ; ((**)) ; 01/07/2019
- 10755                                  
- 10756                                  sysinit_code_start:
- 10757                                  		; 22/11/2022
- 10758                                  		; 09/07/2019 ('sysinit2.asm' last modification)
- 10759 00003320 <bin 17EFh>             		incbin	'SYSINIT2.BIN' ; Retro DOS 3.1 - MSDOS 3.3 'SYSINIT'
- 10760                                  sysinit_code_end:
- 10761 00004B0F 90                      		db 90h
- 10762                                  
- 10763                                  align 16 ; Paragraph alignment is necessary here for MSDOS kernel relocation
- 10764                                  
- 10765                                  ; ----------------------------------------------------------------------------
- 10766                                  ; START OF MSDOS 3.3 -IBMDOS.COM- KERNEL CODE (MSDOS.SYS) -will be relocated-
- 10767                                  ; ----------------------------------------------------------------------------
- 10768                                  ; 11/06/2018 - Retro DOS v3.0 
- 10769                                  
- 10770                                  MSDOS_BIN_OFFSET:  ; this offset must be paragraph aligned
- 10771                                  		; 22/11/2022 (BugFix)
- 10772                                  		; 24/07/2019 ('msdos3.asm' last modification)
- 10773                                  		; 29/06/2019 - Retro DOS 3.1 (msdos3.asm)
- 10774 00004B10 <bin 76BFh>             		incbin	'MSDOS3.BIN'
- 10775                                  msdos_bin_size	equ $ - MSDOS_BIN_OFFSET
- 10776                                  
- 10777                                  		;db 90h
- 10778 0000C1CF 90                      align 2
- 10779                                  END_OF_KERNEL equ $
+ 10742 0000331A CB                      		RETF	; far jump to final location of SYSINIT code
+ 10743 0000331B 90<rep 5h>              align 16
+ 10744                                  
+ 10745                                  ; ----------------------------------------------------------------------------
+ 10746                                  ; MSDOS 3.3 -IBMBIO.COM- SYSINIT CODE -will be relocated-
+ 10747                                  ; ----------------------------------------------------------------------------
+ 10748                                  ; 11/06/2018 - Retro DOS v3.0 
+ 10749                                  
+ 10750                                  SYSINIT_START equ $
+ 10751                                  
+ 10752                                  ; 07/07/2019
+ 10753                                  ; 29/06/2019 - Retro DOS v3.1
+ 10754                                  ; (NOTE: Following address is sysinit code start address after msstack code
+ 10755                                  ;  in 'sysinit2.asm', it is 0252h for current SYSINIT, 29/06/2019)	
+ 10756                                  SYSINIT equ SYSINIT_START + 0260h ; ((**))
+ 10757                                  ;SYSINIT equ SYSINIT_START + 07F0h ; ((**)) ; 01/07/2019
+ 10758                                  
+ 10759                                  sysinit_code_start:
+ 10760                                  		; 22/11/2022
+ 10761                                  		; 09/07/2019 ('sysinit2.asm' last modification)
+ 10762 00003320 <bin 17EFh>             		incbin	'SYSINIT2.BIN' ; Retro DOS 3.1 - MSDOS 3.3 'SYSINIT'
+ 10763                                  sysinit_code_end:
+ 10764 00004B0F 90                      		db 90h
+ 10765                                  
+ 10766                                  align 16 ; Paragraph alignment is necessary here for MSDOS kernel relocation
+ 10767                                  
+ 10768                                  ; ----------------------------------------------------------------------------
+ 10769                                  ; START OF MSDOS 3.3 -IBMDOS.COM- KERNEL CODE (MSDOS.SYS) -will be relocated-
+ 10770                                  ; ----------------------------------------------------------------------------
+ 10771                                  ; 11/06/2018 - Retro DOS v3.0 
+ 10772                                  
+ 10773                                  MSDOS_BIN_OFFSET:  ; this offset must be paragraph aligned
+ 10774                                  		; 22/11/2022 (BugFix)
+ 10775                                  		; 24/07/2019 ('msdos3.asm' last modification)
+ 10776                                  		; 29/06/2019 - Retro DOS 3.1 (msdos3.asm)
+ 10777 00004B10 <bin 76BFh>             		incbin	'MSDOS3.BIN'
+ 10778                                  msdos_bin_size	equ $ - MSDOS_BIN_OFFSET
+ 10779                                  
+ 10780                                  		;db 90h
+ 10781 0000C1CF 90                      align 2
+ 10782                                  END_OF_KERNEL equ $
