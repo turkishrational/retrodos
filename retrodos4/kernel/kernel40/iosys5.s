@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; IOSYS5.S (MSDOS 5.0 IO.SYS) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 11/09/2023 (Modified IO.SYS)  ((Previous: 28/08/2023))
+; Last Update: 14/09/2023 (Modified IO.SYS)  ((Previous: 11/09/2023))
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -165,7 +165,8 @@ section .MSLOAD ; vstart=0
 		[ORG 0]			; segment 0x0070h
 
 START$:
-		jmp	SaveInputValuess
+		jmp	short SaveInputValues ; 14/09/2023
+		;nop	; 14/09/2023
 
 %if 0
 ; 20/12/2022
@@ -206,6 +207,7 @@ SecPerCluster:	db 0			; ...
 ; ---------------------------------------------------------------------------
 %endif
 
+; 14/09/2023
 ; 24/12/2022
 ; 23/12/2022
 ; 20/12/2022
@@ -217,8 +219,6 @@ StartSecL:	dw 0
 StartSecH:	dw 0
 TempH:		dw 0			; for 32 bit calculation
 ;TempCluster:	dw 0
-;HiddenSectorsL: dw 0
-;HiddenSectorsH: dw 0
 ;ReservSectors:	dw 0
 LastFatSector:	dw 0FFFFh		; fat sec # start from 1st FAT entry
 SectorCount:	dw 0
@@ -229,6 +229,9 @@ SecPerCluster:	dw 0
 SecPerFat:	dw 0
 SecPerTrack:	dw 0
 NumHeads:	dw 0
+; 14/09/2023
+HiddenSectorsL: dw 0
+HiddenSectorsH: dw 0
 TotalSectorsL:	dw 0			; max. number of sectors
 TotalSectorsH:	dw 0
 FirstSectorL:	dw 0
@@ -242,7 +245,7 @@ FatStartSecL:	dw 0
 FatStartSecH:	dw 0
 FatSegment:	dw 0
 
-; SaveInputValuess
+; SaveInputValues
 ; ---------------------------------------------------------------------------
 ; INPUT:     none
 ;
@@ -283,7 +286,7 @@ FatSegment:	dw 0
 
 Sec9 equ 522h
 ; 20/12/2022	
-DskAddr	equ 1Eh*4 ; 7Eh
+DskAddr	equ 1Eh*4 ; 78h
 ; 22/12/2022
 ;StackPtr equ MyStacks+(NumHeads-MyStacks)
 
@@ -301,7 +304,8 @@ DskAddr	equ 1Eh*4 ; 7Eh
 		; ds:si = rom bios disk(ette) params table address (INT 1Eh)
 		; 0:500h = root dir buffer (1st sector of the root dir)
 
-SaveInputValuess:
+		; 14/09/2023
+SaveInputValues:
 		; 24/12/2022
 		push	ds
 		push	cs
@@ -388,8 +392,8 @@ SaveInputValuess:
 		mov	ax, [7C22h]	; BootSector.ext_boot_bpb.BPB_bigtotalsectors+2
 		mov	[cs:TotalSectorsH], ax
 %endif
-		; 24/12/2022
-		push	ax  ; * ; first data sector (high word)
+		; 14/09/2023
+		mov	bp, ax  ; first data sector (high word)
 		
 		push	cs
 		pop	es
@@ -408,84 +412,81 @@ SaveInputValuess:
 		movsb	; SecPerCluster
 		inc	di ; skip high byte of SecPerCluster word (it is 0)
 		lodsw	; ReservSectors
-		mov	bx, ax ; save ReservSectors in bx
+		push	ax ; * ; ReservSectors
 		lodsb	; skip NumFats
 		;movsw	; RootDirEntries ; !
-		lodsw	; skip NUmDirEntries ; !
+		lodsw	; skip RootDirEntries ; !
 		lodsw	; TotalSectorsL
-		mov	cx, ax ; save TotalSectorsL in cx
+		; 14/09/2023
+		push	ax ; ** ; TotalSectorsL
 		lodsb	; skip MediaByte
 		movsw	; SecPerFat
 		movsw 	; SecPerTrack
 		movsw	; NumHeads
-		lodsw	; HiddenSectorsL
-		push 	ax ; **	; HiddenSectorsL
+		movsw	; HiddenSectorsL
 		lodsw	; HiddenSectorsH
-		mov	dx, ax	; save HiddenSectorsH in dx
+		mov	dx, ax ; HiddenSectorsH in dx
 		lodsw	
-		push	ax ; *** ; BigTotalSecs lw
+		mov	cx, ax ; BigTotalSecs lw in cx
 		lodsw
-		push	ax ; **** ; BigTotalSecs hw
+		mov	bx, ax ; BigTotalSecs hw in bx
 		lodsw	; skip BootDrv and CurrentHead
-
-		mov	ax, cx ; TotalSectorsL
-
-		mov	bp, si		
  
-		pop	cx ; **** ; BigTotalSecs hw
-
-		pop	si ; *** ; BigTotalSecs lw
+		; 14/09/2023
+		lodsb	; ext_boot_signature
 
 		push	cs
 		pop	ds
-		
-		; ss = 0
-		; bp = 7C26h
-		
-		cmp	byte [bp], 29h  ; ext_boot_signature
-		je	short ext_boot_sec_1
 
+		cmp	al, 29h  ; is it ext_boot_signature ?
+		pop	ax ; ** ; TotalSectorsL (16 bit total sectors)
+		je	short ext_boot_sec_1 ; yes, use high words
+
+		; (old boot sector ?)
+		; (zero high words, do not use them)
+		inc	di ; skip HiddenSectorsH (it is already zero)	
+		inc	di
 		stosw	; TotalSectorsL
-
-		;pop	ax ; *** ; discard BigTotalSecs lw
-		pop	ax ; ** ; HiddenSectorsL
-		pop	dx ; * ; discard 1st data sector hw
-		xor	dx, dx ; 0
+			; (TotalSectorsH = 0)
+		xor	dx, dx ; 0 ; HiddenSectorsH
 		jmp	short set_fat_start
 ext_boot_sec_1:
+		; 14/09/2023
+		xchg	ax, dx
+		stosw	; HiddenSectorsH
+		xchg	dx, ax
+			; dx = HiddenSectorsH, ax = TotalSectorsL
 		; 24/12/2022
-		;pop	si ; *** ; BigTotalSecs lw
 		or	ax, ax  ; TotalSectorsL (16 bit total sectors)
 		jnz	short ext_boot_sec_2 ; (*)
 
+		; 14/09/2023
 		; (32 bit total sectors)
-		mov	ax, si ; BigTotalSecs lw 
+		mov	ax, cx ; BigTotalSecs lw 
 		stosw	; TotalSectorsL	
-		mov	ax, cx ; BigTotalSecs hw
+		mov	ax, bx ; BigTotalSecs hw
 ext_boot_sec_2:
 		stosw	; TotalSectorsH or TotalSectorsL (*)
-		pop	ax ; ** ; HiddenSectorsL
-		;pop	word [FirstSectorH] ; * ; 1st data sector hw
-		pop	cx ; * ; [FirstSectorH] ; 1st data sector hw
-		mov	[FirstSectorH], cx
-		mov	[StartSecH], cx ; **!**	
+		; bp = 1st data sector hw
+		mov	[FirstSectorH], bp
+		mov	[StartSecH], bp ; **!**	
 
-		; here, DI points to FatStartSecL
 set_fat_start:
-		; 24/12/2022
-		; dx:ax = HiddenSectors
-		; bx = ReservSectors
+		; 14/09/2023
+		xor	di, di
+		pop	ax ; * ReservSectors 
+		add	ax, [HiddenSectorsL]
+		; dx = [HiddenSectorsH]
+		;adc	dx, 0
+		adc	dx, di ; 0
 
-		add 	ax, bx
-		adc	dx, 0
+		;mov	di, FatStartSecL
+		;stosw
+		;mov	ax, dx
+		;stosw		
 
-		;mov	[FatStartSecL], ax
-		;mov	[FatStartSecH], dx		
-
-		mov	di, FatStartSecL
-		stosw
-		mov	ax, dx
-		stosw		
+		mov	[FatStartSecL], ax
+		mov	[FatStartSecH], dx
 	
 ; Relocate
 ; -------------------------------------------------------------------------
@@ -518,12 +519,16 @@ set_fat_start:
 ; jump to relocated code
 ; -------------------------------------------------------------------------
 
+		; 14/09/2023
 relocate:
 		; 24/12/2022
 		;cld
 
 		xor	si, si
-		mov	di, si
+		; 14/09/2023
+		;mov	di, si
+		; di = 0
+
 		int	12h		; MEMORY SIZE -
 					; Return: AX = number of contiguous 1K blocks of memory
 		mov	cl, 6
@@ -535,8 +540,10 @@ relocate:
 		; ds = 0
 		; 24/12/2022
 		; ds = cs
-		xor	bx, bx
-		mov	ds, bx		; ZERO
+		;xor	bx, bx
+		;mov	ds, bx		; ZERO
+		; 14/09/2023
+		mov	ds, si ; 0
 		
 		;mov	bx, [DskAddr+44h] ; 2Fh*4 (Int 2Fh)
 		;mov	ds, [DskAddr+46h] ; 2Fh*4+2
@@ -680,6 +687,7 @@ FindClusterSize:
 ; ---------------------------------------------------------------------------
 
 CalcFatSize:
+		; 14/09/2023
 		; 24/12/2022
 		; ds = cs
 		mov	byte [Fatsize], 1
@@ -688,7 +696,6 @@ CalcFatSize:
 		;mov	ax, [cs:TotalSectorsL] ; DX:AX = total disk sectors
 		mov	dx, [TotalSectorsH]
 		mov	ax, [TotalSectorsL] ; DX:AX = total disk sectors
-		;;;		
 ; 24/12/2202
 %if 0
 		sub	ax, [ReservSectors]
@@ -706,9 +713,19 @@ CalcFatSize:
 		sub	ax, bx
 		sbb	dx, 0		; DX:AX	= Sectors in data area
 %endif
+		; 14/09/2023 (BugFix)
+		mov	bx, [FirstSectorL]
+		mov	cx, [FirstSectorH]
+		; ! here, cx:bx includes hidden sectors (partition start address) !
+		sub	bx, [HiddenSectorsL]
+		sbb	cx, [HiddenSectorsH] ; cx:bx = start of data from boot sector
+
 		; 24/12/2022
-		sub	ax, [FirstSectorL] ; total sectors - start of data
-		sbb	dx, [FirstSectorH]
+		;sub	ax, [FirstSectorL] ; total sectors - start of data
+		;sbb	dx, [FirstSectorH]
+		; 14/09/2023
+		sub	ax, bx
+		sbb	dx, cx
 				; DX:AX	= Sectors in data area
 		;;;
 		;xor	cx, cx
