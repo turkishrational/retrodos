@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RD4LOAD.S (Retro DOS v4 KERNEL LOADER) -IO.SYS- by ERDOGAN TAN - 22/12/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 14/09/2023 (Modified IO.SYS loader) 
+; Last Update: 15/09/2023 (Modified IO.SYS loader) 
 ; ----------------------------------------------------------------------------
 ; Beginning: 22/12/2022 (Retro DOS 4.0 Kernel Loader, Fake IO.SYS)
 ; ----------------------------------------------------------------------------
@@ -73,7 +73,8 @@ SysVersion:	dw 5			; expected_version
 ClusterSize:	dw 0
 StartSecL:	dw 0
 StartSecH:	dw 0
-TempH:		dw 0			; for 32 bit calculation
+; 15/09/2023
+;TempH:		dw 0			; for 32 bit calculation
 ;TempCluster:	dw 0
 ;ReservSectors:	dw 0
 LastFatSector:	dw 0FFFFh		; fat sec # start from 1st FAT entry
@@ -753,6 +754,17 @@ GoToBioInit:
 		mov	dl, [BootDrive] ; Physical drv number we booted from.
 		mov	ax, [TotalSectorsL]
 
+		; 15/09/2023
+		; (This is not necessary but BP value will be 7C00h
+		; when the RetroDOS boot sector code starts the kernel.
+		; Retro DOS 4 Kernel source code contains a comment that
+		; 'bp = 7C00h' at the init stage.)
+		; ((The recent RetroDOS v4 kernel code doesn't use BP 
+		; by assuming it has 7C00h. However, I want to leave BP 
+		; as equal to SP here.))
+ 
+		mov	bp, sp ; 7C00h ; 15/09/2023
+
 		; 22/12/2022
 		; (far jump to Retro DOS kernel start address)
 		jmp	1000h:0	; Far jump to MSDOS.SYS address	(KERNEL)
@@ -804,6 +816,7 @@ GoToBioInit:
 ; if SectorCount <> 0 do next read
 ; ---------------------------------------------------------------------------
 
+		; 15/09/2023
 		; 24/12/2022
 		; 22/12/2022
 ReadSectors:
@@ -817,19 +830,25 @@ TryRead:
 		push	cx
 		;mov	ax, [cs:StartSecL]	; Get starting sector
 		;mov	dx, [cs:StartSecH]
-		mov	ax, [StartSecL]		; Get starting sector
-		mov	dx, [StartSecH]
-		push	ax
-		mov	ax, dx
+		; 15/09/2023
+		;mov	ax, [StartSecL]	; *	; Get starting sector	
+		;mov	dx, [StartSecH]
+		;push	ax ; *
+		;mov	ax, dx
+		mov	ax, [StartSecH]
 		xor	dx, dx
 		;;div	word [cs:SecPerTrack]
 		;div	word [SecPerTrack]	
 		; 24/12/2022
 		mov	bx, [SecPerTrack]
 		div	bx
-		mov	[TempH], ax
-		;mov	[cs:TempH], ax
-		pop	ax
+
+		;mov	[TempH], ax
+		;;mov	[cs:TempH], ax
+		; 15/09/2023
+		mov	bp, ax ; [TempH]
+		;pop	ax ; *
+		mov	ax, [StartSecL] ; *
 		div	bx
 		;div	word [SecPerTrack]
 		;;div	word [cs:SecPerTrack]	; [TempH]:ax = track,
@@ -893,11 +912,16 @@ dma_boundary_ok:
 		; 18/12/2022
 		inc	dx
 		mov	bl, dl			; Start sector in BL
+		
+		; 15/09/2023
 		; 24/12/2022
-		mov	dx, [TempH]		; DX:AX = Track
-		;mov	dx, [cs:TempH]		; DX:AX = Track
+		;mov	dx, [TempH]		; DX:AX = Track
+		;;mov	dx, [cs:TempH]		; DX:AX = Track
+		
 		push	ax
-		mov	ax, dx
+		;mov	ax, dx
+		; 15/09/2023
+		mov	ax, bp ; [TempH]
 		xor	dx, dx
 		; 24/12/2022
 		div	word [NumHeads]
@@ -971,7 +995,7 @@ ReadError:
 ; ---------------------------------------------------------------------------
 
 ReadOk:
-		; 23/12/2022			
+		; 23/12/2022
 		; ah = 0
 		; 22/12/2022
 		;xor	ah, ah		; Mask out read command, just get # read
