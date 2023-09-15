@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; IOSYS6.S (MSDOS 6.0 IO.SYS) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 14/09/2023 - Retro DOS v4.2 (Modified MSDOS 6.22)
+; Last Update: 15/09/2023 - Retro DOS v4.2 (Modified MSDOS 6.22)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -228,7 +228,8 @@ SysVersion:	dw 5			; expected_version
 ClusterSize:	dw 0
 StartSecL:	dw 0
 StartSecH:	dw 0
-TempH:		dw 0			; for 32 bit calculation
+; 15/09/2023
+;TempH:		dw 0			; for 32 bit calculation
 ;TempCluster:	dw 0
 ;ReservSectors:	dw 0
 LastFatSector:	dw 0FFFFh		; fat sec # start from 1st FAT entry
@@ -1130,6 +1131,20 @@ GoToBioInit:
 		mov	bx, [FirstSectorL] ; AX:BX = first data sector of disk
 		mov	ax, [FirstSectorH]
 
+		; 15/09/2023 (retrodos 4.s, retrodos41.s, retrodos42.s)
+		; (This is not necessary but BP value will be 7C00h
+		; when the RetroDOS boot sector code starts the kernel.
+		; Retro DOS 4 Kernel source code contains a comment that
+		; 'bp = 7C00h' at the init stage. But RetroDOS kernel
+		; doesn't use it later. However, i want to leave BP
+		; as equal to SP here.) ---rd4load.s---
+		;
+		; 15/09/2023 (iosys5.s, iosys51.s, iosys6.s)
+		; (The BP value here will not be used by IO.SYS later.
+		;  It is not necessary to set.) 
+		;
+		;mov	bp, sp	; 7C00h ; 15/09/2023
+
 		jmp	70h:0	; Far jump to IoSysAddr	(DOSBIOS)
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -1179,6 +1194,8 @@ GoToBioInit:
 ; if SectorCount <> 0 do next read
 ; ---------------------------------------------------------------------------
 
+
+		; 15/09/2023
 ReadSectors:
 		; 24/12/2022
 		; 22/12/2022
@@ -1193,19 +1210,25 @@ TryRead:
 		push	cx
 		;mov	ax, [cs:StartSecL]	; Get starting sector
 		;mov	dx, [cs:StartSecH]
-		mov	ax, [StartSecL]		; Get starting sector
-		mov	dx, [StartSecH]
-		push	ax
-		mov	ax, dx
+		; 15/09/2023
+		;mov	ax, [StartSecL]	; *	; Get starting sector
+		;mov	dx, [StartSecH]
+		;push	ax ; *
+		;mov	ax, dx
+		mov	ax, [StartSecH]
 		xor	dx, dx
 		;;div	word [cs:SecPerTrack]
-		;div	word [SecPerTrack]	
+		;div	word [SecPerTrack]
 		; 24/12/2022
 		mov	bx, [SecPerTrack]
 		div	bx
-		mov	[TempH], ax
-		;mov	[cs:TempH], ax
-		pop	ax
+
+		;mov	[TempH], ax
+		;;mov	[cs:TempH], ax
+		; 15/09/2023
+		mov	bp, ax ; [TempH]
+		;pop	ax ; *
+		mov	ax, [StartSecL] ; *
 		div	bx
 		;div	word [SecPerTrack]
 		;;div	word [cs:SecPerTrack]	; [TempH]:ax = track,
@@ -1272,11 +1295,16 @@ GotLength:
 		; 18/12/2022
 		inc	dx
 		mov	bl, dl			; Start sector in BL
+		
+		; 15/09/2023
 		; 24/12/2022
-		mov	dx, [TempH]		; DX:AX = Track
-		;mov	dx, [cs:TempH]		; DX:AX = Track
+		;mov	dx, [TempH]		; DX:AX = Track
+		;;mov	dx, [cs:TempH]		; DX:AX = Track
+		
 		push	ax
-		mov	ax, dx
+		;mov	ax, dx
+		; 15/09/2023
+		mov	ax, bp ; [TempH]
 		xor	dx, dx
 		; 24/12/2022
 		div	word [NumHeads]
@@ -1345,7 +1373,7 @@ GotLength:
 		jmp	TryRead
 ; ---------------------------------------------------------------------------
 
-ReadError:				
+ReadError:
 		jmp	ErrorOut
 ; ---------------------------------------------------------------------------
 
@@ -1395,7 +1423,7 @@ ReadOk:
 ; ---------------------------------------------------------------------------
 		
 		; 24/12/2022
-;EndRead:				
+;EndRead:
 		;retn
 
 ; =============== S U B	R O U T	I N E =======================================
