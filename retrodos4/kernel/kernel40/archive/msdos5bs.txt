@@ -1,0 +1,428 @@
+     1                                  ; ****************************************************************************
+     2                                  ; MSDOS5BS.S (MSDOS 5.0 BOOT SECTOR) - source code by ERDOGAN TAN - 03/11/2022
+     3                                  ; ----------------------------------------------------------------------------
+     4                                  ; Last Update: 03/11/2022
+     5                                  ; ----------------------------------------------------------------------------
+     6                                  ; Assembler: NASM version 2.11 (2.15) 
+     7                                  ; ----------------------------------------------------------------------------
+     8                                  ;	   ((nasm msdos5bs.s -l msdos5bs.lst -o MSDOS5BS.BIN -Z error.txt)) 	
+     9                                  ; ----------------------------------------------------------------------------
+    10                                  ; Ref:	MSDOS 6.0 source code - MSBOOT.ASM (1991) - boot sector code
+    11                                  ; Ref:	Disassembled MSDOS 5.0 (bootable fd) boot sector code
+    12                                  ;	(Disassembler: HEX-RAYS IDA Pro)
+    13                                  ; 				Converted to NASM source code by Erdogan Tan 
+    14                                  ; ----------------------------------------------------------------------------
+    15                                  
+    16                                  ; [[ Most of comments here are from the original MSDOS 6.0 boot source code ]]
+    17                                  
+    18                                  ;-----------------------------------------------------------------------------
+    19                                  ; MSBOOT.ASM (Microsoft, 1991)
+    20                                  ;-----------------------------------------------------------------------------
+    21                                  
+    22                                  ; The ROM in the IBM PC starts the boot process by performing a hardware
+    23                                  ; initialization and a verification of all external devices.  If all goes
+    24                                  ; well, it will then load from the boot drive the sector from track 0, head 0,
+    25                                  ; sector 1.  This sector is placed at physical address 07C00h.	The initial
+    26                                  ; registers are set up as follows:  CS=DS=ES=SS=0.  IP=7C00h, SP=0400H.
+    27                                  ;
+    28                                  ; The code in this sector is responsible for locating the MSDOS device drivers
+    29                                  ; (IBMBIO) and for placing the directory sector with this information at
+    30                                  ; physical address 00500h.  After loading in this sector, it reads in the
+    31                                  ; entirety of the BIOS at BIOSEG:0 and does a long jump to that point.
+    32                                  ;
+    33                                  ; If no BIOS/DOS pair is found an error message is displayed and the user is
+    34                                  ; prompted to reinsert another disk.  If there is a disk error during the
+    35                                  ; process, a message is displayed and things are halted.
+    36                                  ;
+    37                                  ; At the beginning of the boot sector, there is a table which describes the
+    38                                  ; MSDOS structure of the media.  This is equivalent to the BPB with some
+    39                                  ; additional information describing the physical layout of the driver (heads,
+    40                                  ; tracks, sectors)
+    41                                  
+    42                                  ;-----------------------------------------------------------------------------
+    43                                  
+    44                                  ORIGIN		EQU	7C00h		; Origin of bootstrap LOADER
+    45                                  BIO_SEG		EQU	70h		; Destination segment of BIOS
+    46                                  BIO_OFFSET	EQU	700h		; Offset of bios
+    47                                  SECTOR_SIZE	EQU	512		; Sector size in bytes
+    48                                  DIR_ENTRY_SIZE	EQU	32		; Size of directory entry in bytes
+    49                                  DIR_OFF		EQU	500h
+    50                                  IBM_LOAD_SIZE	EQU	3		; Size of IBMLOAD module in sectors
+    51                                  ROM_DISKRD	EQU	2
+    52                                  DSK_PARMS	EQU	1Eh*4		; POINTER TO DRIVE PARAMETERS
+    53                                  
+    54                                  ;=============================================================================
+    55                                  
+    56                                  ; +-------------------------------------------------------------------------+
+    57                                  ; |   This file	has been generated by The Interactive Disassembler (IDA)    |
+    58                                  ; |	      Copyright	(c) 2013 Hex-Rays, <support@hex-rays.com>	    |
+    59                                  ; |			 Licensed to: Freeware version			    |
+    60                                  ; +-------------------------------------------------------------------------+
+    61                                  
+    62                                  ;=============================================================================
+    63                                  
+    64                                  		[BITS 16]
+    65                                  	
+    66                                  		[ORG 7C00h]
+    67                                  START:
+    68 00000000 EB3C                    		jmp	short MAIN	; 0EBh,3Ch
+    69                                  ;-----------------------------------------------------------------------------
+    70 00000002 90                      		nop			; 90h
+    71                                  ;-----------------------------------------------------------------------------
+    72 00000003 4D53444F53              OS:		db 'MSDOS'		; (OEM name or Operating System name)
+    73 00000008 352E30                  OsVersion:	db '5.0'		; DOS version number
+    74 0000000B 0002                    BytesPerSector:	dw 512			; Size of a physical sector
+    75 0000000D 01                      SecsPerClust:	db 1			; Sectors per allocation unit
+    76 0000000E 0100                    ReservedSecs:	dw 1			; Number of reserved sectors
+    77 00000010 02                      NumFats:	db 2			; Number of FATs
+    78 00000011 E000                    NumDirEntries:	dw 224			; Number of directory entries
+    79 00000013 400B                    TotalSectors:	dw 2880			; Number of sectors - number of hidden
+    80                                  					; sectors (0 when 32 bit sector number)
+    81 00000015 F0                      MediaByte:	db 0F0h			; MediaByte (MediaID) byte
+    82 00000016 0900                    NumFatSecs:	dw 9			; Number of FAT sectors
+    83 00000018 1200                    SecPerTrack:	dw 18			; Sectors per track
+    84 0000001A 0200                    NumHeads:	dw 2			; Number of drive heads
+    85 0000001C 00000000                HiddenSecs:	dd 0			; Number of hidden sectors
+    86 00000020 00000000                BigTotalSecs:	dd 0			; 32 bit version of number of sectors
+    87 00000024 00                      BootDrv:	db 0			; (0 for fd, 80h for hd).
+    88 00000025 00                      CurrentHead:	db 0			; Current head
+    89 00000026 29                      ExtBootSig:	db 29h			; Extended boot signature
+    90 00000027 E3180535                SerialNum:	dd 350518E3h		; Volume serial number (Volume ID)
+    91 0000002B 424F4F543530302020-     VolumeLabel:	db 'BOOT500    '	; Volume label ('NO NAME    ') 
+    91 00000034 2020               
+    92 00000036 4641543132202020        FatId:		db 'FAT12   '		; ('FAT16   ' or 'FAT12   ') 
+    93                                  ;-----------------------------------------------------------------------------
+    94                                  
+    95                                  uData	equ	$			; Equates to allow access to
+    96                                  					; storage where Main is now
+    97                                  Sec9	equ	uData+0			; 11 byte diskette parm. table
+    98                                  BiosLow	equ	uData+11
+    99                                  BiosHigh equ	uData+13
+   100                                  CurTrk	equ	uData+15
+   101                                  CurSec	equ	uData+17
+   102                                  DirLow	equ	uData+18
+   103                                  DirHigh	equ	uData+20
+   104                                  
+   105                                  ;-----------------------------------------------------------------------------
+   106                                  
+   107                                  	; First thing is to reset the stack to a better and more known
+   108                                  	; place. The ROM  may change, but we'd like to get the stack
+   109                                  	; in the correct place.
+   110                                  MAIN:
+   111 0000003E FA                      		cli			; Stop interrupts till stack ok
+   112 0000003F 31C0                    		xor	ax,ax
+   113 00000041 8ED0                    		mov	ss,ax		; Work in stack just below this routine
+   114                                  
+   115 00000043 BC007C                  		mov	sp,ORIGIN	; 7C00h	
+   116 00000046 16                      		push	ss
+   117 00000047 07                      		pop	es
+   118                                  
+   119                                  	; We copy the disk parameter table into a local area. We scan
+   120                                  	; the table above for non-zero parameters. Any we see get
+   121                                  	; changed to their non-zero values. We copy the disk parameter
+   122                                  	; table into a local area (overlayed into the code)
+   123                                  
+   124 00000048 BB7800                  		mov	bx,DSK_PARMS	; 78h (1Eh*4) -INT 1Eh vector-
+   125 0000004B 36C537                  		lds	si,[ss:bx]	; get address of disk table
+   126 0000004E 1E                      		push	ds		; save original vector for possible
+   127 0000004F 56                      		push	si		; restore
+   128 00000050 16                      		push	ss
+   129 00000051 53                      		push	bx
+   130 00000052 BF[3E00]                		mov	di,Sec9		; 7C3Eh
+   131 00000055 B90B00                  		mov	cx,11
+   132 00000058 FC                      		cld
+   133 00000059 F3A4                    		rep	movsb
+   134 0000005B 06                      		push	es
+   135 0000005C 1F                      		pop	ds		; DS = ES = code = 0.
+   136                                  
+   137                                  	; Set the head settle time to 15ms because we don't have room
+   138                                  	; to do a disk retry and then set sectors per from the value
+   139                                  	; in the BPB
+   140                                  
+   141 0000005D C645FE0F                		mov	byte [di-2],0Fh	; Head settle time
+   142 00000061 8B0E[1800]              		mov	cx,[SecPerTrack]
+   143 00000065 884DF9                  		mov	byte [di-7],cl	; End of Track
+   144                                  
+   145 00000068 894702                  		mov	[bx+2],AX	; Place in new disk parameter
+   146 0000006B C707[3E00]              		mov	word [bx],Sec9	; table vector
+   147                                  
+   148                                  	; We may now turn interrupts back on. Before this, there is
+   149                                  	; a small window when a reboot command may come in when the
+   150                                  	; disk parameter table is garbage
+   151                                  
+   152 0000006F FB                      		sti			; Interrupts OK now
+   153 00000070 CD13                    		int	13h		; Reset the disk system just in case
+   154 00000072 7279                    		jc	short CkErr	; any thing funny has happened.
+   155                                  
+   156                                  		; The system is now prepared for us to begin reading.
+   157                                  		; First, determine logical sector numbers of the start of the
+   158                                  		; directory and the start of the data area.
+   159                                  
+   160 00000074 31C0                    		xor	ax,ax		; 0
+   161 00000076 3906[1300]              		cmp	[TotalSectors],ax ; 32 bit calculation?
+   162 0000007A 7408                    		je	short Dir_Cont
+   163                                  
+   164 0000007C 8B0E[1300]              		mov	cx,[TotalSectors]
+   165 00000080 890E[2000]              		mov	[BigTotalSecs],cx ; Low 16 bit of 32 bit total sectors
+   166                                  
+   167                                  Dir_Cont:
+   168 00000084 A0[1000]                		mov	al,[NumFats]	; Determine sector dir starts on
+   169 00000087 F726[1600]              		mul	word [NumFatSecs] ; DX:AX
+   170 0000008B 0306[1C00]              		add	ax,[HiddenSecs]
+   171 0000008F 1316[1E00]              		adc	dx,[HiddenSecs+2]
+   172 00000093 0306[0E00]              		add	ax,[ReservedSecs]
+   173 00000097 83D200                  		adc	dx,0
+   174                                  
+   175                                  	; DX:AX = NumFats * NumFatSecs + ReservedSecs + cSecHid
+   176                                  
+   177 0000009A A3[5000]                		mov	[DirLow],ax
+   178 0000009D 8916[5200]              		mov	[DirHigh],dx
+   179 000000A1 A3[4900]                		mov	[BiosLow],ax
+   180 000000A4 8916[4B00]              		mov	[BiosHigh],dx
+   181                                  
+   182                                  	; Take into account size of directory (only know number
+   183                                  	; of directory entries)
+   184                                  
+   185 000000A8 B82000                  		mov	ax,DIR_ENTRY_SIZE ; bytes per directory entry
+   186 000000AB F726[1100]              		mul	word [NumDirEntries] ; convert to bytes in directory
+   187 000000AF 8B1E[0B00]              		mov	bx,[BytesPerSector] ; add in sector size
+   188 000000B3 01D8                    		add	ax,bx
+   189 000000B5 48                      		dec	ax		; decrement so that we round up
+   190 000000B6 F7F3                    		div	bx		; convert to sector number
+   191 000000B8 0106[4900]              		add	[BiosLow],ax	; Start sector # of Data area
+   192 000000BC 8316[4B00]00            		adc	word [BiosHigh],0
+   193                                  	
+   194                                  	; -------------------------------------------------------------	
+   195                                  	; NOTE:
+   196                                  	; Microsoft dos programmers were calling 'IO.SYS' as dos 'BIOS'
+   197                                  	; (Also, they were calling 'ROMBIOS' as 'ROM' only!)
+   198                                  	; -------------------------------------------------------------
+   199                                  
+   200                                  	; We load in the first directory sector and examine it to
+   201                                  	; make sure the the BIOS and DOS are the first two directory
+   202                                  	; entries. If they are not found, the user is prompted to
+   203                                  	; insert a new disk. The directory sector is loaded into 00500h
+   204                                  
+   205 000000C1 BB0005                  		mov	bx,DIR_OFF	; sector to go in at 00500h
+   206                                  
+   207 000000C4 8B16[5200]              		mov	dx,[DirHigh]
+   208 000000C8 A1[5000]                		mov	ax,[DirLow]	; logical sector of directory
+   209 000000CB E89200                  		call	DODIV		; convert to sector, track, head
+   210 000000CE 721D                    		jc	short CkErr	; Overflow? BPB must be wrong!!
+   211                                  
+   212 000000D0 B001                    		mov	al,1		; disk read 1 sector
+   213 000000D2 E8AC00                  		call	DOCALL		; do the disk read
+   214 000000D5 7216                    		jb	short CkErr	; if errors try to recover
+   215                                  
+   216                                  	; Now we scan for the presence of BIOS file.
+   217                                  
+   218 000000D7 89DF                    		mov	di,bx
+   219 000000D9 B90B00                  		mov	cx,11
+   220 000000DC BE[E601]                		mov	SI,Bio ; IO.SYS	; point to "ibmbio  com"
+   221 000000DF F3A6                    		repz	cmpsb		; see if the same
+   222 000000E1 750A                    		jnz	short CkErr	; if not there advise the user
+   223                                  
+   224                                  	; Found the BIOS. Check the second directory entry.
+   225                                  	; SI will already point to "MSDOS  SYS" if first compare
+   226                                  	; was successful
+   227                                  
+   228 000000E3 8D7F20                  		lea	di,[bx+20h]
+   229                                  	;**	mov	si,Dos ; MSDOS.SYS
+   230 000000E6 B90B00                  		mov	cx,11
+   231 000000E9 F3A6                    		repz	cmpsb
+   232 000000EB 7418                    		jz	short DoLoad
+   233                                  
+   234                                  	; There has been some recoverable error. Display a message
+   235                                  	; and wait for a keystroke.
+   236                                  
+   237 000000ED BE[9E01]                CkErr:		mov	si,SysMsg	; point to no system message
+   238 000000F0 E85F00                  ErrOut:		call	WRITE		; and write on the screen
+   239                                  
+   240 000000F3 31C0                    		xor	ax,ax		; wait for response
+   241 000000F5 CD16                    		int	16h		; get character from keyboard
+   242 000000F7 5E                      		pop	si		; reset disk parameter table
+   243 000000F8 1F                      		pop	ds		; back to rom
+   244 000000F9 8F04                    		pop	word [si]
+   245 000000FB 8F4402                  		pop	word [si+2]
+   246 000000FE CD19                    		int	19h		; Continue in loop till good disk
+   247                                  Load_Failure:
+   248 00000100 58                      		pop	ax		; adjust the stack
+   249 00000101 58                      		pop	ax
+   250 00000102 58                      		pop	ax
+   251 00000103 EBE8                    		jmp	short CkErr	; display message and reboot.
+   252                                  
+   253                                  	; We now begin to load the BIOS in.
+   254                                  	; All we have to do is just read is multiply the BioStartClus
+   255                                  	; by SecsPerClust to find the logical sector for the start
+   256                                  	; of the BIOS file. When this value is added to the double
+   257                                  	; word BiosHigh:BiosLow we get the absolute sector offset
+   258                                  	; for the start of the file and then read the  sectors
+   259                                  	; contiguously IBM_LOAD_SIZE times. We here assume that
+   260                                  	; IBMLOAD module is contiguous. Currently we estimate that
+   261                                  	; IBMLOAD module will not be more than 3 sectors.
+   262                                  DoLoad:
+   263 00000105 8B471A                  		mov	ax,[bx+1Ah]	; AX = BIOS starting cluster
+   264 00000108 48                      		dec	ax		; Subtract first 2 reserved clusters
+   265 00000109 48                      		dec	ax
+   266 0000010A 8A1E[0D00]              		mov	bl,[SecsPerClust] ; BX = Sectors per cluster
+   267 0000010E 30FF                    		xor	bh,bh
+   268 00000110 F7E3                    		mul	bx		; DX:AX = first logical sector of bios
+   269                                  
+   270 00000112 0306[4900]              		add	ax,[BiosLow]	; Add absolute start sector
+   271 00000116 1316[4B00]              		adc	dx,[BiosHigh]	; DX:AX = Absolute bios sector offset
+   272                                  
+   273 0000011A BB0007                  		mov	bx,BIO_OFFSET	; offset of ibmbio(IBMLOAD) to be loaded.
+   274 0000011D B90300                  		mov	cx,IBM_LOAD_SIZE ; # of sectors to read.
+   275                                  Do_While:
+   276 00000120 50                      		push	ax
+   277 00000121 52                      		push	dx
+   278 00000122 51                      		push	cx
+   279 00000123 E83A00                  		call	DODIV		; DX:AX = sector number.
+   280 00000126 72D8                    		jc	short Load_Failure ; Adjust stack. Show error message
+   281 00000128 B001                    		mov	al,1		; Read 1 sector at a time.
+   282                                  					; This is to handle a case of media
+   283                                  					; when the first sector of IBMLOAD is
+   284                                  					; the last sector in a track.
+   285 0000012A E85400                  		call	DOCALL		; Read the sector.
+   286 0000012D 59                      		pop	cx
+   287 0000012E 5A                      		pop	dx
+   288 0000012F 58                      		pop	ax
+   289 00000130 72BB                    		jc	short CkErr	; Read error?
+   290 00000132 83C001                  		add	ax,1		; Next sector number.
+   291 00000135 83D200                  		adc	dx,0
+   292 00000138 031E[0B00]              		add	bx,[BytesPerSector] ; Adjust buffer address.
+   293 0000013C E2E2                    		loop	Do_While
+   294                                  
+   295                                  
+   296                                  ;-----------------------------------------------------------------------------
+   297                                  ; Main read-in loop.
+   298                                  ; ES:BX points to area to read.
+   299                                  ; Count is the number of sectors remaining.
+   300                                  ; BIOS$ is the next logical sector number to read
+   301                                  ;
+   302                                  ; CurrentHead is the head for this next disk request
+   303                                  ; CurTrk is the track for this next request
+   304                                  ; CurSec is the beginning sector number for this request
+   305                                  ;
+   306                                  ; AX is the number of sectors that we may read.
+   307                                  ;
+   308                                  ;-----------------------------------------------------------------------------
+   309                                  ;
+   310                                  ; IBMINIT requires the following input conditions:
+   311                                  ;
+   312                                  ;   DL = INT 13 drive number we booted from
+   313                                  ;   CH = media byte
+   314                                  ;   IBMBIO init routine should check if the boot record is the
+   315                                  ;   extended one by looking at the extended_boot_signature.
+   316                                  ;   If it is, then should us AX:BX for the starting data sector number.
+   317                                  ;-----------------------------------------------------------------------------
+   318                                  
+   319                                  DISKOK:
+   320 0000013E 8A2E[1500]              		mov	ch,[MediaByte]
+   321 00000142 8A16[2400]              		mov	dl,[BootDrv]
+   322 00000146 8B1E[4900]              		mov	bx,[BiosLow]	; Get bios sector in ax:bx
+   323 0000014A A1[4B00]                		mov	ax,[BiosHigh]	;
+   324                                  		;jmp	70h:0
+   325 0000014D EA00007000              		jmp	BIO_SEG:0	; CRANK UP THE DOS
+   326                                  
+   327                                  ;-----------------------------------------------------------------------------
+   328                                  
+   329                                  WRITE:
+   330 00000152 AC                      		lodsb			; GET NEXT CHARACTER
+   331 00000153 08C0                    		or	al,al		; Clear the high bit
+   332 00000155 7429                    		jz	short EndWr	; ERROR MESSAGE UP, JUMP TO BASIC
+   333 00000157 B40E                    		mov	ah,14		; WILL WRITE CHARACTER & ATTRIBUTE
+   334 00000159 BB0700                  		mov	bx,7		; ATTRIBUTE
+   335 0000015C CD10                    		int	10h		; PRINT THE CHARACTER
+   336 0000015E EBF2                    		jmp	short WRITE
+   337                                  
+   338                                  ;-----------------------------------------------------------------------------
+   339                                  
+   340                                  	; Convert a logical sector into Track/sector/head.
+   341                                  	; DX:AX has the sector number. Because of not enough space, we
+   342                                  	; are  going to use Simple 32 bit division here.
+   343                                  	; Carry set if DX:AX is too big to handle.
+   344                                  
+   345                                  DODIV:
+   346 00000160 3B16[1800]              		cmp	dx,[SecPerTrack]  ; To prevent overflow!!!
+   347 00000164 7319                    		jae	short DivOverFlow ; Compare high word with the divisor.
+   348 00000166 F736[1800]              		div	word [SecPerTrack] ; AX = Total tracks
+   349                                  					; DX = sector number
+   350 0000016A FEC2                    		inc	dl		; We assume SecPerTrack < 255 & DH=0
+   351                                  					; curSec is 1-based.
+   352 0000016C 8816[4F00]              		mov	[CurSec],dl	; Save it
+   353 00000170 31D2                    		xor	dx,dx
+   354 00000172 F736[1A00]              		div	word [NumHeads]
+   355 00000176 8816[2500]              		mov	[CurrentHead],dl ; Also, NumHeads < 255.
+   356 0000017A A3[4D00]                		mov	[CurTrk],ax
+   357 0000017D F8                      		clc
+   358 0000017E C3                      		retn
+   359                                  DivOverFlow:
+   360 0000017F F9                      		stc
+   361                                  EndWr:
+   362 00000180 C3                      		retn
+   363                                  
+   364                                  ;-----------------------------------------------------------------------------
+   365                                  ;
+   366                                  ; Issue one read request. ES:BX have the transfer address,
+   367                                  ; AL is the number of sectors.
+   368                                  ;
+   369                                  ;-----------------------------------------------------------------------------
+   370                                  
+   371                                  DOCALL:
+   372 00000181 B402                    		mov	ah,ROM_DISKRD	; =2
+   373 00000183 8B16[4D00]              		mov	dx,[CurTrk]
+   374 00000187 B106                    		mov	cl,6
+   375 00000189 D2E6                    		shl	dh,cl
+   376 0000018B 0A36[4F00]              		or	dh,[CurSec]
+   377 0000018F 89D1                    		mov	cx,dx
+   378 00000191 86E9                    		xchg	ch,cl
+   379 00000193 8A16[2400]              		mov	dl,[BootDrv]
+   380 00000197 8A36[2500]              		mov	dh,[CurrentHead]
+   381 0000019B CD13                    		int	13h
+   382 0000019D C3                      		retn
+   383                                  
+   384                                  ;-----------------------------------------------------------------------------
+   385                                  
+   386                                  ; include boot.cl1 - 'non system disk' message
+   387                                  
+   388                                  ;-----------------------------------------------------------------------------
+   389                                  
+   390 0000019E 0D0A                    SysMsg:		db 0Dh,0Ah		; crlf
+   391 000001A0 4E6F6E2D5379737465-     		db 'Non-System disk or disk error',0Dh,0Ah
+   391 000001A9 6D206469736B206F72-
+   391 000001B2 206469736B20657272-
+   391 000001BB 6F720D0A           
+   392 000001BF 5265706C6163652061-     		db 'Replace and press any key when ready',0Dh,0Ah,0
+   392 000001C8 6E6420707265737320-
+   392 000001D1 616E79206B65792077-
+   392 000001DA 68656E207265616479-
+   392 000001E3 0D0A00             
+   393                                  
+   394                                  ;-----------------------------------------------------------------------------
+   395                                  
+   396                                  ; MSDOS bios and kernel files: IO.SYS and MSDOS.SYS
+   397                                  
+   398                                  ;-----------------------------------------------------------------------------
+   399                                  
+   400                                  	;IF IBMCOPYRIGHT
+   401                                  ;Bio:		db	"IBMBIO  COM"
+   402                                  ;Dos:		db	"IBMDOS  COM"
+   403                                  	;ELSE
+   404 000001E6 494F20202020202053-     Bio:		db	"IO      SYS"
+   404 000001EF 5953               
+   405 000001F1 4D53444F5320202053-     Dos:		db	"MSDOS   SYS"
+   405 000001FA 5953               
+   406                                  	;ENDIF
+   407                                  
+   408                                  ;-----------------------------------------------------------------------------
+   409                                  
+   410 000001FC 00<rep 2h>              		times	(SECTOR_SIZE - 2) - ($-START) db 0
+   411                                  
+   412                                  ;-----------------------------------------------------------------------------
+   413                                  
+   414 000001FE 55AA                    		db	55h,0AAh		; Boot sector signature
+   415                                  
+   416                                  ;=============================================================================
+   417                                  
+   418                                  ; Erdogan Tan - Istanbul - 03/11/2022
