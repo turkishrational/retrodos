@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RETRODOS.SYS (MSDOS 5.0 Kernel) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 29/09/2023 - Retro DOS v4.1 (Previous: 27/09/2023)
+; Last Update: 08/10/2023 - Retro DOS v4.1 (Previous: 29/09/2023)
 ; ----------------------------------------------------------------------------
 ; Beginning: 25/05/2018 (Retro DOS 3.0), 26/12/2018 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -2099,9 +2099,11 @@ V86_Crit_SetFocus:
 		jz	short Skip	; Here,	es:di is address of API	routine.
 					; Set up stack frame to	simulate a call.
 		push	cs
-		;mov	ax, offset Skip
-		mov	ax, Skip
-		push	ax
+		;;mov	ax,offset Skip
+		;mov	ax,Skip
+		;push	ax
+		; 08/10/2023
+		push	Skip
 		push	es
 		push	di		; API far call address
 		mov	ax, 1		; SetFocus function number

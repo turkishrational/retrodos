@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RD4LOAD.S (Retro DOS v4 KERNEL LOADER) -IO.SYS- by ERDOGAN TAN - 22/12/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 15/09/2023 (Modified IO.SYS loader) 
+; Last Update: 07/10/2023 (Modified IO.SYS loader) ((Previous: 15/09/2023))
 ; ----------------------------------------------------------------------------
 ; Beginning: 22/12/2022 (Retro DOS 4.0 Kernel Loader, Fake IO.SYS)
 ; ----------------------------------------------------------------------------
@@ -70,7 +70,8 @@ START$:
 ; 09/12/2022
 ; ---------------------------------------------------------------------------
 SysVersion:	dw 5			; expected_version
-ClusterSize:	dw 0
+		; 06/10/2023
+;ClusterSize:	dw 0
 StartSecL:	dw 0
 StartSecH:	dw 0
 ; 15/09/2023
@@ -410,6 +411,8 @@ FindClusterSize:
 
 ;for the time being just ASSUME the boot record is valid and the bpb is there.
 
+; 06/10/2023
+%if 0
 		; 24/12/2022
 		; ds = cs
 		;xor	ax, ax
@@ -424,6 +427,7 @@ FindClusterSize:
 		;mov	[cs:ClusterSize], ax
 		; 24/12/2022
 		mov	[ClusterSize], ax
+%endif
 
 ; CalcFatSize
 ; ---------------------------------------------------------------------------
@@ -497,7 +501,7 @@ CalcFatSize:
 		pop	ax
 		div	cx  ; *#*
 		cmp	ax, 4086	; 4096-10
-		jb	short ReadInFirstClusters ; 12 bit FAT
+		jb	short ReadInFirstCluster ; 12 bit FAT
 		;mov	byte [cs:Fatsize], 4 ; FAT_16_BIT
 		mov	byte [Fatsize], 4 ; FAT_16_BIT
 
@@ -513,9 +517,10 @@ KernelInitSegment equ 1000h	; Address where the kernel will be loaded
 
 ; ---------------------------------------------------------------------------
 
-		; 23/12/2022	
-		; 22/12/2022	
-ReadInFirstClusters:
+		; 06/10/2023
+		; 23/12/2022
+		; 22/12/2022
+ReadInFirstCluster:
 		; 24/12/2022
 		;;mov	ax, [53Ah]
 		;mov	ax, [ss:KernelFirstClustr] ; [ss:053Ah] 
@@ -578,9 +583,12 @@ ReadInFirstClusters:
 		;mov	ax, [SecPerCluster]
 		;;sub	ax, ax
 		;;mov	al, [SecPerCluster]
-		mov	ax, cx
-					; Read in the entire last cluster
-		mov	[SectorCount], ax ; ah = 0
+		
+		; 06/10/2023
+		;mov	ax, cx
+		;			; Read in the entire last cluster
+		;mov	[SectorCount], ax ; ah = 0
+		mov	[SectorCount], cx ; cx = [SecPerCluster], ch = 0
 
 		call	ReadSectors
 
@@ -886,7 +894,8 @@ dma_boundary_chk:
 				; 1 sector read will not cause a boundary error			
 		push	dx
 		push	ax
-		mov	ax, si
+
+		mov	ax, si ; sector count
 		sub	dx, dx
 		; 24/12/2022
 		mul	word [BytesPerSec]
@@ -898,16 +907,20 @@ dma_boundary_chk:
 		;shl	bx, cl ; convert paragraphs to bytes
 		;; bx = segment start position (for 64K memory sections)
 		;add	bx, ax ; byte count to read
-		mov	bx, ax ; byte count to read
+		; 06/10/2023
+		;mov	bx, ax ; byte count to read
+		add	ax, di
+
 		pop	ax
 		pop	dx
-		add	bx, di ; add current buffer offset to byte count
+		; 06/10/2023
+		;add	bx, di ; add current buffer offset to byte count
 		jnc	short dma_boundary_ok
 		; Sector count must be decreased to prevent
 		; DMA boundary error or segment override risk!
 		dec	si
 		jmp	short dma_boundary_chk
-dma_boundary_ok:				
+dma_boundary_ok:
 		;inc	dl			; Sector numbers are 1-based
 		; 18/12/2022
 		inc	dx
@@ -980,8 +993,8 @@ dma_boundary_ok:
 		;;mov	dl, [cs:BootDrive]
 		; 23/12/2022
 		;push	di
-		int	13h		; DISK - RESET DISK SYSTEM
-					; DL = drive (if bit 7 is set both hard	disks and floppy disks reset)
+		int	13h	; DISK - RESET DISK SYSTEM
+				; DL = drive (if bit 7 is set both hard	disks and floppy disks reset)
 		; 23/12/2022
 		;pop	di
 		;pop	cx
@@ -989,9 +1002,9 @@ dma_boundary_ok:
 		jz	short ReadError
 		jmp	TryRead
 ; ---------------------------------------------------------------------------
-
-ReadError:				
-		jmp	ErrorOut
+		; 07/10/2023
+;ReadError:				
+		;jmp	ErrorOut
 ; ---------------------------------------------------------------------------
 
 ReadOk:
@@ -1001,7 +1014,6 @@ ReadOk:
 		;xor	ah, ah		; Mask out read command, just get # read
 		; ch = 0
 		mov	cl, al
-
 		; 22/12/2022
 		; cx = ax = read (sector) count	
 		;mov	bx, [cs:BytesPerSec]	; Bytes per sector
@@ -1031,238 +1043,14 @@ read_next_sector:
 		;adc	word [cs:StartSecH], 0
 		jmp	ReadSectors
 ; ---------------------------------------------------------------------------
-		
-		; 24/12/2022
-;EndRead:				
-		;retn
-
-; =============== S U B	R O U T	I N E =======================================
-
-; GetNextFatEntry
-; ---------------------------------------------------------------------------
-;
-; NOTES:
-;
-;   given the last cluster found, this will return the next cluster of
-;   iosys. if the last cluster is (f)ff8 - (f)fff, then the final cluster
-;   of iosys has been loaded, and control is passed to goto_iosys
-;   msload can handle maximum fat area size of 128 kb.
-;
-; INPUT:
-;
-;    CS:CurrentCluster
-;    CS:FatSize
-;
-; OUTPUT:
-;
-;   CS:CurrentCluster (updated)
-;
-; calls:  GetFatSector
-; ---------------------------------------------------------------------------
-; get CurrentCluster
-;
-; if (16 bit fat)
-;    {if (CurrentCluster = fff8 - ffff)
-;	 {jmp goto_iosys}
-;     else
-;	{get OFFSET by multiply cluster by 2}
-;
-; else
-;    {if (CurrentCluster = ff8 - fff)
-;	 {jmp goto_iosys}
-;     else
-;	{get OFFSET by	- multiply cluster by 3
-;
-;	 rotate right to divide by 2
-;
-;	 if (cy set - means odd number)
-;	    {shr 4 times to keep high twelve bits}
-;
-;	 else
-;	    {and with 0fffh to keep low 12 bits}
-;	}
-;    }
-;
-; ---------------------------------------------------------------------------
-
-; 09/12/2022
-; FAT_12_BIT equ 1
-; NOT_END_OF_FILE equ 0  ; ~END_OF_FILE ; END_OF_FILE equ 0FFh
-
-GetNextFatEntry:			
-		push	es
-		; 24/12/2022
-		mov	ax, FATSEGMENT	; FATBUFSEGM
-		;mov	ax, [cs:FatSegment]
-		mov	es, ax		; ES-> FAT area segment
-		; 09/12/2022
-		;;mov	byte [cs:EndOfFile], END_OF_FILE
-		;mov	byte [cs:EndOfFile], 0FFh ; Assume last cluster
-		;mov	ax, [cs:CurrentCluster] ; Get last cluster
-		; 24/12/2022
-		; ds = cs
-		mov	byte [EndOfFile], 0FFh ; Assume last cluster
-		mov	ax, [CurrentCluster] ; Get last cluster
-		cmp	byte [Fatsize], 1
-		;;cmp	byte [cs:FatSize], FAT_12_BIT
-		;cmp	byte [cs:Fatsize], 1
-		jne	short Got16Bit	; 23/12/2022
-		mov	si, ax
-		shr	ax, 1
-		add	si, ax		; SI = AX * 1.5 = AX + AX/2
-		; 23/12/2022
-		;push	dx
-		;xor	dx, dx
-		sub	dx, dx ; 23/12/2022
-		call	GetFatSector
-		; 23/12/2022
-		;pop	dx
-		jnz	short ClusterOk
-		mov	al, [es:bx]
-		; 22/12/2022
-		;mov	[cs:TempCluster], al
-		;push	ax ; (*)
-		inc	si
-		; 23/12/2022
-		;push	dx
-		xor	dx, dx
-		call	GetFatSector	; Read next fat sector
-		; 23/12/2022
-		;pop	dx
-		; 22/12/2022
-		;mov	al, [es:0]
-		;mov	[cs:TempCluster+1], al
-		;mov	ax, [cs:TempCluster]
-		; 22/12/2022
-		;pop	ax ; (*) 
-		mov	ah, [es:0]
-		jmp	short EvenOdd
-; ---------------------------------------------------------------------------
-
-ClusterOk:				
-		mov	ax, [es:bx]
-EvenOdd:	
-		; 24/12/2022
-		; ds = cs
-		test	byte [CurrentCluster], 1
-		; 10/12/2022		
-		;test	byte [cs:CurrentCluster], 1 ; 09/12/2022
-		;;test	word [cs:CurrentCluster], 1 ; Was last cluster odd?
-		jnz	short OddResult		; If not zero it was odd
-		and	ax, 0FFFh		; Keep low 12 bits
-		jmp	short TestEOF
-; ---------------------------------------------------------------------------
-
-OddResult:				
-		mov	cl, 4			; Keep high 12 bits for odd
-		shr	ax, cl
-TestEOF:				
-		cmp	ax, 0FF8h		; Is it last cluster?
-		jnb	short GotClusterDone	; Yep, all done here
-		jmp	short NotLastCluster
-; ---------------------------------------------------------------------------
-
-Got16Bit:
-		; 23/12/2022				
-		;push	dx
-		;xor	dx, dx
-		sub	dx, dx ; 23/12/2022
-		shl	ax, 1			; Multiply cluster by 2
-		adc	dx, 0
-		mov	si, ax			; Get the final buffer OFFSET
-		call	GetFatSector
-		; 23/12/2022
-		;pop	dx
-		mov	ax, [es:bx]
-		cmp	ax, 0FFF8h
-		jnb	short GotClusterDone
-NotLastCluster:	
-		; 24/12/2022
-		; ds = cs			
-		;;mov	byte [cs:EndOfFile], NOT_END_OF_FILE ; ~END_OF_FILE
-		;mov	byte [cs:EndOfFile], 0	; Assume not last cluster
-		mov	byte [EndOfFile], 0	; Assume not last cluster
-GotClusterDone:				
-		pop	es
+		; 07/10/2023
 		; 24/12/2022
 EndRead:
-		retn
-
-; =============== S U B	R O U T	I N E =======================================
-
-; GetFatSector
-; ---------------------------------------------------------------------------
-;function: find and read the corresponding fat sector into ES:0
-;
-;in). SI = offset value (starting from fat entry 0) of fat entry to find.
-;     ES = fat sector segment
-;     CS:BytesPerSec
-;
-;out). corresponding fat sector read in.
-;      BX = offset value of the corresponding fat entry in the fat sector.
-;      CX destroyed.
-;      zero flag set if the fat entry is splitted, i.e. when 12 bit fat entry
-;      starts at the last byte of the fat sector. in this case, the caller
-;      should save this byte, and read the next fat sector to get the rest
-;      of the fat entry value. (this will only happen with the 12 bit fat).
-;
+EndWrite:	retn
 ; ---------------------------------------------------------------------------
 
-		; 24/12/2022
-		; 22/12/2022
-GetFatSector:				
-		push	ax
-		push	si
-		push	di
-		mov	ax, si
-		; 24/12/2022
-		; ds = cs
-		;mov	cx, [cs:BytesPerSec]
-		;div	cx			; AX = Sector number, DX = Offset
-		div	word [BytesPerSec]
-		cmp	ax, [LastFatSector]
-		;cmp	ax, [cs:LastFatSector]	; The same fat sector?
-		je	short SplitChk		; Don't need to read it again.
-		mov	[LastFatSector], ax
-		;mov	[cs:LastFatSector], ax
-		push	dx
-		; 24/12/2022
-		xor	dx, dx
-		;add	ax, [cs:HiddenSectorsL]
-		;adc	dx, [cs:HiddenSectorsH]
-		;add	ax, [cs:ReservSectors]
-		;adc	dx, 0
-		; 24/12/2022
-		; ds = cs
-		add	ax, [FatStartSecL]
-		adc	dx, [FatStartSecH]
-		mov	[StartSecL], ax
-		mov	[StartSecH], dx		; Set up for ReadSectors
-		;mov	[cs:StartSecL], ax
-		;mov	[cs:StartSecH], dx	; Set up for ReadSectors
-		
-		mov	word [SectorCount], 1 ; 1 sector			
-		;mov	word [cs:SectorCount], 1 ; 1 sector
-		xor	di, di ; 0
-		; es:di = FATSEGMENT:0000h
-		call	ReadSectors
-		pop	dx
-		; 24/12/2022
-		;mov	cx, [cs:BytesPerSec]
-SplitChk:
-		; 24/12/2022
-		mov	cx, [BytesPerSec]				
-		dec	cx			; CX = SECTOR SIZE - 1
-		cmp	dx, cx			; If last byte of sector, splitted entry.
-		mov	bx, dx			; set bx to dx
-		pop	di
-		pop	si
-		pop	ax
-EndWrite:		; 10/12/2022
-		retn
-
-; ---------------------------------------------------------------------------
-
+ReadError:
+		; 07/10/2023
 ErrorOut:	
 		; 24/12/2022
 		; ds = cs		
@@ -1331,6 +1119,250 @@ WriteTTY:
 ;EndWrite:				
 ;		retn
 
+; =============== S U B	R O U T	I N E =======================================
+
+; GetNextFatEntry
+; ---------------------------------------------------------------------------
+;
+; NOTES:
+;
+;   given the last cluster found, this will return the next cluster of
+;   iosys. if the last cluster is (f)ff8 - (f)fff, then the final cluster
+;   of iosys has been loaded, and control is passed to goto_iosys
+;   msload can handle maximum fat area size of 128 kb.
+;
+; INPUT:
+;
+;    CS:CurrentCluster
+;    CS:FatSize
+;
+; OUTPUT:
+;
+;   CS:CurrentCluster (updated)
+;
+; calls:  GetFatSector
+; ---------------------------------------------------------------------------
+; get CurrentCluster
+;
+; if (16 bit fat)
+;    {if (CurrentCluster = fff8 - ffff)
+;	 {jmp goto_iosys}
+;     else
+;	{get OFFSET by multiply cluster by 2}
+;
+; else
+;    {if (CurrentCluster = ff8 - fff)
+;	 {jmp goto_iosys}
+;     else
+;	{get OFFSET by	- multiply cluster by 3
+;
+;	 rotate right to divide by 2
+;
+;	 if (cy set - means odd number)
+;	    {shr 4 times to keep high twelve bits}
+;
+;	 else
+;	    {and with 0fffh to keep low 12 bits}
+;	}
+;    }
+;
+; ---------------------------------------------------------------------------
+
+; 09/12/2022
+; FAT_12_BIT equ 1
+; NOT_END_OF_FILE equ 0  ; ~END_OF_FILE ; END_OF_FILE equ 0FFh
+
+GetNextFatEntry:			
+		push	es
+		; 24/12/2022
+		mov	ax, FATSEGMENT	; FATBUFSEGM
+		;mov	ax, [cs:FatSegment]
+		mov	es, ax		; ES-> FAT area segment
+		; 09/12/2022
+		;;mov	byte [cs:EndOfFile], END_OF_FILE
+		;mov	byte [cs:EndOfFile], 0FFh ; Assume last cluster
+		;mov	ax, [cs:CurrentCluster] ; Get last cluster
+		; 24/12/2022
+		; ds = cs
+		mov	byte [EndOfFile], 0FFh ; Assume last cluster
+		mov	ax, [CurrentCluster] ; Get last cluster
+		; 06/10/2023
+		sub	dx, dx
+		; dx = 0
+		cmp	byte [Fatsize], 1
+		;;cmp	byte [cs:FatSize], FAT_12_BIT
+		;cmp	byte [cs:Fatsize], 1
+		jne	short Got16Bit	; 23/12/2022
+		mov	si, ax
+		shr	ax, 1
+		add	si, ax		; SI = AX * 1.5 = AX + AX/2
+		; 06/10/2023
+		push	si ; (**)
+		; 23/12/2022
+		;push	dx
+		;xor	dx, dx
+		; 06/10/2023
+		;sub	dx, dx ; 23/12/2022
+		call	GetFatSector
+		; 06/10/2023
+		pop	si ; (**)
+		; 23/12/2022
+		;pop	dx
+		jnz	short ClusterOk
+		mov	al, [es:bx]
+		; 22/12/2022
+		;mov	[cs:TempCluster], al
+		; 06/10/2023
+		push	ax ; (*)
+		inc	si
+		; 23/12/2022
+		;push	dx
+		xor	dx, dx
+		call	GetFatSector	; Read next fat sector
+		; 23/12/2022
+		;pop	dx
+		; 22/12/2022
+		;mov	al, [es:0]
+		;mov	[cs:TempCluster+1], al
+		;mov	ax, [cs:TempCluster]
+		; 06/10/2023
+		; 22/12/2022
+		pop	ax ; (*) 
+		mov	ah, [es:0]
+		jmp	short EvenOdd
+; ---------------------------------------------------------------------------
+
+ClusterOk:				
+		mov	ax, [es:bx]
+EvenOdd:	
+		; 24/12/2022
+		; ds = cs
+		test	byte [CurrentCluster], 1
+		; 10/12/2022		
+		;test	byte [cs:CurrentCluster], 1 ; 09/12/2022
+		;;test	word [cs:CurrentCluster], 1 ; Was last cluster odd?
+		jnz	short OddResult		; If not zero it was odd
+		and	ax, 0FFFh		; Keep low 12 bits
+		jmp	short TestEOF
+; ---------------------------------------------------------------------------
+
+OddResult:				
+		mov	cl, 4			; Keep high 12 bits for odd
+		shr	ax, cl
+TestEOF:				
+		cmp	ax, 0FF8h		; Is it last cluster?
+		jnb	short GotClusterDone	; Yep, all done here
+		jmp	short NotLastCluster
+; ---------------------------------------------------------------------------
+
+Got16Bit:
+		; 23/12/2022				
+		;push	dx
+		;xor	dx, dx
+		; 06/10/2023
+		; ax = cluster number (index)
+		; dx = 0
+		;sub	dx, dx ; 23/12/2022
+		shl	ax, 1			; Multiply cluster by 2
+		;adc	dx, 0
+		; 07/10/2023
+		adc	dx, dx ; dx = 0
+		mov	si, ax			; Get the final buffer OFFSET
+		call	GetFatSector
+		; 23/12/2022
+		;pop	dx
+		mov	ax, [es:bx]
+		cmp	ax, 0FFF8h
+		jnb	short GotClusterDone
+NotLastCluster:	
+		; 24/12/2022
+		; ds = cs			
+		;;mov	byte [cs:EndOfFile], NOT_END_OF_FILE ; ~END_OF_FILE
+		;mov	byte [cs:EndOfFile], 0	; Assume not last cluster
+		mov	byte [EndOfFile], 0	; Assume not last cluster
+GotClusterDone:				
+		pop	es
+		; 07/10/2023
+		; 24/12/2022
+;EndRead:
+		retn
+
+; =============== S U B	R O U T	I N E =======================================
+
+; GetFatSector
+; ---------------------------------------------------------------------------
+;function: find and read the corresponding fat sector into ES:0
+;
+;in). SI = offset value (starting from fat entry 0) of fat entry to find.
+;     ES = fat sector segment
+;     CS:BytesPerSec
+;
+;out). corresponding fat sector read in.
+;      BX = offset value of the corresponding fat entry in the fat sector.
+;      CX destroyed.
+;      zero flag set if the fat entry is splitted, i.e. when 12 bit fat entry
+;      starts at the last byte of the fat sector. in this case, the caller
+;      should save this byte, and read the next fat sector to get the rest
+;      of the fat entry value. (this will only happen with the 12 bit fat).
+;
+; ---------------------------------------------------------------------------
+
+		; 24/12/2022
+		; 22/12/2022
+GetFatSector:	
+		; 06/10/2023			
+		;push	ax
+		;push	si
+		push	di
+		mov	ax, si		; dx:si = cluster offset in the FAT
+		; 24/12/2022
+		; ds = cs
+		;mov	cx, [cs:BytesPerSec]
+		;div	cx			; AX = Sector number, DX = Offset
+		div	word [BytesPerSec]
+		cmp	ax, [LastFatSector]
+		;cmp	ax, [cs:LastFatSector]	; The same fat sector?
+		je	short SplitChk		; Don't need to read it again.
+		mov	[LastFatSector], ax
+		;mov	[cs:LastFatSector], ax
+		push	dx
+		; 24/12/2022
+		xor	dx, dx
+		;add	ax, [cs:HiddenSectorsL]
+		;adc	dx, [cs:HiddenSectorsH]
+		;add	ax, [cs:ReservSectors]
+		;adc	dx, 0
+		; 24/12/2022
+		; ds = cs
+		add	ax, [FatStartSecL]
+		adc	dx, [FatStartSecH]
+		mov	[StartSecL], ax
+		mov	[StartSecH], dx		; Set up for ReadSectors
+		;mov	[cs:StartSecL], ax
+		;mov	[cs:StartSecH], dx	; Set up for ReadSectors
+		
+		mov	word [SectorCount], 1	; 1 sector
+		;mov	word [cs:SectorCount], 1 ; 1 sector
+		xor	di, di ; 0
+		; es:di = FATSEGMENT:0000h
+		call	ReadSectors
+		pop	dx
+		; 24/12/2022
+		;mov	cx, [cs:BytesPerSec]
+SplitChk:
+		; 24/12/2022
+		mov	cx, [BytesPerSec]				
+		dec	cx			; CX = SECTOR SIZE - 1
+		cmp	dx, cx			; If last byte of sector, splitted entry.
+		mov	bx, dx			; set bx to dx
+		pop	di
+		; 06/10/2023
+		;pop	si
+		;pop	ax
+		; 07/10/2023
+;EndWrite:		; 10/12/2022
+		retn
+
 ; ---------------------------------------------------------------------------
 
 ; 09/12/2022
@@ -1345,8 +1377,9 @@ NonSystemDiskMsg:
 		db 'Non-System disk or disk error',0Dh,0Ah
 		db 'Replace and press any key when ready',0Dh,0Ah,0
 ;EndOfLoader:
+		; 07/10/2023
 		; 22/12/2022
-		dw 01A1h	; 10/12/2022
+		;dw 01A1h	; 10/12/2022
 
 ; ---------------------------------------------------------------------------
 
@@ -1357,10 +1390,12 @@ loading_msg:	db 0Dh, 0Ah
 ; 24/12/2022
 		db 0
 ok_msg:		db 'OK. '
+		db 0	; 07/10/2023
 crlf:
 		db 0Dh, 0Ah, 0
 
 ; ---------------------------------------------------------------------------
+		
 
 ; 22/12/2022
 ; (set file size to 1536 bytes)
@@ -1369,12 +1404,16 @@ SignatureSize equ EndOfLoader - signature
 
 FillingSpace equ ($-START$)+SignatureSize
 
-times		1536-FillingSpace db 0FFh ; db 90h
+;	times	1536-FillingSpace db 0FFh ; db 90h
+; 07/10/2023
+	times	1534-FillingSpace db 0FFh ; db 90h
 
 signature:	db 0
 		db 0Dh, 0Ah
 		db 'Retro DOS v4 Kernel Loader (Fake IO.SYS) '
 		db 0Dh,0Ah
-		db 'by Erdogan Tan [2022]'
+		;db 'by Erdogan Tan [2022]'
+		db 'by Erdogan Tan [2023]' ; 06/10/2023
 		db  0Dh, 0Ah, 0
-EndOfLoader:
+		; 07/10/2023
+EndOfLoader:	dw 01A1h
