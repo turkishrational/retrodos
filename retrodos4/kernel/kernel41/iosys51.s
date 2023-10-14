@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; IOSYS5.S (MSDOS 5.0 IO.SYS) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 08/10/2023 - Retro DOS v4.1 (Previous: 07/10/2023)
+; Last Update: 14/10/2023 - Retro DOS v4.1 (Previous: 08/10/2023)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -827,7 +827,7 @@ ReadInFirstCluster:
 		; 07/10/2023
 		; dh = 0
 		mov	dl, 70h
-		mov	es, dx		; ES = BIOSDATA (IO.SYS DATA) segment
+		mov	es, dx	; ++	; ES = BIOSDATA (IO.SYS DATA) segment
 
 		; 10/12/2022
 		and	ah, ah
@@ -955,8 +955,10 @@ skip_inc_clustnum:
 		;mov	es, ax		; ES = segment 0
 		; 07/10/2023
 		; dx = 0
-		mov	dl, 70h
-		mov	es, dx	; ES = BIOSDATA (IO.SYS DATA) segment
+		;mov	dl, 70h
+		;mov	es, dx	; ES = BIOSDATA (IO.SYS DATA) segment
+		; 14/10/2023
+		; es = 70h ; ++
 		mov	di, ax
 
 		; 07/10/2023
