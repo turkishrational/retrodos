@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; IOSYS5.S (MSDOS 5.0 IO.SYS) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 29/09/2023 (Modified IO.SYS)  ((Previous: 17/09/2023))
+; Last Update: 14/10/2023 (Modified IO.SYS)  ((Previous: 07/10/2023))
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -401,9 +401,11 @@ SaveInputValues:
 
 		;mov	ax, [BioSStart]
 		mov	ax, [51Ah]	; IO.SYS First Cluster
-		dec	ax		; Root dir buffer at 500h (segment=0)
-					; IO.SYS first cluster ptr at 51Ah
-		dec	ax		; AX = word [51Ah] - 2
+		; 07/10/2023
+		;dec	ax		; Root dir buffer at 500h (segment=0)
+		;			; IO.SYS first cluster ptr at 51Ah
+		;dec	ax		; AX = word [51Ah] - 2
+		; ax = the 1st cluster number of IO.SYS
 		mov	di, CurrentCluster		
 		stosw			;  Initialize to this cluster
 
@@ -577,15 +579,24 @@ Skip_RPL:
 		;mov	[cs:FatSegment], ax ; This will be used for fat sector
 		; 22/12/2022
 		;mov	dx, EndOfLoader
-		mov	dx, EndOfLoader+256
-				; loader size + temporary/local stack space (*)
-		shr	dx, cl
-		inc	dx
-		sub	ax, dx
+		;
+		; 07/10/2023
+		;mov	dx, EndOfLoader+256
+		;		; loader size + temporary/local stack space (*)
+		;shr	dx, cl
+		;inc	dx
+
+		;mov	dx, ((ENDOFLDR+15)>>4)+16
+		; 07/10/2023
+		;mov	dx, ((ENDOFLDR+15)>>4)+1
+		;sub	ax, dx
+		sub	ax, ((ENDOFLDR+15)>>4)+1
 		mov	es, ax	; ES:DI -> place be relocated.
+		; 07/10/2023
 		; 22/12/2022
-		dec	dx
-		shl	dx, cl	; convert paragraphs to bytes (*)	
+		;dec	dx
+		; 07/10/2023
+		;shl	dx, cl	; convert paragraphs to bytes (*)	
 				; (stack pointer will be set to this offset)
 		; 24/12/2022
 		;push	cs
@@ -625,10 +636,14 @@ SetupStack:
 		;cli
 		mov	ax, cs
 		mov	ds, ax	; 24/12/2022
-		cli 
-		mov	ss, ax
-		mov	sp, dx	; (*)
-		sti
+		
+		;cli 
+		;mov	ss, ax
+		;mov	sp, dx	; (*)
+		; 07/10/2023
+		; ss = 0
+		mov	sp, 700h  ; (set stack pointer to just before IO.SYS)
+		;sti
 
 ; FindClusterSize
 ; ---------------------------------------------------------------------------
@@ -741,8 +756,9 @@ CalcFatSize:
 		;mov	[TempH], ax
 		pop	ax
 		div	cx  ; *#*
+		; dh = 0 ; 07/10/2023 
 		cmp	ax, 4086	; 4096-10
-		jb	short ReadInFirstClusters ; 12 bit FAT
+		jb	short ReadInFirstCluster ; 12 bit FAT
 		;mov	byte [cs:Fatsize], 4 ; FAT_16_BIT
 		mov	byte [Fatsize], 4 ; FAT_16_BIT
 
@@ -780,14 +796,14 @@ CalcFatSize:
 ; IbmLoadSize equ 3  ; AX = Number sectors in MSLOAD
 ; BiosOffset equ 700h ; Address where loader was read in
 	
-ReadInFirstClusters:
+ReadInFirstCluster:
 		; 24/12/2022
 		;;mov	ax, [BioSStart]
 		;mov	ax, [51Ah]	; IO.SYS First Cluster
 		;dec	ax		; Root dir buffer at 500h (segment=0)
 		;			; IO.SYS first cluster ptr at 51Ah
 		;dec	ax		; AX = word [51Ah] - 2
-		;;mov	[cs:CurrentCluster], ax ;  Initialize to this cluster
+		;;mov	[cs:CurrentCluster], ax ; Initialize to this cluster
 		; 24/12/2022
 		; ds = cs
 		;mov	[CurrentCluster], ax
@@ -801,16 +817,29 @@ ReadInFirstClusters:
 		;;div	byte [cs:SecPerCluster]
 					; AL = total cluster read in
 					; AH = remaining sectors in last cluster
+		; 06/10/2023
+		; If cluster size > 3, al = 0, ah = 3
+		; If cluster size = 2, al = 1, ah = 1
+		; If cluster size = 1, al = 3, ah = 0
+		; If ah = 0, nothing remaining in last cluster
+
+		; 07/10/2023
+		; dh = 0
+		mov	dl, 70h
+		mov	es, dx	; ++	; ES = BIOSDATA (IO.SYS DATA) segment
+
 		; 10/12/2022
 		and	ah, ah
 		;cmp	ah, 0
 		jz	short SetNextClusterNum	; next cluster
-
-		xor	ah, ah
-		push	ax		; AX = total clusters in the loader
+; 06/10/2023
+%if 0
+		; 06/10/2023
+		;xor	ah, ah
+		;push	ax		; AX = total clusters in the loader
 					; already read in
 ; 24/12/2022
-%if 0		
+;%if 0			
 		mov	cx, [cs:FirstSectorL] ;	Put starting sector of disk data
 		mov	[cs:StartSecL], cx    ; area in StartSecH:StartSecL
 		mov	cx, [cs:FirstSectorH]
@@ -849,8 +878,24 @@ SetNextClusterNum:			; ...
 		dec	ax		; CurrentCluster = Last	cluster	read
 					; AX = number of clusters loaded
 %endif
+		; 07/10/2023
+		; ah=3 (cl>3) or ah=1 (cl=2)
+		mov	dx, cx
+		; dl = sectors per cluster, dh = 0
+		sub	dl, ah ; ** (remain sectors to read in the cluster)
+		mov	[SectorCount], dl ; **
+		mov	dl, ah
+		and	al, al
+		jz	short skip_inc_clustnum	; al=0, ah=3, dl=3, dh=0
+		; al=1, ah=1, dl=1, dh=0
+		inc	word [CurrentCluster] ; (contiguous 2 clusters loaded)
+skip_inc_clustnum:
+		; 07/10/2023
+		add	[StartSecL], dx
+		adc	word [StartSecH], 0
+
 		; 24/12/2022
-		; ds =cs
+		; ds = cs
 		;mov	cx, [FirstSectorL] ; Put starting sector of disk data
 		;mov	[StartSecL], cx    ; area in StartSecH:StartSecL
 		;mov	cx, [cs:FirstSectorH]
@@ -860,7 +905,8 @@ SetNextClusterNum:			; ...
 		
 		; 24/12/2022
 		; cx = [SecPerCluster]  ; *#*
-
+; 06/10/2023
+%if 0
 		;mul	byte [SecPerCluster]
 		mul	cl ; *#*
 		add	[StartSecL], ax ; Add number of sectors already loaded
@@ -884,26 +930,57 @@ SetNextClusterNum:			; ...
 					; the rest of the last loader cluster
 		pop	ax
 		push	ax
+
 		mul	word [ClusterSize]
-		;mov	di, BiosOffset
-		mov	di, 700h	; IO.SYS offset	(segment = 0)
-		add	di, ax
-		xor	ax, ax
-		mov	es, ax		; ES = segment 0
-		; 24/12/2022
-		;mov	al, [SecPerCluster]
-		;			; Read in the entire last cluster
-		;mov	[SectorCount], ax
-		mov	[SectorCount], cx ; [SecPerCluster]  ; *#*
+%endif
+		; 07/10/2023
+		mov	ax, [CurrentCluster]
+		dec	ax
+		dec	ax  ; ax = cluster index (cluster number - 2)
+		mul	cx ; [SecPerCluster]
+		
+		add	[StartSecL], ax
+		adc	[StartSecH], dx
+
+		; 06/10/2023
+		mov	ax, 3 ; already loaded sectors
+		mul	word [BytesPerSec]
+
+		; 07/10/2023
+		;;mov	di, BiosOffset
+		;mov	di, 700h	; IO.SYS offset	(segment = 0)
+		;add	di, ax
+		;xor	ax, ax
+		;mov	es, ax		; ES = segment 0
+		; 07/10/2023
+		; dx = 0
+		;mov	dl, 70h
+		;mov	es, dx	; ES = BIOSDATA (IO.SYS DATA) segment
+		; 14/10/2023
+		; es = 70h ; ++
+		mov	di, ax
+
+		; 07/10/2023
+		;; 24/12/2022
+		;;mov	al, [SecPerCluster]
+		;;			; Read in the entire last cluster
+		;;mov	[SectorCount], ax
+		;mov	[SectorCount], cx ; [SecPerCluster]  ; *#*
 		
 		call	ReadSectors
-		pop	ax		; AX = total clust read	by boot	loader
-		inc	ax		; AX = total clust read	in now
-SetNextClusterNum:			; ...
-		inc	ax		; AX = total clusters read in based 2
-		add	[CurrentCluster], ax
-		dec	ax		; CurrentCluster = Last	cluster	read
-					; AX = number of clusters loaded
+
+		; 07/10/2023
+		mov	ax, di
+		; ax = loaded (IO.SYS) byte count
+		jmp	short SaveLoadedBios2
+
+SetNextClusterNum:
+		; 06/10/2023
+		dec	ax
+		add	[CurrentCluster], ax ; ah = 0
+					; CurrentCluster = Last Cluster (loaded)
+		inc	ax
+					; AX = number of clusters loaded (3,1,2)
 		
 ; SaveLoadedBios
 ; ---------------------------------------------------------------------------
@@ -938,7 +1015,9 @@ SetNextClusterNum:			; ...
 ; ---------------------------------------------------------------------------
 
 SaveLoadedBios:
-		push	ds
+		; 07/10/2023
+		;push	ds
+		
 		; 24/12/2022
 		; ds = cs
 		; ax = number of loaded clusters
@@ -947,13 +1026,27 @@ SaveLoadedBios:
 					; Get total bytes loaded by
 					; this is always < 64k, so
 					; lower 16 bits ok
+		; 06/10/2023
+		; ax = [clusterSize] * (loaded cluster count)
+SaveLoadedBios2:
+		; 07/10/2023
+		push	ds
 
-		sub	ax, EndOfLoader ; (OFFSET EndOfLoader)-(OFFSET Start)
+		;sub	ax, EndOfLoader ; (OFFSET EndOfLoader)-(OFFSET Start)
+		; 07/10/2023
+		mov	si, EndOfLoader
+		sub	ax, si
 		mov	cx, ax
-		mov	ax, 70h		; Segment at 70h
-		mov	ds, ax
-		mov	es, ax
-		mov	si, EndOfLoader ; EndOfLoader
+
+		; 07/10/2023
+		;mov	ax, 70h		; Segment at 70h
+		;mov	ds, ax
+		;mov	es, ax
+		; es = 70h
+		push	es
+		pop	ds
+
+		;mov	si, EndOfLoader ; EndOfLoader
 		xor	di, di
 		rep movsb		; Relocate this code to 0070h:0000h
 		;mov	[NextBioLocation], di
@@ -962,40 +1055,6 @@ SaveLoadedBios:
 		; es:di = (the next) buffer address for next read
 
 		pop	ds		; Save where location for next read
-
-; GetContigClusters
-; ---------------------------------------------------------------------------
-;
-; NOTES: go find clusters as long as they are contiguous
-;
-;
-; INPUT:
-;   CS:NextBioLocation
-;   CS:
-;
-; OUTPUT:
-;
-; calls: GetNextFatEntry
-; ---------------------------------------------------------------------------
-;
-;Set CS:SectorCount to sectors per cluster
-;
-;Call GetNextFatEntry to get next cluster in file
-;
-;Call check_for_eof
-;
-;if (nc returned)
-;
-;   {call GetNextFatEntry
-;
-;    if (new cluster is contig to old cluster)
-;	{add sectors per cluster to CS:SectorCount
-;
-;	 call check_for_eof
-;
-;	 if (nc returned)
-;
-; ---------------------------------------------------------------------------
 
 ; 09/12/2022
 ; END_OF_FILE equ 0FFh
@@ -1036,11 +1095,9 @@ GetContigClusters:
 		mul	word [cs:BytesPerSec]	; Get number of bytes we loaded
 		add	[cs:NextBioLocation], ax ; Point to where to load next	
 		jmp	short GetContigClusters
-
 %endif
 		; 24/12/2022
 		; ds = cs
-
 		mov	ax, [SecPerCluster]	; Assume we will get one cluster
 		mov	[SectorCount], ax	; Sector count = sectors in 1 cluster
 		;push	word [SectorCount]
@@ -1359,9 +1416,9 @@ GotLength:
 		jz	short ReadError
 		jmp	TryRead
 ; ---------------------------------------------------------------------------
-
-ReadError:				
-		jmp	ErrorOut
+		; 07/10/2023
+;ReadError:				
+		;jmp	ErrorOut
 ; ---------------------------------------------------------------------------
 
 ReadOk:
@@ -1393,7 +1450,6 @@ ReadOk:
 		;add	bh, 10h
 		;mov	es, bx
 ;read_next_sector:
-
 		; 24/12/2022
 		; ds = cs
 		; 22/12/2022
@@ -1408,9 +1464,92 @@ ReadOk:
 		;adc	word [cs:StartSecH], 0
 		jmp	ReadSectors
 ; ---------------------------------------------------------------------------
+
+ReadError:
+		; 07/10/2023
+ErrorOut:
+		; 24/12/2022
+		; ds = cs
+		;push	cs
+		;pop	ds
+		
+		mov	si, NonSystemDiskMsg ; "\r\nNon-System disk or disk error\r\nRe"...
+		call	WriteTTY
+
+		; Wait for a keypress on the keyboard.
+		; Use the bios keyboard interrupt.
+
+		xor	ah, ah
+		int	16h		; KEYBOARD - READ CHAR FROM BUFFER, WAIT IF EMPTY
+					; Return: AH = scan code, AL = character
+
+		; We have to restore the address of the original rom disk
+		; parameter table to the location at [0:DskAddr]. The address
+		; of this original table has been saved previously in
+		; 0:OrgDasdPtr and 0:OrgDasdPtr+2. After this table address
+		; has been restored we can reboot by invoking the bootstrap
+		; loader bios interrupt.
+
+		; 23/12/2022
+		;xor	bx, bx
+		;mov	ds, bx
+		;les	bx, [OrgDasdPtr] ; Wrong DS segment !
+					 ; (Erdogan Tan, 23/12/2022)
+		les	bx, [OrgDasdPtr] ; Correct DS segment = CS
+		
+		; 07/10/2023
+		; 23/12/2022
+		push	ss ; 0
+		pop	ds
+		; 07/10/2023
+		;xor	si, si
+		;mov	ds, si
+		; ds = 0		
+
+		mov	si, DskAddr	; (Int 1Eh)
+		mov	[si], bx	; restore offset		
+		mov	[si+2], es	; restore segment
+
+		int	19h		; reboot
+
+; ---------------------------------------------------------------------------
+
+; 07/10/2023
+EndRead:
+EndWrite:	retn
+
+; =============== S U B	R O U T	I N E =======================================
+
+; WriteTTY
+; ---------------------------------------------------------------------------
+; in) DS:si -> asciiz string.
+;
+; WriteTTY the character in al to the screen.
+; use video service 'write teletype to active page' (ROM_TTY)
+; use normal character attribute
+; ---------------------------------------------------------------------------
+
+WriteTTY:
+		lodsb
+		or	al, al
+		jz	short EndWrite
+		;mov	AH, ROM_TTY	; 09/12/2022
+		mov	ah, 0Eh
+		mov	bl, 7		; "normal" attribute
+		int	10h		; - VIDEO - WRITE CHARACTER AND	ADVANCE	CURSOR (TTY WRITE)
+					; AL = character, BH = display page (alpha modes)
+					; BL = foreground color	(graphics modes)
+		jmp	short WriteTTY
+; ---------------------------------------------------------------------------
+
+; 10/12/2022	
+;EndWrite:
+;		retn
+
+; ---------------------------------------------------------------------------
 		
 		; 24/12/2022
-;EndRead:				
+;EndRead:
 		;retn
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -1481,25 +1620,35 @@ GetNextFatEntry:
 		; ds = cs
 		mov	byte [EndOfFile], 0FFh ; Assume last cluster
 		mov	ax, [CurrentCluster] ; Get last cluster
+		; 06/10/2023
+		sub	dx, dx
+		; dx = 0
 		cmp	byte [Fatsize], 1
 		;;cmp	byte [cs:FatSize], FAT_12_BIT
 		;cmp	byte [cs:Fatsize], 1
 		jne	short Got16Bit	; 23/12/2022
+Got12Bit:
 		mov	si, ax
 		shr	ax, 1
 		add	si, ax		; SI = AX * 1.5 = AX + AX/2
+		; 06/10/2023
+		push	si ; (**)
 		; 23/12/2022
 		;push	dx
 		;xor	dx, dx
-		sub	dx, dx ; 23/12/2022
+		; 06/10/2023
+		;sub	dx, dx ; 23/12/2022
 		call	GetFatSector
+		; 06/10/2023
+		pop	si ; (**)
 		; 23/12/2022
 		;pop	dx
 		jnz	short ClusterOk
 		mov	al, [es:bx]
 		; 22/12/2022
 		;mov	[cs:TempCluster], al
-		;push	ax ; (*)
+		; 06/10/2023
+		push	ax ; (*)
 		inc	si
 		; 23/12/2022
 		;push	dx
@@ -1511,8 +1660,9 @@ GetNextFatEntry:
 		;mov	al, [es:0]
 		;mov	[cs:TempCluster+1], al
 		;mov	ax, [cs:TempCluster]
+		; 06/10/2023
 		; 22/12/2022
-		;pop	ax ; (*) 
+		pop	ax ; (*) 
 		mov	ah, [es:0]
 		jmp	short EvenOdd
 ; ---------------------------------------------------------------------------
@@ -1541,12 +1691,17 @@ TestEOF:
 ; ---------------------------------------------------------------------------
 
 Got16Bit:
-		; 23/12/2022				
+		; 23/12/2022
 		;push	dx
 		;xor	dx, dx
-		sub	dx, dx ; 23/12/2022
+		; 06/10/2023
+		; ax = cluster number
+		; dx = 0
+		;sub	dx, dx ; 23/12/2022
 		shl	ax, 1			; Multiply cluster by 2
-		adc	dx, 0
+		;adc	dx, 0
+		; 07/10/2023
+		adc	dx, dx ; 0
 		mov	si, ax			; Get the final buffer OFFSET
 		call	GetFatSector
 		; 23/12/2022
@@ -1562,8 +1717,9 @@ NotLastCluster:
 		mov	byte [EndOfFile], 0	; Assume not last cluster
 GotClusterDone:				
 		pop	es
+		; 07/10/2023
 		; 24/12/2022
-EndRead:
+;EndRead:
 		retn
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -1589,8 +1745,9 @@ EndRead:
 		; 24/12/2022
 		; 22/12/2022
 GetFatSector:
-		push	ax
-		push	si
+		; 06/10/2023
+		;push	ax
+		;push	si
 		push	di
 		mov	ax, si
 		; 24/12/2022
@@ -1619,7 +1776,7 @@ GetFatSector:
 		;mov	[cs:StartSecL], ax
 		;mov	[cs:StartSecH], dx	; Set up for ReadSectors
 		
-		mov	word [SectorCount], 1 ; 1 sector			
+		mov	word [SectorCount], 1	; 1 sector
 		;mov	word [cs:SectorCount], 1 ; 1 sector
 		xor	di, di ; 0
 		; es:di = FATSEGMENT:0000h
@@ -1629,87 +1786,19 @@ GetFatSector:
 		;mov	cx, [cs:BytesPerSec]
 SplitChk:
 		; 24/12/2022
-		mov	cx, [BytesPerSec]				
+		mov	cx, [BytesPerSec]
 		dec	cx			; CX = SECTOR SIZE - 1
 		cmp	dx, cx			; If last byte of sector, splitted entry.
 		mov	bx, dx			; set bx to dx
 		pop	di
-		pop	si
-		pop	ax
-EndWrite:		; 10/12/2022
+		; 06/10/2023
+		;pop	si
+		;pop	ax
+		; 07/10/2023
+;EndWrite:		; 10/12/2022
 		retn
 
 ; ---------------------------------------------------------------------------
-
-ErrorOut:
-		; 24/12/2022
-		; ds = cs
-		;push	cs
-		;pop	ds
-		
-		mov	si, NonSystemDiskMsg ; "\r\nNon-System disk or disk error\r\nRe"...
-		call	WriteTTY
-
-		; Wait for a keypress on the keyboard.
-		; Use the bios keyboard interrupt.
-
-		xor	ah, ah
-		int	16h		; KEYBOARD - READ CHAR FROM BUFFER, WAIT IF EMPTY
-					; Return: AH = scan code, AL = character
-
-		; We have to restore the address of the original rom disk
-		; parameter table to the location at [0:DskAddr]. The address
-		; of this original table has been saved previously in
-		; 0:OrgDasdPtr and 0:OrgDasdPtr+2. After this table address
-		; has been restored we can reboot by invoking the bootstrap
-		; loader bios interrupt.
-
-		; 23/12/2022
-		;xor	bx, bx
-		;mov	ds, bx
-		;les	bx, [OrgDasdPtr] ; Wrong DS segment !
-					 ; (Erdogan Tan, 23/12/2022)
-		les	bx, [OrgDasdPtr] ; Correct DS segment = CS
-		
-		; 23/12/2022
-		push	ss ; 0
-		pop	ds
-		; ds = 0		
-
-		mov	si, DskAddr	; (Int 1Eh)
-		mov	[si], bx	; restore offset		
-		mov	[si+2], es	; restore segment
-		int	19h		; reboot
-
-
-; =============== S U B	R O U T	I N E =======================================
-
-; WriteTTY
-; ---------------------------------------------------------------------------
-; in) DS:si -> asciiz string.
-;
-; WriteTTY the character in al to the screen.
-; use video service 'write teletype to active page' (ROM_TTY)
-; use normal character attribute
-; ---------------------------------------------------------------------------
-
-WriteTTY:
-		lodsb
-		or	al, al
-		jz	short EndWrite
-		;mov	AH, ROM_TTY	; 09/12/2022
-		mov	ah, 0Eh
-		mov	bl, 7		; "normal" attribute
-		int	10h		; - VIDEO - WRITE CHARACTER AND	ADVANCE	CURSOR (TTY WRITE)
-					; AL = character, BH = display page (alpha modes)
-					; BL = foreground color	(graphics modes)
-		jmp	short WriteTTY
-; ---------------------------------------------------------------------------
-
-; 10/12/2022	
-;EndWrite:
-;		retn
-
 ; ---------------------------------------------------------------------------
 
 ; 09/12/2022
@@ -1724,10 +1813,20 @@ NonSystemDiskMsg:
 		db 'Non-System disk or disk error',0Dh,0Ah
 		db 'Replace and press any key when ready',0Dh,0Ah,0
 ; 25/12/2022
-align 16
+;align 16
+
+; 07/10/2023
+number0div	equ ($-START$)
+number0mod	equ (number0div % 16)
+
+%if (number0mod>0) & (number0mod<16)
+		times (16-number0mod) db 0
+%endif
 
 EndOfLoader:
 		;dw 01A1h	; 10/12/2022
+; 07/10/2023
+ENDOFLDR	equ EndOfLoader-$$
 
 ; ---------------------------------------------------------------------------
 
@@ -4478,6 +4577,10 @@ init:		; 27/12/2018
 		; AX = [bsSectors] ; Total sectors
 		; DS = 0, SS = 0
 		; BP = 7C00h
+
+		; 07/10/2023
+		; (from MSLOAD)
+		; ss = 0, sp = 700h, bp = any, ds = previous cs  
 		
 		cli
 
@@ -4721,15 +4824,20 @@ LSTDRV	EQU     504h
 		test	dl, 80h		; boot from floppy ?
 		jnz	short gothrd	; no.
 		xor	ax, ax		; indicate boot	from drive a
-gothrd:					
-		xor	dx, dx		; ax = 0-based drive we	booted from
-					; bios_l, bios_h set.
-					; cl = number of floppies including fake one
-					; ch = media byte
-		cli
-		mov	ss, dx		; set stack segment and stack pointer
-		mov	sp, 700h
-		sti
+gothrd:		
+		; 07/10/2023			
+		;xor	dx, dx		; ax = 0-based drive we	booted from
+		;			; bios_l, bios_h set.
+		;			; cl = number of floppies including fake one
+		;			; ch = media byte
+
+		; 07/10/2023
+		; ss = 0, sp = 700h (from MSLOAD)
+		;cli
+		;mov	ss, dx		; set stack segment and stack pointer
+		;mov	sp, 700h
+		;sti
+
 		push	cx ; *		; save number of floppies and media byte
 		mov	ah, ch		; FAT ID to AH
 		push	ax ; **		; save boot drive number and media byte
