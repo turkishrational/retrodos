@@ -2,7 +2,7 @@
      2                                  ; FAT16HDI.S (FAT16HDI.COM) - Retro DOS v3 FAT16 Disk Image Formatting Utility
      3                                  ; 					 	          (for MSDOS/WINDOWS)
      4                                  ; ****************************************************************************
-     5                                  ; Last Update: 19/10/2018
+     5                                  ; Last Update: 28/10/2023 (Previous: 19/10/2018)
      6                                  ; ----------------------------------------------------------------------------
      7                                  ; Beginning: 17/10/2018
      8                                  ; ----------------------------------------------------------------------------
@@ -127,7 +127,7 @@
    127                                  	;mov	sp, 0FFFEh
    128                                  	;sti
    129                                  	
-   130 00000000 BB[3A1B]                	mov	bx, SizeOfFile+100
+   130 00000000 BB[411B]                	mov	bx, SizeOfFile+100
    131 00000003 83C30F                          add	bx, 15
    132 00000006 D1EB                            shr	bx, 1
    133 00000008 D1EB                            shr	bx, 1
@@ -154,7 +154,7 @@
    154                                  	
    155                                  	; check hd image file name
    156                                  R_02:
-   157 00000025 BF[1719]                       	mov	di, img_file_name
+   157 00000025 BF[1919]                       	mov	di, img_file_name
    158 00000028 AA                      	stosb
    159                                  R_03:
    160 00000029 AC                      	lodsb
@@ -162,7 +162,7 @@
    162 0000002A 3C20                    	cmp	al, 20h ; ' '
    163 0000002C 760C                    	jna	short R_04
    164 0000002E AA                      	stosb
-   165 0000002F 81FF[2319]              	cmp	di, img_file_name + 12
+   165 0000002F 81FF[2519]              	cmp	di, img_file_name + 12
    166 00000033 72F4                    	jb	short R_03
    167 00000035 803C20                  	cmp	byte [si], 20h 
    168 00000038 7748                    	ja	short R_11
@@ -174,7 +174,7 @@
    174                                  ; File name capitalization
    175                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    176                                  
-   177 0000003A BE[1719]                	mov	si, img_file_name
+   177 0000003A BE[1919]                	mov	si, img_file_name
    178 0000003D 89F7                    	mov	di, si
    179 0000003F 89F3                    	mov	bx, si
    180                                  R_05:
@@ -201,7 +201,7 @@
    201 0000005F 39FB                    	cmp	bx, di
    202 00000061 7316                    	jnb	short R_10
    203 00000063 29DF                    	sub	di, bx
-   204 00000065 81EB[1719]              	sub	bx, img_file_name
+   204 00000065 81EB[1919]              	sub	bx, img_file_name
    205 00000069 83FF03                  	cmp	di, 3
    206 0000006C 7606                    	jna	short R_09
    207 0000006E 21DB                    	and	bx, bx
@@ -211,7 +211,7 @@
    211 00000074 83FB08                  	cmp	bx, 8
    212 00000077 7609                    	jna	short R_11
    213                                  R_10:
-   214 00000079 BE[0013]                	mov	si, msg_inv_file_name
+   214 00000079 BE[0313]                	mov	si, msg_inv_file_name
    215 0000007C E8F004                  	call	print_msg
    216 0000007F E9CF00                  	jmp	R_14
    217                                  
@@ -220,7 +220,7 @@
    220                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    221                                  	
    222                                  R_11:
-   223 00000082 BA[1719]                	mov	dx, img_file_name
+   223 00000082 BA[1919]                	mov	dx, img_file_name
    224 00000085 B93F00                  	mov	cx, 3Fh ; File Attributes
    225 00000088 B44E                    	mov	ah, 4Eh ; MS-DOS Function = Find First File
    226 0000008A CD21                    	int	21h
@@ -310,13 +310,13 @@
    310                                  ; Overwrite question
    311                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    312                                  
-   313 0000011D BE[3617]                	mov	si, msg_overwrite_question1
+   313 0000011D BE[3917]                	mov	si, msg_overwrite_question1
    314 00000120 E84C04                  	call	print_msg
    315 00000123 BE9E00                  	mov	si, DTA_FileName
    316 00000126 E84604                  	call	print_msg
-   317 00000129 BE[5317]                	mov	si, msg_overwrite_question2
+   317 00000129 BE[5617]                	mov	si, msg_overwrite_question2
    318 0000012C E84004                  	call	print_msg
-   319 0000012F BE[5B17]                	mov	si, msg_yes_no
+   319 0000012F BE[5E17]                	mov	si, msg_yes_no
    320 00000132 E83A04                  	call	print_msg
    321                                  
    322                                  	; get answer
@@ -333,7 +333,7 @@
    333 00000147 3C4E                    	cmp	al, 'N'			; No?
    334 00000149 75EA                    	jne	short R_13      
    335                                  					; no write (exit)  
-   336 0000014B BE[3618]                	mov	si, Msg_NO
+   336 0000014B BE[3918]                	mov	si, Msg_NO
    337 0000014E E81E04                  	call	print_msg 
    338                                  
    339                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -341,7 +341,7 @@
    341                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    342                                  
    343                                  R_14:
-   344 00000151 BE[2E18]                	mov	si, CRLF
+   344 00000151 BE[3118]                	mov	si, CRLF
    345 00000154 E81804                  	call	print_msg
    346 00000157 B8004C                  	mov	ax, 4C00h		; terminate
    347 0000015A CD21                    	int	21h
@@ -352,19 +352,19 @@
    352 00000162 EBED                    	jmp	short R_14 ; Exit
    353                                  
    354                                  R_16:
-   355 00000164 BE[3118]                	mov	si, Msg_YES
+   355 00000164 BE[3418]                	mov	si, Msg_YES
    356 00000167 E80504                  	call	print_msg
    357 0000016A EB08                    	jmp	short R_18
    358                                  
    359                                  R_17:
-   360 0000016C BE[4213]                	mov	si, msg_inv_image_file
+   360 0000016C BE[4513]                	mov	si, msg_inv_image_file
    361 0000016F E8FD03                  	call	print_msg
    362 00000172 EBDD                    	jmp	short R_14
    363                                  
    364                                  R_18:
    365                                  	; Delete existing image file
    366 00000174 B441                    	mov	ah, 41h ; Delete file
-   367 00000176 BA[1719]                	mov	dx, img_file_name
+   367 00000176 BA[1919]                	mov	dx, img_file_name
    368 00000179 CD21                    	int	21h
    369 0000017B 7304                    	jnc	short R_19
    370 0000017D 3C02                    	cmp	al, 2 ; file not found
@@ -391,24 +391,24 @@
    391 0000019B CD21                    	int	21h
    392                                  
    393                                  R_22:
-   394 0000019D A2[1619]                	mov	[DiskType], al
+   394 0000019D A2[1819]                	mov	[DiskType], al
    395                                  
    396                                  	; clear screen
    397 000001A0 B80300                  	mov	ax, 3 ; set video mode to 03h (80x25 text)
    398 000001A3 CD10                    	int	10h
    399                                  
-   400 000001A5 8A1E[1619]              	mov	bl, [DiskType]	; 1 to 9
+   400 000001A5 8A1E[1819]              	mov	bl, [DiskType]	; 1 to 9
    401 000001A9 FECB                    	dec	bl 		; 0 to 8
    402                                  	;xor	bh, bh
    403 000001AB 89DE                    	mov	si, bx ; 1i
    404 000001AD D1E3                    	shl	bx, 1
    405 000001AF 01F3                    	add	bx, si ; bx = 3i	
-   406 000001B1 81C3[EA18]              	add	bx, DskTypeNumStr
+   406 000001B1 81C3[ED18]              	add	bx, DskTypeNumStr
    407 000001B5 8A07                    	mov	al, [bx]
-   408 000001B7 A2[CF18]                	mov	[msg_disk_size],al
+   408 000001B7 A2[D218]                	mov	[msg_disk_size],al
    409 000001BA 43                      	inc	bx
    410 000001BB 8B07                    	mov	ax, [bx]
-   411 000001BD A3[D018]                	mov	[msg_disk_size+1], ax
+   411 000001BD A3[D318]                	mov	[msg_disk_size+1], ax
    412 000001C0 D1E6                    	shl	si, 1 ; 2i
    413 000001C2 89F3                    	mov	bx, si
    414 000001C4 C1E602                  	shl	si, 2 ; 8i
@@ -421,14 +421,14 @@
    421 000001D5 AD                      	lodsw
    422 000001D6 A3[4209]                	mov	[pt_sectors], ax
    423 000001D9 AD                      	lodsw
-   424 000001DA A3[1219]                	mov	[diskimage_size], ax	
+   424 000001DA A3[1419]                	mov	[diskimage_size], ax	
    425 000001DD AD                      	lodsw
-   426 000001DE A3[1419]                	mov	[diskimage_size+2], ax	
+   426 000001DE A3[1619]                	mov	[diskimage_size+2], ax	
    427                                  	
-   428 000001E1 BE[C318]                	mov	si, msg_creating
+   428 000001E1 BE[C618]                	mov	si, msg_creating
    429 000001E4 E88803                  	call	print_msg
    430                                  
-   431 000001E7 BE[CF18]                	mov	si, msg_disk_size
+   431 000001E7 BE[D218]                	mov	si, msg_disk_size
    432 000001EA 8A04                    	mov	al, [si]
    433 000001EC 2C31                    	sub	al, '1'
    434 000001EE 83D600                  	adc	si, 0
@@ -438,7 +438,7 @@
    438                                  ; Create a new hard disk image file
    439                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    440                                  		
-   441 000001F4 BA[1719]                	mov	dx, img_file_name
+   441 000001F4 BA[1919]                	mov	dx, img_file_name
    442 000001F7 B90000                  	mov	cx, 0 ; File Attributes
    443 000001FA B43C                    	mov	ah, 3Ch ; MS-DOS Function = Create File
    444 000001FC CD21                    	int	21h
@@ -457,12 +457,12 @@
    457                                  R_23:
    458                                  	; AL = error code
    459 00000208 E87303                  	call	bin_to_hex
-   460 0000020B A3[4518]                	mov 	[error_code], ax
+   460 0000020B A3[4818]                	mov 	[error_code], ax
    461                                  
-   462 0000020E BE[2E18]                	mov	si, CRLF
+   462 0000020E BE[3118]                	mov	si, CRLF
    463 00000211 E85B03                  	call	print_msg
    464                                  
-   465 00000214 BE[3A18]                	mov	si, Msg_Error
+   465 00000214 BE[3D18]                	mov	si, Msg_Error
    466 00000217 E85503                  	call	print_msg
    467                                  
    468 0000021A CD20                    	int	20h	; Exit
@@ -470,30 +470,30 @@
    470                                  R_24:
    471 0000021C A3[980B]                	mov	[img_file_handle], ax
    472                                  R_25:
-   473 0000021F BA[2419]                	mov	dx, HDFORMAT_SECBUFFER  ; 0F6h buffer
+   473 0000021F BA[2619]                	mov	dx, HDFORMAT_SECBUFFER  ; 0F6h buffer
    474 00000222 B90002                  	mov	cx, 512
    475 00000225 8B1E[980B]              	mov	bx, [img_file_handle]
    476 00000229 B440                    	mov	ah, 40h ; write to file	
    477 0000022B CD21                    	int	21h
    478 0000022D 7231                    	jc	short R_26
    479                                  
-   480 0000022F 66FF06[0E19]            	inc	dword [CWSector]
+   480 0000022F 66FF06[1019]            	inc	dword [CWSector]
    481                                  R_25a:
-   482 00000234 A1[1219]                	mov	ax, [diskimage_size]
-   483 00000237 8B16[1419]              	mov	dx, [diskimage_size+2]
+   482 00000234 A1[1419]                	mov	ax, [diskimage_size]
+   483 00000237 8B16[1619]              	mov	dx, [diskimage_size+2]
    484                                  
    485 0000023B B90100                  	mov	cx, 1
    486                                  
-   487 0000023E 3B16[1019]              	cmp	dx, [CWSector+2]
+   487 0000023E 3B16[1219]              	cmp	dx, [CWSector+2]
    488 00000242 7706                    	ja	short R_25b
    489                                  	
-   490 00000244 3B06[0E19]              	cmp	ax, [CWSector]
+   490 00000244 3B06[1019]              	cmp	ax, [CWSector]
    491 00000248 761E                    	jna	short R_27
    492                                  	
    493                                  R_25b:
-   494 0000024A A1[0E19]                	mov	ax, [CWSector]
+   494 0000024A A1[1019]                	mov	ax, [CWSector]
    495 0000024D 83E003                  	and	ax, 3
-   496 00000250 BB[0719]                	mov	bx, RSymbols
+   496 00000250 BB[0A19]                	mov	bx, RSymbols
    497 00000253 01C3                    	add	bx, ax
    498 00000255 8A07                    	mov	al, [bx]
    499 00000257 BB0700                  	mov	bx, 7
@@ -519,7 +519,7 @@
    519                                  	;mov	cx, 1
    520 0000026F CD10                    	int	10h
    521                                  	
-   522 00000271 BE[2A18]                	mov	si, msg_OK
+   522 00000271 BE[2D18]                	mov	si, msg_OK
    523 00000274 E8F802                  	call	print_msg
    524                                  
    525                                  	; Wait about 1 second (~16/18.2)
@@ -539,7 +539,7 @@
    539 0000028D 39F2                    	cmp	dx, si
    540 0000028F 75F1                    	jne	short R_28
    541                                  R_29:
-   542 00000291 BE[A418]                	mov	si, msg_press_any_key
+   542 00000291 BE[A718]                	mov	si, msg_press_any_key
    543 00000294 E8D802                  	call	print_msg
    544                                  
    545 00000297 30E4                    	xor	ah, ah
@@ -550,9 +550,9 @@
    550 0000029B B80300                  	mov	ax, 3 ; set video mode to 03h (80x25 text)
    551 0000029E CD10                    	int	10h
    552                                  	
-   553 000002A0 BE[2414]                	mov	si, msg_create_dos_partition_h ; header
+   553 000002A0 BE[2714]                	mov	si, msg_create_dos_partition_h ; header
    554 000002A3 E8C902                  	call	print_msg
-   555 000002A6 BE[1915]                	mov	si, msg_create_dos_partition_m ; menu
+   555 000002A6 BE[1C15]                	mov	si, msg_create_dos_partition_m ; menu
    556 000002A9 E8C302                  	call	print_msg
    557                                  R_31:
    558 000002AC 30E4                    	xor	ah, ah
@@ -569,7 +569,7 @@
    569 000002C0 2C30                    	sub	al, '0'
    570 000002C2 88C1                    	mov	cl, al
    571 000002C4 FEC9                    	dec	cl  ; 0 to 8
-   572 000002C6 8A1E[1619]              	mov	bl, [DiskType]
+   572 000002C6 8A1E[1819]              	mov	bl, [DiskType]
    573 000002CA FECB                    	dec	bl  ; 0 to 8
    574 000002CC B009                    	mov	al, 9  ; partition size options = 9
    575 000002CE F6E3                    	mul	bl	
@@ -580,16 +580,16 @@
    580 000002D9 20C0                    	and	al, al
    581 000002DB 7520                    	jnz	short R_34
    582                                  
-   583 000002DD BE[8713]                	mov	si, msg_option_not_proper
+   583 000002DD BE[8A13]                	mov	si, msg_option_not_proper
    584 000002E0 E88C02                  	call	print_msg
-   585 000002E3 BE[A418]                	mov	si, msg_press_any_key
+   585 000002E3 BE[A718]                	mov	si, msg_press_any_key
    586 000002E6 E88602                  	call	print_msg
    587 000002E9 30E4                    	xor	ah, ah
    588 000002EB CD16                    	int	16h
    589 000002ED EBAC                    	jmp	short R_30
    590                                  
    591                                  R_32:	
-   592 000002EF BE[2E18]                	mov	si, CRLF
+   592 000002EF BE[3118]                	mov	si, CRLF
    593 000002F2 E87A02                  	call	print_msg
    594                                  
    595 000002F5 30C0                    	xor	al, al	; return code = 0
@@ -699,7 +699,7 @@
    699 0000037D B80300                  	mov	ax, 3 ; set video mode to 03h (80x25 text)
    700 00000380 CD10                    	int	10h	
    701                                  
-   702 00000382 BE[6617]                	mov	si, msg_writing_mbr
+   702 00000382 BE[6917]                	mov	si, msg_writing_mbr
    703 00000385 E8E701                  	call	print_msg
    704                                  
    705                                  	; Move file pointer to start of the file
@@ -721,7 +721,7 @@
    721 0000039A CD21                    	int	21h
    722 0000039C 0F82C0FE                	jc	R_26 ; write error message then exit
    723                                  
-   724 000003A0 BE[2A18]                	mov	si, msg_OK
+   724 000003A0 BE[2D18]                	mov	si, msg_OK
    725 000003A3 E8C901                  	call	print_msg
    726                                  
    727 000003A6 BF[B109]                	mov	di, bsVolumeLabel
@@ -729,7 +729,7 @@
    729 000003AC BE[AD09]                	mov	si, bsVolumeID
    730 000003AF E83601                  	call	write_volume_serial
    731                                  
-   732 000003B2 BE[9917]                	mov	si, msg_writing_boot_sector
+   732 000003B2 BE[9C17]                	mov	si, msg_writing_boot_sector
    733 000003B5 E8B701                  	call	print_msg
    734                                  
    735                                  	; Move file pointer to start of the dos partition
@@ -753,7 +753,7 @@
    753 000003D7 CD21                    	int	21h
    754 000003D9 0F8283FE                	jc	R_26 ; write error message then exit
    755                                  
-   756 000003DD BE[2A18]                	mov	si, msg_OK
+   756 000003DD BE[2D18]                	mov	si, msg_OK
    757 000003E0 E88C01                  	call	print_msg
    758                                  
    759                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -764,12 +764,12 @@
    764                                  	;call	print_msg
    765                                  
    766                                  	; Clear sector buffer (clear 0F6h bytes)
-   767 000003E3 BF[2419]                	mov	di, HDFORMAT_FATBUFFER
+   767 000003E3 BF[2619]                	mov	di, HDFORMAT_FATBUFFER
    768 000003E6 31C0                    	xor	ax, ax
    769 000003E8 B90001                  	mov	cx, 256
    770 000003EB F3AB                    	rep	stosw 
    771                                  
-   772 000003ED BE[B717]                	mov	si, msg_writing_FAT_sectors
+   772 000003ED BE[BA17]                	mov	si, msg_writing_FAT_sectors
    773 000003F0 E87C01                  	call	print_msg
    774                                  
    775 000003F3 8B2E[9C09]              	mov	bp, [bsFATsecs]
@@ -777,7 +777,7 @@
    777 000003F8 89EF                    	mov	di, bp
    778                                  
    779 000003FA B8F8FF                  	mov	ax, 0FFF8h
-   780 000003FD BE[2419]                	mov	si, HDFORMAT_FATBUFFER
+   780 000003FD BE[2619]                	mov	si, HDFORMAT_FATBUFFER
    781 00000400 8904                    	mov	[SI], ax
    782 00000402 88E0                    	mov	al, ah
    783 00000404 894402                  	mov	[SI+2], ax ; FFFFh
@@ -791,7 +791,7 @@
    791 00000414 CD21                    	int	21h
    792 00000416 0F8246FE                	jc	R_26 ; write error message then exit
    793                                  	;mov	bx, [img_file_handle]
-   794 0000041A BA[2419]                	mov	dx, HDFORMAT_ZERO_BUFF
+   794 0000041A BA[2619]                	mov	dx, HDFORMAT_ZERO_BUFF
    795                                  	;mov	cx, 512
    796 0000041D 31C0                    	xor	ax, ax
    797 0000041F 8904                    	mov	[SI], ax
@@ -823,7 +823,7 @@
    823 00000441 CD21                    	int	21h
    824 00000443 0F8219FE                	jc	R_26 ; write error message then exit
    825                                  	;mov	bx, [img_file_handle]
-   826 00000447 BA[2419]                	mov	dx, HDFORMAT_ZERO_BUFF
+   826 00000447 BA[2619]                	mov	dx, HDFORMAT_ZERO_BUFF
    827                                  	;mov	cx, 512
    828 0000044A 29C0                    	sub	ax, ax
    829 0000044C 8904                    	mov	[SI], ax
@@ -840,19 +840,19 @@
    840 0000045B 4F                      	dec	di
    841 0000045C 75F3                    	jnz	short R_36
    842                                  
-   843 0000045E BE[2A18]                	mov	si, msg_OK
+   843 0000045E BE[2D18]                	mov	si, msg_OK
    844 00000461 E80B01                  	call	print_msg
    845                                  
    846                                  	;mov	si, CRLF
    847                                  	;call	print_msg
    848                                  
-   849 00000464 BE[CE17]                	mov	si, msg_writing_root_dir
+   849 00000464 BE[D117]                	mov	si, msg_writing_root_dir
    850 00000467 E80501                  	call	print_msg
    851                                  
    852 0000046A 8B3E[9709]              	mov	di, [bsRootDirEnts]
    853 0000046E C1EF04                  	shr	di, 4 ; 240/16 = 15, 512/16 =  32 sectors
    854 00000471 8B1E[980B]              	mov	bx, [img_file_handle]
-   855 00000475 BA[2419]                	mov	dx, HDFORMAT_ZERO_BUFF
+   855 00000475 BA[2619]                	mov	dx, HDFORMAT_ZERO_BUFF
    856                                  	;mov	cx, 512
    857                                  R_37:
    858 00000478 28C0                    	sub	al, al
@@ -866,7 +866,7 @@
    866 00000482 4F                      	dec	di
    867 00000483 75F3                    	jnz	short R_37
    868                                  
-   869 00000485 BE[2A18]                	mov	si, msg_OK
+   869 00000485 BE[2D18]                	mov	si, msg_OK
    870 00000488 E8E400                  	call	print_msg
    871                                  
    872 0000048B B43E                    	mov	ah, 3Eh ; close file
@@ -884,14 +884,14 @@
    884                                  	;mov	byte [vname_length], 11
    885                                  svn_fs:
    886                                  	; DI = (BS) Volume Label address
-   887 00000496 BE[FC17]                	mov	si, Msg_Volume_Name
+   887 00000496 BE[FF17]                	mov	si, Msg_Volume_Name
    888 00000499 E8D300                  	call	print_msg
    889                                  
    890                                  	; get cursor position
    891                                  	; bh = 0  ; video page
    892 0000049C B403                    	mov     ah, 3 ; get cursor pos
    893 0000049E CD10                    	int     10h
-   894 000004A0 8916[0C19]              	mov	[Cursor_Pos], dx
+   894 000004A0 8916[0E19]              	mov	[Cursor_Pos], dx
    895                                  
    896 000004A4 E8EE00                  	call	rw_char
    897                                  	;jc	short svn_1
@@ -921,18 +921,18 @@
    921                                  svn_5:
    922 000004BF B90B00                  	mov	cx, 11 ; [vname_length]
    923 000004C2 89DE                    	mov	si, bx ; *
-   924 000004C4 BF[F017]                	mov	di, StrVolumeName
+   924 000004C4 BF[F317]                	mov	di, StrVolumeName
    925 000004C7 F3A4                    	rep	movsb
    926                                  	;mov	byte [di], 0
    927                                  
-   928 000004C9 8B16[0C19]              	mov	dx, [Cursor_Pos]
+   928 000004C9 8B16[0E19]              	mov	dx, [Cursor_Pos]
    929 000004CD BB0700                  	mov	bx, 7
    930 000004D0 B402                    	mov	ah, 2
    931 000004D2 CD10                    	int	10h  ; Set Cursor Position
    932                                  
-   933 000004D4 BE[F017]                	mov	si, StrVolumeName
+   933 000004D4 BE[F317]                	mov	si, StrVolumeName
    934 000004D7 E89500                  	call	print_msg
-   935 000004DA BE[2E18]                	mov	si, CRLF
+   935 000004DA BE[3118]                	mov	si, CRLF
    936 000004DD E88F00                  	call	print_msg
    937 000004E0 C3                      	retn
    938                                  svn_6:
@@ -1078,18 +1078,18 @@
   1078                                  	; SI = Volume serial number address (4 bytes) 
   1079 00000538 8A04                    	mov	al, [si]
   1080 0000053A E84100                  	call	bin_to_hex
-  1081 0000053D A3[2518]                	mov	[Vol_Serial2+2], ax	
+  1081 0000053D A3[2818]                	mov	[Vol_Serial2+2], ax	
   1082 00000540 8A4401                  	mov	al, [si+1]
   1083 00000543 E83800                  	call	bin_to_hex
-  1084 00000546 A3[2318]                	mov	[Vol_Serial2], ax
+  1084 00000546 A3[2618]                	mov	[Vol_Serial2], ax
   1085 00000549 8A4402                  	mov	al, [si+2]
   1086 0000054C E82F00                  	call	bin_to_hex
-  1087 0000054F A3[2018]                	mov	[Vol_Serial1+2], ax	
+  1087 0000054F A3[2318]                	mov	[Vol_Serial1+2], ax	
   1088 00000552 8A4403                  	mov	al, [si+3]
   1089 00000555 E82600                  	call	bin_to_hex
-  1090 00000558 A3[1E18]                	mov	[Vol_Serial1], ax
+  1090 00000558 A3[2118]                	mov	[Vol_Serial1], ax
   1091                                  
-  1092 0000055B BE[0C18]                	mov	si, Msg_Volume_Serial
+  1092 0000055B BE[0F18]                	mov	si, Msg_Volume_Serial
   1093 0000055E E80E00                  	call	print_msg
   1094                                  
   1095 00000561 C3                      	retn
@@ -1153,11 +1153,11 @@
   1153                                  
   1154                                  rw_char:
   1155                                  	; OUTPUT -> DS:SI = Entered String (ASCIIZ)
-  1156 00000595 BE[F017]                	mov     si, StrVolumeName
+  1156 00000595 BE[F317]                	mov     si, StrVolumeName
   1157 00000598 BB0700                  	mov     bx, 7
   1158 0000059B B403                    	mov     ah, 3
   1159 0000059D CD10                    	int     10h
-  1160 0000059F 8916[0C19]              	mov     [Cursor_Pos], dx
+  1160 0000059F 8916[0E19]              	mov     [Cursor_Pos], dx
   1161                                  read_next_char:
   1162 000005A3 30E4                    	xor     ah, ah
   1163 000005A5 CD16                    	int     16h
@@ -1170,7 +1170,7 @@
   1170                                  loc_back:
   1171 000005B3 B403                    	mov     ah, 3
   1172 000005B5 CD10                    	int     10h
-  1173 000005B7 3A16[0C19]              	cmp     dl, byte [Cursor_Pos]
+  1173 000005B7 3A16[0E19]              	cmp     dl, byte [Cursor_Pos]
   1174 000005BB 761F                    	jna     short loc_beep
   1175                                  prev_column:
   1176 000005BD FECA                    	dec     dl
@@ -1178,7 +1178,7 @@
   1178 000005BF B402                    	mov     ah, 2
   1179 000005C1 CD10                    	int     10h
   1180 000005C3 88D3                    	mov     bl, dl
-  1181 000005C5 2A1E[0C19]              	sub     bl, byte [Cursor_Pos] 
+  1181 000005C5 2A1E[0E19]              	sub     bl, byte [Cursor_Pos] 
   1182 000005C9 B90100                  	mov     cx, 1
   1183 000005CC B409                    	mov     ah, 9
   1184 000005CE B020                    	mov     al, 20h
@@ -1186,7 +1186,7 @@
   1186                                  loc_write_it:
   1187 000005D2 B307                    	mov     bl, 7
   1188 000005D4 CD10                    	int     10h
-  1189 000005D6 8B16[0C19]              	mov     dx, [Cursor_Pos]
+  1189 000005D6 8B16[0E19]              	mov     dx, [Cursor_Pos]
   1190 000005DA EBC7                    	jmp     short read_next_char
   1191                                  loc_beep:
   1192 000005DC B40E                    	mov     ah, 0Eh
@@ -1206,7 +1206,7 @@
   1206 000005F4 3C20                    	cmp     al, 20h
   1207 000005F6 7228                    	jb      short loc_escape
   1208 000005F8 88D4                    	mov     ah, dl
-  1209 000005FA 2A26[0C19]              	sub     ah, byte [Cursor_Pos]
+  1209 000005FA 2A26[0E19]              	sub     ah, byte [Cursor_Pos]
   1210                                  	;cmp	ah, 10 
   1211                                  	;ja	short loc_beep
   1212 000005FE 80FC0B                  	cmp     ah, 11 ; [vname_length]
@@ -1452,562 +1452,565 @@
   1452 00000785 00                      	db	0
   1453                                  
   1454                                  RETRODOS_MASTERBOOT_SECTOR:
-  1455 00000786 <incbin>                	incbin	'FS1_MBR.BIN' ; Singlix FS1 MBR	
+  1455 00000786 <bin 200h>              	incbin	'FS1_MBR.BIN' ; Singlix FS1 MBR	
   1456                                  
   1457                                  RETRODOS_FAT16_hd_bs: 
-  1458 00000986 <incbin>                	incbin	'RD3HDBS.BIN'
-  1459                                  
-  1460 00000B86 00                      	db	0
+  1458                                  	;incbin	'RD3HDBS.BIN'
+  1459                                  	; 28/10/2023
+  1460 00000986 <bin 200h>              	incbin	'RD4HDBS.BIN'	; BS Last Update: 24/10/2023
   1461                                  
-  1462                                  hexchrs:
-  1463 00000B87 303132333435363738-     	db	'0123456789ABCDEF'
-  1464 00000B90 39414243444546     
-  1465                                  
-  1466 00000B97 90                      align 2
-  1467                                  
-  1468                                  img_file_handle:
-  1469 00000B98 0000                    	dw	0
-  1470                                  
-  1471                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  1472                                  ;  Messages
-  1473                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  1474                                  
-  1475                                  Dsk_Type_Select_msg:
-  1476 00000B9A 524554524F20444F53-     db  "RETRO DOS v3.0 Hard Disk Image Utility by Erdogan Tan (2018)                    "
+  1462 00000B86 00                      	db	0
+  1463                                  
+  1464                                  hexchrs:
+  1465 00000B87 303132333435363738-     	db	'0123456789ABCDEF'
+  1465 00000B90 39414243444546     
+  1466                                  
+  1467 00000B97 90                      align 2
+  1468                                  
+  1469                                  img_file_handle:
+  1470 00000B98 0000                    	dw	0
+  1471                                  
+  1472                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  1473                                  ;  Messages
+  1474                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  1475                                  
+  1476                                  Dsk_Type_Select_msg:
+  1477 00000B9A 524554524F20444F53-     db  "RETRO DOS v3.0 Hard Disk Image Utility by Erdogan Tan (2018)                    "
   1477 00000BA3 2076332E3020486172-
-  1478 00000BAC 64204469736B20496D-
-  1479 00000BB5 616765205574696C69-
-  1480 00000BBE 747920627920457264-
-  1481 00000BC7 6F67616E2054616E20-
-  1482 00000BD0 283230313829202020-
-  1483 00000BD9 202020202020202020-
-  1484 00000BE2 2020202020202020   
-  1485 00000BEA 202020202020202020-     db  "                                                                                "
-  1486 00000BF3 202020202020202020-
-  1487 00000BFC 202020202020202020-
-  1488 00000C05 202020202020202020-
-  1489 00000C0E 202020202020202020-
-  1490 00000C17 202020202020202020-
-  1491 00000C20 202020202020202020-
-  1492 00000C29 202020202020202020-
-  1493 00000C32 2020202020202020   
-  1494 00000C3A 202020202020202020-     db  "                                                                                "
-  1495 00000C43 202020202020202020-
-  1496 00000C4C 202020202020202020-
-  1497 00000C55 202020202020202020-
-  1498 00000C5E 202020202020202020-
-  1499 00000C67 202020202020202020-
-  1500 00000C70 202020202020202020-
-  1501 00000C79 202020202020202020-
-  1502 00000C82 2020202020202020   
-  1503 00000C8A 4469736B2054797065-     db  "Disk Type     Cylinders     Heads     Sectors       Capacity                    "
-  1504 00000C93 202020202043796C69-
-  1505 00000C9C 6E6465727320202020-
-  1506 00000CA5 204865616473202020-
-  1507 00000CAE 2020536563746F7273-
-  1508 00000CB7 202020202020204361-
-  1509 00000CC0 706163697479202020-
-  1510 00000CC9 202020202020202020-
-  1511 00000CD2 2020202020202020   
-  1512 00000CDA 2D2D2D2D2D2D2D2D2D-     db  "---------     ---------     -----     -------       --------                    "
-  1513 00000CE3 20202020202D2D2D2D-
-  1514 00000CEC 2D2D2D2D2D20202020-
-  1515 00000CF5 202D2D2D2D2D202020-
-  1516 00000CFE 20202D2D2D2D2D2D2D-
-  1517 00000D07 202020202020202D2D-
-  1518 00000D10 2D2D2D2D2D2D202020-
-  1519 00000D19 202020202020202020-
-  1520 00000D22 2020202020202020   
-  1521 00000D2A 202020202031202020-     db  "     1           306          8         17            20 MB                     "
-  1522 00000D33 202020202020202033-
-  1523 00000D3C 303620202020202020-
-  1524 00000D45 202020382020202020-
-  1525 00000D4E 202020203137202020-
-  1526 00000D57 202020202020202020-
-  1527 00000D60 3230204D4220202020-
-  1528 00000D69 202020202020202020-
-  1529 00000D72 2020202020202020   
-  1530 00000D7A 202020202032202020-     db  "     2           462          8         17            31 MB                     "
-  1531 00000D83 202020202020202034-
-  1532 00000D8C 363220202020202020-
-  1533 00000D95 202020382020202020-
-  1534 00000D9E 202020203137202020-
-  1535 00000DA7 202020202020202020-
-  1536 00000DB0 3331204D4220202020-
-  1537 00000DB9 202020202020202020-
-  1538 00000DC2 2020202020202020   
-  1539 00000DCA 202020202020202020-     db  "                                                                                "
-  1540 00000DD3 202020202020202020-
-  1541 00000DDC 202020202020202020-
-  1542 00000DE5 202020202020202020-
-  1543 00000DEE 202020202020202020-
-  1544 00000DF7 202020202020202020-
-  1545 00000E00 202020202020202020-
-  1546 00000E09 202020202020202020-
-  1547 00000E12 2020202020202020   
-  1548 00000E1A 202020202033202020-     db  "     3            32         16         63            16 MB                     "
-  1549 00000E23 202020202020202020-
-  1550 00000E2C 333220202020202020-
-  1551 00000E35 202031362020202020-
-  1552 00000E3E 202020203633202020-
-  1553 00000E47 202020202020202020-
-  1554 00000E50 3136204D4220202020-
-  1555 00000E59 202020202020202020-
-  1556 00000E62 2020202020202020   
-  1557 00000E6A 202020202034202020-     db  "     4            40         16         63            20 MB                     "
-  1558 00000E73 202020202020202020-
-  1559 00000E7C 343020202020202020-
-  1560 00000E85 202031362020202020-
-  1561 00000E8E 202020203633202020-
-  1562 00000E97 202020202020202020-
-  1563 00000EA0 3230204D4220202020-
-  1564 00000EA9 202020202020202020-
-  1565 00000EB2 2020202020202020   
-  1566 00000EBA 202020202035202020-     db  "     5            64         16         63            32 MB                     "
-  1567 00000EC3 202020202020202020-
-  1568 00000ECC 363420202020202020-
-  1569 00000ED5 202031362020202020-
-  1570 00000EDE 202020203633202020-
-  1571 00000EE7 202020202020202020-
-  1572 00000EF0 3332204D4220202020-
-  1573 00000EF9 202020202020202020-
-  1574 00000F02 2020202020202020   
-  1575 00000F0A 202020202020202020-     db  "                                                                                "
-  1576 00000F13 202020202020202020-
-  1577 00000F1C 202020202020202020-
-  1578 00000F25 202020202020202020-
-  1579 00000F2E 202020202020202020-
-  1580 00000F37 202020202020202020-
-  1581 00000F40 202020202020202020-
-  1582 00000F49 202020202020202020-
-  1583 00000F52 2020202020202020   
-  1584 00000F5A 202020202036202020-     db  "     6           128         16         63            64 MB                     "
-  1585 00000F63 202020202020202031-
-  1586 00000F6C 323820202020202020-
-  1587 00000F75 202031362020202020-
-  1588 00000F7E 202020203633202020-
-  1589 00000F87 202020202020202020-
-  1590 00000F90 3634204D4220202020-
-  1591 00000F99 202020202020202020-
-  1592 00000FA2 2020202020202020   
-  1593 00000FAA 202020202037202020-     db  "     7           256         16         63           128 MB                     "
-  1594 00000FB3 202020202020202032-
-  1595 00000FBC 353620202020202020-
-  1596 00000FC5 202031362020202020-
-  1597 00000FCE 202020203633202020-
-  1598 00000FD7 202020202020202031-
-  1599 00000FE0 3238204D4220202020-
-  1600 00000FE9 202020202020202020-
-  1601 00000FF2 2020202020202020   
-  1602 00000FFA 202020202038202020-     db  "     8           512         16         63           256 MB                     "
-  1603 00001003 202020202020202035-
-  1604 0000100C 313220202020202020-
-  1605 00001015 202031362020202020-
-  1606 0000101E 202020203633202020-
-  1607 00001027 202020202020202032-
-  1608 00001030 3536204D4220202020-
-  1609 00001039 202020202020202020-
-  1610 00001042 2020202020202020   
-  1611 0000104A 202020202039202020-     db  "     9          1024         16         63           512 MB                     "
-  1612 00001053 202020202020203130-
-  1613 0000105C 323420202020202020-
-  1614 00001065 202031362020202020-
-  1615 0000106E 202020203633202020-
-  1616 00001077 202020202020202035-
-  1617 00001080 3132204D4220202020-
-  1618 00001089 202020202020202020-
-  1619 00001092 2020202020202020   
-  1620 0000109A 202020202020202020-     db  "                                                                                "
-  1621 000010A3 202020202020202020-
-  1622 000010AC 202020202020202020-
-  1623 000010B5 202020202020202020-
-  1624 000010BE 202020202020202020-
-  1625 000010C7 202020202020202020-
-  1626 000010D0 202020202020202020-
-  1627 000010D9 202020202020202020-
-  1628 000010E2 2020202020202020   
-  1629 000010EA 202020202020202020-     db  "                                                                                "
-  1630 000010F3 202020202020202020-
-  1631 000010FC 202020202020202020-
-  1632 00001105 202020202020202020-
-  1633 0000110E 202020202020202020-
-  1634 00001117 202020202020202020-
-  1635 00001120 202020202020202020-
-  1636 00001129 202020202020202020-
-  1637 00001132 2020202020202020   
-  1638 0000113A 507265737320646973-     db  "Press disk number (1 to 9) to SELECT or                                         "
-  1639 00001143 6B206E756D62657220-
-  1640 0000114C 283120746F20392920-
-  1641 00001155 746F2053454C454354-
-  1642 0000115E 206F72202020202020-
-  1643 00001167 202020202020202020-
-  1644 00001170 202020202020202020-
-  1645 00001179 202020202020202020-
-  1646 00001182 2020202020202020   
-  1647 0000118A 202020202020202020-     db  "                                                                                "
-  1648 00001193 202020202020202020-
-  1649 0000119C 202020202020202020-
-  1650 000011A5 202020202020202020-
-  1651 000011AE 202020202020202020-
-  1652 000011B7 202020202020202020-
-  1653 000011C0 202020202020202020-
-  1654 000011C9 202020202020202020-
-  1655 000011D2 2020202020202020   
-  1656 000011DA 507265737320455343-     db  "Press ESC to cancel.                                                            "
-  1657 000011E3 20746F2063616E6365-
-  1658 000011EC 6C2E20202020202020-
-  1659 000011F5 202020202020202020-
-  1660 000011FE 202020202020202020-
-  1661 00001207 202020202020202020-
-  1662 00001210 202020202020202020-
-  1663 00001219 202020202020202020-
-  1664 00001222 2020202020202020   
-  1665 0000122A 202020202020202020-     db  "                                                                                "
-  1666 00001233 202020202020202020-
-  1667 0000123C 202020202020202020-
-  1668 00001245 202020202020202020-
-  1669 0000124E 202020202020202020-
-  1670 00001257 202020202020202020-
-  1671 00001260 202020202020202020-
-  1672 00001269 202020202020202020-
-  1673 00001272 2020202020202020   
-  1674 0000127A 00                      db  0
-  1675                                  
-  1676                                  RetroDOS_Welcome:
-  1677 0000127B 0D0A                    	db	0Dh, 0Ah
-  1678 0000127D 526574726F20444F53-     	db	'Retro DOS v3.0 Fixed Disk Image (FAT16 FS) Format Utility'
-  1679 00001286 2076332E3020466978-
-  1680 0000128F 6564204469736B2049-
-  1681 00001298 6D6167652028464154-
-  1682 000012A1 31362046532920466F-
-  1683 000012AA 726D6174205574696C-
-  1684 000012B3 697479             
-  1685 000012B6 0D0A                    	db	0Dh, 0Ah
-  1686 000012B8 76312E302E31393130-     	db	"v1.0.191018  (c) Erdogan TAN 2018"
-  1687 000012C1 313820202863292045-
-  1688 000012CA 72646F67616E205441-
-  1689 000012D3 4E2032303138       
-  1690 000012D9 0D0A                    	db	0Dh,0Ah
-  1691 000012DB 0D0A                    	db	0Dh,0Ah
-  1692 000012DD 55736167653A206661-     	db	'Usage: fat16dhi <image file name> '
-  1693 000012E6 743136646869203C69-
-  1694 000012EF 6D6167652066696C65-
-  1695 000012F8 206E616D653E20     
-  1696 000012FF 00                      	db	0
-  1697                                  
-  1698                                  msg_inv_file_name: 
-  1699 00001300 0D0A                    	db	0Dh, 0Ah
-  1700 00001302 496E76616C69642066-     	db	"Invalid file name !", 0Dh, 0Ah
-  1701 0000130B 696C65206E616D6520-
-  1702 00001314 210D0A             
-  1703 00001317 2846696C65206E616D-     	db	"(File name must fit to 8.3 DOS format) !"
-  1704 00001320 65206D757374206669-
-  1705 00001329 7420746F20382E3320-
-  1706 00001332 444F5320666F726D61-
-  1707 0000133B 74292021           
-  1708 0000133F 0D0A00                  	db	0Dh, 0Ah, 0
-  1709                                  
-  1710                                  msg_inv_image_file:
-  1711 00001342 0D0A                    	db	0Dh, 0Ah
-  1712 00001344 496E76616C69642066-     	db	"Invalid fixed disk image file !", 0Dh, 0Ah
-  1713 0000134D 69786564206469736B-
-  1714 00001356 20696D616765206669-
-  1715 0000135F 6C6520210D0A       
-  1716 00001365 2846696C652073697A-     	db	"(File size is not compatible) !"
-  1717 0000136E 65206973206E6F7420-
-  1718 00001377 636F6D70617469626C-
-  1719 00001380 65292021           
-  1720 00001384 0D0A00                  	db	0Dh, 0Ah, 0 
-  1721                                  
-  1722                                  msg_option_not_proper:
-  1723 00001387 53656C656374656420-     	db	"Selected partion size is not proper for selected disk size !"
-  1724 00001390 70617274696F6E2073-
-  1725 00001399 697A65206973206E6F-
-  1726 000013A2 742070726F70657220-
-  1727 000013AB 666F722073656C6563-
-  1728 000013B4 746564206469736B20-
-  1729 000013BD 73697A652021       
-  1730 000013C3 0D0A                    	db	0Dh, 0Ah
-  1731 000013C5 28596F75206E656564-     	db	"(You need to select another option.)"
-  1732 000013CE 20746F2073656C6563-
-  1733 000013D7 7420616E6F74686572-
-  1734 000013E0 206F7074696F6E2E29 
-  1735 000013E9 0D0D00                  	db	0Dh, 0Dh, 0 
-  1736                                  
-  1737                                  msg_any_key_esc_exit:
-  1738 000013EC 0D0A                    	db	0Dh, 0Ah
-  1739 000013EE 507265737320455343-     	db	"Press ESC to exit or press another key to continue..."
-  1740 000013F7 20746F206578697420-
-  1741 00001400 6F7220707265737320-
-  1742 00001409 616E6F74686572206B-
-  1743 00001412 657920746F20636F6E-
-  1744 0000141B 74696E75652E2E2E   
-  1745 00001423 00                      	db	0
-  1746                                  
-  1747                                  msg_create_dos_partition_h:
-  1748 00001424 0D0A                    	db	0Dh, 0Ah
-  1749 00001426 2D2D2D2D2D2D2D2D2D-     	db	"--------------------------------------------------------------------------------"
-  1750 0000142F 2D2D2D2D2D2D2D2D2D-
-  1751 00001438 2D2D2D2D2D2D2D2D2D-
-  1752 00001441 2D2D2D2D2D2D2D2D2D-
-  1753 0000144A 2D2D2D2D2D2D2D2D2D-
-  1754 00001453 2D2D2D2D2D2D2D2D2D-
-  1755 0000145C 2D2D2D2D2D2D2D2D2D-
-  1756 00001465 2D2D2D2D2D2D2D2D2D-
-  1757 0000146E 2D2D2D2D2D2D2D2D   
-  1758 00001476 202020202020202020-     	db	"                        Create Primary DOS Partition                            "
-  1759 0000147F 202020202020202020-
-  1760 00001488 202020202020437265-
-  1761 00001491 617465205072696D61-
-  1762 0000149A 727920444F53205061-
-  1763 000014A3 72746974696F6E2020-
-  1764 000014AC 202020202020202020-
-  1765 000014B5 202020202020202020-
-  1766 000014BE 2020202020202020   
-  1767 000014C6 2D2D2D2D2D2D2D2D2D-     	db	"--------------------------------------------------------------------------------"	
-  1768 000014CF 2D2D2D2D2D2D2D2D2D-
-  1769 000014D8 2D2D2D2D2D2D2D2D2D-
-  1770 000014E1 2D2D2D2D2D2D2D2D2D-
-  1771 000014EA 2D2D2D2D2D2D2D2D2D-
-  1772 000014F3 2D2D2D2D2D2D2D2D2D-
-  1773 000014FC 2D2D2D2D2D2D2D2D2D-
-  1774 00001505 2D2D2D2D2D2D2D2D2D-
-  1775 0000150E 2D2D2D2D2D2D2D2D   
-  1776 00001516 0D0A00                  	db	0Dh, 0Ah, 0	
-  1777                                  msg_create_dos_partition_m:
-  1778 00001519 53656C65637420616E-     	db	"Select an option: "
-  1779 00001522 206F7074696F6E3A20 
-  1780 0000152B 0D0A                    	db	0Dh, 0Ah
-  1781 0000152D 0D0A                    	db	0Dh, 0Ah
-  1782 0000152F 202031292055736520-     	db	"  1) Use 10 MB disk space for FAT16 (04h) partition ", 0Dh, 0Ah
-  1783 00001538 3130204D4220646973-
-  1784 00001541 6B2073706163652066-
-  1785 0000154A 6F7220464154313620-
-  1786 00001553 283034682920706172-
-  1787 0000155C 746974696F6E200D0A 
-  1788 00001565 202032292055736520-     	db	"  2) Use 16 MB disk space for FAT16 (04h) partition ", 0Dh, 0Ah
-  1789 0000156E 3136204D4220646973-
-  1790 00001577 6B2073706163652066-
-  1791 00001580 6F7220464154313620-
-  1792 00001589 283034682920706172-
-  1793 00001592 746974696F6E200D0A 
-  1794 0000159B 202033292055736520-     	db	"  3) Use 20 MB disk space for FAT16 (04h) partition ", 0Dh, 0Ah
-  1795 000015A4 3230204D4220646973-
-  1796 000015AD 6B2073706163652066-
-  1797 000015B6 6F7220464154313620-
-  1798 000015BF 283034682920706172-
-  1799 000015C8 746974696F6E200D0A 
-  1800 000015D1 202034292055736520-     	db	"  4) Use 32 MB disk space for FAT16 (04h) partition ", 0Dh, 0Ah
-  1801 000015DA 3332204D4220646973-
-  1802 000015E3 6B2073706163652066-
-  1803 000015EC 6F7220464154313620-
-  1804 000015F5 283034682920706172-
-  1805 000015FE 746974696F6E200D0A 
-  1806 00001607 0D0A                    	db	0Dh, 0Ah  
-  1807 00001609 202035292055736520-     	db	"  5) Use  64 MB disk space for FAT16 (06h) partition ", 0Dh, 0Ah
-  1808 00001612 203634204D42206469-
-  1809 0000161B 736B20737061636520-
-  1810 00001624 666F72204641543136-
-  1811 0000162D 202830366829207061-
-  1812 00001636 72746974696F6E200D-
-  1813 0000163F 0A                 
-  1814 00001640 202036292055736520-     	db	"  6) Use 128 MB disk space for FAT16 (06h) partition ", 0Dh, 0Ah
-  1815 00001649 313238204D42206469-
-  1816 00001652 736B20737061636520-
-  1817 0000165B 666F72204641543136-
-  1818 00001664 202830366829207061-
-  1819 0000166D 72746974696F6E200D-
-  1820 00001676 0A                 
-  1821 00001677 202037292055736520-     	db	"  7) Use 256 MB disk space for FAT16 (06h) partition ", 0Dh, 0Ah
-  1822 00001680 323536204D42206469-
-  1823 00001689 736B20737061636520-
-  1824 00001692 666F72204641543136-
-  1825 0000169B 202830366829207061-
-  1826 000016A4 72746974696F6E200D-
-  1827 000016AD 0A                 
-  1828 000016AE 202038292055736520-     	db	"  8) Use 512 MB disk space for FAT16 (06h) partition ", 0Dh, 0Ah
-  1829 000016B7 353132204D42206469-
-  1830 000016C0 736B20737061636520-
-  1831 000016C9 666F72204641543136-
-  1832 000016D2 202830366829207061-
-  1833 000016DB 72746974696F6E200D-
-  1834 000016E4 0A                 
-  1835 000016E5 0D0A                    	db	0Dh, 0Ah  
-  1836 000016E7 202039292055736520-     	db	"  9) Use whole disk space for FAT16 partition ", 0Dh, 0Ah
-  1837 000016F0 77686F6C6520646973-
-  1838 000016F9 6B2073706163652066-
-  1839 00001702 6F7220464154313620-
-  1840 0000170B 706172746974696F6E-
-  1841 00001714 200D0A             
-  1842 00001717 0D0A                    	db	0Dh, 0Ah	
-  1843 00001719 507265737320455343-     	db	"Press ESC or 0 to exit .. "
-  1844 00001722 206F72203020746F20-
-  1845 0000172B 65786974202E2E20   
-  1846 00001733 0D0A00                   	db 	0Dh, 0Ah, 0
-  1847                                  
-  1848                                  msg_overwrite_question1:
-  1849 00001736 0D0A                    	db	0Dh, 0Ah
-  1850 00001738 446F20796F75207761-     	db	'Do you want to overwrite '
-  1851 00001741 6E7420746F206F7665-
-  1852 0000174A 72777269746520     
-  1853 00001751 27                      	db	27h
-  1854 00001752 00                      	db	0
-  1855                                  
-  1856                                  msg_overwrite_question2: 
-  1857 00001753 27                      	db	27h
-  1858 00001754 2066696C6520            	db	' file '
-  1859 0000175A 00                      	db	0
-  1860                                  
-  1861                                  msg_yes_no:
-  1862 0000175B 285965732F4E6F293F-     	db	'(Yes/No)? ', 0	
-  1863 00001764 2000               
-  1864                                  
-  1865                                  msg_writing_mbr:
-  1866 00001766 57726974696E67206D-     	db	"Writing masterboot sector...", 0
-  1867 0000176F 6173746572626F6F74-
-  1868 00001778 20736563746F722E2E-
-  1869 00001781 2E00               
-  1870                                  
-  1871                                  msg_writing_disk_sectors:
-  1872 00001783 57726974696E672064-     	db	"Writing disk sector: ", 0
-  1873 0000178C 69736B20736563746F-
-  1874 00001795 723A2000           
-  1875                                  
-  1876                                  msg_writing_boot_sector:
-  1877 00001799 57726974696E672076-     	db	"Writing volume boot sector...", 0
-  1878 000017A2 6F6C756D6520626F6F-
-  1879 000017AB 7420736563746F722E-
-  1880 000017B4 2E2E00             
-  1881                                  
-  1882                                  msg_writing_FAT_sectors:
-  1883 000017B7 57726974696E672046-     	db	"Writing FAT sectors...", 0
-  1884 000017C0 415420736563746F72-
-  1885 000017C9 732E2E2E00         
-  1886                                  
-  1887                                  msg_writing_root_dir:
-  1888 000017CE 57726974696E672072-     	db	"Writing root directory sectors...", 0
-  1889 000017D7 6F6F74206469726563-
-  1890 000017E0 746F72792073656374-
-  1891 000017E9 6F72732E2E2E00     
-  1892                                  
-  1893                                  StrVolumeName:
-  1894 000017F0 00<rept>                	times 	12 db  0
-  1895                                  
-  1896                                  Msg_Volume_Name:
-  1897 000017FC 0D0A                    	db	0Dh, 0Ah
-  1898 000017FE 566F6C756D65204E61-     	db	"Volume Name: ", 0
-  1899 00001807 6D653A2000         
-  1900                                  
-  1901                                  Msg_Volume_Serial:
-  1902 0000180C 566F6C756D65205365-     	db	"Volume Serial No: "
-  1903 00001815 7269616C204E6F3A20 
-  1904                                  Vol_Serial1:
-  1905 0000181E 30303030                	db	"0000"
-  1906 00001822 2D                      	db	"-"
-  1907                                  Vol_Serial2:
-  1908 00001823 30303030                	db	"0000"
-  1909 00001827 0D0A00                  	db	0Dh, 0Ah, 0
-  1910                                  
-  1911                                  msg_OK:
-  1912 0000182A 204F4B2E                	db	' OK.'
-  1913                                  CRLF:
-  1914 0000182E 0D0A00                  	db	0Dh, 0Ah, 0
-  1915                                  Msg_YES:
-  1916 00001831 20                      	db	 20h
-  1917                                  msg_yes_:
-  1918 00001832 59455300                	db	'YES', 0
-  1919                                  Msg_NO:
-  1920 00001836 20                      	db	20h
-  1921                                  msg_no_:
-  1922 00001837 4E4F00                  	db	'NO', 0
-  1923                                  
-  1924                                  Msg_Error:
-  1925 0000183A 0D0A                    	db	0Dh, 0Ah
-  1926 0000183C 4572726F72202120        	db	'Error ! '
-  1927 00001844 28                      	db	'('
-  1928                                  error_code:
-  1929 00001845 3030                    	dw	3030h
-  1930 00001847 68                      	db	'h'
-  1931 00001848 2920                    	db	') '
-  1932 0000184A 0D0A                    	db	0Dh, 0Ah
-  1933 0000184C 00                      	db	0
-  1934                                  
-  1935                                  msg_disk_type_selected:
-  1936 0000184D 4469736B2054797065-     	db	"Disk Type "
-  1937 00001856 20                 
-  1938                                  delected_disk_num:
-  1939 00001857 202068617320626565-     	db	"  has been selected."
-  1940 00001860 6E2073656C65637465-
-  1941 00001869 642E               
-  1942 0000186B 0D0A00                  	db 0Dh, 0Ah, 0
-  1943                                  msg_enter_cancel:
-  1944 0000186E 0D0A                    	db	0Dh, 0Ah
-  1945 00001870 507265737320454E54-     	db	"Press ENTER to write file or press ESC to cancel." 
-  1946 00001879 455220746F20777269-
-  1947 00001882 74652066696C65206F-
-  1948 0000188B 722070726573732045-
-  1949 00001894 534320746F2063616E-
-  1950 0000189D 63656C2E           
-  1951 000018A1 0D0A00                  	db	0Dh, 0Ah, 0
-  1952                                  
-  1953                                  msg_press_any_key:
-  1954 000018A4 0D0A                    	db	0Dh, 0Ah
-  1955 000018A6 50726573732061206B-     	db	"Press a key to continue..." 
-  1956 000018AF 657920746F20636F6E-
-  1957 000018B8 74696E75652E2E2E   
-  1958 000018C0 0D0A00                  	db	0Dh, 0Ah, 0
-  1959                                  
-  1960                                  msg_creating:
-  1961 000018C3 0D0A                    	db	0Dh, 0Ah
-  1962 000018C5 4372656174696E6720-     	db	"Creating ",0
-  1963 000018CE 00                 
-  1964                                  msg_disk_size:
-  1965 000018CF 3030304D4220686172-     	db	"000MB hard disk image... ",
-  1966 000018D8 64206469736B20696D-
-  1967 000018E1 6167652E2E2E20     
-  1968 000018E8 20                      	db	" "
-  1969 000018E9 00                      	db	0
-  1970                                  
-  1971                                  DskTypeNumStr:	
-  1972 000018EA 303230303331303136-     	db	"020031016020032064128256512"
-  1973 000018F3 303230303332303634-
-  1974 000018FC 313238323536353132 
-  1975 00001905 0000                    	dw	0
-  1976                                  
-  1977                                  RSymbols:
-  1978 00001907 2D5C7C2F                	db	"-\|/"
-  1979                                  
-  1980 0000190B 90                      align 2
-  1981                                  
-  1982                                  Cursor_Pos:
-  1983 0000190C 0000                    	dw	0
-  1984                                  
-  1985                                  CWSector:
-  1986 0000190E 00000000                	dd	0
-  1987                                  
-  1988                                  diskimage_size:
-  1989 00001912 00000000                	dd	0
-  1990                                  
-  1991                                  DiskType:
-  1992 00001916 00                      	db	0
-  1993                                  
-  1994                                  img_file_name:  
-  1995 00001917 00<rept>                	times	13 db 0
-  1996                                  
-  1997                                  ;no_name:
-  1998                                  ;	db 	'NO NAME    ', 0
-  1999                                  
-  2000                                  align 2
-  2001                                  
-  2002                                  HDFORMAT_SECBUFFER:
-  2003                                  HDFORMAT_FATBUFFER:
-  2004                                  HDFORMAT_ZERO_BUFF:
-  2005 00001924 F6<rept>                	times	512 db 0F6h
-  2006                                  
-  2007 00001B24 00                      	db	0
-  2008 00001B25 286329204572646F67-     	db	'(c) Erdogan TAN 2018'
-  2009 00001B2E 616E2054414E203230-
-  2010 00001B37 3138               
-  2011 00001B39 00                      	db	0
-  2012                                  
-  2013                                  SizeOfFile equ $-100
+  1477 00000BAC 64204469736B20496D-
+  1477 00000BB5 616765205574696C69-
+  1477 00000BBE 747920627920457264-
+  1477 00000BC7 6F67616E2054616E20-
+  1477 00000BD0 283230313829202020-
+  1477 00000BD9 202020202020202020-
+  1477 00000BE2 2020202020202020   
+  1478 00000BEA 202020202020202020-     db  "                                                                                "
+  1478 00000BF3 202020202020202020-
+  1478 00000BFC 202020202020202020-
+  1478 00000C05 202020202020202020-
+  1478 00000C0E 202020202020202020-
+  1478 00000C17 202020202020202020-
+  1478 00000C20 202020202020202020-
+  1478 00000C29 202020202020202020-
+  1478 00000C32 2020202020202020   
+  1479 00000C3A 202020202020202020-     db  "                                                                                "
+  1479 00000C43 202020202020202020-
+  1479 00000C4C 202020202020202020-
+  1479 00000C55 202020202020202020-
+  1479 00000C5E 202020202020202020-
+  1479 00000C67 202020202020202020-
+  1479 00000C70 202020202020202020-
+  1479 00000C79 202020202020202020-
+  1479 00000C82 2020202020202020   
+  1480 00000C8A 4469736B2054797065-     db  "Disk Type     Cylinders     Heads     Sectors       Capacity                    "
+  1480 00000C93 202020202043796C69-
+  1480 00000C9C 6E6465727320202020-
+  1480 00000CA5 204865616473202020-
+  1480 00000CAE 2020536563746F7273-
+  1480 00000CB7 202020202020204361-
+  1480 00000CC0 706163697479202020-
+  1480 00000CC9 202020202020202020-
+  1480 00000CD2 2020202020202020   
+  1481 00000CDA 2D2D2D2D2D2D2D2D2D-     db  "---------     ---------     -----     -------       --------                    "
+  1481 00000CE3 20202020202D2D2D2D-
+  1481 00000CEC 2D2D2D2D2D20202020-
+  1481 00000CF5 202D2D2D2D2D202020-
+  1481 00000CFE 20202D2D2D2D2D2D2D-
+  1481 00000D07 202020202020202D2D-
+  1481 00000D10 2D2D2D2D2D2D202020-
+  1481 00000D19 202020202020202020-
+  1481 00000D22 2020202020202020   
+  1482 00000D2A 202020202031202020-     db  "     1           306          8         17            20 MB                     "
+  1482 00000D33 202020202020202033-
+  1482 00000D3C 303620202020202020-
+  1482 00000D45 202020382020202020-
+  1482 00000D4E 202020203137202020-
+  1482 00000D57 202020202020202020-
+  1482 00000D60 3230204D4220202020-
+  1482 00000D69 202020202020202020-
+  1482 00000D72 2020202020202020   
+  1483 00000D7A 202020202032202020-     db  "     2           462          8         17            31 MB                     "
+  1483 00000D83 202020202020202034-
+  1483 00000D8C 363220202020202020-
+  1483 00000D95 202020382020202020-
+  1483 00000D9E 202020203137202020-
+  1483 00000DA7 202020202020202020-
+  1483 00000DB0 3331204D4220202020-
+  1483 00000DB9 202020202020202020-
+  1483 00000DC2 2020202020202020   
+  1484 00000DCA 202020202020202020-     db  "                                                                                "
+  1484 00000DD3 202020202020202020-
+  1484 00000DDC 202020202020202020-
+  1484 00000DE5 202020202020202020-
+  1484 00000DEE 202020202020202020-
+  1484 00000DF7 202020202020202020-
+  1484 00000E00 202020202020202020-
+  1484 00000E09 202020202020202020-
+  1484 00000E12 2020202020202020   
+  1485 00000E1A 202020202033202020-     db  "     3            32         16         63            16 MB                     "
+  1485 00000E23 202020202020202020-
+  1485 00000E2C 333220202020202020-
+  1485 00000E35 202031362020202020-
+  1485 00000E3E 202020203633202020-
+  1485 00000E47 202020202020202020-
+  1485 00000E50 3136204D4220202020-
+  1485 00000E59 202020202020202020-
+  1485 00000E62 2020202020202020   
+  1486 00000E6A 202020202034202020-     db  "     4            40         16         63            20 MB                     "
+  1486 00000E73 202020202020202020-
+  1486 00000E7C 343020202020202020-
+  1486 00000E85 202031362020202020-
+  1486 00000E8E 202020203633202020-
+  1486 00000E97 202020202020202020-
+  1486 00000EA0 3230204D4220202020-
+  1486 00000EA9 202020202020202020-
+  1486 00000EB2 2020202020202020   
+  1487 00000EBA 202020202035202020-     db  "     5            64         16         63            32 MB                     "
+  1487 00000EC3 202020202020202020-
+  1487 00000ECC 363420202020202020-
+  1487 00000ED5 202031362020202020-
+  1487 00000EDE 202020203633202020-
+  1487 00000EE7 202020202020202020-
+  1487 00000EF0 3332204D4220202020-
+  1487 00000EF9 202020202020202020-
+  1487 00000F02 2020202020202020   
+  1488 00000F0A 202020202020202020-     db  "                                                                                "
+  1488 00000F13 202020202020202020-
+  1488 00000F1C 202020202020202020-
+  1488 00000F25 202020202020202020-
+  1488 00000F2E 202020202020202020-
+  1488 00000F37 202020202020202020-
+  1488 00000F40 202020202020202020-
+  1488 00000F49 202020202020202020-
+  1488 00000F52 2020202020202020   
+  1489 00000F5A 202020202036202020-     db  "     6           128         16         63            64 MB                     "
+  1489 00000F63 202020202020202031-
+  1489 00000F6C 323820202020202020-
+  1489 00000F75 202031362020202020-
+  1489 00000F7E 202020203633202020-
+  1489 00000F87 202020202020202020-
+  1489 00000F90 3634204D4220202020-
+  1489 00000F99 202020202020202020-
+  1489 00000FA2 2020202020202020   
+  1490 00000FAA 202020202037202020-     db  "     7           256         16         63           128 MB                     "
+  1490 00000FB3 202020202020202032-
+  1490 00000FBC 353620202020202020-
+  1490 00000FC5 202031362020202020-
+  1490 00000FCE 202020203633202020-
+  1490 00000FD7 202020202020202031-
+  1490 00000FE0 3238204D4220202020-
+  1490 00000FE9 202020202020202020-
+  1490 00000FF2 2020202020202020   
+  1491 00000FFA 202020202038202020-     db  "     8           512         16         63           256 MB                     "
+  1491 00001003 202020202020202035-
+  1491 0000100C 313220202020202020-
+  1491 00001015 202031362020202020-
+  1491 0000101E 202020203633202020-
+  1491 00001027 202020202020202032-
+  1491 00001030 3536204D4220202020-
+  1491 00001039 202020202020202020-
+  1491 00001042 2020202020202020   
+  1492 0000104A 202020202039202020-     db  "     9          1024         16         63           512 MB                     "
+  1492 00001053 202020202020203130-
+  1492 0000105C 323420202020202020-
+  1492 00001065 202031362020202020-
+  1492 0000106E 202020203633202020-
+  1492 00001077 202020202020202035-
+  1492 00001080 3132204D4220202020-
+  1492 00001089 202020202020202020-
+  1492 00001092 2020202020202020   
+  1493 0000109A 202020202020202020-     db  "                                                                                "
+  1493 000010A3 202020202020202020-
+  1493 000010AC 202020202020202020-
+  1493 000010B5 202020202020202020-
+  1493 000010BE 202020202020202020-
+  1493 000010C7 202020202020202020-
+  1493 000010D0 202020202020202020-
+  1493 000010D9 202020202020202020-
+  1493 000010E2 2020202020202020   
+  1494 000010EA 202020202020202020-     db  "                                                                                "
+  1494 000010F3 202020202020202020-
+  1494 000010FC 202020202020202020-
+  1494 00001105 202020202020202020-
+  1494 0000110E 202020202020202020-
+  1494 00001117 202020202020202020-
+  1494 00001120 202020202020202020-
+  1494 00001129 202020202020202020-
+  1494 00001132 2020202020202020   
+  1495 0000113A 507265737320646973-     db  "Press disk number (1 to 9) to SELECT or                                         "
+  1495 00001143 6B206E756D62657220-
+  1495 0000114C 283120746F20392920-
+  1495 00001155 746F2053454C454354-
+  1495 0000115E 206F72202020202020-
+  1495 00001167 202020202020202020-
+  1495 00001170 202020202020202020-
+  1495 00001179 202020202020202020-
+  1495 00001182 2020202020202020   
+  1496 0000118A 202020202020202020-     db  "                                                                                "
+  1496 00001193 202020202020202020-
+  1496 0000119C 202020202020202020-
+  1496 000011A5 202020202020202020-
+  1496 000011AE 202020202020202020-
+  1496 000011B7 202020202020202020-
+  1496 000011C0 202020202020202020-
+  1496 000011C9 202020202020202020-
+  1496 000011D2 2020202020202020   
+  1497 000011DA 507265737320455343-     db  "Press ESC to cancel.                                                            "
+  1497 000011E3 20746F2063616E6365-
+  1497 000011EC 6C2E20202020202020-
+  1497 000011F5 202020202020202020-
+  1497 000011FE 202020202020202020-
+  1497 00001207 202020202020202020-
+  1497 00001210 202020202020202020-
+  1497 00001219 202020202020202020-
+  1497 00001222 2020202020202020   
+  1498 0000122A 202020202020202020-     db  "                                                                                "
+  1498 00001233 202020202020202020-
+  1498 0000123C 202020202020202020-
+  1498 00001245 202020202020202020-
+  1498 0000124E 202020202020202020-
+  1498 00001257 202020202020202020-
+  1498 00001260 202020202020202020-
+  1498 00001269 202020202020202020-
+  1498 00001272 2020202020202020   
+  1499 0000127A 00                      db  0
+  1500                                  
+  1501                                  RetroDOS_Welcome:
+  1502 0000127B 0D0A                    	db	0Dh, 0Ah
+  1503 0000127D 526574726F20444F53-     	db	'Retro DOS v4 Fixed Disk Image (FAT16 FS) Format Utility'
+  1503 00001286 207634204669786564-
+  1503 0000128F 204469736B20496D61-
+  1503 00001298 676520284641543136-
+  1503 000012A1 2046532920466F726D-
+  1503 000012AA 6174205574696C6974-
+  1503 000012B3 79                 
+  1504 000012B4 0D0A                    	db	0Dh, 0Ah
+  1505 000012B6 76342E302E32333130-     	db	"v4.0.231028  (c) Erdogan TAN 2018-2023"
+  1505 000012BF 323820202863292045-
+  1505 000012C8 72646F67616E205441-
+  1505 000012D1 4E20323031382D3230-
+  1505 000012DA 3233               
+  1506 000012DC 0D0A                    	db	0Dh,0Ah
+  1507 000012DE 0D0A                    	db	0Dh,0Ah
+  1508 000012E0 55736167653A206661-     	db	'Usage: fat16dhi <image file name> '
+  1508 000012E9 743136646869203C69-
+  1508 000012F2 6D6167652066696C65-
+  1508 000012FB 206E616D653E20     
+  1509 00001302 00                      	db	0
+  1510                                  
+  1511                                  msg_inv_file_name: 
+  1512 00001303 0D0A                    	db	0Dh, 0Ah
+  1513 00001305 496E76616C69642066-     	db	"Invalid file name !", 0Dh, 0Ah
+  1513 0000130E 696C65206E616D6520-
+  1513 00001317 210D0A             
+  1514 0000131A 2846696C65206E616D-     	db	"(File name must fit to 8.3 DOS format) !"
+  1514 00001323 65206D757374206669-
+  1514 0000132C 7420746F20382E3320-
+  1514 00001335 444F5320666F726D61-
+  1514 0000133E 74292021           
+  1515 00001342 0D0A00                  	db	0Dh, 0Ah, 0
+  1516                                  
+  1517                                  msg_inv_image_file:
+  1518 00001345 0D0A                    	db	0Dh, 0Ah
+  1519 00001347 496E76616C69642066-     	db	"Invalid fixed disk image file !", 0Dh, 0Ah
+  1519 00001350 69786564206469736B-
+  1519 00001359 20696D616765206669-
+  1519 00001362 6C6520210D0A       
+  1520 00001368 2846696C652073697A-     	db	"(File size is not compatible) !"
+  1520 00001371 65206973206E6F7420-
+  1520 0000137A 636F6D70617469626C-
+  1520 00001383 65292021           
+  1521 00001387 0D0A00                  	db	0Dh, 0Ah, 0 
+  1522                                  
+  1523                                  msg_option_not_proper:
+  1524 0000138A 53656C656374656420-     	db	"Selected partion size is not proper for selected disk size !"
+  1524 00001393 70617274696F6E2073-
+  1524 0000139C 697A65206973206E6F-
+  1524 000013A5 742070726F70657220-
+  1524 000013AE 666F722073656C6563-
+  1524 000013B7 746564206469736B20-
+  1524 000013C0 73697A652021       
+  1525 000013C6 0D0A                    	db	0Dh, 0Ah
+  1526 000013C8 28596F75206E656564-     	db	"(You need to select another option.)"
+  1526 000013D1 20746F2073656C6563-
+  1526 000013DA 7420616E6F74686572-
+  1526 000013E3 206F7074696F6E2E29 
+  1527 000013EC 0D0D00                  	db	0Dh, 0Dh, 0 
+  1528                                  
+  1529                                  msg_any_key_esc_exit:
+  1530 000013EF 0D0A                    	db	0Dh, 0Ah
+  1531 000013F1 507265737320455343-     	db	"Press ESC to exit or press another key to continue..."
+  1531 000013FA 20746F206578697420-
+  1531 00001403 6F7220707265737320-
+  1531 0000140C 616E6F74686572206B-
+  1531 00001415 657920746F20636F6E-
+  1531 0000141E 74696E75652E2E2E   
+  1532 00001426 00                      	db	0
+  1533                                  
+  1534                                  msg_create_dos_partition_h:
+  1535 00001427 0D0A                    	db	0Dh, 0Ah
+  1536 00001429 2D2D2D2D2D2D2D2D2D-     	db	"--------------------------------------------------------------------------------"
+  1536 00001432 2D2D2D2D2D2D2D2D2D-
+  1536 0000143B 2D2D2D2D2D2D2D2D2D-
+  1536 00001444 2D2D2D2D2D2D2D2D2D-
+  1536 0000144D 2D2D2D2D2D2D2D2D2D-
+  1536 00001456 2D2D2D2D2D2D2D2D2D-
+  1536 0000145F 2D2D2D2D2D2D2D2D2D-
+  1536 00001468 2D2D2D2D2D2D2D2D2D-
+  1536 00001471 2D2D2D2D2D2D2D2D   
+  1537 00001479 202020202020202020-     	db	"                        Create Primary DOS Partition                            "
+  1537 00001482 202020202020202020-
+  1537 0000148B 202020202020437265-
+  1537 00001494 617465205072696D61-
+  1537 0000149D 727920444F53205061-
+  1537 000014A6 72746974696F6E2020-
+  1537 000014AF 202020202020202020-
+  1537 000014B8 202020202020202020-
+  1537 000014C1 2020202020202020   
+  1538 000014C9 2D2D2D2D2D2D2D2D2D-     	db	"--------------------------------------------------------------------------------"	
+  1538 000014D2 2D2D2D2D2D2D2D2D2D-
+  1538 000014DB 2D2D2D2D2D2D2D2D2D-
+  1538 000014E4 2D2D2D2D2D2D2D2D2D-
+  1538 000014ED 2D2D2D2D2D2D2D2D2D-
+  1538 000014F6 2D2D2D2D2D2D2D2D2D-
+  1538 000014FF 2D2D2D2D2D2D2D2D2D-
+  1538 00001508 2D2D2D2D2D2D2D2D2D-
+  1538 00001511 2D2D2D2D2D2D2D2D   
+  1539 00001519 0D0A00                  	db	0Dh, 0Ah, 0	
+  1540                                  msg_create_dos_partition_m:
+  1541 0000151C 53656C65637420616E-     	db	"Select an option: "
+  1541 00001525 206F7074696F6E3A20 
+  1542 0000152E 0D0A                    	db	0Dh, 0Ah
+  1543 00001530 0D0A                    	db	0Dh, 0Ah
+  1544 00001532 202031292055736520-     	db	"  1) Use 10 MB disk space for FAT16 (04h) partition ", 0Dh, 0Ah
+  1544 0000153B 3130204D4220646973-
+  1544 00001544 6B2073706163652066-
+  1544 0000154D 6F7220464154313620-
+  1544 00001556 283034682920706172-
+  1544 0000155F 746974696F6E200D0A 
+  1545 00001568 202032292055736520-     	db	"  2) Use 16 MB disk space for FAT16 (04h) partition ", 0Dh, 0Ah
+  1545 00001571 3136204D4220646973-
+  1545 0000157A 6B2073706163652066-
+  1545 00001583 6F7220464154313620-
+  1545 0000158C 283034682920706172-
+  1545 00001595 746974696F6E200D0A 
+  1546 0000159E 202033292055736520-     	db	"  3) Use 20 MB disk space for FAT16 (04h) partition ", 0Dh, 0Ah
+  1546 000015A7 3230204D4220646973-
+  1546 000015B0 6B2073706163652066-
+  1546 000015B9 6F7220464154313620-
+  1546 000015C2 283034682920706172-
+  1546 000015CB 746974696F6E200D0A 
+  1547 000015D4 202034292055736520-     	db	"  4) Use 32 MB disk space for FAT16 (04h) partition ", 0Dh, 0Ah
+  1547 000015DD 3332204D4220646973-
+  1547 000015E6 6B2073706163652066-
+  1547 000015EF 6F7220464154313620-
+  1547 000015F8 283034682920706172-
+  1547 00001601 746974696F6E200D0A 
+  1548 0000160A 0D0A                    	db	0Dh, 0Ah  
+  1549 0000160C 202035292055736520-     	db	"  5) Use  64 MB disk space for FAT16 (06h) partition ", 0Dh, 0Ah
+  1549 00001615 203634204D42206469-
+  1549 0000161E 736B20737061636520-
+  1549 00001627 666F72204641543136-
+  1549 00001630 202830366829207061-
+  1549 00001639 72746974696F6E200D-
+  1549 00001642 0A                 
+  1550 00001643 202036292055736520-     	db	"  6) Use 128 MB disk space for FAT16 (06h) partition ", 0Dh, 0Ah
+  1550 0000164C 313238204D42206469-
+  1550 00001655 736B20737061636520-
+  1550 0000165E 666F72204641543136-
+  1550 00001667 202830366829207061-
+  1550 00001670 72746974696F6E200D-
+  1550 00001679 0A                 
+  1551 0000167A 202037292055736520-     	db	"  7) Use 256 MB disk space for FAT16 (06h) partition ", 0Dh, 0Ah
+  1551 00001683 323536204D42206469-
+  1551 0000168C 736B20737061636520-
+  1551 00001695 666F72204641543136-
+  1551 0000169E 202830366829207061-
+  1551 000016A7 72746974696F6E200D-
+  1551 000016B0 0A                 
+  1552 000016B1 202038292055736520-     	db	"  8) Use 512 MB disk space for FAT16 (06h) partition ", 0Dh, 0Ah
+  1552 000016BA 353132204D42206469-
+  1552 000016C3 736B20737061636520-
+  1552 000016CC 666F72204641543136-
+  1552 000016D5 202830366829207061-
+  1552 000016DE 72746974696F6E200D-
+  1552 000016E7 0A                 
+  1553 000016E8 0D0A                    	db	0Dh, 0Ah  
+  1554 000016EA 202039292055736520-     	db	"  9) Use whole disk space for FAT16 partition ", 0Dh, 0Ah
+  1554 000016F3 77686F6C6520646973-
+  1554 000016FC 6B2073706163652066-
+  1554 00001705 6F7220464154313620-
+  1554 0000170E 706172746974696F6E-
+  1554 00001717 200D0A             
+  1555 0000171A 0D0A                    	db	0Dh, 0Ah	
+  1556 0000171C 507265737320455343-     	db	"Press ESC or 0 to exit .. "
+  1556 00001725 206F72203020746F20-
+  1556 0000172E 65786974202E2E20   
+  1557 00001736 0D0A00                   	db 	0Dh, 0Ah, 0
+  1558                                  
+  1559                                  msg_overwrite_question1:
+  1560 00001739 0D0A                    	db	0Dh, 0Ah
+  1561 0000173B 446F20796F75207761-     	db	'Do you want to overwrite '
+  1561 00001744 6E7420746F206F7665-
+  1561 0000174D 72777269746520     
+  1562 00001754 27                      	db	27h
+  1563 00001755 00                      	db	0
+  1564                                  
+  1565                                  msg_overwrite_question2: 
+  1566 00001756 27                      	db	27h
+  1567 00001757 2066696C6520            	db	' file '
+  1568 0000175D 00                      	db	0
+  1569                                  
+  1570                                  msg_yes_no:
+  1571 0000175E 285965732F4E6F293F-     	db	'(Yes/No)? ', 0	
+  1571 00001767 2000               
+  1572                                  
+  1573                                  msg_writing_mbr:
+  1574 00001769 57726974696E67206D-     	db	"Writing masterboot sector...", 0
+  1574 00001772 6173746572626F6F74-
+  1574 0000177B 20736563746F722E2E-
+  1574 00001784 2E00               
+  1575                                  
+  1576                                  msg_writing_disk_sectors:
+  1577 00001786 57726974696E672064-     	db	"Writing disk sector: ", 0
+  1577 0000178F 69736B20736563746F-
+  1577 00001798 723A2000           
+  1578                                  
+  1579                                  msg_writing_boot_sector:
+  1580 0000179C 57726974696E672076-     	db	"Writing volume boot sector...", 0
+  1580 000017A5 6F6C756D6520626F6F-
+  1580 000017AE 7420736563746F722E-
+  1580 000017B7 2E2E00             
+  1581                                  
+  1582                                  msg_writing_FAT_sectors:
+  1583 000017BA 57726974696E672046-     	db	"Writing FAT sectors...", 0
+  1583 000017C3 415420736563746F72-
+  1583 000017CC 732E2E2E00         
+  1584                                  
+  1585                                  msg_writing_root_dir:
+  1586 000017D1 57726974696E672072-     	db	"Writing root directory sectors...", 0
+  1586 000017DA 6F6F74206469726563-
+  1586 000017E3 746F72792073656374-
+  1586 000017EC 6F72732E2E2E00     
+  1587                                  
+  1588                                  StrVolumeName:
+  1589 000017F3 00<rep Ch>              	times 	12 db  0
+  1590                                  
+  1591                                  Msg_Volume_Name:
+  1592 000017FF 0D0A                    	db	0Dh, 0Ah
+  1593 00001801 566F6C756D65204E61-     	db	"Volume Name: ", 0
+  1593 0000180A 6D653A2000         
+  1594                                  
+  1595                                  Msg_Volume_Serial:
+  1596 0000180F 566F6C756D65205365-     	db	"Volume Serial No: "
+  1596 00001818 7269616C204E6F3A20 
+  1597                                  Vol_Serial1:
+  1598 00001821 30303030                	db	"0000"
+  1599 00001825 2D                      	db	"-"
+  1600                                  Vol_Serial2:
+  1601 00001826 30303030                	db	"0000"
+  1602 0000182A 0D0A00                  	db	0Dh, 0Ah, 0
+  1603                                  
+  1604                                  msg_OK:
+  1605 0000182D 204F4B2E                	db	' OK.'
+  1606                                  CRLF:
+  1607 00001831 0D0A00                  	db	0Dh, 0Ah, 0
+  1608                                  Msg_YES:
+  1609 00001834 20                      	db	 20h
+  1610                                  msg_yes_:
+  1611 00001835 59455300                	db	'YES', 0
+  1612                                  Msg_NO:
+  1613 00001839 20                      	db	20h
+  1614                                  msg_no_:
+  1615 0000183A 4E4F00                  	db	'NO', 0
+  1616                                  
+  1617                                  Msg_Error:
+  1618 0000183D 0D0A                    	db	0Dh, 0Ah
+  1619 0000183F 4572726F72202120        	db	'Error ! '
+  1620 00001847 28                      	db	'('
+  1621                                  error_code:
+  1622 00001848 3030                    	dw	3030h
+  1623 0000184A 68                      	db	'h'
+  1624 0000184B 2920                    	db	') '
+  1625 0000184D 0D0A                    	db	0Dh, 0Ah
+  1626 0000184F 00                      	db	0
+  1627                                  
+  1628                                  msg_disk_type_selected:
+  1629 00001850 4469736B2054797065-     	db	"Disk Type "
+  1629 00001859 20                 
+  1630                                  delected_disk_num:
+  1631 0000185A 202068617320626565-     	db	"  has been selected."
+  1631 00001863 6E2073656C65637465-
+  1631 0000186C 642E               
+  1632 0000186E 0D0A00                  	db 0Dh, 0Ah, 0
+  1633                                  msg_enter_cancel:
+  1634 00001871 0D0A                    	db	0Dh, 0Ah
+  1635 00001873 507265737320454E54-     	db	"Press ENTER to write file or press ESC to cancel." 
+  1635 0000187C 455220746F20777269-
+  1635 00001885 74652066696C65206F-
+  1635 0000188E 722070726573732045-
+  1635 00001897 534320746F2063616E-
+  1635 000018A0 63656C2E           
+  1636 000018A4 0D0A00                  	db	0Dh, 0Ah, 0
+  1637                                  
+  1638                                  msg_press_any_key:
+  1639 000018A7 0D0A                    	db	0Dh, 0Ah
+  1640 000018A9 50726573732061206B-     	db	"Press a key to continue..." 
+  1640 000018B2 657920746F20636F6E-
+  1640 000018BB 74696E75652E2E2E   
+  1641 000018C3 0D0A00                  	db	0Dh, 0Ah, 0
+  1642                                  
+  1643                                  msg_creating:
+  1644 000018C6 0D0A                    	db	0Dh, 0Ah
+  1645 000018C8 4372656174696E6720-     	db	"Creating ",0
+  1645 000018D1 00                 
+  1646                                  msg_disk_size:
+  1647 000018D2 3030304D4220686172-     	db	"000MB hard disk image... ",
+  1647 000018DB 64206469736B20696D-
+  1647 000018E4 6167652E2E2E20     
+  1648 000018EB 20                      	db	" "
+  1649 000018EC 00                      	db	0
+  1650                                  
+  1651                                  DskTypeNumStr:	
+  1652 000018ED 303230303331303136-     	db	"020031016020032064128256512"
+  1652 000018F6 303230303332303634-
+  1652 000018FF 313238323536353132 
+  1653 00001908 0000                    	dw	0
+  1654                                  
+  1655                                  RSymbols:
+  1656 0000190A 2D5C7C2F                	db	"-\|/"
+  1657                                  
+  1658                                  align 2
+  1659                                  
+  1660                                  Cursor_Pos:
+  1661 0000190E 0000                    	dw	0
+  1662                                  
+  1663                                  CWSector:
+  1664 00001910 00000000                	dd	0
+  1665                                  
+  1666                                  diskimage_size:
+  1667 00001914 00000000                	dd	0
+  1668                                  
+  1669                                  DiskType:
+  1670 00001918 00                      	db	0
+  1671                                  
+  1672                                  img_file_name:  
+  1673 00001919 00<rep Dh>              	times	13 db 0
+  1674                                  
+  1675                                  ;no_name:
+  1676                                  ;	db 	'NO NAME    ', 0
+  1677                                  
+  1678                                  align 2
+  1679                                  
+  1680                                  HDFORMAT_SECBUFFER:
+  1681                                  HDFORMAT_FATBUFFER:
+  1682                                  HDFORMAT_ZERO_BUFF:
+  1683 00001926 F6<rep 200h>            	times	512 db 0F6h
+  1684                                  
+  1685 00001B26 00                      	db	0
+  1686 00001B27 286329204572646F67-     	db	'(c) Erdogan TAN 2018-2023'
+  1686 00001B30 616E2054414E203230-
+  1686 00001B39 31382D32303233     
+  1687 00001B40 00                      	db	0
+  1688                                  
+  1689                                  SizeOfFile equ $-100

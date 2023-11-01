@@ -4,7 +4,7 @@
 ; 'rdhdimg.s' (RDHDIMG.COM) - Retro DOS	v2 Hard Disk Image Formatting Utility
 ; 					 	          (for MSDOS/WINDOWS)
 ; ****************************************************************************
-; Last Update: 19/10/2018
+; Last Update: 28/10/2023 (Previous: 19/10/2018)
 ; ----------------------------------------------------------------------------
 ; Beginning: 07/05/2018
 ; ----------------------------------------------------------------------------
@@ -1352,7 +1352,7 @@ RETRODOS_MASTERBOOT_SECTOR:
 	incbin	'FS1_MBR.BIN' ; Singlix FS1 MBR	
 
 RETRODOS_FAT12_hd_bs: 
-	incbin	'RD2HDBS.BIN'
+	incbin	'RD2HDBS.BIN' ; BS Last Update: 25/10/2023
 
 	db	0
 
@@ -1392,9 +1392,9 @@ db  0
 
 RetroDOS_Welcome:
 	db	0Dh, 0Ah
-	db	'Retro DOS v3.0 Fixed Disk Image (FAT12 FS) Format Utility'
+	db	'Retro DOS v4 Fixed Disk Image (FAT12 FS) Format Utility'
 	db	0Dh, 0Ah
-	db	"v1.0.191018  (c) Erdogan TAN 2018"
+	db	"v4.0.231028  (c) Erdogan TAN 2018-2023"
 	db	0Dh,0Ah
 	db	0Dh,0Ah
 	db	'Usage: fat12hdi <image file name> '
@@ -1570,7 +1570,7 @@ HDFORMAT_ZERO_BUFF:
 	times	512 db 0F6h
 
 	db	0
-	db	'(c) Erdogan TAN 2018'
+	db	'(c) Erdogan TAN 2018-2023'
 	db	0
 
 SizeOfFile equ $-100
