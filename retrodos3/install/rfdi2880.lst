@@ -4,606 +4,607 @@
      4                                  ; ----------------------------------------------------------------------------
      5                                  ; Only for 2.88MB (3.5") Floppy Disks
      6                                  ; ****************************************************************************
-     7                                  ; Last Update: 27/03/2018 (Retro DOS 2.0) -different boot sector code-
-     8                                  ; Last Update: 24/02/2018
-     9                                  ; ----------------------------------------------------------------------------
-    10                                  ; Beginning: 11/02/2018
-    11                                  ; ----------------------------------------------------------------------------
-    12                                  ; Assembler: NASM version 2.11
-    13                                  ; ----------------------------------------------------------------------------
-    14                                  ; Retro DOS Operating System Project by ERDOGAN TAN (Beginning: 04/02/2018)
-    15                                  ; ----------------------------------------------------------------------------
-    16                                  ; Derived from 'fdimage.s'(FDIMAGE.COM) source code by Erdogan Tan
-    17                                  ; (02/12/2017)
-    18                                  ; ****************************************************************************
-    19                                  ; nasm rfdi2880.s -l rfdi2880.lst -o RFDI2880.COM
-    20                                  
-    21                                  bsDriveNumber   equ RETRODOS_FAT12_FDBS + 36
-    22                                  bsVolumeID      equ RETRODOS_FAT12_FDBS + 39
-    23                                  bsVolumeLabel   equ RETRODOS_FAT12_FDBS + 43
-    24                                  
-    25                                  ; DTA (PSP+80h= Offset 128)
-    26                                  DTA_Attrib equ 149 ; PDP+21
-    27                                  DTA_Time equ 150 ; PSP+22
-    28                                  DTA_Date equ 152 ; PSP 24
-    29                                  DTA_FileSize equ 154 ; PSP + 26
-    30                                  DTA_FileName equ 158 ; PSP + 30
-    31                                  
-    32                                  [BITS 16]
-    33                                  [ORG 100h]
-    34                                  
-    35                                  	;cli
-    36                                  	;cld
-    37                                  	;push	cs
-    38                                  	;pop	ss
-    39                                  	;mov	sp, 0FFFEh
-    40                                  	;sti
-    41                                  	
-    42 00000000 BB[5E0B]                	mov	bx, SizeOfFile+100
-    43 00000003 83C30F                          add	bx, 15
-    44 00000006 D1EB                            shr	bx, 1
-    45 00000008 D1EB                            shr	bx, 1
-    46 0000000A D1EB                    	shr	bx, 1
-    47 0000000C D1EB                    	shr	bx, 1
-    48 0000000E B44A                            mov	ah, 4Ah ; modify memory allocation
-    49                                          ;push	cs
-    50                                          ;pop	es
-    51 00000010 CD21                            int	21h 
-    52                                  
-    53                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    54                                  ; get fd image file name
-    55                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    56                                  
-    57 00000012 BE8000                  	mov	si, 80h			; PSP command tail
-    58 00000015 AC                       	lodsb
-    59 00000016 08C0                    	or	al, al 			; command tail length                            
-    60 00000018 0F84C600                	jz	R_17			; jump if zero
-    61                                  R_01:
-    62 0000001C AC                      	lodsb
-    63 0000001D 3C20                    	cmp	al, ' '			; is it SPACE ?
-    64 0000001F 74FB                    	je	short R_01 		
-    65 00000021 0F82BD00                	jb	R_17
-    66                                  	
-    67                                  	; check fd image file name
-    68                                  R_02:
-    69 00000025 BF[510B]                       	mov	di, img_file_name
-    70 00000028 AA                      	stosb
-    71                                  R_03:
-    72 00000029 AC                      	lodsb
-    73                                  	;cmp	al, 0Dh ; ENTER (CR) key
-    74 0000002A 3C20                    	cmp	al, 20h ; ' '
-    75 0000002C 760C                    	jna	short R_04
-    76 0000002E AA                      	stosb
-    77 0000002F 81FF[5D0B]              	cmp	di, img_file_name + 12
-    78 00000033 72F4                    	jb	short R_03
-    79 00000035 803C20                  	cmp	byte [si], 20h 
-    80 00000038 773F                    	ja	short R_11
-    81                                  R_04:
-    82                                  	;sub	al, al
-    83                                  	;stosb
-    84                                  
-    85                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    86                                  ; File name capitalization
-    87                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    88                                  
-    89 0000003A BE[510B]                	mov	si, img_file_name
-    90 0000003D 89F7                    	mov	di, si
-    91 0000003F 89F3                    	mov	bx, si
-    92                                  R_05:
-    93 00000041 AC                      	lodsb
-    94 00000042 3C61                    	cmp	al, 'a'
-    95 00000044 730D                    	jnb	short R_07
-    96 00000046 20C0                    	and	al, al
-    97 00000048 7412                    	jz	short R_08
-    98 0000004A 3C2E                    	cmp	al, '.'
-    99 0000004C 7502                    	jne	short R_06
-   100 0000004E 89FB                    	mov	bx, di ; dot position	
-   101                                  R_06:
-   102 00000050 AA                      	stosb
-   103 00000051 EBEE                    	jmp	short R_05 		
-   104                                  R_07:
-   105 00000053 3C7A                    	cmp	al, 'z'
-   106 00000055 77F9                    	ja	short R_06
-   107 00000057 24DF                    	and	al, 0DFh ; NOT 32
-   108 00000059 AA                      	stosb
-   109 0000005A EBE5                    	jmp	short R_05	
-   110                                  R_08:
-   111 0000005C 8805                    	mov	[di], al
-   112 0000005E 4F                      	dec	di
-   113 0000005F 39FB                    	cmp	bx, di
-   114 00000061 7316                    	jnb	short R_11
-   115 00000063 29DF                    	sub	di, bx
-   116 00000065 81EB[510B]              	sub	bx, img_file_name
-   117 00000069 83FF03                  	cmp	di, 3
-   118 0000006C 7606                    	jna	short R_09
-   119 0000006E 21DB                    	and	bx, bx
-   120 00000070 7507                    	jnz	short R_11
-   121 00000072 EB0D                    	jmp	short R_10		
-   122                                  R_09:
-   123 00000074 83FB08                  	cmp	bx, 8
-   124 00000077 7608                    	jna	short R_10
-   125                                  R_11:
-   126 00000079 BE[CA05]                	mov	si, msg_inv_file_name
-   127                                  R_12:	
-   128 0000007C E8B101                  	call	print_msg
-   129 0000007F EB56                    	jmp	short R_16
-   130                                  
-   131                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   132                                  ; Find image file
-   133                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   134                                  	
-   135                                  R_10:
-   136 00000081 BA[510B]                	mov	dx, img_file_name
-   137 00000084 B93F00                  	mov	cx, 3Fh ; File Attributes
-   138 00000087 B44E                    	mov	ah, 4Eh ; MS-DOS Function = Find First File
-   139 00000089 CD21                    	int	21h
-   140 0000008B 726A                    	jc	R_20
-   141                                  
-   142                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   143                                  ; Check image file features
-   144                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   145                                  
-   146                                  R_14:
-   147 0000008D BE9500                  	mov	si, DTA_Attrib
-   148 00000090 8A04                    	mov	al, [si]
-   149 00000092 241F                    	and	al, 1Fh ; directory, volume label, system, hidden, read only
-   150 00000094 755C                    	jnz	short R_19     
-   151 00000096 BE9A00                  	mov	si, DTA_FileSize
-   152 00000099 AD                      	lodsw
-   153 0000009A 833C2D                  	cmp	word [SI], 2Dh
-   154 0000009D 7553                    	jne	short R_19
-   155 0000009F 09C0                    	or	ax, ax	; 2.88 MB floppy disk image (2D0000h bytes)
-   156 000000A1 754F                    	jnz	short R_19
-   157                                  
-   158                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   159                                  ; Overwrite question
-   160                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   161                                  
-   162 000000A3 BE[5606]                	mov	si, msg_overwrite_question1
-   163 000000A6 E88701                  	call	print_msg
-   164 000000A9 BE9E00                  	mov	si, DTA_FileName
-   165 000000AC E88101                  	call	print_msg
-   166 000000AF BE[7306]                	mov	si, msg_overwrite_question2
-   167 000000B2 E87B01                  	call	print_msg
-   168 000000B5 BE[7B06]                	mov	si, msg_yes_no
-   169 000000B8 E87501                  	call	print_msg
-   170                                  
-   171                                  	; get answer
-   172                                  R_15:
-   173 000000BB 31C0                    	xor	ax, ax
-   174 000000BD CD16                    	int	16h			; wait for keyboard command
-   175 000000BF 3C03                    	cmp	al, 'C'-40h
-   176 000000C1 7414                    	je	short R_16 ; Exit                   
-   177 000000C3 3C1B                    	cmp	al, 27
-   178 000000C5 7410                    	je	short R_16 ; Exit
-   179 000000C7 24DF                    	and	al, 0DFh
-   180 000000C9 3C59                    	cmp	al, 'Y'			; Yes?
-   181 000000CB 741D                    	je	short R_18		; write
-   182 000000CD 3C4E                    	cmp	al, 'N'			; No?
-   183 000000CF 75EA                    	jne	short R_15      
-   184                                  					; no write (exit)  
-   185 000000D1 BE[2507]                	mov	si, Msg_NO
-   186 000000D4 E85901                  	call	print_msg 
-   187                                  
-   188                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   189                                  ; Nextline & Exit
-   190                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   191                                  
-   192                                  R_16:
-   193 000000D7 BE[1D07]                	mov	si, CRLF
-   194 000000DA E85301                  	call	print_msg
-   195 000000DD B8004C                  	mov	ax, 4C00h		; terminate
-   196 000000E0 CD21                    	int	21h
-   197                                  
-   198                                  R_17:
-   199 000000E2 BE[4605]                	mov	si, RetroDOS_Welcome
-   200 000000E5 E84801                  	call	print_msg
-   201 000000E8 EBED                    	jmp	short R_16 ; Exit
-   202                                  
-   203                                  R_18:
-   204 000000EA BE[2007]                	mov	si, Msg_YES
-   205 000000ED E84001                  	call	print_msg
-   206 000000F0 EB10                    	jmp	short R_21
-   207                                  
-   208                                  R_19:
-   209 000000F2 BE[0C06]                	mov	si, msg_inv_image_file
-   210 000000F5 EB85                    	jmp	short R_12
-   211                                  
-   212                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   213                                  ; Create image file
-   214                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   215                                  
-   216                                  R_20:
-   217                                  	; create a new fd image file
-   218                                  	;mov	dx, img_file_name
-   219 000000F7 B90000                  	mov	cx, 0 ; File Attributes
-   220 000000FA B43C                    	mov	ah, 3Ch ; MS-DOS Function = Create File
-   221 000000FC CD21                    	int	21h
-   222 000000FE 0F8277FF                	jc	R_11
-   223                                  
-   224                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   225                                  ; writing root directory sectors
-   226                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   227                                  
-   228                                  R_21:
-   229 00000102 BE[1D07]                	mov	si, CRLF
-   230 00000105 E82801                  	call	print_msg
-   231                                  
-   232                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   233                                  ; Open image file for writing
-   234                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   235                                  
-   236 00000108 B002                    	mov	al, 2 ; open for reading and writing
-   237                                  	;mov	dx, img_file_name
-   238 0000010A B43D                    	mov	ah, 3Dh ; open file
-   239 0000010C CD21                    	int	21h
-   240 0000010E 0F8267FF                	jc	R_11
-   241                                  
-   242 00000112 A3[4405]                	mov	[img_file_handle], ax
-   243                                  
-   244 00000115 BE[A606]                	mov	si, Msg_Writing_Root_Dir
-   245 00000118 E81501                  	call	print_msg
-   246                                  
-   247 0000011B B81300                  	mov	ax, 19  ; Root Directory Address
-   248 0000011E BB[3D09]                	mov	bx, FDFORMAT_FATBUFFER_S9
-   249                                  R_22:
-   250 00000121 E81B01                  	call	write_fd_sector
-   251 00000124 0F82E500                	jc	R_29
-   252 00000128 40                      	inc	ax
-   253 00000129 83F821                   	cmp	ax, 33 ; 19+15 = 34 (15 sectors, 240 entries)
-   254 0000012C 76F3                    	jna	short R_22
-   255                                  
-   256 0000012E BE[1907]                	mov	si, Msg_OK
-   257 00000131 E8FC00                  	call	print_msg
-   258                                  
-   259                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   260                                  ; writing data sectors
-   261                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   262                                  
-   263 00000134 BE[C806]                	mov	si, Msg_Writing_Data_Sectors
-   264 00000137 E8F600                  	call	print_msg
-   265 0000013A B403                    	mov	ah, 3
-   266 0000013C BB0700                  	mov	bx, 7
-   267 0000013F CD10                    	int	10h ; Return Cursor Position
-   268                                  	; DL = Column, DH= Line
-   269 00000141 8916[E306]              	mov	[Cursor_Pos], dx
-   270 00000145 B82200                  	mov	ax, 34  ; First Data Sector
-   271                                  R_23:
-   272 00000148 50                      	push	ax
-   273 00000149 40                      	inc	ax ; 1 based printing of 0 based sectors
-   274 0000014A BE[E106]                	mov	si, Sector_Str + 3
-   275 0000014D E81401                  	call	bin_to_decimal
-   276 00000150 8B16[E306]              	mov	dx, [Cursor_Pos]
-   277 00000154 B402                    	mov	ah, 2
-   278 00000156 CD10                    	int	10h  ; Set Cursor Position
-   279 00000158 E8D500                  	call	print_msg
-   280 0000015B 58                      	pop	ax
-   281 0000015C BB[3A07]                	mov	bx, FDFORMAT_SECBUFFER
-   282 0000015F E8DD00                  	call	write_fd_sector
-   283 00000162 0F82A700                	jc	R_29
-   284                                  
-   285 00000166 BB0700                  	mov	bx, 7
-   286 00000169 40                      	inc	ax
-   287 0000016A 3D8016                  	cmp	ax, 5760
-   288 0000016D 72D9                    	jb	short R_23
-   289                                  
-   290 0000016F BE[1607]                	mov	si, Msg_3dot_OK
-   291 00000172 E8BB00                  	call	print_msg
-   292                                  
-   293                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   294                                  ; writing FAT sectors
-   295                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   296                                  
-   297 00000175 BE[E506]                	mov	si, Msg_Writing_FAT_Sectors
-   298 00000178 E8B500                  	call	print_msg
-   299 0000017B B80100                  	mov	ax, 1  ; FAT Beginning Address
-   300 0000017E BB[3A09]                	mov	bx, FDFORMAT_FATBUFFER
-   301 00000181 E8BB00                  	call	write_fd_sector
-   302 00000184 0F828500                	jc	R_29
-   303 00000188 BB[3D09]                	mov	bx, FDFORMAT_FATBUFFER_S9
-   304                                  R_24:
-   305 0000018B 40                      	inc	ax
-   306 0000018C E8B000                  	call	write_fd_sector
-   307 0000018F 727C                     	jc	short R_29
-   308 00000191 83F809                  	cmp	ax, 9
-   309 00000194 72F5                    	jb	short R_24
-   310 00000196 BB[3A09]                	mov	bx, FDFORMAT_FATBUFFER
-   311 00000199 40                      	inc	ax
-   312 0000019A E8A200                  	call	write_fd_sector
-   313 0000019D 726E                    	jc	short R_29
-   314 0000019F BB[3D09]                	mov	bx, FDFORMAT_FATBUFFER_S9
-   315                                  R_25:
-   316 000001A2 40                      	inc	ax 
-   317 000001A3 E89900                          call	write_fd_sector
-   318 000001A6 7265                    	jc	short R_29
-   319 000001A8 83F812                  	cmp	ax, 18
-   320 000001AB 72F5                    	jb	short R_25
-   321                                  
-   322 000001AD BE[1907]                	mov	si, Msg_OK
-   323 000001B0 E87D00                  	call	print_msg
-   324                                  
-   325 000001B3 BE[0807]                	mov	si, Msg_Volume_Name
-   326 000001B6 E87700                  	call	print_msg
-   327 000001B9 E8DD00                  	call	rw_char
-   328 000001BC 7219                    	jc	short R_28
-   329 000001BE 8A04                    	mov	al, [si]
-   330 000001C0 3C20                    	cmp	al, 20h
-   331 000001C2 7613                    	jna	short R_28
-   332 000001C4 BF[5E03]                	mov	di, bsVolumeLabel
-   333 000001C7 B90B00                  	mov	cx, 11
-   334 000001CA 46                      	inc	si  
-   335 000001CB EB06                    	jmp	short R_27  
-   336                                  
-   337                                  R_26:
-   338 000001CD AC                      	lodsb
-   339 000001CE 47                      	inc	di
-   340 000001CF 3C20                    	cmp	al, 20h
-   341 000001D1 7655                    	jna	short R_32
-   342                                  R_27:
-   343 000001D3 8805                    	mov 	[di], al
-   344 000001D5 E2F6                    	loop	R_26
-   345                                  
-   346                                  R_28:
-   347 000001D7 BE[8606]                	mov	si, Msg_Writing_Boot_Sector
-   348 000001DA E85300                  	call	print_msg
-   349                                  
-   350 000001DD BE[5A03]                	mov	si, bsVolumeID
-   351                                  
-   352 000001E0 31C0                    	xor	ax, ax
-   353 000001E2 CD1A                    	int	1Ah			; get time of day
-   354 000001E4 8914                    	mov	[si], dx
-   355 000001E6 894C02                  	mov	[si+2], cx		; set unique volume ID
-   356                                  
-   357 000001E9 B402                    	mov	ah, 02h			; Return Current Time
-   358 000001EB CD1A                    	int	1Ah
-   359 000001ED 86E9                    	xchg	ch, cl
-   360 000001EF 86F2                    	xchg	dh, dl
-   361                                  
-   362 000001F1 01D1                    	add	cx, dx  
-   363 000001F3 014C02                  	add	[si+2], cx
-   364                                                 
-   365 000001F6 B404                    	mov	ah, 04h			; Return Current Date
-   366 000001F8 CD1A                    	int	1Ah
-   367 000001FA 86E9                    	xchg	ch,cl
-   368 000001FC 86F2                    	xchg	dh,dl
-   369                                  
-   370 000001FE 01D1                    	add	cx, dx  
-   371 00000200 014C02                  	add	[si+2], cx
-   372                                  
-   373 00000203 31C0                    	xor	ax, ax ; Boot sector
-   374 00000205 BB[3303]                	mov	bx, RETRODOS_FAT12_FDBS	; location of boot code
-   375                                  
-   376 00000208 E83400                  	call	write_fd_sector
-   377 0000020B 7313                    	jnc	short R_30
-   378                                  R_29:
-   379 0000020D 88E0                    	mov	al, ah ;  error code
-   380 0000020F E86700                  	call	bin_to_hex
-   381 00000212 A3[3407]                	mov 	[error_code], ax
-   382                                  
-   383 00000215 BE[1D07]                	mov	si, CRLF
-   384 00000218 E81500                  	call	print_msg
-   385                                  
-   386 0000021B BE[2907]                	mov	si, Msg_Error
-   387 0000021E EB03                    	jmp	short R_31
-   388                                  
-   389                                  R_30:
-   390 00000220 BE[1907]                	mov	si, Msg_OK
-   391                                  R_31:
-   392 00000223 E80A00                  	call	print_msg
-   393                                  
-   394 00000226 CD20                    	int	20h	; Exit
-   395                                  
-   396                                  R_32:
-   397 00000228 C60520                  	mov	byte [di], 20h
-   398 0000022B 47                      	inc	di
-   399 0000022C E2FA                    	loop	R_32
-   400 0000022E EBA7                    	jmp	short R_28
-   401                                  
-   402                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   403                                  ; Print messages
-   404                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   405                                  
-   406                                  print_msg:
-   407                                  
-   408                                  print_msg_LOOP:
-   409 00000230 AC                      	lodsb                           ; Load byte at DS:SI to AL
-   410 00000231 20C0                    	and     al, al            
-   411 00000233 7409                    	jz      short print_msg_OK       
-   412 00000235 B40E                    	mov	ah, 0Eh			
-   413 00000237 BB0700                  	mov     bx, 07h             
-   414 0000023A CD10                    	int	10h			; BIOS Service func ( ah ) = 0Eh
-   415                                  					; Write char as TTY
-   416                                  					; AL-char BH-page BL-color
-   417 0000023C EBF2                    	jmp     short print_msg_LOOP           
-   418                                  
-   419                                  print_msg_OK:
-   420 0000023E C3                      	retn
-   421                                  
-   422                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   423                                  ; Writing a block (sector) to floppy disk image file
-   424                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   425                                  
-   426                                  write_fd_sector:
-   427                                  	; writing a block (sector) to floppy disk image file
-   428                                  	; Only for 1.44 MB FAT12 Floppy Disks
-   429                                  	; INPUT -> AX = Logical Block (Sector) Address
-   430                                  	; ES:BX = Sector Buffer
-   431                                  	; OUTPUT ->
-   432                                  	; cf = 0 -> AX = Logical Block (Sector) Address
-   433                                  	; cf = 1 -> AH = Error Number
-   434                                  	;
-   435 0000023F 50                      	push	ax ; sector
-   436 00000240 53                      	push	bx ; buffer
-   437 00000241 BA0002                  	mov	dx, 512
-   438 00000244 F7E2                    	mul	dx
-   439 00000246 89D1                    	mov	cx, dx
-   440 00000248 89C2                    	mov	dx, ax
-   441 0000024A 28C0                    	sub	al, al ; specified offset is from the beginning of the file
-   442 0000024C B442                    	mov	ah, 42h ; seek (move file pointer)
-   443 0000024E 8B1E[4405]              	mov 	bx, [img_file_handle]
-   444 00000252 CD21                    	int	21h
-   445                                  	;mov	bx, [img_file_handle]
-   446 00000254 B90002                  	mov	cx, 512
-   447 00000257 5A                      	pop	dx  ; buffer address
-   448 00000258 B440                    	mov	ah, 40h ; write to file	
-   449 0000025A CD21                    	int	21h
-   450 0000025C 89D3                    	mov	bx, dx
-   451 0000025E 7202                    	jc	short image_file_wr_err
-   452 00000260 58                      	pop	ax ; sector
-   453 00000261 C3                      	retn
-   454                                  	
-   455                                  image_file_wr_err:
-   456 00000262 5A                      	pop	dx ; sector
-   457 00000263 C3                      	retn
-   458                                  	
-   459                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   460                                  ; Convert byte to decimal number
-   461                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   462                                  
-   463                                  bin_to_decimal:
-   464                                  	; INPUT: DS:SI = Target location
-   465                                  	;        AX= Binary Number (Integer)
-   466                                  	; OUTPUT: Decimal char at DS:SI
-   467                                  	; SI decremented after every division
-   468                                  	; till AX<10.
-   469                                  	; CX, DX will be changed.
-   470                                  	;
-   471 00000264 B90A00                  	mov	cx, 10
-   472                                  loc_btd_re_divide:
-   473 00000267 31D2                    	xor	dx, dx
-   474 00000269 F7F1                    	div	cx
-   475 0000026B 80C230                  	add	dl,"0"
-   476 0000026E 8814                    	mov	[si], dl
-   477 00000270 83F800                  	cmp	ax, 0
-   478 00000273 7603                    	jna	short pass_btd_re_divide
-   479 00000275 4E                      	dec	si
-   480 00000276 EBEF                    	jmp	short loc_btd_re_divide
-   481                                  pass_btd_re_divide:
-   482 00000278 C3                      	retn
-   483                                  
-   484                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   485                                  ; Convert byte to hexadecimal number
-   486                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   487                                  
-   488                                  bin_to_hex:
-   489                                  	; INPUT ->
-   490                                  	; 	AL = byte (binary number)
-   491                                  	; OUTPUT ->
-   492                                  	;	AX = hexadecimal string
-   493                                  	;
-   494 00000279 6653                    	push	ebx
-   495 0000027B 6631DB                  	xor	ebx, ebx
-   496 0000027E 88C3                    	mov	bl, al
-   497 00000280 C0EB04                  	shr	bl, 4
-   498 00000283 678A9B[34050000]        	mov	bl, [ebx+hexchrs] 	 	
-   499 0000028A 86D8                    	xchg	bl, al
-   500 0000028C 80E30F                  	and	bl, 0Fh
-   501 0000028F 678AA3[34050000]        	mov	ah, [ebx+hexchrs] 
-   502 00000296 665B                    	pop	ebx	
-   503 00000298 C3                      	retn
-   504                                  
-   505                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   506                                  ; Read & Write characters
-   507                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   508                                  
-   509                                  rw_char:
-   510                                  	; OUTPUT -> DS:SI = Entered String (ASCIIZ)
-   511 00000299 BE[FC06]                	mov     si, StrVolumeName
-   512 0000029C BB0700                  	mov     bx, 7
-   513 0000029F B403                    	mov     ah, 3
-   514 000002A1 CD10                    	int     10h
-   515 000002A3 8916[E306]              	mov     [Cursor_Pos], dx
-   516                                  read_next_char:
-   517 000002A7 30E4                    	xor     ah, ah
-   518 000002A9 CD16                    	int     16h
-   519 000002AB 20C0                    	and     al, al
-   520 000002AD 7439                    	jz      short loc_arrow    
-   521 000002AF 3CE0                    	cmp     al, 0E0h          
-   522 000002B1 7435                    	je      short loc_arrow
-   523 000002B3 3C08                    	cmp     al, 8
-   524 000002B5 753D                    	jne     short char_return
-   525                                  loc_back:
-   526 000002B7 B403                    	mov     ah, 3
-   527 000002B9 CD10                    	int     10h
-   528 000002BB 3A16[E306]              	cmp     dl, byte [Cursor_Pos]
-   529 000002BF 761F                    	jna     short loc_beep
-   530                                  prev_column:
-   531 000002C1 FECA                    	dec     dl
-   532                                  set_cursor_pos:
-   533 000002C3 B402                    	mov     ah, 2
-   534 000002C5 CD10                    	int     10h
-   535 000002C7 88D3                    	mov     bl, dl
-   536 000002C9 2A1E[E306]              	sub     bl, byte [Cursor_Pos] 
-   537 000002CD B90100                  	mov     cx,1
-   538 000002D0 B409                    	mov     ah, 9
-   539 000002D2 B020                    	mov     al, 20h
-   540 000002D4 8800                    	mov     [si+bx], al
-   541                                  loc_write_it:
-   542 000002D6 B307                    	mov     bl, 7
-   543 000002D8 CD10                    	int     10h
-   544 000002DA 8B16[E306]              	mov     dx, [Cursor_Pos]
-   545 000002DE EBC7                    	jmp     short read_next_char
-   546                                  loc_beep:
-   547 000002E0 B40E                    	mov     ah, 0Eh
-   548 000002E2 B007                    	mov     al, 7
-   549 000002E4 CD10                    	int     10h
-   550 000002E6 EBBF                    	jmp     short read_next_char
-   551                                  loc_arrow:    
-   552 000002E8 80FC4B                  	cmp     ah, 4Bh
-   553 000002EB 74CA                    	je      short loc_back
-   554 000002ED 80FC53                  	cmp     ah, 53h
-   555 000002F0 74C5                    	je      short loc_back
-   556 000002F2 EBB3                    	jmp     short read_next_char
-   557                                  char_return:
-   558 000002F4 B403                    	mov     ah, 3
-   559 000002F6 CD10                    	int     10h
-   560                                  check_char_type:
-   561 000002F8 3C20                    	cmp     al, 20h
-   562 000002FA 7230                    	jb      short loc_escape
-   563 000002FC 88D4                    	mov     ah, dl
-   564 000002FE 2A26[E306]              	sub     ah, byte [Cursor_Pos] 
-   565 00000302 80FC0A                  	cmp     ah, 10
-   566 00000305 77D9                    	ja      short loc_beep
-   567 00000307 3C7A                    	cmp     al, "z"
-   568 00000309 779C                    	ja      short read_next_char
-   569 0000030B 3C61                    	cmp     al, "a"
-   570 0000030D 7202                    	jb      short pass_capitalize
-   571 0000030F 24DF                    	and     al, 0DFh
-   572                                  pass_capitalize:
-   573 00000311 88E3                    	mov     bl, ah  ; 30/07/2011
-   574 00000313 30E4                    	xor     ah, ah
-   575 00000315 8900                    	mov     [si+bx], ax
-   576 00000317 B307                    	mov     bl, 7
-   577 00000319 B40E                    	mov     ah, 0Eh
-   578 0000031B CD10                    	int     10h
-   579 0000031D EB88                    	jmp     short read_next_char
-   580                                  pass_escape:
-   581 0000031F 3C0D                    	cmp     al, 0Dh
-   582 00000321 7584                    	jne     short read_next_char
-   583 00000323 B40E                    	mov     ah, 0Eh
-   584 00000325 CD10                    	int     10h
-   585 00000327 B00A                    	mov     al, 0Ah
-   586 00000329 CD10                    	int     10h
-   587 0000032B C3                      	retn
-   588                                  loc_escape:
-   589 0000032C 3C1B                    	cmp     al, 1Bh
-   590 0000032E 75EF                    	jne     short pass_escape
-   591 00000330 F9                      	stc
-   592 00000331 C3                      	retn
-   593                                  
-   594                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   595                                  ;  Data
-   596                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-   597                                  
-   598 00000332 00                      	db	0
-   599                                  
-   600                                  RETRODOS_FAT12_FDBS:
-   601 00000333 <incbin>                	incbin 'FDBS2880.BIN'
-   602                                  
-   603 00000533 00                      	db	0
-   604                                  
-   605                                  hexchrs:
-   606 00000534 303132333435363738-     	db	'0123456789ABCDEF'
+     7                                  ; Last Update: 25/10/2023 (Retro DOS 4.0-4.2) -different boot sector code-
+     8                                  ; Last Update: 27/03/2018 (Retro DOS 2.0) -different boot sector code-
+     9                                  ; Last Update: 24/02/2018
+    10                                  ; ----------------------------------------------------------------------------
+    11                                  ; Beginning: 11/02/2018
+    12                                  ; ----------------------------------------------------------------------------
+    13                                  ; Assembler: NASM version 2.11
+    14                                  ; ----------------------------------------------------------------------------
+    15                                  ; Retro DOS Operating System Project by ERDOGAN TAN (Beginning: 04/02/2018)
+    16                                  ; ----------------------------------------------------------------------------
+    17                                  ; Derived from 'fdimage.s'(FDIMAGE.COM) source code by Erdogan Tan
+    18                                  ; (02/12/2017)
+    19                                  ; ****************************************************************************
+    20                                  ; nasm rfdi2880.s -l rfdi2880.lst -o RFDI2880.COM
+    21                                  
+    22                                  bsDriveNumber   equ RETRODOS_FAT12_FDBS + 36
+    23                                  bsVolumeID      equ RETRODOS_FAT12_FDBS + 39
+    24                                  bsVolumeLabel   equ RETRODOS_FAT12_FDBS + 43
+    25                                  
+    26                                  ; DTA (PSP+80h= Offset 128)
+    27                                  DTA_Attrib equ 149 ; PDP+21
+    28                                  DTA_Time equ 150 ; PSP+22
+    29                                  DTA_Date equ 152 ; PSP 24
+    30                                  DTA_FileSize equ 154 ; PSP + 26
+    31                                  DTA_FileName equ 158 ; PSP + 30
+    32                                  
+    33                                  [BITS 16]
+    34                                  [ORG 100h]
+    35                                  
+    36                                  	;cli
+    37                                  	;cld
+    38                                  	;push	cs
+    39                                  	;pop	ss
+    40                                  	;mov	sp, 0FFFEh
+    41                                  	;sti
+    42                                  	
+    43 00000000 BB[680B]                	mov	bx, SizeOfFile+100
+    44 00000003 83C30F                          add	bx, 15
+    45 00000006 D1EB                            shr	bx, 1
+    46 00000008 D1EB                            shr	bx, 1
+    47 0000000A D1EB                    	shr	bx, 1
+    48 0000000C D1EB                    	shr	bx, 1
+    49 0000000E B44A                            mov	ah, 4Ah ; modify memory allocation
+    50                                          ;push	cs
+    51                                          ;pop	es
+    52 00000010 CD21                            int	21h 
+    53                                  
+    54                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    55                                  ; get fd image file name
+    56                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    57                                  
+    58 00000012 BE8000                  	mov	si, 80h			; PSP command tail
+    59 00000015 AC                       	lodsb
+    60 00000016 08C0                    	or	al, al 			; command tail length                            
+    61 00000018 0F84C600                	jz	R_17			; jump if zero
+    62                                  R_01:
+    63 0000001C AC                      	lodsb
+    64 0000001D 3C20                    	cmp	al, ' '			; is it SPACE ?
+    65 0000001F 74FB                    	je	short R_01 		
+    66 00000021 0F82BD00                	jb	R_17
+    67                                  	
+    68                                  	; check fd image file name
+    69                                  R_02:
+    70 00000025 BF[5B0B]                       	mov	di, img_file_name
+    71 00000028 AA                      	stosb
+    72                                  R_03:
+    73 00000029 AC                      	lodsb
+    74                                  	;cmp	al, 0Dh ; ENTER (CR) key
+    75 0000002A 3C20                    	cmp	al, 20h ; ' '
+    76 0000002C 760C                    	jna	short R_04
+    77 0000002E AA                      	stosb
+    78 0000002F 81FF[670B]              	cmp	di, img_file_name + 12
+    79 00000033 72F4                    	jb	short R_03
+    80 00000035 803C20                  	cmp	byte [si], 20h 
+    81 00000038 773F                    	ja	short R_11
+    82                                  R_04:
+    83                                  	;sub	al, al
+    84                                  	;stosb
+    85                                  
+    86                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    87                                  ; File name capitalization
+    88                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    89                                  
+    90 0000003A BE[5B0B]                	mov	si, img_file_name
+    91 0000003D 89F7                    	mov	di, si
+    92 0000003F 89F3                    	mov	bx, si
+    93                                  R_05:
+    94 00000041 AC                      	lodsb
+    95 00000042 3C61                    	cmp	al, 'a'
+    96 00000044 730D                    	jnb	short R_07
+    97 00000046 20C0                    	and	al, al
+    98 00000048 7412                    	jz	short R_08
+    99 0000004A 3C2E                    	cmp	al, '.'
+   100 0000004C 7502                    	jne	short R_06
+   101 0000004E 89FB                    	mov	bx, di ; dot position	
+   102                                  R_06:
+   103 00000050 AA                      	stosb
+   104 00000051 EBEE                    	jmp	short R_05 		
+   105                                  R_07:
+   106 00000053 3C7A                    	cmp	al, 'z'
+   107 00000055 77F9                    	ja	short R_06
+   108 00000057 24DF                    	and	al, 0DFh ; NOT 32
+   109 00000059 AA                      	stosb
+   110 0000005A EBE5                    	jmp	short R_05	
+   111                                  R_08:
+   112 0000005C 8805                    	mov	[di], al
+   113 0000005E 4F                      	dec	di
+   114 0000005F 39FB                    	cmp	bx, di
+   115 00000061 7316                    	jnb	short R_11
+   116 00000063 29DF                    	sub	di, bx
+   117 00000065 81EB[5B0B]              	sub	bx, img_file_name
+   118 00000069 83FF03                  	cmp	di, 3
+   119 0000006C 7606                    	jna	short R_09
+   120 0000006E 21DB                    	and	bx, bx
+   121 00000070 7507                    	jnz	short R_11
+   122 00000072 EB0D                    	jmp	short R_10		
+   123                                  R_09:
+   124 00000074 83FB08                  	cmp	bx, 8
+   125 00000077 7608                    	jna	short R_10
+   126                                  R_11:
+   127 00000079 BE[CF05]                	mov	si, msg_inv_file_name
+   128                                  R_12:	
+   129 0000007C E8B101                  	call	print_msg
+   130 0000007F EB56                    	jmp	short R_16
+   131                                  
+   132                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   133                                  ; Find image file
+   134                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   135                                  	
+   136                                  R_10:
+   137 00000081 BA[5B0B]                	mov	dx, img_file_name
+   138 00000084 B93F00                  	mov	cx, 3Fh ; File Attributes
+   139 00000087 B44E                    	mov	ah, 4Eh ; MS-DOS Function = Find First File
+   140 00000089 CD21                    	int	21h
+   141 0000008B 726A                    	jc	R_20
+   142                                  
+   143                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   144                                  ; Check image file features
+   145                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   146                                  
+   147                                  R_14:
+   148 0000008D BE9500                  	mov	si, DTA_Attrib
+   149 00000090 8A04                    	mov	al, [si]
+   150 00000092 241F                    	and	al, 1Fh ; directory, volume label, system, hidden, read only
+   151 00000094 755C                    	jnz	short R_19     
+   152 00000096 BE9A00                  	mov	si, DTA_FileSize
+   153 00000099 AD                      	lodsw
+   154 0000009A 833C2D                  	cmp	word [SI], 2Dh
+   155 0000009D 7553                    	jne	short R_19
+   156 0000009F 09C0                    	or	ax, ax	; 2.88 MB floppy disk image (2D0000h bytes)
+   157 000000A1 754F                    	jnz	short R_19
+   158                                  
+   159                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   160                                  ; Overwrite question
+   161                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   162                                  
+   163 000000A3 BE[5B06]                	mov	si, msg_overwrite_question1
+   164 000000A6 E88701                  	call	print_msg
+   165 000000A9 BE9E00                  	mov	si, DTA_FileName
+   166 000000AC E88101                  	call	print_msg
+   167 000000AF BE[7806]                	mov	si, msg_overwrite_question2
+   168 000000B2 E87B01                  	call	print_msg
+   169 000000B5 BE[8006]                	mov	si, msg_yes_no
+   170 000000B8 E87501                  	call	print_msg
+   171                                  
+   172                                  	; get answer
+   173                                  R_15:
+   174 000000BB 31C0                    	xor	ax, ax
+   175 000000BD CD16                    	int	16h			; wait for keyboard command
+   176 000000BF 3C03                    	cmp	al, 'C'-40h
+   177 000000C1 7414                    	je	short R_16 ; Exit                   
+   178 000000C3 3C1B                    	cmp	al, 27
+   179 000000C5 7410                    	je	short R_16 ; Exit
+   180 000000C7 24DF                    	and	al, 0DFh
+   181 000000C9 3C59                    	cmp	al, 'Y'			; Yes?
+   182 000000CB 741D                    	je	short R_18		; write
+   183 000000CD 3C4E                    	cmp	al, 'N'			; No?
+   184 000000CF 75EA                    	jne	short R_15      
+   185                                  					; no write (exit)  
+   186 000000D1 BE[2A07]                	mov	si, Msg_NO
+   187 000000D4 E85901                  	call	print_msg 
+   188                                  
+   189                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   190                                  ; Nextline & Exit
+   191                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   192                                  
+   193                                  R_16:
+   194 000000D7 BE[2207]                	mov	si, CRLF
+   195 000000DA E85301                  	call	print_msg
+   196 000000DD B8004C                  	mov	ax, 4C00h		; terminate
+   197 000000E0 CD21                    	int	21h
+   198                                  
+   199                                  R_17:
+   200 000000E2 BE[4605]                	mov	si, RetroDOS_Welcome
+   201 000000E5 E84801                  	call	print_msg
+   202 000000E8 EBED                    	jmp	short R_16 ; Exit
+   203                                  
+   204                                  R_18:
+   205 000000EA BE[2507]                	mov	si, Msg_YES
+   206 000000ED E84001                  	call	print_msg
+   207 000000F0 EB10                    	jmp	short R_21
+   208                                  
+   209                                  R_19:
+   210 000000F2 BE[1106]                	mov	si, msg_inv_image_file
+   211 000000F5 EB85                    	jmp	short R_12
+   212                                  
+   213                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   214                                  ; Create image file
+   215                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   216                                  
+   217                                  R_20:
+   218                                  	; create a new fd image file
+   219                                  	;mov	dx, img_file_name
+   220 000000F7 B90000                  	mov	cx, 0 ; File Attributes
+   221 000000FA B43C                    	mov	ah, 3Ch ; MS-DOS Function = Create File
+   222 000000FC CD21                    	int	21h
+   223 000000FE 0F8277FF                	jc	R_11
+   224                                  
+   225                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   226                                  ; writing root directory sectors
+   227                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   228                                  
+   229                                  R_21:
+   230 00000102 BE[2207]                	mov	si, CRLF
+   231 00000105 E82801                  	call	print_msg
+   232                                  
+   233                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   234                                  ; Open image file for writing
+   235                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   236                                  
+   237 00000108 B002                    	mov	al, 2 ; open for reading and writing
+   238                                  	;mov	dx, img_file_name
+   239 0000010A B43D                    	mov	ah, 3Dh ; open file
+   240 0000010C CD21                    	int	21h
+   241 0000010E 0F8267FF                	jc	R_11
+   242                                  
+   243 00000112 A3[4405]                	mov	[img_file_handle], ax
+   244                                  
+   245 00000115 BE[AB06]                	mov	si, Msg_Writing_Root_Dir
+   246 00000118 E81501                  	call	print_msg
+   247                                  
+   248 0000011B B81300                  	mov	ax, 19  ; Root Directory Address
+   249 0000011E BB[4209]                	mov	bx, FDFORMAT_FATBUFFER_S9
+   250                                  R_22:
+   251 00000121 E81B01                  	call	write_fd_sector
+   252 00000124 0F82E500                	jc	R_29
+   253 00000128 40                      	inc	ax
+   254 00000129 83F821                   	cmp	ax, 33 ; 19+15 = 34 (15 sectors, 240 entries)
+   255 0000012C 76F3                    	jna	short R_22
+   256                                  
+   257 0000012E BE[1E07]                	mov	si, Msg_OK
+   258 00000131 E8FC00                  	call	print_msg
+   259                                  
+   260                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   261                                  ; writing data sectors
+   262                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   263                                  
+   264 00000134 BE[CD06]                	mov	si, Msg_Writing_Data_Sectors
+   265 00000137 E8F600                  	call	print_msg
+   266 0000013A B403                    	mov	ah, 3
+   267 0000013C BB0700                  	mov	bx, 7
+   268 0000013F CD10                    	int	10h ; Return Cursor Position
+   269                                  	; DL = Column, DH= Line
+   270 00000141 8916[E806]              	mov	[Cursor_Pos], dx
+   271 00000145 B82200                  	mov	ax, 34  ; First Data Sector
+   272                                  R_23:
+   273 00000148 50                      	push	ax
+   274 00000149 40                      	inc	ax ; 1 based printing of 0 based sectors
+   275 0000014A BE[E606]                	mov	si, Sector_Str + 3
+   276 0000014D E81401                  	call	bin_to_decimal
+   277 00000150 8B16[E806]              	mov	dx, [Cursor_Pos]
+   278 00000154 B402                    	mov	ah, 2
+   279 00000156 CD10                    	int	10h  ; Set Cursor Position
+   280 00000158 E8D500                  	call	print_msg
+   281 0000015B 58                      	pop	ax
+   282 0000015C BB[3F07]                	mov	bx, FDFORMAT_SECBUFFER
+   283 0000015F E8DD00                  	call	write_fd_sector
+   284 00000162 0F82A700                	jc	R_29
+   285                                  
+   286 00000166 BB0700                  	mov	bx, 7
+   287 00000169 40                      	inc	ax
+   288 0000016A 3D8016                  	cmp	ax, 5760
+   289 0000016D 72D9                    	jb	short R_23
+   290                                  
+   291 0000016F BE[1B07]                	mov	si, Msg_3dot_OK
+   292 00000172 E8BB00                  	call	print_msg
+   293                                  
+   294                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   295                                  ; writing FAT sectors
+   296                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   297                                  
+   298 00000175 BE[EA06]                	mov	si, Msg_Writing_FAT_Sectors
+   299 00000178 E8B500                  	call	print_msg
+   300 0000017B B80100                  	mov	ax, 1  ; FAT Beginning Address
+   301 0000017E BB[3F09]                	mov	bx, FDFORMAT_FATBUFFER
+   302 00000181 E8BB00                  	call	write_fd_sector
+   303 00000184 0F828500                	jc	R_29
+   304 00000188 BB[4209]                	mov	bx, FDFORMAT_FATBUFFER_S9
+   305                                  R_24:
+   306 0000018B 40                      	inc	ax
+   307 0000018C E8B000                  	call	write_fd_sector
+   308 0000018F 727C                     	jc	short R_29
+   309 00000191 83F809                  	cmp	ax, 9
+   310 00000194 72F5                    	jb	short R_24
+   311 00000196 BB[3F09]                	mov	bx, FDFORMAT_FATBUFFER
+   312 00000199 40                      	inc	ax
+   313 0000019A E8A200                  	call	write_fd_sector
+   314 0000019D 726E                    	jc	short R_29
+   315 0000019F BB[4209]                	mov	bx, FDFORMAT_FATBUFFER_S9
+   316                                  R_25:
+   317 000001A2 40                      	inc	ax 
+   318 000001A3 E89900                          call	write_fd_sector
+   319 000001A6 7265                    	jc	short R_29
+   320 000001A8 83F812                  	cmp	ax, 18
+   321 000001AB 72F5                    	jb	short R_25
+   322                                  
+   323 000001AD BE[1E07]                	mov	si, Msg_OK
+   324 000001B0 E87D00                  	call	print_msg
+   325                                  
+   326 000001B3 BE[0D07]                	mov	si, Msg_Volume_Name
+   327 000001B6 E87700                  	call	print_msg
+   328 000001B9 E8DD00                  	call	rw_char
+   329 000001BC 7219                    	jc	short R_28
+   330 000001BE 8A04                    	mov	al, [si]
+   331 000001C0 3C20                    	cmp	al, 20h
+   332 000001C2 7613                    	jna	short R_28
+   333 000001C4 BF[5E03]                	mov	di, bsVolumeLabel
+   334 000001C7 B90B00                  	mov	cx, 11
+   335 000001CA 46                      	inc	si  
+   336 000001CB EB06                    	jmp	short R_27  
+   337                                  
+   338                                  R_26:
+   339 000001CD AC                      	lodsb
+   340 000001CE 47                      	inc	di
+   341 000001CF 3C20                    	cmp	al, 20h
+   342 000001D1 7655                    	jna	short R_32
+   343                                  R_27:
+   344 000001D3 8805                    	mov 	[di], al
+   345 000001D5 E2F6                    	loop	R_26
+   346                                  
+   347                                  R_28:
+   348 000001D7 BE[8B06]                	mov	si, Msg_Writing_Boot_Sector
+   349 000001DA E85300                  	call	print_msg
+   350                                  
+   351 000001DD BE[5A03]                	mov	si, bsVolumeID
+   352                                  
+   353 000001E0 31C0                    	xor	ax, ax
+   354 000001E2 CD1A                    	int	1Ah			; get time of day
+   355 000001E4 8914                    	mov	[si], dx
+   356 000001E6 894C02                  	mov	[si+2], cx		; set unique volume ID
+   357                                  
+   358 000001E9 B402                    	mov	ah, 02h			; Return Current Time
+   359 000001EB CD1A                    	int	1Ah
+   360 000001ED 86E9                    	xchg	ch, cl
+   361 000001EF 86F2                    	xchg	dh, dl
+   362                                  
+   363 000001F1 01D1                    	add	cx, dx  
+   364 000001F3 014C02                  	add	[si+2], cx
+   365                                                 
+   366 000001F6 B404                    	mov	ah, 04h			; Return Current Date
+   367 000001F8 CD1A                    	int	1Ah
+   368 000001FA 86E9                    	xchg	ch,cl
+   369 000001FC 86F2                    	xchg	dh,dl
+   370                                  
+   371 000001FE 01D1                    	add	cx, dx  
+   372 00000200 014C02                  	add	[si+2], cx
+   373                                  
+   374 00000203 31C0                    	xor	ax, ax ; Boot sector
+   375 00000205 BB[3303]                	mov	bx, RETRODOS_FAT12_FDBS	; location of boot code
+   376                                  
+   377 00000208 E83400                  	call	write_fd_sector
+   378 0000020B 7313                    	jnc	short R_30
+   379                                  R_29:
+   380 0000020D 88E0                    	mov	al, ah ;  error code
+   381 0000020F E86700                  	call	bin_to_hex
+   382 00000212 A3[3907]                	mov 	[error_code], ax
+   383                                  
+   384 00000215 BE[2207]                	mov	si, CRLF
+   385 00000218 E81500                  	call	print_msg
+   386                                  
+   387 0000021B BE[2E07]                	mov	si, Msg_Error
+   388 0000021E EB03                    	jmp	short R_31
+   389                                  
+   390                                  R_30:
+   391 00000220 BE[1E07]                	mov	si, Msg_OK
+   392                                  R_31:
+   393 00000223 E80A00                  	call	print_msg
+   394                                  
+   395 00000226 CD20                    	int	20h	; Exit
+   396                                  
+   397                                  R_32:
+   398 00000228 C60520                  	mov	byte [di], 20h
+   399 0000022B 47                      	inc	di
+   400 0000022C E2FA                    	loop	R_32
+   401 0000022E EBA7                    	jmp	short R_28
+   402                                  
+   403                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   404                                  ; Print messages
+   405                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   406                                  
+   407                                  print_msg:
+   408                                  
+   409                                  print_msg_LOOP:
+   410 00000230 AC                      	lodsb                           ; Load byte at DS:SI to AL
+   411 00000231 20C0                    	and     al, al            
+   412 00000233 7409                    	jz      short print_msg_OK       
+   413 00000235 B40E                    	mov	ah, 0Eh			
+   414 00000237 BB0700                  	mov     bx, 07h             
+   415 0000023A CD10                    	int	10h			; BIOS Service func ( ah ) = 0Eh
+   416                                  					; Write char as TTY
+   417                                  					; AL-char BH-page BL-color
+   418 0000023C EBF2                    	jmp     short print_msg_LOOP           
+   419                                  
+   420                                  print_msg_OK:
+   421 0000023E C3                      	retn
+   422                                  
+   423                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   424                                  ; Writing a block (sector) to floppy disk image file
+   425                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   426                                  
+   427                                  write_fd_sector:
+   428                                  	; writing a block (sector) to floppy disk image file
+   429                                  	; Only for 1.44 MB FAT12 Floppy Disks
+   430                                  	; INPUT -> AX = Logical Block (Sector) Address
+   431                                  	; ES:BX = Sector Buffer
+   432                                  	; OUTPUT ->
+   433                                  	; cf = 0 -> AX = Logical Block (Sector) Address
+   434                                  	; cf = 1 -> AH = Error Number
+   435                                  	;
+   436 0000023F 50                      	push	ax ; sector
+   437 00000240 53                      	push	bx ; buffer
+   438 00000241 BA0002                  	mov	dx, 512
+   439 00000244 F7E2                    	mul	dx
+   440 00000246 89D1                    	mov	cx, dx
+   441 00000248 89C2                    	mov	dx, ax
+   442 0000024A 28C0                    	sub	al, al ; specified offset is from the beginning of the file
+   443 0000024C B442                    	mov	ah, 42h ; seek (move file pointer)
+   444 0000024E 8B1E[4405]              	mov 	bx, [img_file_handle]
+   445 00000252 CD21                    	int	21h
+   446                                  	;mov	bx, [img_file_handle]
+   447 00000254 B90002                  	mov	cx, 512
+   448 00000257 5A                      	pop	dx  ; buffer address
+   449 00000258 B440                    	mov	ah, 40h ; write to file	
+   450 0000025A CD21                    	int	21h
+   451 0000025C 89D3                    	mov	bx, dx
+   452 0000025E 7202                    	jc	short image_file_wr_err
+   453 00000260 58                      	pop	ax ; sector
+   454 00000261 C3                      	retn
+   455                                  	
+   456                                  image_file_wr_err:
+   457 00000262 5A                      	pop	dx ; sector
+   458 00000263 C3                      	retn
+   459                                  	
+   460                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   461                                  ; Convert byte to decimal number
+   462                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   463                                  
+   464                                  bin_to_decimal:
+   465                                  	; INPUT: DS:SI = Target location
+   466                                  	;        AX= Binary Number (Integer)
+   467                                  	; OUTPUT: Decimal char at DS:SI
+   468                                  	; SI decremented after every division
+   469                                  	; till AX<10.
+   470                                  	; CX, DX will be changed.
+   471                                  	;
+   472 00000264 B90A00                  	mov	cx, 10
+   473                                  loc_btd_re_divide:
+   474 00000267 31D2                    	xor	dx, dx
+   475 00000269 F7F1                    	div	cx
+   476 0000026B 80C230                  	add	dl,"0"
+   477 0000026E 8814                    	mov	[si], dl
+   478 00000270 83F800                  	cmp	ax, 0
+   479 00000273 7603                    	jna	short pass_btd_re_divide
+   480 00000275 4E                      	dec	si
+   481 00000276 EBEF                    	jmp	short loc_btd_re_divide
+   482                                  pass_btd_re_divide:
+   483 00000278 C3                      	retn
+   484                                  
+   485                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   486                                  ; Convert byte to hexadecimal number
+   487                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   488                                  
+   489                                  bin_to_hex:
+   490                                  	; INPUT ->
+   491                                  	; 	AL = byte (binary number)
+   492                                  	; OUTPUT ->
+   493                                  	;	AX = hexadecimal string
+   494                                  	;
+   495 00000279 6653                    	push	ebx
+   496 0000027B 6631DB                  	xor	ebx, ebx
+   497 0000027E 88C3                    	mov	bl, al
+   498 00000280 C0EB04                  	shr	bl, 4
+   499 00000283 678A9B[34050000]        	mov	bl, [ebx+hexchrs] 	 	
+   500 0000028A 86D8                    	xchg	bl, al
+   501 0000028C 80E30F                  	and	bl, 0Fh
+   502 0000028F 678AA3[34050000]        	mov	ah, [ebx+hexchrs] 
+   503 00000296 665B                    	pop	ebx	
+   504 00000298 C3                      	retn
+   505                                  
+   506                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   507                                  ; Read & Write characters
+   508                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   509                                  
+   510                                  rw_char:
+   511                                  	; OUTPUT -> DS:SI = Entered String (ASCIIZ)
+   512 00000299 BE[0107]                	mov     si, StrVolumeName
+   513 0000029C BB0700                  	mov     bx, 7
+   514 0000029F B403                    	mov     ah, 3
+   515 000002A1 CD10                    	int     10h
+   516 000002A3 8916[E806]              	mov     [Cursor_Pos], dx
+   517                                  read_next_char:
+   518 000002A7 30E4                    	xor     ah, ah
+   519 000002A9 CD16                    	int     16h
+   520 000002AB 20C0                    	and     al, al
+   521 000002AD 7439                    	jz      short loc_arrow    
+   522 000002AF 3CE0                    	cmp     al, 0E0h          
+   523 000002B1 7435                    	je      short loc_arrow
+   524 000002B3 3C08                    	cmp     al, 8
+   525 000002B5 753D                    	jne     short char_return
+   526                                  loc_back:
+   527 000002B7 B403                    	mov     ah, 3
+   528 000002B9 CD10                    	int     10h
+   529 000002BB 3A16[E806]              	cmp     dl, byte [Cursor_Pos]
+   530 000002BF 761F                    	jna     short loc_beep
+   531                                  prev_column:
+   532 000002C1 FECA                    	dec     dl
+   533                                  set_cursor_pos:
+   534 000002C3 B402                    	mov     ah, 2
+   535 000002C5 CD10                    	int     10h
+   536 000002C7 88D3                    	mov     bl, dl
+   537 000002C9 2A1E[E806]              	sub     bl, byte [Cursor_Pos] 
+   538 000002CD B90100                  	mov     cx,1
+   539 000002D0 B409                    	mov     ah, 9
+   540 000002D2 B020                    	mov     al, 20h
+   541 000002D4 8800                    	mov     [si+bx], al
+   542                                  loc_write_it:
+   543 000002D6 B307                    	mov     bl, 7
+   544 000002D8 CD10                    	int     10h
+   545 000002DA 8B16[E806]              	mov     dx, [Cursor_Pos]
+   546 000002DE EBC7                    	jmp     short read_next_char
+   547                                  loc_beep:
+   548 000002E0 B40E                    	mov     ah, 0Eh
+   549 000002E2 B007                    	mov     al, 7
+   550 000002E4 CD10                    	int     10h
+   551 000002E6 EBBF                    	jmp     short read_next_char
+   552                                  loc_arrow:    
+   553 000002E8 80FC4B                  	cmp     ah, 4Bh
+   554 000002EB 74CA                    	je      short loc_back
+   555 000002ED 80FC53                  	cmp     ah, 53h
+   556 000002F0 74C5                    	je      short loc_back
+   557 000002F2 EBB3                    	jmp     short read_next_char
+   558                                  char_return:
+   559 000002F4 B403                    	mov     ah, 3
+   560 000002F6 CD10                    	int     10h
+   561                                  check_char_type:
+   562 000002F8 3C20                    	cmp     al, 20h
+   563 000002FA 7230                    	jb      short loc_escape
+   564 000002FC 88D4                    	mov     ah, dl
+   565 000002FE 2A26[E806]              	sub     ah, byte [Cursor_Pos] 
+   566 00000302 80FC0A                  	cmp     ah, 10
+   567 00000305 77D9                    	ja      short loc_beep
+   568 00000307 3C7A                    	cmp     al, "z"
+   569 00000309 779C                    	ja      short read_next_char
+   570 0000030B 3C61                    	cmp     al, "a"
+   571 0000030D 7202                    	jb      short pass_capitalize
+   572 0000030F 24DF                    	and     al, 0DFh
+   573                                  pass_capitalize:
+   574 00000311 88E3                    	mov     bl, ah  ; 30/07/2011
+   575 00000313 30E4                    	xor     ah, ah
+   576 00000315 8900                    	mov     [si+bx], ax
+   577 00000317 B307                    	mov     bl, 7
+   578 00000319 B40E                    	mov     ah, 0Eh
+   579 0000031B CD10                    	int     10h
+   580 0000031D EB88                    	jmp     short read_next_char
+   581                                  pass_escape:
+   582 0000031F 3C0D                    	cmp     al, 0Dh
+   583 00000321 7584                    	jne     short read_next_char
+   584 00000323 B40E                    	mov     ah, 0Eh
+   585 00000325 CD10                    	int     10h
+   586 00000327 B00A                    	mov     al, 0Ah
+   587 00000329 CD10                    	int     10h
+   588 0000032B C3                      	retn
+   589                                  loc_escape:
+   590 0000032C 3C1B                    	cmp     al, 1Bh
+   591 0000032E 75EF                    	jne     short pass_escape
+   592 00000330 F9                      	stc
+   593 00000331 C3                      	retn
+   594                                  
+   595                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   596                                  ;  Data
+   597                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   598                                  
+   599 00000332 00                      	db	0
+   600                                  
+   601                                  RETRODOS_FAT12_FDBS:
+   602 00000333 <bin 200h>              	incbin 'FDBS2880.BIN'	; 25/10/2023
+   603                                  
+   604 00000533 00                      	db	0
+   605                                  
+   606                                  hexchrs:
+   607 00000534 303132333435363738-     	db	'0123456789ABCDEF'
    607 0000053D 39414243444546     
    608                                  
    609                                  img_file_handle:
@@ -616,135 +617,136 @@
    616                                  RetroDOS_Welcome:
    617 00000546 0D0A                    	db	0Dh, 0Ah
    618 00000548 524554524F20444F53-     	db	'RETRO DOS 2.88 MB FAT12 Floppy Disk Image Format Utility'
-   619 00000551 20322E3838204D4220-
-   620 0000055A 464154313220466C6F-
-   621 00000563 707079204469736B20-
-   622 0000056C 496D61676520466F72-
-   623 00000575 6D6174205574696C69-
-   624 0000057E 7479               
-   625 00000580 0D0A                    	db	0Dh, 0Ah
-   626 00000582 76322E302E32373033-     	db	"v2.0.270318  (c) Erdogan TAN 2018"
-   627 0000058B 313820202863292045-
-   628 00000594 72646F67616E205441-
-   629 0000059D 4E2032303138       
-   630 000005A3 0D0A                    	db	0Dh,0Ah
-   631 000005A5 0D0A                    	db	0Dh,0Ah
-   632 000005A7 55736167653A207266-     	db	'Usage: rfdimage <image file name> '
-   633 000005B0 64696D616765203C69-
-   634 000005B9 6D6167652066696C65-
-   635 000005C2 206E616D653E20     
-   636 000005C9 00                      	db	0
+   618 00000551 20322E3838204D4220-
+   618 0000055A 464154313220466C6F-
+   618 00000563 707079204469736B20-
+   618 0000056C 496D61676520466F72-
+   618 00000575 6D6174205574696C69-
+   618 0000057E 7479               
+   619 00000580 0D0A                    	db	0Dh, 0Ah
+   620 00000582 76332E302E32333130-     	db	"v3.0.231025  (c) Erdogan TAN 2018-2023"
+   620 0000058B 323520202863292045-
+   620 00000594 72646F67616E205441-
+   620 0000059D 4E20323031382D3230-
+   620 000005A6 3233               
+   621 000005A8 0D0A                    	db	0Dh,0Ah
+   622 000005AA 0D0A                    	db	0Dh,0Ah
+   623 000005AC 55736167653A207266-     	db	'Usage: rfdimage <image file name> '
+   623 000005B5 64696D616765203C69-
+   623 000005BE 6D6167652066696C65-
+   623 000005C7 206E616D653E20     
+   624 000005CE 00                      	db	0
+   625                                  
+   626                                  msg_inv_file_name: 
+   627 000005CF 0D0A                    	db	0Dh, 0Ah
+   628 000005D1 496E76616C69642066-     	db	"Invalid file name !", 0Dh, 0Ah
+   628 000005DA 696C65206E616D6520-
+   628 000005E3 210D0A             
+   629 000005E6 2846696C65206E616D-     	db	"(File name must fit to 8.3 DOS format) !"
+   629 000005EF 65206D757374206669-
+   629 000005F8 7420746F20382E3320-
+   629 00000601 444F5320666F726D61-
+   629 0000060A 74292021           
+   630 0000060E 0D0A00                  	db	0Dh, 0Ah, 0
+   631                                  
+   632                                  msg_inv_image_file:
+   633 00000611 0D0A                    	db	0Dh, 0Ah
+   634 00000613 496E76616C69642066-     	db	"Invalid floppy disk image file !", 0Dh, 0Ah
+   634 0000061C 6C6F70707920646973-
+   634 00000625 6B20696D6167652066-
+   634 0000062E 696C6520210D0A     
+   635 00000635 2846696C652073697A-     	db	"(File size must be 2949120 bytes) !"
+   635 0000063E 65206D757374206265-
+   635 00000647 203239343931323020-
+   635 00000650 6279746573292021   
+   636 00000658 0D0A00                  	db	0Dh, 0Ah, 0  
    637                                  
-   638                                  msg_inv_file_name: 
-   639 000005CA 0D0A                    	db	0Dh, 0Ah
-   640 000005CC 496E76616C69642066-     	db	"Invalid file name !", 0Dh, 0Ah
-   641 000005D5 696C65206E616D6520-
-   642 000005DE 210D0A             
-   643 000005E1 2846696C65206E616D-     	db	"(File name must fit to 8.3 DOS format) !"
-   644 000005EA 65206D757374206669-
-   645 000005F3 7420746F20382E3320-
-   646 000005FC 444F5320666F726D61-
-   647 00000605 74292021           
-   648 00000609 0D0A00                  	db	0Dh, 0Ah, 0
-   649                                  
-   650                                  msg_inv_image_file:
-   651 0000060C 0D0A                    	db	0Dh, 0Ah
-   652 0000060E 496E76616C69642066-     	db	"Invalid floppy disk image file !", 0Dh, 0Ah
-   653 00000617 6C6F70707920646973-
-   654 00000620 6B20696D6167652066-
-   655 00000629 696C6520210D0A     
-   656 00000630 2846696C652073697A-     	db	"(File size must be 2949120 bytes) !"
-   657 00000639 65206D757374206265-
-   658 00000642 203239343931323020-
-   659 0000064B 6279746573292021   
-   660 00000653 0D0A00                  	db	0Dh, 0Ah, 0  
-   661                                  
-   662                                  msg_overwrite_question1:
-   663 00000656 0D0A                    	db	0Dh, 0Ah
-   664 00000658 446F20796F75207761-     	db	'Do you want to overwrite '
-   665 00000661 6E7420746F206F7665-
-   666 0000066A 72777269746520     
-   667 00000671 27                      	db	27h
-   668 00000672 00                      	db	0
-   669                                  
-   670                                  msg_overwrite_question2: 
-   671 00000673 27                      	db	27h
-   672 00000674 2066696C6520            	db	' file '
-   673 0000067A 00                      	db	0
+   638                                  msg_overwrite_question1:
+   639 0000065B 0D0A                    	db	0Dh, 0Ah
+   640 0000065D 446F20796F75207761-     	db	'Do you want to overwrite '
+   640 00000666 6E7420746F206F7665-
+   640 0000066F 72777269746520     
+   641 00000676 27                      	db	27h
+   642 00000677 00                      	db	0
+   643                                  
+   644                                  msg_overwrite_question2: 
+   645 00000678 27                      	db	27h
+   646 00000679 2066696C6520            	db	' file '
+   647 0000067F 00                      	db	0
+   648                                  
+   649                                  msg_yes_no:
+   650 00000680 285965732F4E6F293F-     	db	'(Yes/No)? ', 0		
+   650 00000689 2000               
+   651                                  
+   652                                  Msg_Writing_Boot_Sector:
+   653 0000068B 57726974696E672072-     	db	"Writing retrodos boot sector...", 0
+   653 00000694 6574726F646F732062-
+   653 0000069D 6F6F7420736563746F-
+   653 000006A6 722E2E2E00         
+   654                                  
+   655                                  Msg_Writing_Root_Dir:
+   656 000006AB 57726974696E672072-     	db	"Writing root directory sectors...", 0
+   656 000006B4 6F6F74206469726563-
+   656 000006BD 746F72792073656374-
+   656 000006C6 6F72732E2E2E00     
+   657                                  
+   658                                  Msg_Writing_Data_Sectors:
+   659 000006CD 57726974696E672064-     	db	"Writing data sector: ", 0
+   659 000006D6 61746120736563746F-
+   659 000006DF 723A2000           
+   660                                  
+   661                                  Sector_Str:
+   662 000006E3 3030303000              	db	"0000", 0
+   663                                  Cursor_Pos:
+   664 000006E8 0000                    	dw	0
+   665                                  
+   666                                  Msg_Writing_FAT_Sectors:
+   667 000006EA 57726974696E672046-     	db	"Writing FAT sectors...", 0
+   667 000006F3 415420736563746F72-
+   667 000006FC 732E2E2E00         
+   668                                  
+   669                                  StrVolumeName:
+   670 00000701 00<rep Ch>              	times 	12 db  0
+   671                                  
+   672                                  Msg_Volume_Name:
+   673 0000070D 566F6C756D65204E61-     	db	"Volume Name: ", 0
+   673 00000716 6D653A2000         
    674                                  
-   675                                  msg_yes_no:
-   676 0000067B 285965732F4E6F293F-     	db	'(Yes/No)? ', 0		
-   677 00000684 2000               
-   678                                  
-   679                                  Msg_Writing_Boot_Sector:
-   680 00000686 57726974696E672072-     	db	"Writing retrodos boot sector...", 0
-   681 0000068F 6574726F646F732062-
-   682 00000698 6F6F7420736563746F-
-   683 000006A1 722E2E2E00         
-   684                                  
-   685                                  Msg_Writing_Root_Dir:
-   686 000006A6 57726974696E672072-     	db	"Writing root directory sectors...", 0
-   687 000006AF 6F6F74206469726563-
-   688 000006B8 746F72792073656374-
-   689 000006C1 6F72732E2E2E00     
-   690                                  
-   691                                  Msg_Writing_Data_Sectors:
-   692 000006C8 57726974696E672064-     	db	"Writing data sector: ", 0
-   693 000006D1 61746120736563746F-
-   694 000006DA 723A2000           
+   675                                  Msg_3dot_OK:
+   676 0000071B 2E2E2E                  	db	"..."
+   677                                  Msg_OK:
+   678 0000071E 204F4B2E                	db	' OK.'
+   679                                  CRLF:
+   680 00000722 0D0A00                  	db	0Dh, 0Ah, 0
+   681                                  Msg_YES:
+   682 00000725 2059455300              	db	' YES', 0
+   683                                  Msg_NO:
+   684 0000072A 204E4F00                	db	' NO', 0
+   685                                  
+   686                                  Msg_Error:
+   687 0000072E 0D0A                    	db	0Dh, 0Ah
+   688 00000730 4572726F72202120        	db	'Error ! '
+   689 00000738 28                      	db	'('
+   690                                  error_code:
+   691 00000739 3030                    	dw	3030h
+   692 0000073B 68                      	db	'h'
+   693 0000073C 2920                    	db	') '
+   694 0000073E 00                      	db	0
    695                                  
-   696                                  Sector_Str:
-   697 000006DE 3030303000              	db	"0000", 0
-   698                                  Cursor_Pos:
-   699 000006E3 0000                    	dw	0
-   700                                  
-   701                                  Msg_Writing_FAT_Sectors:
-   702 000006E5 57726974696E672046-     	db	"Writing FAT sectors...", 0
-   703 000006EE 415420736563746F72-
-   704 000006F7 732E2E2E00         
-   705                                  
-   706                                  StrVolumeName:
-   707 000006FC 00<rept>                	times 	12 db  0
-   708                                  
-   709                                  Msg_Volume_Name:
-   710 00000708 566F6C756D65204E61-     	db	"Volume Name: ", 0
-   711 00000711 6D653A2000         
-   712                                  
-   713                                  Msg_3dot_OK:
-   714 00000716 2E2E2E                  	db	"..."
-   715                                  Msg_OK:
-   716 00000719 204F4B2E                	db	' OK.'
-   717                                  CRLF:
-   718 0000071D 0D0A00                  	db	0Dh, 0Ah, 0
-   719                                  Msg_YES:
-   720 00000720 2059455300              	db	' YES', 0
-   721                                  Msg_NO:
-   722 00000725 204E4F00                	db	' NO', 0
-   723                                  
-   724                                  Msg_Error:
-   725 00000729 0D0A                    	db	0Dh, 0Ah
-   726 0000072B 4572726F72202120        	db	'Error ! '
-   727 00000733 28                      	db	'('
-   728                                  error_code:
-   729 00000734 3030                    	dw	3030h
-   730 00000736 68                      	db	'h'
-   731 00000737 2920                    	db	') '
-   732 00000739 00                      	db	0
-   733                                  
-   734                                  FDFORMAT_SECBUFFER:
-   735 0000073A F6<rept>                	times	512 db 0F6h
-   736                                  FDFORMAT_FATBUFFER:
-   737 0000093A F0                      	db	0F0h ; 3.5" 2880K, 1440K
-   738 0000093B FF                      	db	0FFh
-   739 0000093C FF                      	db	0FFh
-   740                                  FDFORMAT_FATBUFFER_S9:
-   741 0000093D 00<rept>                	times	512 db 0
-   742                                  
-   743 00000B3D 286329204572646F67-     	db	'(c) Erdogan TAN 2018'
-   744 00000B46 616E2054414E203230-
-   745 00000B4F 3138               
-   746                                  
-   747                                  img_file_name:  
-   748 00000B51 00<rept>                	times	13 db 0
-   749                                  
-   750                                  SizeOfFile equ $-100
+   696                                  FDFORMAT_SECBUFFER:
+   697 0000073F F6<rep 200h>            	times	512 db 0F6h
+   698                                  FDFORMAT_FATBUFFER:
+   699 0000093F F0                      	db	0F0h ; 3.5" 2880K, 1440K
+   700 00000940 FF                      	db	0FFh
+   701 00000941 FF                      	db	0FFh
+   702                                  FDFORMAT_FATBUFFER_S9:
+   703 00000942 00<rep 200h>            	times	512 db 0
+   704                                  
+   705 00000B42 286329204572646F67-     	db	'(c) Erdogan TAN 2018-2023'
+   705 00000B4B 616E2054414E203230-
+   705 00000B54 31382D32303233     
+   706                                  
+   707                                  img_file_name:  
+   708 00000B5B 00<rep Dh>              	times	13 db 0
+   709                                  
+   710                                  SizeOfFile equ $-100

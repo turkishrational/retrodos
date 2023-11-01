@@ -4,6 +4,7 @@
 ; ----------------------------------------------------------------------------
 ; Only for 360KB (5 1/4") Floppy Disks
 ; ****************************************************************************
+; Last Update: 25/10/2023 (Retro DOS 4.0-4.2) -different boot sector code-
 ; Last Update: 27/03/2018 (Retro DOS 2.0) -different boot sector code-
 ; Last Update: 24/02/2018
 ; ----------------------------------------------------------------------------
@@ -305,10 +306,12 @@ R_24:
 	inc	ax
 	call	write_fd_sector
  	jc	short R_29
-	cmp	ax, 3
-	jb	short R_24
+	; BugFix 24/10/2023
+	;cmp	ax, 3
+	;jb	short R_24
 	mov	bx, FDFORMAT_FATBUFFER
 	inc	ax
+	; ax = 3 (First sector of 2nd FAT) 
 	call	write_fd_sector
 	jc	short R_29
 	mov	bx, FDFORMAT_FATBUFFER_S9
@@ -316,8 +319,10 @@ R_25:
 	inc	ax 
         call	write_fd_sector
 	jc	short R_29
-	cmp	ax, 6
-	jb	short R_25
+	; BugFix 24/10/2023
+	;cmp	ax, 6
+	;jb	short R_25
+	; ax = 4 (Last sector of 2nd FAT) 		
 
 	mov	si, Msg_OK
 	call	print_msg
@@ -598,7 +603,7 @@ loc_escape:
 	db	0
 
 RETRODOS_FAT12_FDBS:
-	incbin 'FDBS360.BIN'
+	incbin 'FDBS360.BIN'	; 25/10/2023
 
 	db	0
 
@@ -616,7 +621,7 @@ RetroDOS_Welcome:
 	db	0Dh, 0Ah
 	db	'RETRO DOS 360KB FAT12 Floppy Disk Image Format Utility'
 	db	0Dh, 0Ah
-	db	"v2.0.270318  (c) Erdogan TAN 2018"
+	db	"v3.0.231025  (c) Erdogan TAN 2018-2023"
 	db	0Dh,0Ah
 	db	0Dh,0Ah
 	db	'Usage: rfdimage <image file name> '
@@ -701,7 +706,7 @@ FDFORMAT_FATBUFFER:
 FDFORMAT_FATBUFFER_S9:
 	times	512 db 0
 
-	db	'(c) Erdogan TAN 2018'
+	db	'(c) Erdogan TAN 2018-2023'
 
 img_file_name:  
 	times	13 db 0

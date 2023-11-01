@@ -2,11 +2,11 @@
 ; RDHDBOOT.ASM (RDHBOOT.COM) - Retro DOS v2 Hard Disk Boot Sector Utility
 ; 					 	          (for MSDOS/WINDOWS)
 ; ****************************************************************************
-; Last Update: 19/05/2018
+; Last Update: 25/10/2023  (Previous: 19/05/2018)
 ; ----------------------------------------------------------------------------
 ; Beginning: 16/05/2018
 ; ----------------------------------------------------------------------------
-; Assembler: NASM version 2.11
+; Assembler: NASM version 2.15
 ; ----------------------------------------------------------------------------
 ; Derived from 'rdhdimg.s'(RDHDIMG.COM) source code by Erdogan Tan
 ; (16/05/2018) - Retro DOS v2 hard disk image formatting utility -
@@ -37,6 +37,8 @@ bsReserved2	equ 62
 bsDataStart	equ 64	
 bsRootDirStart	equ 66
 bsRootDirSects	equ 68
+; 22/10/2023
+bsDirEntsPerSec equ 70
 
 ; Masterboot / Partition Table at Beginning+1BEh
 ptBootable      equ 0
@@ -51,6 +53,8 @@ ptStartSector   equ 8
 ptSectors       equ 12
 
 partition_table equ 1BEh
+
+	; 21/10/2023 - 22/10/2023  
 
 [BITS 16]
 [ORG 100h]
@@ -127,11 +131,13 @@ R_05:
 ; Get drive parameters
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+	; 21/10/2023 (short jumps)
+
 R_06:
 	;mov	dl, [DriveNum]	
 	mov	ah, 8 ; Get drive parameters
 	int	13h
-	jc	R_15   ; Drive not ready error
+	jc	short R_15   ; Drive not ready error
 
 	inc	dh
 	mov	[Heads], dh
@@ -157,10 +163,10 @@ R_06:
 	mov	cx, 1 ; cylinder = 0, sector = 1
 	xor	dh, dh ; head = 0 
 	int	13h
-	jc	R_16  ; Read error
+	jc	short R_16  ; Read error
 
 	cmp	word [bx+510], 0AA55h 
-	jne	R_17  ; Not a valid MBR
+	jne	short R_17  ; Not a valid MBR
 
 	add	bx, partition_table
 	mov	cl, 4
@@ -168,28 +174,42 @@ R_07:
 	cmp	byte [bx+ptFileSystemID], 1  ; MSDOS (FAT12) Partition ID	
 	je	short R_08
 	dec	cl
-	jz	R_18    ; MSDOS (FAT12) partition not found
+	jz	short R_18    ; MSDOS (FAT12) partition not found
 	add	bx, 16 ; Next table row
 	jmp	short R_07
+
+	; 21/10/2023
+R_15:	
+	mov	si, msg_drv_not_ready_err
+	jmp	short R_14
+R_16:
+	mov	si, msg_disk_read_err
+	jmp	short R_14
+R_17:
+	mov	si, msg_not_valid_mbr
+	jmp	short R_14
+R_18:
+	mov	si, msg_msdos_p_not_found
+	jmp	short R_14
 
 R_08:
 	mov	ax, [bx+ptStartSector]
 	mov	dx, [bx+ptStartSector+2]
 	and	dx, dx
-	jnz	R_19    ; Not a valid MSDOS (FAT12) partition
+	jnz	short R_19 ; Not a valid MSDOS (FAT12) partition
 
 	cmp	word [bx+ptSectors+2], 0
-	ja	R_19    ; Not a valid MSDOS (FAT12) partition
+	ja	short R_19 ; Not a valid MSDOS (FAT12) partition
 	mov	dx, ax
 	add	dx, [bx+ptSectors]
-	jc	R_19    ; Not a valid MSDOS (FAT12) partition
+	jc	short R_19 ; Not a valid MSDOS (FAT12) partition
 
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ; Read volume/partition boot sector
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 	call	convert_to_chs
-	jc	R_19    ; Not a valid MSDOS (FAT12) partition
+	jc	short R_19    ; Not a valid MSDOS (FAT12) partition
 
 	; CL =  sector
 	; CH =  cylinder
@@ -201,16 +221,16 @@ R_08:
 
 	mov	ah, 2	    ; read disk sector
 	int	13h
-	jc	R_16  ; Read error
+	jc	short R_16  ; Read error
 
 	cmp	word [bx+510], 0AA55h 
-	jne	R_19  ; Not a valid MSDOS (FAT12) partition
+	jne	short R_19  ; Not a valid MSDOS (FAT12) partition
 
 	cmp	word [bx+bsBytesPerSec], 512
- 	jne	R_19  ; Not a valid MSDOS (FAT12) partition
+ 	jne	short R_19  ; Not a valid MSDOS (FAT12) partition
 
 	cmp	byte [bx+bsMedia], 0F8h
- 	jne	R_19  ; Not a valid MSDOS (FAT12) partition
+ 	jne	short R_19  ; Not a valid MSDOS (FAT12) partition
 
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ; Overwrite question
@@ -219,14 +239,15 @@ R_08:
 	mov	si, msg_overwrite_question
 	call	print_msg
 
+	; 21/10/2023
 	; get answer
 R_09:
 	xor	ax, ax
 	int	16h			; wait for keyboard command
 	cmp	al, 'C'-40h
-	je	R_10 ; Exit                   
+	je	short R_10 ; Exit                   
 	cmp	al, 27
-	je	R_10 ; Exit
+	je	short R_10 ; Exit
 	and	al, 0DFh
 	cmp	al, 'Y'			; Yes?
 	je	short R_12		; write
@@ -251,6 +272,20 @@ R_11:
 	mov	si, RetroDOS_Welcome
 	call	print_msg
 	jmp	short R_21 ; Exit
+
+R_19:	
+	mov	si, msg_not_valid_vbr
+	; 21/10/2023
+	;call	print_msg
+	;jmp	short R_14
+R_14:
+	call	print_msg
+	int	20h
+
+	; 21/10/2023
+R_20:
+	mov	si, msg_disk_write_err
+	jmp	short R_14
 
 R_12:
 	mov	si, msg_YES
@@ -281,9 +316,19 @@ R_13:
 	add	ax, [bx+bsResSectors]
 	mov	[RETRODOS_FAT12_HD_BS+bsRootDirStart], ax
 	mov	cx, [bx+bsRootDirEnts]
-	add	cx, 15	
+
+	; 22/10/2023
+	mov	dx, 15
+	;add	cx, 15
+	add	cx, dx
+	
 	shr	cx, 4 ; 16 entries per sector
 	mov	[RETRODOS_FAT12_HD_BS+bsRootDirSects], cx
+
+	; 22/10/2023
+	inc	dx ; dx = 16
+	mov	[RETRODOS_FAT12_HD_BS+bsDirEntsPerSec], dx
+
 	add	ax, cx
 	mov	[RETRODOS_FAT12_HD_BS+bsDataStart], ax	
 
@@ -311,36 +356,15 @@ R_22:
 	mov	ax, 0301h ; write disk sector
 	mov	bx, RETRODOS_FAT12_HD_BS
 	int	13h
- 	jnc	short R_20
-
-	mov	si, msg_disk_write_err
-R_14:
-	call	print_msg
-	int	20h
-
-R_15:	
-	mov	si, msg_drv_not_ready_err
-	jmp	short R_14
-R_16:
-	mov	si, msg_disk_read_err
-	jmp	short R_14
-R_17:
-	mov	si, msg_not_valid_mbr
-	jmp	short R_14
-R_18:
-	mov	si, msg_msdos_p_not_found
-	jmp	short R_14
-R_19:	
-	mov	si, msg_not_valid_vbr
-	call	print_msg
-	jmp	short R_14
-
-R_20:
+ 	;jnc	short R_20
+	; 21/10/2023
+	jc	short R_20
+;R_20:
 	mov	si, msg_OK
 	jmp	R_21
 
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-; Convert LBA sector address top CHS address  (for INT 13h R/W)
+; Convert LBA sector address to CHS address  (for INT 13h R/W)
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 convert_to_chs:
@@ -432,8 +456,10 @@ svn_5:
 	mov	si, StrVolumeName
 	call	print_msg
 	mov	si, CRLF
-	call	print_msg
-	retn
+	;call	print_msg
+	;retn
+	; 21/10/2023
+	jmp	print_msg
 svn_6:
 	mov	al, 20h
 svn_7:
@@ -589,21 +615,11 @@ write_volume_serial:
 	mov	[Vol_Serial1], ax
 
 	mov	si, Msg_Volume_Serial
-	call	print_msg
-
-	retn
-
-bcd_to_bin:
-	push	bx
-	db	0D4h,10h  ; Undocumented inst. AAM
-			  ; AH = AL / 10h
-			  ; AL = AL MOD 10h
-	mov	bl, al
-	mov	al, 10
-	mul	ah
-	add	al, bl
-	pop	bx
-	retn
+	
+	; 21/10/2023
+	;call	print_msg
+	;retn
+	;jmp	short print_msg
 
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ; Print messages
@@ -622,7 +638,25 @@ print_msg_LOOP:
 					; AL-char BH-page BL-color
 	jmp     short print_msg_LOOP           
 
-print_msg_OK:
+;print_msg_OK:
+	;retn
+
+	; 21/10/2023
+;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+; Convert bcd (cmos date/time format) number to binary number
+;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+bcd_to_bin:
+	push	bx
+	db	0D4h,10h  ; Undocumented inst. AAM
+			  ; AH = AL / 10h
+			  ; AL = AL MOD 10h
+	mov	bl, al
+	mov	al, 10
+	mul	ah
+	add	al, bl
+	pop	bx
+print_msg_OK:	; 21/10/2023
 	retn
 
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -742,7 +776,7 @@ loc_escape:
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 RETRODOS_FAT12_HD_BS: 
-	incbin	'RD2HDBS.BIN'
+	incbin	'RD2HDBS.BIN'	; boot sector : 25/10/2023
 
 	db	0
 
@@ -761,6 +795,8 @@ Cylinders:
 DriveNum:
 	db	0
 
+	; 22/10/2023
+
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ;  Messages
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -769,7 +805,7 @@ RetroDOS_Welcome:
 	db	0Dh, 0Ah
 	db	'Retro DOS v2.0 Fixed Disk Boot Sector Update Utility'
 	db	0Dh, 0Ah
-	db	"v1.0.190518  (c) Erdogan TAN 2018"
+	db	"v1.1.231025  (c) Erdogan TAN 2018-2023"
 	db	0Dh,0Ah
 	db	0Dh,0Ah
 	db	'Usage: rdhdboot c: (or d:)'
@@ -816,7 +852,9 @@ msg_YES:
 	db	' YES ..', 0Dh, 0Ah, 0	
 
 msg_writing_boot_sector:
-	db	"Updating boot sector to Retro DOS v2 format ...", 0
+	;db	"Updating boot sector to Retro DOS v2 format ...", 0
+	; 22/10/2023
+	db	"Updating boot sector to Retro DOS v4 (v2 compatible) format ...", 0
 
 StrVolumeName:
 	times 	12 db  0
@@ -850,7 +888,7 @@ SectorBuffer:
 	times	512 db 0F6h
 
 	db	0
-	db	'(c) Erdogan TAN 2018'
+	db	'(c) Erdogan TAN 2018-2023' ; 21/10/2023
 	db	0
 
 SizeOfFile equ $-100

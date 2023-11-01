@@ -4,6 +4,7 @@
 ; ----------------------------------------------------------------------------
 ; Only for 720KB (3.5") Floppy Disks
 ; ****************************************************************************
+; Last Update: 25/10/2023 (Retro DOS 4.0-4.2) -different boot sector code-
 ; Last Update: 27/03/2018 (Retro DOS 2.0) -different boot sector code-
 ; Last Update: 24/02/2018
 ; ----------------------------------------------------------------------------
@@ -598,7 +599,7 @@ loc_escape:
 	db	0
 
 RETRODOS_FAT12_FDBS:
-	incbin 'FDBS720.BIN'
+	incbin 'FDBS720.BIN'	; 25/10/2023
 
 	db	0
 
@@ -616,7 +617,7 @@ RetroDOS_Welcome:
 	db	0Dh, 0Ah
 	db	'RETRO DOS 720KB FAT12 Floppy Disk Image Format Utility'
 	db	0Dh, 0Ah
-	db	"v2.0.270318  (c) Erdogan TAN 2018"
+	db	"v3.0.231025  (c) Erdogan TAN 2018-2023"
 	db	0Dh,0Ah
 	db	0Dh,0Ah
 	db	'Usage: rfdimage <image file name> '
@@ -701,7 +702,7 @@ FDFORMAT_FATBUFFER:
 FDFORMAT_FATBUFFER_S9:
 	times	512 db 0
 
-	db	'(c) Erdogan TAN 2018'
+	db	'(c) Erdogan TAN 2018-2023'
 
 img_file_name:  
 	times	13 db 0
