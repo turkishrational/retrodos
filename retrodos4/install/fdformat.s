@@ -4,7 +4,7 @@
 ; ----------------------------------------------------------------------------
 ; Only for 1.44MB (3.5") Floppy Disks
 ; ****************************************************************************
-; Last Update: 28/10/2023  (Previous: 12/02/2018)
+; Last Update: 30/10/2023  (Previous: 12/02/2018)
 ; ----------------------------------------------------------------------------
 ; Beginning: 23/11/2017
 ; ----------------------------------------------------------------------------
@@ -562,7 +562,7 @@ TrDOS_Welcome:
 	db	0Dh, 0Ah
 	db	'TR-DOS 1.44 MB FAT12 Floppy Disk Format Utility'
 	db	0Dh, 0Ah
-	db	"v3.0.231028  (c) Erdogan TAN 2005-2023"
+	db	"v3.0.231030  (c) Erdogan TAN 2005-2023"
 	db	0Dh,0Ah
 	db	0Dh,0Ah
 	db	'Usage: fdformat [drive] '
@@ -635,7 +635,7 @@ RetryCount:
 	db	0
 
 TRDOS_FAT12_fd_bs:
-	incbin 'TRFDBS.BIN' ; 28/10/2023
+	incbin 'TRFDBS.BIN' ; 30/10/2023
 
 	; 28/10/2023
 Error_Code:

@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; TRDOS386.ASM (TRDOS 386 Kernel) - v2.0.7 - trfdboot.s
 ; ----------------------------------------------------------------------------
-; Last Update: 28/10/2023  (Previous: 06/09/2020)
+; Last Update: 30/10/2023  (Previous: 06/09/2020)
 ; ----------------------------------------------------------------------------
 ; Beginning: 25/01/2016
 ; ----------------------------------------------------------------------------
@@ -63,7 +63,9 @@ bsReserved2	equ 62
 ; TRDOS 386 v2.0 2018 Extensions
 bsDataStart	equ 64
 bsRootDirStart	equ 66
-bsRootDirSects	equ 68    
+bsRootDirSects	equ 68
+
+bsDirEntsPerSec equ 70    
 
 ; ----------------------------------------------------------------------------
 ; code
@@ -223,6 +225,9 @@ T_06:
 	jne	short T_22
 	cmp	byte [bootsector+bsFileSysType+4], '2'
 	jne	short T_22
+	; 30/10/2023
+	cmp	byte [bootsector+bsSectors], 2880
+	jne	short T_22
 
 	mov	si, TrDOS_PressKeyWhenReady
 	call	print_msg
@@ -359,7 +364,7 @@ T_17:
 
 TrDOS_Welcome:
 	db 0Dh, 0Ah
-	db 'TR-DOS Floppy Disk Boot Sector Rebuilder v5.0'
+	db 'TR-DOS Floppy Disk Boot Sector Update Utility v5.0'
 	db 0Dh, 0Ah
 	db '(c) Erdogan TAN 1998-2023'
 	db 0Dh,0Ah
@@ -405,7 +410,7 @@ align 2
 
 TRDOS_FAT12_fd_bs:	; Boot Sector code
 
-; Boot Sector Last Update: 28/10/2023
+; Boot Sector Last Update: 30/10/2023
 ; 29/01/2016
 incbin	"TRFDBS.BIN"	; Kernel file: 'TRDOS386.SYS'
 RetryCount:
