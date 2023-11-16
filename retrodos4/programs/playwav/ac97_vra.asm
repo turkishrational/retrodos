@@ -1,10 +1,8 @@
+; 15/11/2023
 ; 13/11/2023
 ; 12/11/2023
 ; 11/11/2023
-; 06/11/2023
-; 05/11/2023
-; 04/11/2023
-; 03/11/2023
+; 03/11/2023 - 06/11/2023
 ; PCI and AC97 codec functions for wav player
 ; Erdogan Tan (17/02/2017)
 
@@ -229,6 +227,7 @@ init_ac97_codec_err2:
 VRA:	db 1	
 
 codecConfig:
+	; 15/11/2023
 	; 04/11/2023
 	; 17/02/2017 
 	; 07/11/2016 (Erdogan Tan)
@@ -261,27 +260,40 @@ init_ac97_codec:
 	add	dx, [NABMBAR]
 	in	eax, dx
 	; ?
+	; 15/11/2023
+	mov	cx, 40
+_initc_1:
 	mov	dx, GLOB_STS_REG ; 30h
 	add	dx, [NABMBAR]
 	in	eax, dx
 
 	cmp	eax, 0FFFFFFFFh ; -1
-	je	short init_ac97_codec_err1
+	;je	short init_ac97_codec_err1
+	; 15/11/2023
+	jne	short _initc_3
+_initc_2:
+	dec	cx
+	jz	short init_ac97_codec_err1
 
+	call	delay_100ms
+	jmp	short _initc_1
+_initc_3:
 	test	eax, CTRL_ST_CREADY
 	jnz	short _ac97_codec_ready
 
 	call	reset_ac97_codec
 	; 11/11/2023
 	;jc	short init_ac97_codec_err2
+	; 15/11/2023
+	jc	short _initc_2
 
 _ac97_codec_ready:
 	mov	dx, [NAMBAR]
 	;add	dx, 0 ; ac_reg_0 ; reset register
 	out	dx, ax
 
-	call	delay_100ms
-
+;	call	delay_100ms
+;
 ;	xor	eax, eax ; 0
 ;	mov	dx, [NAMBAR]
 ;	add	dx, CODEC_REG_POWERDOWN
@@ -304,7 +316,6 @@ _ac97_codec_ready:
 ;
 ;init_ac97_codec_err1:
 ;	stc
-;
 ;init_ac97_codec_err2:
 ;	retn
 

@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; PLAYWAV.ASM - ICH AC97 .wav player for DOS.			   PLAYWAV.COM
 ; ----------------------------------------------------------------------------
-; Last Update: 08/11/2023 (Previous: 17/02/2017)
+; Last Update: 12/11/2023 (Previous: 17/02/2017)
 ; ----------------------------------------------------------------------------
 ; Beginning: 17/02/2017
 ; ----------------------------------------------------------------------------
@@ -252,6 +252,8 @@ _2:
 
 ; setup the Codec (actually mixer registers) 
         call    codecConfig                     ; unmute codec, set rates.
+	; 11/11/2023
+	jc	short init_err
 ;
 ; position file pointer to start in actual wav data
 ; MUCH improvement should really be done here to check if sample size is
@@ -270,6 +272,7 @@ _2:
 
 ; close the .wav file and exit.
 
+close_exit:			; 11/11/2023
         call    closeFile
 
 exit:
@@ -278,6 +281,14 @@ exit:
 
 here:
 	jmp	short here
+
+	; 11/11/2023
+init_err:
+	mov	dx, msg_init_err
+vra_err: ; 12/11/2023
+        mov	ah, 9
+        int	21h
+	jmp	short close_exit
 
 ; MEMALLOC.ASM
 ;-- SETFREE: Release memory not used  ----------------
@@ -773,11 +784,17 @@ _ih_3:
 	jmp	short _ih0
 
 ac97_stop:
+	; 11/11/2023
 	; 05/11/2023
 	; 04/11/2023 
 	; 28/05/2017 (TRDOS 386 v2, 'audio.s')
 	mov	byte [tLoop], 0 ; stop ! ; 05/11/2023
 ;_ac97_stop:
+	; 11/11/2023
+	mov	dx, [NAMBAR]
+	;add	dx, 0 ; ac_reg_0 ; reset register
+	out	dx, ax
+
 	; 04/11/2023
 	; 09/10/2017 (TRDOS 386 v2, 'audio.s')
 	; 11/06/2017
@@ -1019,6 +1036,18 @@ dword_str	 dd 30303030h, 30303030h
 
 ;VIA
 ;chip_VIA1612A   db 'VIA1612A',13,10,0
+
+; 11/11/2023
+msg_init_err:
+	db	CR, LF
+	db	"AC97 Controller/Codec initialization error !"
+	db	CR, LF, "$"
+
+; 12/11/2023
+msg_no_vra:
+	db	CR, LF
+	db	"No VRA support ! Only 48 kHZ sample rate supported !"
+	db	CR, LF, "$"
 
 ; 17/02/2017
 bss_start:

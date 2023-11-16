@@ -1,3 +1,4 @@
+; 11/11/2023
 ; 05/11/2023
 ; 03/11/2023
 ; 17/02/2017 (Erdogan Tan, PLAYWAV.ASM)
@@ -404,3 +405,7 @@ BUP                     equ     BIT30   ; Buffer Underrun Policy.
 ;
 ; A value of 0 in these bits means play no samples.
 ;
+
+; 11/11/2023
+CTRL_ST_CREADY		equ	BIT8+BIT9+BIT28 ; Primary Codec Ready
+CODEC_REG_POWERDOWN	equ	26h

@@ -1,3 +1,4 @@
+; 11/11/2023
 ; 08/11/2023
 ; 06/11/2023
 ; 05/11/2023
@@ -44,10 +45,11 @@ playWav:
 ; lines when the device is reset. Prolly a better idea to mute output, then
 ; reset.
 ;
-        mov     dx, [NABMBAR]
-        add     dx, PO_CR_REG		; set pointer to Ctrl reg
-        mov	al, RR			; set reset
-	out     dx, al			; self clearing bit
+	; 11/11/2023
+        ;mov	dx, [NABMBAR]
+        ;add	dx, PO_CR_REG		; set pointer to Ctrl reg
+        ;mov	al, RR			; set reset
+	;out	dx, al			; self clearing bit
 
 ; write last valid index to 31 to start with.
 ; The Last Valid Index register tells the DMA engine when to stop playing.
