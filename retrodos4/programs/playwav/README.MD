@@ -11,3 +11,5 @@ Playwav2 is proper for playing 1-100 MB (very small to very big, huge) wav (musi
 PLAYWAV2.COM can be tested with 256-512MB FAT16 (Retro DOS v4, MSDOS 5-6.22) or 1-2GB FAT32 (Retro DOS v5 or PCDOS 7.1) virtual disk or a physical harddisk -which will be recognized by MSDOS/RETRODOS- by copying WAV files into a directory. (MP3 files may be converted to WAV files for that). No need to HIMEM.SYS or DPMI or any audio device driver. Only requirement: AC97 ICH compatible audio hardware (also AC97 hardware may be emulated AC97 ICH instead of a real audio hardware).
 
 Command: PLAYWAV2 FILE.WAV (PLAYWAV2 C:\WAV\FILENAME.WAV)
+
+Youtube demo: https://youtu.be/m6dSEDTjoaQ
