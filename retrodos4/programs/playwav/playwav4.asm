@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; PLAYWAV.ASM - ICH AC97 .wav player for DOS.			   PLAYWAV.COM
 ; ----------------------------------------------------------------------------
-; Last Update: 12/11/2023 (Previous: 08/11/2023)
+; Last Update: 19/11/2023 (Previous: 18/11/2023)
 ; ----------------------------------------------------------------------------
 ; Beginning: 17/02/2017
 ; ----------------------------------------------------------------------------
@@ -13,7 +13,8 @@
 ; Modidified from 'PLAYER.COM' for VIA VT8233 wav player source code by
 ; (PLAYER.ASM) by Erdogan Tan (07/11/2016 - 08/12/2016)
 
-; AC97 interrupt version - 09/11/2023 - Erdogan Tan
+; TUNELOOP version (playing without AC97 interrupt) - 06/11/2023 - Erdogan Tan
+; sample rate conversion version - 18/11/2023 - Erdogan Tan
 
 [BITS 16]
 
@@ -65,7 +66,7 @@ _STARTUP:
         jmp     exit
 
 ; 17/02/2017
-noDevMsg: db "Error: Unable to find intel ICH based audio device!",CR,LF,"$"
+noDevMsg db "Error: Unable to find intel ICH based audio device!",CR,LF,"$"
 
 _1:
 	; eax = BUS/DEV/FN
@@ -113,15 +114,13 @@ _1:
 
 	mov     [ac97_int_ln_reg], dl
 
-; 09/11/2023
 ; 05/11/2023
-%if 1
+%if 0
 	; 28/11/2016
 	mov	bx, 1
 	xor	dh, dh 	 ; 17/02/2017
-	; 10/11/2023
-	;mov	cx, dx
-	;shl	bx, cl
+	mov	cx, dx
+	shl	bx, cl
 
 	; 04/11/2023
 	cli
@@ -157,9 +156,8 @@ _1:
 	;out	dx, al                          ;set level-triggered mode
 
 	; 24/11/2016 - Erdogan Tan
-	;mov	bx, cx
-	; 10/11/2023
-	mov	bx, dx
+	mov	bx, cx
+	;mov	bx, dx
 	mov	bl, [bx+irq_int]
 	shl	bx, 2 ; * 4
 
@@ -237,22 +235,21 @@ _2:
 	call	check4keyboardstop  ; flush keyboard buffer
 	jc	short _2 	; 07/11/2023
 
-	; 09/11/2023
-	;; 05/11/2023
+	; 05/11/2023
 	;mov	eax, [bus_dev_fn]
 	;mov	al, PCI_CMD_REG
 	;call	pciRegRead16			; read PCI command register
-	;; 17/02/2017
-	;;mov	dx, [stats_cmd]
+	; 17/02/2017
+	;mov	dx, [stats_cmd]
         ;or	dl, IO_ENA+BM_ENA               ; enable IO and bus master
 	;call	pciRegWrite16 ; pciRegWrite8
 
-	;; 06/11/2023
-	;;mov	eax, [bus_dev_fn]
-	;;mov	al, PCI_CMD_REG
-	;;call	pciRegRead8                     ; read PCI command register
-	;;or	dl, IO_ENA+BM_ENA               ; enable IO and bus master
-	;;call	pciRegWrite8
+	; 06/11/2023
+	mov	eax, [bus_dev_fn]
+        mov     al, PCI_CMD_REG
+        call    pciRegRead8                     ; read PCI command register
+        or      dl, IO_ENA+BM_ENA               ; enable IO and bus master
+        call    pciRegWrite8
 
 ; setup the Codec (actually mixer registers) 
         call    codecConfig                     ; unmute codec, set rates.
@@ -309,7 +306,7 @@ vra_err: ; 12/11/2023
 setFree:
 	  mov	bx, 65536/16	; 4K paragraphs ; 17/02/2017 (Erdogan Tan)		
 
-          mov	ah, 4ah		; pass new length to DOS
+          mov	ah, 4ah		;pass new length to DOS
           int	21h
 
           retn			; back to caller 
@@ -445,9 +442,10 @@ gsr_stc:
 	stc
 	jmp	short gsr_retn
 
-%include 'ac97.asm' ; 29/11/2016 (AC97 codec configuration)
+;%include 'ac97.asm' ; 29/11/2016 (AC97 codec configuration)
+%include 'ac97_vra.asm' ; 19/11/2023 (AC97 codec configuration)
 ;%include 'ich_wav.asm' ; 17/02/2017 (ICH AC97 wav playing functions)
-%include 'ich_wave.asm' ; 11/11/2023 (ICH AC97 wav playing functions)
+%include 'ich_wav4.asm' ; 18/11/2023 (ICH AC97 wav playing functions)
 
 ; UTILS.ASM
 ;----------------------------------------------------------------------------
@@ -739,16 +737,12 @@ wsr_2:
 ;       call	print_msg
 ;       retn
 
-; 10/11/2023
-; 09/11/2023
 ; 06/11/2023
-%if 1
+%if 0
 
 ac97_int_handler:
-	; 11/11/2023
-	; 10/11/2023
 	; 17/02/2016
-	push	eax	; 11/11/2023
+	push	ax
 	push	dx
 	; 05/11/2023	
 	;push	cx
@@ -756,192 +750,49 @@ ac97_int_handler:
 	;push	si
 	;push	di
 
-	; 10/11/2023
-	; EOI at first
-	mov	al, 20h
-	test	byte [ac97_int_ln_reg], 8
-	jz	short _ih_0
-	out 	0A0h, al ; 20h	; EOI
-_ih_0:
-	out	20h, al  ; 20h	; EOI
+	cmp	byte [inside], 1
+	jnb	short _busy
 
-	; 11/11/2023
-	; 09/11/2023
-	mov	dx, GLOB_STS_REG
-        add	dx, [NABMBAR]
-	in	eax, dx
-	
-	; 09/11/2023,
-        cmp	eax, 0FFFFFFFFh ; -1
-	je	short _ih_2
-	
-	test	al, 40h		; PCM Out Interrupt
-	jnz	short _ih_1
+	mov	byte [inside], 1
 
-	test	eax, eax
-	jz	short _ih_2
-
- 	;mov	dx, GLOB_STS_REG
-        ;add	dx, [NABMBAR]
-	out	dx, eax
-	jmp	short _ih_2
-
-	; .....
-	;mov	al, 1
-	; 10/11/2023
-	;mov	[tloop], al  ; 1
-
-	;cmp	[inside], al ; 1
-	;jnb	short _ih_3	; busy
-
-	;mov	[inside], al ; 1
-	;
-	;; 09/11/2023
-        ;mov	dx, [NABMBAR]
-        ;add	dx, PO_SR_REG	; set pointer to Status reg
-	;in	al, dx
-	;; 10/11/2023
-	;;;out	dx, eax
-	;;out	dx, al		; clear interrupt event
-	;			; (by writing 1 to same bits)
-	;
-	;;mov	[pcm_irq_status], al ; 05/11/2023
-	;test	al, BCIS ; Buffer Completion Interrupt Status (Bit 3)
-	;jz	short _ih_2
-	; .....
-
-_ih_1:
-	; 11/11/2023
-	push	eax
-
-	;mov	ax, 1Ch ; FIFOE(=16)+BCIS(=8)+LVBCI(=4)
-	;mov	dx, PO_SR_REG
-        ;add	dx, [NABMBAR]
-	;out	dx, ax
-
-	; 10/11/2023
-	; 28/11/2016 - Erdogan Tan
-	call	tuneLoop
-
-	; 11/11/2023
-	pop	eax
-	mov	dx, GLOB_STS_REG
-        add	dx, [NABMBAR]
-	out	dx, eax
-_ih_2:
-	; 11/11/2023
-	mov	dx, [NABMBAR]
-	add	dx, PO_SR_REG	; set pointer to Status reg
-	mov	ax, 1Ch
-	out	dx, ax
-
-;	; 10/11/2023
-;	mov	al, 20h
-;	test	byte [ac97_int_ln_reg], 8
-;	jz	short _ih_3
-;	out 	0A0h, al ; 20h	; EOI
-;_ih_3:
-;	out	20h, al  ; 20h	; EOI
-;_ih_4:
-	;mov	byte [inside], 0
-	;pop	di
-	;pop	si
-	;pop	bx
-	;pop	cx
-	pop	dx
-	pop	eax ; 11/11/2023
-	iret
-
-%endif
-
-; 10/11/2023
-; 09/11/2023
-; 06/11/2023
-%if 0
-
-ac97_int_handler:
-	; 10/11/2023
-	; 17/02/2016
-	push	ax	; 09/11/2023
-	push	dx
-	; 05/11/2023
-	;push	cx
-	;push	bx
-	;push	si
-	;push	di
-
-	; 10/11/2023
-	; EOI at first
-	mov	al, 20h
-	test	byte [ac97_int_ln_reg], 8
-	jz	short _ih_0
-	out 	0A0h, al ; 20h	; EOI
-_ih_0:
-	out	20h, al  ; 20h	; EOI
-
-	mov	al, 1
-
-	; 10/11/2023
-	;mov	[tloop], al  ; 1
-
-	cmp	[inside], al ; 1
-	jnb	short _ih_3	; busy
-
-	mov	[inside], al ; 1
-
-	; 09/11/2023
-        mov	dx, [NABMBAR]
-        add	dx, PO_SR_REG	; set pointer to Status reg
+        mov     dx, [NABMBAR]
+        add     dx, PO_SR_REG	; set pointer to Status reg
 	in	al, dx
-	; 10/11/2023
-	;out	dx, eax
-	out	dx, al		; clear interrupt event
-				; (by writing 1 to same bits)
-
-	;mov	[pcm_irq_status], al ; 05/11/2023
+	mov	[pcm_irq_status], al ; 05/11/2023
 	test	al, BCIS ; Buffer Completion Interrupt Status (Bit 3)
-	jz	short _ih_2
-	
-	; 09/11/2023
-	;mov	dx, GLOB_STS_REG
-        ;add	dx, [NABMBAR]
-	;in	eax, dx
-	
-	; 09/11/2023,
-        ;cmp	eax, 0FFFFFFFFh ; -1
-	;je	short _ih_2
-	
-	;test	al, 40h		; PCM Out Interrupt
-	;jz	short _ih_2
-_ih_1:
-	; 10/11/2023
+	jz	short _ih_3
+
 	; 28/11/2016 - Erdogan Tan
 	call	tuneLoop
-	;jnc	short _ih_2
-	;dec	byte [tloop] ; [tloop] = 0
-_ih_2:
+_ih0:
 	mov	byte [inside], 0
-_ih_3:
+_busy:
+	mov	al, 20h
+	test	byte [ac97_int_ln_reg], 8
+	jz	short _ih_1
+	out 	0A0h, al ; 20h ; EOI
+_ih_1:
+	out	20h, al  ; 20h ; EOI
+_ih_2:
 	;pop	di
 	;pop	si
 	;pop	bx
 	;pop	cx
 	pop	dx
-	pop	ax ; 09/11/2023
+	pop	ax
 	iret
-
-%endif
-
+_ih_3:
+	; 17/02/2017
+	out	dx, al ; clear interrupt event (by writing 1 to same bits)
+	jmp	short _ih0
 
 ac97_stop:
 	; 11/11/2023
-	; 09/11/2023
 	; 05/11/2023
 	; 04/11/2023 
 	; 28/05/2017 (TRDOS 386 v2, 'audio.s')
-	;mov	byte [tLoop], 0 ; stop ! ; 05/11/2023
+	mov	byte [tLoop], 0 ; stop ! ; 05/11/2023
 ;_ac97_stop:
-
 	; 11/11/2023
 	mov	dx, [NAMBAR]
 	;add	dx, 0 ; ac_reg_0 ; reset register
@@ -963,12 +814,14 @@ ac97_stop:
 	; 11/06/2017
 	mov     al, RR
 ac97_po_cmd:
-	; 11/06/2017
+	 ;11/06/2017
 	; 29/05/2017
 	mov     dx, [NABMBAR]
         add     dx, PO_CR_REG		; PCM out control register
 	out	dx, al
 	retn
+
+%endif
 
 print_msg:
 	; 13/11/2016 - Erdogan Tan 
@@ -1216,16 +1069,17 @@ flags:		resb 1
 ; 06/11/2023
 ac97_int_ln_reg: resb 1
 
-; 09/11/2023
 ; 06/11/2023
 ;pcm_irq_status: resb 1	; 05/11/2023
-inside:		resb 1
-tloop:		resb 1	; 10/11/2023
+;
+;inside:	resb 1
+;tLoop:		resb 1
 
-; 09/11/2023
-; 04/11/2023 - 06/11/2023
-IRQ_status:	resw 1	; IRQ status before enabling audio interrupt
-IRQ_vector:	resd 1  ; Previous interrupt handler address	
+; 06/11/2023
+; 05/11/2023
+; 04/11/2023
+;IRQ_status:	resw 1	; IRQ status before enabling audio interrupt
+;IRQ_vector:	resd 1  ; Previous interrupt handler address	
 
 ; 17/02/2017
 ; NAMBAR:  Native Audio Mixer Base Address Register
@@ -1262,11 +1116,7 @@ bps:		resw 1
 ; 08/11/2023
 ; 07/11/2023
 fbs_shift:	resb 1
-; 09/11/2023
-b_indicator:	resb 1
-; 10/11/2023
-LVI:		resb 1
-		resb 1 ; 10/11/2023 
+		resb 1 ; 08/11/2023
 
 ;fbs_seg:	resw 1
 ;fbs_off:	resw 1
@@ -1275,7 +1125,9 @@ LVI:		resb 1
 
 ; 32 kilo bytes for temporay buffer
 ; (for stereo-mono, 8bit/16bit corrections)
-temp_buffer:	resb 32768
+;temp_buffer:	resb 32768
+; 18/11/2023
+temp_buffer:	resb 56304  ; (44.1 kHZ stereo 14076 samples)	
 
 ;alignb 16
 EOF:

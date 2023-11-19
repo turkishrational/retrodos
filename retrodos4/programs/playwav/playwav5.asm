@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; PLAYWAV.ASM - ICH AC97 .wav player for DOS.			   PLAYWAV.COM
 ; ----------------------------------------------------------------------------
-; Last Update: 12/11/2023 (Previous: 08/11/2023)
+; Last Update: 19/11/2023 (Previous: 12/11/2023)
 ; ----------------------------------------------------------------------------
 ; Beginning: 17/02/2017
 ; ----------------------------------------------------------------------------
@@ -14,6 +14,8 @@
 ; (PLAYER.ASM) by Erdogan Tan (07/11/2016 - 08/12/2016)
 
 ; AC97 interrupt version - 09/11/2023 - Erdogan Tan
+; sample rate conversion version - 13/11/2023 - Erdogan Tan
+; LVI interrupt version (instead of IOC) - 18/11/2023 - Erdogan Tan
 
 [BITS 16]
 
@@ -445,9 +447,11 @@ gsr_stc:
 	stc
 	jmp	short gsr_retn
 
-%include 'ac97.asm' ; 29/11/2016 (AC97 codec configuration)
-;%include 'ich_wav.asm' ; 17/02/2017 (ICH AC97 wav playing functions)
-%include 'ich_wave.asm' ; 11/11/2023 (ICH AC97 wav playing functions)
+;%include 'ac97.asm' ; 29/11/2016 (AC97 codec configuration)
+%include 'ac97_vra.asm' ; 19/11/2023 (AC97 codec configuration)
+;;%include 'ich_wav.asm' ; 17/02/2017 (ICH AC97 wav playing functions)
+;%include 'ich_wav3.asm' ; 13/11/2023 (ICH AC97 wav playing functions)
+%include 'ich_wav5.asm' ; 18/11/2023 (ICH AC97 wav playing functions)
 
 ; UTILS.ASM
 ;----------------------------------------------------------------------------
@@ -664,87 +668,16 @@ wsr_2:
 
         retn
 
-;detect_codec:
-;	; 13/11/2016 - Erdogan Tan (Ref: KolibriOS, codec.inc)
-;	mov	eax, 7Ch
-;	call	codec_read
-;       shl     eax, 16
-;       mov     [codec_id], eax
-;
-;	mov	eax, 7Eh
-;       call	codec_read
-;       or      eax, [codec_id]
-;       mov     [codec_chip_id], eax
-;       and     eax, 0FFFFFF00h
-;
-;       mov     edi, codecs
-;_dcb:
-;       mov     ebx, [di]
-;       test    ebx, ebx
-;       jz      short _dco_unknown
-;
-;       cmp     eax, ebx
-;       jne     short _dco_next
-;       mov     ax, [di+4]
-;       mov     [codec_vendor_ids], ax
-;       movzx   esi, ax
-;       call	print_msg
-;       
-;	mov	ax, [di+6]
-;	call	detect_chip
-;       retn
-;
-;_dco_next:
-;       add     di, 8
-;       jmp     short _dcb
-;
-;_dco_unknown:
-;       mov    word [codec_vendor_ids], ac_unknown
-;       mov    word [codec_chip_ids], chip_unknown
-;       mov     esi, chip_unknown
-;	call	print_msg
-;       mov     eax, [codec_chip_id]
-;       call    dword2str
-;       call	print_msg
-;       retn
-
-;detect_chip:
-;	; 13/11/2016 - Erdogan Tan (Ref: KolibriOS, codec.inc)
-;	mov	di, ax ; chip_tab
-;       mov     eax, [codec_chip_id]
-;       and     ax, 0FFh
-;_dch1:
-;       mov     bx, [di]
-;       cmp     bx, 0FFh
-;       je      short _dch_unknown
-;
-;       cmp     ax, bx
-;       jne     short _dch_next
-;       mov     ax, [di+2]
-;       mov     [codec_chip_ids], ax
-;       mov     si, ax
-;       call	print_msg
-;       retn
-
-;_dch_next:
-;       add     di, 4
-;       jmp     short _dch1
-;
-;_dch_unknown:
-;       mov    word [codec_chip_ids], chip_unknown
-;       mov     si, chip_unknown
-;       call	print_msg
-;       mov     eax, [codec_chip_id]
-;       call    dword2str
-;       call	print_msg
-;       retn
-
+; 18/11/2023
+; 11/11/2023
 ; 10/11/2023
 ; 09/11/2023
 ; 06/11/2023
 %if 1
 
 ac97_int_handler:
+	; 19/11/2023
+	; 18/11/2023
 	; 11/11/2023
 	; 10/11/2023
 	; 17/02/2016
@@ -756,14 +689,14 @@ ac97_int_handler:
 	;push	si
 	;push	di
 
-	; 10/11/2023
-	; EOI at first
-	mov	al, 20h
-	test	byte [ac97_int_ln_reg], 8
-	jz	short _ih_0
-	out 	0A0h, al ; 20h	; EOI
-_ih_0:
-	out	20h, al  ; 20h	; EOI
+;	; 10/11/2023
+;	; EOI at first
+;	mov	al, 20h
+;	test	byte [ac97_int_ln_reg], 8
+;	jz	short _ih_0
+;	out 	0A0h, al ; 20h	; EOI
+;_ih_0:
+;	out	20h, al  ; 20h	; EOI
 
 	; 11/11/2023
 	; 09/11/2023
@@ -785,31 +718,6 @@ _ih_0:
         ;add	dx, [NABMBAR]
 	out	dx, eax
 	jmp	short _ih_2
-
-	; .....
-	;mov	al, 1
-	; 10/11/2023
-	;mov	[tloop], al  ; 1
-
-	;cmp	[inside], al ; 1
-	;jnb	short _ih_3	; busy
-
-	;mov	[inside], al ; 1
-	;
-	;; 09/11/2023
-        ;mov	dx, [NABMBAR]
-        ;add	dx, PO_SR_REG	; set pointer to Status reg
-	;in	al, dx
-	;; 10/11/2023
-	;;;out	dx, eax
-	;;out	dx, al		; clear interrupt event
-	;			; (by writing 1 to same bits)
-	;
-	;;mov	[pcm_irq_status], al ; 05/11/2023
-	;test	al, BCIS ; Buffer Completion Interrupt Status (Bit 3)
-	;jz	short _ih_2
-	; .....
-
 _ih_1:
 	; 11/11/2023
 	push	eax
@@ -825,6 +733,7 @@ _ih_1:
 
 	; 11/11/2023
 	pop	eax
+	
 	mov	dx, GLOB_STS_REG
         add	dx, [NABMBAR]
 	out	dx, eax
@@ -832,46 +741,10 @@ _ih_2:
 	; 11/11/2023
 	mov	dx, [NABMBAR]
 	add	dx, PO_SR_REG	; set pointer to Status reg
-	mov	ax, 1Ch
+	mov	ax, 1Ch ; clear FIFOE, BCIS, LVBCI
 	out	dx, ax
 
-;	; 10/11/2023
-;	mov	al, 20h
-;	test	byte [ac97_int_ln_reg], 8
-;	jz	short _ih_3
-;	out 	0A0h, al ; 20h	; EOI
-;_ih_3:
-;	out	20h, al  ; 20h	; EOI
-;_ih_4:
-	;mov	byte [inside], 0
-	;pop	di
-	;pop	si
-	;pop	bx
-	;pop	cx
-	pop	dx
-	pop	eax ; 11/11/2023
-	iret
-
-%endif
-
-; 10/11/2023
-; 09/11/2023
-; 06/11/2023
-%if 0
-
-ac97_int_handler:
-	; 10/11/2023
-	; 17/02/2016
-	push	ax	; 09/11/2023
-	push	dx
-	; 05/11/2023
-	;push	cx
-	;push	bx
-	;push	si
-	;push	di
-
-	; 10/11/2023
-	; EOI at first
+_ih_3:	; 19/11/2023
 	mov	al, 20h
 	test	byte [ac97_int_ln_reg], 8
 	jz	short _ih_0
@@ -879,59 +752,11 @@ ac97_int_handler:
 _ih_0:
 	out	20h, al  ; 20h	; EOI
 
-	mov	al, 1
-
-	; 10/11/2023
-	;mov	[tloop], al  ; 1
-
-	cmp	[inside], al ; 1
-	jnb	short _ih_3	; busy
-
-	mov	[inside], al ; 1
-
-	; 09/11/2023
-        mov	dx, [NABMBAR]
-        add	dx, PO_SR_REG	; set pointer to Status reg
-	in	al, dx
-	; 10/11/2023
-	;out	dx, eax
-	out	dx, al		; clear interrupt event
-				; (by writing 1 to same bits)
-
-	;mov	[pcm_irq_status], al ; 05/11/2023
-	test	al, BCIS ; Buffer Completion Interrupt Status (Bit 3)
-	jz	short _ih_2
-	
-	; 09/11/2023
-	;mov	dx, GLOB_STS_REG
-        ;add	dx, [NABMBAR]
-	;in	eax, dx
-	
-	; 09/11/2023,
-        ;cmp	eax, 0FFFFFFFFh ; -1
-	;je	short _ih_2
-	
-	;test	al, 40h		; PCM Out Interrupt
-	;jz	short _ih_2
-_ih_1:
-	; 10/11/2023
-	; 28/11/2016 - Erdogan Tan
-	call	tuneLoop
-	;jnc	short _ih_2
-	;dec	byte [tloop] ; [tloop] = 0
-_ih_2:
-	mov	byte [inside], 0
-_ih_3:
-	;pop	di
-	;pop	si
-	;pop	bx
-	;pop	cx
 	pop	dx
-	pop	ax ; 09/11/2023
+	pop	eax
 	iret
 
 %endif
-
 
 ac97_stop:
 	; 11/11/2023
@@ -1275,7 +1100,9 @@ LVI:		resb 1
 
 ; 32 kilo bytes for temporay buffer
 ; (for stereo-mono, 8bit/16bit corrections)
-temp_buffer:	resb 32768
+;temp_buffer:	resb 32768
+; 18/11/2023
+temp_buffer:	resb 56304  ; (44.1 kHZ stereo 14076 samples)	
 
 ;alignb 16
 EOF:

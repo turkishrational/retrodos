@@ -1,3 +1,6 @@
+; 19/11/2023 
+;	(ready status optimization -in order to prevent wrong init error- )
+; 18/11/2023
 ; 15/11/2023
 ; 13/11/2023
 ; 12/11/2023
@@ -213,20 +216,22 @@ PCIScanExit:
 ; enable codec, unmute stuff, set output rate to 44.1
 ; entry: ax = desired sample rate
 
+; 19/11/2023
 ; 11/11/2023
 ; 06/11/2023
 %if 1
 
-	; 11/11/2023
-init_ac97_codec_err1:
-	stc
-init_ac97_codec_err2:
-	retn
+;	; 11/11/2023
+;init_ac97_codec_err1:
+;	stc
+;init_ac97_codec_err2:
+;	retn
 
 	; 13/11/2023
 VRA:	db 1	
 
 codecConfig:
+	; 19/11/2023
 	; 15/11/2023
 	; 04/11/2023
 	; 17/02/2017 
@@ -254,15 +259,19 @@ init_ac97_controller:
 	call	delay_100ms
 
 init_ac97_codec:
+	; 18/11/2023
+	mov	bp, 40
+_initc_1:
 	; 11/11/2023
 	; (TRDOS 386 v2.0.5, 'audio.s')
 	mov	dx, GLOB_CNT_REG ; 2Ch
 	add	dx, [NABMBAR]
 	in	eax, dx
 	; ?
-	; 15/11/2023
-	mov	cx, 40
-_initc_1:
+	;; 15/11/2023
+	;;mov	cx, 40
+	;mov	bp, 40 ; 18/11/2023
+;_initc_1:
 	mov	dx, GLOB_STS_REG ; 30h
 	add	dx, [NABMBAR]
 	in	eax, dx
@@ -272,8 +281,11 @@ _initc_1:
 	; 15/11/2023
 	jne	short _initc_3
 _initc_2:
-	dec	cx
-	jz	short init_ac97_codec_err1
+	;dec	cx
+	dec	bp	; 18/11/2023
+	;jz	short init_ac97_codec_err1
+	; 19/11/2023
+	jz	short _ac97_codec_ready
 
 	call	delay_100ms
 	jmp	short _initc_1
@@ -292,32 +304,39 @@ _ac97_codec_ready:
 	;add	dx, 0 ; ac_reg_0 ; reset register
 	out	dx, ax
 
-;	call	delay_100ms
-;
-;	xor	eax, eax ; 0
-;	mov	dx, [NAMBAR]
-;	add	dx, CODEC_REG_POWERDOWN
-;	out	dx, ax
-;
-;	; wait for 1 second
-;	mov	ecx, 1000 ; 1000*0.25ms = 1s
-;_ac97_codec_rloop:
-;	call	delay1_4ms
-;	call	delay1_4ms
-;	call	delay1_4ms
-;	call	delay1_4ms
-;	;mov	dx, [NAMBAR]
-;	;add	dx, CODEC_REG_POWERDOWN
-;	in	ax, dx	
-;	and	ax, 0Fh
-;	cmp	al, 0Fh
-;	je	short _ac97_codec_init_ok
-;	loop	_ac97_codec_rloop 
-;
-;init_ac97_codec_err1:
-;	stc
-;init_ac97_codec_err2:
-;	retn
+	call	delay_100ms
+
+	; 19/11/2023
+	or	bp, bp
+	jnz	short _ac97_codec_init_ok
+
+	xor	eax, eax ; 0
+	mov	dx, [NAMBAR]
+	add	dx, CODEC_REG_POWERDOWN
+	out	dx, ax
+	
+	; 19/11/2023
+	; wait for 1 second
+	;mov	ecx, 1000 ; 1000*4*0.25ms = 1s
+	mov	cx, 10
+_ac97_codec_rloop:
+	;call	delay1_4ms
+	;call	delay1_4ms
+	;call	delay1_4ms
+	;call	delay1_4ms
+	call	delay_100ms
+	;mov	dx, [NAMBAR]
+	;add	dx, CODEC_REG_POWERDOWN
+	in	ax, dx	
+	and	ax, 0Fh
+	cmp	al, 0Fh
+	je	short _ac97_codec_init_ok
+	loop	_ac97_codec_rloop 
+
+init_ac97_codec_err1:
+	stc
+init_ac97_codec_err2:
+	retn
 
 _ac97_codec_init_ok:
         ; 11/11/2023

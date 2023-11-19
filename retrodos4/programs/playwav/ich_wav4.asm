@@ -10,8 +10,8 @@
 ; NASM version: Erdogan Tan (29/11/2016)
 ; Last Update: 17/02/2017 (by Erdogan Tan)
 
-; AC97 interrupt version - 09/11/2023 - Erdogan Tan
-; sample rate conversion version - 13/11/2023 - Erdogan Tan
+; TUNELOOP version (playing without interrupt) - 06/11/2023 - Erdogan Tan
+; sample rate conversion version - 18/11/2023 - Erdogan Tan
 
 ; ICHWAV.ASM
 
@@ -24,7 +24,8 @@ ENDOFFILE       equ     BIT0            ; flag for knowing end of file
 ; exit:  not until the song is finished or the user aborts.
 ;
 playWav:
-	; 13/11/2023
+	; 18/11/2023 (ich_wav4.asm)
+	; 13/11/2023 (ich_wav3.asm)
 
 	cmp	byte [VRA], 1
 	jb	short chk_sample_rate
@@ -246,7 +247,7 @@ playWav_vra:
 ; register reset the DMA engine. This may cause a pop noise on the output
 ; lines when the device is reset. Prolly a better idea to mute output, then
 ; reset.
-
+;
 	; 11/11/2023
         ;mov	dx, [NABMBAR]
         ;add	dx, PO_CR_REG		; set pointer to Ctrl reg
@@ -368,13 +369,12 @@ _0:
 ; ICHWAV.ASM
 
 	;mov	eax, BUFFERSIZE / 2 ; size of half buffer (32K)
-	; 13/11/2023
+	; 13/11/2023 (ich_wav3.asm) - 18/11/2023 (ich_wav4.asm)
 	mov	eax, [buffersize]
 
-	; 09/11/2023
-	or	eax, IOC + BUP
-	; 06/11/2023
-	;or	eax, BUP
+	;or	eax, IOC + BUP
+	; 06/11/2023 (TUNELOOP version, without interrupt)
+	or	eax, BUP
 	stosd
 
 ; 2nd buffer:
@@ -386,14 +386,13 @@ _0:
 ; set length to 64k (32k of two 16 bit samples)
 ; Set control (bits 31:16) to BUP, bits 15:0=number of samples
 ; 
-	;mov	eax, BUFFERSIZE / 2
-	; 13/11/2023
+	;mov	eax, BUFFERSIZE / 2 ; size of half buffer (32K)
+	; 13/11/2023 (ich_wav3.asm) - 18/11/2023 (ich_wav4.asm)
 	mov	eax, [buffersize]
 
-	; 09/11/2023
-	or	eax, IOC + BUP
-	; 06/11/2023
-	;or	eax, BUP
+	;or	eax, IOC + BUP
+	; 06/11/2023 (TUNELOOP version, without interrupt)
+	or	eax, BUP
 	stosd
 
         loop    _0
@@ -415,14 +414,12 @@ _0:
 ; All set. Let's play some music.
 ;
 
-	; 10/11/2023
 	; 08/11/2023
 	; 07/11/2023
 	; 08/12/2016
 	; 07/10/2016
-	;mov	al, 1
-	mov	al, 31
-	mov	[LVI], al ; 10/11/2023
+        ;mov	al, 1
+        mov	al, 31
 	call	setLastValidIndex
 
 	; 06/11/2023 (not neccessary)
@@ -437,15 +434,11 @@ _0:
 	; 17/02/2017
         mov     dx, [NABMBAR]
         add     dx, PO_CR_REG                   ; PCM out Control Register
-        ; 09/11/2023
-	mov	al, IOCE + RPBM	; Enable 'Interrupt On Completion' + run
+        ;mov	al, IOCE + RPBM	; Enable 'Interrupt On Completion' + run
 	;			; (LVBI interrupt will not be enabled)
 	; 06/11/2023 (TUNELOOP version, without interrupt)
-	;mov	al, RPBM
+	mov	al, RPBM
 	out     dx, al                          ; Start bus master operation.
-
-	; 09/11/2023
-	mov	byte [b_indicator], '?'	
 
 	; 06/11/2023
 	;call	delay1_4ms
@@ -453,35 +446,28 @@ _0:
 	;call	delay1_4ms
 	;call	delay1_4ms
 
-	; 10/11/2023
-	;mov	byte [tloop], 1
-
 ; while DMA engine is running, examine current index and wait until it hits 1
 ; as soon as it's 1, we need to refresh the data in wavbuffer1 with another
 ; 64k. Likewise when it's playing buffer 2, refresh buffer 1 and repeat.
-
-; 09/11/2023   
-; 06/11/2023
-%if 1
+   
+; 06/11/2023 (TUNELOOP version, without interrupt)
+%if 0
 	; 08/12/2016
 	; 28/11/2016
 p_loop:
-	call    check4keyboardstop ; keyboard halt?
-        jnc	short r_loop 	   ; no ; 09/11/2023
+	call    check4keyboardstop      ; keyboard halt?
+        jc	short r_loop 	; no ; 05/11/2023
 
-	; 09/11/2023
-	;or	byte [flags], ENDOFFILE
-	;mov	byte [b_indicator], '0'
-q_loop:
-	;mov	al, '0'
-	call	tL0
-
+	;mov	byte [tLoop], 0
+	; 04/11/2023
+	;mov	byte [audio_play_cmd], 0
+	;call	ac97_stop
+	;retn
+_exit_:
 	; 04/11/2023
 	; finished with song, stop everything
 	call	ac97_stop
-
-	; 11/11/2023
-irq_restore:	
+	
 	; restore previous interrupt vector and interrupt_status
 	cli
 	in	al, 0A1h ; irq 8-15
@@ -503,41 +489,129 @@ irq_restore:
 	retn
 
 r_loop:
-	; 10/11/2023
-	;nop
-	;nop
-	;nop
-
-	; 11/11/2023	
-	mov	al, '0'
-	cmp	byte [tloop], 0
-	je	short p_loop
-	jl	short q_loop
-
-	dec	byte [tloop] ; 0
-
-	cmp	byte [b_indicator], '1'
-	jne	short s_loop
-
-	; load buffer 1
-	mov	ax, [WAV_BUFFER1]
-u_loop:
-	;call	loadFromFile
-	; 13/11/2023
-	call	[loadfromwavfile]
-	jnc	short v_loop
-	mov	al, '0'
-	jmp	short q_loop
-v_loop:
-	; 09/11/2023 - Erdogan Tan
-	; (print buffer number on top left of the screen)
-	mov	al, [b_indicator]
-	call	tL0
-	jmp	short p_loop
+	; 07/12/2016 - Erdogan Tan
+	nop
+	nop
+	nop
+	; 17/02/2017
+	mov	al, [tBuff]
+	dec	al ; 1-32 -> 0-31 or 0 -> 0FFh
+	js	short  p_loop
+	mov	byte [tBuff], 0 ; reset
+	and	al, 1
+	jnz	short q_loop
+        mov     ax, [WAV_BUFFER2] ; [tBuff]=2 (from tuneLoop)
 s_loop:
-	; load buffer 2
-	mov	ax, [WAV_BUFFER2]
-	jmp	short u_loop
+	;call	loadFromFile
+	; 13/11/2023 - 18/11/2023
+	call	[loadfromwavfile]
+	;jc	short _exit_
+	; 05/11/2023
+	jc	short exit_loop
+	jmp	short r_loop
+q_loop:
+     	mov     ax, [WAV_BUFFER1] ; [tBuff]=1 (from tuneLoop)
+        ;call	loadFromFile
+	;jc	short _exit_
+	;jmp	short r_loop
+	; 05/11/2023
+	jmp	short s_loop
+
+exit_loop: 
+	mov	byte [tLoop], 0
+	retn
+		
+tuneLoop:
+	; 05/11/2023
+	; 08/12/2016
+	; 28/11/2016 - Erdogan Tan
+	
+	cmp	byte [tLoop], 1
+	jb	short _exit_ ; 05/11/2023
+_tlp_1:	
+	; 17/02/2017
+	call	getCurrentIndex
+	inc	al ; 0-31 -> 1-32
+	mov	[tBuff], al
+
+	; 05/11/2023
+	dec	ax
+	dec	ax
+	and	al, 1Fh
+	call	setLastValidIndex
+
+	; 05/11/2023
+	; 17/02/2017 - Buffer switch test (temporary)
+	push	ds
+	push	si 
+	mov	si, 0B800h ; video display page segment
+	mov	ds, si
+	sub	si, si ; 0
+	mov	ah, 4Eh
+	and	al, 1
+	add	al, '1'
+	mov	[si], ax ; show current play buffer (1, 2)
+	pop	si
+	pop	ds
+
+	; 17/02/2017
+
+	;test	byte [irq_status], LVBCI ; last buff completion intr.
+	;jz	short _tlp2 ; BCIS ; Buffer completion interrupt
+
+	; Last Valid Buffer Completion Interrupt (LVBCI).
+	;   1 = Last valid buffer has been processed. 
+	;	It remains active until cleared by software. 
+	;	This bit indicates the occurrence of the event 
+	;	signified by the last valid buffer being processed.
+	;	Thus, this is an event status bit that can be cleared
+	;	by software once this event has been recognized.
+	;	This event causes an interrupt if the enable bit
+	;	in the Control Register is set. The interrupt is
+	;	cleared when the software clears this bit.
+	;	In the case of Transmits (PCM out, Modem out) this bit
+	;	is set, after the last valid buffer has been
+	;	fetched (not after transmitting it).
+	;	While in the case of Receives, this bit is set after
+	;	the data for the last buffer has been written to memory.
+	;   0 = Cleared by writing a "1" to this bit position.
+
+	; Note: We are not using LVBCI 
+	;     Last Buffer Completion Interrupt !!!
+
+	; 17/02/2017
+        ;mov     dx, [NABMBAR]
+        ;add     dx, PO_SR_REG	; PCM out Status register
+        ;mov     al, [irq_status]
+        ;out     dx, al		; Clear (LVBCI) interrupt status
+	;retn
+
+;_tlp2:
+	; Buffer Completion Interrupt Status (BCIS).
+	;   1 =	Set by the hardware after the last sample 
+	; 	of a buffer has been processed, AND if the Interrupt
+	; 	on Completion (IOC) bit is set in the command byte of 
+	; 	the buffer descriptor. It remains active
+	; 	until cleared by software.
+	;   0 =	Cleared by writing a "1" to this bit position.
+
+	; 17/02/2017
+        mov     dx, [NABMBAR]
+        add     dx, PO_SR_REG	; PCM out Status register
+        mov     al, [pcm_irq_status] ; 05/11/2023
+        out     dx, al		; Clear (BCI) interrupt status
+	retn
+
+;_exit_:
+;	mov	byte [tLoop], 0
+;_exit:
+;       ; finished with song, stop everything
+;	mov     dx, [NABMBAR]		
+;       add     dx, PO_CR_REG           ; PCM out Control Register
+;       mov     al, 0
+;       out     dx, al                  ; stop player
+;_return:
+;	retn
 
 %endif
 
@@ -545,62 +619,63 @@ s_loop:
 ; as soon as it's 1, we need to refresh the data in wavbuffer1 with another
 ; 64k. Likewise when it's playing buffer 2, refresh buffer 1 and repeat.
 
-; 11/11/2023
-; 10/11/2023
-; 09/11/2023
+; 18/11/2023
 ; 08/11/2023
 ; 07/11/2023
 %if 1
 
 tuneLoop:
-	; 11/11/2023
-	; 10/11/2023
-	; 09/11/2023
+	; 18/11/2023 (ich_wav4.asm)
 	; 08/11/2023
 	; 06/11/2023
-	;mov	al, '1'
-	;call	tL0
+	mov	al, '1'
+	call	tL0
 tL1:
-	; 10/11/2023
-	;mov	byte [tloop], 1
-
-	; 11/11/2023
-	;call    updateLVI	; set LVI != CIV
-	;jz	short tL4	
-
-	; 11/11/2023
-	mov	byte [tloop], 1
-
+	call    updateLVI	; /set LVI != CIV/
+	jz	short _exit_	; 08/11/2023
+	call    check4keyboardstop
+	jc	short _exit_
 	call    getCurrentIndex
-
-	; 10/11/2023
-	cmp	al, [LVI]
-	jne	short tL2
-
-	test	byte [flags], ENDOFFILE
-	;jnz	short tL2
-	jnz	short tL4
-
-	dec	ax
-	and	al, 1Fh 
-	call	setLastValidIndex	
-	xchg	al, [LVI]
-
-tL2:
 	test	al, BIT0
-	jz	short tL3
+	jz	short tL1	; loop if buffer 2 is not playing
 
-	mov	byte [b_indicator], '1'
-	retn
-tL3:	
-	mov	byte [b_indicator], '2'
-	retn
-tL4:
-	; 11/11/2023
-	mov	byte [tloop], -1
-	stc
-	retn
+	; load buffer 1
+	mov     ax, [WAV_BUFFER1]
+	;call	loadFromFile
+	; 18/11/2023
+	call	word [loadfromwavfile]
+	jc	short _exit_	; end of file
 
+	mov	al, '2'
+	call	tL0
+tL2:
+	call    updateLVI
+	jz	short _exit_	; 08/11/2023
+	call    check4keyboardstop
+	jc	short _exit_
+	call    getCurrentIndex
+	test	al, BIT0
+	jnz	short tL2	; loop if buffer 1 is not playing
+
+	; load buffer 2
+	mov     ax, [WAV_BUFFER2]
+	;call	loadFromFile
+	; 18/11/2023
+	call	word [loadfromwavfile]
+	jnc	short tuneLoop
+_exit_:
+	mov	dx, [NABMBAR]		
+	add	dx, PO_CR_REG	; PCM out Control Register
+	mov	al, 0
+	out	dx, al		; stop player
+
+	add	al, '0'
+	;call	tL0
+	;
+	;retn
+	; 06/11/2023
+	;jmp	short tL0
+	;retn
 
 	; 06/11/2023
 tL0:
@@ -925,14 +1000,6 @@ lff_9:
 	dec	ax
 	mov	cx, BUFFERSIZE - 1 ; 65535
 	jmp	short lff_3
-
-lff_4:
-	; 08/11/2023
-	mov	al, '!'  ; error
-	call	tL0
-
-	xor	ax, ax
-	jmp	short lff_3
 	
 lff_1:  
 	;mov	bp, ax ; save buffer segment
@@ -974,6 +1041,13 @@ lff_3:
         or	byte [flags], ENDOFFILE	; end of file flag
 endLFF:
         retn
+lff_4:
+	; 08/11/2023
+	mov	al, '!'  ; error
+	call	tL0
+
+	xor	ax, ax
+	jmp	short lff_3
 
 %endif
 
@@ -1059,7 +1133,7 @@ sni_1:
 
 ; 08/11/2023
 ; 07/11/2023
-%if 0
+;%if 1
 updateLVI:
 	; 06/11/2023
 	mov	dx, [NABMBAR]      		
@@ -1070,7 +1144,6 @@ updateLVI:
 	cmp	al, ah ; is current index = last index ?
 	jne	short uLVI2
 
-	; 10/11/2023
 	; 08/11/2023	
 	call	getCurrentIndex
  
@@ -1084,7 +1157,6 @@ updateLVI:
 	add	dx, PO_SR_REG  ; PCM out status register
 	in	ax, dx
 
-	;test	al, 2
 	test	al, 3 ; bit 1 = Current Equals Last Valid (CELV)
 		      ; (has been processed)
 		      ; bit 0 = 1 -> DMA Controller Halted (DCH)
@@ -1103,7 +1175,7 @@ uLVI1:
 ;uLVI2:
 	;retn
 
-%endif
+;%endif
 	
 ;input AL = index # to stop on
 setLastValidIndex:
@@ -1135,7 +1207,6 @@ check4keyboardstop:
 	; 04/11/2023
 	mov	ah, 1
 	int	16h
-	clc
 	jz	short _cksr
 	xor	ah, ah
 	int	16h
@@ -1160,7 +1231,8 @@ _cksr:
         retn
 %endif
 
-; 15/11/2023
+; 18/11/2023 (ich_wav3.asm & ich_wav4.asm)
+; 15/11/2023 (ich_wav3.asm)	
 ; 14/11/2023
 ; 13/11/2023 - Erdogan Tan - (VRA, sample rate conversion)
 ; --------------------------------------------------------

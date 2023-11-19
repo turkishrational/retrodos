@@ -1,3 +1,4 @@
+; 19/11/2023
 ; 18/11/2023
 ; 17/11/2023
 ; 16/11/2023
@@ -12,6 +13,7 @@
 
 ; AC97 interrupt version - 09/11/2023 - Erdogan Tan
 ; sample rate conversion version - 13/11/2023 - Erdogan Tan
+; LVI interrupt version (instead of IOC) - 18/11/2023 - Erdogan Tan
 
 ; ICHWAV.ASM
 
@@ -371,10 +373,11 @@ _0:
 	; 13/11/2023
 	mov	eax, [buffersize]
 
+	; 18/11/2023
 	; 09/11/2023
-	or	eax, IOC + BUP
+	;or	eax, IOC + BUP
 	; 06/11/2023
-	;or	eax, BUP
+	or	eax, BUP
 	stosd
 
 ; 2nd buffer:
@@ -390,10 +393,11 @@ _0:
 	; 13/11/2023
 	mov	eax, [buffersize]
 
+	; 18/11/2023
 	; 09/11/2023
-	or	eax, IOC + BUP
+	;or	eax, IOC + BUP
 	; 06/11/2023
-	;or	eax, BUP
+	or	eax, BUP
 	stosd
 
         loop    _0
@@ -415,13 +419,14 @@ _0:
 ; All set. Let's play some music.
 ;
 
+	; 18/11/2023
 	; 10/11/2023
 	; 08/11/2023
 	; 07/11/2023
 	; 08/12/2016
 	; 07/10/2016
-	;mov	al, 1
-	mov	al, 31
+	mov	al, 1	; 18/11/2023
+	;mov	al, 31
 	mov	[LVI], al ; 10/11/2023
 	call	setLastValidIndex
 
@@ -437,8 +442,10 @@ _0:
 	; 17/02/2017
         mov     dx, [NABMBAR]
         add     dx, PO_CR_REG                   ; PCM out Control Register
-        ; 09/11/2023
-	mov	al, IOCE + RPBM	; Enable 'Interrupt On Completion' + run
+        ; 18/11/2023
+	mov	al, LVBIE + RPBM ; Enable LVBI interrupt and run bus master
+	; 09/11/2023
+	;mov	al, IOCE + RPBM	; Enable 'Interrupt On Completion' + run
 	;			; (LVBI interrupt will not be enabled)
 	; 06/11/2023 (TUNELOOP version, without interrupt)
 	;mov	al, RPBM
@@ -516,27 +523,33 @@ r_loop:
 
 	dec	byte [tloop] ; 0
 
-	cmp	byte [b_indicator], '1'
+	cmp	byte [b_indicator], '1' ; will be played
 	jne	short s_loop
-
+	
+	; 19/11/2023
 	; load buffer 1
-	mov	ax, [WAV_BUFFER1]
+	mov	ax, [WAV_BUFFER1] ; will be played
 u_loop:
 	;call	loadFromFile
 	; 13/11/2023
-	call	[loadfromwavfile]
+	call	word [loadfromwavfile]
 	jnc	short v_loop
+	
+	; 19/11/2023
+	;cmp	byte [tloop], -1
+	;jne	short v_loop
+	
 	mov	al, '0'
 	jmp	short q_loop
 v_loop:
 	; 09/11/2023 - Erdogan Tan
 	; (print buffer number on top left of the screen)
-	mov	al, [b_indicator]
+	mov	al, [b_indicator] ; going to be played
 	call	tL0
 	jmp	short p_loop
 s_loop:
 	; load buffer 2
-	mov	ax, [WAV_BUFFER2]
+	mov	ax, [WAV_BUFFER2] ; will be played
 	jmp	short u_loop
 
 %endif
@@ -545,12 +558,74 @@ s_loop:
 ; as soon as it's 1, we need to refresh the data in wavbuffer1 with another
 ; 64k. Likewise when it's playing buffer 2, refresh buffer 1 and repeat.
 
+; 18/11/2023
+%if 1
+
+tuneLoop:
+	; 19/11/2023
+	; 18/11/2023
+	test	byte [flags], ENDOFFILE
+	jnz	short tL3
+
+	; 19/11/2023
+	mov	byte [tloop], 1
+	
+	; set LVI to the next
+	; (and then load audio data in that buffer) 
+	mov	al, [LVI]
+	inc	ax
+	and	al, 1Fh 
+	call	setLastValidIndex
+	;mov	[LVI], al
+tL1:
+	; al = next buffer index (not for the buffer being played)
+	test	al, BIT0
+	jnz	short tL2
+
+	; 19/11/2023
+	; load buffer 1
+	;mov	ax, [WAV_BUFFER1] ; will be played
+	;call	word [loadfromwavfile]
+	;jc	short tL3
+
+	mov	byte [b_indicator], '1'
+	retn
+tL2:	
+	; 19/11/2023
+	; load buffer 2
+	;mov	ax, [WAV_BUFFER2] ; will be played
+	;call	word [loadfromwavfile]
+	;jc	short tL3
+
+	mov	byte [b_indicator], '2'
+	retn
+tL3:
+	mov	byte [tloop], -1
+	stc
+	retn
+
+	; 18/11/2023
+tL0:
+	; al = buffer indicator ('1', '2' or '0' -stop- )
+	push	ds
+	;push	bx 
+	mov	bx, 0B800h ; video display page segment
+	mov	ds, bx
+	sub	bx, bx ; 0
+	mov	ah, 4Eh
+	mov	[bx], ax ; show current play buffer (1, 2)
+	;pop	bx
+	pop	ds
+	retn
+
+%endif
+
 ; 11/11/2023
 ; 10/11/2023
 ; 09/11/2023
 ; 08/11/2023
 ; 07/11/2023
-%if 1
+%if 0	; 18/11/2023
 
 tuneLoop:
 	; 11/11/2023
@@ -585,7 +660,6 @@ tL1:
 	and	al, 1Fh 
 	call	setLastValidIndex	
 	xchg	al, [LVI]
-
 tL2:
 	test	al, BIT0
 	jz	short tL3
@@ -600,7 +674,6 @@ tL4:
 	mov	byte [tloop], -1
 	stc
 	retn
-
 
 	; 06/11/2023
 tL0:
@@ -619,211 +692,6 @@ tL0:
 	;pop	bx
 	pop	ds
 	retn
-
-%endif
-
-; 08/11/2023
-; 07/11/2023
-%if 0
-
-tuneLoop:
-	; 07/11/2023
-	;mov	dx, NABMBAR
-	;add	dx, PO_CIV_REG ; 14h
-tL1:
-	call    updateLVI	; set LVI != CIV
-	call    check4keyboardstop
-	jc	short _exit_
-	call    getCurrentIndex
-	test	al, BIT0
-	jz	short tL1	; loop if buffer 2 is not playing
-
-	; load buffer 1
-	mov     ax, [WAV_BUFFER1]
-	call	loadFromFile
-	jc	short _exit_	; end of file
-tL2:
-	call    updateLVI
-	call    check4keyboardstop
-	jc	short _exit_
-	call    getCurrentIndex
-	test	al, BIT0
-	jnz	short tL2	; loop if buffer 1 is not playing
-
-	; load buffer 2
-	mov     ax, [WAV_BUFFER2]
-	call	loadFromFile
-	jnc	short tuneLoop
-_exit_:
-	mov	dx, [NABMBAR]		
-	add	dx, PO_CR_REG	; PCM out Control Register
-	mov	al, 0
-	out	dx, al		; stop player
-	retn
-
-%endif
-
-; load data from file in 32k chunks. Would be nice to load 1 64k chunk,
-; but in DOS you can only load FFFF bytes at a time.
-;
-; entry: ax = segment to load data to
-; exit: CY set if end of file reached.
-; note: last file buffer is padded with 0's to avoid pops at the end of song.
-; assumes file is already open. uses [filehandle]
-
-; 07/11/2023
-%if 0
-
-loadFromFile:
-	; 07/11/2023
-	; 06/11/2023
-	; 17/02/2017
-	;push	ax
-	;push	cx
-	;push	dx
-	;push	bx
-
-	;push	es
-	;push	ds
-	
-        test    byte [flags], ENDOFFILE	; have we already read the
-	;stc				; last of the file?
-	; 05/11/2023
-	;jnz	endLFF
-	jz	short lff_12	; 06/11/2023
-	; 06/11/2023
-	;;mov	byte [tLoop], 0
-	;jmp	endLFF
-	stc
-	retn
-
-lff_12:	; 06/11/2023    
-	mov	[fbs_seg], ax ; save buffer segment
-	xor	dx, dx
-lff_0:
-	mov	[fbs_off], dx ; buffer offset
-
-	mov     bx, (BUFFERSIZE / 2)	; 32k chunk
-	mov	cl, [fbs_shift]   
-	and	cl, cl
-	jz	short lff_1 ; stereo, 16 bit	
-
-	; fbs_shift =
-	;	2 for mono and 8 bit sample (multiplier = 4)
-	;	1 for mono or 8 bit sample (multiplier = 2)
-	shr	bx, cl ; 32K / multiplier
-
-	mov	ax, cs
-	mov	dx, temp_buffer ; temporary buffer for wav data
-lff_1:
-	; 17/02/2017 (stereo/mono, 8bit/16bit corrections)
-	; load file into memory
-        mov	cx, bx                         
-	mov	bx, [filehandle]
-	mov     ds, ax
-       	mov	ah, 3fh
-	int	21h
-
-	mov	bx, cs
-	mov	ds, bx
-
-	jc	short lff_9 ; error !
-
-	and	ax, ax
-	jz	short lff_10
-	
-	mov	bl, [fbs_shift] ; shift count  
-	or	bl, bl
-	jz	short lff_7 ; 16 bit stereo samples
-
-	push	es
-	; 06/11/2023
-	;push	di
-	;push	si
-	mov	di, [fbs_off]
-	mov	si, [fbs_seg] ; buffer segment
-	mov	es, si
-	mov	si, temp_buffer ; temporary buffer address
-	mov	cl, [bps] ; bits per sample (8 or 16)
-	cmp	cl, 8
-	jne	short lff_4 ; 16 bit samples
-	; 8 bit samples
-	mov	cx, ax ; byte count
-	dec	bl  ; shift count, 1 = stereo, 2 = mono
-	jz	short lff_3 ; 8 bit, stereo
-lff_2:
-	; mono & 8 bit
-	lodsb
-	shl	ax, 8 ; convert 8 bit sample to 16 bit sample
-	stosw	; left channel
-	stosw	; right channel
-	loop	lff_2
-	jmp	short lff_6	
-lff_3:
-	; stereo & 8 bit
-	lodsb
-	shl	ax, 8 ; convert 8 bit sample to 16 bit sample
-	stosw
-	loop	lff_3			
-	jmp	short lff_6
-lff_4:
-	; 16 bit mono samples
-	mov	cx, ax ; word count
-lff_5:	
-	lodsw
-	stosw	; left channel
-	stosw	; right channel
-	loop	lff_5
-lff_6:
-	mov	ax, di ; save next buffer offset/position
-	; 06/11/2023
-	;pop	si
-	;pop	di
-	pop	es
-;lff_7:        
-	; 06/11/2023
-	and	ax, ax
-	jz	short endLFF ; end of 2nd half
-	mov	cx, (BUFFERSIZE / 2)
-lff_7:
-	cmp	ax, cx
-	je	short endLFF	 ; 06/11/2023
-	;jb	short lff_11
-	;xor	cx, cx
-	;sub	cx, ax
-	;neg	cx
-	jmp	short lff_11
-lff_8:
-	; 07/11/2023
-	cmp	word [fbs_off], (BUFFERSIZE / 2) ; 32768
-	jnb	short endLFF
-	
-	mov	dx, ax ; buffer offset
-	mov	ax, [fbs_seg] ; buffer segment
-	jmp	lff_0
-lff_9:  
-	; 07/11/2023
-	;; 06/11/2023 (temporary)
-	;mov	al, '!'  ; error
-	;call	tL0
-
-	xor	ax, ax
-lff_10:
-	; 07/11/2023
-	;mov	cx, (BUFFERSIZE / 2)  
-lff_11:
-	call    padfill				; blank pad the remainder
-        ;clc					; don't exit with CY yet.
-        or	byte [flags], ENDOFFILE		; end of file flag
-endLFF:
-        ;pop	ds
-	;pop	es
-	; 06/11/2023
-	;pop	bx
-	;pop	dx
-        ;pop	cx
-        ;pop	ax
-        retn
 
 %endif
 
@@ -1020,44 +888,6 @@ uLVI2:	;	06/11/2023
 ; that way, we never run out of buffers to play
 
 ; 08/11/2023
-%if 0
-	; 07/11/2023
-updateLVI:
-	push	ax
-	push	dx
-	; 06/11/2023
-	mov	dx, [NABMBAR]
-	add	dx, PO_CIV_REG
-	; (Current Index Value and Last Valid Index value)
-	in	ax, dx
-
-	cmp	al, ah ; is current index = last index ?
-	jne	short uLVI1
-
-	call	setNewIndex
-uLVI1:
-	pop	dx
-	pop	ax
-	retn
-
-setNewIndex:
-	; 07/11/2023
-	push	ax
-        call    getCurrentIndex                 ; get CIV
-        test    byte [flags], ENDOFFILE
-        jnz     short sni_1
-        ; not at the end of the file yet.
-        dec     al                              ; make new index <> current
-        and     al, INDEX_MASK                  ; make sure new value is 0-31
-sni_1:
-        call    setLastValidIndex               ; write new value
-        clc
-        pop	ax
-	retn
-
-%endif	
-
-; 08/11/2023
 ; 07/11/2023
 %if 0
 updateLVI:
@@ -1112,18 +942,10 @@ setLastValidIndex:
 	mov	dx, [NABMBAR]
 	add	dx, PO_LVI_REG
         out     dx, al
+	; 18/11/2023
+	mov	[LVI], al
 	;pop	dx
 	retn
-
-; 06/11/2023
-;	; 05/11/2023
-;setCurrentIndex:
-;	;push	dx
-;	mov	dx, [NABMBAR]
-;	add	dx, PO_CIV_REG
-;	out	dx, al
-;	;pop	dx
-;	retn
 
 ; checks if either shift key has been pressed. Exits with CY if so.
 ; 

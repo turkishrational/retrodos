@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; PLAYWAV.ASM - ICH AC97 .wav player for DOS.			   PLAYWAV.COM
 ; ----------------------------------------------------------------------------
-; Last Update: 16/11/2023 (Previous: 12/11/2023)
+; Last Update: 19/11/2023 (Previous: 18/11/2023)
 ; ----------------------------------------------------------------------------
 ; Beginning: 17/02/2017
 ; ----------------------------------------------------------------------------
@@ -447,7 +447,7 @@ gsr_stc:
 	jmp	short gsr_retn
 
 ;%include 'ac97.asm' ; 29/11/2016 (AC97 codec configuration)
-%include 'ac97_vra.asm' ; 13/11/2023 (AC97 codec configuration)
+%include 'ac97_vra.asm' ; 19/11/2023 (AC97 codec configuration)
 ;%include 'ich_wav.asm' ; 17/02/2017 (ICH AC97 wav playing functions)
 %include 'ich_wav3.asm' ; 13/11/2023 (ICH AC97 wav playing functions)
 
@@ -934,7 +934,6 @@ _ih_3:
 
 %endif
 
-
 ac97_stop:
 	; 11/11/2023
 	; 09/11/2023
@@ -1277,7 +1276,9 @@ LVI:		resb 1
 
 ; 32 kilo bytes for temporay buffer
 ; (for stereo-mono, 8bit/16bit corrections)
-temp_buffer:	resb 32768
+;temp_buffer:	resb 32768
+; 18/11/2023
+temp_buffer:	resb 56304  ; (44.1 kHZ stereo 14076 samples)	
 
 ;alignb 16
 EOF:
