@@ -1,0 +1,1277 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<link rel="start" title="Site Top" href="http://elm-chan.org/">
+<link rel="up" title="Tech Notes" href="http://elm-chan.org/cc_e.html">
+<link rel="alternate" hreflang="ja" title="Japanese version" href="http://elm-chan.org/docs/fat.html">
+<link rel="stylesheet" href="FAT%20Filesystem_dosyalar/docs_e.css" type="text/css" media="screen" title="ELM Default">
+<title>FAT Filesystem</title>
+</head>
+
+<body>
+<div class="header">
+<p class="hdh"><a href="http://elm-chan.org/"><img src="FAT%20Filesystem_dosyalar/header.png" alt="ELM Home Page" width="400" height="27"></a></p>
+<p class="hdd">May 24, 2009<br>Update: October 31, 2020</p>
+<h1>FAT Filesystem</h1>
+</div>
+<hr class="hds">
+
+<div class="abst">
+<p>This is a documentation about FAT filesystem written based on the <a href="http://www.microsoft.com/whdc/system/platform/firmware/fatgen.mspx">FAT32 Filesystem Specification</a>
+ (FAT specs below) to know how FAT filesystem works and how to manage 
+it. It is written according to the contents of the FAT specs and the 
+behavior of the standard system (real DOS and Windows), however, there 
+are many improvements and ommissions from the FAT specs. If the behavior
+ of standard system is differ from the FAT specs, it is written in 
+accordance with the real systems rather than FAT specs. And there is a 
+possibility that there is any unintended or intended error in this 
+documentation, so that you need to refer the primary sources of FAT 
+filesystem and make sure behavior of the real systems when write FAT 
+driver or utility. For exFAT filesystem, please refer <a href="http://elm-chan.org/docs/exfat_e.html">here</a> in addition to this documentation.</p>
+</div>
+
+<ol>
+<li><a href="#intro">Introduction</a></li>
+<li><a href="#notes">Basics of FAT File System</a></li>
+<li><a href="#bpb">Boot Sector and BPB</a></li>
+<li><a href="#sections">Calculating Parameters</a></li>
+<li><a href="#fat_strucut">FAT and Cluster</a></li>
+<li><a href="#fat_determination">Determination of FAT sub-type</a></li>
+<li><a href="#fat_access">Accessing FAT Entries</a></li>
+<li><a href="#file_cluster">Association of File and Cluster</a></li>
+<li><a href="#fsinfo">FSInfo Structure of FAT32 and Backup Boot Sector</a></li>
+<li><a href="#dir_struct">Directly Structure</a></li>
+<li><a href="#fat_dir">Directory Operations</a></li>
+<li><a href="#time_fmt">Timestamp</a></li>
+<li><a href="#lfn">Long File Name</a></li>
+<li><a href="#name_space">Namespace</a></li>
+<li><a href="#name_matching">Name Matching</a></li>
+<li><a href="#name_conversion">Generating Unique SFN</a></li>
+<li><a href="#lfn_suppression">Suppressing LFN Entry</a></li>
+<li><a href="#lfn_comp">Compatibility</a></li>
+<li><a href="#partition">Partitioning on the Physical Drive</a></li>
+</ol>
+
+<h3 id="intro">Introduction</h3>
+<p>The <em>filesystem</em> generally denotes the entire system to manage
+ data stored on the storage, however, this document describes the data 
+format of FAT filesystem on the storage device.</p>
+<p>The FAT file system originated around 1980 and is the filesystem that
+ was first supported by MS-DOS. It was originally developped a simple 
+filesystem suitable for floppy disk less than 500k bytes in size. Over 
+the time, its specs has been expanded to support laeger media as 
+increasing its capacity. FAT is the abbreviation of File Allocation 
+Table, which is the array to manage allocation of data area and the name
+ of the file system itself. Currently there are three FAT sub-types, 
+FAT12, FAT16 and FAT32. These are developped in order of the number and 
+completely backward compatible with older one. (FAT16 always include 
+FAT12, FAT32 includes all FAT types)</p>
+
+<h4>About Notations in this Document</h4>
+<p>Numbers starting with "0x" are assumed to be hexadecimal numbers, and others are decimal numbers.</p>
+<p>The prefix K, M, G and T of each unit is assumed to be 2<sup>10</sup>, 2<sup>20</sup>, 2<sup>30</sup> and 2<sup>40</sup> respectively.</p>
+<p>The fragment of program codes contained in this document is written assuming C language, but it is not strict to the syntax.</p>
+<p>32-bit value and 16-bit value are arbitrary mixed in the fragment of 
+the program code. The programmer needs be aware of the data loss due to 
+the type conversion and how to avoid it. Also, every data type is 
+assumed to be <em>unsigned</em>. Do not calculate in signed because it may result in unintended results.</p>
+
+
+<h3 id="notes">Basics of FAT File System</h3>
+<h4>Sector</h4>
+<p><em>Sector</em> is the smallest unit of data block on the storage to 
+read and write the storage device. The common sector size is 512 bytes 
+and a larger sector size is sometimes used for some type of storage 
+media. Each sector on the storage device is addressed by a sector number
+ assgined in order from top of the storage device. Since volumes are not
+ that always placed at top of the storage, in this document, "sector 
+number" denotes the relative location origin from top of the volume and 
+"physical sector number" denotes the absolute location origin from top 
+of the storage device.</p>
+
+<h4>FAT Volume</h4>
+<p>A FAT file system completes itself is called logical volume (or 
+logical drive). The FAT logical volume consists of three or four areas, 
+each of them consists of one or more sectors and located on the volume 
+in order of as follows. (<a href="http://elm-chan.org/docs/rc/fat_map.png">FAT volume map</a>)</p>
+
+<ol>
+<li>Reserved area (volume configuration data)</li>
+<li>FAT area (allocation table for data area)</li>
+<li>Root directory area (not present on FAT32 volume)</li>
+<li>Data area (contents of file and directory)</li>
+</ol>
+
+<h4>Data Forms on the Storage</h4>
+<p>The FAT file system was initially developed for IBM PC with x86 
+processors. The most important thing is that data structures in the FAT 
+filesystem on the storage is stored in <em>little endian</em>. If the 
+architecture of the platform to access the FAT filesystem is big endian,
+ an endian conversion is required when accessing the structures of the 
+FAT filesystem. Also, word data in multiple bytes are not that always 
+aligned to the word boundaries. If the processor cannot access the 
+unaligned word data, it will need to access the data in byte-by-byte. 
+For this reason, accessing the FAT volume as C structure member discards
+ the code portability. Accessing the FAT volume in byte-by-byte as 
+simple byte array instead of C structure gives the best code 
+portability.</p>
+
+
+<h3 id="bpb">Boot Sector and BPB</h3>
+<p>The most important data structure in the FAT volume is <em>BPB</em> (BIOS Parameter Block), where the configuration parameters of the FAT volume are stored. The BPB is placed in the <em>boot sector</em>.
+ The boot sector is often referred to as VBR (Volume Boot Record) or PBR
+ (Private Boot Record), but it is simply the first sector of the 
+reserved area, the first sector of the volume.</p>
+<p>BPB has often been changed as new feature of the FAT file system is 
+added. The first confusion that occurred was due to the 
+newly-establishment of BPB. In the MS-DOS Ver.1, there was no BPB in the
+ boot sector. In the first version of the FAT file system, there is only
+ a few disk format (single-sided and double-sided 5.25 inch floppy 
+disk), and the disk format is determined by referring to the first byte 
+(lower 8 bits of the first FAT item) of FAT starting at the next sector 
+of the boot sector.</p>
+<p>At the MS-DOS Ver.2, this method of determination of disk format is 
+superseded by referring the BPB in the boot sector and the determination
+ by referring the first byte of FAT has not been supported any longer. 
+Now all FAT volumes must have a BPB in the boot sector. BPB was 
+sometimes changed and it brought confusions about determination of disk 
+format. (e.g. Which is the correct parameter? What means this parameter?
+ How should I use this parameter?) The authorized volume recognization 
+method is described in FAT specs a time later.</p>
+<p>At the first time, problems about deterioration of disk usage 
+efficiency and limitation of the number of files on a volume appered due
+ to the disk size got lager by widespread use of hard disks and FAT16 
+has newly supported at MS-DOS Ver.3. However, a new problem occurred 
+immediately after this change. Since the size of field to indicating the
+ size of the volume was 16 bits, the supported volume size is less than 
+65536 sectors (32 MB at 512 bytes/sector). For this reason, a 32-bit 
+field has been added to at MS-DOS Ver.3.31 and it can support 128 MB for
+ FAT12 and 2 GB for FAT16 (at 32 KB/cluster).</p>
+<p>The last change of BPB was at Windows 95 OSR2 where the FAT32 
+appeared. At that time, number of files and maximum capacity of the 
+FAT16 volume had reached at some applications. The FAT32 as final 
+version of FAT filesystem removed the limitations of FAT16 and spports 
+upto 2 TB of volume size (at 512 bytes/sector). However Microsoft 
+recommends any filesystem other than FAT, such as NTFS for fixed disk 
+and exFAT for removable disk, for the volumes larger than 32 GB.</p>
+<p>The following table shows the data fields of the boot sector. Any field named with heading <em>BPB_</em> are part of the BPB. Any field named with heading <em>BS_</em> is not a part of BPB but it only a part of the boot sector. </p>
+<p>The fields in the first 36 bytes are common field for all FAT types 
+and the fields from byte offset 36 depends on whether the FAT type is 
+FAT32 or FAT12/FAT16. The method of determining FAT type is described at
+ next section.</p>
+
+<table class="lst4" id="bpb_fat">
+<caption>FAT12/16/32 common field (offset from 0 to 35)</caption>
+<tbody><tr><th>Field name</th><th>Offset</th><th>Size</th><th>Description</th></tr>
+<tr><td>BS_JmpBoot</td><td>0</td><td>3</td>
+<td>Jump instruction to the bootstrap code (x86 instruction) used by OS 
+boot sequence. There are two type of formats for this field and the 
+former format is prefered.<br>
+<tt>0xEB, 0x??, 0x90</tt> (Short jump + NOP)<br>
+<tt>0xE9, 0x??, 0x??</tt> (Near jump)<br>
+?? is the arbitrary value depends on where to jump is. In case of any 
+format out of these formats, the volume will not be recognized by 
+Windows.</td>
+</tr>
+<tr><td>BS_OEMName</td><td>3</td><td>8</td>
+<td><tt>"MSWIN 4.1"</tt> is recommended but also <tt>"MSDOS 5.0"</tt> is
+ often used. There are many misconceptions about this field. This is 
+only a name. Microsoft's OS does not pay any attention to this field, 
+but some FAT drivers do some reference. This string is recommended 
+because it is considered to minimize compatibility problems. You can set
+ something else, but some FAT drivers may not recognize that volume. 
+This field usually indicates name of the system created the volume.</td>
+</tr>
+<tr><td>BPB_BytsPerSec</td><td>11</td><td>2</td>
+<td>Sector size in unit of byte. Valid values for this field are 512, 
+1024, 2048 or 4096. Microsoft's OS properly supports these sector sizes,
+ but many FAT drivers assume the sector size is 512 and do not check 
+this field. For this reason, 512 should be used for maximum 
+compatibility. However, you should not misunderstand that it is only 
+related to compatibility. This value must be the same as the sector size
+ of the storage contains the FAT volume.</td>
+</tr>
+<tr><td>BPB_SecPerClus</td><td>13</td><td>1</td>
+<td>Number of sectors per allocation unit. In the FAT file system, the allocation unit is called <em>Cluster</em>.
+ This is a block of one or more consecutive sectors and the data area is
+ managed in this unit. The number of sectors per cluster must be a power
+ of 2. Therefore, valid values are 1, 2, 4,... and 128. However, any 
+value whose cluster size (<tt>BPB_BytsPerSec * BPB_SecPerClus</tt>) 
+exceeds 32 KB should not be used. Recent systems, such as Windows, 
+supprts cluster size larger than 32 KB, such as 64 KB, 128 KB, and 256 
+KB, but such volumes will not be recognized correctly by MS-DOS or old 
+disk utilities.</td>
+</tr>
+<tr><td>BPB_RsvdSecCnt</td><td>14</td><td>2</td>
+<td>Number of sectors in reserved area. This field must not be 0 because
+ there is the boot sector itself contains this BPB in the reserved area.
+ To avoid compatibility problems, it should be 1 on FAT12/16 volume. 
+This is because some old FAT drivers ignore this field and assume that 
+the size of reserved area is 1. On the FAT32 volume, it is typically 32.
+ Microsoft's OS properly supports any value of 1 or larger.</td>
+</tr>
+<tr><td>BPB_NumFATs</td><td>16</td><td>1</td>
+<td>Number of FATs. The value of this field should always be 2. Also any
+ value eaual to or greater than 1 is valid but it is strongly 
+recommended not to use values other than 2 to avoid compatibility 
+problem. Microsoft's FAT driver properly supports the values other than 2
+ but some tools and FAT drivers ignore this field and operate with 
+number of FAT is 2.<br>
+The standard value for this field 2 is to provide redudancy for the FAT 
+data. The value of FAT entry is typically read from the first FAT and 
+any change to the FAT entry is refrected to each FATs. If a sector in 
+the FAT area is damaged, the data will not be lost because it is 
+duplicated in another FAT. Therefore it can minimize risk of data loss. 
+On the non-disk based storages, such as memory card, such redundancy is a
+ useless feature, so that it may be 1 to save the disk space. But some 
+FAT driver may not recognize such a volume properly.</td>
+</tr>
+<tr><td>BPB_RootEntCnt</td><td>17</td><td>2</td>
+<td>On the FAT12/16 volumes, this field indicates number of 32-byte 
+directory entries in the root directory. The value should be set a value
+ that the size of root directory is aligned to the 2-sector boundary, <tt>BPB_RootEntCnt * 32</tt> becomes even multiple of <tt>BPB_BytsPerSec</tt>. For maximum compatibility, this field should be set to 512 on the FAT16 volume. For FAT32 volumes, this field must be 0.</td>
+</tr>
+<tr><td>BPB_TotSec16</td><td>19</td><td>2</td>
+<td>Total number of sectors of the volume in old 16-bit field. This 
+value is the number of sectors including all four areas of the volume. 
+When the number of sectors of the FAT12/16 volumes is 0x10000 or larger,
+ an invalid value 0 is set in this field, and the true value is set to <tt>BPB_TotSec32</tt>. For FAT32 volumes, this field must always be 0.</td>
+</tr>
+<tr><td>BPB_Media</td><td>21</td><td>1</td>
+<td>The valid values for this field is 0xF0, 0xF8, 0xF9, 0xFA, 0xFB, 
+0xFC, 0xFD, 0xFE and 0xFF. 0xF8 is the standard value for non-removable 
+disks and 0xF0 is often used for non partitioned removable disks. Other 
+important point is that the same value must be put in the lower 8-bits 
+of FAT[0]. This comes from the media determination of MS-DOS Ver.1 and 
+not used for any purpose any longer.</td>
+</tr>
+<tr><td>BPB_FATSz16</td><td>22</td><td>2</td>
+<td>Number of sectors occupied by a FAT. This field is used for only 
+FAT12/16 volumes. On the FAT32 volumes, it must be an invalid value 0 
+and <tt>BPB_FATSz32</tt> is used instead. The size of the FAT area becomes <tt>BPB_FATSz??</tt> * <tt>BPB_NumFATs</tt> sectors.</td>
+</tr>
+<tr><td>BPB_SecPerTrk</td><td>24</td><td>2</td>
+<td>Number of sectors per track. This field is relevant only for media that have geometry and used for only disk BIOS of IBM PC.</td>
+</tr>
+<tr><td>BPB_NumHeads</td><td>26</td><td>2</td>
+<td>Number of heads. This field is relevant only for media that have geometry and used for only disk BIOS of IBM PC.</td>
+</tr>
+<tr><td>BPB_HiddSec</td><td>28</td><td>4</td>
+<td>Number of hidden physical sectors preceding the FAT volume. It is 
+generally related to storage accessed by disk BIOS of IBM PC, and what 
+kind of value is set is platform dependent. This field should always be 0
+ if the volume starts at the beginning of the storage, e.g. 
+non-partitioned disks, such as floppy disk.</td>
+</tr>
+<tr><td>BPB_TotSec32</td><td>32</td><td>4</td>
+<td>Total number of sectors of the FAT volume in new 32-bit field. This 
+value is the number of sectors including all four areas of the volume. 
+When the value on the FAT12/16 volume is less than 0x10000, this field 
+must be invalid value 0 and the true value is set to <tt>BPB_TotSec16</tt>. On the FAT32 volume, this field is always valid and old field is not used.</td>
+</tr>
+</tbody></table>
+
+<p>Since the following fields change depending on whether the volume is 
+FAT12/16 or FAT32, the FAT type must be determined prior to refer these 
+fields. Also there are some fields exist in only FAT32 volumes and not 
+exist in FAT12/16 volumes.</p>
+
+<table class="lst4" id="bpb_fat16">
+<caption>Fields for FAT12/16 volumes (offset from 36)</caption>
+<tbody><tr><th>Field name</th><th>Offset</th><th>Size</th><th>Description</th></tr>
+<tr><td>BS_DrvNum</td><td>36</td><td>1</td>
+<td>Drive number used by disk BIOS of IBM PC. This field is used in 
+MS-DOS bootstrap, 0x00 for floppy disk and 0x80 for fixed disk. Actually
+ it depends on the OS.</td>
+</tr>
+<tr><td>BS_Reserved</td><td>37</td><td>1</td>
+<td>Reserved (used by Windows NT). It should be set 0 when create the volume.</td>
+</tr>
+<tr><td>BS_BootSig</td><td>38</td><td>1</td>
+<td>Extended boot signature (0x29). This is a signature byte indicates that the following three fields are present.</td>
+</tr>
+<tr><td>BS_VolID</td><td>39</td><td>4</td>
+<td>Volume serial number used with <tt>BS_VolLab</tt> to track a volume 
+on the removable storage. It enables to detect a wrong media change by 
+FAT driver. This value is typically generated with current time and date
+ on formatting.</td>
+</tr>
+<tr><td>BS_VolLab</td><td>43</td><td>11</td>
+<td>This field is the 11-byte volume label and it matches volume label 
+recorded in the root directory. FAT driver should update this field when
+ the volume label in the root directory is changed. MS-DOS does it but 
+Windows does not do it. When volume label is not present, <tt>"NO NAME    "</tt> should be set in this field.</td>
+</tr>
+<tr><td>BS_FilSysType</td><td>54</td><td>8</td>
+<td><tt>"FAT12&nbsp;&nbsp;&nbsp;"</tt>, <tt>"FAT16&nbsp;&nbsp;&nbsp;"</tt> or <tt>"FAT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"</tt>.
+ Many people think that this string has any effect in determination of 
+the FAT type but it is clearly a misrecognization. From the name of this
+ field, you will find that this is not a part of BPB. Since this string 
+is often incorrect or not set, Microsoft's FAT driver does not use this 
+field to determine the FAT type. However, some old FAT drivers use this 
+string to determine the FAT type, so that it should be set based on the 
+FAT type of the volume to avoid compatibility problems.</td>
+</tr>
+<tr><td>BS_BootCode</td><td>62</td><td>448</td>
+<td>Bootstrap program. It is platform dependent and filled with zero when not used.</td>
+</tr><tr><td>BS_BootSign</td><td>510</td><td>2</td>
+<td>0xAA55. A boot signature indicating that this is a valid boot sector.</td>
+</tr><tr><td></td><td>512</td><td></td>
+<td>When the sector size is larger than 512 bytes, rest field in the sector should be filled with zero.</td>
+</tr>
+</tbody></table>
+
+<table class="lst4" id="bpb_fat32">
+<caption>Fields for FAT32 volumes (offset from 36)</caption>
+<tbody><tr><th>Field name</th><th>Offset</th><th>Size</th><th>Description</th></tr>
+<tr><td>BPB_FATSz32</td><td>36</td><td>4</td>
+<td>Size of a FAT in unit of sector. The size of the FAT area is <tt>BPB_FATSz32 * BPB_NumFATs</tt>
+ sector. This is an only field needs to be referred prior to determine 
+the FAT type while this field exists in only FAT32 volume. But this is 
+not a problem because <tt>BPB_FATSz16</tt> is always invalid in FAT32 volume.</td>
+</tr>
+<tr><td>BPB_ExtFlags</td><td>40</td><td>2</td>
+<td>Bit3-0: Active FAT starting from 0. Valid when bit7 is 1.<br>
+Bit6-4: Reserved (0).<br>
+Bit7: 0 means that each FAT are active and mirrored. 1 means that only one FAT indicated by bit3-0 is active.<br>
+Bit15-8-4: Reserved (0).<br>
+</td>
+</tr>
+<tr><td>BPB_FSVer</td><td>42</td><td>2</td>
+<td>FAT32 version. Upper byte is major version number and lower byte is 
+minor version number. This document describes FAT32 version 0.0. This 
+field is for futuer extension of FAT32 volume to manage the filesystem 
+verison. However, FAT32 volume will not be updated any longer.</td>
+</tr>
+<tr><td>BPB_RootClus</td><td>44</td><td>4</td>
+<td>First cluster number of the root directory. It is usually set to 2, 
+the first cluster of the volume, but it does not need to always be 2.</td>
+</tr>
+<tr><td>BPB_FSInfo</td><td>48</td><td>2</td>
+<td>Sector of FSInfo structure in offset from top of the FAT32 volume. It is usually set to 1, next to the boot sector.</td>
+</tr>
+<tr><td>BPB_BkBootSec</td><td>50</td><td>2</td>
+<td>Sector of backup boot sector in offset from top of the FAT32 volume.
+ It is usually set to 6, next to the boot sector but 6 and any other 
+value is not recommended.</td>
+</tr>
+<tr><td>BPB_Reserved</td><td>52</td><td>12</td>
+<td>Reserved (0).</td>
+</tr>
+<tr><td>BS_DrvNum</td><td>64</td><td>1</td>
+<td>Same as the description of FAT12/16 field.</td>
+</tr>
+<tr><td>BS_Reserved</td><td>65</td><td>1</td>
+<td>Same as the description of FAT12/16 field.</td>
+</tr>
+<tr><td>BS_BootSig</td><td>66</td><td>1</td>
+<td>Same as the description of FAT12/16 field.</td>
+</tr>
+<tr><td>BS_VolID</td><td>67</td><td>4</td>
+<td>Same as the description of FAT12/16 field.</td>
+</tr>
+<tr><td>BS_VolLab</td><td>71</td><td>11</td>
+<td>Same as the description of FAT12/16 field.</td>
+</tr>
+<tr><td>BS_FilSysType</td><td>82</td><td>8</td>
+<td>Always <tt>"FAT32&nbsp;&nbsp;&nbsp;"</tt> and has not any effect in determination of FAT type.</td>
+</tr>
+<tr><td>BS_BootCode32</td><td>90</td><td>420</td>
+<td>Bootstrap program. It is platform dependent and filled with zero when not used.</td>
+</tr><tr><td>BS_BootSign</td><td>510</td><td>2</td>
+<td>0xAA55. A boot signature indicating that this is a valid boot sector.</td>
+</tr><tr><td></td><td>512</td><td></td>
+<td>When the sector size is larger than 512 bytes, rest part in the sector should be filled with zero.</td>
+</tr>
+</tbody></table>
+
+<p>There is another important thing about boot sector. The boot sector needs to be valid only if the boot signature (<tt>BS_Sign</tt>)
+ contains 0xAA55. If not, the boot sector is invalid. Many FAT documents
+ describe about this field, "Boot signature is put at the end of the 
+boot sector". This is correct only if the sector size is 512, but it is 
+incorrect in other case. The boot signature must always be put at offset
+ 510 (also it is not bad for both offset 510 and the end of the sector 
+contain this signature). Microsoft's disk formatter fills the rest part 
+of boot sector with zeros if the sector size is larger than 512. <tt>BS_Sign</tt> is often not set in the volumes formatted with old version of MS-DOS.</p>
+<p>Size of the volume, the value of <tt>BPB_TotSec??</tt>, might be 
+smaller than the container (storage or partition) where the volume is 
+contained in. It is not a problem at all. The FAT volume sometimes gets 
+this state due to alignment or resize of volume. Such an alignment hole 
+wastes disk space, but it does not mean insanity of the FAT volume 
+itself.</p>
+<p>However, if <tt>BPB_TotSec??</tt> is larger than the volume's 
+container, it can be said that the FAT volume is serious state, 
+corrupted volume or incorrectly created volume. Any operation to such 
+volume can result a catastrophic data loss, so that the FAT driver 
+should reject the volume if it detected such condition.</p>
+
+<h3 id="sections">Calculating Parameters</h3>
+<p>The offset and size of each area are calculated from the parameters in BPB as shown below.</p>
+<p>Since the FAT area is next to the reserved area, its offset and size are:</p>
+<pre>FatStartSector = BPB_ResvdSecCnt;
+FatSectors = BPB_FATSz * BPB_NumFATs;</pre>
+<p>The offset and size of the root directory are:</p>
+<pre>RootDirStartSector = FatStartSector + FatSectors;
+RootDirSectors = (32 * BPB_RootEntCnt + BPB_BytsPerSec - 1) / BPB_BytsPerSec;</pre>
+<p>The 32 in the equation is the size of a directory entry. A remainder 
+at the divsion is rounded up, but such configuration that gives 
+remainder is not recommended. On the FAT32 volumes, BPB_RootEntCnt is 
+always 0 and the root directory area is not exist. The data area becomes
+ the rest of these areas and it is obtained as follows.</p>
+<pre>DataStartSector = RootDirStartSector + RootDirSectors;
+DataSectors = BPB_TotSec - DataStartSector;</pre>
+<p>If the volume does not start from the top of the storage, for example
+ when the storage is partitioned, these start sector numbers are not 
+equal to the physical sector number.</p>
+
+
+<h3 id="fat_strucut">FAT and Cluster</h3>
+<p>The another important area is FAT. What this structure does is define
+ a linked list of the extents (cluster chain) of a file. Note that both 
+directroy and file is contained in the file and nothing different on the
+ FAT. The directory is really a file with a special attribute that 
+indicates its content is a directory table.</p>
+<p>The data area is divided into blocks of a certain number of sectors (<tt>BPB_SecPerClus</tt>) called <em>cluster</em>
+ and the data area is managed in this unit. Each item of FAT is 
+associated with each cluster in the data area and the FAT value 
+indicates the state of the corresponding cluster. However, the top two 
+FAT items, FAT[0] and FAT[1], are reserved and not associated with any 
+cluster. The third FAT item, FAT[2], is the item associated with the 
+first cluster of data area and the valid cluster number starts at 2. As 
+for the data recorded on the FAT, see <a href="#file_cluster">Association of File and Cluster</a>.</p>
+<p>FAT is usually duplicated for the redundancy because a damage of any 
+FAT sector results a serious data loss. Number of FAT copyies indicated 
+by <tt>BPB_NumFATs</tt> and the size of FAT area becomes <tt>BPB_FATSz * BPB_NumFATs</tt>. FAT driver typically refers only first FAT copy and any update to the FAT item is refrected every FAT copy.</p>
+
+
+<h3 id="fat_determination">Determination of FAT sub-type</h3>
+<p>There are three FAT types, FAT12, FAT16 and FAT32, need to be 
+determined on mount a FAT volume. However there is considerable 
+confusion over exactly how this works and it leads various degree of 
+errors. It is really quite simple how this works.</p>
+<p><em>The FAT type is determined by the count of clusters on the volume and NOTHING ELSE</em>.</p>
+<p>The count of clusters is that can exist in the data area, the 
+quotient of size of the data area divided by cluster size. Remainder is 
+ignored if it exist in the result.</p>
+<pre>CountofClusters = DataSectors / BPB_SecPerClus;</pre>
+<p>Once you know the count of clusters you can determine the FAT type. This is done as follows:</p>
+<ul>
+<li>A volume with count of clusters &lt;=4085 is FAT12.</li>
+<li>A volume with count of clusters &gt;=4086 and &lt;=65525 is FAT16.</li>
+<li>A volume with count of clusters &gt;=65526 is FAT32.</li>
+</ul>
+<p>This is the only way to determine the FAT type. FAT12 volumes never 
+have clusters more than 4085 and FAT16 volumes never have clusters less 
+than 4086 or more than 65525. If you tried to create an illegal FAT 
+volume out of this rule, the properly designed FAT driver will recognize
+ it as a different FAT type and will not able to access such volume. 
+Maximum cluster count for FAT32 volume is not defined and the practical 
+limit is 268435445.</p>
+<p>However, these boundaries are really not strictly settled. From the 
+maximum possible values of the cluster number, it will gets as described
+ above, but there are many variants (1, 2, 16 or more) over the existing
+ documentations and software implementations. For example about maximum 
+count of clusters of FAT12, the FAT specs says it is 4084, while MSDN 
+page says it is 4085 and Windows works with 4085 (FAT driver) or 4086 
+(chkdsk). Even the authorized documentation and the standad system 
+differ as to what the correct value is, so that it is recommended to 
+avoid count of clusters close to the boundaries when create a FAT 
+volume. The FAT specs says count of clusters should be at least 16 
+clusters off from the boundaries.</p>
+<p>Also, some FAT driver written in out of this rule seem to determine 
+the FAT type without the count of clusters but the string of <tt>BS_FilSysType</tt>. In order to support such the wrong FAT drivers, it is recommended to initialize <tt>BS_FilSysType</tt> with a proper string based on actual FAT type when create a FAT volume.</p>
+<p>You will understand what the count of clusters determins the FAT type
+ means which FAT type can be legal depends on the volume size. For 
+example under the condition of cluster size of from 512 to 32768 bytes, 
+it can be saied as follows:</p>
+<table class="lst4">
+<tbody><tr><th>FAT type</th><th>Volume size</th></tr>
+<tr><td>FAT12</td><td> - 128 MB</td></tr>
+<tr><td>FAT16</td><td>2 MB - 2 GB</td></tr>
+<tr><td>FAT32</td><td>32 MB - 2 TB</td></tr>
+</tbody></table>
+
+
+<h3 id="fat_access">Accessing FAT Entries</h3>
+<p>An important thing related to FAT is how to access the FAT entries. 
+First of all, you need to know where the FAT entry is located in the 
+FAT. At the FAT16/32, it is quite simple. FAT is a simple generic 
+integer array. The difference from the on-memory array is that the FAT 
+is not on the continuous memory but divided in multiple blocks and 
+stored on the contiguous disk sectors origin from the first sector of 
+the FAT. The location of the FAT entry FAT[N], the sector number and 
+byte offset in the sector, can be got by following calculation.</p>
+<pre>FAT16 entry location:
+    ThisFATSecNum = BPB_ResvdSecCnt + (N * 2 / BPB_BytsPerSec);
+    ThisFATEntOffset = (N * 2) % BPB_BytsPerSec;
+</pre>
+<pre>FAT32 entry location:
+    ThisFATSecNum = BPB_ResvdSecCnt + (N * 4 / BPB_BytsPerSec);
+    ThisFATEntOffset = (N * 4) % BPB_BytsPerSec;
+</pre>
+<p>The 2 (FAT16) or 4 (FAT32) byte word from the location is the FAT 
+entry to access. The byte order is little endian. The FAT entries never 
+across sector boundaries at FAT16/32.</p>
+<p>
+There is another important thing about FAT32. The FAT entry of FAT32 
+volume occupies 32 bits, but its upper 4 bits are reserved, only lower 
+28 bits are valid. The reserved bits are initialized by zero when 
+createing the FAT32 volume, and it should not be changed on the regular 
+use. Therefore, when load the value from the FAT entry of the FAT32 
+volume, upper 4 bits needs to be and-masked with 0x0FFFFFFF. Also, when 
+store a value into the FAT entry, the upper 4 bits in the FAT entry need
+ to be preserved.</p>
+<pre>Load a value of FAT32 entry:
+    ReadSector(SecBuff, ThisFATSecNum);
+    ThisEntryVal = *(uint32*)&amp;SecBuff[ThisFATEntOffset] &amp; 0x0FFFFFFF;
+</pre>
+<pre>Store a value of FAT32 entry:
+    ReadSector(SecBuff, ThisFATSecNum);
+    tmp = *(uint32*)&amp;SecBuff[ThisFATEntOffset];
+    tmp = (tmp &amp; 0xF0000000) | (NewEntryVal &amp; 0x0FFFFFFF);
+    *(uint32*)&amp;SecBuff[ThisFATEntOffset] = tmp;
+    WriteSector(SecBuff, ThisFATSecNum);
+</pre>
+<p>It is a little difficult at the FAT12 volume. The FAT12 entry is in bit field and it needs a complicated operation.</p>
+<pre>FAT12 entry location:
+    ThisFATSecNum = BPB_ResvdSecCnt + ((N + (N / 2)) / BPB_BytsPerSec);
+    ThisFATEntOffset = (N + (N / 2)) % BPB_BytsPerSec;</pre>
+<pre>Load a value of FAT12 entry:
+    ReadSector(SecBuff, ThisFATSecNum);
+    if (N &amp; 1) {    /* Odd entry */
+        ThisEntryVal = (SecBuff[ThisFATEntOffset] &gt;&gt; 4)
+                     | ((uint16)SecBuff[ThisFATEntOffset + 1] &lt;&lt; 4);
+    } else {        /* Even entry */
+        ThisEntryVal = SecBuff[ThisFATEntOffset]
+                     | ((uint16)(SecBuff[ThisFATEntOffset + 1] &amp; 0x0F) &lt;&lt; 8);
+    }
+</pre>
+<pre>Store a value of FAT12 entry:
+    ReadSector(SecBuff, ThisFATSecNum);
+    if (N &amp; 1) {    /* Odd entry */
+        SecBuff[ThisFATEntOffset] = (SecBuff[ThisFATEntOffset] &amp; 0x0F)
+                                  | (NewEntryVal &lt;&lt; 4);
+        SecBuff[ThisFATEntOffset + 1] = NewEntryVal &gt;&gt; 4;
+    } else {        /* Even entry */
+        SecBuff[ThisFATEntOffset] = NewEntryVal;
+        SecBuff[ThisFATEntOffset + 1] = (SecBuff[ThisFATEntOffset + 1] &amp; 0xF0)
+                                      | ((NewEntryVal &gt;&gt; 8) &amp; 0x0F);
+    }
+    WriteSector(SecBuff, ThisFATSecNum);
+</pre>
+<p>Unfortunately, this code does not work properly because the bit field spans over a sector boundary when <tt>ThisFATEntOffset</tt> points the last byte of the sector and it needs to be handled properly.</p>
+<p>Following image shows the FAT usage of each FAT type</p>
+<p><img src="FAT%20Filesystem_dosyalar/fat.png" width="720" height="210" alt="FAT entries"></p>
+
+
+<h3 id="file_cluster">Association of File and Cluster</h3>
+<p>Files on the FAT volume are managed by directory, the array of 
+32-byte directory entry structures. Details of the directory entry is 
+described below. The directory entry has the file name, file size, 
+timestamp and the first cluster number of the file data. The cluster 
+number is the entry point to follow the cluster chain of the file data. 
+If the file size is zero, a zero is set to the first cluster number and 
+no data cluster is allocated to the file.</p>
+<p>As described above, cluster number 0 and 1 are reserved and valid 
+cluster number starts from 2. The cluster number 2 corresponds to the 
+first cluster of the data area. Therefore, valid cluster number is from 2
+ to N + 1 and count of FAT entries is N + 2 in the volume with N 
+clusters. The location of a data cluster N is calculated as follows:</p>
+<pre>FirstSectorofCluster = DataStartSector + (N - 2) * BPB_SecPerClus;</pre>
+<p>If the file size is larger than the sector size, file data is 
+spanning over multiple sectors in the cluster. If the file size is 
+larger than the cluster size, file data is spanning over multiple 
+clusters in the cluster chain. The value of the FAT entry indicates 
+following cluster number if exist, so that the any byte offset in the 
+file can be reached by following the cluster chain. The cluster chain 
+cannot be followed backward. The FAT entry with last link of cluster 
+chain has a special value (end of chain, EOC, mark), which is never 
+matches any valid cluster number. The EOC mark for each FAT type is as 
+follows:</p>
+<ul>
+<li>FAT12: <tt>0xFF8 - 0xFFF</tt> (typically <tt>0xFFF</tt>)</li>
+<li>FAT16: <tt>0xFFF8 - 0xFFFF</tt> (typically <tt>0xFFFF</tt>)</li>
+<li>FAT32: <tt>0x0FFFFFF8 - 0x0FFFFFFF</tt> (typically <tt>0x0FFFFFFF</tt>)</li>
+</ul>
+<p>There is also a special value, bad cluster mark. The bad cluster mark
+ indicates that there is a defective sector in the cluster and it cannot
+ be used. The bad cluster found on the format, surface inspection or 
+disk repair is recorded in the FAT as bad cluster mark. The value of bad
+ cluster mark is <tt>0xFF7</tt> for FAT12, <tt>0xFFF7</tt> for FAT16 and <tt>0x0FFFFFF7</tt> for FAT32.</p>
+<p>The value of bad cluster mark never be equal to any valid cluster 
+number on the FAT12/16 volume. However, it can be equal to any 
+allocatable cluster number because the maximum count of clusters is not 
+defined in FAT32. Such FAT32 volumes can make disk utilities confuse, so
+ that you should avoid creating such FAT32 volume. Therefore, the upper 
+limit of cluster count of FAT32 volume is practicaly 268435445 (about 
+256 M clusters).</p>
+<p>Some system has a limitation on the maximum cluster count due to 
+implementation reasons. For example, Windows9X/Me supports the FAT size 
+16 MB maximum and it limits number of clusters about 4 M clusters 
+maximum.</p>
+<p>The initial value of each allocatable FAT entry, FAT[2] and 
+followings, is zero, which indicats the cluster is not in use and free 
+for a new allocation. If the value is not zero, it means the cluster is 
+in use or bad. Free cluster count is not recoreded anywhere in the 
+FAT12/16 volume and full FAT scan is needed to get this information. 
+FAT32 supports FSInfo to store the free cluster count to avoid full FAT 
+scan because of its very large FAT structure.</p>
+<p>The top two FAT entry, FAT[0] and FAT[1], are reserved and not 
+associated with any cluster. These FAT entries are initialized on 
+creating the volume as follows:</p>
+<ul>
+<li>FAT12: <tt>FAT[0] = 0xF??;      FAT[1] = 0xFFF;</tt></li>
+<li>FAT16: <tt>FAT[0] = 0xFF??;     FAT[1] = 0xFFFF;</tt></li>
+<li>FAT32: <tt>FAT[0] = 0xFFFFFF??; FAT[1] = 0xFFFFFFFF;</tt></li>
+</ul>
+<p>?? in the value of FAT[0] is the same value of <tt>BPB_Media</tt> but the entry has not any function. Some bits in the FAT[1] records error history.</p>
+<ul>
+<li>Volume dirty flag: (FAT16: bit15、FAT32: bit31): Cleared on boot, 
+restored on clean shutdown. Already cleared on boot indicates a dirty 
+shutdown and possibility of logical error in the volume.</li>
+<li>Hard error flag: (FAT16: bit14、FAT32: bit30): Cleared on 
+unrecoverable read/write error to indicates that a surface inspection is
+ needed.</li>
+</ul>
+<p>These flags indicates possibility of an error on the volume. Some OSs
+ supporing this feature check these flags on boot and launch disk 
+inspection tool automatically. Windows 9X family uses these flags. 
+Windows NT family does not use these flags but alternatives in the BPB.</p>
+<p>There are two more important things about the FAT area. One is that 
+the last sector of a FAT may not be fully used. In most case, FAT ends 
+at the middle of the sector. FAT driver should not have any assumption 
+about unused area. It should be filled with zeros on formatting the 
+volume and should not be changed afterwards. The other is that the <tt>BPB_FATSz16/32</tt>
+ can indicates a value lager than the volume requires. In other wards, 
+unused sectors can follow each FATs. It may a result of data area 
+alignment or something. Also these sector are filled with zeros on 
+formatting.</p>
+<p>Following table shows the range of FAT values and meaning for each FAT type.</p>
+<table class="lst" id="fat_value">
+<tbody><tr><th>FAT12</th><th>FAT16</th><th>FAT32</th><th>Meaninig</th></tr>
+<tr><td><tt>0x000</tt></td><td><tt>0x0000</tt></td><td><tt>0x00000000</tt></td><td>Free</td></tr>
+<tr><td><tt>0x001</tt></td><td><tt>0x0001</tt></td><td><tt>0x00000001</tt></td><td>Reserved</td></tr>
+<tr><td><tt>0x002 - 0xFF6</tt></td><td><tt>0x0002 - 0xFFF6</tt></td><td><tt>0x00000002 - 0x0FFFFFF6</tt></td><td>In use (value is link to next)</td></tr>
+<tr><td><tt>0xFF7</tt></td><td><tt>0xFFF7</tt></td><td><tt>0x0FFFFFF7</tt></td><td>Bad cluster</td></tr>
+<tr><td><tt>0xFF8 - 0xFFF</tt></td><td><tt>0xFFF8 - 0xFFFF</tt></td><td><tt>0x0FFFFFF8 - 0x0FFFFFFF</tt></td><td>In use (end of chain)</td></tr>
+</tbody></table>
+
+
+<h3 id="fsinfo">FSInfo Sector Structure and Backup Boot Sector</h3>
+<p>The size of FAT is up to 6 KB on FAT12 volume and up to 128 KB on 
+FAT16 volume, but it typically reach several MB on FAT32 volume. For 
+this reason, FAT32 volume supports FSInfo structure in order to avoid to
+ read over an entire FAT to look for free clusters or get count of free 
+clusters. This structure is put in the FSInfo sector indicated by <tt>BPB_FSInfo</tt>.</p>
+
+<table class="lst4">
+<caption>FAT32 FSInfo sector</caption>
+<tbody><tr><th>Field name</th><th>Offset</th><th>Size</th><th>Description</th></tr>
+<tr><td>FSI_LeadSig</td><td>0</td><td>4</td>
+<td>0x41615252. This is a lead signature used to validate that this is in fact an FSInfo sector.</td>
+</tr>
+<tr><td>FSI_Reserved1</td><td>4</td><td>480</td>
+<td>Reserved. This field should be always initialized to zero.</td>
+</tr>
+<tr><td>FSI_StrucSig</td><td>484</td><td>4</td>
+<td>0x61417272. Another signature that is more localized in the sector to the location of the fields that are used.</td>
+</tr>
+<tr><td>FSI_Free_Count</td><td>488</td><td>4</td>
+<td>This field indicates the last known free cluster count on the 
+volume. If the value is 0xFFFFFFFF, it is actually unknown. This is not 
+necessarily correct, so that the FAT driver needs to make sure it is 
+valid for the volume.</td>
+</tr>
+<tr><td>FSI_Nxt_Free</td><td>492</td><td>4</td>
+<td>This field gives a hint for the FAT driver, the cluster number at 
+which the driver should start looking for free clusters. Because a FAT32
+ FAT is large, it can be rather time consuming if there are a lot of 
+allocated clusters at the start of the FAT and the driver starts looking
+ for a free cluster starting at the first cluster. Typically this value 
+is set to the last cluster number that the driver allocated. If the 
+value is 0xFFFFFFFF, there is no hint and the driver should start 
+looking at cluster 2. This may not be correct, so that the FAT driver 
+needs to make sure it is valid for the volume.</td>
+</tr>
+<tr><td>FSI_Reserved2</td><td>496</td><td>12</td>
+<td>Reserved. This field should be always initialized to zero.</td>
+</tr>
+<tr><td>FSI_TrailSig</td><td>508</td><td>4</td>
+<td>0xAA550000. This trail signature is used to validate that this is in fact an FSInfo sector. </td>
+</tr>
+<tr><td></td><td>512</td><td></td>
+<td>When the sector size is larger than 512, rest bytes should be initialized to zero.</td>
+</tr>
+</tbody></table>
+<p>Another feature of FAT32 volume is backup boot sector. This is a 
+feature to provide redundancy for the only boot sector existing on the 
+FAT volume. This can increase the possibility of volume recovery if the 
+boot sector is corrupted for any reason. The location of backup boor 
+sector is indicated by <tt>BPB_BkBootSec</tt>. 6 is strongly recommended
+ for this field because the boot loader and FAT driver are hard coded to
+ try reading the boot sector at sector 6 when it failed to load the main
+ boot sector. The FAT32 boot sector is actually three 512-byte sectors 
+long. There is a copy of all three of these sectors starting at the 
+sector indicated by <tt>BPB_BkBootSec</tt>. A copy of the FSInfo sector is also there, even though the <tt>BPB_FSInfo</tt>
+ field in this backup boot sector is set to the same value as the value 
+in sector 0. All three sectors have boot signature, 0xAA55, at the 
+offset 510.</p>
+
+
+<h3 id="dir_struct">FAT Directory</h3>
+<p>This section describes about only short file name (SFN), the basic 
+feature of FAT volume. The directory is really a file with a special 
+attribute. It contains table of directory entries that contain meta data
+ of the files on the volume. Size of a directory entry is 32 byte long 
+and it corresponds with a file or diretory on the volume. Maximum size 
+of a directory is 2 MB (65536 entries).</p>
+<p>The root directory is only a special directory needs to be always 
+exist and it becomes top node of the hierarchy in the volume. On the 
+FAT12/16 volume, the root directory is not a file but put on the root 
+directory area separated form the data area. The count of root directory
+ entries is determined on the formatting and indicated in <tt>BPB_RootEntCnt</tt>.
+ On the FAT32 volume, there is no difference between the sub-directories
+ except for it does not have any entry to indicate it and the start 
+cluster number is indicated by <tt>BPB_RootClus</tt>.</p>
+<p>Another difference from the sub-directory is that it does not contain dot entries (<tt>".", ".."</tt>) what always exist in the sub-directory and it can contain a volume label (an entry with <tt>ATTR_VOLUME_ID</tt> attribute). Following table shows directory entry structure</p>
+<table class="lst4" id="dir_ent">
+<caption>Directory entry structure</caption>
+<tbody><tr><th>Field name</th><th>Offset</th><th>Size</th><th>Description</th></tr>
+<tr><td>DIR_Name</td><td>0</td><td>11</td>
+<td>Short file name (SFN) of the object.</td>
+</tr>
+<tr><td>DIR_Attr</td><td>11</td><td>1</td>
+<td>File attribute in combination of following flags. Upper 2 bits are reserved and must be zero.
+<tt><br>0x01: ATTR_READ_ONLY (Read-only)<br>
+0x02: ATTR_HIDDEN (Hidden)<br>
+0x04: ATTR_SYSTEM (System)<br>
+0x08: ATTR_VOLUME_ID (Volume label)<br>
+0x10: ATTR_DIRECTORY (Directory)<br>
+0x20: ATTR_ARCHIVE (Archive)<br>
+0x0F: ATTR_LONG_FILE_NAME (LFN entry)</tt></td>
+</tr>
+<tr><td>DIR_NTRes</td><td>12</td><td>1</td>
+<td>Optional flags that indicates case information of the SFN.<br>
+<tt>0x08: </tt>Every alphabet in the body is low-case.<br>
+<tt>0x10: </tt>Every alphabet in the extensiton is low-case.</td>
+</tr>
+<tr><td>DIR_CrtTimeTenth</td><td>13</td><td>1</td>
+<td>Optional sub-second information corresponds to <tt>DIR_CrtTime</tt>. The time resolution of <tt>DIR_CrtTime</tt>
+ is 2 seconds, so that this field gives a count of sub-second and its 
+valid value range is from 0 to 199 in unit of 10 miliseconds. If not 
+supported, set zero and do not change afterwards.</td>
+</tr>
+<tr><td>DIR_CrtTime</td><td>14</td><td>2</td>
+<td>Optional file creation time. If not supported, set zero and do not change afterwards.</td>
+</tr>
+<tr><td>DIR_CrtDate</td><td>16</td><td>2</td>
+<td>Optional file creation date. If not supported, set zero and do not change afterwards.</td>
+</tr>
+<tr><td>DIR_LstAccDate</td><td>18</td><td>2</td>
+<td>Optional last accesse date. There is no time information about last 
+accesse time, so that the resolution of last accesse time is 1 day. If 
+not supported, set zero and do not change afterwards.</td>
+</tr>
+<tr><td>DIR_FstClusHI</td><td>20</td><td>2</td>
+<td>Upeer part of cluster number. Always zero on the FAT12/16 volume. See <tt>DIR_FstClusLO</tt>.</td>
+</tr>
+<tr><td>DIR_WrtTime</td><td>22</td><td>2</td>
+<td>Last time when any change is made to the file (typically on closeing).</td>
+</tr>
+<tr><td>DIR_WrtDate</td><td>24</td><td>2</td>
+<td>Last data when any change is made to the file (typically on closeing).</td>
+</tr>
+<tr><td>DIR_FstClusLO</td><td>26</td><td>2</td>
+<td>Lower part of cluster number. When the file size is zero, no cluster
+ is assigned and this item must be zero. Always an valid value if it is a
+ directory.</td>
+</tr>
+<tr><td>DIR_FileSize</td><td>28</td><td>4</td>
+<td>Size of the file in unit of byte. Not used when it is a directroy and the value must be always zero.
+</td>
+</tr>
+</tbody></table>
+<p>The first byte of <tt>DIR_Name</tt> field, <tt>DIR_Name[0]</tt>, is 
+an impotant data to indicates state of the directory entry. When the 
+value is 0xE5, it indicates that the entry is not used (free for new 
+allocation). When the value is 0x00, it indicates that the entry is not 
+used (same as 0xE5) and in addition, there is no allocated entry after 
+this one (all of the <tt>DIR_Name[0]</tt> in all of the entries after this one are also set to 0). Any other value in the <tt>DIR_Name[0]</tt>
+ indicates the entry in in use. There is an exception about the file 
+name with heading character 0xE5. In this case, 0x05 is set instead.</p>
+<p><tt>DIR_Name</tt> field is a 11-byte string and divided in two parts,
+ body and extension. The file name is stored in 8-byte body + 3-byte 
+extension. The dot in the file name to separate body and exitension is 
+removed on the directory entry. If any part of the name does not fit to 
+the part, rest bytes in the part is filled with spaces (<tt>0x20</tt>). The code page used for the file name depends on the system.</p>
+
+<pre>FileName           DIR_Name[]       Description
+"FILENAME.TXT"    "FILENAMETXT"     Dot is removed.
+"DOG.JPG"         "DOG     JPG"     Each part is padded with spaces.
+"file.txt"        "FILE    TXT"     Low-case characters are up-converted.
+"蜃気楼.JPG"      "・気楼  JPG"     The first byte of "蜃", 0xE5, is replaced with 0x05
+"NOEXT"           "NOEXT      "     No extension
+".cnf"                              (illegal) Any name without body is not allowed
+"new file.txt"                      (illegal) Space is not allowed.
+"file[1].2+2"                       (illegal) [ ] + are not allowed.
+"longext.jpeg"                      (illegal) Out of 8.3 format.
+"two.dots.txt"                      (illegal) Out of 8.3 format.
+</pre>
+<p>Allowable charactes for the file name are<br>
+<em><tt>0～9 A～Z ! # $ % &amp; ' ( ) - @ ^ _ ` { } ~</tt></em><br>
+in ASCII characters and extended characters (\x80 - \xFF). Low-case 
+ASCII characters (a-z) in the input file name are replaced with up-case 
+characters prior to matching and recording. As for the extended 
+characters, there are many differnce on the replacement between each 
+system, such as Ää→ÄÄ (CP852) and Ää→AA (CP850). Therefore, using 
+extended characters can cause compatibility problem in the different 
+systems (e.g. file open failur) even if with the same name binary. As 
+for the DBCS extended characters in Japanese environment, refer to the <a href="#lfn_comp">Compatibility</a> described below.</p>
+<p>Every file names in a directory is unique each other. Any other enrty with the same name never exists. <tt>DIR_Attr</tt> field indicates the attribute of the entry.</p>
+<table class="lst4" id="attribute">
+<caption>File attribute</caption>
+<tbody><tr><th>Flag</th><th>Meaning</th></tr>
+<tr><td>ATTR_READ_ONLY</td><td>Read-only File. Any changes to the file or delete should be rejected.</td></tr>
+<tr><td>ATTR_HIDDEN</td><td>Normal directoly listing should not show this file. (system dependent)</td></tr>
+<tr><td>ATTR_SYSTEM</td><td>Indicates this is an system file. (system dependent)</td></tr>
+<tr><td>ATTR_DIRECTORY</td><td>Indicates this is a container of a directory.</td></tr>
+<tr><td>ATTR_ARCHIVE</td><td>This is for backup utilities. Set by FAT 
+driver on new creation, modification or renaming to the file is made. 
+The backup utilities able to easily find the file to be backed up and it
+ clears the attribute after the back up process.</td></tr>
+<tr><td>ATTR_VOLUME_ID</td><td>An entry with this attribute has the volume label of the volume. Only one entry can be exist in the root directory. <tt>DIR_FstClusHI</tt>, <tt>DIR_FstClusLO</tt> and <tt>DIR_FileSize</tt> field must be always zero. Some system may set <tt>ATTR_ARCHIVE</tt>, but it has no meaning.</td></tr>
+<tr><td>ATTR_LONG_NAME</td><td>This combination of attributes indicates the entry is a part of long file name. Details are described below.</td></tr>
+</tbody></table>
+
+
+<h3 id="fat_dir">Directory Operations</h3>
+<h4>Creating File</h4>
+<p>To create a file, FAT driver finds a free entry in the directory to 
+create in. If no free entry is found in the directry, stretch the 
+directry a cluster to allocate a new free entry, but size of a directory
+ cannot exceed 2 MB (65536 entries). Size of static directory (root 
+directory on the FAT12/16 volume) is fixed and cannot be changed. The 
+new entry has its name in the <tt>DIR_Name</tt>, <tt>ATTR_ARCHIVE</tt> flag in the <tt>DIR_Attr</tt> and <tt>DIR_FstClusHI, DIR_FstClusLO, DIR_FileSize</tt>
+ has 0 for the initial value. When any data is written to the file and 
+file size changed form 0, a new cluster chain is created and the first 
+cluster numner is stored to <tt>DIR_FstClusHI, DIR_FstClusLO</tt>. The cluster chain is streached as file size increse.</p>
+<h4>Creating Sub-directory</h4>
+<p>To create a sub-directory, FAT driver creates a directory entry as creating a file. The entry needs to have <tt>ATTR_DIRECTORY</tt> attribute. The sub-directry has no size information and <tt>DIR_FileSize</tt> field must be always zero. A cluster is initially allocated to the sub-directory and the cluster number is set to the <tt>DIR_FstClusHI, DIR_FstClusLO</tt>
+ field. Each entries in the cluster is initialized to zero. When the 
+directory table gets full, the cluster chain is stretched and cluster is
+ initialized to zero. The maximum length of a direcotry is 2 MB (64 K 
+entries).</p>
+<p>Sub-directory has two special entries (dot entry) at top of the directory, <tt>DIR[0]</tt> as <tt>".&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"</tt> and <tt>DIR[1]</tt> as <tt>"..&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"</tt>. These entries have <tt>ATTR_DIRECTORY</tt> attribute, however, they do not have any cluster but point another directory's cluster instead. <tt>"."</tt> entry points this directoy and <tt>".."</tt> entry points the parent directory. If the parent directory is the root directory, set zero to the <tt>DIR_FstClusHI, DIR_FstClusLO</tt> field even if at FAT32 volume.</p>
+<h4>Deleting File</h4>
+<p>To remove a file, set 0xE5 to the <tt>DIR_Name[0]</tt> to free the entry. If the file has a cluster chain, also the chain needs to be removed from the FAT.</p>
+<h4>Deleting Sub-directory</h4>
+<p>It is same as deleting a file. All nodes below the directory needs to
+ be scanned and all files and directories in the directory need to be 
+deleted prior to delete the directory otherwise those objects' clusters 
+get lost clusters.</p>
+<h4>Volume Label</h4>
+<p>FAT volume can have a its own name called volume label, which is recorded as a directory entry with <tt>ATTR_VOLUME_ID</tt>
+ attribute in the root directory. The volume label is not a file but 
+only a name of the volume. Its name space is independent of the files 
+and the name can be duplicated with any other file in the directory. 
+Allowable characters for the volume label is similar to the SFN entry 
+but it can contain spaces anywhere the name and cannot contain dot.</p>
+<p>The LFN extension is not applied to the volume label. When any change to the volume label is made, it should be reflected to <tt>BS_VolLab</tt>,
+ but Windows does not do it. Windows has a problem on the behavior at 
+the volume label beginning with a 0xE5. It does not replace it with 0x05
+ and the change will have no effect, so that such volume label shoud not
+ be used.</p>
+
+
+<h3 id="time_fmt">Timestamp</h3>
+<p>There are some fields related to the time and data in the directory entry. Most FAT driver supports only <tt>DIR_WrtTime, DIR_WrtDate</tt>
+ field which is mandatory to be supported and optional fields are not 
+supprted. The non supporting field should be initialized to zero on 
+creation of entry and do not chane afterwards. The format of the time 
+and date is described as follows:</p>
+<table class="lst4" id="tbl_time">
+<tbody><tr><th>Field name</th><th>Bit fields</th></tr>
+<tr><td>DIR_WrtDate<br>DIR_CrtDate<br>DIR_LstAccDate</td><td>Bit 15-9: Count of years from 1980 in range of from 0 to 127 (1980-2107).<br>Bit 8-5: Month of year in range of from 1 to 12.<br>Bit 4-0: Day of month in range of from 1 to 31.</td></tr>
+<tr><td>DIR_WrtTime<br>DIR_CrtTime</td><td>Bit 15-11: Hours in range of from 0 to 23.<br>Bit 10-5: Minutes in range from 0 to 59.<br>Bit 4-0: 2 second count in range of form 0 to 29 (0-58 seconds).</td></tr>
+</tbody></table>
+
+
+<h3 id="lfn">Long File Name</h3>
+<p>When add the long file name (<em>LFN</em>) as a new feature to the 
+FAT filesystem, a backward compatibility with the existing systems is 
+required. Following are concrete examples required.</p>
+<ul>
+<li>The existence of LFN needs to be invisible on the existing systems, especially any file API on the MS-DOS and Windows.</li>
+<li>LFN needs to be located physically near the direcroty entry of the corresponding file to prevent bad effect to the performance.</li>
+<li>If disk utility found the LFN information recorded somewhere on the 
+FAT volume, the filesystem needs to keep sanity and be not affected. </li>
+</ul>
+<p>To achieve these requirement, LFN information is recorded as 
+directory entry with a special attribute. As described above, the 
+attribute for the LFN entry (<tt>ATTR_LONG_NAME</tt>) is defined in combination of existing attribute bits (<tt>ATTR_READ_ONLY | ATTR_HIDDEN | ATTR_SYSTEM | ATTR_VOLUME_ID</tt>), and mask value (<tt>ATTR_LONG_NAME_MASK</tt> = <tt>ATTR_READ_ONLY | ATTR_HIDDEN | ATTR_SYSTEM | ATTR_VOLUME_ID | ATTR_DIRECTORY | ATTR_ARCHIVE</tt>) is also defined. When <tt>DIR_Attr</tt> masked with (<tt>ATTR_LONG_NAME_MASK</tt> matched with <tt>ATTR_LONG_NAME</tt>, the entry is an LFN entry and its field is defined as below.</p>
+
+<table class="lst4" id="lfn_entry">
+<caption>Directory entry structuer for LFN</caption>
+<tbody><tr><th>Field name</th><th>Offset</th><th>Size</th><th>Description</th></tr>
+<tr><td>LDIR_Ord</td><td>0</td><td>1</td>
+<td>Sequence number (1-20) to identify where this entry is in the 
+sequence of LFN entries to compose an LFN. One indicates the top part of
+ the LFN and any value with <tt>LAST_LONG_ENTRY</tt> flag (0x40) indicates the last part of the LFN.</td>
+</tr>
+<tr><td>LDIR_Name1</td><td>1</td><td>10</td>
+<td>Part of LFN from 1st character to 5th character.</td>
+</tr><tr><td>LDIR_Attr</td><td>11</td><td>1</td>
+<td>LFN attribute. Always <tt>ATTR_LONG_NAME</tt> and it indicates this is an LFN entry.</td>
+</tr><tr><td>LDIR_Type</td><td>12</td><td>1</td>
+<td>Must be zero.</td>
+</tr><tr><td>LDIR_Chksum</td><td>13</td><td>1</td>
+<td>Checksum of the SFN entry associated with this entry.</td>
+</tr><tr><td>LDIR_Name2</td><td>14</td><td>12</td>
+<td>Part of LFN from 6th character to 11th character.</td>
+</tr><tr><td>LDIR_FstClusLO</td><td>26</td><td>2</td>
+<td>Must be zero to avoid any wrong repair by old disk utility.</td>
+</tr><tr><td>LDIR_Name3</td><td>28</td><td>4</td>
+<td>Part of LFN from 12th character to 13th character.</td>
+</tr>
+</tbody></table>
+<p>LFN entry is always associated with the corresponding SFN entry in 
+order to add an LFN to the file. LFN entries never exist independent of 
+SFN. Therfore each file has only SFN or both of SFN and LFN. LFN entry 
+has only name information in it and nothing else about the file. If an 
+LFN entry without association with the SFN entry is exist, such stray 
+LFN entry is invalid and considered garbage. This is for backward 
+compatibility with old system. If an LFN is given to the file, the LFN 
+is the primary name of the file and the SFN is an alternative. Old 
+systems without support for LFN do not recognize LFN entry, but it can 
+access the files with SFN. LFN system can access the file with LFN or 
+SFN. Following table shows how the set of LFN and SFN is recorded on the
+ directory.</p>
+<table class="lst" id="lfn_tbl">
+<caption>Association of LFN "MultiMediaCard System Summary.pdf" with a file</caption>
+<tbody><tr><th>Location</th><th>First byte</th><th>Name field</th><th>Attribute</th><th>Content</th></tr>
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+<tr><td>DIR[N-3]</td><td>0x43</td><td>ary.pdf</td><td>--VSHR</td><td>LFN 3rd part (lfn[26..38])</td></tr>
+<tr><td>DIR[N-2]</td><td>0x02</td><td>d System Summ</td><td>--VSHR</td><td>LFN 2nd part (lfn[13..25])</td></tr>
+<tr><td>DIR[N-1]</td><td>0x01</td><td>MultiMediaCar</td><td>--VSHR</td><td>LFN 1st part (lfn[0..12])</td></tr>
+<tr><td>DIR[N]</td><td>'M'</td><td>MULTIM~1PDF</td><td>A-----</td><td>Associated SFN entry</td></tr>
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+</tbody></table>
+<p>If the LFN is longer than 13 characters, it is divided into some LFN 
+entries. The maximum name length for LFN is 255, so that an LFN occupies
+ upto 20 LFN entries. LFN is put on the directory at just before the 
+associated SFN entry. For the example shown above, an LFN with 33 
+character in length consist of 3 LFN entries that have <tt>0x43, 0x02, 0x01</tt> in <tt>LDIR_Ord</tt>.
+ The character code used for the LFN is Unicode in UTF-16 encoding while
+ the character code for SFN is ANSI/OEM code in local code page depends 
+on the system. If the last part does not fit 13 characters, it is 
+terminated with a null character (<tt>U+0000</tt>) and rest of name field must be filled with <tt>U+FFFF</tt>. <tt>LDIR_Ord</tt>
+ must start at 1 and be recorded in descending order. The block of 
+LFN+SFN are recorded on a contiguous entries. If any of these condition 
+about LFN entry is not met, the LFN is invalid any longer.</p>
+<p>Furthermore, a check sum is used to make sure of relevance between 
+LFN and SFN. Each LFN entry has a check sum of associated SFN in <tt>LDIR_Chksum</tt>. The check sum is generated in the algorithm shown below.</p>
+<pre>uint8_t create_sum (const DIR* entry)
+{
+    int i;
+    uint8_t sum;
+
+    for (i = sum = 0; i &lt; 11; i++) { /* Calculate sum of DIR_Name[] field */
+        sum = (sum &gt;&gt; 1) + (sum &lt;&lt; 7) + entry-&gt;DIR_Name[i];
+    }
+    return sum;
+}
+</pre>
+<p>If any check sum in the LFN entries does not match, the LFN is 
+invalid. This is to prevent wrong association due to any changes 
+(delete, create or rename) to the direcotry by the non-LFN system. 
+However, stray LFN entries continue to occupy the directory and the disk
+ usage gets worse. This will be a problem at the fixed length directory 
+(root directory on FAT12/16 volume). These garbage entries are removed 
+by disk utirities.</p>
+
+
+<h3 id="name_space">Namespace</h3>
+<h4>Short File Name</h4>
+<p>SFN, often called the 8.3 format name, is a traditional style file 
+name originally used on the MS-DOS in format of body (1-8 character) 
+plus optional extension (1-3 characters). These two parts are separated 
+with a dot (.). The allowable charactes for the SFN are ASCII 
+alphanumerics, some ASCII marks (<tt>$%'-_@~`!(){}^#&amp;</tt>) and extended characters (\x80 - \xFF).
+</p><p>SFN is stored in the SFN entry in OEM code set (used on MS-DOS) 
+depends on the system locale. Low-case character in the file name is 
+converted to up-case and then stored and matched, so that the case 
+information of SFN is lost.</p>
+<h4>Long File Name</h4>
+<p>Length of LFN can be upto 255 characters. The allowable characters for the LFN are white space and some ASCII marks (<tt>+,;=[]</tt>)
+ in addition to the SFN characters. Dots can be embedded anywhere in the
+ file name except the trailing dots and spaces are treated as end of the
+ name and truncated off on the file API. Preceding spaces and dots are 
+valid, but some user interface, such as Windows common dialog, rejects 
+such file name.</p>
+<p>LFN is stored in the LFN entry without up-case conversion. Character code used by LFN is in Unicode.</p>
+<p>Because different character codes are used by SFN (OEM code set) and 
+LFN (Unicode), generic implementation needs to convert those codes. This
+ is not the matter on the OEM code is single byte code, however, when 
+the OEM code page is in double byte character set (DBCS), a huge 
+(several hundreds KB) conversion table is needed, so that it is 
+difficult to implement LFN in the small embedded systems with a limited 
+memory.</p>
+
+<h3 id="name_matching">Name Matching</h3>
+<p>Every file names is unique in the directory and never matchs with any
+ other name no matter it is between LFN and SFN. LFN can contain 
+low-case characters and it is matched in case insensitive, so that these
+ three names, <tt>"LongFileName.Txt", "longfilename.txt", "LONGFILENAME.TXT"</tt>, are treated as the same name. Therfore name matching on directory search is always done in case insensitive.</p>
+<p>When find an input file name in 8.3 format, both LFN and SFN of the 
+files in the directory are compared. When the file name is out of 8.3 
+format, only LFN is compared.</p>
+<p>When list the file names in a directory, only LFN is output unless 
+SFN is specified. If the file doesn't have LFN or any character in the 
+LFN could not be converted into OEN code, this is the case when OEM code
+ is used on the API, SFN is output instead.</p>
+
+
+<h3 id="name_conversion">Generating SFN</h3>
+<p>In every FAT filesystem with LFN extension, file names given to the 
+file API need to be treated as LFN. SFN needs to be generated from the 
+input file name and the API should not allow to specify LFN and SFN 
+individually. Theoretically, any arbitrary SFN can be used unless it 
+collides with another name in the directory, but a certain rule for name
+ generation is needed in order to achive consistency of the file name 
+and to avoid confusions about file name between users or applications. 
+The SFN is generated as <em>body(+numeric-tail)(+extension)</em> in following procedure.</p>
+<ol>
+<li>Convert low-case characters includs extended characters into up-case.</li>
+<li>If any space is exist, remove it and set lossy conversion flag.</li>
+<li>If heading dots are exist, remove them and set lossy conversion flag.</li>
+<li>If two or more dots are exist, remove them except last one and set lossy conversion flag.</li>
+<li>If any character not allowed for SFN is exist, replace it with an underscore (<tt>_</tt>) and set lossy conversion flag.</li>
+<li>When the input file name is in Unicode, convert it to ANSI/OEM code.
+ If any character could not be converted to ANSI/OEM code, replace it 
+with an underscore and set lossy conversion flag.</li>
+<li>If length of the body is longer than 8 bytes, truncate it to 8 bytes and set lossy conversion flag.</li>
+<li>If length of the extention, if exist, is longer than 3 bytes, truncate it to 3 bytes and set lossy conversion flag.</li>
+</ol>
+<p>Here an SFN in body(+extension) is created. If lossy conversion flag 
+has been set, it means the input file name is out of 8.3 format. The 
+lossy converted SFN needs to be modified to suggest the SFN differs from
+ LFN to user. To generate a unique name, a numeric-tail (<tt>~N</tt>, a 
+tilde followed by 1-6 digits of numeral) is added to the body. The body 
+will need to be truncated to add the numeric-tail. The unique name not 
+collide with any other name in the directory is typically searched in 
+ascending order from N = 1, but it depends on the implementation. For 
+example, Windows NT family OSs totally re-create the body with some hash
+ value at 5th trial. Therefore what SFN is generated cannot be 
+determinable and it depends on the existing name in the directory and 
+locale settings.</p>
+<table class="lst">
+<caption>Example of generated SFN</caption>
+<tbody><tr><th>LFN(input)</th><th>SFN</th></tr>
+<tr><td>File.txt</td><td>FILE.TXT</td></tr>
+<tr><td>foo.tar.gz</td><td>FOOTAR~1.GZ</td></tr>
+<tr><td>.conf</td><td>CONF~1</td></tr>
+<tr><td>a+b=c</td><td>A_B_C~1</td></tr>
+<tr><td>Asakura Otome.jpeg</td><td>ASAKUR~1.JPE</td></tr>
+<tr><td>Asakura Yume.jpeg</td><td>ASAKUR~2.JPE</td></tr>
+<tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+</tbody></table>
+
+
+<h3 id="lfn_suppression">Suppressing LFN Entry</h3>
+<p>When the file name is in 8.3 format, generated SFN is the exactly 
+same as LFN (except for up-case conversion). In this case, the LFN entry
+ can be suppressed and not created if the follwing conditions each is 
+true.</p>
+<ul>
+<li>Any low-case character is not contained.</li>
+<li>Any extended character is not contained.</li>
+</ul>
+<p>For example, <tt>"HELLO.TXT"</tt> is the case. On the Window NT family OSs, also following condition is tested.</p>
+<ul>
+<li>Either or both of body and extension contains low-case characters with not in mixed-case.</li>
+<li>Any extended character is not contained.</li>
+</ul>
+<p>If it is the case, low-capital information is recorded in the <tt>DIR_NTRes</tt> of SFN entry and the LFN entry is suppressed. The file names satisfy this condition, such as <tt>"lower12.dll", "system32", "FDCMD.exe"</tt>,
+ are very common for most existing files. This enables to save the 
+number of direcrory entries. On the some LFN aware systems, such as 
+Windows 9X family, <tt>DIR_NTRes</tt> field is not supported and these 
+entries are recognized as simple SFN entries and the files will appear 
+in the directory listing as <tt>"LOWER12.DLL", "SYSTEM32", "FDCMD.EXE"</tt>.
+ It is not a problem because name matching is done in case insensitive 
+on the FAT file system. However, it can confuse some Unix based 
+application running on the Windows 9X family OSs when it refers a volume
+ written by Window NT family OS.</p>
+
+
+<h3 id="lfn_comp">Compatibility</h3>
+
+<h4>Non-LFN Aware System</h4>
+<p>The support of LFN is most important on the fixed disks, however it 
+is supported on removable media as well. The removavle media is shared 
+by various systems with or without support for LFN, so that the downward
+ compatibility is important for the implementation of LFN and it 
+provides support for LFN without breaking compatibility with the 
+existing FAT format. An FAT volume with any LFN exists can be read by 
+down level systems without any compatibility problems. An exsisting FAT 
+volume does not need to go through any comversion process prior to start
+ using LFN and any current files remain not modified. The LFN entry is 
+added on a long name is created. When rename a current file with LFN, 
+the SFN entry will be moved within the directory to create an entry 
+block. The LFN entries are hidden at the generic file APIs on the down 
+level systems and it does not cause any problem on geneic use. The user 
+can read any file with 8.3 format name and put a new file without any 
+side effect.</p>
+<p>Down level systems do not aware of existence of LFN, so that some LFN
+ entry can be broken by a directory operation. For instance, when a file
+ with LFN is renamed, <tt>LDIR_Chksum</tt> in the LFN entries gets 
+mismatch and as the result the LFN will be lost. Renaming or deleting 
+volume label can break some LFN entry as well. This is unfortunate, but 
+the file data itself is kept safe.</p>
+
+<h4>Up-case Conversion in Japanese MS-DOS</h4>
+<p>Up-case conversion for SFN is applied to extended characters as well.
+ However, it is not applied to extended characters in the Japanese 
+MS-DOS and they are recorded and searched without up-case conversion. It
+ is changed at Windows NT family OS and it creates SFN entry with 
+up-case conversion for all charactres. As the result, it brings a 
+serious compatibility problem. For instance, create a file <tt>"Ｆａｔ.TXT"</tt>
+ (name body is in full-width character) on the MS-DOS. And then mount 
+the volume on the Windows XP, and the file is no longer accessible. This
+ is because Windows NT family OSs find the SFN entry with up-case 
+converted name <tt>"ＦＡＴ.TXT"</tt> and it never matches the SFN created 
+by MS-DOS. The only workaround is to avoid using such file name. Also 
+Windows 9X family OSs create the SFN without up-case converson, but it 
+is not the problem because LFN entry is created and it can be opened on 
+the Windows NT family OSs.</p>
+
+<h4>Differnet OEM Code Page</h4>
+<p>Some OEM code pages are in DBCS. The trailing byte of a double-byte 
+character can match some illigal character for file name, especially 
+most FAT driver uses \ (\x5C) for directory separator for the path name.
+ If the file name contains such character bytes, the file will not able 
+to be accessed on the system with SBCS. There is similar ploblem between
+ SBCS systems due to up-case conversions of extended characters which 
+differ between each SBCS systems. When exchange files between the 
+systems with different code page, any file name with extended character 
+should not be used.</p>
+<p>There is no problem on the LFN because the file name is stored on the
+ directory in Unicode. However, when character code on the file API is 
+OEM code (this is incomplete support for LFN), some problems related to 
+different code page can occuer.</p>
+
+<h4>Mac OS X</h4>
+<p>Mac OS X supports the file names with trailing dots or spaces and the
+ OS can mount the FAT volume as well. However, such file name is not 
+allowed on the FAT volume. In case of the file to be created on the FAT 
+volume is that condition, Mac OS X replace the last character with an 
+escape character (space:U+F028, dot:U+F029). Application program needs 
+to consider this replacement when exchange the file between Mac and 
+another systems via a removable media.</p>
+
+
+<h3 id="partition">Physical Drive Partitioning</h3>
+<p>This is not in the scope of FAT filesystem. However, it is a generic 
+knowledge about disk usage that everybody need to know when use storage 
+devices in embedded systems.</p>
+<p>To use the huge disk space of harddisk drive efficiently, it is often
+ used in multiple partitions on a physical drive. For example, a 100 GB 
+harddisk is divided into 3 partitions, 10, 30 and 60 GB, and create the 
+volumes for system, data and cache. In generic Windwos PCs, two 
+partitions, one for system and the other for recovery, will be exist on 
+the harddisk.</p>
+<p>There are two partitioning rules, MBR format (aka FDISK format) and 
+SFD format (Super-floppy Disk). The MBR format is usually used for 
+harddisk and memory card. It can divide a physical drive into one or 
+more partitions with a partition table on the MBR (Maser Boot Record, 
+the LBA 0 of the physical drive). The SFD format is non-partitioned disk
+ format. The FAT volume starts at the LBA 0 of the physical drive 
+without any disk partitioning. It is usually used for floppy disk, 
+optical disk and most type of super-floppy media.</p>
+<p>Some combinations of systems and media type support only either one 
+of the two formats and the other is not supported. Windows OS does not 
+support second partition on the removable drive and SFD format on the 
+harddisk (the former has been supported at Windows 10 1703).</p>
+
+<table class="lst4" id="mbr_fmt">
+<caption>MBR and Partition table</caption>
+<tbody><tr><th>Field name</th><th>Offset</th><th>Size</th><th>Description</th></tr>
+<tr><td>MBR_bootcode</td><td>0</td><td>446</td>
+<td>Boot program. Depends on the system. Filled with zeros when not used.</td>
+</tr>
+<tr><td>MBR_Partation1</td><td>446</td><td>16</td>
+<td>Partition table enrty 1. Indicates partition type and status.</td>
+</tr>
+<tr><td>MBR_Partation2</td><td>462</td><td>16</td>
+<td>Partition table enrty 2.</td>
+</tr>
+<tr><td>MBR_Partation3</td><td>478</td><td>16</td>
+<td>Partition table enrty 3.</td>
+</tr>
+<tr><td>MBR_Partation4</td><td>494</td><td>16</td>
+<td>Partition table enrty 4.</td>
+</tr>
+<tr><td>MBR_Sig</td><td>510</td><td>2</td>
+<td><tt>0xAA55</tt>. Indicates this is a valid MBR.</td>
+</tr>
+</tbody></table>
+<p>Following table shows the field of partition table entry and upto 
+four entry can be recorded in the MBR. This means a storage device can 
+be divided four partitions. There is a type of partition which can 
+contain some partitions in it, but for details of it, prease refer to 
+others.</p>
+<table class="lst4" id="mbr_ent_fmt">
+<caption>Partition table entry</caption>
+<tbody><tr><th>Field name</th><th>Offset</th><th>Size</th><th>Description</th></tr>
+<tr><td>PT_BootID</td><td>0</td><td>1</td>
+<td>Boot indicator.<br>
+Not bootable (0x00) or Bootable (0x80).<br>
+Bootable is to make the system boots from this partition, but it is system dependent. Only one partition can be set to bootable.</td>
+</tr>
+<tr><td>PT_StartHd</td><td>1</td><td>1</td>
+<td>Head number of partition start sector in CHS form (<tt>0 - 254</tt>).</td>
+</tr>
+<tr><td>PT_StartCySc</td><td>2</td><td>2</td>
+<td>Cylinder number (bit9-0: 0-1023) and sector number in the cylinder (bit15-10: 1-63) of partition start sector in CHS form.</td>
+</tr>
+<tr><td>PT_System</td><td>4</td><td>1</td>
+<td>Type of this partition. Typical values are:<br>
+0x00: Blank entry. Any other field must be zero.<br>
+0x01: FAT12 (CHS/LBA, &lt; 65536 sectors)<br>
+0x04: FAT16 (CHS/LBA, &lt; 65536 sectors)<br>
+0x05: Extended partition (CHS/LBA)<br>
+0x06: FAT12/16 (CHS/LBA, &gt;= 65536 sectors)<br>
+0x07: HPFS/NTFS/exFAT (CHS/LBA)<br>
+0x0B: FAT32 (CHS/LBA)<br>
+0x0C: FAT32 (LBA)<br>
+0x0E: FAT12/16 (LBA)<br>
+0x0F: Extended partition (LBA)<br>
+</td>
+</tr>
+<tr><td>PT_EndHd</td><td>1</td><td>1</td>
+<td>Head number of partition end sector in CHS form (<tt>0 - 254</tt>).</td>
+</tr>
+<tr><td>PT_EndCySc</td><td>2</td><td>2</td>
+<td>Cylinder number (bit9-0: 0-1023) and sector number in the cylinder (bit15-10: 1-63) of partition end sector in CHS form.</td>
+</tr>
+<tr><td>PT_LbaOfs</td><td>8</td><td>4</td>
+<td>Partition start sector in 32-bit LBA (<tt>1 - 0xFFFFFFFF</tt>).</td>
+</tr>
+<tr><td>PT_LbaSize</td><td>12</td><td>4</td>
+<td>Partition size in unit of sector (<tt>1 - 0xFFFFFFFF</tt>).</td>
+</tr>
+</tbody></table>
+<p>Ecah partition occupy a part of drive without overlapping each other 
+and the first sector of the partition is the VBR. In most case, only 
+first entry is used and rest of entries are left blanked.</p>
+<p>There are two formart to express allocation of the partitions, CHS 
+and LBA. Both parameters are stored on the entry. CHS field is used for 
+the drives that have geometry, but this is actually depends on the 
+system. LBA field is used for the drives controled in LBA. If the 
+partition overlaps an area where cannot be expressed in CHA (8 GB and 
+above), CHS field is no longer valid and only LBA field can be used.</p>
+
+<p class="foot"><img src="FAT%20Filesystem_dosyalar/sign.png" alt=""></p>
+
+
+</body></html>
