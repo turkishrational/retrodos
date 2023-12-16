@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RETRODOS.SYS (MSDOS 5.0 Kernel) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 29/09/2023 (Previous: 27/09/2023)
+; Last Update: 15/12/2023 (Previous: 29/09/2023)
 ; ----------------------------------------------------------------------------
 ; Beginning: 25/05/2018 (Retro DOS 3.0), 26/12/2018 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -4599,19 +4599,21 @@ loop_drive:
 ;-----------------------------------------------------------------------------
 
 got_more:				
-		xor	cx, cx		; zero all flags
+		xor	cx, cx ; 0	; zero all flags
 		mov	di, [di]	; [di+BDS.link]
 					; get next bds
 		mov	dh, 0 ; ff48tpi
 					; set form factor to 48	tpi
-		mov	byte [num_cyln], 40 ; 40 tracks per	side
+		mov	byte [num_cyln], 40 ; 40 tracks per side
 		
+		; 14/12/2023
+		push	cx ; 0
 		; 20/12/2022
 		;push	ds ; 11/05/2019	
 		push	di
 		push	dx
-		push	cx
-		push	es ; ((*)) ; 20/12/2022	
+		;push	cx ; not necessary (14/12/2023)
+		push	es ; ((*)) ; 20/12/2022
 		
 		mov	ah, 8
 		int	13h		; DISK - DISK -	GET CURRENT DRIVE PARAMETERS (XT,AT,XT286,CONV,PS)
@@ -4627,6 +4629,11 @@ got_more:
 ; they are calculated at the later time. this is just for the diagnostic
 ; diskette which need msbio,msdos to boot up before it sets cmos.
 ; this should only happen with drive b.
+
+		; 14/12/2023
+		; ch = low eight bits of maximum cylinder number
+		; cl = maximum sector number (bits 5-0)
+		;      high two bits of maximum cylinder number (bits 7-6)
 
 		cmp	ch, 0		; if ch=0, then	cl,dh=0	too.
 		jnz	short pfr_ok
@@ -4657,11 +4664,30 @@ pfr_ok:
 ;eot_ok:					
 eotok:
 		; 20/12/2022
-		pop	es ; ((*)) es = cs = ds		
-		pop	cx
+		pop	es ; ((*)) es = cs = ds
+		;pop	cx ; 14/12/2023
 		pop	dx
 		pop	di
-		;pop	ds ; 20/12/2022
+		; 20/12/2022
+		;pop	ds
+
+		; 14/12/2023
+		; 13/12/2023 - Retro DOS v4.0 & v4.1 IO.SYS - BugFix ; +*+
+		; (MSDOS 5.0 IO.SYS - BIOSDATA:1AAAh)
+
+		; 12/12/2023 - Retro DOS v4.2 IO.SYS - BugFix ; +*+
+		; (MSDOS 5.0 & MSDOS 6.22 IO.SYS both have a bug here,
+		;  they does not save CX,DX registers before INT 13h func 15h)
+		; (this is also a ROMBIOS bug, some ROMBIOSs return number
+		;  of sectors in cx:dx pair while others restore cx:dx)
+		;  -- ref: Ralf Brown's Interrupt List --
+		; ((MSDOS 6.22 IO.SYS - BIOSDATA:1AF0h))
+		; ((PCDOS 7.1 IBMBIO.COM - BIOSDATA:2119h))
+		; (This BUG does not exist in PCDOS 7.1 IBMBIO.COM)
+
+		; 14/12/2023
+		; 13/12/2023
+		push	dx ; +*+
 
 ; Check	for presence of	changeline
 
@@ -4670,7 +4696,11 @@ eotok:
 					; DL = drive ID
 					; Return: CF set on error, AH =	disk type (3 = hard drive)
 					; CX:DX	= number of sectors on the media
+		; 14/12/2023
+		pop	dx ; +*+
+		pop	cx ; +*+		
 		jc	short changeline_done
+
 		cmp	ah, 2		; check	for presence of	changeline
 		jnz	short changeline_done
 
@@ -4733,16 +4763,30 @@ got96:
 noparmsfromrom:				
 		; 20/12/2022
 		pop	es ; ((*)) 
-		pop	cx
+		;pop	cx ; 14/12/2023
 		pop	dx
 		pop	di
-		;pop	ds ; 20/12/2022
+		; 20/12/2022
+		;pop	ds
+
+		; 14/12/2023
+		; 13/12/2023 - BugFix ; * ; +*+
+		; (MSDOS 5.0 & 6.22 IO.SYS bug) ; +*+
+		; (some ROMBIOSs fix this BUG but return with false)
+		; -- ref: Ralf Brown's Interrupt List --
+
+		; 14/12/2023
+		; 13/12/2023
+		push	dx  ; +*+
 		
 		mov	ah, 15h
 		int	13h		; DISK - DISK -	GET TYPE (AT,XT2,XT286,CONV,PS)
 					; DL = drive ID
 					; Return: CF set on error, AH =	disk type (3 = hard drive)
 					; CX:DX	= number of sectors on the media
+		; 14/12/2023
+		pop	dx  ; +*+
+		pop	cx  ; +*+ ; 0
 		jc	short nextdrive
 		
 		cmp	ah, 2		; is there changeline?
@@ -4750,6 +4794,7 @@ noparmsfromrom:
 
 		or	cl, 2 ; fchangeline
 		mov	byte [fhave96], 1 ; remember that we have 96tpi drives
+
 		mov	byte [num_cyln], 80
 		mov	dh, 1 ; ff96tpi 
 		mov	al, 15
@@ -4793,7 +4838,9 @@ not_special:
 		mov	[di+25h], bl	; [di+BDS.cylinders]
 		cmp	byte [single], 1 ; Special case for single drive system
 		jnz	short no_single
-		mov	byte [single], 2 ; Don't forget we have
+		; 14/12/2023
+		inc	byte [single]	; [single] = 2
+		;mov	byte [single], 2 ; Don't forget we have
 					; single drive system
 		; 18/12/2022
 		or	cl, 10h
@@ -4962,13 +5009,21 @@ dynamic_configure:
 		; ss = 0
 		; sp = 700h
 
-		cmp	byte [model_byte], 0FCh ; AT ?
-		jnz	short checkcmosclock
-		cmp	byte [hnum], 0	; No hard file?
-		jz	short checkcmosclock
-		xchg	ax, di		; save allocation pointer in ax
+		; 14/12/2023
 		mov	si, 0F000h
 		mov	es, si		; ES ->	ROM BIOS segment
+
+		cmp	byte [model_byte], 0FCh ; AT ?
+		;jnz	short checkcmosclock
+		; 14/12/2023
+		jnz	short checkcompaqbug ; no
+		cmp	byte [hnum], 0	; No hard file?
+		;jz	short checkcmosclock
+		jz	short checkcompaqbug
+		xchg	ax, di		; save allocation pointer in ax
+		; 14/12/2023
+		;mov	si, 0F000h
+		;mov	es, si		; ES ->	ROM BIOS segment
 		mov	si, bios_date	; "01/10/84"
 		mov	di, 0FFF5h	; ROM BIOS string is at	F000:FFF5
 		mov	cx, 9		; bdate_l
@@ -5051,7 +5106,9 @@ checkcompaqbug:
 
 do_compaq_patch:			
 		mov	cx, end_compaq_i13hook
-		mov	si, endatrom
+		;mov	si, endatrom
+		; 14/12/2023
+		mov	si, compaq_disk_io ; endatrom
 
 install_int13_patch:			
 		push	cs
@@ -5101,6 +5158,8 @@ checkk09:
 					; AL = condition type, BH = condition compare or mask value
 					; BL = timeout value times 55 milliseconds, 00h	means no timeout
 					; DX = I/O port	address	if AL bit 4 set
+					; 14/12/2023
+					; ES:DI = user byte if AL bit 4 clear
 		pop	di ; ?
 		jc	short configdone ; 20/12/2022
 
@@ -5136,7 +5195,9 @@ GETBP equ GetBp
 		
 		; 17/10/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
 configdone:	
-		; 21/12/2022			
+		; 14/12/2023
+		; ds = cs
+		; 21/12/2022
 		; 20/03/2019
 		;push	cs		; di is	final ending address of	msbio.
 		;pop	ds
@@ -5164,6 +5225,7 @@ configdone:
 	     
 	     ; ("MSINIT.ASM" contains kernel file reading code here, below...)
 
+; 14/12/2023 
 ; ----------------------------------------------------------------------------
 ; ----------------------------------------------------------------------------
 %if 0
@@ -5292,7 +5354,6 @@ eofbig:
 		cmp	bx, 0FFF7h
 iseofx:
 		jb	short loadit	; keep loading until cluster = eof
-
 %endif
 ; ----------------------------------------------------------------------------
 ; ----------------------------------------------------------------------------
@@ -5344,18 +5405,22 @@ iseofx:
 ; 17/10/2022
 ; 02/10/2022
 
-remap:		; proc near		
-		mov	di, [cs:start_bds] ; get first bds
+remap:		; proc near
+
+		; 15/12/2023
+		; ds = cs
+		;mov	di, [cs:start_bds] ; get first bds
+		mov	di, [start_bds]
 
 ; search for 1st fixed disk physical drive num
 
-drive_loop:				
+drive_loop:
 		cmp	byte [di+4], 80h ; [di+BDS.drivenum]
 					; first	hard disk??
 		jz	short fdrv_found ; yes,	continue
 		mov	di, [di]	; [di+BDS.link]
 					; get next bds,	assume segment
-		cmp	di, -1		; last bds?
+		cmp	di, -1 ; 0FFFFh	; last bds?
 		jnz	short drive_loop ; loop	if not
 		jmp	short rmap_exit	; yes, no hard drive on	system
 
@@ -5364,18 +5429,17 @@ drive_loop:
 ;logical drive nums to 3, 4, 5 etc.
 ;------------------------------------------------------------------------------
 
-fdrv_found:				
+fdrv_found:
 		mov	al, 2		; start	with logical drv num=2
-fdrv_loop:				
+fdrv_loop:
 		mov	[di+5],	al	; [di+BDS.drivelet]
-					; found	??
 		mov	di, [di]	; [di+BDS.link]
 					; ds:di--> next	bds
 		;inc	al		; set num for next drive
 		; 18/12/2022
 		inc	ax
-		cmp	di, 0FFFFh	; last hard drive ??
-		jnz	short fdrv_loop	; no - assign more disk	drives
+		cmp	di, 0FFFFh	; last hard drive ?
+		jnz	short fdrv_loop	; no - assign more disk drives
 
 ;------------------------------------------------------------------------------
 ; now, rescan and find bds of 3rd floppy drive and assign next drive letter
@@ -5383,26 +5447,31 @@ fdrv_loop:
 ; any more.
 ;------------------------------------------------------------------------------
 
-		mov	di, [cs:start_bds] ; [start_bds]
-					; get first bds
+		;mov	di, [cs:start_bds] ; [start_bds]
+		; 15/12/2023
+		mov	di, [start_bds]	; get first bds
 		mov	di, [di]	; [di+BDS.link]
 					; ds:di-->bds2
-		mov	ah, [cs:dsktnum] ; get number of floppies to remap
+		;mov	ah, [cs:dsktnum] ; get number of floppies to remap
+		mov	ah, [dsktnum]
 		sub	ah, 2		; adjust for a:	& b:
-remap_loop1:				
+remap_loop1:
 		mov	di, [di]	; [di+BDS.link]
 					; set new num to next floppy
 		mov	[di+5],	al	; [di+BDS.drivelet]
 		inc	al		; new number for next floppy
-		dec	ah		; count	down extra floppies
+		dec	ah		; count down extra floppies
 		jnz	short remap_loop1
 
 ; now we've got to adjust the boot drive if we reassigned it
 
-		mov	al, [cs:drvfat]
+		; 15/12/2023
+		;mov	al, [cs:drvfat]
+		mov	al, [drvfat]
 		cmp	al, 2		; is it	a: or b: ?
 		jb	short rmap_exit
-		sub	al, [cs:dsktnum] ; is it one of the other floppies?
+		;sub	al, [cs:dsktnum]
+		sub	al, [dsktnum]	; is it one of the other floppies?
 		jb	short remap_boot_flop ;	brif so
 
 ; we've got to remap the boot hard drive
@@ -5415,20 +5484,24 @@ remap_loop1:
 ; we've got to remap the boot floppy.
 ; add the number of hard drive partitions to it
 
-remap_boot_flop:			
-		add	al, [cs:drvmax]	; bootdrv += (drvmax-dsktnum)
+remap_boot_flop:
+		;add	al, [cs:drvmax]	; bootdrv += (drvmax-dsktnum)
+		; 15/12/2023
+		add	al, [drvmax]
 remap_change_boot_drv:			
-		mov	[cs:drvfat], al ; alter msdos.sys load drive
+		;mov	[cs:drvfat], al ; alter msdos.sys load drive
+		mov	[drvfat], al
 		inc	al
 		push	ds
 		mov	di, SYSINITSEG	; 46Dh
-		;mov	di, 46Dh	; SYSINIT segment
+		;mov	di, 544h	; PCDOS 7.1 IBMBIO.COM
+		;;mov	di, 46Dh	; SYSINIT segment
 		mov	ds, di
 		mov	[DEFAULTDRIVE], al
 		;mov	ds:296h, al	; [SYSINIT+DEFAULT_DRIVE]
 					; pass it to sysinit as	well
-		pop	ds
-rmap_exit:				
+		pop	ds ; ds = cs
+rmap_exit:
 		retn
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -5450,7 +5523,10 @@ rmap_exit:
 ; 17/10/2022
 bootbias equ 200h
 
-getboot:	; proc near		
+getboot:	; proc near
+		
+		; 15/12/2023
+		; ds = cs
 		
 		; 08/04/2018
 		; Retro DOS v2.0 (IBMBIO.COM, IBMDOS 2.1)
@@ -5458,8 +5534,11 @@ getboot:	; proc near
 		; 02/10/2022 - Retro DOS v4.0
 		;	      (disassembled IO.SYS code of MSDOS 5.0)
 
-		mov	ax, [cs:init_bootseg] ; 17/10/2022
+		;mov	ax, [cs:init_bootseg] ; 17/10/2022
+		; 15/12/2023
+		mov	ax, [init_bootseg]
 		mov	es, ax
+
 		; 17/10/2022
 		mov	bx, bootbias ; 200h
 		;mov	bx, 200h	; bootbias
@@ -5477,9 +5556,9 @@ getboot:	; proc near
 		;cmp	word ptr es:3FEh, 0AA55h ; [es:bootbias+1FEh]
 					; Dave Litton magic word?
 		jz	short norm_ret	; yes
-erret:					
+erret:
 		stc
-norm_ret:				
+norm_ret:
 		retn
 
 ; =============== S U B	R O U T	I N E =======================================
