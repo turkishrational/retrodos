@@ -1,0 +1,303 @@
+WinMeBS:7C00 ;
+WinMeBS:7C00 ; +-------------------------------------------------------------------------+
+WinMeBS:7C00 ; |   This	file has been generated	by The Interactive Disassembler	(IDA)	 |
+WinMeBS:7C00 ; |	   Copyright (c) 2013 Hex-Rays,	<support@hex-rays.com>		 |
+WinMeBS:7C00 ; |		      License info: 48-325F-7034-FF			 |
+WinMeBS:7C00 ; |		     Rico Baumgart, personal license			 |
+WinMeBS:7C00 ; +-------------------------------------------------------------------------+
+WinMeBS:7C00 ;
+WinMeBS:7C00 ; Input MD5   : 7C2CD691F1F331653D7B043E28D38477
+WinMeBS:7C00 ; Input CRC32 : C316C648
+WinMeBS:7C00
+WinMeBS:7C00 ; ---------------------------------------------------------------------------
+WinMeBS:7C00 ; File Name   : C:\WinMe\winme_bs.img
+WinMeBS:7C00 ; Format	   : Binary file
+WinMeBS:7C00 ; Base Address: 0000h Range: 0000h	- 0200h	Loaded length: 0200h
+WinMeBS:7C00
+WinMeBS:7C00		     .686p
+WinMeBS:7C00		     .mmx
+WinMeBS:7C00		     .model flat
+WinMeBS:7C00
+WinMeBS:7C00 ; ===========================================================================
+WinMeBS:7C00
+WinMeBS:7C00 ; Segment type: Pure code
+WinMeBS:7C00 WinMeBS	     segment byte public 'CODE' use16
+WinMeBS:7C00		     assume cs:WinMeBS
+WinMeBS:7C00		     ;org 7C00h
+WinMeBS:7C00		     assume es:nothing,	ss:nothing, ds:nothing,	fs:nothing, gs:nothing
+WinMeBS:7C00
+WinMeBS:7C00 BS_jmpBoot:
+WinMeBS:7C00		     jmp     short bootcode
+WinMeBS:7C00 ; ---------------------------------------------------------------------------
+WinMeBS:7C02		     db	90h
+WinMeBS:7C03 BS_OEMName	     db	'MSWIN4.1'
+WinMeBS:7C0B BPB_BytsPerSec  dw	512
+WinMeBS:7C0D BPB_SecPerClus  db	1
+WinMeBS:7C0E BPB_RsvdSecCnt  dw	1
+WinMeBS:7C10 BPB_NumFATs     db	2
+WinMeBS:7C11 BPB_RootEntCnt  dw	224
+WinMeBS:7C13 BPB_TotSec16    dw	2880
+WinMeBS:7C15 BPB_Media	     db	0F0h
+WinMeBS:7C16 BPB_FATSz16     dw	9
+WinMeBS:7C18 BPB_SecPerTrk   dw	18
+WinMeBS:7C1A BPB_NumHeads    dw	2
+WinMeBS:7C1C BPB_HiddSec     dd	0		     ; DATA XREF: WinMeBS:7C76r
+WinMeBS:7C20 BPB_TotSec32    dd	0
+WinMeBS:7C24 BS_DrvNum	     db	0
+WinMeBS:7C25 BS_Reserved1    db	0
+WinMeBS:7C26 BS_BootSig	     db	29h
+WinMeBS:7C27 BS_VolID	     dd	0C4B0FDDh
+WinMeBS:7C2B BS_VolLab	     db	'BOOTCD     '
+WinMeBS:7C36 BS_FilSysType   db	'FAT12   '
+WinMeBS:7C3E ; ---------------------------------------------------------------------------
+WinMeBS:7C3E
+WinMeBS:7C3E bootcode:				     ; CODE XREF: WinMeBS:BS_jmpBootj
+WinMeBS:7C3E		     xor     cx, cx
+WinMeBS:7C40		     mov     ss, cx	     ; 0
+WinMeBS:7C42		     mov     sp, 7BFCh	     ; 7C00h-4
+WinMeBS:7C45		     push    ss
+WinMeBS:7C46		     pop     es
+WinMeBS:7C47		     mov     bp, 78h	     ; 1Eh*4 (INT 1Eh vector)
+WinMeBS:7C4A		     lds     si, [bp+0]
+WinMeBS:7C4D		     push    ds
+WinMeBS:7C4E		     push    si
+WinMeBS:7C4F		     push    ss
+WinMeBS:7C50		     push    bp
+WinMeBS:7C51		     mov     di, 522h	     ; new floppy dpt address
+WinMeBS:7C54		     mov     [bp+0], di
+WinMeBS:7C57		     mov     [bp+2], cx
+WinMeBS:7C5A		     mov     cl, 11
+WinMeBS:7C5C		     cld
+WinMeBS:7C5D		     rep movsb
+WinMeBS:7C5F		     push    es
+WinMeBS:7C60		     pop     ds
+WinMeBS:7C61		     mov     bp, 7C00h	     ; boot sector buffer address (MBR loads here)
+WinMeBS:7C64		     mov     byte ptr [di-2], 0Fh ; safe head settle time (15, max.)
+WinMeBS:7C68		     cmp     [bp+24h], cl    ; drive number = 0	?
+WinMeBS:7C6B		     jge     short bscode_3  ; find and	read JO.SYS
+WinMeBS:7C6D		     mov     ax, cx	     ; Hard disk (80h)
+WinMeBS:7C6F		     cwd
+WinMeBS:7C70		     call    read_one_sector
+WinMeBS:7C73		     sub     bx, 58	     ; 700h - 3Ah
+WinMeBS:7C76		     mov     eax, ds:BPB_HiddSec
+WinMeBS:7C7A
+WinMeBS:7C7A bscode_1:				     ; CODE XREF: WinMeBS:7C8Bj
+WinMeBS:7C7A		     cmp     eax, [bx]	     ; MBR PTE offset 8	(partition start sector)
+WinMeBS:7C7D		     mov     dl, [bx-4]	     ; PTE offset 4, partition/fs ID
+WinMeBS:7C80		     jnz     short bscope_2  ; not same
+WinMeBS:7C82		     or	     dl, 2	     ; 0Ch -> 0Eh (0Eh -> 0Eh) LBA type
+WinMeBS:7C85		     mov     [bp+2], dl	     ; BS offset 2 (default=90h)
+WinMeBS:7C88
+WinMeBS:7C88 bscope_2:				     ; CODE XREF: WinMeBS:7C80j
+WinMeBS:7C88		     add     bl, 10h	     ; next PT entry
+WinMeBS:7C8B		     jnb     short bscode_1
+WinMeBS:7C8D
+WinMeBS:7C8D bscode_3:				     ; CODE XREF: WinMeBS:7C6Bj
+WinMeBS:7C8D		     xor     cx, cx	     ; JO.SYS
+WinMeBS:7C8F		     inc     byte ptr ds:IO_SYS	; "IO	   SYS"
+WinMeBS:7C93
+WinMeBS:7C93 bscode_4:				     ; CODE XREF: WinMeBS:7CEAj
+WinMeBS:7C93		     mov     al, [bp+10h]    ; number of fats
+WinMeBS:7C96		     cbw
+WinMeBS:7C97		     mul     word ptr [bp+16h] ; fat size (sectors)
+WinMeBS:7C9A		     add     ax, [bp+1Ch]    ; + hidden	sectors
+WinMeBS:7C9D		     adc     dx, [bp+1Eh]
+WinMeBS:7CA0		     add     ax, [bp+0Eh]    ; + reserved sector count
+WinMeBS:7CA3		     adc     dx, cx	     ; cx = 0
+WinMeBS:7CA5		     mov     si, [bp+11h]    ; root dir	entries
+WinMeBS:7CA8		     pusha
+WinMeBS:7CA9		     mov     [bp-4], ax
+WinMeBS:7CAC		     mov     [bp-2], dx
+WinMeBS:7CAF		     mov     ax, 32	     ; 32 bytes	per entry
+WinMeBS:7CB2		     mul     si
+WinMeBS:7CB4		     mov     bx, [bp+0Bh]    ; bytes per sector
+WinMeBS:7CB7		     add     ax, bx
+WinMeBS:7CB9		     dec     ax		     ; round up
+WinMeBS:7CBA		     div     bx
+WinMeBS:7CBC		     add     [bp-4], ax	     ; result =	start of data (file) sectors
+WinMeBS:7CBF		     adc     [bp-2], cx	     ; cx = 0
+WinMeBS:7CC2		     popa
+WinMeBS:7CC3
+WinMeBS:7CC3 bscode_5:				     ; CODE XREF: WinMeBS:7CE4j
+WinMeBS:7CC3		     mov     di, 700h	     ; 0:700h (or 70h:0)
+WinMeBS:7CC6		     call    read_one_sector
+WinMeBS:7CC9		     jb	     short bscode_11
+WinMeBS:7CCB
+WinMeBS:7CCB bscode_6:				     ; CODE XREF: WinMeBS:7CE2j
+WinMeBS:7CCB		     cmp     [di], ch
+WinMeBS:7CCD		     jz	     short bscode_7
+WinMeBS:7CCF		     pusha
+WinMeBS:7CD0		     mov     cl, 11
+WinMeBS:7CD2		     mov     si, offset	IO_SYS ; "IO	  SYS"
+WinMeBS:7CD5		     repe cmpsb
+WinMeBS:7CD7		     popa
+WinMeBS:7CD8		     jz	     short bscode_13
+WinMeBS:7CDA		     dec     si
+WinMeBS:7CDB		     jz	     short bscode_7
+WinMeBS:7CDD		     add     di, 32	     ; 2nd dir entry name ('MSDOS   SYS')
+WinMeBS:7CE0		     cmp     di, bx
+WinMeBS:7CE2		     jb	     short bscode_6
+WinMeBS:7CE4		     jmp     short bscode_5
+WinMeBS:7CE6 ; ---------------------------------------------------------------------------
+WinMeBS:7CE6
+WinMeBS:7CE6 bscode_7:				     ; CODE XREF: WinMeBS:7CCDj
+WinMeBS:7CE6					     ; WinMeBS:7CDBj
+WinMeBS:7CE6		     dec     byte ptr ds:IO_SYS	; "IO	   SYS"
+WinMeBS:7CEA		     jnp     short bscode_4
+WinMeBS:7CEC		     mov     si, offset	invsd_msg_ptr
+WinMeBS:7CEF
+WinMeBS:7CEF bscode_8:				     ; CODE XREF: WinMeBS:7D07j
+WinMeBS:7CEF					     ; WinMeBS:7D0Cj
+WinMeBS:7CEF		     lodsb
+WinMeBS:7CF0		     cbw
+WinMeBS:7CF1		     add     si, ax
+WinMeBS:7CF3
+WinMeBS:7CF3 bscode_9:				     ; CODE XREF: WinMeBS:7D02j
+WinMeBS:7CF3		     lodsb
+WinMeBS:7CF4		     cbw
+WinMeBS:7CF5		     inc     ax
+WinMeBS:7CF6		     jz	     short bscode_10
+WinMeBS:7CF8		     dec     ax
+WinMeBS:7CF9		     jz	     short bscode_12
+WinMeBS:7CFB		     mov     ah, 0Eh
+WinMeBS:7CFD		     mov     bx, 7
+WinMeBS:7D00		     int     10h	     ; - VIDEO - WRITE CHARACTER AND ADVANCE CURSOR (TTY WRITE)
+WinMeBS:7D00					     ; AL = character, BH = display page (alpha	modes)
+WinMeBS:7D00					     ; BL = foreground color (graphics modes)
+WinMeBS:7D02		     jmp     short bscode_9
+WinMeBS:7D04 ; ---------------------------------------------------------------------------
+WinMeBS:7D04
+WinMeBS:7D04 bscode_10:				     ; CODE XREF: WinMeBS:7CF6j
+WinMeBS:7D04		     mov     si, offset	rdpkey_msg_ptr
+WinMeBS:7D07		     jmp     short bscode_8
+WinMeBS:7D09 ; ---------------------------------------------------------------------------
+WinMeBS:7D09
+WinMeBS:7D09 bscode_11:				     ; CODE XREF: WinMeBS:7CC9j
+WinMeBS:7D09					     ; WinMeBS:7D30j
+WinMeBS:7D09		     mov     si, offset	diskerr_msg_ptr
+WinMeBS:7D0C		     jmp     short bscode_8
+WinMeBS:7D0E ; ---------------------------------------------------------------------------
+WinMeBS:7D0E
+WinMeBS:7D0E bscode_12:				     ; CODE XREF: WinMeBS:7CF9j
+WinMeBS:7D0E		     int     16h	     ; KEYBOARD	-
+WinMeBS:7D10		     pop     si
+WinMeBS:7D11		     pop     ds
+WinMeBS:7D12		     pop     large dword ptr [si]
+WinMeBS:7D15		     int     19h	     ; DISK BOOT
+WinMeBS:7D15					     ; causes reboot of	disk system
+WinMeBS:7D17
+WinMeBS:7D17 bscode_13:				     ; CODE XREF: WinMeBS:7CD8j
+WinMeBS:7D17		     mov     si, offset	one
+WinMeBS:7D1A		     mov     di, [di+1Ah]    ; first cluster of	IO.SYS
+WinMeBS:7D1D		     lea     ax, [di-2]	     ; ax = di-2
+WinMeBS:7D20		     mov     cl, [bp+0Dh]    ; * sectors per cluster
+WinMeBS:7D23		     mul     cx
+WinMeBS:7D25		     add     ax, [bp-4]	     ; + data area start address
+WinMeBS:7D28		     adc     dx, [bp-2]	     ; result =	LBA of IO.SYS 1st cluster
+WinMeBS:7D2B		     mov     cl, 4	     ; read 4 sectors (complete	MSLOAD section)
+WinMeBS:7D2D		     call    read_1st_cluster
+WinMeBS:7D30		     jb	     short bscode_11
+WinMeBS:7D32		     jmp     far ptr 70h:200h ;	jump to	IO.SYS offset 200h (MSLOAD section)
+WinMeBS:7D37 ; ---------------------------------------------------------------------------
+WinMeBS:7D37 ; START OF	FUNCTION CHUNK FOR read_1st_cluster
+WinMeBS:7D37
+WinMeBS:7D37 disk_read:				     ; CODE XREF: read_1st_cluster+7j
+WinMeBS:7D37		     push    dx
+WinMeBS:7D38		     push    ax
+WinMeBS:7D39		     push    es
+WinMeBS:7D3A		     push    bx
+WinMeBS:7D3B		     push    1		     ; 1 sector
+WinMeBS:7D3D		     push    10h
+WinMeBS:7D3F		     xchg    ax, cx
+WinMeBS:7D40		     mov     ax, [bp+18h]    ; sectors per track
+WinMeBS:7D43		     mov     ds:526h, al     ; save spt	value to disk parms table
+WinMeBS:7D46		     xchg    ax, si	     ; si = spt
+WinMeBS:7D47		     xchg    ax, dx	     ; 32 bit division (high word at 1st)
+WinMeBS:7D48		     xor     dx, dx
+WinMeBS:7D4A		     div     si
+WinMeBS:7D4C		     xchg    ax, cx	     ; low word	(at 2nd)
+WinMeBS:7D4C					     ; cx = high word of divison result
+WinMeBS:7D4D		     div     si		     ; dx:ax/spt
+WinMeBS:7D4F		     inc     dx		     ; sector number is	1 based
+WinMeBS:7D50		     xchg    cx, dx
+WinMeBS:7D52		     div     word ptr [bp+1Ah] ; number	of heads
+WinMeBS:7D55		     mov     dh, dl
+WinMeBS:7D57		     mov     ch, al	     ; cylinder	(low 8 bit)
+WinMeBS:7D59		     ror     ah, 2
+WinMeBS:7D5C		     or	     cl, ah	     ; sector (6 bit) and cylinder high	2 bit
+WinMeBS:7D5E		     mov     ax, 201h	     ; CHS read	(1 sector)
+WinMeBS:7D61		     cmp     byte ptr [bp+2], 0Eh ; if it is not a LBA type partition,
+WinMeBS:7D61					     ; CHS read	is forced
+WinMeBS:7D65		     jnz     short diskrd_1
+WinMeBS:7D67		     mov     ah, 42h	     ; LBA read
+WinMeBS:7D69		     mov     si, sp
+WinMeBS:7D6B
+WinMeBS:7D6B diskrd_1:				     ; CODE XREF: read_1st_cluster-8Dj
+WinMeBS:7D6B		     mov     dl, [bp+24h]
+WinMeBS:7D6E		     int     13h	     ; DISK - IBM/MS Extension - EXTENDED READ (DL - drive, DS:SI - disk address packet)
+WinMeBS:7D70		     popa
+WinMeBS:7D71		     popa
+WinMeBS:7D72		     jb	     short disk_rd3  ; error
+WinMeBS:7D74		     inc     ax		     ; next disk sector	address
+WinMeBS:7D75		     jnz     short diskrd_2
+WinMeBS:7D77		     inc     dx
+WinMeBS:7D78
+WinMeBS:7D78 diskrd_2:				     ; CODE XREF: read_1st_cluster-7Dj
+WinMeBS:7D78		     add     bx, [bp+0Bh]    ; add bps (512 bytes) to buffer addr
+WinMeBS:7D7B		     dec     cx		     ; remain sectors to read
+WinMeBS:7D7C		     jnz     short diskrd_4  ; read next sector	(of IO.SYS 1st cluster)
+WinMeBS:7D7E
+WinMeBS:7D7E disk_rd3:				     ; CODE XREF: read_1st_cluster-80j
+WinMeBS:7D7E		     retn
+WinMeBS:7D7E ; END OF FUNCTION CHUNK FOR read_1st_cluster
+WinMeBS:7D7E ; ---------------------------------------------------------------------------
+WinMeBS:7D7F invsd_msg_ptr   db	3		     ; DATA XREF: WinMeBS:7CECo
+WinMeBS:7D80 diskerr_msg_ptr db	24		     ; DATA XREF: WinMeBS:bscode_11o
+WinMeBS:7D81 one	     db	1		     ; DATA XREF: WinMeBS:bscode_13o
+WinMeBS:7D82 rdpkey_msg_ptr  db	27h		     ; DATA XREF: WinMeBS:bscode_10o
+WinMeBS:7D83		     db	0Dh,0Ah
+WinMeBS:7D83		     db	'Invalid system disk'
+WinMeBS:7D98		     db	0FFh
+WinMeBS:7D99		     db	0Dh,0Ah
+WinMeBS:7D99		     db	'Disk I/O error'
+WinMeBS:7DA9		     db	0FFh
+WinMeBS:7DAA		     db	0Dh,0Ah
+WinMeBS:7DAA		     db	'Replace the disk, and then press any key',0Dh,0Ah,0
+WinMeBS:7DD7		     db	0
+WinMeBS:7DD8 IO_SYS	     db	'IO      SYS'        ; DATA XREF: WinMeBS:7C8Fw
+WinMeBS:7DD8					     ; WinMeBS:7CD2o ...
+WinMeBS:7DE3 MSDOS_SYS	     db	'MSDOS   SYS'
+WinMeBS:7DEE		     dw	17Fh
+WinMeBS:7DF0		     db	0
+WinMeBS:7DF1
+WinMeBS:7DF1 ; =============== S U B R O U T I N E =======================================
+WinMeBS:7DF1
+WinMeBS:7DF1
+WinMeBS:7DF1 read_one_sector proc near		     ; CODE XREF: WinMeBS:7C70p
+WinMeBS:7DF1					     ; WinMeBS:7CC6p
+WinMeBS:7DF1		     inc     cx		     ; cx = 1
+WinMeBS:7DF1 read_one_sector endp ; sp-analysis	failed
+WinMeBS:7DF1
+WinMeBS:7DF2
+WinMeBS:7DF2 ; =============== S U B R O U T I N E =======================================
+WinMeBS:7DF2
+WinMeBS:7DF2
+WinMeBS:7DF2 read_1st_cluster proc near		     ; CODE XREF: WinMeBS:7D2Dp
+WinMeBS:7DF2
+WinMeBS:7DF2 ; FUNCTION	CHUNK AT WinMeBS:7D37 SIZE 00000048 BYTES
+WinMeBS:7DF2
+WinMeBS:7DF2		     mov     bx, 700h	     ; buffer -> es:bx = 0:700h
+WinMeBS:7DF5
+WinMeBS:7DF5 diskrd_4:				     ; CODE XREF: read_1st_cluster-76j
+WinMeBS:7DF5		     pusha		     ; push all	registers except seg segs
+WinMeBS:7DF6		     push    large 0	     ; dd 0
+WinMeBS:7DF9		     jmp     disk_read
+WinMeBS:7DF9 read_1st_cluster endp ; sp-analysis failed
+WinMeBS:7DF9
+WinMeBS:7DF9 ; ---------------------------------------------------------------------------
+WinMeBS:7DFC		     dw	0
+WinMeBS:7DFE		     dw	0AA55h		     ; BS signature (magic word)
+WinMeBS:7DFE WinMeBS	     ends		     ; (last word of BS, offset	510)
+WinMeBS:7DFE
+WinMeBS:7DFE
+WinMeBS:7DFE		     end
