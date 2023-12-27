@@ -14,8 +14,8 @@
  00000000:00000004       SysVersionMinor
  00000000:00000005       NumHeads
  00000000:00000007       ClusterSize
- 00000000:00000009       StartSectorL
- 00000000:0000000B       StartSectorH
+ 00000000:00000009       StartSecL
+ 00000000:0000000B       StartSecH
  00000000:0000000D       TempH
  00000000:0000000F       TempCluster
  00000000:00000011       LastFatSectorL
@@ -34,7 +34,7 @@
  00000000:0000002B       FirstSectorH
  00000000:0000002D       TotalSectorsL
  00000000:0000002F       TotalSectorsH
- 00000000:00000031       SectsPerTrack
+ 00000000:00000031       SecPerTrack
  00000000:00000033       BootDrive
  00000000:00000034       FatType
  00000000:00000035       MediaByte
@@ -48,8 +48,6 @@
  00000000:00000043       RootClusterH
  00000000:00000045       FirstCluster
  00000000:00000049       SaveInputValues
- 00000000:00000058       loc_58
- 00000000:0000005C       loc_5C
  00000000:000000D5       not_fat32
  00000000:00000125       not_big
  00000000:00000151       Relocate
@@ -57,14 +55,12 @@
  00000000:000001A5       SetupStack
  00000000:000001B4       FindClusterSize
  00000000:000001C6       CalcFatSize
- 00000000:00000245       ReadInFirstClusters
+ 00000000:00000245       ReadInFirstCluster
  00000000:000002C1       SetNextClusterNum
  00000000:000002CC       SaveLoadedBios
  00000000:000002EA       GetContigClusters
  00000000:0000034A       GoToBioInit
  00000000:0000036B       check_int13h_extensions
- 00000000:0000038C       not_hard_disk
- 00000000:00000398       int13h_ext_err
  00000000:0000039B       ReadSectors
  00000000:0000039E       TryRead
  00000000:000003D7       lba_read_err
@@ -92,8 +88,6 @@
  00000000:00000544       NotLastCluster
  00000000:0000054A       GotClusterDone
  00000000:0000054C       GetFatSector
- 00000000:0000056D       not_same_fat_sector
- 00000000:0000059F       SplitChk
  00000000:000005A8       NonSystemDiskMsg
  0000005F:00000000       hdrv_pat
  0000005F:00000003       DosDataSg
@@ -238,8 +232,6 @@
  0000005F:00000659       tim_entry
  0000005F:0000065E       dsk_entry
  0000005F:00000663       cdev_entry
- 0000005F:00000678       ce_enter_codeseg
- 0000005F:0000067D       not_from_dos
  0000005F:00000682       outchr
  0000005F:0000069F       win_outchr
  0000005F:000006A1       outchr_ok
@@ -257,7 +249,6 @@
  0000005F:00000729       re_init
  0000005F:0000072A       EnsureA20On
  0000005F:0000072F       EnableA20
- 0000005F:0000073A       enable_A20_ok
  0000005F:0000073B       IsA20Off
  0000005F:0000074D       cpu386_cmpsd
  0000005F:00000759       int19
@@ -290,11 +281,11 @@
  0000005F:00000840       tmp_vid
  0000005F:0000084B       harddrv
  0000005F:0000084C       bdss
- 0000005F:000008E2       bdss_1
- 0000005F:00000978       bdss_2
- 0000005F:00000A0E       bdss_3
- 0000005F:00000AA4       bdss_4
- 0000005F:0000165C       bdss_24
+ 0000005F:000008E2       bds_1
+ 0000005F:00000978       bds_2
+ 0000005F:00000A0E       bds_3
+ 0000005F:00000AA4       bds_4
+ 0000005F:0000165C       bds_24
  0000005F:000016F2       ibm_disk_io
  0000005F:00001701       atd1
  0000005F:00001706       atd2
@@ -302,11 +293,7 @@
  0000005F:00001747       atd4
  0000005F:00001751       atd5
  0000005F:0000175A       setcmd
- 0000005F:0000176C       setc1
  0000005F:000017B2       docmd
- 0000005F:000017BA       doc1
- 0000005F:000017C8       rsct_loop
- 0000005F:000017E3       doc2
  0000005F:000017EF       doc3
  0000005F:000017F0       get_vec
  0000005F:000017F8       command
@@ -321,27 +308,12 @@
  0000005F:0000183E       int_6Ch
  0000005F:0000184B       int6c
  0000005F:0000186C       read_real_date
- 0000005F:00001889       read_ok
- 0000005F:000018C6       century_19
- 0000005F:000018EA       leap_year
- 0000005F:000018F1       leap_adjustment
- 0000005F:000018F5       no_leap_adjustment
- 0000005F:0000190C       r_d_sum_loop
- 0000005F:00001913       r_d_ret
- 0000005F:0000191C       r_t_retj
  0000005F:00001922       read_real_time
- 0000005F:00001943       loc_1F33
- 0000005F:0000195A       r_t_ret
  0000005F:0000195B       in_bin
  0000005F:00001980       bcd_to_bin
  0000005F:0000198B       date_verify
- 0000005F:000019A2       century_20
- 0000005F:000019C7       date_error
  0000005F:000019C9       time_verify
- 0000005F:000019E0       time_error
  0000005F:000019E2       bcd_verify
- 0000005F:000019E8       bv_loop
- 0000005F:00001A09       bv_error
  0000005F:00001A0B       endk09
  0000005F:00001A0C       drvfat
  0000005F:00001A0E       First_Data_Sector
@@ -375,7 +347,7 @@
  0000005F:00001B72       addr_of_bcretf
  0000005F:00001B74       call_bios_code
  0000005F:00001B80       flp_drvs
- 0000005F:00001B81       old_initspot
+ 0000005F:00001B81       firstcluster_hw
  0000005F:00001B83       Boot_Drv
  0000005F:00001B84       cd_boot_option
  0000005F:00001B88       cdbo_1
@@ -389,6 +361,7 @@
  0000005F:00001C01       cdb0_7
  0000005F:00001C6A       cdbo_8
  0000005F:00001C6D       cdbo_9
+ 0000005F:00001C93       empty_dap_buff
  0000005F:00001CA6       time_counter
  0000005F:00001CA7       cd_boot_msg
  0000005F:00001CDA       init
@@ -424,13 +397,13 @@
  0000005F:00002042       got_more
  0000005F:00002061       not_last_bds
  0000005F:0000207D       chk_drv_type
- 0000005F:000020B5       eotok
+ 0000005F:000020B5       _eotok
  0000005F:000020BF       not_chgline_sup
  0000005F:000020D4       gotother_j
  0000005F:000020D6       ext_gdp_err
- 0000005F:000020DB       atapi_removable
+ 0000005F:000020DB       not_atapi_removable
  0000005F:000020E6       pfr_ok
- 0000005F:00002114       eot_ok
+ 0000005F:00002114       eotok
  0000005F:00002130       changeline_done
  0000005F:0000213E       gotother
  0000005F:00002142       try_80
@@ -452,7 +425,8 @@
  0000005F:000022C6       chkcompaqbug1
  0000005F:000022E0       do_compaq_patch
  0000005F:000022E6       install_int13_patch
- 0000005F:000022F4       checkk09
+ 0000005F:000022F4       checkcmosclock
+ 0000005F:000022F6       checkk09
  0000005F:0000231D       configdone
  0000005F:000023A7       boot_drv_removable
  0000005F:000023B9       prep_totalsecs_ok
@@ -467,145 +441,49 @@
  0000005F:00002452       eofbig
  0000005F:00002455       iseofx
  0000005F:00002464       remap
- 0000005F:00002469       drive_loop
- 0000005F:00002478       fdrv_found
- 0000005F:0000247A       fdrv_loop
- 0000005F:00002495       remap_loop1
- 0000005F:000024B3       remap_boot_flop
- 0000005F:000024B8       remap_change_boot_drv
- 0000005F:000024C8       rmap_exit
  0000005F:000024C9       getboot
  0000005F:000024E7       erret
  0000005F:000024E8       norm_ret
  0000005F:000024E9       sethard
- 0000005F:0000251F       setret_j
  0000005F:00002522       chk_act_part
- 0000005F:0000253B       act_part
  0000005F:00002566       got_good_act
- 0000005F:0000256C       no_act
  0000005F:00002578       get_primary
  0000005F:000025A3       got_prim
- 0000005F:000025A9       not_prim
- 0000005F:000025B2       setret
  0000005F:000025B6       ep_start_sector
  0000005F:000025BA       ep_hidden_secs
  0000005F:000025BE       set2
  0000005F:000025E0       okdrive
- 0000005F:000025F1       okdrive_1
- 0000005F:0000260F       set_lba_flag
- 0000005F:00002613       set3
- 0000005F:0000264B       set3_read
  0000005F:00002681       set3_lba_read
  0000005F:000026B4       set3_err
- 0000005F:000026B7       set3_lba_read_ok
  0000005F:000026BE       set3_chs_read
- 0000005F:000026C7       oknotmini
- 0000005F:000026E5       set3_read_ok
- 0000005F:0000270E       check_1
- 0000005F:00002721       check_1_ok
- 0000005F:0000273D       ck_power_of_two
- 0000005F:00002743       invalid_boot_record
- 0000005F:00002748       valid_boot_record
- 0000005F:0000275B       unknown3_0_j
- 0000005F:0000275E       try5
- 0000005F:00002776       no_os2
- 0000005F:00002787       copybpb
- 0000005F:00002797       check_2
- 0000005F:0000279D       check_3
- 0000005F:000027DD       already_nonz
  0000005F:000027F6       copybpb_fat
- 0000005F:00002811       copy_totsec
- 0000005F:00002817       fat_big_small
- 0000005F:00002877       fat_16bit
- 0000005F:0000287E       fat_32bit
- 0000005F:000028B6       fat32_clust_limit
- 0000005F:000028C2       fat16_clust_limit
- 0000005F:000028CB       chk_clnum_hw
- 0000005F:000028D3       fat12_clust_limit
- 0000005F:000028DD       copymediaid
- 0000005F:000028EF       toobig_ret
  0000005F:000028F8       unknown
  0000005F:000028FC       unknown3_0
- 0000005F:00002905       scan
- 0000005F:00002912       scan_next
- 0000005F:00002917       gotparm
- 0000005F:00002957       dobig
- 0000005F:0000298F       dobig1
- 0000005F:000029BA       dobig2
  0000005F:000029C7       massage_bpb
  0000005F:000029E8       goodret
  0000005F:000029F0       ret_hard_err
  0000005F:000029F5       cover_fdisk_bug
- 0000005F:00002A17       cfb_chk_totalsecs
- 0000005F:00002A39       cfb_retit
  0000005F:00002A3D       word2
  0000005F:00002A3F       word3
  0000005F:00002A41       word512
  0000005F:00002A43       setdrvparms
- 0000005F:00002A49       _next_bds
- 0000005F:00002A66       get_ccyl
- 0000005F:00002A87       no_cyl_rnd
- 0000005F:00002A92       nothardff
- 0000005F:00002AB2       _again
- 0000005F:00002ABD       _@@
- 0000005F:00002AC7       __@@
- 0000005F:00002AE1       not_process_other
- 0000005F:00002AE8       set_recbpb
- 0000005F:00002AF0       go_to_next_bds
- 0000005F:00002AFD       got_end_of_bds_chain
  0000005F:00002AFE       print_init
  0000005F:00002B06       aux_init
  0000005F:00002B10       domini
- 0000005F:00002B1B       domini_loop
- 0000005F:00002B53       domininext
- 0000005F:00002B5B       dominiret
  0000005F:00002B5C       find_mini_partition
- 0000005F:00002B66       fmpnext
- 0000005F:00002B88       fmpnextfound
- 0000005F:00002B8B       fmpgot
- 0000005F:00002BAC       fmpgot1
- 0000005F:00002BCC       fmpgot2
- 0000005F:00002C07       fmpgot3
- 0000005F:00002C2D       fmpgot_lba_rd
- 0000005F:00002C63       fmpgot_chs_rd
- 0000005F:00002C77       fmpgot_cont
- 0000005F:00002C8E       fmpnextchain
- 0000005F:00002C91       _fmpnextfound
  0000005F:00002C92       setmini
- 0000005F:00002C96       setmini_1
- 0000005F:00002CC9       setmini_2
  0000005F:00002CCC       dmax_check
- 0000005F:00002CE0       dmax_ok
  0000005F:00002CE1       xinstall_bds
- 0000005F:00002CE7       xinstall_bds_1
- 0000005F:00002CF0       xinstall_bds_2
  0000005F:00002D17       cmos_clock_read
- 0000005F:00002D1D       loop_clock
- 0000005F:00002D38       delay
- 0000005F:00002D3C       clock_present
- 0000005F:00002D50       no_readdate
  0000005F:00002D55       cmosck
- 0000005F:00002D6E       cmosck4
- 0000005F:00002D83       cmosck9
  0000005F:00002D85       cmos_read
  0000005F:00002DA4       cmos_popf
  0000005F:00002DA5       cmos_write
  0000005F:00002DC2       ClusterH
  0000005F:00002DC4       getclus
- 0000005F:00002DF8       unpack
  0000005F:00002E0A       unpack32
- 0000005F:00002E22       not_32bit_cluster
  0000005F:00002E2C       unpack12
- 0000005F:00002E54       even_odd
- 0000005F:00002E62       havclus
- 0000005F:00002E6A       unpack16
- 0000005F:00002E78       unpackx
- 0000005F:00002E7A       getcl1
- 0000005F:00002E92       not_consenquental
- 0000005F:00002E9E       getcl2
- 0000005F:00002EBC       getcl3
  0000005F:00002EDA       get_fat_sector
- 0000005F:00002F34       gfs_split_chk
  00000353:00000000       BCode_start
  00000353:00000030       Bios_Data_Word
  00000353:00000032       _seg_reinit
@@ -626,10 +504,6 @@
  00000353:0000015E       con_loop
  00000353:00000164       con_exit
  00000353:00000166       chrin
- 00000353:00000183       alt_ext_chk
- 00000353:00000196       not_ext
- 00000353:0000019A       alt_save
- 00000353:0000019E       keyret
  00000353:0000019F       con_rdnd
  00000353:000001C8       z_bus_exit
  00000353:000001CC       gotchr
@@ -654,9 +528,6 @@
  00000353:00000251       prn_stat
  00000353:0000025E       prnstat
  00000353:00000260       prnop
- 00000353:00000282       NextTest
- 00000353:00000290       ret1
- 00000353:00000291       checknotready
  00000353:00000297       prn_tilbusy
  00000353:00000299       prn_tilbloop
  00000353:000002A8       prn_getstat
@@ -672,7 +543,7 @@
  00000353:00000321       aux1
  00000353:00000324       aux2
  00000353:00000327       exvec2
- 00000353:00000328       auxin_ok
+ 00000353:00000328       auxin_retn
  00000353:00000329       auxin
  00000353:00000333       arbad
  00000353:00000338       aux_rdnd
@@ -692,28 +563,18 @@
  00000353:00000418       no_cmos_1
  00000353:0000043E       no_cmos_2
  00000353:00000440       daycnttoday
- 00000353:00000454       century20
- 00000353:00000460       years
- 00000353:0000048F       regularyear
- 00000353:0000049B       loc_39CB
  00000353:000004A3       leapyear
  00000353:000004A8       yeardone
- 00000353:000004B5       months
- 00000353:000004C2       month_done
  00000353:000004EA       bintobcd
  00000353:000004EF       tim_read
  00000353:00000520       noadj
  00000353:0000053C       GetTickCnt
- 00000353:0000054D       inc_case
- 00000353:00000555       no_rollover
  00000353:00000556       fat_12_id
  00000353:0000055E       fat_16_id
  00000353:00000566       fat_32_id
  00000353:0000056E       nul_vid
  00000353:00000579       DSKTBL
  00000353:000005AE       SetDrive
- 00000353:000005B2       X_Scan_Loop
- 00000353:000005C1       X_SetDrv
  00000353:000005C2       media_chk
  00000353:000005E4       WeAreNotFakingIt
  00000353:000005EB       wehaveafloppy
@@ -725,55 +586,23 @@
  00000353:0000062E       err_exitj
  00000353:00000631       ret81
  00000353:00000634       Check_Time_Of_Access
- 00000353:00000659       timepassed
- 00000353:0000065E       timecheck_unk
- 00000353:0000065F       timecheck_ret
  00000353:00000665       get_bpb
  00000353:00000695       already_gotbpb
  00000353:00000698       SetPtrSav
  00000353:000006AB       clear_ids
- 00000353:000006DA       ci_big_fat
  00000353:000006E3       getret_exit
  00000353:000006E4       GetBp
- 00000353:000006FD       getbp_err_ret_brdg
- 00000353:00000700       dofatbpb
- 00000353:0000070F       bpb_nochangeline
  00000353:0000071E       Has720K
- 00000353:0000072B       is_floppy
- 00000353:00000733       chk_160K
- 00000353:00000748       has8
  00000353:00000754       Has1
- 00000353:000007AE       getret
- 00000353:000007B2       getbp_err_ret
- 00000353:000007BC       got_unknown_medium
  00000353:000007C6       readbootsec
- 00000353:000007E8       check_bpb_mediabyte
  00000353:0000080A       mustbeearlier
- 00000353:00000811       invalidbootsec
  00000353:00000812       gooddsk
- 00000353:00000813       err_ret
  00000353:00000814       movbpb
- 00000353:00000831       movbpb_bigdisk
  00000353:00000836       movbpb_fat
- 00000353:00000847       movbpb_fat32
- 00000353:00000859       movbpb_conv
- 00000353:00000863       movbpb_ret
  00000353:00000865       mov_media_ids
- 00000353:00000873       mmi_chk_fat
- 00000353:00000878       mmi_chk_fat32
  00000353:00000886       mmi_fat32
- 00000353:00000892       mmi_fat
- 00000353:0000089C       mmi_do
- 00000353:000008BE       mmi_not_ext
  00000353:000008C0       readfat
- 00000353:000008CC       bad_fat_ret
  00000353:000008CD       read_sector
- 00000353:000008D8       rd_ret
- 00000353:000008E3       rd_rty
- 00000353:00000908       rd_skip1_dpt
- 00000353:00000927       rd_skip2_dpt
- 00000353:0000092C       err_rd_ret
- 00000353:0000092F       okret2
  00000353:00000942       dsk_open
  00000353:00000950       dsk_open_exit
  00000353:00000952       dsk_close
@@ -787,14 +616,6 @@
  00000353:00000988       dsk_io
  00000353:0000098D       dsk_read
  00000353:00000992       checksingle
- 00000353:000009AC       scan_list
- 00000353:000009E2       not_fsetowner
- 00000353:00000A00       ignore_sdsb
- 00000353:00000A05       scan_skip
- 00000353:00000A10       singleret
- 00000353:00000A13       baddrive
- 00000353:00000A17       unformatteddrive
- 00000353:00000A19       baddrive_ret
  00000353:00000A1A       ioret
  00000353:00000A1B       LBA_Packet
  00000353:00000A1D       dap_block_cnt
@@ -802,67 +623,19 @@
  00000353:00000A23       dap_lba_value
  00000353:00000A2B       DISKRD
  00000353:00000A30       diskio
- 00000353:00000A6C       sanity32
- 00000353:00000A7E       sanityok
- 00000353:00000AB4       diskio_nochangeline
- 00000353:00000AB7       chk_13h_ext_flag
- 00000353:00000AC1       set_lbarw_1
- 00000353:00000ADA       set_lbarw_2
- 00000353:00000B01       set_lbarw_3
- 00000353:00000B21       set_lbarw_4
- 00000353:00000B2B       set_lbarw_5
- 00000353:00000B31       set_lbarw_6
- 00000353:00000B33       set_lbarw_7
- 00000353:00000B4E       set_lbarw_8
- 00000353:00000B61       set_lbarw_9
- 00000353:00000B6B       set_lbarw_10
- 00000353:00000B71       set_lbarw_11
- 00000353:00000B73       set_lbarw_12
- 00000353:00000B76       skip_setup
- 00000353:00000BB4       baddrive_brdg
  00000353:00000BB7       iosetup
- 00000353:00000BEF       motor_start_ok
- 00000353:00000BFF       skip_dpt_setting
  00000353:00000C00       done
  00000353:00000C0A       diddle_back
- 00000353:00000C35       nodiddleback
  00000353:00000C36       ddbx
  00000353:00000C37       block
- 00000353:00000C4F       block_floppy
- 00000353:00000C60       gotmin
- 00000353:00000C71       dskerr_brdg
  00000353:00000C74       disk
- 00000353:00000C86       GetRdWrInd
- 00000353:00000C92       _retry
- 00000353:00000CA9       disk_not_mini
- 00000353:00000CD5       do_fast
- 00000353:00000CD8       testerr
- 00000353:00000CE4       testerror
- 00000353:00000CF4       noverify
- 00000353:00000D03       its_removable
- 00000353:00000D2F       noxor
- 00000353:00000D33       disk_ret
- 00000353:00000D35       do_write
- 00000353:00000D41       do_norm
- 00000353:00000D46       doverify
- 00000353:00000D5F       not_softecc_err
- 00000353:00000D68       dskerr
- 00000353:00000D72       dskerr_nochangeline
- 00000353:00000D81       dochkagain
- 00000353:00000D84       dskerr0
- 00000353:00000D92       skip_timeout_chk
- 00000353:00000D9D       diskerr1
- 00000353:00000DA1       write_fault_err
  00000353:00000DA6       harderr
  00000353:00000DA9       harderr2
  00000353:00000DB9       normspeed
  00000353:00000DDD       fastspeed
  00000353:00000DEA       maperror
  00000353:00000E03       set_tim
- 00000353:00000E13       setaccess
- 00000353:00000E20       done_set
  00000353:00000E23       again
- 00000353:00000E2D       dont_dec_retry_count
  00000353:00000E30       ioctl_drvnum
  00000353:00000E31       get_phy_drv_num
  00000353:00000E39       ioctl_output
@@ -880,7 +653,7 @@
  00000353:00000EEB       IoWriteJumpTable
  00000353:00000F00       IOC_DC_Table
  00000353:00000F0E       new_genioctl
- 00000353:00000F0F       Do_Generic_IOCtl
+ 00000353:00000F0F       do_generic_ioctl
  00000353:00000F2E       chk_genioctl_minor
  00000353:00000F3F       NotGenericWrite
  00000353:00000F59       Cmd_Error_Proc
@@ -927,36 +700,16 @@
  00000353:000011E6       WriteTrack
  00000353:000011EB       ReadWriteTrack
  00000353:00001213       TrackIo
- 00000353:00001228       Dptalreadyset
- 00000353:0000123E       ionextsector
- 00000353:00001263       IoRemovable
- 00000353:00001299       NoNeedDone
  00000353:0000129B       SetDasd
- 00000353:000012B0       DoSetDasd
- 00000353:000012DA       DoSet
- 00000353:000012F2       DasdHasBeenSet
  00000353:000012FB       SetMediaForFormat
- 00000353:00001310       DoSetMediaForFormat
- 00000353:0000132A       SkipSaveDskAdr
- 00000353:00001376       skip_disk_base_setting
- 00000353:0000137D       FormaStatErr
- 00000353:0000138B       FormatStatIllegalComb
- 00000353:0000138F       FormatStatTimeOut
- 00000353:00001391       PopStatRet
- 00000353:00001395       SetMediaRet
  00000353:00001398       ResetDisk
- 00000353:000013A5       ResetDisk_cont
  00000353:000013AE       ToRom
- 00000353:000013E9       MotorStrtOK
- 00000353:000013EB       GotValidDpt
  00000353:00001404       ioctl_getown
  00000353:0000140F       ownloop
  00000353:0000141D       getnextBDS
  00000353:00001422       ioctl_setown
  00000353:00001431       exitown
- 00000353:00001440       ExitNoMult
  00000353:00001449       RestoreOldDpt
- 00000353:00001475       DontRestore
  00000353:00001478       GetMediaId
  00000353:0000149D       IOCtl_If3
  00000353:000014AE       IOCtl_If4
@@ -969,7 +722,6 @@
  00000353:00001517       IOCtl_If6
  00000353:00001518       BootIo
  00000353:00001530       ChangeLineChk
- 00000353:0000155A       ChangeLnChkRet
  00000353:0000155B       GetAccessFlag
  00000353:0000156D       GafDone
  00000353:00001571       SetAccessFlag
@@ -984,12 +736,9 @@
  00000353:000015EC       UnknownMediaType
  00000353:000015EE       SenseErrExit
  00000353:000015F2       SetLockState
- 00000353:00001614       setlockst_ret
  00000353:00001617       EjectMedia
  00000353:0000162E       ejectm_ret
  00000353:00001631       check_int13h_exts_present
- 00000353:00001645       exts_notsupported
- 00000353:00001646       exts_supported
  00000353:00001647       GetDrvMapInfo
  00000353:0000168C       gdmi_1
  00000353:0000169D       gdmi_2
@@ -1016,17 +765,9 @@
  00000353:000017C0       get_FreeHMAPtr
  00000353:000017C4       HMAPtr_retn
  00000353:000017C5       move_sector
- 00000353:000017DA       movsec_bytes
  00000353:000017E0       check_wrap
- 00000353:00001808       not_on_bound
- 00000353:0000182F       no_head_bound
- 00000353:0000184B       no_wrap
- 00000353:00001851       no_wrap_head
  00000353:00001857       find_bds
- 00000353:0000185B       fbds_1
- 00000353:0000186A       fdbs_2
  00000353:0000186B       doint
- 00000353:00001888       dointdone
  00000353:00001889       dtype_array
  00000353:0000188D       format_special_stuff
  00000353:0000189E       ec35_special_stuff
@@ -1067,68 +808,34 @@
  00000353:00001AD0       xgoterr13_xxxx
  00000353:00001AD4       dsk_init
  00000353:00001AE0       install_bds
- 00000353:00001AE4       loop_next_bds
- 00000353:00001B07       next_bds
- 00000353:00001B24       _eot_ok
  00000353:00001B25       swpdsk
- 00000353:00001B31       no_win386
- 00000353:00001B54       wrmsg_loop
- 00000353:00001B64       swpdsk9
  00000353:00001B67       sngmsg
  00000353:00001B83       drvlet
  00000353:00001BA6       mediacheck
- 00000353:00001BE2       mediaret
- 00000353:00001BE3       mediadovolid
  00000353:00001BF0       checklatchio
- 00000353:00001C10       checklatchret
- 00000353:00001C13       ret_no_error_map
  00000353:00001C15       checkret
  00000353:00001C16       checkfatvid
  00000353:00001C1D       check_vid
- 00000353:00001C2B       chk_vid_1
- 00000353:00001C30       chk_vid_2
- 00000353:00001C4E       vid_no_changed
  00000353:00001C52       checkfatret
  00000353:00001C53       changed_drv
- 00000353:00001C5A       do_ext_check_id
- 00000353:00001C69       chk_vid_3
- 00000353:00001C71       chk_vid_4
  00000353:00001C79       ext_changed
  00000353:00001C7F       checkio
- 00000353:00001C9B       checkioerr
- 00000353:00001C9E       checkioret
- 00000353:00001CA2       no_error_map
  00000353:00001CA5       returnvid
  00000353:00001CAF       media_set_vid
  00000353:00001CB2       vid_into_packet
  00000353:00001CC3       dofloppy
  00000353:00001CC4       hidensity
- 00000353:00001CF3       Is720K
  00000353:00001CF7       Set_Changed_DL
  00000353:00001CFD       scan_bds
- 00000353:00001D07       get_next_bds
  00000353:00001D12       resetchanged
  00000353:00001D18       haschange
  00000353:00001D1F       set_volume_id
- 00000353:00001D31       setvret
- 00000353:00001D35       seterr
  00000353:00001D38       root_sec
  00000353:00001D3A       read_volume_id
- 00000353:00001D6B       next_sec
- 00000353:00001D8F       fvid_loop
- 00000353:00001D9D       ent_loop
- 00000353:00001DAA       notfound
- 00000353:00001DAE       found_vid
- 00000353:00001DC2       fvid_ret
- 00000353:00001DC4       rvidret
- 00000353:00001DC8       no_vid
- 00000353:00001DCB       readviderr
  00000353:00001DCF       preset_volid_addr
  00000353:00001DDA       transfer_volume_id
- 00000353:00001DE3       chk_volid_ok
  00000353:00001DE6       check_volume_id
  00000353:00001DEF       fat_check
- 00000353:00001DFC       okret1
  00000533:00000000       SYSINIT$
  00000533:00000002       stackcount
  00000533:00000004       stackat
@@ -1150,7 +857,6 @@
  00000533:00000057       int0A
  00000533:00000059       old0A
  00000533:0000005F       firstflag0A
- 00000533:00000062       byte_5392
  00000533:00000069       entry_int0A_stk
  00000533:0000006E       intret_0A
  00000533:0000006F       int0B
@@ -1199,17 +905,8 @@
  00000533:00000141       entry_int77_stk
  00000533:00000146       intret_77
  00000533:00000147       do_int_stacks
- 00000533:00000164       found02
- 00000533:000001AF       notfree02
- 00000533:000001B7       findnext02
- 00000533:000001BC       foundbad02
  00000533:000001CC       longpath
- 00000533:000001D1       lploopp
- 00000533:000001EA       inuse
- 00000533:000001F6       found
- 00000533:000001F7       fatal
  00000533:00000209       skip_nmis
- 00000533:0000022C       fatal_loop
  00000533:00000239       fatal_done
  00000533:0000023B       fatal_msg
  00000533:00000269       _SYSINIT
@@ -1265,7 +962,7 @@
  00000533:000002F0       ldexec_line
  00000533:000002F1       ldexec_start
  00000533:000002F2       ldexec_parm
- 00000533:00000342       iexec_environ
+ 00000533:00000342       iexec.environ
  00000533:00000344       iexec_ldexec_line
  00000533:00000346       iexec_ldexec_line_seg
  00000533:00000348       iexec_ldexec_5c_fcb
@@ -1311,12 +1008,9 @@
  00000533:00000436       no_rom_config
  00000533:00000449       check_for_fake_floppy
  00000533:0000046C       move_myself
- 00000533:0000049C       loc_57CC
  00000533:000004AB       NoRPL
  00000533:000004CE       get_cpu_type
  00000533:000004EC       cpu_386
- 00000533:000004ED       cpu_286
- 00000533:000004EE       cpu_8086
  00000533:000004F3       SYSIN
  00000533:00000515       not_386_system
  00000533:00000586       locstack
@@ -1380,18 +1074,12 @@
  00000533:00000B1C       LoadDOSHiOrLo
  00000533:00000B22       LdngLo
  00000533:00000B44       TryToMovDOSHi
- 00000533:00000B5C       ttldhx
  00000533:00000B5D       MovDOSHi
- 00000533:00000B76       mdhx
  00000533:00000B77       MovDOSLo
  00000533:00000B88       MovBIOS
  00000533:00000BAB       MovDOS
  00000533:00000BC7       AllocMemForDOS
- 00000533:00000BF8       update_arena
- 00000533:00000C35       FatalErr
  00000533:00000C41       AllocHMA
- 00000533:00000C6E       allocHMA_1
- 00000533:00000C94       grabhma_error
  00000533:00000C97       IsXMSLoaded
  00000533:00000C9F       FTRYTOMOVDOSHI
  00000533:00000CB2       _ftymdh_1
@@ -1412,52 +1100,16 @@
  00000533:00000D92       temp_stack
  00000533:00000D9A       ClrdVDISKHead
  00000533:00000DBA       ClrVDISKHeader
- 00000533:00000DD2       ClrVDISKno
- 00000533:00000DD3       ClrVDISKok
  00000533:00000DFD       SaveFreeHMAPtr
  00000533:00000E21       IsVDiskInstalled
- 00000533:00000E48       ivdins_retn
  00000533:00000E49       CPMHack
  00000533:00000E61       _off_to_para
  00000533:00000E6A       TempCDS
  00000533:00000E9A       fooset
- 00000533:00000ECD       fooset_zero
- 00000533:00000ED4       normcds
- 00000533:00000EDE       setnormcds
- 00000533:00000EE5       get_next_dpb
  00000533:00000EFE       get_dpb_for_drive_al
- 00000533:00000F07       get_dpb_for_drive_1
- 00000533:00000F13       got_dpb_for_drive
  00000533:00000F14       endfile
- 00000533:00000F27       multrk_flag_done
- 00000533:00000F42       dosfts
- 00000533:00000F9F       dofcbs
- 00000533:00000FFA       fillloop
- 00000533:00001020       dodefaultbuff
- 00000533:00001039       nextdpb
- 00000533:00001076       setbuf
- 00000533:0000107E       nosetbuf
- 00000533:0000108B       chk_memsize_for_buffers
- 00000533:000010B5       bufset
- 00000533:000010B7       dobuff
- 00000533:00001111       xif16
- 00000533:00001131       gotncds
- 00000533:0000117F       doinstallstack
- 00000533:000011F0       skipstack
- 00000533:0000126D       dosdata_umb_done
- 00000533:00001279       dosdata_noumb
- 00000533:00001289       rcclloop
- 00000533:000012A1       goaux
- 00000533:000012B4       goaux2
- 00000533:000012F2       startrearm
- 00000533:00001301       finishrearm
  00000533:00001305       set_sysinit_base
  00000533:000013AD       do_install_exec
- 00000533:000013C0       installfilename
- 00000533:000013C7       got_installparm
- 00000533:000013D4       done_installparm
- 00000533:000013E4       install_seg_set
- 00000533:000013FC       no_envdata2
  00000533:00001422       sysinitptr
  00000533:0000142E       install_exit_ret
  00000533:0000142F       ParaRound
@@ -1465,62 +1117,19 @@
  00000533:00001468       stall
  00000533:0000146B       sysinit_base_end
  00000533:00001470       sum_up
- 00000533:00001484       sum1
- 00000533:0000148A       sum_sys_code
- 00000533:00001494       sum2
  00000533:0000149D       sysinit_base_ssx
  00000533:0000149F       sysinit_base_spx
  00000533:000014A1       mem_alloc_err_msgx
  00000533:000014BC       set_buffer
- 00000533:000014C5       set_buff_1
- 00000533:000014D7       nxt_buff
- 00000533:00001508       set_buff_2
  00000533:00001517       GetBufferAddr
- 00000533:00001527       gba_1
- 00000533:0000154A       got_hma
- 00000533:0000154D       gba_2
  00000533:00001554       set_buffer_info
  00000533:0000157C       stackinit
- 00000533:000015DF       buildloop
- 00000533:0000161D       skip_disablenmis
  00000533:00001622       stkinit_02
  00000533:00001631       stkinit_08
  00000533:00001640       stkinit_09
  00000533:0000164F       stkinit_70
  00000533:0000165E       stkinit_0A
- 00000533:0000168E       int_0A_not_first
- 00000533:0000169D       int_0A_first
- 00000533:0000169E       stkinit_0B
- 00000533:000016CE       int_0B_not_first
- 00000533:000016DD       int_0B_first
- 00000533:000016DE       stkinit_0C
- 00000533:0000170E       int_0C_not_first
- 00000533:0000171D       int_0C_first
- 00000533:0000171E       stkinit_0D
- 00000533:0000174E       int_0D_not_first
- 00000533:0000175D       int_0D_first
- 00000533:0000175E       stkinit_0E
- 00000533:0000178E       int_0E_not_first
- 00000533:0000179D       int_0E_first
- 00000533:0000179E       stkinit_72
- 00000533:000017CE       int_72_not_first
- 00000533:000017DD       int_72_first
- 00000533:000017DE       stkinit_73
- 00000533:0000180E       int_73_not_first
- 00000533:0000181D       int_73_first
- 00000533:0000181E       stkinit_74
- 00000533:0000184E       int_74_not_first
- 00000533:0000185D       int_74_first
- 00000533:0000185E       stkinit_76
- 00000533:0000188E       int_76_not_first
- 00000533:0000189D       int_76_first
- 00000533:0000189E       stkinit_77
- 00000533:000018CE       int_77_not_first
- 00000533:000018DD       int_77_first
- 00000533:000018DE       int_77_end
- 00000533:000018F0       skip_enablenmis
  00000533:00001905       new_init_loop
- 00000533:0000191D       new_init_loop_1st
  00000533:00001944       setdevmark
  00000533:00001964       MagicDDNamePtr
  00000533:00001968       MagicDDName
@@ -1528,26 +1137,13 @@
  00000533:00001985       tiny_stub_start
  00000533:00001997       MagicPreload
  00000533:000019BD       _LoadDev
- 00000533:00001A1A       fail_driver_load
- 00000533:00001A26       pre_exit_err
- 00000533:00001A2A       no_driver_version_fail
  00000533:00001A2E       magic_is_resident
  00000533:00001A71       cant_move_driver
  00000533:00001A7C       _isblock
- 00000533:00001AB0       _ok_block
  00000533:00001ABB       _perunit
- 00000533:00001AC4       _scandpb
- 00000533:00001AD1       _foundpb
- 00000533:00001B28       _setdpb
- 00000533:00001B43       _iblk_1
- 00000533:00001B5E       _linkit
  00000533:00001B9C       pre_exit
  00000533:00001B9F       MagicPostload
- 00000533:00001C07       no_magic
  00000533:00001C08       MagicSetCdss
- 00000533:00001C26       magic_set_cdss_1
- 00000533:00001C3F       magic_set_cdss_2
- 00000533:00001C46       magic_set_exit
  00000533:00001C47       get_dblspace_version
  00000533:00001C52       config_envlen
  00000533:00001C54       config_wrkseg
@@ -1577,168 +1173,36 @@
  00000533:00001CFE       _$P_FileSp_Char
  00000533:00001D07       _$P_err_flag
  00000533:00001D08       SysParse
- 00000533:00001D5A       _$P_Fin
- 00000533:00001D5E       _$P_Start
- 00000533:00001D72       _$P_Pack_Loop
- 00000533:00001D8F       _$P_Pack_End_backup_si
- 00000533:00001D9A       _$P_PL01
- 00000533:00001DA7       _$P_PL00
- 00000533:00001DB4       _$P_Pack_End_BY_EOL
- 00000533:00001DB5       _$P_Pack_End
- 00000533:00001DDE       _$P_Positional_Manager
- 00000533:00001DFD       _$P_Too_Many_Error
  00000533:00001E06       get_maxp
- 00000533:00001E12       _$P_SW_Manager
- 00000533:00001E1D       _$P_SW_Mgr_Loop
- 00000533:00001E2B       _$P_SW_Not_Found
- 00000533:00001E34       _$P_Key_Manager
- 00000533:00001E49       _$P_Key_Mgr_Loop
- 00000533:00001E57       _$P_Key_Not_Found
- 00000533:00001E5E       _$P_Return_to_Caller
- 00000533:00001E79       _$P_Single_Exit
  00000533:00001E7B       _$P_Chk_Pos_Control
- 00000533:00001E89       _$P_CPC00
- 00000533:00001E9D       _$P_CPC02
- 00000533:00001EA7       _$P_CPC01
- 00000533:00001EAA       _$P_CPC_Exit
  00000533:00001EAC       _$P_Chk_Key_Control
  00000533:00001EAE       _$P_Search_KEYorSW
- 00000533:00001EBB       _$P_KEYorSW_Loop
- 00000533:00001EC5       _$P_KEYorSW_Not_Found
- 00000533:00001EC8       _$P_KEYorSW_Found
- 00000533:00001ECE       _$P_KEYorSW_Exit
  00000533:00001ED1       _$P_MoveBP_NUL
- 00000533:00001EDB       _$P_MBP_Exit
  00000533:00001EDD       _$P_Chk_SW_Control
- 00000533:00001F16       _$P_Chk_if_data_required
- 00000533:00001F2C       _$P_CSW00
- 00000533:00001F32       _$P_Chk_SW_Err0
- 00000533:00001F34       _$P_Chk_SW_Exit
- 00000533:00001F3D       _$P_Chk_SW_Single_Exit
  00000533:00001F3E       _$P_Fill_Result
  00000533:00001F59       _$P_RLT04
- 00000533:00001F5D       _$P_RLT02
- 00000533:00001F67       _$P_RLT00
- 00000533:00001F71       _$P_RLT01
- 00000533:00001F83       _$P_RLT03
- 00000533:00001F96       _$P_RLT05
- 00000533:00001FAA       _$P_RLT_CAP00
- 00000533:00001FB3       _$P_RLT_CAP02
- 00000533:00001FB6       _$P_RLT_CAP01
- 00000533:00001FC1       _$P_RLT_Exit
  00000533:00001FC3       _$P_Check_Match_Flags
- 00000533:00001FE8       _$P_Mat
- 00000533:00001FEA       _$P_Bridge
- 00000533:00001FED       _$P_Match03
  00000533:00002004       _$P_Match04
- 00000533:0000201B       _$P_Match05
- 00000533:00002035       _$P_Match06
- 00000533:0000204C       _$P_Match07
- 00000533:0000205B       _$P_Match_Exit
- 00000533:00002072       _$P_Match2_Exit
  00000533:00002074       _$P_Remove_Colon
- 00000533:00002076       _$P_RCOL_Loop
- 00000533:0000208E       _$P_RCOL00
- 00000533:00002094       _$P_RCOL01
- 00000533:00002097       _$P_RCOL_Exit
  00000533:0000209A       _$P_Do_CAPS_String
- 00000533:0000209E       _$P_DCS_Loop
- 00000533:000020B2       _$P_DCS00
- 00000533:000020B3       _$P_DCS01
- 00000533:000020B6       _$P_DCS_Exit
  00000533:000020B9       _$P_Do_CAPS_Char
- 00000533:000020C8       _$P_DCC_Go
- 00000533:000020E9       _$P_DCC01
- 00000533:000020F6       _$P_CAPS_Ret
  00000533:000020F7       _$P_SValue
- 00000533:00002115       _$P_SVal00
- 00000533:00002116       _$P_Sval01
  00000533:0000211B       _$P_Value
- 00000533:00002124       _$P_Value_Loop
- 00000533:00002153       _$P_Value_2x_OVF
- 00000533:00002157       _$P_Value_Chk_Add_OVF
- 00000533:0000215D       _$P_Value_OVF
- 00000533:0000215F       _$P_Value_Err0
  00000533:00002163       _$P_Value00
- 00000533:00002176       _$P_Value01
- 00000533:00002187       _$P_Value02
- 00000533:00002190       _$P_Val02_Loop
- 00000533:000021A6       _$P_Val_In
- 00000533:000021B6       _$P_Val02_Sign
- 00000533:000021C4       _$P_SVal_In
- 00000533:000021D4       _$P_Val02_Next
- 00000533:000021E7       _$P_Val_Found
- 00000533:000021EE       _$P_Value_Err
- 00000533:000021F8       _$P_Value_Exit
  00000533:00002200       _$P_Check_OVF
- 00000533:0000220B       _$P_COVF
- 00000533:00002210       _$P_COVF00
  00000533:00002212       _$P_0099
- 00000533:0000221E       _$P_0099Err
  00000533:00002220       _$P_Simple_String
- 00000533:00002233       _$P_Sim00
- 00000533:00002251       _$P_Sim_Loop
- 00000533:0000226B       _$P_Sim_Found
- 00000533:00002276       _$P_Sim01
- 00000533:0000227F       _$P_Sim_Exit
- 00000533:00002281       _$P_Sim_Exit0
  00000533:00002289       _$P_String_Comp
- 00000533:0000228F       _$P_SCOM_Loop
- 00000533:000022AF       _$P_SCOM04
- 00000533:000022C2       _$P_SCOM05
- 00000533:000022C5       _$P_SCOM03
- 00000533:000022D3       _$P_SCOM00
- 00000533:000022E6       _$P_SCOM01
- 00000533:000022E8       _$P_SCOM_Differ0
- 00000533:000022FF       _$P_not_applicable
- 00000533:00002313       _$P_SCOM02
- 00000533:0000231E       _$P_SCOM_Differ
- 00000533:00002321       _$P_SCOM_Same
- 00000533:00002327       _$P_SCOM_Exit
  00000533:0000232C       _$P_File_Format
  00000533:00002334       _$P_FileF_Loop0
- 00000533:0000234E       _$P_FileF_Err
- 00000533:00002364       _$P_FileF03
- 00000533:00002366       _$P_FileF_Loop1
- 00000533:00002379       _$P_FileF01
- 00000533:0000237D       _$P_FileF00
- 00000533:0000238B       _$P_FileF_RLT
- 00000533:0000238D       _$P_FileF02
- 00000533:0000239B       _$P_Drv_Only_Exit
  00000533:0000239C       _$P_FileSp_Chk
- 00000533:000023A5       _$P_FileSp_Loop
- 00000533:000023AE       _$P_FileSp_Exit
  00000533:000023B1       _$P_Drive_Format
- 00000533:000023D4       _$P_DrvF00
- 00000533:000023EB       _$P_Drv_Err
- 00000533:000023F2       _$P_Drv_Exit
  00000533:000023F5       _$P_Skip_Delim
- 00000533:00002413       _$P_Skip_Delim_CY
- 00000533:00002416       _$P_Skip_Delim_NCY
- 00000533:00002417       _$P_Skip_Delim_Exit
- 00000533:00002419       _$P_Exit_At_Extra
  00000533:0000241B       _$P_Chk_EOL
- 00000533:00002444       _$P_Chk_EOL_Loop
- 00000533:0000244C       _$P_Chk_EOL_NZ
- 00000533:0000244E       _$P_Chk_EOL_Exit
  00000533:00002451       _$P_Chk_Delim
  00000533:0000246B       _$P_Chk_Delim00
- 00000533:0000247B       _$P_Chk_Delim01
- 00000533:0000248D       _$P_Chk_Delim_Loop
- 00000533:00002495       _$P_Chk_Delim_NZ
- 00000533:00002497       _$P_Chk_Delim_Exit
- 00000533:0000249A       _$P_Chk_Delim_Exit0
- 00000533:000024AC       _$P_No_Set_Extra
  00000533:000024B0       _$P_Chk_Switch
- 00000533:000024BE       _$P_STRUC_L5
- 00000533:000024C0       _$P_STRUC_L2
- 00000533:000024CA       _$P_STRUC_L12
  00000533:000024CC       _$P_Chk_DBCS
- 00000533:000024FE       _$P_DBCS00
- 00000533:00002503       _$P_DBCS_LOOP
- 00000533:00002514       _$P_DBCS01
- 00000533:00002518       _$P_NON_DBCS
- 00000533:00002519       _$P_DBCS_EXIT
  00000533:0000251D       buf_parms
  00000533:00002522       buf_parmsx
  00000533:0000252C       buf_pos1
@@ -1870,668 +1334,153 @@
  00000533:000027DC       DevSavedDelim
  00000533:000027DD       MagicHomeFlag
  00000533:000027DE       doconf
- 00000533:00002801       noprob
- 00000533:00002856       puteol
- 00000533:00002875       conferr
  00000533:0000287B       endconv
  00000533:0000287C       multi_pass
  00000533:00002883       jae_endconv
- 00000533:000028A1       getcom
  00000533:000028A7       conflp
  00000533:000028EC       final
  00000533:000028EF       not_final
- 00000533:00002900       coff
- 00000533:00002907       blank_line
- 00000533:0000290E       tryi
- 00000533:00002918       not_init_pass
- 00000533:00002935       multi_pass_coff2
- 00000533:00002937       precheck_installhigh
- 00000533:00002943       multi_try_i
- 00000533:00002952       multi_try_n
- 00000533:0000298F       multi_pass_filter
- 00000533:0000299E       multi_pass_adjust
- 00000533:000029A6       multi_pass_coff
- 00000533:000029A9       tryb
- 00000533:000029BF       do7
- 00000533:000029C9       if7
- 00000533:000029D8       if11
- 00000533:000029E5       if13
- 00000533:000029E8       en11
- 00000533:000029EA       en7
- 00000533:000029FC       if18
- 00000533:00002A0E       sr7
- 00000533:00002A11       tryc
- 00000533:00002A22       do22
- 00000533:00002A2C       if22
- 00000533:00002A3F       if26
- 00000533:00002A44       en26
- 00000533:00002A46       en22
- 00000533:00002A50       sr22
- 00000533:00002A53       trym
- 00000533:00002A64       do31
- 00000533:00002A6E       if31
- 00000533:00002A81       if35
- 00000533:00002A86       en35
- 00000533:00002A88       en31
- 00000533:00002A9E       if39
- 00000533:00002AA4       en39
- 00000533:00002AA5       sr31
- 00000533:00002AA8       multi_try_doshi
- 00000533:00002AAD       skip_it
- 00000533:00002AB0       it_is_h
- 00000533:00002ABC       h_do_parse
  00000533:00002AC1       h_badparm
- 00000533:00002AC6       h_parse_ok
- 00000533:00002AD0       h_end
- 00000533:00002AD3       tryu
- 00000533:00002ADB       tryu_0
- 00000533:00002AF8       tryu_1
- 00000533:00002B15       tryu_2
- 00000533:00002B17       tryu_3
- 00000533:00002B2A       tryu_4
  00000533:00002B2E       _tryu_4
- 00000533:00002B30       tryu_5
- 00000533:00002B47       NrmTst
- 00000533:00002B5D       tryd
- 00000533:00002B62       skip_it2
- 00000533:00002B65       gotd
- 00000533:00002B7D       LoadDevice
- 00000533:00002BC3       tryd_1
- 00000533:00002BC9       DevConvLoad
- 00000533:00002BDB       NoMem
- 00000533:00002BDE       BadFile
- 00000533:00002BEA       tryd_2
- 00000533:00002BF0       LoadDev
- 00000533:00002BFD       goodld
- 00000533:00002C29       got_device_com_cont
- 00000533:00002C4A       skip_pass_limit
- 00000533:00002C9E       tryd_3
- 00000533:00002CA9       tryd_4
- 00000533:00002CB2       badnumblock
- 00000533:00002CBA       erase_dev_do
- 00000533:00002CD0       no_error_line_msg
- 00000533:00002CD3       was_device_com
- 00000533:00002CE3       breakok
- 00000533:00002D00       jc_edd
- 00000533:00002D0F       tryclk
- 00000533:00002D1C       golink
- 00000533:00002D1F       isblock
  00000533:00002D2F       perdrv
- 00000533:00002D44       ok_block
- 00000533:00002D5D       perunit
- 00000533:00002D66       scandpb
- 00000533:00002D73       foundpb
- 00000533:00002DC8       setdpb
- 00000533:00002DE2       iblk_1
- 00000533:00002DFC       iblk_2
- 00000533:00002E01       linkit
- 00000533:00002E36       coffj3
  00000533:00002E42       CheckDoubleSpace
- 00000533:00002E5A       set_magichomeflag
- 00000533:00002E63       magic_not_yet_home
- 00000533:00002E80       no_more_magic_calls
- 00000533:00002E83       bad_bpb_size_sector
- 00000533:00002E91       tryq
- 00000533:00002E96       skip_it3
- 00000533:00002E99       tryq_cont
- 00000533:00002EB2       do52
- 00000533:00002EC3       if52
- 00000533:00002EDF       if57
- 00000533:00002EE3       en57
- 00000533:00002EE5       if56
- 00000533:00002EFA       en56
- 00000533:00002EFC       sr52
- 00000533:00002F07       tryqbad
- 00000533:00002F0E       tryq_open
- 00000533:00002F1B       tryq_def
- 00000533:00002F1E       tryq_openit
- 00000533:00002F4F       tryq_set_for_dos
- 00000533:00002F6F       tryqfilebad
- 00000533:00002F7E       tryqdefbad
- 00000533:00002F81       tryqbadload
- 00000533:00002F8D       tryqmemory
- 00000533:00002F90       tryqchkerr
- 00000533:00002FA1       coffj4
  00000533:00002FAD       cntry_error
- 00000533:00002FB7       if64
- 00000533:00002FBA       en64
- 00000533:00002FC1       tryf
- 00000533:00002FD2       do67
- 00000533:00002FDC       if67
- 00000533:00002FEB       en67
- 00000533:00002FF3       sr67
- 00000533:00002FF6       tryl
- 00000533:00003007       do73
- 00000533:00003011       if73
- 00000533:00003020       en73
- 00000533:00003028       badparm_p_coff
- 00000533:0000302B       tryp
- 00000533:00003043       trypbad
- 00000533:00003046       tryk
- 00000533:0000304B       skip_it4
- 00000533:0000304E       do_tryk
- 00000533:0000305A       do79
- 00000533:0000306B       if79
- 00000533:0000307F       if83
- 00000533:00003083       en83
- 00000533:00003085       en79
- 00000533:0000309D       ll88
- 00000533:000030A4       if88
- 00000533:000030A6       if87
- 00000533:000030B5       en87
- 00000533:000030DD       if94
- 00000533:000030F4       sr79
- 00000533:000030F7       trys
- 00000533:00003114       storeshell
- 00000533:0000312A       getshparms
- 00000533:00003130       parmloop
- 00000533:00003140       endofparms
- 00000533:0000314B       endofshell
- 00000533:0000314E       skipline
- 00000533:00003157       endofline
- 00000533:0000315A       tryx
- 00000533:0000316B       do98
- 00000533:00003175       if98
- 00000533:00003189       if102
- 00000533:0000318D       en102
- 00000533:0000318F       en98
- 00000533:0000319D       sr98
- 00000533:000031A0       try1
- 00000533:000031A5       skip_it5
- 00000533:000031A8       do_try1
- 00000533:000031B4       do110
- 00000533:000031BF       if110
- 00000533:000031D5       if115
- 00000533:000031E6       if118
- 00000533:000031F7       if116
- 00000533:00003208       en110
- 00000533:00003220       if117
- 00000533:0000323D       if119
- 00000533:00003253       skip_dos_flag
- 00000533:00003254       sr110
- 00000533:00003257       tryv
- 00000533:00003266       err
- 00000533:0000326B       tryn
- 00000533:0000327C       tryt
- 00000533:0000328D       do120
- 00000533:00003297       if120
- 00000533:000032AA       if121
- 00000533:000032AF       sr120
- 00000533:000032B1       en120
- 00000533:000032B4       tryy
- 00000533:000032B9       donothing
- 00000533:000032C4       try0
  00000533:000032D8       CheckProtmanArena
- 00000533:000032F1       CheckProtmanDone
  00000533:000032F3       sysinit_parse
- 00000533:00003313       ll4
- 00000533:00003316       if4
- 00000533:00003317       en4
  00000533:0000331A       badop_p
- 00000533:00003326       badop
  00000533:00003332       badparm_p
- 00000533:00003341       do1
- 00000533:0000334F       en1
  00000533:0000335E       getchr
- 00000533:00003375       get_ret
- 00000533:00003377       nochar
  00000533:0000337A       incorrect_order
  00000533:00003384       error_line
  00000533:00003390       showlinenum
- 00000533:000033A1       sln_loop
- 00000533:000033B2       sln_last
  00000533:000033BF       ProcDOS
- 00000533:000033D5       pd_umb
- 00000533:000033DC       pd_lo
- 00000533:000033E3       pd_hi
  00000533:000033EA       LieInt12Mem
- 00000533:000033FF       lim_set
- 00000533:00003402       limx
  00000533:00003403       SetInt12Mem
  00000533:00003421       TrueInt12Mem
- 00000533:0000343D       timx
  00000533:0000343E       IsIt3Com
  00000533:00003457       UpdatePDB
  00000533:00003469       InitVar
  00000533:0000349D       FixMem
- 00000533:000034B1       fm10
  00000533:000034BE       fm20
- 00000533:000034D6       fm30
- 00000533:000034EB       fmX
  00000533:000034F4       fm_link
  00000533:0000350A       fm_unlink
  00000533:0000351A       ParseVar
- 00000533:00003520       pv10
- 00000533:0000352E       pv20
- 00000533:00003544       pv30
- 00000533:00003553       pvE1
- 00000533:00003556       pvErr
- 00000533:00003559       pvX
  00000533:0000355D       parseL
- 00000533:00003562       pl10
- 00000533:000035AC       plE1
- 00000533:000035B2       plE2
- 00000533:000035B7       plSwX
- 00000533:000035B8       plX
  00000533:000035BA       incArgc
  00000533:000035CE       isEOL
- 00000533:000035D8       ieX
  00000533:000035D9       isWhite
- 00000533:000035E3       iwX
  00000533:000035E4       unMarkUMB
- 00000533:00003601       umu10
  00000533:00003606       stowUMB
- 00000533:0000360C       su10
- 00000533:0000361F       su20
- 00000533:00003634       su30
  00000533:0000363A       stowSiz
  00000533:0000364E       gnradix
  00000533:00003650       toDigit
- 00000533:00003666       td20
- 00000533:00003674       td10
- 00000533:00003682       tdE
  00000533:00003684       GetXNum
- 00000533:000036B1       gxn10
- 00000533:000036BA       gxn20
- 00000533:000036D0       gxnE
- 00000533:000036D3       gxnQ
- 00000533:000036D5       gxnX
  00000533:000036D9       mul32
- 00000533:000036F4       m32E
  00000533:000036F6       toPara
  00000533:00003704       UmbHead
- 00000533:00003717       uhE
- 00000533:00003718       uhX
  00000533:0000371C       isSysMCB
- 00000533:0000372D       ism10
- 00000533:00003734       ismX
  00000533:00003736       AddrToUmb
- 00000533:00003744       atu10
- 00000533:00003750       atu20
- 00000533:00003764       atu30
- 00000533:0000376F       atuE
- 00000533:00003772       atuX
  00000533:00003778       convUMB
- 00000533:00003789       cu10
  00000533:0000378A       setUMBs
  00000533:00003792       loadLow
  00000533:000037A1       ll10
  00000533:000037A8       llx
  00000533:000037AA       HideUMBs
- 00000533:000037CC       hus10
- 00000533:000037E0       hus20
- 00000533:000037EA       husX
  00000533:000037EF       GetLoadUMB
  00000533:000037F7       GetLoadSize
  00000533:0000380F       GetSize
  00000533:00003824       StoLoadUMB
  00000533:0000382D       StoLoadSize
- 00000533:0000383E       sls10
  00000533:00003840       hideUMB
- 00000533:00003847       hu10
- 00000533:00003854       hu20
- 00000533:00003868       huX
  00000533:0000386B       isTiny
  00000533:00003877       isFreeMCB
  00000533:0000387E       hideMCB
  00000533:000038A2       unHideMCB
  00000533:000038BF       findUMB
- 00000533:000038CD       fu10
- 00000533:000038D7       fu20
- 00000533:000038EB       fuE
- 00000533:000038EC       fuX
  00000533:000038F0       BigFree
- 00000533:000038FB       bf10
- 00000533:00003913       bf20
- 00000533:00003927       bf30
- 00000533:00003930       bfX
  00000533:00003933       isSpecified
  00000533:00003944       shrinkMCB
- 00000533:0000399C       smE
- 00000533:0000399D       smX
  00000533:000039A1       _hideUMB_
- 00000533:000039C8       hu_10
- 00000533:000039D6       hu_20
- 00000533:000039DF       hu_30
- 00000533:000039ED       hu_X
  00000533:000039F1       UnFreeze
- 00000533:000039FA       uf10
- 00000533:00003A02       uf20
- 00000533:00003A16       ufX
  00000533:00003A19       isFrozMCB
- 00000533:00003A45       ifmX
  00000533:00003A47       frezMCB
  00000533:00003A6B       FreezeUM
- 00000533:00003A7D       fum10
- 00000533:00003A83       fum20
- 00000533:00003A8F       fum30
- 00000533:00003AA3       fumX
  00000533:00003AA8       UmbTest
  00000533:00003ABC       WalkMem
- 00000533:00003AC9       um10
- 00000533:00003ADD       um20
  00000533:00003AE6       hl_unlink
  00000533:00003AF6       UnHideUMBs
- 00000533:00003B05       uhu10
  00000533:00003B1B       he_unlink
  00000533:00003B2B       FreeUMBs
- 00000533:00003B32       fus10
- 00000533:00003B3C       fus20
- 00000533:00003B4E       fusX
  00000533:00003B51       isHideMCB
- 00000533:00003B7C       ihm_x
  00000533:00003B7E       freeMCB
  00000533:00003B99       HeadUmb
- 00000533:00003BAA       xhu_e
- 00000533:00003BAB       xhu_x
  00000533:00003BAD       linkumb
- 00000533:00003BBE       lumbX
  00000533:00003BBF       InitDevLoad
- 00000533:00003BE4       InitForConv
- 00000533:00003BF1       InitForHi
- 00000533:00003C01       InitForLo
- 00000533:00003C10       idl1
  00000533:00003C28       SpaceInUMB
- 00000533:00003C3C       spcinumb1
  00000533:00003C43       PrepareMark
  00000533:00003C62       GetUMBForDev
- 00000533:00003C84       gufd_err
  00000533:00003C94       DevSetMark
- 00000533:00003CAE       dsm_again
- 00000533:00003CB7       isit_slash
- 00000533:00003CBF       isit_null
- 00000533:00003CCB       dsm_next_char
- 00000533:00003CD7       blankout
- 00000533:00003CDD       dsm_exit
  00000533:00003CE3       SizeDevice
- 00000533:00003D11       sd_ctp
- 00000533:00003D20       sd_close
- 00000533:00003D27       sd_err
  00000533:00003D29       ExecDev
  00000533:00003D46       RetFromUM
- 00000533:00003D58       rfUM1
  00000533:00003D5A       RemoveNull
- 00000533:00003D64       rn_gotnull
  00000533:00003D6D       RoundBreakAddr
- 00000533:00003D8E       rba_ok
  00000533:00003D8F       DevSetBreak
- 00000533:00003DAB       set_break_continue
- 00000533:00003DB1       break_failed
  00000533:00003DB4       DevBreak
- 00000533:00003DD8       db_lo
- 00000533:00003DE4       db_exit
  00000533:00003DE6       ParseSize
- 00000533:00003E26       ps_no_size
- 00000533:00003E2B       ps_err
  00000533:00003E2E       SkipDelim
- 00000533:00003E39       sd_ret
  00000533:00003E3A       GetHexNum
- 00000533:00003E3E       ghn_next
- 00000533:00003E5C       ghn_shift1
- 00000533:00003E67       ghn_into_paras
- 00000533:00003E76       ghn_shift2
- 00000533:00003E7F       ghn_err
  00000533:00003E81       GetNibble
- 00000533:00003E8F       is_it_hex
- 00000533:00003E9D       gnib_err
  00000533:00003E9F       AllocUMB
- 00000533:00003EA4       au_next
- 00000533:00003EAE       au_coalesce
- 00000533:00003EB1       au_exit
  00000533:00003EB2       InitAllocUMB
- 00000533:00003EE2       ia_1
- 00000533:00003EE4       iau_err
  00000533:00003EE6       umb_allocate
- 00000533:00003F02       ua_done
- 00000533:00003F04       ua_err
  00000533:00003F07       umb_insert
- 00000533:00003F15       ui_next
- 00000533:00003F28       ui_insert
- 00000533:00003F7D       ui_append
- 00000533:00003FC4       ui_done
  00000533:00003FC6       umb_coalesce
- 00000533:00003FD2       uc_nextfree
- 00000533:00003FE4       uc_again
- 00000533:00004001       uc_done
  00000533:00004002       get_next
- 00000533:00004014       gn_err
  00000533:00004016       LinkFirstUMB
- 00000533:0000406C       scannext
- 00000533:0000407E       got_last
- 00000533:0000408C       lfu_er
  00000533:0000408E       ShrinkUMB
- 00000533:000040BA       su_exit
  00000533:000040BB       UnlinkUMB
- 00000533:000040D4       ulu_next
- 00000533:000040E1       ulu_found
- 00000533:000040E6       ulu_x
  00000533:000040EB       setparms
- 00000533:00004122       not_ec35
- 00000533:0000412F       eot_ok
  00000533:00004135       diddleback
  00000533:00004151       parseline
- 00000533:00004154       nextswtch
- 00000533:00004167       getparm
- 00000533:00004170       getnext
- 00000533:00004177       swterr
- 00000533:00004179       done_line
- 00000533:00004184       okay
- 00000533:00004197       exitpl
- 00000533:00004199       put_back
  00000533:000041A3       check_switch
- 00000533:000041F5       done_swtch
- 00000533:000041F7       err_swtch
- 00000533:000041F9       err_chk
  00000533:000041FB       process_num
- 00000533:0000420C       try_f
- 00000533:00004217       try_t
- 00000533:00004226       try_s
- 00000533:00004231       try_h
- 00000533:00004234       done_ret
  00000533:00004236       setdeviceparameters
  00000533:0000424A       got_80
- 00000533:00004268       see_heads
- 00000533:00004276       heads_not_altered
- 00000533:0000429C       not_144m
- 00000533:000042AE       only_one_head
- 00000533:000042C0       got_one_secperclus_drive
- 00000533:000042C5       got_correct_mediaid
  00000533:000042D9       organize
- 00000533:000042EC       org1
- 00000533:000042FE       end_commd_line
- 00000533:00004307       nochar1
- 00000533:00004309       findit
- 00000533:00004314       findcom
- 00000533:00004321       loopcom
- 00000533:00004351       semicolon
- 00000533:00004355       no_query
- 00000533:0000435B       gotcom0
- 00000533:00004360       nocom
- 00000533:00004366       _skipline
- 00000533:0000436F       gotcom
- 00000533:0000438D       org2
- 00000533:000043A3       org21
- 00000533:000043A5       org3
- 00000533:000043D5       org31
- 00000533:000043D8       org_switch
- 00000533:000043E9       org_file
- 00000533:000043F7       org_copy_file
- 00000533:0000440F       get_cmt_token
- 00000533:0000444C       get_cmt_end
- 00000533:00004453       end_commd_line_brdg
- 00000533:00004456       org_put_zero
- 00000533:0000445E       end_file_slash
- 00000533:00004466       end_copy_file
- 00000533:00004471       org4
- 00000533:00004480       org5
- 00000533:00004488       org51
- 00000533:00004497       org1_brdg
- 00000533:0000449A       at_quote
- 00000533:000044AA       up_level
  00000533:000044B1       get2
  00000533:000044B7       noget
  00000533:000044CE       skip_comment
- 00000533:000044FD       skip_cmmt
- 00000533:00004508       no_commt
  00000533:00004509       kbd_read
- 00000533:00004515       kbd_loop
- 00000533:00004530       kbd_loopdone
- 00000533:00004531       kbd_nodelay
- 00000533:00004542       kbd_notshift
- 00000533:00004556       kbd_cfg_bypass
- 00000533:00004563       kbd_notf5
- 00000533:0000456D       kbd_cfg_confirm
- 00000533:00004579       kbd_eat
- 00000533:00004586       kbd_test
- 00000533:0000458B       kbd_clean
- 00000533:00004590       kbd_exit
  00000533:00004592       set_numlock
- 00000533:000045AF       not_off
- 00000533:000045BC       set_done
  00000533:000045BF       menu_check
- 00000533:000045C3       swchk_loop
- 00000533:000045CF       swchk_next1
- 00000533:000045E1       swchk_next2
- 00000533:000045E5       swchk_scan
- 00000533:000045E8       swchk_scan1
- 00000533:00004602       swchk_scan2
- 00000533:0000460F       swchk_nextline
- 00000533:00004614       swchk_end
- 00000533:00004625       menu_search
- 00000533:00004637       menu_color
- 00000533:0000465F       check_color
- 00000533:00004666       set_color
- 00000533:0000466F       menu_found
- 00000533:00004689       menu_process
- 00000533:000046B7       menu_numlock
- 00000533:000046BC       to_menu_getdefault
- 00000533:000046BE       menu_default
- 00000533:000046DF       timeout_ok
- 00000533:000046E3       timeout_skip
- 00000533:000046E5       menu_item
- 00000533:000046F7       menu_itemfound
- 00000533:0000471A       menu_nextitem
- 00000533:00004720       menu_getdefault
- 00000533:00004729       menu_valid
- 00000533:00004738       menu_chkdefault
- 00000533:00004753       menu_nodefault
- 00000533:00004755       menu_setdefault
- 00000533:0000476A       menu_display
- 00000533:000047A8       menu_clear
- 00000533:000047DB       menu_nostatus
- 00000533:000047DE       menu_disploop
- 00000533:00004816       menu_autoselect
- 00000533:0000481E       menu_abort
- 00000533:00004823       normal_boot
- 00000533:00004831       not_topmenu
- 00000533:00004848       not_submenu
- 00000533:0000484E       no_selection
- 00000533:0000485F       copyblock_loop
- 00000533:00004866       copyblock_begin
- 00000533:00004889       copyblock_check
- 00000533:00004892       copyblock_skip
- 00000533:000048A2       move_config
- 00000533:000048AC       copy_boot
- 00000533:000048C5       l1
- 00000533:000048D3       l2
- 00000533:00004912       menu_exit
  00000533:0000491B       copy_envvar
- 00000533:00004927       copy_varlen
- 00000533:00004945       copy_varsrch
- 00000533:0000496F       copy_envprep
- 00000533:0000497B       copy_varnext
- 00000533:00004984       copy_envloop
- 00000533:00004990       copy_envdone
- 00000533:00004993       copy_envdel
- 00000533:0000499B       copy_envexit
  00000533:000049A0       copy_block
- 00000533:000049E4       copy_skip
- 00000533:000049E5       copy_error
- 00000533:000049EB       copy_line
- 00000533:00004A03       copy_loop
- 00000533:00004A0B       copy_next
- 00000533:00004A0F       copy_nextline
- 00000533:00004A14       copy_done
  00000533:00004A15       get_linenum
- 00000533:00004A23       get_linenum_loop
- 00000533:00004A2D       get_linenum_done
  00000533:00004A31       srch_block
  00000533:00004A4A       find_block
- 00000533:00004A61       check_line
- 00000533:00004A6C       next_line
- 00000533:00004A71       find_exit
  00000533:00004A72       comp_names
- 00000533:00004A73       comp_loop
- 00000533:00004A88       comp_exit
- 00000533:00004A8A       comp_almost
  00000533:00004A93       comp_names_safe
  00000533:00004AA1       print_item
- 00000533:00004AD8       print_other
- 00000533:00004B0A       print_loop
- 00000533:00004B14       print_nontab
- 00000533:00004B2D       print_done
  00000533:00004B39       select_item
- 00000533:00004B52       check_time
- 00000533:00004B68       show_time
- 00000533:00004B9E       input_key
- 00000533:00004BBB       got_time
- 00000533:00004BC5       got_key
- 00000533:00004BDF       timeout_disabled
- 00000533:00004BFC       not_up
- 00000533:00004C0E       print1
- 00000533:00004C10       print2
- 00000533:00004C16       to_input_key
- 00000533:00004C18       not_down
- 00000533:00004C2E       not_f8
- 00000533:00004C3E       normal_key
- 00000533:00004C4A       not_backspace
- 00000533:00004C5E       select_done
  00000533:00004C64       disp_input
- 00000533:00004C6B       disp_ok
  00000533:00004C79       disp_num
  00000533:00004C89       show_status
- 00000533:00004CAE       show_onoff
- 00000533:00004CBD       show_noton
- 00000533:00004CC1       show_done
  00000533:00004CC8       skip_token
  00000533:00004CD2       skip_check_eol
- 00000533:00004CDD       skip_token_eol
  00000533:00004CDE       skip_token_done
  00000533:00004CDF       skip_delim
  00000533:00004CEE       skip_opt_line
  00000533:00004CF2       skip_line
- 00000533:00004CF7       _skip_opt_line_
+ 00000533:00004CF7       _skip_opt_line:
  00000533:00004CFB       skip_line_done
  00000533:00004CFC       get_number
- 00000533:00004CFE       num_loop
- 00000533:00004D1D       num_done
  00000533:00004D1E       get_char
- 00000533:00004D28       get_fail
  00000533:00004D2B       nearby_ret
  00000533:00004D2C       query_user
- 00000533:00004D36       qu_1
- 00000533:00004D4F       query_all
- 00000533:00004D5E       find_match
- 00000533:00004D6E       cmd_match
- 00000533:00004D75       cmd_print
- 00000533:00004D87       cmd_notset
- 00000533:00004D89       line_print
- 00000533:00004D91       non_null
- 00000533:00004D9D       non_space
- 00000533:00004DA5       prompt_user
- 00000533:00004DA8       generic_prompt
- 00000533:00004DAB       input_loop
- 00000533:00004DC2       not_func
- 00000533:00004DE3       legal_char
- 00000533:00004DED       do_cmd
- 00000533:00004DF0       skip_cmd
- 00000533:00004DF1       skip_all
  00000533:00004DF5       print_error
- 00000533:00004E1D       pe_1
- 00000533:00004E23       pe_ret
  00000533:00004E29       disable_autoexec
  00000533:00004E45       dae_1
- 00000533:00004E65       disable_loop
  00000533:00004E73       disable_exit
  00000533:00004E74       CheckQueryOpt
  00000533:00004E8C       any_delim
@@ -2539,65 +1488,28 @@
  00000533:00004EA4       org_delim
  00000533:00004EB7       delim_ret
  00000533:00004EB8       newline
- 00000533:00004EC4       nl_ret
  00000533:00004EC5       mapcase
- 00000533:00004ECC       convloop
- 00000533:00004EDA       noconv
- 00000533:00004EE3       check_eol
- 00000533:00004EED       convdone
  00000533:00004EF1       round
- 00000533:00004F30       skip_set_devmarksize
  00000533:00004F33       mem_err
  00000533:00004F3E       calldev
  00000533:00004F61       todigit
- 00000533:00004F6B       notdig
  00000533:00004F6D       getnum
- 00000533:00004F70       b2
- 00000533:00004FAF       b15
- 00000533:00004FB9       b1
- 00000533:00004FBF       badnum
  00000533:00004FCA       setdoscountryinfo
- 00000533:0000500C       setdoscntry_find
- 00000533:0000501B       setdoscntry_next
- 00000533:00005024       setdoscntry_fail
- 00000533:00005026       setdosdata_fail
- 00000533:0000502B       setdoscntry_any_codepage
- 00000533:0000502E       setdoscntry_got_it
- 00000533:00005045       setdoscntry_data
- 00000533:000050BE       setdoscntry_mov
- 00000533:000050CD       setdoscntry_data_next
- 00000533:000050DD       setdoscntry_ok
  00000533:000050DE       setdbcs_before_copy
- 00000533:000050F8       sdbcsbc
  00000533:000050F9       getcountrydestination
- 00000533:00005102       getcntrydest
- 00000533:00005112       getcntrydest_1
- 00000533:00005115       getcntrydest_loop
- 00000533:0000511A       getcntrydest_ok
- 00000533:00005121       getcntrydest_ok1
- 00000533:00005125       getcntrydest_exit
  00000533:00005127       readincontrolbuffer
- 00000533:0000513A       ricb_exit
  00000533:0000513B       set_country_path
  00000533:0000514B       scp_default_drv
  00000533:00005151       scp_setdrv
  00000533:00005164       scp_root_dir
  00000533:00005165       scp_path
  00000533:00005171       chk_drive_letter
- 00000533:00005184       cdletter_no
- 00000533:00005185       cdletter_exit
  00000533:00005187       move_asciiz
  00000533:0000518F       badfil
  00000533:00005193       badload
  00000533:00005199       prnerr
- 00000533:0000519E       prn1
- 00000533:000051AC       prn2
- 00000533:000051BC       prnexit
  00000533:000051BD       print
  00000533:000051C2       open_dev
- 00000533:000051C7       open_dev1
- 00000533:000051CD       of_retn
- 00000533:000051CE       open_dev3
  00000533:000051E1       open_file
  00000533:000051E7       int24
  00000533:000051EA       IBMDOSV71COPYR

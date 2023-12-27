@@ -2914,7 +2914,8 @@ static Bytes_0(void) {
 	create_insn	(x=0X28DC);
 	op_plain_offset	(x,	0,	0X5F0);
 	op_plain_offset	(x,	128,	0X5F0);
-	set_name	(0X28E4,	"checkk09");
+	set_name	(0X28E4,	"checkcmosclock");
+	set_name	(0X28E6,	"checkk09");
 	set_cmt	(0X28E7,	"wait for any external event (al=0)",	0);
 	set_cmt	(0X28EA,	"wait for 4 clock ticks",	0);
 	set_cmt	(0X28ED,	"SYSTEM - WAIT ON EXTERNAL EVENT (CONVERTIBLE)\nAL = condition type, BH = condition compare or mask value\nBL = timeout value times 55 milliseconds, 00h means no timeout\nDX = I/O port address if AL bit 4 set",	0);
@@ -3020,8 +3021,6 @@ static Bytes_0(void) {
 	op_hex		(x,	1);
 	set_name	(0X2A0F,	"set_fbig_flag_ok");
 	set_name	(0X2A12,	"boot_drv_fixed");
-	set_cmt	(0X2A14,	"Load DOS kernel (IBMDOS.COM)\nSYSINIT segment = 544h",	0);
-	set_name	(0X2A14,	"loadit");
 }
 
 //------------------------------------------------------------------------
@@ -3031,6 +3030,8 @@ static Bytes_1(void) {
         auto x;
 #define id x
 
+	set_cmt	(0X2A14,	"Load DOS kernel (IBMDOS.COM)\nSYSINIT segment = 544h",	0);
+	set_name	(0X2A14,	"loadit");
 	create_insn	(x=0X2A19);
 	op_plain_offset	(x,	1,	0X5330);
 	op_plain_offset	(x,	129,	0X5330);
@@ -3183,6 +3184,8 @@ static Bytes_1(void) {
 	set_cmt	(0X2C03,	"start sector (LBA) of the partition",	0);
 	set_cmt	(0X2C0B,	"+ hidden secs of the extd dos partion",	0);
 	set_cmt	(0X2C15,	"[di+BDS.hiddensectors]",	0);
+	set_cmt	(0X2C1D,	"[di+BDS.bdsm_hidden_trks]",	0);
+	set_cmt	(0X2C20,	"[di+BDS.totalsec16]",	0);
 	set_cmt	(0X2C23,	"totals sectors (size) of the partition",	0);
 	create_insn	(x=0X2C23);
 	op_dec		(x,	1);
@@ -3250,7 +3253,7 @@ static Bytes_1(void) {
 	set_cmt	(0X2CE8,	"FAT32",	0);
 	create_insn	(x=0X2CEF);
 	op_dec		(x,	1);
-	set_cmt	(0X2CF2,	"move offset 36 to 63\n     to offset offset 64 (28 bytes)",	0);
+	set_cmt	(0X2CF2,	"move offset 36 to 63\n     to offset 64 (28 bytes)",	0);
 	set_cmt	(0X2CF5,	"boot sector offset 64",	0);
 	set_cmt	(0X2CFE,	"is it a near jump?",	0);
 	set_cmt	(0X2D02,	"yes",	0);
@@ -3291,8 +3294,7 @@ static Bytes_1(void) {
 	set_cmt	(0X2D61,	"accept either '1' or '2'",	0);
 	set_cmt	(0X2D66,	"'3.' (NASM syntax)",	0);
 	create_insn	(0X2D66);
-	set_cmt	(0X2D77,	"BPB_SecPerClus (at 0Dh)",	0);
-	set_cmt	(0X2D7D,	"NOTE: This check is not propfer for FAT32 boot sector (standard spec)\n(after PCDOS 7.1). So, it is not existing in Windows ME IO.SYS\nErdogan Tan - 01/09/2023",	0);
+	set_cmt	(0X2D7D,	"NOTE: This check is not proper for FAT32 boot sector (standard spec)\n(after PCDOS 7.1). So, it is not existing in Windows ME IO.SYS\nErdogan Tan - 01/09/2023",	0);
 	set_cmt	(0X2D7F,	"BS_BootSig (FAT32)",	0);
 	create_insn	(x=0X2D7F);
 	op_hex		(x,	1);
@@ -3633,7 +3635,6 @@ static Bytes_1(void) {
 	set_cmt	(0X318D,	"[di+BDS.formfactor],ffHardFile",	0);
 	set_cmt	(0X3191,	"assume 12 bit fat.",	0);
 	set_cmt	(0X3199,	"[di+BDS.heads]",	0);
-	set_name	(0X319C,	"fmpgot1");
 	set_cmt	(0X319F,	"[di+BDS.secpertrack]",	0);
 	set_cmt	(0X31A5,	"[di+BDS.drivenum] ; set physical number",	0);
 	set_cmt	(0X31AB,	"[di+BDS.drivelet] ; set logical number",	0);
@@ -4551,7 +4552,7 @@ static Bytes_1(void) {
 	set_cmt	(0X3855,	"if more characters, go around again",	0);
 	set_cmt	(0X3857,	"all done, successful exit",	0);
 	set_name	(0X3857,	"exvec2");
-	set_name	(0X3858,	"auxin_ok");
+	set_name	(0X3858,	"auxin_retn");
 	create_insn	(0X3859);
 	set_name	(0X3859,	"auxin");
 	set_cmt	(0X385E,	"flag_frame|flag_parity|flag_overrun",	0);
@@ -5518,10 +5519,6 @@ static Bytes_1(void) {
 	set_cmt	(0X3F2E,	"issue swap_dsk_msg",	0);
 	create_insn	(0X3F35);
 	set_cmt	(0X3F38,	"-1  ; end of list?",	0);
-	set_cmt	(0X3F3B,	"continue until hit end of list",	0);
-	set_cmt	(0X3F3E,	"restore current bds",	0);
-	set_cmt	(0X3F43,	"sector not found",	0);
-	create_insn	(0X3F43);
 }
 
 //------------------------------------------------------------------------
@@ -5531,6 +5528,10 @@ static Bytes_2(void) {
         auto x;
 #define id x
 
+	set_cmt	(0X3F3B,	"continue until hit end of list",	0);
+	set_cmt	(0X3F3E,	"restore current bds",	0);
+	set_cmt	(0X3F43,	"sector not found",	0);
+	create_insn	(0X3F43);
 	set_cmt	(0X3F47,	"unknown media",	0);
 	create_insn	(0X3F47);
 	set_name	(0X3F4A,	"ioret");
@@ -6195,7 +6196,7 @@ static Bytes_2(void) {
 	set_name	(0X443E,	"new_genioctl");
 	set_cmt	(0X443F,	"es:di points to bds for drive",	0);
 	create_insn	(0X443F);
-	set_name	(0X443F,	"Do_Generic_IOCtl");
+	set_name	(0X443F,	"do_generic_ioctl");
 	set_cmt	(0X4442,	"0, old generic ioctl function",	0);
 	set_cmt	(0X4449,	"es:bx points to request header",	0);
 	create_insn	(x=0X4449);
@@ -8096,13 +8097,6 @@ static Bytes_2(void) {
 	create_insn	(0X5420);
 	create_byte	(0X5422);
 	make_array	(0X5422,	0X7);
-	create_insn	(0X5429);
-	set_name	(0X5429,	"entry_int73_stk");
-	create_word	(x=0X542C);
-	op_plain_offset	(x,	0,	0X5330);
-	op_plain_offset	(x,	128,	0X5330);
-	create_insn	(0X542E);
-	set_name	(0X542E,	"intret_73");
 }
 
 //------------------------------------------------------------------------
@@ -8112,6 +8106,13 @@ static Bytes_3(void) {
         auto x;
 #define id x
 
+	create_insn	(0X5429);
+	set_name	(0X5429,	"entry_int73_stk");
+	create_word	(x=0X542C);
+	op_plain_offset	(x,	0,	0X5330);
+	op_plain_offset	(x,	128,	0X5330);
+	create_insn	(0X542E);
+	set_name	(0X542E,	"intret_73");
 	create_insn	(0X542F);
 	set_name	(0X542F,	"int74");
 	create_dword	(0X5431);
@@ -10513,11 +10514,6 @@ static Bytes_3(void) {
 	op_plain_offset	(x,	129,	0X5330);
 	set_cmt	(0X6D26,	"pass drive number to DBLSPACE as if",	0);
 	set_cmt	(0X6D2A,	"it is a normal block device driver",	0);
-	set_cmt	(0X6D2E,	"DS_INTERNAL_REVISION\ntell it what revision we expect",	0);
-	create_insn	(x=0X6D2E);
-	op_dec		(x,	1);
-	set_cmt	(0X6D31,	"first time call is init entry point\nwith a standard device driver\ninit packet at es:bx",	0);
-	create_insn	(x=0X6D31);
 }
 
 //------------------------------------------------------------------------
@@ -10527,6 +10523,11 @@ static Bytes_4(void) {
         auto x;
 #define id x
 
+	set_cmt	(0X6D2E,	"DS_INTERNAL_REVISION\ntell it what revision we expect",	0);
+	create_insn	(x=0X6D2E);
+	op_dec		(x,	1);
+	set_cmt	(0X6D31,	"first time call is init entry point\nwith a standard device driver\ninit packet at es:bx",	0);
+	create_insn	(x=0X6D31);
 	set_cmt	(0X6D36,	"skip if not a version failure",	0);
 	set_cmt	(0X6D38,	"DS_INTERNAL_REVISION_6 ; (Stacker ?)\ntell it what revision we expect",	0);
 	create_insn	(x=0X6D3B);
@@ -12795,14 +12796,6 @@ static Bytes_4(void) {
 	set_cmt	(0X7FA4,	"ds:bx -> sys_var",	0);
 	set_cmt	(0X7FA9,	"[bx+SYSI_NUMIO]\nrestore previous/real value",	0);
 	set_cmt	(0X7FB0,	"move break addr from the req packet",	0);
-	set_cmt	(0X7FC0,	"There we go... all done.",	0);
-	set_cmt	(0X7FD6,	"move DOS into HMA if requsted",	0);
-	set_cmt	(0X7FDB,	"*p = 0;",	0);
-	create_insn	(0X7FE2);
-	create_insn	(x=0X7FE4);
-	op_plain_offset	(x,	1,	0X5330);
-	op_plain_offset	(x,	129,	0X5330);
-	set_cmt	(0X7FEE,	"is error_line msg disabled ?",	0);
 }
 
 //------------------------------------------------------------------------
@@ -12812,6 +12805,14 @@ static Bytes_5(void) {
         auto x;
 #define id x
 
+	set_cmt	(0X7FC0,	"There we go... all done.",	0);
+	set_cmt	(0X7FD6,	"move DOS into HMA if requsted",	0);
+	set_cmt	(0X7FDB,	"*p = 0;",	0);
+	create_insn	(0X7FE2);
+	create_insn	(x=0X7FE4);
+	op_plain_offset	(x,	1,	0X5330);
+	op_plain_offset	(x,	129,	0X5330);
+	set_cmt	(0X7FEE,	"is error_line msg disabled ?",	0);
 	set_cmt	(0X7FF4,	"yes",	0);
 	set_cmt	(0X7FF6,	"show \"error in config.sys ...\" message.",	0);
 	set_cmt	(0X7FF9,	"set the default value again.",	0);
@@ -14832,6 +14833,15 @@ static Bytes_5(void) {
 	set_cmt	(0X9865,	"KEYBOARD - GET SHIFT STATUS\nAL = shift status bits",	0);
 	create_insn	(x=0X9865);
 	op_hex		(x,	0);
+}
+
+//------------------------------------------------------------------------
+// Information about bytes
+
+static Bytes_6(void) {
+        auto x;
+#define id x
+
 	set_cmt	(0X9867,	"either right or left shift key bits set?",	0);
 	create_insn	(x=0X9867);
 	op_hex		(x,	1);
@@ -14842,15 +14852,6 @@ static Bytes_5(void) {
 	op_plain_offset	(x,	128,	0X5330);
 	op_hex		(x,	1);
 	set_cmt	(0X9872,	"peek the keyboard",	0);
-}
-
-//------------------------------------------------------------------------
-// Information about bytes
-
-static Bytes_6(void) {
-        auto x;
-#define id x
-
 	set_cmt	(0X9874,	"KEYBOARD - CHECK BUFFER, DO NOT CLEAR\nReturn: ZF clear if character in buffer\nAH = scan code, AL = character\nZF set if no character in buffer",	0);
 	create_insn	(x=0X9874);
 	op_hex		(x,	0);
@@ -17031,7 +17032,7 @@ static Functions_0(void) {
 	set_name(0X2CB7, "oknotmini", SN_LOCAL);
 	set_name(0X2CD5, "set3_read_ok", SN_LOCAL);
 	set_name(0X2CFE, "check_1", SN_LOCAL);
-	set_name(0X2D11, "check_1_ok", SN_LOCAL);
+	set_name(0X2D11, "check_2", SN_LOCAL);
 	set_name(0X2D2D, "ck_power_of_two", SN_LOCAL);
 	set_name(0X2D33, "invalid_boot_record", SN_LOCAL);
 	set_name(0X2D38, "valid_boot_record", SN_LOCAL);
@@ -17039,8 +17040,8 @@ static Functions_0(void) {
 	set_name(0X2D4E, "try5", SN_LOCAL);
 	set_name(0X2D66, "no_os2", SN_LOCAL);
 	set_name(0X2D77, "copybpb", SN_LOCAL);
-	set_name(0X2D87, "check_2", SN_LOCAL);
-	set_name(0X2D8D, "check_3", SN_LOCAL);
+	set_name(0X2D87, "check_3", SN_LOCAL);
+	set_name(0X2D8D, "check_4", SN_LOCAL);
 	set_name(0X2DCD, "already_nonz", SN_LOCAL);
 	add_func    (0X2DE6,0X2FE5);
 	set_func_flags(0X2DE6,0x4400);
@@ -17098,11 +17099,11 @@ static Functions_0(void) {
 	set_name(0X3156, "fmpnext", SN_LOCAL);
 	set_name(0X3178, "fmpnextfound", SN_LOCAL);
 	set_name(0X317B, "fmpgot", SN_LOCAL);
-	set_name(0X31BC, "fmpgot2", SN_LOCAL);
-	set_name(0X31F7, "fmpgot3", SN_LOCAL);
+	set_name(0X31BC, "fmpgot1", SN_LOCAL);
+	set_name(0X31F7, "fmpgot2", SN_LOCAL);
 	set_name(0X321D, "fmpgot_lba_rd", SN_LOCAL);
 	set_name(0X3253, "fmpgot_chs_rd", SN_LOCAL);
-	set_name(0X3267, "fmpgot_cont", SN_LOCAL);
+	set_name(0X3267, "fmpgot3", SN_LOCAL);
 	set_name(0X327E, "fmpnextchain", SN_LOCAL);
 	set_name(0X3281, "_fmpnextfound", SN_LOCAL);
 	add_func    (0X3282,0X32BC);
@@ -17226,7 +17227,7 @@ static Functions_0(void) {
 	add_func    (0X3BDB,0X3C14);
 	set_func_flags(0X3BDB,0x4400);
 	set_frame_size(0X3BDB, 0X2, 0, 0);
-	set_name(0X3C0A, "ci_big_fat", SN_LOCAL);
+	set_name(0X3C0A, "ci_bigfat", SN_LOCAL);
 	add_func    (0X3C14,0X3CF6);
 	set_func_flags(0X3C14,0x4000);
 	set_frame_size(0X3C14, 0, 0, 0);

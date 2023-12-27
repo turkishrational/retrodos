@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; IBMBIO7.S (PCDOS 7.1 IBMBIO.COM) - RETRO DOS 5.0 by ERDOGAN TAN - 12/09/2023
 ; ----------------------------------------------------------------------------
-; Last Update: 15/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1)
+; Last Update: 27/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0), 01/10/2022 (Retro DOS 4.2)
 ; ----------------------------------------------------------------------------
@@ -197,6 +197,11 @@ CurrentClusterL:
 		dw 0
 CurrentClusterH:
 		dw 0	; 13/09/2023 - HW of FAT32 cluster number
+		; 27/12/2023
+FirstCluster:	; 06/10/2023
+FirstClusterL:	dw 0
+FirstClusterH:	dw 0
+		;;
 BytesPerSec:	dw 0
 SecPerCluster:	dw 0
 		; 13/09/2023
@@ -213,10 +218,7 @@ FATSectorsL:	dw 0
 FATSectorsH:	dw 0
 RootClusterL:	dw 0
 RootClusterH:	dw 0
-FirstCluster:	; 06/10/2023
-FirstClusterL:	dw 0
-FirstClusterH:	dw 0
-		;
+		;;
 FirstSectorL:	dw 0
 FirstSectorH:	dw 0
 BootDrive:	db 0
@@ -352,8 +354,8 @@ SaveInputValues:
 		mov	es, cx
 		push	di
 		mov	di, Sec9
-		mov	[DskAddr], di	; [mov 78h], di ; 522h
-		mov	[DskAddr+2], cx ; [mov 7Ah], cx ; 0
+		mov	[DskAddr], di	; mov [78h], di ; 522h
+		mov	[DskAddr+2], cx ; mov [7Ah], cx ; 0
 		pop	ds
 		mov	cl, 14		; (11+3 bytes for IBM rombios)
 		cld
@@ -501,7 +503,8 @@ chk_fatsz_16:
 		inc	di
 		xchg	ax, dx	; mov ax, dx
 		;stosw
-		jmp	short fat_bs  
+		jmp	short fat_bs
+
 fat32_bs:
 		; FAT32 boot sector
 		movsw	; BPB_FATSz32 (lw) -> FATSectorsL
@@ -638,8 +641,8 @@ Skip_RPL:
 ; Move the stack to just under the boot record and relocation area (0:7c00h)
 ;
 
-SetupStack:	
-		; 22/12/202		; ...
+SetupStack:
+		; 22/12/2022
 		;mov	ax, cs		; Start	of relocated code
 		;mov	ss, ax
 		;;mov	sp, NumHeads	; StackPtr offset
@@ -666,14 +669,15 @@ SetupStack:
 		; 14/09/2023
 		; (PCDOS 7.1 IBMBIO.COM - MSLOAD:01A5h)
 		mov	ax, cs
-		push	ax ; *	
+		; 27/12/2023
+		mov	ds, ax
+		;
 		sub	ax, 40h	; move ss to 400h backward for stack space
 				; then set sp to the end of this stack space
 		mov	ss, ax 		
 		mov	sp, 400h
-		;add	ax, 40h	; ax = cs 		
+		;add	ax, 40h	; ax = cs
 		;mov	ds, ax
-		pop	ds ; *
 
 ; FindClusterSize
 ; ---------------------------------------------------------------------------
@@ -712,7 +716,7 @@ FindClusterSize:
 		or	dx, dx
 		jz	short CalcFatSize
 		jmp	ErrorOut
-	
+
 ; CalcFatSize
 ; ---------------------------------------------------------------------------
 ;
@@ -734,11 +738,11 @@ CalcFatSize:
 		; 14/09/2023 (Retro DOS v5, PCDOS 7.1 IBMBIO.COM LOADER)
 		; 24/12/2022 (Retro DOS v4, MSDOS 5.0-6.22 IO.SYS LOADER)
 
-		mov	[ClusterSize], ax ; cluster size in bytes	
+		mov	[ClusterSize], ax ; cluster size in bytes
 
 		; 24/12/2022
 		; ds = cs
-		;mov	byte [Fatsize], 1; FAT_12_BIT (assume)	
+		;mov	byte [Fatsize], 1; FAT_12_BIT (assume)
 		; 14/09/2023
 		mov	byte [FatType],1 ; FAT12
 		
@@ -755,7 +759,7 @@ CalcFatSize:
 		
 		push	ax
 		push	dx
-		
+
 		mov	bx, [FATSectorsL]
 		
 		;mov	cx, [FATSectorsH]
@@ -765,16 +769,16 @@ CalcFatSize:
 		;;xor	ah, ah
 		;mov	ax, [NumFats]
 		;xchg	ax, cx
-		;mul	cx		
+		;mul	cx
 
 		mov	ax, [FATSectorsH]
 		mov	cx, [NumFats]	; calculate total FAT sectors
-		mul	cx	
+		mul	cx
 		xchg	ax, cx
 		mul	bx
 		add	cx, dx
 		mov	bx, ax
-	
+
 		pop	dx
 		pop	ax
 
@@ -793,11 +797,11 @@ CalcFatSize:
 		; 04/10/2023
 		mov	[StartSecL], dx
 		mov	[StartSecH], cx
-		;		
+		;
 		; ! here, cx:dx includes hidden sectors (partition start address) !
 		sub	dx, [HiddenSectorsL]
 		sbb	cx, [HiddenSectorsH] ; cx:dx = start of data from boot sector
- 
+
 		; 14/09/2023
 		sub	bx, dx	; total secs - start of data
 		sbb	ax, cx
@@ -814,7 +818,7 @@ CalcFatSize:
 		;mov	[TempH], ax
 		; 14/09/2023
 		xchg	ax, bx	; ax = lw of data sector count ; 06/10/2023
-				; bx = hw of cluster count 
+				; bx = hw of cluster count
 		div	cx  ; *#*
 		; 14/09/2023
 		;mov	dx, [FirstCluster+2]
@@ -1373,7 +1377,7 @@ GetContigClusters:
 ; ---------------------------------------------------------------------------
 
 GoToBioInit:
-	
+
 ; 05/10/2023 - Retro DOS v5.0 IBMBIO.COM (PCDOS 7.1)
 %if 0
 		; 24/12/2022
@@ -5657,7 +5661,7 @@ disktable:	dw 512,	0100h, 64, 0	; warning !!! old values
 		; 09/12/2023
 		; 08/08/2023
 		; disktable.totalsectors: resw 1 ; high word
-					  resw 1 ; low word
+		;			  resw 1 ; low word
 		; disktable.shiftcount:   resb 1
 		; disktable.secperclus:   resb 1
 		; disktable.rdirentries:  resw 1
@@ -5693,9 +5697,10 @@ end_of_bdss:	dw bdss			; offset value of the ending address
 mini_hdlim:	dw 0			
 mini_seclim:	dw 0
 
+; 19/12/2023
 ; 09/12/2023
 ; (PCDOS 7.1 IBMBIO.COM, BIOSDATA:1A7Ah)
-ld_p_number:	dw 2BADh		; (for 'find_mini_partition' proc)
+;ld_p_number:	dw 2BADh		; (for 'find_mini_partition' proc)
 
 ;end of mini disk init variables **********************
 
@@ -6170,6 +6175,8 @@ cdbo_7:
 		retf
 
 ; ---------------------------------------------------------------------------
+dap_buffer: ; 16/12/2023
+
 empty_dap_buff:	db 19
 		;db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0  ; db 18 dup(0)
 		times 18 db 0
@@ -6425,7 +6432,7 @@ next_int_:
 		; 10/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
 		mov	ax, [68h]	 ; 1Ah*4
 		mov	di, [6Ah]	 ; 1Ah*4+2
-		mov	[68h], Int1A
+		mov	word [68h], Int1A
 		mov	[6Ah], cs
 
 		; 21/12/2022
@@ -7495,7 +7502,7 @@ dohard1:
 		mov	bl, [drvmax]
 		mov	bh, 0		; first	primary	partition (or active)
 		call	sethard
-		jb	short hardfile_err
+		jc	short hardfile_err
 		call	dmax_check	; error	if already 26 drives
 		jnb	short hardfile_err
 		call	xinstall_bds	; insert new bds into linked list
@@ -7527,7 +7534,7 @@ dohardx2:
 		mov	di, [end_of_bdss]
 		mov	bl, [drvmax]
 		call	sethard
-		jb	short dohardx4	; move to next hardfile	if error
+		jc	short dohardx4	; move to next hardfile	if error
 		call	dmax_check	; make sure <=26 drives
 		jnb	short dohardx4	; skip if error
 		call	xinstall_bds	; insert new bds into linked list
@@ -8126,8 +8133,8 @@ loadit:
 		; 13/12/2023 - Retro DOS v5.0 (PCDOS 7.1) IBMBIO.COM
 		; (PCDOS 7.1 IBMBIO.COM - BIOSDATA:2431h)
 
-		;test	[cs:fbigfat], 20h ; fbigbig ; FAT32 fs flag
-		test	[fbigfat], 20h	; fbigbig ; FAT32 fs flag
+		;test	byte [cs:fbigfat], 20h ; fbigbig ; FAT32 fs flag
+		test	byte [fbigfat], 20h ; fbigbig ; FAT32 fs flag
 		jz	short iseof
 
 eofbigbig:	; si:bx = 32 bit cluster number
@@ -8354,7 +8361,7 @@ getboot:	; proc near
 					; AL = number of sectors to read, CH = track, CL = sector
 					; DH = head, DL	= drive, ES:BX -> buffer to fill
 					; Return: CF set on error, AH =	status,	AL = number of sectors read
-		jb	short erret
+		jc	short erret
 		; 17/10/2022
 		cmp	word [es:bootbias+1FEh], 0AA55h
 		;cmp	word ptr es:3FEh, 0AA55h ; [es:bootbias+1FEh]
@@ -8364,10 +8371,6 @@ erret:
 		stc
 norm_ret:
 		retn
-
-burada kaldým... 15/12/2023 buradan yukarýsý remap ve getboot MSDOS 6.22'de
-ve MSDOS 5.0'da da ayný onun için yukarýsý retrodos 4-4.1-4.2ye uyarlanacak..
-Aþaýdaki sethard PCDOS 7.1'de FAT32'den dolayý farklý.
 
 ; =============== S U B	R O U T	I N E =======================================
 
@@ -8388,6 +8391,9 @@ Aþaýdaki sethard PCDOS 7.1'de FAT32'den dolayý farklý.
 ;	MUST PRESERVE ES:!!!!
 ;***************************************************************************
 
+		; 16/12/2023 - Retro DOS v5.0 (PCDOS 7.1) IBMBIO.COM
+		; (PCDOS 7.1 IBMBIO.COM - BIOSDATA:24E9h)
+
 sethard:	; proc near
 		; 12/08/2023
 		; ds = cs = BIOSDATA
@@ -8397,9 +8403,12 @@ sethard:	; proc near
 		push	es
 		mov	[di+5],	bl	; [di+BDS.drivelet]
 		mov	[di+4],	dl	; [di+BDS.drivenum]
-		or	byte [di+23h], 1 ; [di+BDS.flags]
+		; 16/12/2023
+		or	byte [di+3Fh], 1 ; PCDOS 7.1
+		;or	byte [di+23h], 1 ; [di+BDS.flags]
 					; fnon_removable
-		mov	byte [di+22h], 5 ; [di+BDS.formfactor]
+		mov	byte [di+3Eh], 5 ; PCDOS 7.1
+		;mov	byte [di+22h], 5 ; [di+BDS.formfactor]
 					; ffHardFile
 		mov	byte [fbigfat], 0 ; assume 12 bit FAT
 		mov	dh, bh		; partition number
@@ -8410,16 +8419,44 @@ sethard:	; proc near
 					; Return: CF set on error, AH =	status code, BL	= drive	type
 					; DL = number of consecutive drives
 					; DH = maximum value for head number, ES:DI -> drive parameter
-		inc	dh
-		mov	[di+15h], dh	; [di+BDS.heads] ; get number of heads
+		;inc	dh
+		; 16/12/2023 - Retro DOS v5.0
+		mov	dl, dh
+		mov	dh, 0
+		inc	dx
+		;mov	[di+15h], dh	; [di+BDS.heads] ; get number of heads
+		mov	[di+15h], dx
 		pop	dx
-		jb	short setret	; error	if no hard disk
+		jc	short setret	; error	if no hard disk
+		; 16/12/2023
+		;jc	short setret_j
+		
 		and	cl, 3Fh
 		mov	[di+13h], cl	; [di+BDS.secpertrack]
 		push	dx		; save partition number
 		call	getboot
 		pop	dx		; restore partition number
-		jb	short setret
+		jc	short setret
+		; 16/12/2023
+		;jnc	short chk_act_part
+;setret_j:
+		;jmp	setret
+
+		; 16/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+chk_act_part:
+		xor	bx, bx ; 0
+		;;mov	[cs:ep_start_sector], bx
+		;;mov	[cs:ep_start_sector+2], bx
+		;mov	[cs:ep_hidden_secs], bx
+		;mov	[cs:ep_hidden_secs+2], bx
+		; 16/12/2023
+		; ds = cs
+		; 20/12/2023
+		;mov	[ep_start_sector], bx
+		;mov	[ep_start_sector+2], bx
+		mov	[ep_hidden_secs], bx
+		mov	[ep_hidden_secs+2], bx
+		
 		mov	bx, 3C2h	; 1C2h+bootbias
 
 ; The first 'active' partition is 00, the second is 01....
@@ -8428,12 +8465,52 @@ sethard:	; proc near
 act_part:
 		test	byte [es:bx-4], 80h ; is the partition active?
 		jz	short no_act	; no
-		cmp	byte [es:bx], 1 ; reject if partitiontype != 1, 4 or 6
+; 16/12/2023
+%if 0		
+		; 16/12/2023
+		; reject if partitiontype != 1, 4, 6, 0Bh, 0Ch, 0Eh
+		cmp	byte [es:bx], 1 ; FAT12
 		jz	short got_good_act
-		cmp	byte [es:bx], 4
+		cmp	byte [es:bx], 4	; FAT16 CHS (<= 32MB)
 		jz	short got_good_act
-		cmp	byte [es:bx], 6
+		
+		; 16/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		cmp	byte [es:bx], 0Bh ; FAT32 CHS
+		jz	short got_good_act
+		cmp	byte [es:bx], 0Ch ; FAT32 LBA
+		jz	short got_good_act
+		cmp	byte [es:bx], 0Eh ; FAT16 LBA
+		jz	short got_good_act
+
+		cmp	byte [es:bx], 6	; FAT16 BIG CHS (> 32MB)
 		jnz	short no_act
+;%else
+		; 16/12/2023
+		mov	al, [es:bx]	 ; partition type
+
+		; reject if partitiontype != 1, 4, 6, 0Bh, 0Ch, 0Eh
+		cmp	al, 1		; FAT12
+		je	short got_good_act
+		cmp	al, 4		; FAT16 CHS (<= 32MB)
+		je	short got_good_act
+		
+		; 16/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		cmp	al, 0Bh		; FAT32 CHS
+		je	short got_good_act
+		cmp	al, 0Ch		; FAT32 LBA
+		je	short got_good_act
+		cmp	al, 0Eh		; FAT16 LBA
+		je	short got_good_act
+
+		cmp	al, 6		; FAT16 BIG CHS (> 32MB)
+		jne	short no_act
+%endif		
+		; 16/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1)
+		; check if it is a primary dos partition
+
+		call	chk_partition_type
+		jne	short no_act
+
 got_good_act:				; 11/08/2023
 		or	dh, dh		; is this our target partition #?
 					; (0 = first primary dos or active partition)
@@ -8444,6 +8521,7 @@ no_act:
 		cmp	bx, 402h	; 202h+bootbias
 					; last entry done?
 		jnz	short act_part	; no, process next entry
+
 		mov	bx, 3C2h	; 1C2h+bootbias
 					; restore original value of bx
 
@@ -8453,12 +8531,52 @@ get_primary:
 		test	byte [es:bx-4], 80h
 		jnz	short not_prim	; we've already scanned
 					; the ACTIVE ones
-		cmp	byte [es:bx], 1 ; see if partitiontype == 1, 4 or 6
+; 16/12/2023
+%if 0
+		; 16/12/2023
+		; see if partitiontype == 1, 4, 6, 0Bh, 0Ch, 0Eh
+		cmp	byte [es:bx], 1	; FAT12
 		jz	short got_prim
-		cmp	byte [es:bx], 4
+		cmp	byte [es:bx], 4	; FAT16 CHS (<= 32MB)
 		jz	short got_prim
-		cmp	byte [es:bx], 6
+
+		; 16/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		cmp	byte [es:bx], 0Bh ; FAT32 CHS
+		jz	short got_prim
+		cmp	byte [es:bx], 0Ch ; FAT32 LBA
+		jz	short got_prim
+		cmp	byte [es:bx], 0Eh ; FAT16 LBA
+		jz	short got_prim
+
+		cmp	byte [es:bx], 6	; FAT16 BIG CHS (> 32MB)
 		jnz	short not_prim
+;%else
+		; 16/12/2023
+		mov	al, [es:bx]	 ; partition type
+
+		; see if partitiontype == 1, 4, 6, 0Bh, 0Ch, 0Eh
+		cmp	al, 1		; FAT12
+		je	short got_prim
+		cmp	al, 4		; FAT16 CHS (<= 32MB)
+		je	short got_prim
+		
+		; 16/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		cmp	al, 0Bh		; FAT32 CHS
+		je	short got_prim
+		cmp	al, 0Ch		; FAT32 LBA
+		je	short got_prim
+		cmp	al, 0Eh		; FAT16 LBA
+		je	short got_prim
+
+		cmp	al, 6		; FAT16 BIG CHS (> 32MB)
+		jne	short not_prim
+%endif
+		; 16/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1)
+		; check if it is a primary dos partition
+
+		call	chk_partition_type
+		jne	short not_prim
+
 got_prim:
 		or	dh, dh		; is this our target partition?
 		jz	short set2
@@ -8470,6 +8588,42 @@ not_prim:
 setret:					
 		stc			; error	return
 		jmp	ret_hard_err
+
+; ---------------------------------------------------------------------------
+		
+		; 16/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1)
+
+chk_partition_type:
+		; 16/12/2023
+		mov	al, [es:bx]	 ; partition type
+
+		; see if partitiontype == 1, 4, 6, 0Bh, 0Ch, 0Eh
+		cmp	al, 1		; FAT12
+		je	short chk_ptype_retn
+		cmp	al, 4		; FAT16 CHS (<= 32MB)
+		je	short chk_ptype_retn
+		
+		; 16/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		cmp	al, 0Bh		; FAT32 CHS
+		je	short chk_ptype_retn
+		cmp	al, 0Ch		; FAT32 LBA
+		je	short chk_ptype_retn
+		cmp	al, 0Eh		; FAT16 LBA
+		je	short chk_ptype_retn
+
+		cmp	al, 6		; FAT16 BIG CHS (> 32MB)
+chk_ptype_retn:
+		; zf = 1 -> primary DOS partition
+		; zf = 0 -> not a primary DOS partition
+		retn
+
+; ---------------------------------------------------------------------------
+
+		; 16/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1)
+		; (PCDOS 7.1 IBMBIO.COM - BIOSDATA:25B6h)
+ep_start_sector:
+		dd 0
+ep_hidden_secs:	dd 0
 
 ; ---------------------------------------------------------------------------
 
@@ -8501,24 +8655,77 @@ set2:
 		sbb	dx, 0
 		add	ax, [es:bx+8]	; sectors in partition
 		adc	dx, [es:bx+10]
-		jnb	short okdrive
+		jnc	short okdrive
 		or	byte [fbigfat], 80h ; ftoobig
+
+		; 16/12/2023 - Retro DOS v5.0 (PCDOS 7.1) IBMBIO.COM
+		;;;
 okdrive:
-		mov	ax, [es:bx+4]
+		;add	ax, [cs:ep_hidden_secs]
+		;adc	dx, [cs:ep_hidden_secs+2]
+		; ds = cs
+		add	ax, [ep_hidden_secs]
+		adc	dx, [ep_hidden_secs+2]
+		jnc	short okdrive_1
+		or	byte [fbigfat], 80h ; ftoobig
+okdrive_1:
+		cmp	byte [es:bx], 0Ch ; FAT32 LBA partition ID
+		je	short set_lba_flag
+		cmp	byte [es:bx], 0Eh ; FAT16 LBA partition ID
+		je	short set_lba_flag
+		cmp	dx, [di+13h]	; if dx > [di+BDS.secpertrack] then
+		jnb	short set_lba_flag ; set LBA r/w flag
+		div	word [di+13h]
+		xor	dx, dx
+		div	word [di+15h]
+		cmp	ax, 400h	; if ax (cylinder number) >= 1024
+					;  set LBA r/w flag
+ 		jb	short set3
+set_lba_flag:
+                or	byte [di+40h], 4 ; fLBArw ; LBA r/w flag
+		;;;
+;okdrive:
+		; 16/12/2023
+set3:		
+		;mov	ax, [es:bx+4]
+		;mov	[di+17h], ax	; [di+BDS.hiddensecs]
+		;			; BPB_HIDDENSECTORS = p->partitionbegin
+		;mov	ax, [es:bx+6]
+		;mov	[di+19h], ax	; [di+BDS.hiddensecs+2]
+
+		; 16/12/2023 - Retro DOS v5.0 (PCDOS 7.1) IBMBIO.COM
+		;;;
+		mov	ax, [es:bx+4]	; start sector (LBA) of the partition
+		mov	dx, [es:bx+6]
+		;add	ax, [cs:ep_hidden_secs]
+		;adc	dx, [cs:ep_hidden_secs+2]
+		; ds = cs
+		add	ax, [ep_hidden_secs]
+					; + hidden secs of the extd dos partion
+		adc	dx, [ep_hidden_secs+2]
 		mov	[di+17h], ax	; [di+BDS.hiddensecs]
-					; BPB_HIDDENSECTORS = p->partitionbegin
-		mov	ax, [es:bx+6]
-		mov	[di+19h], ax	; [di+BDS.hiddensecs+2]
+		mov	[di+19h], dx	; [di+BDS.hiddensecs+2]
+		xor	ax, ax ; 0
+		mov	[di+7Bh], ax	; [di+BDS.bdsm_hidden_trks]
+		mov	[di+0Eh], ax	; [di+BDS.totalsec16]	
+		;;;
+
 		mov	dx, [es:bx+10]	; # of sectors (high)
 		mov	ax, [es:bx+8]	; # of sectors (low)
 		mov	[di+1Dh], dx	; [di+BDS.totalsecs32+2]
 		mov	[di+1Bh], ax	; [di+BDS.totalsecs32]
 					; bpb->maxsec =	p->partitionlength
-		cmp	dx, 0
-		ja	short okdrive_1
+		;cmp	dx, 0
+		;ja	short okdrive_1
+		; 16/12/2023
+		or	dx, dx
+		jnz	short set3_read
 		cmp	ax, 64		; if (p->partitionlength < 64)
-		jb	short setret	; return -1;
-okdrive_1:
+		;jb	short setret	; return -1;
+		jb	short set3_err
+;okdrive_1:
+		; 16/12/2023
+set3_read:
 		mov	dx, [di+19h]	; [di+BDS.hiddensecs+2]
 		mov	ax, [di+17h]	; [di+BDS.hiddensecs]
 		xor	bx, bx		; boot sector number - for mini	disk
@@ -8529,6 +8736,8 @@ okdrive_1:
 		xor	dx, dx
 		div	bx		; (sectors)dx:ax / (BDS.secpertrack)bx =
 					; (track)temp_h:ax + (sector)dx
+; 16/12/2023
+%if 0
 		; 17/10/2022
 		;mov	[cs:temp_h], ax
 		; 12/08/2023 (ds=cs)
@@ -8571,6 +8780,129 @@ okdrive_2:
 		add	ax, [di+49h]	; [di+BDS.bdsm_hidden_trks]
 					; set the physical track number
 oknotmini:
+%endif
+		; 16/12/2023 - Retro DOS v5.0 (PCDOS 7.1) IBMBIO.COM
+		;;;
+		;mov	[cs:saved_word], ax
+		mov	[saved_word], ax
+		pop	ax
+		div	bx
+		mov	cl, dl
+		inc	cl
+		mov	bx, [di+15h]	; [di+BDS.heads]
+		push	ax
+		xor	dx, dx
+		;mov	ax, [cs:saved_word]
+		mov	ax, [saved_word]
+		div	bx
+		;mov	[cs:saved_word], ax
+		mov	[saved_word], ax ; not necessary !? (ax must be 0)
+		pop	ax
+		div	bx		; dl is head, ax is cylinder
+		; 16/12/2023
+		push	cs
+		pop	es ; (*)
+		mov	bx, disksector ; (**)
+		;
+		test	byte [di+40h], 4 ; fLBArw ; LBA read/write flag
+		jz	short set3_chs_read
+set3_lba_read:
+
+; 16/12/2023
+%if 0
+		;push	cs
+		;pop	es ; (*)
+		;mov	bx, disksector ; (**)
+
+		;push	ds
+		;push	si
+		xor	ax, ax	; 0
+		push	ax
+		push	ax
+		mov	ax, [di+19h]	; [di+BDS.hiddensectors+2]
+		push	ax
+		mov	ax, [di+17h]	; [di+BDS.hiddensectors]
+		push	ax
+		push	es		; buffer address
+		push	bx
+		mov	ax, 1		; sector (read) count
+		push	ax
+		;mov	ax, 16		; DAP size
+		mov	al, 16
+		push	ax
+		mov	dl, [rom_drv_num] ; ds = cs
+		mov	ax, ss
+		mov	ds, ax ; ds = ss
+		mov	si, sp
+		;mov	dl, [cs:rom_drv_num]
+		mov	ah, 42h
+		int	13h		; DISK - IBM/MS Extension
+					; EXTENDED READ (DL - drive, DS:SI - disk address packet)
+		;pop	si
+		;pop	ds
+		jnc	short set3_lba_read_ok
+		add	sp, 16
+		;pop	si
+		;pop	ds
+set3_err:
+		;jmp	setret
+		jmp	ret_hard_err
+
+set3_lba_read_ok
+		add	sp, 16
+		;pop	si
+		;pop	ds
+		jmp	short set3_read_ok
+%else
+		; 16/12/2023
+		;push	si ; * ; (not necessary)
+		;mov	si, empty_dap_buff ; dap_buffer
+		mov	si, dap_buffer ; empty_dap_buff 
+		push	si
+		xchg	si, di
+		; si = BDS
+		; di = DAP buffer
+		mov	ax, 16
+		stosw		; DAP size
+		mov	al, 1
+		stosw		; sector (read) count
+		; buffer address
+		mov	ax, bx	; offset disksector
+		stosw
+		mov	ax, es	; es=ds=cs = BIOSDATA segment
+		stosw
+		; sector address (bits 0 to 31)	
+		mov	ax, [si+17h] ; [di+BDS.hiddensectors]
+		stosw
+		mov	ax, [si+19h] ; [di+BDS.hiddensectors+2]
+		stosw
+		; sector address bits 32 to 63 (0)
+		xor	ax, ax ; 0
+		stosw
+		stosw
+		;xchg	di, si
+		mov	di, si
+		; di = BDS
+		pop	si ; DAP buffer address	
+		
+		mov	dl, [rom_drv_num] ; ds = cs
+		mov	ah, 42h
+		int	13h		; DISK - IBM/MS Extension
+					; EXTENDED READ (DL - drive, DS:SI - disk address packet)
+		;pop	si ; *
+		jnc	short set3_read_ok
+set3_err:
+		;jmp	setret
+		jmp	ret_hard_err
+%endif
+
+set3_chs_read:
+		cmp	word [di+79h], 1 ; [di+BDS.bdsm_ismini] ; check for mini disk
+		jnz	short oknotmini
+		add	ax, [di+7Bh]	; [di+BDS.bdsm_hidden_trks]
+		;;;
+
+oknotmini:
 ;*** end of added logic for mini disk
 				
 		ror	ah, 1		; move high two bits of cyl to high
@@ -8596,9 +8928,14 @@ oknotmini:
 ; read in boot sector using bios disk interrupt. the buffer where it
 ; is to be read in is cs:disksector.
 
-		push	cs
-		pop	es
-		mov	bx, disksector	; for convenience,
+		; 16/12/2023
+		; es=ds=cs = BIOSDATA segment
+		; bx = disksector ; (**)
+
+		;push	cs
+		;pop	es ; (*)
+		
+		;mov	bx, disksector	; for convenience,
 					; we are going to read the logical boot sector
 					; into cs:disksector area.
 		mov	ax, 201h
@@ -8606,29 +8943,82 @@ oknotmini:
 					; AL = number of sectors to read, CH = track, CL = sector
 					; DH = head, DL	= drive, ES:BX -> buffer to fill
 					; Return: CF set on error, AH =	status,	AL = number of sectors read
+		; 16/12/2023
+		jc	short set3_err
 
 ; cs:disksec contains the boot sector. in theory, (ha ha) the bpb in this thing
 ; is correct. we can, therefore, suck out all the relevant statistics on the
 ; media if we recognize the version number.
 
+set3_read_ok:
 		; 11/08/2023
 		;mov	bx, disksector	; BIOSDATA:014Eh ; MSDOS 6.21 ; 11/08/2023
 					; BIOSDATA:0152h ; PCDOS 7.1 IBMBIO.COM
-		push	bx
-		push	ax
+		; 18/12/2023
+		;push	bx ; +
+		;push	ax ; (not necessary)
+
+		; 16/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		;;;
+		cmp	word [bx+1FEh], 0AA55h
+		jne	short invalid_boot_record
+		; 16/12/2023
+		; 12/08/2023
+		; ds = cs = BIOSDATA segment ('disksector:' is in BIOSDATA) 
+		cmp	byte [bx], 0E9h	; is it a near jump?
+		je	short check_1_ok ; yes
+		cmp	byte [bx], 0EBh	; is it a short jump?
+		jne	short invalid_boot_record ; no
+		cmp	byte [bx+2], 90h ; yes, is the next one a nop?
+		jne	short invalid_boot_record ; no, invalid bs ; 11/08/2023
+check_1_ok:
+		cmp     word [bx+16h], 0 ; [bx+BPB_FATSz16]
+		;jz	short check_1	; 16 bit FAT size is 0 if it is FAT32 bs
+		; 16/12/2023
+		jz	short check_2	; FAT32 bs
+
+		; FAT16 or FAT12 bs
+
+		;push	ds
+		;push	si  ; (not necessary)
+		push	di
+		; es=ds=cs = BIOSDATA segment
+		;push	es
+		;pop	ds
+
+		;mov	cx, 28
+		mov	cx, 14 ; *
+		lea	si, [bx+24h]	; move offset 36 to 63
+					;      to offset 64 (28 bytes)
+		lea	di, [bx+40h]	; boot sector offset 64
+		cld	; (not necessary, 'std' is not used before here)
+		;rep movsb
+		rep movsw ; *
+		pop	di
+		;pop	si
+		;pop	ds
+		;;;
+; 16/12/2023
+%if 0
+;check_1:
 		; 12/08/2023
 		; ds = cs = BIOSDATA segment ('disksector:' is in BIOSDATA) 
 		cmp	byte [bx], 0E9h
 		;cmp	byte [cs:bx], 0E9h ; is it a near jump?
-		jz	short check_1_ok ; yes
+		je	short check_1_ok ; yes
 		cmp	byte [bx], 0EBh
 		;cmp	byte [cs:bx], 0EBh ; is it a short jump?
-		jnz	short invalid_boot_record ; no
+		jne	short invalid_boot_record ; no
 		cmp	byte [bx+2], 90h
 		;cmp	byte [cs:bx+2], 90h ; yes, is the next one a nop?
-		jnz	short invalid_boot_record ; no, invalid bs ; 11/08/2023
+		jne	short invalid_boot_record ; no, invalid bs ; 11/08/2023
 check_1_ok:
+%endif
+
+; 18/12/2023
+%if 0
 		; 14/08/2023
+check_2:
 		mov	bx, disksector+11 ; disksector+EXT_BOOT.BPB
 		;mov	bx, 159h	; disksector+EXT_BOOT.BPB
 					; point to the bpb in the boot record
@@ -8637,10 +9027,10 @@ check_1_ok:
 					; get the mediadescriptor byte
 		and	al, 0F0h	; mask off low nibble
 		cmp	al, 0F0h	; is high nibble = 0Fh?
-		jnz	short invalid_boot_record ; no, invalid boot record
+		jne	short invalid_boot_record ; no, invalid boot record
 		;cmp	word [cs:bx], 512 ; [bx+EBPB.BYTESPERSECTOR]
 		cmp	word [bx], 512 ; 12/08/2023
-		jnz	short invalid_boot_record ; invalidate non 512 byte sectors
+		jne	short invalid_boot_record ; invalidate non 512 byte sectors
 
 check2_ok:				; yes, mediadescriptor ok.
 		mov	al, [bx+2] ; 12/08/2023
@@ -8650,24 +9040,47 @@ check2_ok:				; yes, mediadescriptor ok.
 					;
 					; [bx+EBPB.SECTORSPERCLUSTER]
 					; get the sectorspercluster
+%endif
+		;;;
+check_2:
+		; 18/12/2023
+		; bx = disksector
+		mov	al, [bx+21]	; [bx+EXT_BOOT.BPB+EBPB.MEDIADESCRIPTOR]
+					; get the mediadescriptor byte
+		and	al, 0F0h	; mask off low nibble
+		cmp	al, 0F0h	; is high nibble = 0Fh?
+		jne	short invalid_boot_record ; no, invalid boot record
+		cmp	word [bx+11], 512 ; [bx+EXT_BOOT.BPB+EBPB.BYTESPERSECTOR]
+		jne	short invalid_boot_record ; invalidate non 512 byte sectors
+
+check2_ok:	; yes, mediadescriptor ok.
+		mov	al, [bx+13]	; now make sure that
+					; the sectorspercluster is
+					; a power of 2
+					;
+					; [bx++EXT_BOOT.BPB+EBPB.SECTORSPERCLUSTER]
+					; get the sectorspercluster
+		;;;
+
 		or	al, al		; is it zero?
 		jz	short invalid_boot_record ; yes, invalid boot record
 
 ck_power_of_two:
 		shr	al, 1		; shift until first bit emerges
-		jnb	short ck_power_of_two
+		jnc	short ck_power_of_two
 		jz	short valid_boot_record
 
 invalid_boot_record:
-		pop	ax
-		pop	bx
+		; 18/12/2023
+		;pop	ax
+		;pop	bx ; +
 		jmp	unknown		; jump to invalid boot record
 					; unformatted or illegal media.
-
+; 16/12/2023
 ; ---------------------------------------------------------------------------
-	; 12/08/2023
-setret_brdg:
-		jmp	setret
+;	; 12/08/2023
+;setret_brdg:
+;		jmp	setret
 ; ---------------------------------------------------------------------------
 
 unknown3_0_j:
@@ -8676,8 +9089,12 @@ unknown3_0_j:
 ; ---------------------------------------------------------------------------
 
 valid_boot_record:
-		pop	ax
-		pop	bx
+		; 18/12/2023
+		;pop	ax
+		;pop	bx ; +
+		
+		; 18/12/2023
+		; bx = offset disksector ; +
 
 ; Signature found. Now check version.
 
@@ -8685,20 +9102,20 @@ valid_boot_record:
 		cmp	word [bx+8], '2.'
 		;cmp	word [cs:bx+8], '2.' ; 03/10/2022 (NASM syntax)
 		;;cmp	word ptr cs:[bx+8], 2E32h ; '2.'
-		jnz	short try5
+		jne	short try5
 		cmp	byte [bx+10], '0'
 		;cmp	byte [cs:bx+0Ah], '0' ; 03/10/2022 (NASM syntax)
 		;;cmp	byte ptr cs:[bx+0Ah], 30h ; '0'
 		; 12/08/2023
 		;jnz	short try5
 		;jmp	short copybpb
-		jz	short copybpb
+		je	short copybpb
 
-; ---------------------------------------------------------------------------
-;	; 12/08/2023
-;setret_brdg:
-;		jmp	setret
-; ---------------------------------------------------------------------------
+;; --------------------------------------------------------------------------
+;;	; 12/08/2023
+;;setret_brdg:
+;;		jmp	setret
+;; --------------------------------------------------------------------------
 ;
 ;unknown3_0_j:
 ;		jmp	unknown3_0	; legally formatted media,
@@ -8715,7 +9132,7 @@ try5:
 		cmp	word [bx+8], '0.'
 		;cmp	word [cs:bx+8], '0.' ; 03/10/2022 (NASM syntax)
 		;;cmp	word ptr cs:[bx+8], 2E30h ; '0.'
-		jnz	short no_os2
+		jne	short no_os2
 		mov	al, [bx+7] ; 12/08/2023
 		;mov	al, [cs:bx+7]	; 17/10/2022 (NASM syntax)
 		sub	al, '1'
@@ -8757,6 +9174,42 @@ copybpb:
 ; and system id according to the boot record.
 ; for the non_fat system, don't need to set the other value. so just do goodret.
 
+		; 17/12/2023 - Retro DOS v5.0 (PCDOS 7.1) IBMBIO.COM
+		; (PCDOS 7.1 IBMBIO.COM - BIOSDATA:2787h)
+		;;;
+		; 17/12/2023
+		mov	si, disksector+11
+		;sub	ch, ch ; ; (ch may be > 0)
+		sub	cx, cx ; 0 
+		;mov	cl, [disksector+16] ; BPB_NumFATs
+		mov	cl, [si+5] ; number of FATs
+
+		; NOTE: This check is not proper for FAT32 boot sector (standard spec)
+		; (after PCDOS 7.1). So, it is not existing in Windows ME IO.SYS
+		; Erdogan Tan - 01/09/2023 ((IBMBIO.COM 7.1 disassembly note))
+
+		;;cmp	word ptr cs:disksector+4Dh, 0 ; ???
+		;cmp	word [disksector+4Dh], 0
+		;jnz	short check_3
+
+		; 17/12/2023
+		; check extended boot signature (0x29)
+		;
+		; (***) NOTE: 28 bytes of FAT16/FAT12 boot sector from offset 36
+		; have been moved to offset 64 (see label 'check_1_ok:' above) 
+		; ((now, BS_BootSig is at offset 66 even if it was at offset 38))
+		
+		;cmp	cs:disksector+42h, 29h	; BS_BootSig (FAT32)
+		cmp	byte [disksector+42h], 29h ; BS_BootSig (***)
+		;jmp	short check_4
+check_3:
+		;;cmp	cs:disksector+26h, 29h	; BS_BootSig (FAT16/FAT12)
+		;cmp	byte [disksector+26h], 29h ; (***)
+check_4:
+		jnz	short copybpb_fat	; conventional fat system
+
+; 17/12/2023
+%if 0
 		; 10/12/2022
 		; (number of FATs optimization)
 		mov	si, disksector+11 ; disksector+0Bh
@@ -8787,14 +9240,28 @@ copybpb:
 		;jnz	short copybpb_fat ; a fat system.
 		or	cl, cl	 ; [cs:disksector+10h]
 		jnz	short copybpb_fat ; a fat system.
+%endif
+
+		; 17/12/2023 - Retro DOS v5.0
+		;;cmp	byte [cs:disksector+10h], 0 ; BPB.fats
+		;cmp	byte [disksector+10h], 0 ; BPB_NUmFATs
+		;jnz	short copybpb_fat ; a fat system
+		; 17/12/2023
+		; cl = [disksector+10h]
+		and	cl, cl ; 0 ?
+		jnz	short copybpb_fat ; a fat system
 
 ; non fat based	media.
 
-		push	di
+		push	di  ; BDS
 		; 12/08/2023
 		;push	ds  ; ds = cs = BIOSDATA segment
-		push	ds
-		pop	es
+		
+		; 17/12/2023
+		; es = ds = cs
+		;push	ds
+		;pop	es
+
 		; 12/08/2023
 		; ds = cs
 		;push	cs
@@ -8814,8 +9281,10 @@ copybpb:
 ; got that way. If it occurs, then use the values from the
 ; partition table.
 
+		; 17/12/2023
+		; cx = 0
 		; 18/12/2022
-		sub	cx, cx 
+		;sub	cx, cx
 
 		;cmp	word [cs:si+8], 0 	; [cs:si+EBPB.TOTALSECTORS]
 		;jnz	short already_nonz 
@@ -8828,18 +9297,14 @@ copybpb:
 		; 12/08/2023
 		; ds = cs = BIOSDATA segment (0070h)
 
-		; 18/12/2022
-		;cmp	[cs:si+8], cx ; 0	; [cs:si+EBPB.TOTALSECTORS]
+		; 17/12/2023
 		; 12/08/2023
-		cmp	[si+8], cx ; 0
+		cmp	[si+8], cx ; 0		; [si+EBPB.TOTALSECTORS]
 		jnz	short already_nonz
-					     	; how about big_total?
-		;cmp	[cs:si+15h], cx ; 0 	; [cs:si+EBPB.BIGTOTALSECTORS]
-		; 12/08/2023
-		cmp	[si+15h], cx ; 0
-		jnz	short already_nonz	; we're okay if any are != 0
-		;cmp	[cs:si+17h], cx ; 0  	; [cs:si+EBPB.BIGTOTALSECTORS+2]
-		cmp	[si+17h], cx ; 0
+				    	; how about big_total?
+		cmp	[si+15h], cx ; 0	; [si+EBPB.BIGTOTALSECTORS]
+		jnz	short already_nonz ; we're okay if any are != 0
+		cmp	[si+17h], cx ; 0	; [si+EBPB.BIGTOTALSECTORS+2]
 		jnz	short already_nonz
 
 ; now let's copy the values from the partition table (now in the BDS)
@@ -8856,17 +9321,20 @@ copybpb:
 		;mov	[cs:si+17h], ax	; [cs:si+EBPB.BIGTOTALSECTORS+2]
 		mov	[si+17h], ax
 
-already_nonz:	
+already_nonz:
 		; 18/12/2022
 		; cx = 0
-		mov	cl, 25
-		;mov	cx, 25		; A_BPB.size - 6 ; Use SMALL version!
+		;mov	cl, 25
+		;;mov	cx, 25		; A_BPB.size - 6 ; Use SMALL version!
+		; 17/12/2023 - Retro DOS v5.0
+		mov	cl, 53	; PCDOS 7.1 IBMBIO.COM
+				; BDS.BPB size (25 + 28 for FAT32 parms)
 		rep movsb
 		;pop	ds
 		; 12/08/2023
 		; ds = cs
 		;pop	bp  ; ds (on top of stack) = BIOSDATA
-		pop	di
+		pop	di  ; BDS
 		;push	es
 		;push	ds
 		;pop	es
@@ -8915,6 +9383,8 @@ CLEARIDS equ clear_ids
 CLEARIDS_X equ clear_ids_x
 
 copybpb_fat:
+		; 17/12/2023
+		; ch = 0, cl = number of FATs
 		; 10/12/2022
 		; (number of FATs optimization)
 		; SI = disksector+11
@@ -8922,7 +9392,10 @@ copybpb_fat:
 		;mov	si, disksector+11
 		;;mov	si, 159h	; disksector+EXT_BOOT.BPB
 					; cs:si	-> bpb in boot
-		xor	dx, dx
+		; 17/12/2023
+		; dx = 0
+		;xor	dx, dx
+
 		; 12/08/2023
 		; ds = cs = BIOSDATA segment (0070h)
 		mov	ax, [si+8]
@@ -8985,9 +9458,80 @@ fat_big_small:
 					; bx = sectors/fat
 		mov	[di+11h], bx	; [di+BDS.fatsecs]
 					; set in bds bpb
+		; 17/12/2023 - Retro DOS v5.0
+		;	      (PCDOS 7.1 IBMBIO.COM)
+		push	bx ; FAT sectors
+		or	bx, bx
+		jnz	short fat_16bit	
+
+; 17/12/2023
+%if 0		
+		sub	ax, [si+19h]	; FAT32 file system (PCDOS 7.1 BUG!)
+					; BPB.FATSz32
+		sbb	dx, [si+1Bh]	; BPB.FATSz32+2 (PCDOS 7.1 BUG!)
+		; dx:ax = partition size - (one FAT sectors + reserved sects)  
+		mov	bx, [si+19h]	; BPB.FATSz32
+		mov	[di+1Fh], bx	; [di+BDS.fatsecs32]
+		mov	bx, [si+1Bh]	; BPB.FATSz32+2
+		mov	[di+21h], bx	; [di+BDS.fatsecs32+2]
+		mov	bx, [si+1Dh]	; BPB.BPB_ExtFlags
+		mov	[di+23h], bx	; [di+BDS.extflags]
+		mov	bx, [si+1Fh]	; BPB.FSVer
+		mov	[di+25h], bx	; [di+BDS.fsver]
+		mov	bx, [si+21h]	; BPB.RootClus
+		mov	[di+27h], bx	; [di+BDS.rootdirclust]
+		mov	bx, [si+23h]	; BPB.RootClus+2
+		mov	[di+29h], bx	; [di+BDS.rootdirclust+2]
+		mov	bx, [si+25h]	; BPB.FSInfo
+		mov	[di+2Bh], bx	; [di+BDS.fsinfo]
+		mov	bx, [si+27h]	; BPB.FSInfo+2
+		mov	[di+2Dh], bx	; [di+BDS.fsinfo+2]
+		jmp	short fat_32bit	; PCDOS 7.1 BUG! Erdogan Tan - 8/8/2023
+					; correct code (would be):
+					;   mov cl, [cs:si+05h] ; BPB_NumFATs
+					; sub_fat32_size:
+					;   sub ax, [cs:si+19h] ; BPB_FATSz32
+					;   sbb dx, [cs:si+1Bh] ; BPB_FATSz32+2
+					;   dec cl
+					;   jg short sub_fat32_size
+					;   jmp short fat_32bit
+%endif
+		; 17/12/2023
+		; cl = BPB_NumFATs (2 or 1)
+		; ch = 0
+		mov	bx, [si+19h]	; BPB.FATSz32
+sub_fat32_size:
+		sub	ax, bx
+		sbb	dx, [si+1Bh]	; BPB.FATSz32+2
+		;dec	cl
+		dec	cx
+		jg	short sub_fat32_size
+
+		mov	[di+1Fh], bx	; [di+BDS.fatsecs32]
+		mov	bx, [si+1Bh]	; BPB.FATSz32+2
+		mov	[di+21h], bx	; [di+BDS.fatsecs32+2]
+
+		mov	bx, [si+1Dh]	; BPB.BPB_ExtFlags
+		mov	[di+23h], bx	; [di+BDS.extflags]
+		mov	bx, [si+1Fh]	; BPB.FSVer
+		mov	[di+25h], bx	; [di+BDS.fsver]
+		mov	bx, [si+21h]	; BPB.RootClus
+		mov	[di+27h], bx	; [di+BDS.rootdirclust]
+		mov	bx, [si+23h]	; BPB.RootClus+2
+		mov	[di+29h], bx	; [di+BDS.rootdirclust+2]
+		mov	bx, [si+25h]	; BPB.FSInfo
+		mov	[di+2Bh], bx	; [di+BDS.fsinfo]
+		mov	bx, [si+27h]	; BPB.FSInfo+2
+		mov	[di+2Dh], bx	; [di+BDS.fsinfo+2]
+		jmp	short fat_32bit
+		
+fat_16bit:
+		; 17/12/2023 - Retro DOS v5.0
+		;	      (PCDOS 7.1 IBMBIO.COM)
 		; 10/12/2022
 		; (number of FATs optimization)
-		; CL = number of FATs (2 or 1) 
+		; CL = number of FATs (2 or 1)
+		; CH = 0 ; 17/12/2023 
 		;dec	cl ; *
 		; 18/12/2022
 		dec	cx ; *
@@ -8996,6 +9540,8 @@ fat_big_small:
 		
 		sub	ax, bx		; sub #	fat sectors
 		sbb	dx, 0
+fat_32bit:	
+		; 17/12/2023
 		mov	bx, [si+6] ; 12/08/2023
 		;mov	bx, [cs:si+6]	; [cs:si+EBPB.ROOTENTRIES]
 					; # root entries
@@ -9007,7 +9553,9 @@ fat_big_small:
 		sbb	dx, 0		;
 					; dx:ax	now contains the
 					; # of data sectors
-		xor	cx, cx ; *
+		; 17/12/2023
+		; ch = 0
+		;xor	cx, cx ; *
 		mov	cl, [si+2] ; 12/08/2023
 		;mov	cl, [cs:si+2]	; [cs:si+EBPB.SECTORSPERCLUSTER]
 					; sectors per cluster
@@ -9018,40 +9566,81 @@ fat_big_small:
 		xor	dx, dx
 		div	cx		; cx = sectors per cluster
 		; 12/08/2023 (ds=cs)
-		mov	[temp_h], ax
-		;mov	[cs:temp_h], ax	; [temp_h]:ax now contains the
+		;mov	[temp_h], ax
+		;;mov	[cs:temp_h], ax	; [temp_h]:ax now contains the
 					; # clusters.
+		; 17/12/2023
+		mov	[saved_word], ax ; hw of cluster number
 		pop	ax
 		div	cx
-		;cmp	word [cs:temp_h], 0
-		cmp	word [temp_h], 0  ; 12/08/2023
+		; 17/12/2023
+		;;cmp	word [cs:temp_h], 0
+		;cmp	word [temp_h], 0  ; 12/08/2023
+		;cmp	word [saved_word], 0 ; (*)
+		;ja	short toobig_ret ; too big cluster number
+
+		; 17/12/2023
+		;;;
+		pop	bx ; FAT sectors (16 bit)
+		;and	bx, bx ; 0 ?
+		or	bx, bx ; 0 ?
+		jnz	short chk_clnum_hw
+				 ; 16 bit fat sectors > 0 ; FAT12 or FAT16 fs
+
+		cmp	word [saved_word], 0FFFh 
+		jne	short fat32_clust_limit
+		cmp	ax, 0FFF6h	; FAT32 cluster number limit: 0FFFFFF6h
+fat32_clust_limit:
+		ja	short short toobig_ret ; too big cluster number
+		cmp	[saved_word], bx ; 0 ?
+	 	;jnz	short fat16_clust_limit
+		jnz	short set_bigbig_flag ; 17/12/2023
+fat16_clust_limit:	; 17/12/2023
+		cmp	ax, 0FFF6h	; FAT16 cluster number limit: 0FFF6h
+;fat16_clust_limit:
+		jna     short fat12_clust_limit ; jbe
+set_bigbig_flag:	; 17/12/2023
+		or	byte [fbigfat], 20h ; fbigbig ; FAT32 fs
+		jmp	short copymediaid
+chk_clnum_hw:
+		cmp	word [saved_word], 0 ; (*)
 		ja	short toobig_ret ; too big cluster number
+		;;;
+fat12_clust_limit:
 		cmp	ax, 0FF6h	; 4096-10
 					; is this 16-bit fat?
 		jb	short copymediaid ; no,	small fat
 		; 17/10/2022
-		or	byte [fbigfat], 40h
+		or	byte [fbigfat], 40h ; fbig ; FAT16 fs
 		;or	ds:fbigfat, 40h	; fbig
 					; 16 bit fat
 copymediaid:
-		push	es
-		push	ds
-		pop	es
+		; 17/12/2023
+		; es = ds = cs
+		
+		;push	es
+		;push	ds
+		;pop	es
+		
 		; 12/08/2023
 		; ds = cs = BIOSDATA
 		;push	cs
 		;pop	ds
 		; 17/10/2022
 		mov	bp, MOVMEDIAIDS
-		;mov	bp, 751h	; mov_media_ids
+		;mov	bp, 865h	; (PCDOS 7.1 IBMBIO.COM)
+		;;mov	bp, 751h	; mov_media_ids
 					; at 2C7h:751h = 70h:2CC1h
 					; copy filesys_id, volume label
 		push	cs		; simulate far call
 		call	call_bios_code
+
 		; 12/08/2023
 		;push	es
 		;pop	ds
-		pop	es
+		; 17/12/2023
+		;pop	es
+
 		jmp	massage_bpb	; now final check for bpb info
 					; and return.
 ; ---------------------------------------------------------------------------
@@ -9067,9 +9656,12 @@ toobig_ret:
 ; ---------------------------------------------------------------------------
 
 unknown:
+		; 17/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		or	byte [di+40h], 2 ; [di+BDS.flags+1]
+					 ; unformatted_media
 		; 12/12/2022
-		or	byte [di+24h], 02h			
-		;or	word [di+23h], 200h ; [di+BDS.flags]
+		;or	byte [di+24h], 02h
+		;;or	word [di+23h], 200h ; [di+BDS.flags]
 					; unformatted_media
 					; Set unformatted media	flag.
 
@@ -9116,10 +9708,13 @@ gotparm:
 		mov	ax, [di+1Bh]	; [di+BDS.totalsecs32]
 		mov	[di+8],	ch	; [di+BDS.secperclus]
 					; save sectors per cluster
+		
+		; 17/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		test	byte [fbigfat], 60h ; fbig+fbigbig ; FAT16 or FAT32
 		; 11/09/2023
 		; 17/10/2022
-		test	byte [fbigfat], 40h
-		;test	ds:fbigfat, 40h	; fbig
+		;test	byte [fbigfat], 40h
+		;;test	ds:fbigfat, 40h	; fbig
 					; if (fbigfat)
 		jnz	short dobig	; goto dobig; (16 bit fat)
 
@@ -9188,12 +9783,51 @@ dobig:
 		sub	ax, 1		
 		sbb	dx, 0		; dx:ax = TmpVal1+TmpVal2-1
 
+		;;;
+		; 17/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		test	byte [fbigfat], 20h ; fbigbig (FAT32) flag
+		jz      short dobig1
+
+		shr	bx, 1           ; TmpVal2 = TmpVal2 / 2
+					; dx:ax = TmpVal1+(2*TmpVal2)-1
+		sub	ax, 31          ; reserved sectors = 32 (for FAT32 fs) /// 1+31 = 32
+		sbb	dx, 0
+		sub	ax, bx
+		sbb	dx, 0           ; dx:ax = TmpVal1+(2*TmpVal2)-TmpVal2-1
+					;       = TmpVal1+(TmpVal2-1)
+dobig1:
+		push	ax		; save lw of dividend
+		mov	ax, dx		; divide hw of dx:ax at first (as 1st stage)
+		xor	dx, dx
+		div	bx		; 32 bit division, dx:ax/bx
+					; remainder in dx is hw of 2nd stage dividend
+		mov	bp, ax		; hw of quotient
+		pop	ax		; restore lw of dividend (of 1st stage)
+		;;;
+
 ; assuming dx in the table will never be bigger than bx.
 
 		div	bx		; BDS.fatsecs =
 					; ceil((total-dir-res)/(256*BDS.secperclus+2))
 		mov	[di+11h], ax	; [di+BDS.fatsecs]
 					; number of fat	sectors
+		;;;
+		
+		; 18/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		mov	bl, [fbigfat]
+		mov	[di+3Bh], bl	; [di+BDS.fatsiz] ; fat size flag
+		
+		test	bl, 20h		; fbigbig (FAT32) flag
+		jz	short dobig2	; not FAT32
+
+		mov	[di+1Fh], ax	; [di+BDS.fatsecs32]
+		mov	[di+21h], bp	; [di+BDS.fatsecs32+2]
+		mov	word [di+11h], 0 ; [di+BDS.fatsecs] = 0
+					; clear 16 bit FAT size field
+		mov	word [di+9], 32	; [di+BDS.resectors]
+					; set reserved sectors to 32 (FAT32 de facto)
+dobig2:
+		;;;
 
 ; now, set the default filesys_id, volume label, serial number
 
@@ -9207,14 +9841,21 @@ dobig:
 
 		; 12/08/2023
 		;push	ds ; ds = cs = BIOSDATA
-		push	ds
-		pop	es
+		
+		; 17/12/2023
+		; es = ds = cs
+		;push	ds
+		;pop	es
+
 		; 12/08/2023 
 		; ds = cs = BIOSDATA
 		;push	cs
 		;pop	ds
+
+		; 18/12/2023 - Retro DOS v5.0
+		; bl = [fbigfat] (clear_ids_x uses bl value here)
 		; 11/09/2023
-		mov	al, [fbigfat]
+		;mov	al, [fbigfat]
 		mov	bp, CLEARIDS_X	; clear_ids_x (uses AL value here)
 		; 17/10/2022
 		;mov	bp, CLEARIDS
@@ -9279,7 +9920,9 @@ goodret:
 		; 12/12/2022
 		; 17/10/2022
 		mov	bl, [fbigfat]
-		mov	[di+1Fh], bl	; [di+BDS.fatsiz]
+		; 17/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		mov	[di+3Bh], bl	; [di+BDS.fatsiz]
+		;mov	[di+1Fh], bl	; [di+BDS.fatsiz]
 					; set size of fat on media
 		; 11/09/2023
 		;clc
@@ -9306,22 +9949,36 @@ goodret2:
 cover_fdisk_bug:
 		; 12/08/2023 - Retro DOS v4.2 IO.SYS (optimization)
 		; ds = cs
-		push	ax
-		push	dx
-		push	si
+
+		; 18/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		; (optimization)
+		;push	ax
+		;push	dx
+		;push	si
+
+		; 18/12/2023
+		; bx = offset disksector
+
+		; 18/12/2023
+		cmp	byte [bx+26h], 29h
 		; 12/08/2023
-		cmp	byte [disksector+26h], 29h
-		;cmp	byte [cs:disksector+26h], 29h
+		;cmp	byte [disksector+26h], 29h
+		;;cmp	byte [cs:disksector+26h], 29h
 					; [disksector+EXT_BOOT.SIG],
 					; EXT_BOOT_SIGNATURE
-		jz	short cfb_retit	; if extended bpb, then	>= pc dos 4.00
+		je	short cfb_retit	; if extended bpb, then	>= pc dos 4.00
+		
 		cmp	word [bx+7], 3031h
 		;cmp	word [cs:bx+7], 3031h ; '10' ; os2 1.0 = ibm 10.0
-		jnz	short cfb_chk_totalsecs ; 11/08/2023
+		jne	short cfb_chk_totalsecs ; 11/08/2023
 		cmp	byte [bx+10], '0'
 		;cmp	byte [cs:bx+10], '0'
-		jnz	short cfb_retit
-cfb_chk_totalsecs:	; 11/08/2023
+		jne	short cfb_retit
+
+cfb_chk_totalsecs:
+		; 11/08/2023
+; 18/12/2023
+%if 0
 		; 17/10/2022		
 		mov	si, disksector+11 ; 14Eh+0Bh
 		;mov	si, 159h	; disksector+EXT_BOOT.BPB
@@ -9342,15 +9999,35 @@ cfb_chk_totalsecs:	; 11/08/2023
 		dec	word [si+8]
 		;dec	word [cs:si+8]	; 0 -> 0FFFFh
 					; then decrease	BPB_TOTALSECTORS by 1
+%endif
+		; 18/12/2023
+		;cmp	word [bx+19], 0
+		mov	ax, [bx+19]	; [bx+EBPB.TOTALSECTORS]
+		and	ax, ax ; 0 ?
+		jz	short cfb_retit
+
+		;mov	ax, [bx+19]
+		add	ax, [bx+28]	; [bx+EBPB.HIDDENSECTORS]
+		jnc	short cfb_retit
+		jnz	short cfb_retit
+		; ax = 0		; 0 -> 0FFFFh
+		dec	word [bx+19]	; then decrease	BPB_TOTALSECTORS by 1
+
 		sub	word [di+1Bh], 1 ; [di+BDS.totalsecs32]
 		sbb	word [di+1Dh], 0 ; [di+BDS.totalsecs32+2]
-cfb_retit:				
-		pop	si
-		pop	dx
-		pop	ax
+cfb_retit:	
+		; 18/12/2023
+		;pop	si
+		;pop	dx
+		;pop	ax
+		
 		retn
 
 ; ---------------------------------------------------------------------------
+		
+		; 18/12/2023 - Retro DOS v5.0 
+		; (PCDOS 7.1 IBMBIO.COM - BIOSDATA:2A3Dh)
+		; ((MSDOS 6.22 IO.SYS - BIOSDATA:21DCh))
 
 word2:		dw 2
 word3:		dw 3
@@ -9368,16 +10045,22 @@ word512:	dw 512
 ; no attempt is made to preserve registers since we are going to jump to
 ; sysinit straight after this routine.
 
+		; 18/12/2023 - Retro DOS v5.0 
+		; (PCDOS 7.1 IBMBIO.COM - BIOSDATA:2A43h)
 setdrvparms:
 		; 12/12/2023
 		; ds = cs
 		xor	bx, bx
 		; 18/10/2022
 		les	di, [start_bds] ; get first bds in list
-_next_bds:				
+_next_bds:
 		push	es
 		push	di
-		mov	bl, [es:di+22h]	; [es:di+BDS.formfactor]
+
+		; 18/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		mov	bl, [es:di+3Eh]	; [es:di+BDS.formfactor]
+		;mov	bl, [es:di+22h]	; [es:di+BDS.formfactor]
+
 		cmp	bl, 5		; ffHardFile
 		jnz	short nothardff
 		xor	dx, dx
@@ -9386,8 +10069,7 @@ _next_bds:
 		jnz	short get_ccyl
 		mov	dx, [es:di+1Dh]	; [es:di+BDS.totalsecs32+2]
 		mov	ax, [es:di+1Bh]	; [es:di+BDS.totalsecs32]
-
-get_ccyl:				
+get_ccyl:
 		push	dx
 		push	ax
 		mov	ax, [es:di+15h]	; [es:di+BDS.heads]
@@ -9402,17 +10084,22 @@ get_ccyl:
 		div	cx
 		; 12/12/2023  ; !*!
 		; (data segment may not be same with code segment here)
-		mov	[cs:temp_h], ax	; ax be	0 here.
+		;mov	[cs:temp_h], ax	; ax be	0 here.
+		; 18/12/2023 - Retro DOS v5.0
+		;mov	[cs:saved_word], ax
 		pop	ax
 		div	cx		; div #sec by sec/cyl to get # cyl.
 		or	dx, dx
 		jz	short no_cyl_rnd ; came out even
 		inc	ax		; round	up
-
-no_cyl_rnd:				
-		mov	[es:di+25h], ax	; [es:di+BDS.cylinders]
+no_cyl_rnd:
+		; 18/12/2023 - Retro DOS v5.0
+		mov	[es:di+41h], ax	; [es:di+BDS.cylinders]
+		;mov	[es:di+25h], ax	; [es:di+BDS.cylinders]
+		
 		push	es
 		pop	ds  ; !*! ; 12/12/2023
+
 		lea	si, [di+6]	; [di+BDS.bytespersec]
 					; ds:si	-> bpb for hard	file
 		jmp	short set_recbpb
@@ -9436,10 +10123,17 @@ nothardff:
 		jnz	short not_process_other
 process_other:
 		xor	dx, dx
-		mov	ax, [di+25h]	; [di+BDS.cylinders]
-		mul	word [di+36h]	; [di+BDS.rheads]
-		mul	word [di+34h]	; [di+BDS.rsecpertrack]
-		mov	[di+2Fh], ax	; [di+BDS.rtotalsecs16]
+
+		;mov	ax, [di+25h]	; [di+BDS.cylinders]
+		;mul	word [di+36h]	; [di+BDS.rheads]
+		;mul	word [di+34h]	; [di+BDS.rsecpertrack]
+		;mov	[di+2Fh], ax	; [di+BDS.rtotalsecs16]
+		;			; have the total number of sectors
+		; 18/12/2023 - Retro DOS v5.0
+		mov	ax, [di+41h]	; [di+BDS.cylinders]
+		mul	word [di+52h]	; [di+BDS.rheads]
+		mul	word [di+50h]	; [di+BDS.rsecpertrack]
+		mov	[di+4Bh], ax	; [di+BDS.rtotalsecs16]
 					; have the total number of sectors
 		dec	ax
 		mov	dl, 1
@@ -9451,12 +10145,17 @@ _again:
 		jmp	short _again
 ; ---------------------------------------------------------------------------
 
-_@@:					
+_@@:
 		cmp	dl, 1		; is it	a small	disk ?
 		jz	short __@@	; yes, 224 root	entries	is enuf
-		mov	word [di+2Dh], 240 ; [di+BDS.rdirentries]
-__@@:					
-		mov	[di+29h], dl	; [di+BDS.rsecperclus]
+
+		; 18/12/2023 - Retro DOS v5.0
+		mov	word [di+49h], 240 ; [di+BDS.rdirentries]
+		;mov	word [di+2Dh], 240 ; [di+BDS.rdirentries]
+__@@:
+		; 18/12/2023 - Retro DOS v5.0
+		mov	[di+45h], dl	; [di+BDS.rsecperclus]
+		;mov	[di+29h], dl	; [di+BDS.rsecperclus]
 
 ; logic to get the sectors/fat area.
 ; fat entry is assumed to be 1.5 bytes!!!
@@ -9464,10 +10163,10 @@ __@@:
 		; 10/12/2022
 		; ds = cs
 		; 17/10/2022 (ds=cs)
-		mul	word [word3]
-		div	word [word2]
+		mul	word [word3]	; * 3
+		div	word [word2]	; / 2
 		xor	dx, dx
-		div	word [word512]
+		div	word [word512]	; / 512
 		;
 		; 10/12/2022
 		;mul	word [cs:word3]	; * 3
@@ -9477,12 +10176,16 @@ __@@:
 		;
 		inc	ax		; + 1
 no_round_up:
-		mov	[di+32h], ax	; [di+BDS.rfatsecs]
+		; 18/12/2023 - Retro DOS v5.0
+		mov	[di+4Eh], ax	; [di+BDS.rfatsecs]
+		;mov	[di+32h], ax	; [di+BDS.rfatsecs]
+
 		jmp	short go_to_next_bds
 ; ---------------------------------------------------------------------------
 
-not_process_other:			
+not_process_other:
 		shl	bx, 1		; bx is	word index into	table of bpbs
+		
 		;mov	si, bpbtable
 		;mov	si, [bpbtable+bx] ; 15/10/2022
 		; 09/12/2022
@@ -9492,29 +10195,43 @@ not_process_other:
 		;mov	si, [BPBTABLE+bx]
 		; 13/12/2022
 		;mov	si, [SYSINITOFFSET+bpbtable+bx] ; wrong ! 14/08/2023
+		
 		; 14/08/2023
 		SYSINIT_OFFSET equ (SYSINITSEG-DOSBIODATASEG<<4)
 							; correct offset
 		mov	si, [bx+SYSINIT_OFFSET+bpbtable]
 		
+		; 18/12/2023 
+		; si = address of the requested disk(ette) parameter block
+		;	! as offset from SYSINIT segment !
+
 		; 28/08/2023
 		add	si, SYSINIT_OFFSET
-set_recbpb:					
-		lea	di, [di+27h]	; [di+BDS.R_BPB]
+			; + displacement from BIOSDATA segment ; 18/12/2023
+set_recbpb:
+		; 18/12/2023
+		;lea	di, [di+27h]	; [di+BDS.R_BPB]
+		;			; es:di	-> recbpb
+		;mov	cx, 25		; bpbx.size
+		;rep movsb		; move (size bpbx) bytes
+		
+		; 18/12/2023 - Retro DOS v5.0
+		lea	di, [di+43h]	; [di+BDS.R_BPB]
 					; es:di	-> recbpb
-		mov	cx, 25		; bpbx.size
-		rep movsb		; move (size bpbx) bytes	
-go_to_next_bds:				
+		mov	cx, 53		; bpbx.size
+		rep movsb		; move (size bpbx) byte
+go_to_next_bds:
 		pop	di
 		pop	es		; restore pointer to bds
 		les	di, [es:di]	; [es:di+BDS.link]
 		cmp	di, 0FFFFh	; -1
 		jz	short got_end_of_bds_chain
 		jmp	_next_bds
+
 ; ---------------------------------------------------------------------------
 
 		; 18/12/2022
-;got_end_of_bds_chain:			
+;got_end_of_bds_chain:
 		;retn
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -9555,7 +10272,9 @@ aux_init:
 
 ; =============== S U B	R O U T	I N E =======================================
 
-; 15/10/2022 (Modified MSDOS 5.0 IO.SYS)
+; 18/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMBIO.COM)
+; 08/08/2023 - Retro DOS v4.2 (Modified MSDOS 6.22 IO.SYS)
+; 15/10/2022 (Modified MSDOS 5.0 IO.SYS) -Retro DOS v4 2022- (MSDOS 5.0-6.21)
 ; 30/12/2018 - Retro DOS v4.0
 ; 03/06/2018 - Retro DOS v3.0
 ; (19/03/2018 - Retro DOS v2.0)
@@ -9602,15 +10321,30 @@ aux_init:
 ;
 ;******************************************************************************
 
+		; 18/12/2023 - Retro DOS v5.0 IO.SYS/IBMBIO.COM
+		; (PCDOS 7.1 IBMBIO.COM - BIOSDATA:2B10h)
+
 		; 19/10/2022
-domini:	
+domini:
 		mov	dh, [hnum]	; get number of hardfiles
 		; 10/12/2022
 		and	dh, dh
 		;cmp	dh, 0
 		jz	short dominiret	; no hard file?	then exit.
 		mov	dl, 80h		; start	with hardfile 80h
-domini_loop:				
+domini_loop:
+		; 18/12/2023 - Retro DOS v5.0
+		xor	ax, ax ; 0
+		; ds = cs
+		;mov	[cs:ep_start_sector], ax
+		;mov	[cs:ep_start_sector+2], ax
+		;mov	[cs:ep_hidden_secs], ax
+		;mov	[cs:ep_hidden_secs+2], ax
+		mov	[ep_start_sector], ax
+		mov	[ep_start_sector+2], ax
+		mov	[ep_hidden_secs], ax
+		mov	[ep_hidden_secs+2], ax
+		;
 		push	dx
 		mov	[rom_minidisk_num], dl
 		mov	ah, 8
@@ -9635,19 +10369,21 @@ domini_loop:
 		mov	al, cl
 		and	ax, 3Fh
 		mov	[mini_seclim], ax ; # of sectors/track
-		push	es
+		
+		; 18/12/2023
+		;push	es ; * ; not necessary
 		mov	dl, [rom_minidisk_num]
 		call	getboot		; read master boot record into
 					; initbootsegment:bootbias
-		jb	short domininext
+		jc	short domininext
 		call	find_mini_partition
-domininext:				
-		pop	es
+domininext:
+		;pop	es ; *
 		pop	dx
 		inc	dl		; next hard file
 		dec	dh
 		jnz	short domini_loop
-dominiret:				
+dominiret:
 		retn
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -9665,15 +10401,33 @@ dominiret:
 ;called routine: setmini which uses set2 (in sethard routine)
 ;variables & equates used from original bios - flags, fnon_removable, fbigfat
 
+		; 19/12/2023 - Retro DOS v5.0 
+		;	(Modified PCDOS 7.1 IBMBIO.COM)
+		; (PCDOS 7.1 IBMBIO.COM - BIOSADATA:2BFCh)
 
 find_mini_partition:	
 		add	bx, 1C2h	; bx ->	file system id
-fmpnext:				
-		cmp	byte [es:bx], 5 ; 5 = extended partition id.
-		jz	short fmpgot
+
+		; 19/12/2023
+		; PCDOS 7.1 IBMBIO.COM
+		;mov	word [ld_p_number], 26
+fmpnext:
+		;add	word [ld_p_number], 16
+		;cmp	word [ld_p_number], 4122
+		;		; 64 logical disk partitions (64 EBRs)
+		;		; (64*4 = 256 pte's, 256*16 = 4096, + 26 = 4122)
+		;jg	short fmpnextfound
+				
+		cmp	byte [es:bx], 5 ; 05h = extended partition id.
+		je	short fmpgot ; Extended DOS CHS
+		
+		; 19/12/2023 - Retro DOS v5.0
+		cmp     byte [es:bx], 0Fh ; Extended DOS LBA
+		je	short fmpgot
+
 		add	bx, 16
 		cmp	bx, 402h	; 202h+bootbias
-		jnz	short fmpnext
+		jne	short fmpnext
 		;jmp	short fmpnextfound ; extended partition	not found
 		; 18/12/2022
 fmpnextfound:
@@ -9687,17 +10441,25 @@ fmpnextfound:
 ; ---------------------------------------------------------------------------
 
 		; 19/10/2022
-fmpgot:					; found my partition.				
+fmpgot:					; found my partition.
 		call	dmax_check	; check	for drvmax already 26
 		jnb	short fmpnextfound ; done if too many
-		mov	di, [end_of_bdss] ; get next free	bds
-		mov	word [di+47h], 1 ; [di+BDS.bdsm_ismini]
-		; 10/12/2022
-		or	byte [di+23h], 1
-		;or	word [di+23h], 1 ; [di+BDS.flags]
-					; fNon_Removable
-		mov	byte [di+22h], 5 ; [di+BDS.formfactor]
-					; ffHardFile
+
+		mov	di, [end_of_bdss] ; get next free bds
+
+		; 19/12/2023
+		;mov	word [di+47h], 1 ; [di+BDS.bdsm_ismini]
+		;; 10/12/2022
+		;or	byte [di+23h], 1
+		;;or	word [di+23h], 1 ; [di+BDS.flags]
+		;			; fNon_Removable
+		;mov	byte [di+22h], 5 ; [di+BDS.formfactor]
+		;			; ffHardFile
+		; 19/12/2023 - Retro DOS v5.0
+		mov	word [di+79h], 1 ; [di+BDS.bdsm_ismini]
+		or	byte [di+3Fh], 1 ; [di+BDS.flags], fNon_Removable
+		mov	byte [di+3Eh], 5 ; [di+BDS.formfactor], ffHardFile 
+
 		mov	byte [fbigfat], 0 ; assume 12 bit fat.
 		mov	ax, [mini_hdlim]
 		mov	[di+15h], ax	; [di+BDS.heads]
@@ -9710,20 +10472,121 @@ fmpgot:					; found my partition.
 		mov	[di+5],	al	; [di+BDS.drivelet]
 					; set logical number
 		cmp	word [es:bx+10], 0
-		ja	short fmpgot_cont
+		;ja	short fmpgot_cont
+		ja	short fmpgot1	; 19/12/2023
 		cmp	word [es:bx+8], 64 ; with current bpb,
 					; only lower word is meaningful.
 		jb	short fmpnextfound
 					; should be bigger than 64 sectors at least
-fmpgot_cont:				
+fmpgot1:	; 19/12/2023
+;fmpgot_cont:				
 		sub	bx, 4		; let bx point to the start of the entry
 		mov	dh, [es:bx+2]	; cylinder
 		and	dh, 0C0h	; get higher bits of cyl
 		rol	dh, 1
 		rol	dh, 1
 		mov	dl, [es:bx+3]	; cyl byte
-		mov	[di+49h], dx	; [di+BDS.bdsm_hidden_trks]
+		; 19/12/2023 - Retro DOS v5.0
+		mov	[di+7Bh], dx	; [di+BDS.bdsm_hidden_trks]
+		;mov	[di+49h], dx	; [di+BDS.bdsm_hidden_trks]
 					; set hidden trks
+		; 19/12/2023
+		;push	bx ; * ; PCDOS 7.1	
+		;;;
+		mov	cx, [es:bx+8]	; partition size, lw
+		mov	ax, [es:bx+10]	; partition size, hw
+		add	cx, [ep_start_sector]
+		adc	ax, [ep_start_sector+2]
+		xor	dx, dx ; 19/12/2023
+		cmp	[ep_start_sector], dx ; 0
+		;cmp	word [ep_start_sector], 0
+		jnz	short fmpgot2
+		cmp	[ep_start_sector+2], dx ; 0
+		;cmp	word [ep_start_sector+2], 0
+		jnz	short fmpgot2
+		mov	[ep_start_sector], cx
+		mov	[ep_start_sector+2], ax
+fmpgot2:
+		mov	[ep_hidden_secs], cx
+		mov	[ep_hidden_secs+2], ax
+		
+		; convert start sector address to CHS
+	
+		; 19/12/2023
+		; dx = 0
+		;push	bx ; * ; not necessary
+
+		;mov	bx, [di+13h]	; [di+BDS.secpertrack]
+		mov	si, [di+13h]	; [di+BDS.secpertrack]
+		;xor	dx, dx  ; dx = 0
+		;div	bx
+		div	si
+		xchg	ax, cx
+		;div	bx
+		div	si
+		mov	bx, [di+15h]	; [di+BDS.heads]
+		xchg	ax, cx
+		xor	dx, dx
+		;div	bx
+		div	si
+		xchg	ax, cx
+		;div	bx
+		div	si
+
+		;pop	bx ; *
+
+		or	cx, cx
+		jnz	short fmpgot_lba_rd
+		cmp	ax, 1024	; cylinder number < 1024, CHS read is proper
+		jb	short fmpgot_chs_rd
+fmpgot_lba_rd:
+		or	byte [di+40h], 4 ; set fLBArw flag ; LBA read/write ok/ready
+		mov	dl, [rom_minidisk_num]
+		push	ds
+		; 19/12/2023
+		;push	si ; ** ; not necessary 
+		xor	ax, ax		; push bp
+				        ; mov bp, sp ; (*)
+		push	ax ; 0
+		push	ax ; 0
+		push	word [ep_hidden_secs+2]
+		push	word [ep_hidden_secs]
+		mov	ax, bootbias ; 200h	
+		;mov	ax, 200h	; bootbias (buffer offset)
+		push	es		; buffer segment
+		push	ax
+		mov	ax, 1
+		push	ax		; read count
+		mov	ax, 10h		; DAP size = 16
+		push	ax
+		mov	ax, ss
+		mov	ds, ax
+		mov	si, sp		; ds:si = Disk Address Packet
+		
+		mov	ah, 42h		; LBA read
+		int	13h		; DISK - IBM/MS Extension
+					; EXTENDED READ (DL - drive, DS:SI - disk address packet)
+		; 19/12/2023	
+		;pushf		; PCDOS 7.1 IBMBIO.COM BUG! Erdogan Tan - 08/08/2023
+		;add	sp, 16
+		;popf		; BUG!
+					; mov sp, bp ; (*)
+					; pop bp
+		; 19/12/2023
+		lahf		; load status flags into AH
+		add	sp, 16
+		sahf		; store AH into flags
+		
+		;pop	si ; ** ; 19/12/2023
+		pop	ds
+		jnc	short fmpgot3
+fmpnotfound:	; 19/12/2023
+		retn
+		;jmp	short fmpgot3 
+		;;;
+
+		; 19/12/2023
+fmpgot_chs_rd:
 		mov	cx, [es:bx+2]	; cylinder,cylinder/sector
 		mov	dh, [es:bx+1]	; head
 		mov	dl, [rom_minidisk_num]
@@ -9733,13 +10596,18 @@ fmpgot_cont:
 					; AL = number of sectors to read, CH = track, CL = sector
 					; DH = head, DL	= drive, ES:BX -> buffer to fill
 					; Return: CF set on error, AH =	status,	AL = number of sectors read
-		jb	short fmpnextfound
+;fmpgot3:	; 19/12/2023
+		;jc	short fmpnextfound
+		jc	short fmpnotfound
+fmpgot3:	
 		mov	bx, 3C2h	; 1C2h+bootbias
 
 		; 08/08/2023 - Retro DOS v4.2 IO.SYS (optimization)
 		; PCDOS 7.1 IBMBIO.COM - BIOSDATA:2C7Ch
 		cmp	word [es:bx+3Ch], 0AA55h ; 03C2h+03Ch = 3FEh
-		jne	short fmpnextfound ; not a valid boot sector !
+		;jne	short fmpnextfound ; not a valid boot sector !
+		; 19/12/2023
+		jne	short fmpnotfound ; not a valid boot sector !
 
 		; 13/08/2023
 		;push	es
@@ -9754,13 +10622,16 @@ fmpnextchain:
 ; ---------------------------------------------------------------------------
 
 		; 18/12/2022
-;fmpnextfound:				
+;fmpnextfound:
 		;retn
 
 ; =============== S U B	R O U T	I N E =======================================
 
 ; 15/10/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
 ; 28/12/2018 - Retro DOS v4.0 (MSDOS 6.21)
+
+; 19/12/2022 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMBIO.COM)
+; (PCDOS 7.1 IBMBIO.COM - BIOSDATA:2C92h)
 
 setmini:	; 'setmini' is called from 'find_mini_partition' procedure
 	
@@ -9770,16 +10641,41 @@ setmini:	; 'setmini' is called from 'find_mini_partition' procedure
 		; ds = cs = BIOSDATA segment
 		;push	ds
 		push	es
-setmini_1:				
-		cmp	byte [es:bx], 1 ; FAT12 partition
-		jz	short setmini_2
-		cmp	byte [es:bx], 4 ; FAT16 partition
-		jz	short setmini_2
-		cmp	byte [es:bx], 6 ; FAT16 BIG partition
-		jz	short setmini_2
+setmini_1:
+		;cmp	byte [es:bx], 1 ; FAT12 partition
+		;je	short setmini_2
+		;cmp	byte [es:bx], 4 ; FAT16 (CHS) partition
+		;je	short setmini_2
+		;cmp	byte [es:bx], 6 ; FAT16 BIG (CHS) partition
+		;je	short setmini_2
+		;
+		; 19/12/2023 - Retro DOS v5.0
+		;cmp	byte [es:bx], 0Bh ; FAT32 (CHS) partition
+		;je	short setmini_2
+		;cmp	byte [es:bx], 0Ch ; FAT32 (LBA) partition
+		;je	short setmini_2
+		;cmp	byte [es:bx], 0Eh ; FAT16 (LBA) partition
+		;je	short setmini_2
+
+		; 19/12/2023
+		mov 	al, [es:bx]
+		cmp	al, 1 		; FAT12 partition
+		je	short setmini_2
+		cmp	al, 4 		; FAT16 (CHS) partition
+		je	short setmini_2
+		cmp	al, 6 		; FAT16 BIG (CHS) partition
+		je	short setmini_2
+		cmp	al, 0Bh 	; FAT32 (CHS) partition
+		je	short setmini_2
+		cmp	al, 0Ch 	; FAT32 (LBA) partition
+		je	short setmini_2
+		cmp	al, 0Eh 	; FAT16 (LBA) partition
+		je	short setmini_2
+
 		add	bx, 16
 		cmp	bx, 402h	; 202h+bootbias
-		jnz	short setmini_1
+		;jne	short setmini_1
+		jb	short setmini_1 ; 19/12/2023
 		stc
 		pop	es
 		; 12/08/2023
@@ -9795,12 +10691,12 @@ setmini_2:
 ; =============== S U B	R O U T	I N E =======================================
 
 ; 30/12/2022 - Retro DOS v4.2
-; (SYSINITSEG is 473h for MSDOS 6.21 IO.SYS) 
+; (SYSINITSEG is 473h for MSDOS 6.21 IO.SYS)
 
 ; 15/10/2022
 ; 28/12/2018 - Retro DOS v4.0
 ;
-; dmax_check --- call this when we want to install a new drive.
+; dmax_check -- call this when we want to install a new drive.
 ;		it checks for drvmax < 26 to see if there is
 ;		a drive letter left.
 ;
@@ -9808,11 +10704,13 @@ setmini_2:
 ;	drvmax >=26 : carry RESET!, error flag set for message later
 ;			trash ax
 
+		; 19/12/2023 - Retro DOS v5.0
 dmax_check:
 		cmp	byte [drvmax], 26 ; checks for drvmax < 26
 		jb	short dmax_ok	; return with carry if okay
 		push	es
-		;mov	ax, 46Dh	; SYSINIT_SEG (SYSINIT segment)
+		;;mov	ax, 46Dh	; SYSINIT_SEG (SYSINIT segment)
+		;mov	ax, 544h	; 19/12/2023 (PCDOS 7.1)
 		mov	ax, SYSINITSEG	; 17/10/2022	
 		mov	es, ax
 		; 18/10/2022
@@ -9837,25 +10735,26 @@ dmax_ok:
 
 ; 18/10/2022
 ; 15/10/2022
-; 28/12/2018 - Retro DOS v4.0						
-;								 
+; 28/12/2018 - Retro DOS v4.0
+;
 ;	link next bds (at ds:di) into the chain. assume that the
 ;	  chain is entirely within ds == datagrp. also update drvmax,
 ;	  dskdrv_table, and end_of_bdss.	
 
-xinstall_bds:		
+		; 19/12/2023 - Retro DOS v5.0
+		; (PCDOS 7.1 IBMBIO.COM - BIOSDATA:2CE1h)
+xinstall_bds:
 		push	si
 		push	bx
 		mov	si, [start_bds]	; get first bds
-xinstall_bds_1:				
+xinstall_bds_1:
 		cmp	word [si], 0FFFFh ; is this the last one?
 		jz	short xinstall_bds_2 ;	skip ahead if so
 		;mov	si, [si+BDS.link]
 		mov	si, [si]	; chain	through	list
 		jmp	short xinstall_bds_1
-; ---------------------------------------------------------------------------
 
-xinstall_bds_2:				
+xinstall_bds_2:
 		;mov	[si+BDS.link], di
 		mov	[si], di
 		;mov	[si+BDS.link+2], ds
@@ -9871,7 +10770,9 @@ xinstall_bds_2:
 		mov	[si], bx
 		add	word [last_dskdrv_table], 2
 		inc	byte [drvmax]
-		add	word [end_of_bdss], 100 ; BDS.size = 100
+		;add	word [end_of_bdss], 100 ; BDS.size = 100
+		; 19/12/2023 - Retro DOS v5.0
+		add	word [end_of_bdss], 150 ; BDS.size = 150
 		pop	bx
 		pop	si
 		retn
@@ -9883,13 +10784,14 @@ xinstall_bds_2:
 ; 28/12/2018 - Retro DOS v4.0
 ; 03/06/2018 - Retro DOS v3.0
 
-cmos_clock_read:	
+		; 19/12/2023 - Retro DOS v5.0
+cmos_clock_read:
 		push	ax
 		push	cx
 		push	dx
 		push	bp
 		xor	bp, bp
-loop_clock:				
+loop_clock:
 		xor	cx, cx
 		xor	dx, dx
 		mov	ah, 2
@@ -9897,21 +10799,32 @@ loop_clock:
 					; Return: CH = hours in	BCD
 					; CL = minutes in BCD
 					; DH = seconds in BCD
-		cmp	cx, 0
+		; 19/12/2023
+		;cmp	cx, 0
+		and	cx, cx
 		jnz	short clock_present
-		cmp	dx, 0
+		;cmp	dx, 0
+		or	dx, dx
 		jnz	short clock_present
-		cmp	bp, 1		; read again after a slight delay, in case clock
-		jz	short no_readdate ; was	at zero	setting.
+		;cmp	bp, 1		; read again after a slight delay, in case clock
+		;je	short no_readdate ; was	at zero	setting.
+		and	bp, bp
+		jnz	short no_readdate
 		inc	bp		; only perform delay once.
-		mov	cx, 4000h	; 16384
+		;mov	cx, 4000h	; 16384
+		; 19/12/2023
+		mov	ch, 40h ; cx = 4000h ; 16384
 delay:					
 		loop	delay
 		jmp	short loop_clock
 ; ---------------------------------------------------------------------------
 
-clock_present:				
-		mov	byte [cs:havecmosclock], 1 ; set the flag for cmos clock
+clock_present:
+		;mov	byte [cs:havecmosclock], 1 ; set the flag for cmos clock
+		; 19/12/2023
+		; ds = cs
+		mov	byte [havecmosclock], 1 ; set the flag for cmos clock
+		
 		call	cmosck		; reset	cmos clock rate	that may be
 					; possibly destroyed by	cp dos and
 					; post routine did not restore that.
@@ -9922,12 +10835,12 @@ clock_present:
 		mov	[daycnt], si
 		sti
 		pop	si
-
-no_readdate:				
+no_readdate:
 		pop	bp
 		pop	dx
 		pop	cx
 		pop	ax
+cmosck9:	; 19/12/2023
 		retn
 
 ; ---------------------------------------------------------------------------
@@ -9947,98 +10860,63 @@ no_readdate:
 ;
 ;	it checks for an at model byte "fc" with a submodel type of
 ;	00, 01, 02, 03 or 06 and resets the periodic interrupt rate
-;	bits in case post has not done it. this initilization routine
+;	bits in case post has not done it. this initialization routine
 ;	is only needed once when dos loads. it should be run as soon
 ;	as possible to prevent slow diskette access.
 ;
 ;	this code exposes one to dos clearing cmos setup done by a
 ;	resident program that hides and re-boots the system.
 
-cmosck:					; check and reset rtc rate bits	
+cmosck:					; check and reset rtc rate bits
 
 ;model byte and submodel byte were already determined in msinit.
 
 	; 16/06/2018 - Retro DOS v3.0
 	; 19/03/2018 (Model: 0FCh, Sub Model: 01h, REF: AMIBIOS Prog. Guide)
-			
-		push	ax
-		cmp	byte [cs:model_byte], 0FCh
+
+	; 19/12/2023 - Retro DOS v5.0
+	
+		; 19/12/2023
+		; ds = cs
+		;push	ax ; not necessary ; 19/12/2023
+		;
+		cmp	byte [model_byte], 0FCh
+		;cmp	byte [cs:model_byte], 0FCh
 		jnz	short cmosck9	; Exit if not an AT model
 		cmp	byte [cs:secondary_model_byte], 6
+		;cmp	byte [cs:secondary_model_byte], 6
 					; Is it 06 for the industral AT ?
-		jz	short cmosck4	; Go reset CMOS	periodic rate if 06
-		cmp	byte [cs:secondary_model_byte], 4
+		jz	short cmosck4	; Go reset CMOS periodic rate if 06
+		cmp	byte [secondary_model_byte], 4
+		;cmp	byte [cs:secondary_model_byte], 4
 					; Is it 00, 01, 02, or 03 ?
-		jnb	short cmosck9	; EXIT if problem fixed by POST  
-					; Also,Secondary_model_byte = 0 
+		jnb	short cmosck9	; EXIT if problem fixed by POST
+					; Also,Secondary_model_byte = 0
 					;   when AH=0C0h, int 15h failed.
-					;	RESET THE CMOS PERIODIC RATE 
-					;  Model=FC submodel=00,01,02,03 or 06 
-cmosck4:				
+					;	RESET THE CMOS PERIODIC RATE
+					;  Model=FC submodel=00,01,02,03 or 06
+cmosck4:
 		mov	al, 8Ah		; cmos_reg_a|nmi
 					; NMI disabled on return
 		mov	ah, 26h		; 00100110b
-					; Set divider &	rate selection
+					; Set divider & rate selection
 		call	cmos_write
 		mov	al, 8Bh		; cmos_reg_b|nmi
 					; NMI disabled on return
 		call	cmos_read
 		and	al, 7		; 00000111b
-					; clear	SET,PIE,AIE,UIE,SQWE
+					; clear SET,PIE,AIE,UIE,SQWE
 		mov	ah, al
 		mov	al, 0Bh		; cmos_reg_b
 					; NMI enabled on return
-		call	cmos_write
-cmosck9:				
-		pop	ax
-		retn
+		; 19/12/2023
+		;call	cmos_write
+;cmosck9:
+		;pop	ax ; 19/12/2023
+		;retn
 
-; =============== S U B	R O U T	I N E =======================================
-
-;--- CMOS_READ -----------------------------------------------------------------
-;		read byte from cmos system clock configuration table	       :
-;									       :
-; input: (al)=	cmos table address to be read				       :
-;		bit    7 = 0 for nmi enabled and 1 for nmi disabled on exit    :
-;		bits 6-0 = address of table location to read		       :
-;									       :
-; output: (al)	value at location (al) moved into (al). if bit 7 of (al) was   :
-;		on then nmi left disabled.  during the cmos read both nmi and  :
-;		normal interrupts are disabled to protect cmos data integrity. :
-;		the cmos address register is pointed to a default value and    :
-;		the interrupt flag restored to the entry state on return.      :
-;		only the (al) register and the nmi state is changed.	       :
-;-------------------------------------------------------------------------------
-
-cmos_read:				; read location (al) into (al)	
-		pushf
-		cli
-		push	bx
-		push	ax		; AL = cmos table address to be	read
-		or	al, 80h
-		out	70h, al		; CMOS Memory/RTC Index	Register:
-					; RTC Seconds
-		nop			; (undocumented	delay needed)
-		in	al, 71h		; CMOS Memory/RTC Data Register
-		mov	bx, ax
-		pop	ax
-		and	al, 80h
-		or	al, 0Fh
-		out	70h, al		; CMOS Memory/RTC Index	Register:
-					; RTC Seconds
-		nop
-		in	al, 71h		; CMOS Memory/RTC Data Register
-		mov	ax, bx
-		pop	bx
-		push	cs		; *place code segment in stack and
-		call	cmos_popf	; *handle popf for b- level 80286
-		retn			; return with flags restored
-
-; ---------------------------------------------------------------------------
-
-cmos_popf:				
-		iret			; popf for level b- parts
-					; return far and restore flags
+		; 19/12/2023
+		;jmp	short cmos_write
 
 ; =============== S U B	R O U T	I N E =======================================
 
@@ -10058,8 +10936,8 @@ cmos_popf:
 ;		only the cmos location and the nmi state is changed.	       :
 ;-------------------------------------------------------------------------------
 
-cmos_write:				; write (ah) to location (al)	
-		pushf			; write (ah) to location (al)
+cmos_write:				; write (ah) to location (al)
+		pushf			;
 		push	ax		; save work register values
 		cli
 		push	ax		; save user nmi	state
@@ -10077,9 +10955,73 @@ cmos_write:				; write (ah) to location (al)
 		nop
 		in	al, 71h		; CMOS Memory/RTC Data Register
 		pop	ax		; restore work registers
+
+		; 19/12/2023
+		;push	cs		; *place code segment in stack and
+		;call	cmos_popf	; *handle popf for b- level 80286
+		;retn
+		jmp	short cmos_rw_popf
+
+; =============== S U B	R O U T	I N E =======================================
+
+;--- CMOS_READ -----------------------------------------------------------------
+;		read byte from cmos system clock configuration table	       :
+;									       :
+; input: (al)=	cmos table address to be read				       :
+;		bit    7 = 0 for nmi enabled and 1 for nmi disabled on exit    :
+;		bits 6-0 = address of table location to read		       :
+;									       :
+; output: (al)	value at location (al) moved into (al). if bit 7 of (al) was   :
+;		on then nmi left disabled. during the cmos read both nmi and   :
+;		normal interrupts are disabled to protect cmos data integrity. :
+;		the cmos address register is pointed to a default value and    :
+;		the interrupt flag restored to the entry state on return.      :
+;		only the (al) register and the nmi state is changed.	       :
+;-------------------------------------------------------------------------------
+
+cmos_read:				; read location (al) into (al)
+		pushf
+		cli
+		push	bx
+		;push	ax ; *		; AL = cmos table address to be read
+		; 19/12/2023
+		mov	bx, ax ; * ; input
+		or	al, 80h
+		out	70h, al		; CMOS Memory/RTC Index	Register:
+					; RTC Seconds
+		nop			; (undocumented delay needed)
+		in	al, 71h		; CMOS Memory/RTC Data Register
+		
+		;mov	bx, ax ; output
+		;pop	ax ; * ; input
+
+		; 19/12/2023
+		; al = output, bl = input
+		xchg	ax, bx ; *
+		; bl = output, al = input
+	
+		and	al, 80h
+		or	al, 0Fh
+		out	70h, al		; CMOS Memory/RTC Index	Register:
+					; RTC Seconds
+		nop
+		in	al, 71h		; CMOS Memory/RTC Data Register
+		;mov	ax, bx ; * ; output
+		; 19/12/2023
+		xchg	ax, bx
+		pop	bx
+
+		; 19/12/2023
+cmos_rw_popf:
 		push	cs		; *place code segment in stack and
 		call	cmos_popf	; *handle popf for b- level 80286
-		retn
+		retn			; return with flags restored
+
+; ---------------------------------------------------------------------------
+
+cmos_popf:				
+		iret			; popf for level b- parts
+					; return far and restore flags
 
 ; ---------------------------------------------------------------------------
 ; MSINIT.ASM (MSDOS 6.0, 1991)
@@ -10092,7 +11034,12 @@ cmos_write:				; write (ah) to location (al)
 ; (For Retro DOS, 'IO.SYS' and 'MSDOS.SYS' are already loaded together
 ;  at once -as single kernel file- by the Retro DOS boot sector code.
 ;  So, following disk reads -MSDOS.SYS loading- is not needed!
-;  Only needing is to move MSDOS Kernel to it's final memory location.) 
+;  Only needing is to move MSDOS Kernel to it's final memory location.)
+
+; 20/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMBIO.COM)
+; --------------------------------------------------------------------------- 
+
+;ClusterH:	dw 0  ; 20/12/2023
 
 ; =============== S U B	R O U T	I N E =======================================
 
@@ -10107,39 +11054,115 @@ cmos_write:				; write (ah) to location (al)
 ; 09/12/2022
 DISKRD equ diskrd
 
+		; 20/12/2023 - Retro DOS v5.0
+		; (PCDOS 7.1 IBMBIO.COM - BIOSDATA:2DC4h)
+
+		; si:bx = (32 bit) cluster to read
+		; cx = sectors per cluster
+		; es:di = load location
+
 		; 17/10/2022
 getclus:
 		; 12/12/2023
 		; ds = cs
 		
-		push	cx
-		push	di
+		push	cx ; 1*
+		push	di ; 2*
 		;mov	[cs:doscnt], cx
 		mov	[doscnt], cx ; 12/12/2023
+
+		; 20/12/2023
+		;;mov	[cs:ClusterH], si ; high word of cluster number
+		;mov	[ClusterH], si ; high word of cluster number
+		mov	bp, si
+
 		mov	ax, bx
-		dec	ax
-		dec	ax
-		mul	cx		; convert to logical sector
+
+		;dec	ax
+		;dec	ax
+		; 20/12/2023
+		sub	ax, 2
+
+		;;sbb	[cs:ClusterH], 0
+		;sbb	[ClusterH], 0
+		sbb	bp, 0		
+
+		; 20/12/2023
+		;;xchg	ax, [cs:ClusterH]
+		;xchg	ax, [ClusterH]
+		xchg	ax, bp
+
+		mul	cx
+
+		;;xchg	ax, [cs:ClusterH]
+		;xchg	ax, [ClusterH]
+		xchg	ax, bp ; (+)
+		;
+		mul	cx		;; convert to logical sector
+					;; dx:ax = matching logical sector number
+					;;	  starting from the data sector
+		;;add	ax, [cs:bios_l]
+		;;adc	dx, [cs:bios_h]	; dx:ax	= first	logical	sector to read
+		; 12/12/2023
+		;add	ax, [bios_l]
+		;adc	dx, [bios_h]	; dx:ax	= first	logical	sector to read
+
+		; 20/12/2023
+		;;add	dx, [cs:ClusterH]
+		;add	ax, [cs:First_Data_Sector]
+		;adc	dx, [cs:First_Data_Sector+2]
+		add	dx, bp ; (+)
+		;add	dx, [ClusterH]	; convert to logical sector
 					; dx:ax	= matching logical sector number
 					;	  starting from the data sector
-		;add	ax, [cs:bios_l]
-		;adc	dx, [cs:bios_h]	; dx:ax	= first	logical	sector to read
-		; 12/12/2023
-		add	ax, [bios_l]
-		adc	dx, [bios_h]	; dx:ax	= first	logical	sector to read
-unpack:					
-		push	ds ; ds = cs ; 12/12/2023
-		push	dx ; * ; 12/12/2023
-		push	ax
-		push	bx
-		;mov	si, [cs:fatloc]
-		mov	si, [fatloc] ; 12/12/2023
-		mov	ds, si
-		mov	si, bx		; next cluster
+		add	ax, [First_Data_Sector]
+		adc	dx, [First_Data_Sector+2]
+					; dx:ax = first logical sector to read
+unpack:
+		; 20/12/2023			
+		push	ds ; 3* ; ds = cs ; 12/12/2023
+		push	dx ; 4* ; * ; 12/12/2023
+		push	ax ; 5*
+		push	bx ; 6*
+		push	si ; 7* ; 20/12/2023
+
+		;;mov	si, [cs:fatloc]
+		;mov	si, [fatloc] ; 12/12/2023
+		;mov	ds, si
+		; 20/12/2023
+		;mov	ax, [fatloc]
+		;mov	ds, ax
+		push	bx ; 8*
+		push	word [fatloc] ; 9*
+
+		;test	byte [cs:fbigfat], 20h
+		test	byte [fbigfat], 20h	; fbigbig FAT32 ?
+		pop	ds ; 9* ; ds = [fatloc]
+		jz      short not_32bit_cluster ; no
+unpack32:
+		;push	dx
+		mov	dx, si
+		;mov	si, bx
+		pop	si ; 8* ; si = bx
+		add	si, si
+		adc	dx, dx
+		add	si, si
+		adc	dx, dx 
+			; dx:si = 4*(si:bx) ; clust num offset from FAT entry 0
+		call	get_fat_sector
+		mov	si, [bx+2]	; high word of the FAT32 cluster number
+		mov	bx, [bx]	; low word of the FAT32 cluster number
+		;pop	dx
+		jmp	short getcl1
+
+not_32bit_cluster:
+		;mov	si, bx		; next cluster
+		pop	si ; 8* ; si = bx
 		test	byte [cs:fbigfat], 40h	; fbig
 					; 16 bit fat?
 		jnz	short unpack16	; yes
-		shr	si, 1		; 12 bit fat. si=si/2
+unpack12:
+		shr	si, 1		; 12 bit fat. si = si/2
 					; si = clus + clus/2
 		add	si, bx		;
 					; (si =	byte offset of the cluster in the FAT)
@@ -10176,7 +11199,7 @@ unpack:
 		;mov	al, [cs:temp_cluster]
 		pop	ax  ; ** ; al = low 8 bits of 12 bits cluster number
 		mov	ah, [0] ; high 4 bits (bits 7 to 11) of 12 bits cluster num
-even_odd:				
+even_odd:
 		pop	bx		; restore old fat entry	value
 		push	bx		; save it right	away.	
 		shr	bx, 1		; was it even or odd?
@@ -10186,14 +11209,14 @@ even_odd:
 		shr	ax, 1
 		shr	ax, 1
 		shr	ax, 1
-havclus:				
+havclus:
 		mov	bx, ax		; now bx = new fat entry.
 		and	bx, 0FFFh	; keep low 12 bits.
 		jmp	short unpackx
 ; ---------------------------------------------------------------------------
 
-unpack16:				
-		;push	dx	; 12/12/2023	
+unpack16:
+		;push	dx	; 12/12/2023
 		xor	dx, dx ; 0
 		shl	si, 1		; extend to 32 bit offset
 		;adc	dx, 0
@@ -10206,36 +11229,83 @@ unpack16:
 		;pop	dx	; 12/12/2023
 		mov	bx, [bx]	;
 					; bx = new fat entry.
-unpackx:				
-		pop	si		; restore old bx value into si
-		pop	ax		; restore logical sector (low)
-		pop	dx ; * ; 12/12/2023
-		pop	ds
-		; 12/12/2023
+unpackx:
+		; 20/12/2023
+		xor	si, si		; high word of cluster number = 0
+					; (FAT12 or FAT16)
+getcl1:	
+		; 20/12/2023
+		;pop	word [cs:ClusterH]
+		pop	dx	; 7* - cluster number hw
+		;pop	si		; restore old bx value into si
+		pop	ax	; 6* - cluster number lw
+
+		; 20/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
 		; (this is a fast kernel loading method by the MSDOS programmer)
 		; ((consequtive clusters --> consequtive sectors))
-		; ds = cs
-		sub	si, bx
-		cmp	si, -1		; one apart? (consequtive?)
-					; (current = previous+1)
+
+		sub	ax, bx	; previous - current (or current - new)	
+		;sbb	[cs:ClusterH], si
+		sbb	dx, si
+		;cmp	[cs:ClusterH], -1 ; one apart? (current = previous+1)
+		cmp	dx, -1
+		jnz	short not_consequental
+		cmp	ax, -1		; 0FFFFh ; is [ClusterH]:ax = -1 ?
+
+not_consequental:
+		pop	ax ; 5* 	; restore logical sector (low)
+		pop	dx ; 4* ; * ; 12/12/2023
+		pop	ds ; 3*
+
+		;; 12/12/2023
+		;; (this is a fast kernel loading method by the MSDOS programmer)
+		;; ((consequtive clusters --> consequtive sectors))
+		;; ds = cs
+		;sub	si, bx
+		;cmp	si, -1		; one apart? (consequtive?)
+		;			; (current = previous+1)
+
 		jnz	short getcl2	; no, read [doscnt] sectors 
-		;add	[cs:doscnt], cx
+
+		;add	[cs:doscnt], cx ; (cx = sectors per cluster)
 		add	[doscnt], cx ; 12/12/2023 ; add to read count
-		jmp	short unpack
+		jmp	unpack
 ; ---------------------------------------------------------------------------
 
-getcl2:					
-		push	bx
-		push	dx		; sector to read (high)
-		push	ax		; sector to read (low)
+getcl2:
+		push	si ; 20/12/2023
+		push	bx	
+		; bx = low word of the new cluster number
+		; 20/12/2023 - Retro DOS v5.0 (32 bit cluster numbers)
+		; si = high word of the new cluster number
+		push	dx		; sector to read (high word)
+		push	ax		; sector to read (low word)
 		
 		; 12/12/2023
 		; ds = cs
 		;mov	ax, [cs:drvfat]	; get drive and	fat spec
 		;mov	cx, [cs:doscnt]
 		mov	ax, [drvfat]	; get drive and	fat spec
-		mov	cx, [doscnt]
 
+		;;;
+		; 20/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		;
+		; dma and segment (64K boundary) overrun precaution
+		; (sector count will be decreased if it is required)
+ 		mov	cx, di
+		not	cx		; cx = 65535 - cx
+		shr	cx, 1		; cx = cx/2
+		xor	cl, cl
+		xchg	cl, ch		; cx = cx/256
+		
+		;cmp	cx, [cs:doscnt]	
+				; if sector read count > cx, decrease it to cx
+		cmp	cx, [doscnt]
+		jbe	short getcl3
+		;;;
+		;mov	cx, [cs:doscnt]
+		mov	cx, [doscnt]
+getcl3:
 		pop	dx		; sector to read for diskrd (low)
 		;pop	word [cs:start_sec_h]
 		; 12/12/2023
@@ -10257,8 +11327,10 @@ getcl2:
 		;pop	ds
 		; 12/12/2023
 		; ds = cs
-		pop	bx
-		pop	di
+		pop	bx		; lw of the new cluster number
+		pop	si ; 20/12/2023 ; hw of the new cluster number
+
+		pop	di ; 2* - (kernel) load location (es:di)
 
 		;mov	ax, [cs:doscnt]	; get number of	sectors	read
 		; 12/12/2023
@@ -10266,7 +11338,9 @@ getcl2:
 		xchg	ah, al		; multiply by 256
 		shl	ax, 1		; times	2 equal	512
 		add	di, ax		; update load location
-		pop	cx		; restore sectors/cluster
+
+		pop	cx ; 1*		; restore sectors/cluster
+
 		retn
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -10281,7 +11355,7 @@ getcl2:
 ;
 ;out). corresponding fat sector read in.
 ;      bx = offset value from fatlog segment.
-;      other registera saved.
+;      other registers are saved.
 ;      zero flag set if the fat entry is splitted, i.e., when 12 bit fat entry
 ;      starts at the last byte of the fat sector. in this case, the caller
 ;      should save this byte, and read the next fat sector to get the rest
@@ -10289,6 +11363,7 @@ getcl2:
 
 		; 17/10/2022
 get_fat_sector:	
+		; 20/12/2023
 		; 12/12/2023
 		; ds = fat buffer segment
 
@@ -10384,10 +11459,16 @@ get_fat_sector:
 		;pop	ds
 		
 		push	cs		; simulate far call
-		mov	bp, DISKRD	; 8E5h
-		;mov	bp, 8E5h	; offset diskrd
+
+		; 20/12/2023
+		; 17/10/2022
+		mov	bp, DISKRD	; offset diskrd
+		;mov	bp, 0A2Bh	; 20/12/2023
+		;	(PCDOS 7.1 IBMBIO.COM - BIOSCODE:0A2Bh ; 364h:0A2Bh)
+		;mov	bp, 8E5h	; 17/10/2022
 					; 2C7h:8E5h = 70h:2E55h
-		call	call_bios_code
+
+		call	call_bios_code	; read the clusters
 
 		; 12/12/2023
 		;pop	ds
@@ -10475,7 +11556,8 @@ BIOSDATAWORD	equ BiosDataWord
 
 ; ---------------------------------------------------------------------------
 
-; 15/10/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS) 
+; 15/10/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
+; 20/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMBIO.COM)
 
 ;************************************************************************
 ;*									*
@@ -10486,6 +11568,7 @@ BIOSDATAWORD	equ BiosDataWord
 ;*									*
 ;************************************************************************
 
+	; 20/09/2023	
 	; 10/08/2023 - Retro DOS v4.2 IO.SYS (optimization)
 	; PCDOS 7.1 IBMBIO.COM - BIOSCODE:0032h 
 
@@ -10523,6 +11606,7 @@ _seg_reinit_1:
 ;*									*
 ;************************************************************************
 
+		; 20/09/2023
 chardev_entry:				; 0070h:25B3h =	02C7h:0043h
 		push	si
 		push	ax
@@ -10538,10 +11622,13 @@ chardev_entry:				; 0070h:25B3h =	02C7h:0043h
 		;;mov	ds, word [cs:0030h]
 		;mov	ds, word ptr cs:BIOSDATAWORD ; [cs:0030h]
 		mov	ds, [cs:BIOSDATAWORD] ; 17/10/2022
-		mov	ax, [si+2]	; get the device number	if present
+		; 20/09/2023 (PCDOS 7.1 - IBMBIO.COM - BIOSCODE:005Ah)
+		les	si, [si]
+		;mov	ax, [si+2]	; get the device number	if present
+		mov	ax, es
 		mov	[auxnum], al
 		mov	[printdev], ah
-		mov	si, [si]	; point	to the device dispatch table
+		;mov	si, [si]	; point	to the device dispatch table
 		les	bx, [ptrsav]	; get pointer to i/o packet
 		mov	al, [es:bx+1]	; [es:bx+unit]	; al = unit code
 		mov	ah, [es:bx+13]	; [es:bx+media]	; ah = media descrip
@@ -10549,6 +11636,7 @@ chardev_entry:				; 0070h:25B3h =	02C7h:0043h
 		mov	dx, [es:bx+20]	; [es:bx+start]	; dx = start sector
 		; 17/10/2022
 		cmp	si, DSKTBL
+		;;cmp	si, 579h	; (PCDOS 7.1 IBMBIO.COM)
 		;cmp	si, 4A2h	; dsktbl
 					; at 2C7h:4A2h = 70h:2A12h
 		jnz	short no_sector32_mapping
@@ -10566,6 +11654,7 @@ chardev_entry:				; 0070h:25B3h =	02C7h:0043h
 ;
 ; note: remember not to destroy the registers which have been set up before
 
+		; 20/09/2023
 		;mov	ds:start_sec_h,	0 ; initialize to 0
 		mov	word [start_sec_h], 0
 		cmp	dx, 0FFFFh
@@ -10576,10 +11665,10 @@ chardev_entry:				; 0070h:25B3h =	02C7h:0043h
 		mov	[start_sec_h], dx
 		mov	dx, [es:bx+26]	; [es:bx+start_l]
 					; dx = packet.start_l
-no_sector32_mapping:			
+no_sector32_mapping:
 		xchg	ax, di
 		mov	al, [es:bx+2]	; [es:bx+cmd]
-		cmp	al, cs:[si]
+		cmp	al, [cs:si]
 		jnb	short command_error
 		cbw			; note that al <= 15 means ok
 		shl	ax, 1
@@ -10593,7 +11682,7 @@ no_sector32_mapping:
 		jb	short already_got_ah_status
 		mov	ah, 1
 already_got_ah_status:
-		;;mov	ds, [cs:0030h]	; 15/10/2022			
+		;;mov	ds, [cs:0030h]	; 15/10/2022
 		;mov	ds, word ptr cs:BIOSDATAWORD ; [cs:0030h]
 					; cas note: shouldn't be needed!
 		mov	ds, [cs:BIOSDATAWORD] ; 17/10/2022
@@ -10610,8 +11699,11 @@ already_got_ah_status:
 		pop	cx
 		pop	ax
 		pop	si
-		add	sp, 2		; get rid of fake return address
-	
+		;add	sp, 2		; get rid of fake return address
+		; 20/09/2023 (PCDOS 7.1	- IBMBIO.COM - BIOSCODE:00C8h)
+		inc	sp
+		inc	sp	
+
 		; fall through into bc_retf
 ; ---------------------------------------------------------------------------	
 bc_retf:
@@ -10634,9 +11726,10 @@ command_error:
 
 		;db 7 dup(0)
 
+		; 20/09/2023 - Retro DOS v4.2 IO.SYS (Optimization)
+		; (PCDOS 7.1 - IBMBIO.COM - BIOSCODE:0D0h)
 		; 15/10/2022
-
-		dw 0		; pad to bring offset to 0D0h
+		;dw 0		; pad to bring offset to 0D0h
 
 off_d0: 	times 5 db 0	; 5 bytes from 0:c0 will be copied onto here
 				;  which is the CP/M call 5 entry point
@@ -10701,10 +11794,12 @@ bc_err_cnt:
 ;*									*
 ;************************************************************************
 
+		; 20/09/2023
+		; (PCDOS 7.1 - IBMBIO.COM - BIOSCODE:00E3h)
 		; 13/12/2022
-		;db 0
+		db 0
 
-		; 13/12/202
+		; 13/12/2022
 con_table:	db ((con_table_end - con_table)-1)/2 ; 11
 					; 2C7h:0E4h = 70h:2654h
 		dw bc_exvec  ; 1FBh	; bc_exvec at 2C7h:1FBh	= 70h:276Bh
@@ -11129,9 +12224,23 @@ prnstat:
 ;*									*
 ;************************************************************************
 
-prnop:	
-		mov	dx, [auxnum]	; get printer number
-		int	17h		
+prnop:
+		; 20/12/2023 - Retro DOS v5.0
+		; PCDOS 7.1 IBMBIO.COM
+		
+		;mov	dx, [auxnum]	; get printer number
+		;int	17h
+
+		push	ds
+		push	word [auxnum]
+		xor	dx, dx ; 0
+		mov	ds, dx
+		pop	dx
+		pushf			; simulate int 17h
+		cli
+		;call	dword ptr ds:5ghghCh
+		call	far [17h*4]	; 0:5Ch = INT 17h vector
+		pop	ds
 
 	; This check was added to see if this is a case of no
 	; printer being installed. This tests checks to be sure
@@ -11476,13 +12585,26 @@ auxstat:
 ;*									*
 ;************************************************************************
 
-auxop:		; proc near		
-		mov	dx, [auxnum]	; ah=function code
-					; 0=init, 1=send, 2=receive, 3=status
-					; get port number
-		int	14h		; SERIAL I/O - GET USART STATUS
-					; DX = port number (0-3)
-					; Return: AX = port status code
+auxop:		; proc near
+		; 20/12/2023 - Retro DOS v5.0
+		;mov	dx, [auxnum]	; ah=function code
+		;			; 0=init, 1=send, 2=receive, 3=status
+		;			; get port number
+		;
+		;int	14h		; SERIAL I/O - GET USART STATUS
+		;			; DX = port number (0-3)
+		;			; Return: AX = port status code
+		; (PCDOS 7.1 IBMBIO.COM)
+		push	ds
+		push	word [auxnum]
+		xor	dx, dx ; 0
+		mov	ds, dx
+		pop	dx
+		pushf			; simulate INT 14h
+		cli
+		;call	dword ptr ds:50h
+		call	far [14h*4]	; INT 14h vector (14h*4 = 50h)
+		pop	ds
 		retn
 
 ; ---------------------------------------------------------------------------
@@ -11553,7 +12675,7 @@ getbx:
 		;add	bx, offset auxbuf
 		add	bx, auxbuf	; 19/10/2022
 		; 12/12/2022
-		; cf=0 (if [uaxnum] is valid number) 
+		; cf=0 (if [auxnum] is valid number) 
 		retn
 
 ; ---------------------------------------------------------------------------
@@ -11752,6 +12874,8 @@ daycnttoday:	; proc near
 ;	  dh - month in bcd
 ;	  dl - day in bcd
 
+		; 20/12/2023 - Retro DOS v5.0
+
 		; 08/08/2023 (ds:) (near proc)
 		; 16/10/2022 (cs:) (far proc)		
 		push	word [daycnt] ; save daycnt
@@ -11793,15 +12917,15 @@ years:
 		;sub	word [daycnt], 366 ; else daycnt--, base_year++ ;
 		sub	[daycnt], bx ; 366 ; 08/08/2023
 		;mov	cx, 3		; And next three years are normal
-regularyear:	
 		; 08/08/2023
-		dec	bx ; 365			
+		dec	bx ; 365
+regularyear:	; 20/12/2023
 		;cmp	word [daycnt], 365 ; for(i=1; i>3 or daycnt <=365; i++)
 		cmp	[daycnt], bx ; 365 ; 08/08/2023
 		jbe	short yeardone	; {if (daycnt >	365)
 		inc	byte [base_year] ; { daycnt -=	365
 		;sub	word [daycnt], 365 ; }
-		sub	[daycnt], bx ; 365 ; 08/08/2023 
+		sub	[daycnt], bx ; 365 ; 08/08/2023
 		loop	regularyear	; }
 					;
 					; should never fall through loop
@@ -11875,7 +12999,7 @@ bintobcd:	; proc near		; real time clock support
 ;	es:[di+4]=seconds
 ;	es:[di+5]=hundredths of seconds
 ;
-;	NOTE:  Any changes in this routine probably require corresponding
+;	NOTE: Any changes in this routine probably require corresponding
 ;	changes in the version that is built with the power manager driver.
 ;	See ptime.asm.
 ;----------------------------------------------------------------------------
@@ -11957,7 +13081,9 @@ noadj:
 		rcl	ax, 1		
 		mov	dl, 0
 		rcl	dx, 1
-		mov	cx, 60		; divide out seconds
+		;mov	cx, 60		; divide out seconds
+		; 20/12/2023
+		mov	cl, 60
 		div	cx
 		mov	bh, dl		; save the seconds
 		div	cl		; break	into hours and minutes
@@ -12009,27 +13135,44 @@ noadj:
 ;----------------------------------------------------------------------------
 
 		; 17/10/2022
-GetTickCnt:	
+GetTickCnt:
 		xor	ah, ah
 		int	1Ah		; CLOCK	- GET TIME OF DAY
 					; Return: CX:DX	= clock	count
 					; AL = 00h if clock was	read or	written	(via AH=0,1) since the previous
 					; midnight
 					; Otherwise, AL	> 0
-		cmp	byte [t_switch], 0 ; use old method ? (>0 is yes)
-		jnz	short inc_case	; old method assumes  that Int 1Ah returns rollover flag
-		xor	ah, ah		; new method assumes that Int 1Ah returns roll over count
+		; 20/12/2023
+		xor	ah, ah
+		cmp	byte [t_switch], ah ; 0
+		;cmp	byte [t_switch], 0 ; use old method ? (>0 is yes)
+		jnz	short inc_case	; old method assumes that Int 1Ah returns rollover flag
+		;xor	ah, ah		; new method assumes that Int 1Ah returns roll over count
 					; and not flag
 		add	[daycnt], ax
 		retn
 ; ---------------------------------------------------------------------------
 
-inc_case:				
+inc_case:
 		or	al, al
 		jz	short no_rollover
 		inc	word [daycnt]
-no_rollover:				
+no_rollover:
 		retn
+
+; ---------------------------------------------------------------------------
+; ---------------------------------------------------------------------------
+; 03/10/2023 - Retro DOS v5.0 (Modified PCDOS 7.1)
+; PCDOS 7.1 IBMBIO.COM - BIOSCODE:0556h
+
+%if 1
+
+fat_12_id:	db 'FAT12   '
+fat_16_id:	db 'FAT16   '
+fat_32_id:	db 'FAT32   '
+nul_vid:	db 'NO NAME    '
+
+%endif
 
 ;----------------------------------------------------------------------------
 ; MSDISK.ASM - MSDOS 6.0 - 1991
@@ -12165,12 +13308,18 @@ dsktbl:		db 26			; 2C7h:4A2h = 70h:2A12h
 ;dtbl_siz equ $-dsktbl
 
 %endif
+
+; 21/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1)
+; PCDOS 7.1 IBMBIO.COM - BIOSCODE:0579h		
+
+		; 21/12/2023 - Retro DOS v5.0
 		; 11/12/2022
 dsktbl:		db (dtbl_siz-1)/2	; 26 ; this is the size of the table
 		dw dsk_init
 		dw media_chk
 		dw get_bpb
-		dw bc_cmderr
+		;dw bc_cmderr
+		dw ioctl_input ; PCDOS 7 ; 21/12/2023
 		dw dsk_read
 		dw x_bus_exit
 		dw ret_carry_clear
@@ -12179,7 +13328,8 @@ dsktbl:		db (dtbl_siz-1)/2	; 26 ; this is the size of the table
 		dw dsk_writv
 		dw ret_carry_clear
 		dw ret_carry_clear
-		dw bc_cmderr
+		;dw bc_cmderr
+		dw ioctl_output ; PCDOS 7 ; 21/12/2023
 		dw dsk_open
 		dw dsk_close
 		dw dsk_rem
@@ -12206,22 +13356,25 @@ dtbl_siz equ $-dsktbl
 ;  AL contains the logical drive number.
 ; ---------------------------------------------------------------------------
 
-SetDrive:	
-		;les	di, ds:start_bds ; Point es:di to first bds	
+SetDrive:
+		;les	di, dword ptr ds:start_bds ; Point es:di to first bds
 		les	di, [start_bds] ; 19/10/2022
-X_Scan_Loop:				
+X_Scan_Loop:
 		cmp	[es:di+5], al	
 		jz	short X_SetDrv
 		les	di, [es:di]	; [es:di+BDS.link] ; Go	to next	bds
 		cmp	di, 0FFFFh
 		jnz	short X_Scan_Loop
 		stc
-X_SetDrv:				
+X_SetDrv:
 		retn
 
 ; ---------------------------------------------------------------------------
 
 ; 15/10/2022
+
+	; 21/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1)
+	; PCDOS 7.1 IBMBIO.COM - BIOSCODE:05C2h
 
 ; ---------------------------------------------------------------------
 ; if id is f9, have a 96tpi disk else
@@ -12233,16 +13386,22 @@ X_SetDrv:
 media_chk:				; 2C7h:4EBh = 70h:2A5Bh
 		call	SetDrive
 		mov	si, 1
-		test	byte [es:di+24h], 1 ; [es:di+BDS.flags+1]
+		; 21/12/2023
+		test	byte [es:di+40h], 1
+		;test	byte [es:di+24h], 1 ; [es:di+BDS.flags+1]
 					; fchanged_by_format
 		jz	short WeAreNotFakingIt
+		; 21/12/2023
+		and	byte [es:di+40h], 0FEh
 		; 12/12/2022
-		and	byte [es:di+24h], 0FEh ; ~fchanged_by_format
-		;and	word [es:di+23h], 0FEFFh ; [es:di+BDS.flags]
+		;and	byte [es:di+24h], 0FEh ; ~fchanged_by_format
+		;;and	word [es:di+23h], 0FEFFh ; [es:di+BDS.flags]
 					; ~fchanged_by_format ;	reset flag
 		mov	byte [tim_drv], 0FFh ; -1
 					; Ensure that we ask the rom if media has changed
-		test	byte [es:di+23h], 1 ; [es:di+BDS.flags]
+		; 21/12/2023
+		test	byte [es:di+3Fh], 1
+		;test	byte [es:di+23h], 1 ; [es:di+BDS.flags]
 					; fnon_removable
 		jz	short wehaveafloppy
 		;mov	si, 0FFFFh	; Indicate media changed
@@ -12252,10 +13411,12 @@ media_chk:				; 2C7h:4EBh = 70h:2A5Bh
 ; ---------------------------------------------------------------------------
 
 WeAreNotFakingIt:
+		; 21/12/2023
+		test	byte [es:di+3Fh], 1
 		;test	byte [es:di+BDS.flags], fnon_removable			
-		test	byte [es:di+23h], 1
+		;test	byte [es:di+23h], 1
 		jnz	short Media_Done
-wehaveafloppy:				
+wehaveafloppy:
 		;xor	si, si ; 0	; Presume "I don't know"
 		; 11/08/2023
 		dec	si ; 0 		; PCDOS 7.1 IBMBIO.COM - BIOSCODE:05EBh
@@ -12282,13 +13443,13 @@ mChk_NoChangeLine:
 		jmp	short Media_Done
 ; ---------------------------------------------------------------------------
 
-Media_Unk:				
+Media_Unk:
 		dec	si		; ; Return "I don't know"
 
 		; SI now contains the correct value for media change.
 		; Clean up the left overs
-Media_Done:	
-		; 19/10/2022			
+Media_Done:
+		; 19/10/2022
 		push	es
 		les	bx, [ptrsav]
 		mov	[es:bx+0Eh], si	; [es:bx+trans]
@@ -12298,7 +13459,7 @@ Media_Done:
 		cmp	byte [fhave96], 0
 		jz	short mChk1_NoChangeLine ; Brif	no changeline support
 		call	media_set_vid
-mChk1_NoChangeLine:			
+mChk1_NoChangeLine:
 		mov	byte [tim_drv], 0FFh ; -1
 					; Make sure we ask rom for media check
 ret_carry_clear:			
@@ -12306,7 +13467,7 @@ ret_carry_clear:
 		retn
 ; ---------------------------------------------------------------------------
 
-err_exitj:				
+err_exitj:
 		call	maperror	; guaranteed to	set carry
 ret81:					
 		mov	ah, 81h		; return error status
@@ -12327,14 +13488,19 @@ ret81:
 ;	assume es:di -> bds, ds->Bios_Data
 ; ---------------------------------------------------------------------------
 
+		; 21/12/2023 - Retro DOS v5.0 IBMBIO.COM
 		; 19/10/2022
 Check_Time_Of_Access:
 		mov	si, 1		; presume no change.
 		call	GetTickCnt	; cx:dx	is the elapsed time
-		mov	ax, [es:di+47h]	; [es:di+BDS.tim_lo]
+		; 21/12/2023
+		mov	ax, [es:di+79h]
+		;mov	ax, [es:di+47h]	; [es:di+BDS.tim_lo]
 					; get stored time
 		sub	dx, ax
-		mov	ax, [es:di+49h]	; [es:di+BDS.tim_hi]
+		; 21/12/2023
+		mov	ax, [es:di+7Bh]
+		;mov	ax, [es:di+49h]	; [es:di+BDS.tim_hi]
 		sbb	cx, ax
 		; 11/08/2023
 		; PCDOS 7.1 IBMBIO.COM - BIOSCODE:0646h
@@ -12346,7 +13512,7 @@ Check_Time_Of_Access:
 		;inc	al
 		;cmp	al, 5
 		;;inc	byte [accesscount]
-		;;cmp	byte [accesscount], 5 
+		;;cmp	byte [accesscount], 5
 		;			; if count is less than threshold, ok
 		;jb	short timecheck_ret
 		;;dec	byte [accesscount] ; don't let the count wrap
@@ -12367,7 +13533,7 @@ timepassed:
 		jbe	short timecheck_ret ; yes, presume no change
 
 		; everything indicates that we do not know what has happened.
-timecheck_unk:				
+timecheck_unk:
 		dec	si		; presume i don't know
 timecheck_ret:
 		; 11/08/2023
@@ -12387,11 +13553,14 @@ Err_Exitj2:
 ; Build a valid bpb for the disk in the drive.
 ; ==========================================================================
 
+		; 21/12/2023 - Retro DOS v5.0 IBMBIO.COM
 		; 19/10/2022
 get_bpb:				; 2C7h:592h = 70h:2B02h
 		mov	ah, [es:di]	; get fat id byte read by dos
 		call	SetDrive	; get the correct bds for the drive
-		test	byte [es:di+23h], 1 ; [es:di+BDS.flags]
+		; 21/12/2023
+		test	byte [es:di+3Fh], 1
+		;test	byte [es:di+23h], 1 ; [es:di+BDS.flags]
 					; fnon_removable
 		jnz	short already_gotbpb ; no need to build	for fixed disks
 
@@ -12413,11 +13582,11 @@ get_bpb:				; 2C7h:592h = 70h:2B02h
 		cmp	byte [fhave96], 0
 		jz	short already_gotbpb ; brif not
 		call	set_volume_id
-already_gotbpb:				
+already_gotbpb:
 		add	di, 6		; BDS.BPB
 					; return the bpb from the current bds
 
-;		 fall into setptrsav, es:di -> result
+;		fall into setptrsav, es:di -> result
 
 ; ---------------------------------------------------------------------------
 
@@ -12434,14 +13603,32 @@ already_gotbpb:
 ;restored before returning to the caller.
 ; ==========================================================================
 
+; 21/12/2023
+%if 0
 		; 19/10/2022
-SetPtrSav:	; return point for dsk_init				
+SetPtrSav:	; return point for dsk_init
 		mov	cx, es		; save es
 		;les	bx, ds:ptrsav
 		les	bx, [ptrsav]
 		mov	[es:bx+0Dh], ah	; [es:bx+media]
 		mov	[es:bx+12h], di	; [es:bx+count]
 		mov	[es:bx+14h], cx	; [es:bx+count+2]
+		clc
+		retn
+%endif
+		; 21/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1)
+		; PCDOS 7.1 IBMBIO.COM - BIOSCODE:0698h
+SetPtrSav:	
+		; return point for dsk_init
+		push	ds
+		;lds	bx, ds:ptrsav
+		lds	bx, [ptrsav]
+		mov	[bx+0Dh], ah	; [bx+media]
+		mov	[bx+12h], di	; [bx+count]
+		mov	[bx+14h], es	; [bx+count+2]
+		push	ds
+		pop	es
+		pop	ds
 		clc
 		retn
 
@@ -12467,16 +13654,27 @@ SetPtrSav:	; return point for dsk_init
 ; 11/09/2023
 ; 14/08/2023
 ;BDS.fatsiz equ 1Fh
+; 21/12/2023
+;BDS.fatsiz equ 59
 
+		; 22/12/2023
+		; 21/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1)
 clear_ids:
-		; 11/09/2023 - Retro DOS v4.1 IO.SYS (Optimization & BugFix)
-		mov	al, [es:di+1Fh] ; mov al,[es:di+BDS.fatsiz]
-clear_ids_x:	; 11/09/2023		
+		;mov	al, [es:di+1Fh] ; mov al,[es:di+BDS.fatsiz]
+		; 21/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM BugFix)
+		mov	bl, [es:di+3Bh] ; mov bl,[es:di+BDS.fatsiz]; *+
+clear_ids_x:
+		; 21/12/2023 
+		; (PCDOS 7.1 IBMBIO.COM - BIOSCODE:06ABh)
+		; 11/09/2023		
  		; (MSDOS 5.0 IO.SYS - BIOSCODE:05D9h)
 		push	di
 		xor	cx, cx		; no serial number
-		mov	[es:di+57h], cx	; [es:di+BDS.vol_serial]
-		mov	[es:di+59h], cx	; [es:di+BDS.vol_serial+2]
+		; 21/12/2023
+		mov	[es:di+89h], cx	; [es:di+BDS.vol_serial]
+		mov	[es:di+8Bh], cx	; [es:di+BDS.vol_serial+2]
+		;mov	[es:di+57h], cx	; [es:di+BDS.vol_serial]
+		;mov	[es:di+59h], cx	; [es:di+BDS.vol_serial+2]
 
 		; BUGBUG - there's a lot in common here and with
 		; mov_media_ids.. see if we can save some space by
@@ -12484,55 +13682,107 @@ clear_ids_x:	; 11/09/2023
 
 		;mov	cx, 11		; size_of_EXT_BOOT_VOL_LABEL
 		; 10/12/2022
-		mov	cl, 11 ; cx = 11		
+		mov	cl, 11 ; cx = 11
 
-		;mov	si, offset vol_no_name ; "NO NAME    "
-		mov	si, vol_no_name	; 19/10/2022
-		add	di, 75		; BDS.volid
-		rep movsb
+		;;mov	si, offset vol_no_name ; "NO NAME    "
+		;mov	si, vol_no_name	; 19/10/2022
+		; 22/12/2023
+		;mov	si, offset nul_vid ; "NO NAME    "
+		mov	si, nul_vid
+
+		; 21/12/2023
+		add	di, 125
+		;add	di, 75		; BDS.volid
 		
+		;rep movsb
+		; 21/12/2023
+		;rep movs byte ptr es:[di], byte ptr cs:[si] ; cs rep movsb
+		; 26/12/2023
+		;cs	; vol_no_name is in BIOSCODE segment
+		;rep movsb
+		rep
+		cs
+		movsb
+
 		; 11/09/2023 (BugFix, DI is not start addr of BDS structure here)
 		;;test	byte [es:di+BDS.fatsiz], fbig
 		; (MSDOS 5.0 IO.SYS - BIOSCODE:05EFh)
 		;test	byte [es:di+1Fh], 40h
+		; 21/12/2023 - Retro DOS v5.0
+		; (PCDOS 7.1 IBMBIO.COM - BIOSCODE:06C3h)
+		;test	byte [es:di+59], 20h 
+			; (here, es:di points to the BDS offset +136)
+			; purpose: test byte [es:di+BDS.fatsiz], fbigbig
+			; applied: test byte [es:BDS.fatsiz+136], fbigbig -BUG!-
 
-			; ! NOTE - 11/08/2023 - Erdogan Tan (Retro DOS v4.2 IO.SYS bugfix)
+			; (PCDOS 7.1 BUG note: 26/06/2023 - Erdogan Tan)
+			;; ! NOTE - 11/08/2023 - Erdogan Tan (Retro DOS v4.2 IO.SYS bugfix)
 			; Microsoft/IBM code has a bug here because the BDS's
 			; .volid and .filesys_id fields will be reset
 			; (to their default text) according to 'BDS.fatsiz' flags
-			; at the BDS offset 31 but current (this) code checks flags
-			; at ES:DI+31 while DI points the BDS offset 86!?
+			; at the BDS offset 59 but current (this) code checks flags
+			; at ES:DI+59 while DI points the BDS offset 136!? ; (PCDOS 7.1)
+			;; at the BDS offset 31 but current (this) code checks flags
+			;; at ES:DI+31 while DI points the BDS offset 86!? ; (MSDOS 6.22)
 			;
 			; Correct Code:
-			; ;test byte [ES:31],40h or [ES:BDS.fatsiz],fbig
+			; ;test byte [ES:59],20h or [ES:BDS.fatsiz],fbigbig  ; (PCDOS 7.1)	
+			; ;;test byte [ES:31],40h or [ES:BDS.fatsiz],fbig  ; (MSDOS 6.22)
 			; 11/09/2023
 			; (before 'rep movsb') 'mov al,[es:di+BDS.Fatsiz]' and then
 			; (after 'rep movsb') 'test al,fbig' (AL is free/proper to use here)	
 			;
-			; Same BUG is existing in PCDOS 7.1 IBMBIO.COM - BIOSCODE:06C3h
+			; Same BUG is existing in MSDOS 6.22 IO.SYS - BIOSCODE:05EFh
 			; and in Windows ME IO.SYS - BIOSCODE:0E1Ah as 'test byte [es:di+59],20h'
-			; (PCDOS 7.1 BUG note: 26/06/2023)
+
 			;
 			; (Why this bug did not affect MSDOS and PCDOS 7.x applications:
 			; 'clear_ids' is used for floppy disks only and the default
 			; option of 'clear_ids' is FAT12 volid and filesys_id text
 			; when the flag bit has wrong value for FAT16/40h or FAT32/20h.)
 
-		test	al, 40h ; * 
-		
+		; 21/12/2023 - Retro DOS v5.0
+		;mov	si, offset fat_32_id ; "FAT32   "
+		mov	si, fat_32_id	
+
+		; 21/12/2023
+		; BugFix (of the PCDOS 7.1 IBMBIO.COM BUG) ; *+
+		;test	bl, fbigbig ; FAT32 flag
+		test	bl, 20h ; * ; BL = [es:BDS.fatsiz] = [es:59]
+		jnz	short ci_bigfat
+
 		;mov	si, offset fat_16_id ; "FAT16	"
 		mov	si, fat_16_id	; 19/10/2022
+		
+		; 21/12/2023
+		; !BUG! (PCDOS 7.1 IBMBIO.COM BIOSCODE:06CDh)
+		;test	byte [es:di+59], 40h ; [es:di+BDS.fatsiz], fbig
+		; BugFix ; *+
+		;test	bl, fbig ; FAT16 flag
+		test	bl, 40h ; * ; Retro DOS v5.0
+		;;test	al, 40h ; * ; Retro DOS v4.2
 		jnz	short ci_bigfat
+
 		;mov	si, offset fat_12_id ; "FAT12	"
-		mov	si, fat_12_id	 ; 19/10/2022
-ci_bigfat:				
+		mov	si, fat_12_id	; 19/10/2022
+ci_bigfat:
 		;mov	cx, 8		; size_of_EXT_SYSTEM_ID
 		; 10/12/2022
 		mov	cl, 8 ; cx = 8 
 		add	di, 5		; (BDS.filesys_id-BDS.volid)-size_of_EXT_BOOT_VOL_LABEL
 					; filesys_id field
-		rep movsb
+		;rep movsb
+		; 21/12/2023 - Retro DOS v5.0
+		;rep movs byte ptr es:[di], byte ptr cs:[si] ; 0F3h,2Eh,0A4h
+		; 26/12/2023
+		;cs	; fat32_id, fat16_id and fat12_id are in BIOSCODE segment
+		;rep movsb
+		rep
+		cs
+		movsb
+
 		pop	di		; restore bds pointer
+getret_exit:		; 21/12/2023
 		retn
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -12563,14 +13813,19 @@ ci_bigfat:
 ;	   now es:di has the bds, ds: has Bios_Data
 ; ---------------------------------------------------------------------------
 
-GetBp:		; if returning fake bpb then return bpb as is.
+		; 21/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1)
+GetBp:
+		; if returning fake bpb then return bpb as is.
+		; 21/12/2023
+		test	byte [es:di+3Fh], 5 ; PCDOS 7.1
 		;test	byte [es:di+BDS.flags], return_fake_bpb|fnon_removable		
-		test	byte [es:di+23h], 5
-		jz	short getbp1	; getbp1
-		jmp	getret_exit
+		;test	byte [es:di+23h], 5 ; MSDOS 6.22 (& MSDOS 5.0)
+		;jz	short getbp1	; getbp1
+		;jmp	getret_exit
+		; 21/12/2023
+		jnz	short getret_exit
 ; ---------------------------------------------------------------------------
-
-getbp1:					
+getbp1:	
 		push	cx
 		push	dx
 		push	bx
@@ -12584,10 +13839,12 @@ getbp1:
 		or	bx, bx		; bx is	0 if boot sector is valid.
 		jnz	short dofatbpb
 		call	movbpb		; move bpb into	registers
-		jmp	short Has1
+		;jmp	short Has1
+		; 21/12/2023 - Retro DOS v5.0 (PCDOS 7.1) IBMBIO.COM
+		jmp	getret
 ; ---------------------------------------------------------------------------
 
-getbp_err_ret_brdg:			
+getbp_err_ret_brdg:
 		jmp	getbp_err_ret
 ; ---------------------------------------------------------------------------
 
@@ -12602,38 +13859,63 @@ dofatbpb:
 		call	hidensity	; may not return! May add sp, 2	and
 					; jump to has1!!!!!! or	has720K
 bpb_nochangeline:		; test for a valid 3.5" medium			
-		cmp	byte [es:di+22h], 2	; [es:di+BDS.formfactor]
+		; 21/12/2023 - Retro DOS v5.0
+		cmp	byte [es:di+3Eh], 2
+		;cmp	byte [es:di+22h], 2 ; [es:di+BDS.formfactor]
 					; ffSmall
 		jnz	short is_floppy
 		cmp	ah, 0F9h	; is it	a valid	fat id byte for	3.5" ?
 		jnz	short got_unknown_medium
-Has720K:				
-		;mov	bx, offset sm92 ; pointer to correct bpb
-		mov	bx, sm92	; 19/10/2022
+Has720K:
+		; 21/12/2023
+		;;mov	bx, offset sm92 ; pointer to correct bpb
+		;mov	bx, sm92	; 19/10/2022
 
 		; es points to segment of bds. the following should be modified
 		; to get spf,csec,spau,spt correctly. it had been wrong if
 		; driver.sys is loaded since the bds is inside the driver.sys.
 
-		; 10/12/2022
-		;mov	al, [bx+0]	; [bx+bpbtype.spf]
-		; 21/12/2022
-		mov	al, [bx]
-		mov	cx, [bx+3]	; [bx+bpbtype.csec]
-		mov	dx, [bx+5]	; [bx+bpbtype.spau]
-		mov	bx, [bx+1]	; [bx+bpbtype.spt]
-		; 19/10/2022 - Temporary !
-		;db	8Ah, 87h, 0, 0	; mov al, [bx+0]
-		;db	8Bh, 8Fh, 3, 0	; mov cx, [bx+3]
-		;db	8Bh, 97h, 5, 0	; mov dx, [bx+5]
-		;db	8Bh, 9Fh, 1, 0	; mov bx, [bx+1]	
+		; 21/12/2023
+		;; 10/12/2022
+		;;mov	al, [bx+0]	; [bx+bpbtype.spf]
+		;; 21/12/2022
+		;mov	al, [bx]
+		;mov	cx, [bx+3]	; [bx+bpbtype.csec]
+		;mov	dx, [bx+5]	; [bx+bpbtype.spau]
+		;mov	bx, [bx+1]	; [bx+bpbtype.spt]
+		;; 19/10/2022 - Temporary !
+		;;db	8Ah, 87h, 0, 0	; mov al, [bx+0]
+		;;db	8Bh, 8Fh, 3, 0	; mov cx, [bx+3]
+		;;db	8Bh, 97h, 5, 0	; mov dx, [bx+5]
+		;;db	8Bh, 9Fh, 1, 0	; mov bx, [bx+1]
 
+		; 21/12/2023 - Retro DOS v5.0
+		mov	al, 3		; bpbtype.sbf = 3
+		mov	cx, 1440	; bpbtype.csec = 1440
+		mov	dx, 202h	; dl = bpbtype.spau = 2
+					; dh = bpbtype.chead = 2
+		mov	bx, 7009h	; bl = bpbtype.spt = 9
+					; bh = bpbtype.dire = 112
 		jmp	short Has1
 ; ---------------------------------------------------------------------------
 
 is_floppy:			; must be a 5.25" floppy if we come here
 		cmp	ah, 0F8h	; valid	media??	(0F8h-0FFh)
-		jb	short got_unknown_medium
+		;jb	short got_unknown_medium
+		; 21/12/2023
+		jnb	short chk_160K
+; ---------------------------------------------------------------------------
+		; 21/12/2023
+		; we have a 3.5" diskette for which we cannot build a bpb.
+		; we do	not assume any type of bpb for this medium.
+got_unknown_medium:
+		;mov	ds:set_id_flag,	0
+		mov	byte [set_id_flag], 0
+		mov	al, 7
+		stc
+		jmp	short getret
+; ---------------------------------------------------------------------------
+chk_160K:
 		mov	al, 1		; set number of	fat sectors
 		mov	bx, 16392	; 64*256+8
 					; set dir entries and sector max
@@ -12641,26 +13923,34 @@ is_floppy:			; must be a 5.25" floppy if we come here
 					; set size of drive
 		mov	dx, 257		; 01*256+1
 					; set head limit and sec/all unit
+		; 21/12/2023
+		;mov	al, 1		; bpbtype.sbf = 1
+		;mov	bx, 4008h	; bl = bpbtype.spt = 8
+		;			; bh = bpbtype.dire = 64
+		;mov	cx, 140h	; bpbtype.csec = 320
+		;mov	dx, 101h	; dl = bpbtype.spau = 1
+		;			; dh = bpbtype.chead = 1
+
 		test	ah, 2		; test for 8 or	9 sector
 		jnz	short has8	; nz = has 8 sectors
-		inc	al		; inc number of	fat sectors
-		inc	bl		; inc sector max
+		inc	al	; 2 	; inc number of	fat sectors
+		inc	bl	; 9	; inc sector max
 		;add	cx, 40		; increase size	(to 360)
 		; 18/12/2022
-		add	cl, 40
-has8:					
+		add	cl, 40	; 28h	; 180K (360 sectors)
+has8:
 		test	ah, 1		; test for 1 or	2 heads
 		jz	short Has1	; jz = 1 head
 		add	cx, cx		; double size of disk
 		mov	bh, 112		; increase number of directory entries
-		inc	dh		; inc sec/all unit
-		inc	dl		; inc head limit
-Has1:					
+		inc	dh	; 2	; inc sec/all unit
+		inc	dl	; 2	; inc head limit
+Has1:
 		; 02/09/2023 (PCDOS 7.1, IBMBIO.COM - BIOSCODE:0754h)
 		push	ds
 		push	es
-		pop	ds		
-				
+		pop	ds
+
 		;mov	[es:di+8], dh	; [es:di+BDS.secperclus]
 		;mov	[es:di+0Ch], bh	; [es:di+BDS.direntries]
 		;mov	[es:di+0Eh], cx	; [es:di+BDS.totalsecs16]
@@ -12700,33 +13990,52 @@ Has1:
 		mov	[di+19h], cx ; 0 ; [di+BDS.hiddensecs+2]
 		mov	[di+17h], cx ; 0 ; [di+BDS.hiddensecs]
 		mov	[di+1Dh], cx ; 0 ; [di+BDS.totalsecs32+2]
+
+		; 21/12/2023 - Retro DOS v5.0
+		mov     [di+1Fh], cx    ; [di+BDS.fatsecs32] ; BPB_FATSz32
+		mov     [di+21h], cx    ; [di+BDS.fatsecs32+2]
+		mov     [di+27h], cx    ; [di+BDS.rootdirclust]
+		mov     [di+29h], cx    ; [di+BDS.rootdirclust+2]
+		mov     [di+2Fh], cx    ; [di+BDS.reserved]
+					;     BPB_Reserved (12 zero bytes)
+		mov     [di+31h], cx
+		mov     [di+33h], cx
+		mov     [di+35h], cx
+		mov     [di+37h], cx
+		mov     [di+39h], cx
+		mov     [di+23h], cx    ; [di+BDS.extflags] ; BPB_ExtFlags
+		mov     [di+25h], cx    ; [di+BDS.fsver] ; BPB_FSVer
+
+		dec     cx              ; -1 ; 0FFFFFFFFh
+		mov     [di+2Bh], cx    ; [di+BDS.fsinfo] ; BPB_FSInfo
+		mov     [di+2Dh], cx    ; [di+BDS.bkbootsec] ; BPB_BkBootSec
 		
 		pop	ds ; 02/09/2023
-getret:					
+getret:
 		pop	bx
 		pop	dx
 		pop	cx
-getret_exit:				
+;getret_exit:		; 21/12/2023
 		retn
 ; ---------------------------------------------------------------------------
 
-getbp_err_ret:	; before doing anything else, set set_id_flag	to 0.			
+getbp_err_ret:	; before doing anything else, set set_id_flag to 0.
 		;mov	ds:set_id_flag,	0
 		; 19/10/2022
 		mov	byte [set_id_flag], 0
 		call	maperror
 		jmp	short getret
 ; ---------------------------------------------------------------------------
-
-		; we have a 3.5" diskette for	which we cannot	build a	bpb.
-		; we do	not assume any type of bpb for this medium.
-
-got_unknown_medium:			
-		;mov	ds:set_id_flag,	0 
-		mov	byte [set_id_flag], 0
-		mov	al, 7
-		stc
-		jmp	short getret
+; 21/12/2023
+;		; we have a 3.5" diskette for which we cannot build a bpb.
+;		; we do	not assume any type of bpb for this medium.
+;
+;got_unknown_medium:
+;		;mov	ds:set_id_flag,	0
+;		mov	byte [set_id_flag], 0
+;		mov	al, 7
+;		stc
+;		jmp	short getret
 
 ; =============== S U B	R O U T	I N E =======================================
 
@@ -12743,6 +14052,10 @@ got_unknown_medium:
 
 ; 30/12/2022 - Retro DOS v4.2
 ; (MSDOS 6.21 IO.SYS, BIOSCODE:06C3h)
+; ((MSDOS 6.22 IO.SYS, BIOSCODE:06C3h)) ; 22/12/2023
+
+; 22/12/2023 - Retro DOS v5.0
+; (PCDOS 7.1 IBMBIO.COM, BIOSCODE:07C6h)
 
 readbootsec:	
 		mov	dh, 0		; head 0
@@ -12876,7 +14189,7 @@ err_ret:
 ;
 ; if the set_id_flag is 1, and if an extended boot record, then set volume
 ; serial number, volume label, file system id in bds according to
-; the boot record.  after that, this routine will set the set_id_flag to 2
+; the boot record. after that, this routine will set the set_id_flag to 2
 ; to signal that volume label is set already from the extended boot record
 ; (so, don't set it again by calling "set_volume_id" routine which uses
 ; the volume label in the root directory.)
@@ -12884,8 +14197,10 @@ err_ret:
 
 ; 10/03/2019 - Retro DOS v4.0
 
+; 22/12/2023
+%if 0
 		; 19/10/2022
-movbpb:	
+movbpb:
 		mov	dh, [disksector+0Dh]
 					; disksector+EXT_BOOT.BPB+EBPB.SECTORSPERCLUSTER]
 					; sectors per unit
@@ -12907,21 +14222,63 @@ movbpb:
 		mov	dl, [disksector+1Ah]
 					; [disksector+EXT_BOOT.BPB+EBPB.HEADS]
 					; number of heads
+%else
+		; 22/12/2023 - Retro DOS v5.0
+		; (PCDOS 7.1 IBMBIO.COM, BIOSCODE:0814h)
+		;;;
+movbpb:
+		push	di
+		add	di, 6		; BDS+6 = BDS.BPB
+		lea	si, [disksector+0Bh]
+		mov	cx, 53		; copy bios parameters block
+					; from BPB_BytsPerSec to (FAT32) BS_DrvNum (excluded)
+		cld
+		rep movsb
+		mov	cx, [si-45]	; si = disksector+64 -> 64-45 = 19
+					; disksektor+19 = BPB_TotSec16
+		xor	ax, ax
+		jcxz	movbpb_bigdisk
+		mov	[es:di-32], cx	; write 16 bit total sectors
+					; to 32 bit total sectors field
+		mov	[es:di-30], ax	; BPB_TotalSec32+2 (BDS offset 29, BPB offset 23)
+movbpb_bigdisk:
+		cmp	[si-42], ax     ; BPB_FATSz16 = disksector+22
+		jz	short movbpb_fat32
+movbpb_fat:
+		sub	di, 28		; di = BDS offset 31 (BPB offset 25)
+		mov	cl, 12
+		;mov	cx, 12	; clear 12 byte extended BDS (FAT32) fields
+					; (which are used only for FAT32 disks)
+		rep stosb
+		dec	ax		; -1 ; 0FFFFh
+		stosw			; set BDS offset 43 (dword) to -1
+					; dword [BDS.BPB_FSInfo] = 0FFFFFFFFh
+		stosw
+		inc	ax		; ax = 0
+		mov	cl, 12		
+		;mov	cx, 12		; clear BDS offset 47 to 59
+					; (BPB offset 41 to 53) (disksector offset 52 to 64)
+		rep stosb
+movbpb_fat32:
+		pop	di
+%endif
+		;;;
+
 		cmp	byte [set_id_flag], 1 ; called by get_bpb?
 		jnz	short movbpb_ret
 		call	mov_media_ids
 		jb	short movbpb_conv ; conventional boot record?
 		mov	byte [set_id_flag], 2 ; signals that volume id is set
-movbpb_conv:				
+movbpb_conv:
 		cmp	byte [fhave96], 1
 		jnz	short movbpb_ret
 		call	resetchanged	; reset	flags in bds to	not fchanged.
 		; 10/12/2022
 		; cf = 0
-;movbpb_ret:				
+;movbpb_ret:
 		;clc
 		retn
-
+		
 ; =============== S U B	R O U T	I N E =======================================
 
 ;copy the boot_serial number, volume id, and filesystem id from the
@@ -12935,6 +14292,8 @@ movbpb_conv:
 ;     carry flag set if not an extended bpb.
 ;     all registers saved except the flag.
 
+; 22/12/2023
+%if 0
 		; 19/10/2022
 mov_media_ids:		
 		cmp	byte [disksector+26h], 29h
@@ -12971,6 +14330,64 @@ mov_media_ids:
 		;clc		; this clc is not required (16/06/2019 - Erdogan Tan)
 				; (20/09/2022)
 		retn
+%else
+		; 22/12/2023 - Retro DOS v5.0
+		; (PCDOS 7.1 IBMBIO.COM, BIOSCODE:0865h)
+		;;;		
+mov_media_ids:
+		cmp	word [disksector+16h], 0 ; BPB.FATSz16
+		jnz	short mmi_chk_fat
+		cmp	byte [disksector+42h], 29h
+					; [disksector+FAT32_EXT_BOOT.SIG],
+					; EXT_BOOT_SIGNATURE
+		jmp	short mmi_chk_fat32
+mmi_chk_fat:
+		cmp	byte [disksector+26h], 29h
+					; [disksector+EXT_BOOT.SIG],EXT_BOOT_SIGNATURE
+mmi_chk_fat32:
+		jnz	short mmi_not_ext
+		push	cx
+		push	ax
+		push	di
+		push	si
+		push	ds
+		cmp	word [disksector+16h], 0 ; BPB.FATSz16
+		jnz	short mmi_fat
+
+mmi_fat32:				; FAT32 file system
+		;lds	cx, dword ptr ds:disksector+43h
+		lds	cx, [disksector+43h]	; BS_FAT32_VolID
+		mov	si, disksector+47h	; BS_FAT32_VolLab
+		mov	ax, disksector+52h	; BS_FAT32_FilSysType
+		jmp	short mmi_do
+
+mmi_fat:
+		;lds	cx, dword ptr ds:disksector+27h
+		lds	cx, [disksector+27h]	; BS_VolID
+		mov	si, disksector+2Bh	; BS_VolLab
+		mov	ax, disksector+36h	; BS_FilSysType
+mmi_do:
+		mov	[es:di+89h], cx	; [es:di+BDS.vol_serial]
+					; (BDS offset 137)
+		mov	[es:di+8Bh], ds	; [es:di+BDS.vol_serial+2]
+		pop	ds
+		mov	cx, 11
+		add	di, 125		; di = di+125 = BDS.volid
+		rep movsb
+		mov	cl, 8		; di = di+136
+		mov	si, ax		; BS_FilSysType or BS_FAT32_FilSysType
+		add	di, 5		; di = di+141 = BDS.filesys_id
+		rep movsb
+		pop	si
+		pop	di
+		pop	ax
+		pop	cx
+		;clc	; this clc is not required (16/06/2019 - Erdogan Tan)
+			; (20/09/2022 - 27/06/2023) MSDOS 6.21 .. PCDOS 7.1
+		retn
+%endif
+		;;;
+	
 ; ---------------------------------------------------------------------------
 
 mmi_not_ext:				
@@ -13024,14 +14441,15 @@ bad_fat_ret:
 ; ---------------------------------------------------------------------------
 
 ; 10/03/2019 - Retro DOS v4.0
+; 22/12/2023 - Retro DOS v5.0
 
 		; 19/10/2022
-read_sector:	
+read_sector:
 		push	bp
 		mov	bp, 3		; make 3 attempts
 		mov	dl, [es:di+4]	; [es:di+BDS.drivenum]
 		mov	bx, disksector	; get es:bx to point to	buffer
-rd_ret:					
+rd_ret:
 		push	es
 		push	ds
 		pop	es
@@ -13042,11 +14460,14 @@ rd_ret:
 					; Return: CF set on error, AH =	status,	AL = number of sectors read
 		pop	es
 		jnb	short okret2
-rd_rty:					
+rd_rty:
 		call	again		; reset	disk, decrement	bp, preserve ax
 		jz	short err_rd_ret
-		test	byte [es:di+23h], 1
-		;test	byte ptr [es:di+23h], 1	; [es:di+BDS.flags]
+
+		; 22/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		test	byte [es:di+3Fh], 1
+		;test	byte [es:di+23h], 1
+		;;test	byte ptr [es:di+23h], 1	; [es:di+BDS.flags]
 					; fnon_removable
 		jnz	short rd_ret
 		cmp	byte [media_set_for_format], 0
@@ -13064,7 +14485,7 @@ rd_rty:
 		pop	ds
 		mov	[save_head_sttl], al
 		pop	ax
-rd_skip1_dpt:				
+rd_skip1_dpt:
 		push	es
 		push	ds
 		pop	es
@@ -13084,13 +14505,13 @@ rd_skip1_dpt:
 		mov	[si+9],	al	; [si+DISK_PARMS.DISK_HEAD_STTL]
 		pop	ds
 		pop	ax
-rd_skip2_dpt:				
+rd_skip2_dpt:
 		popf
 		jnb	short okret2
 		jmp	short rd_rty
 ; ---------------------------------------------------------------------------
 
-err_rd_ret:				
+err_rd_ret:
 		mov	dl, 0FFh	; make sure we ask rom if media	has changed
 					; return error
 		stc
@@ -13098,10 +14519,13 @@ err_rd_ret:
 ; update information pertaining to last drive accessed, time of access, last
 ; track accessed in that drive.
 
-okret2:					
+okret2:
 		mov	[step_drv], dl	; set up for head settle logic in disk
 		mov	[tim_drv], dl	; save drive last accessed
-		mov	[es:di+46h], ch	; [es:di+BDS.track]
+		
+		; 22/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		mov	[es:di+78h], ch
+		;mov	[es:di+46h], ch	; [es:di+BDS.track]
 					; save last track accessed on this drive
 					; preserve flags in case error occurred
 		pushf
@@ -13118,8 +14542,10 @@ dsk_open:				; 2C7h:80Ah = 70h:2D7Ah
 		cmp	byte [fhave96], 0
 		jz	short dsk_open_exit ; done if no changeline support
 		call	SetDrive	; get bds for drive
-		inc	word [es:di+20h] ; [es:di+BDS.opcnt]
-dsk_open_exit:	
+		; 22/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		inc	word [es:di+3Ch] ; [es:di+BDS.opcnt] ; BDS offset 60
+		;inc	word [es:di+20h] ; [es:di+BDS.opcnt]
+dsk_open_exit:
 		; 10/12/2022
 		; cf = 0			
 		;clc		; CF is	already	ZERO here (18/09/2022, MSDOS 5.0 IO.SYS)
@@ -13131,10 +14557,14 @@ dsk_close:				; 2C7h:81Ah = 70h:2D8Ah
 		cmp	byte [fhave96], 0
 		jz	short exitjx	; done if no changeline	support
 		call	SetDrive	; get bds for drive
-		cmp	word [es:di+20h], 0 ; [es:di+BDS.opcnt]
+		; 22/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		cmp	word [es:di+3Ch], 0 ; [es:di+BDS.opcnt] ; BDS off 60
+		;cmp	word [es:di+20h], 0 ; [es:di+BDS.opcnt]
 		jz	short exitjx	; watch	out for	wrap
-		dec	word [es:di+20h]
-exitjx:					
+		; 22/12/2023
+		dec	word [es:di+3Ch]
+		;dec	word [es:di+20h]
+exitjx:
 		; 10/12/2022
 		; cf = 0
 		;clc		; CF is	already	ZERO here (18/09/2022, MSDOS 5.0 IO.SYS)
@@ -13148,23 +14578,26 @@ exitjx:
 		; al is	unit #
 dsk_rem:				; 2C7h:831h = 70h:2DA1h
 		call	SetDrive	; get bds for this drive
+		; 22/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
 		;test	byte [es:di+BDS.flags], fnon_removable
-		test	byte [es:di+23h], 1
-		;jnz	short x_bus_exit ; non_rem
-		jnz	short non_rem	; 15/10/2022
-		; 10/12/2022
-		; cf = 0
-		;clc			; CF is already ZERO here
-					; 15/10/2022
-		retn
+		test	byte [es:di+3Fh], 1 ; [es:di+BDS.flags], fnon_removable
+		jz	short exitjx
+		;test	byte [es:di+23h], 1 ; [es:di+BDS.flags], fnon_removable
+		;;jnz	short x_bus_exit ; non_rem
+		;jnz	short non_rem	; 15/10/2022
+		;; 10/12/2022
+		;; cf = 0
+		;;clc			; CF is already ZERO here
+		;			; 15/10/2022
+		;retn
 ; ---------------------------------------------------------------------------
 
 non_rem:
-x_bus_exit:				
+x_bus_exit:
 		mov	ah, 3		; 2C7h:83Dh = 0070h:2DADh
 					; return busy status
 		stc
-dsk_ret:				
+dsk_ret:
 		retn
 
 ;----------------------------------------------------------------------------
@@ -13184,12 +14617,11 @@ dsk_writ:				; 2C7h:849h = 70h:2DB9h
 		; 19/10/2022
 		mov	word [rflag], 3
 		;mov	word ptr ds:rflag, 3 ; romwrite
-
-dsk_cl:					
+dsk_cl:
 		call	diskio		; romwrite
 ; ---------------------------------------------------------------------------
 
-dsk_io:					
+dsk_io:
 		jnb	short dsk_ret
 		jmp	bc_err_cnt
 ; ---------------------------------------------------------------------------
@@ -13202,6 +14634,7 @@ dsk_read:				; ; 2C7h:857h =	70h:2DC7h
 
 ; 15/10/2022
 ; 10/03/2019 - Retro DOS v4.0
+; 22/12/2023 - Retro DOS v5.0
 
 ;-----------------------------------------------------------
 ; miscellaneous odd jump routines. 
@@ -13214,10 +14647,12 @@ dsk_read:				; ; 2C7h:857h =	70h:2DC7h
 ;-----------------------------------------------------------
 
 		; 19/10/2022
-checksingle:		
+checksingle:
 		push	ax
 		push	bx
-		mov	bx, [es:di+23h]	; [es:di+BDS.flags]
+		; 22/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		mov	bx, [es:di+3Fh]	; [es:di+BDS.flags]
+		;mov	bx, [es:di+23h]	; [es:di+BDS.flags]
 
 ; if hard drive, cannot change disk.
 ; if current owner of physical drive, no need to change diskette.
@@ -13228,7 +14663,6 @@ checksingle:
 					; is there a drive sharing this	physical drive?
 		jz	short singleret
 
-
 ; look for the previous owner of this physical drive
 ; and reset its ownership flag.
 
@@ -13237,16 +14671,20 @@ checksingle:
 		push	es		; preserve pointer to current bds
 		push	di
 		les	di, [start_bds] ; get first bds
-scan_list:				
+scan_list:
 		cmp	[es:di+4], al
 		jnz	short scan_skip	; Not our drive. Try next bds.
 		mov	bl, 20h	; ' '   ; fi_own_physical ; test ownership flag
-		test	[es:di+23h], bl
+		; 22/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		test	[es:di+3Fh], bl	; [es:di+BDS.flags]
+		;test	[es:di+23h], bl
 		jz	short scan_skip	; he doesn't own it either. continue
-		xor	[es:di+23h], bl	; reset	ownership flag
+		xor	[es:di+3Fh], bl
+		;xor	[es:di+23h], bl	; reset	ownership flag
 		pop	di		; restore pointer to current bds
 		pop	es
-		or	[es:di+23h], bl	; ; set	ownership flag
+		or	[es:di+3Fh], bl
+		;or	[es:di+23h], bl	; ; set	ownership flag
 
 ; we examine the fsetowner flag. if it is set, then we are using the code in
 ; checksingle to just set the owner of a drive. we must not issue the prompt
@@ -13272,7 +14710,7 @@ scan_list:
 ; we now check to see if we are in a single drive system and the application
 ; has "cleverly" diddled the sdsb
 
-not_fsetowner:				
+not_fsetowner:
 		cmp	byte [single], 2 ; if (single_drive_system)
 		jnz	short ignore_sdsb
 		push	ax
@@ -13287,41 +14725,57 @@ not_fsetowner:
 		cmp	ah, al		; else
 		pop	ax		; swap(curr_drv,req_drv)
 		jz	short singleret	; issue	swap_dsk_msg
-ignore_sdsb:				
+ignore_sdsb:
 		call	swpdsk
 		jmp	short singleret
 ; ---------------------------------------------------------------------------
 
-scan_skip:	
-		les	di, [es:di]			
+scan_skip:
+		les	di, [es:di]
 		;les	di, es:[di]	; [es:di+BDS.link]
 					; go to	next bds
-		cmp	di, 0FFFFh	; end of list?
-		jnz	short scan_list	; ontinue until	hit end	of list
+		cmp	di, 0FFFFh ; -1	; end of list?
+		jnz	short scan_list	; continue until hit end of list
 		stc
 		pop	di		; restore current bds
 		pop	es
-
-singleret:				
+singleret:
 		pop	bx
 		pop	ax
 		retn
 
+; 22/12/2023
+%if 0
 ; ---------------------------------------------------------------------------
 
-baddrive:				
+baddrive:
 		mov	al, 8		; sector not found
 		jmp	short baddrive_ret
+%endif
+
 ; ---------------------------------------------------------------------------
 
-unformatteddrive:				
+unformatteddrive:
 		mov	al, 7		; unknown media
-baddrive_ret:				
+;baddrive_ret:
 		stc
 ; ---------------------------------------------------------------------------
 
-ioret:		
+ioret:
 		retn
+
+; ---------------------------------------------------------------------------
+		
+		; 22/12/2023 - Retro DOS v5.0
+		; PCDOS 7.1 IBMBIO.COM - BIOSCODE:0A1Bh
+
+LBA_Packet:	db 16			; ...
+					; DAP buffer
+                db 0
+dap_block_cnt:	dw 0			; ...
+dap_trans_buf:	dd 0			; ...
+dap_lba_value:	dd 0			; ...
+		dd 0
 
 ; ---------------------------------------------------------------------------
 
@@ -13353,6 +14807,10 @@ diskrd:
 
 ; =============== S U B	R O U T	I N E =======================================
 
+		; 22/12/2023 - Retro DOS v5.0
+		; PCDOS 7.1 IBMBIO.COM - BIOSCODE:0A30h
+; 22/12/2023
+%if 0
 		; 19/10/2022
 diskio:
 		mov	bx, di		; es:bx	= transfer address
@@ -13394,15 +14852,14 @@ diskio:
 		jmp	short sanityok
 ; ---------------------------------------------------------------------------
 
-sanity32:				
+sanity32:
 		add	si, [start_sec_h]
 		cmp	si, [es:di+1Dh]	; [es:di+BDS.totalsecs32+2]
 		jb	short sanityok
 		ja	short baddrive
 		cmp	dx, [es:di+1Bh]	; [es:di+BDS.totalsecs32]
 		ja	short baddrive
-
-sanityok:				
+sanityok:
 		mov	dx, [start_sec_h]
 		add	ax, [es:di+17h]	; [es:di+BDS.hiddensecs]
 		adc	dx, [es:di+19h]	; [es:di+BDS.hiddensecs+2]
@@ -13492,24 +14949,301 @@ skip_setup:
 		;retn
 		; 18/12/2022
 		jmp	done
+%else
+		;;;	; 22/12/2023
+diskio:
+		mov	bx, di		; al = drive number
+					; cx = sector count
+					; dx = first sector (low)
+					; [start_sec_h] = first sector (high)
+					;
+					; es:bx = transfer address
+		mov	[xfer_seg], es	; save transfer segment
+		call	SetDrive
+		mov	al, [es:di+10h]	; [es:di+BDS.media]
+		mov	[medbyt], al
+		jcxz	ioret
+
+; see if the media is formatted or not by checking the flags field in
+; in the bds. if it is unformatted we cannot allow i/o, so we should
+; go to the error exit at label unformatteddrive.
+
+		test	byte [es:di+40h], 2 ; [es:di+BDS.flags+1]
+					; unformatted_media
+		jnz	short unformatteddrive
+		mov	[seccnt], cx	; save sector count
+		mov	[spsav], sp	; save sp
+
+; ensure that we are trying to access valid sectors on the drive
+
+		mov	ax, dx
+		xor	si, si ; 0
+		add	dx, cx
+		rcl	si, 1
+		cmp	word [es:di+0Eh], 0 ; [es:di+BDS.totalsecs16]
+					; > 32 bit sector ?
+		jz	short sanity32
+		or	si, si
+		jnz	short baddrive
+		cmp	dx, [es:di+0Eh]	; [es:di+BDS.totalsecs16]
+		;ja	short baddrive
+		;jmp	short sanityok
+		; 22/12/2023
+		jna	short sanityok
+; 22/12/2023
+%if 1
+; ---------------------------------------------------------------------------
+
+baddrive:
+		mov	al, 8		; sector not found
+		;jmp	short baddrive_ret
+; ---------------------------------------------------------------------------
+;unformatteddrive:
+		;mov	al, 7		; unknown media
+baddrive_ret:
+		stc
+;ioret:
+		retn
+%endif
 
 ; ---------------------------------------------------------------------------
 
-baddrive_brdg:				
-		jmp	baddrive
+sanity32:
+		add	si, [start_sec_h]
+		cmp	si, [es:di+1Dh]	; [es:di+BDS.totalsecs32+2]
+		jb	short sanityok
+		ja	short baddrive
+		cmp	dx, [es:di+1Bh]	; [es:di+BDS.totalsecs32]
+		ja	short baddrive
+sanityok:
+		mov	dx, [start_sec_h]
+		add	ax, [es:di+17h]	; [es:di+BDS.hiddensecs]
+		adc	dx, [es:di+19h]	; [es:di+BDS.hiddensecs+2]
+
+; now dx;ax have the physical first sector.
+; since the following procedures is going to destroy ax, let's
+; save it temporarily to saved_word.
+
+		mov	[saved_word], ax ; save the sector number (low)
+
+; set up pointer to disk base table in [dpt]. we cannot assume that iosetup
+; will do it because we will skip the set up stuff with hard disks.
+
+		push	es
+		xor	si, si ; 0
+		mov	es, si
+		;les	si, dword ptr es:78h
+		les	si, [es:78h]	; INT 1Eh vector address
+					; [es:DSKADR] - current disk parm table
+		mov	[dpt], si
+		mov	[dpt+2], es
+		pop	es
+		test	byte [es:di+3Fh], 1 ; [es:di+BDS.flags], fnon_removable
+		jnz	short chk_13h_ext_flag
+		call	checksingle
+
+; check to see if we have previously noted a change line. the routine
+; returns if everything is ok. otherwise, it pops off the stack and returns
+; the proper error code.
+
+		cmp	byte [fhave96], 0 ; do we have changeline support?
+		jz	short diskio_nochangeline ; brif not
+		call	checklatchio	; will do a sneaky pop stack return
+					; if a disk error occurs
+diskio_nochangeline:
+		call	iosetup		; set up tables and variables for i/o
+
+chk_13h_ext_flag:
+		test	byte [es:di+40h], 4 ; [es:di+BDS.flags+1], fLBArw
+					; LBA read/write flag
+		jnz	short set_lbarw_1
+		;jmp	skip_setup
+		; 22/12/2023
+; ---------------------------------------------------------------------------
+
+; now the settle values are correct for the following code
+
+skip_setup:
+
+; 32 bit sector calculation.
+; dx:[saved_word] = starting sector number.
+
+		;push	bp ; ! (not necessary) ; 22/12/2023
+		xchg	ax, dx ; mov ax,dx
+		xor	dx, dx
+		mov	cx, [es:di+13h]	; [es:di+BDS.secpertrack]
+					; divide by sec per track
+		div	cx
+		xchg	ax, bp ; mov bp,ax
+		mov	ax, [saved_word]
+		div	cx		; [es:di+BDS.secpertrack]
+					; now, bp:ax = track #, dx = sector
+					; sector number is 1 based.
+		inc	dx
+		mov	[cursec], dl	; save current sector
+		mov	cx, [es:di+15h] ; [es:di+BDS.heads]
+					; get number of heads
+		; 22/12/2023
+		;push	ax ; *
+		xor	dx, dx
+		xchg	ax, bp ; bp = *	; divide tracks by heads per cylinder
+		div	cx
+		xchg	ax, bp ; ax = *, bp = **
+		;pop	ax ; *
+		div	cx		; now, bp:ax = cylinder #, dx = head
+		or	bp, bp ; ** = 0 ?
+		;pop	bp ; ! ; 22/12/2023
+		;jnz	short baddrive_brdg
+		; 22/12/2023
+		jnz	short baddrive
+
+		;cmp	ax, 1024	; 2^10 currently maximum for track #.
+		;jnb	short baddrive_brdg
+		; 22/12/2023
+		cmp	ah, 4	; if ax >= 4*256 (1024) 
+		jnb	short baddrive 
+
+		mov	[curhd], dl	; save current head
+		mov	[curtrk], ax	; save current track
+
+; we are now set up for the i/o. normally, we consider the dma boundary
+; violations here. not true. we perform the operation as if everything is
+; symmetric; let the int 13 handler worry about the dma violations.
+
+		mov	ax, [seccnt]
+		call	block
+		;call	done
+		;retn
+		; 22/12/2023
+		jmp	done
+		
+; ---------------------------------------------------------------------------
+
+set_lbarw_1:
+		mov	ax, [saved_word] ; check for mini disk
+					 ; (logical dos drive/partition)
+		cmp	word [es:di+79h], 1 ; [di+BDS.bdsm_ismini]
+					    ; logical dos partition
+		jnz	short set_lbarw_2 ; not a logical dos partition/drive
+		cmp	word [es:di+7Bh], 0 ; [di+BDS.bdsm_hidden_trks] (> 0)
+		jz	short set_lbarw_2
+		add	ax, [es:di+17h]	; [es:di+BDS.hiddensecs]
+		adc	dx, [es:di+19h]	; [es:di+BDS.hiddensecs+2]
+
+set_lbarw_2:
+		mov	[cs:dap_lba_value], ax
+		mov	[cs:dap_lba_value+2], dx
+		mov	[cs:dap_trans_buf], bx
+		mov	ax, [xfer_seg]
+		mov	[cs:dap_trans_buf+2], ax
+		mov	ax, [seccnt]
+		mov	[cs:dap_block_cnt], ax
+		mov	bp, 5
+		mov	[vretry_cnt], bp ; verify op. retry cnt for write-verify
+		mov	[soft_ecc_cnt], bp ; soft ecc error retry count
+
+set_lbarw_3:
+		mov	dl, [es:di+4]	; [es:di+BDS.drivenum]
+		mov	ah, [rflag]	; get read/write indicator
+		add	ah, 40h
+		xor	al, al
+		push	ds
+		push	cs
+		pop	ds
+		mov	si, LBA_Packet
+		int	13h		; LBA read/write
+		pop	ds
+		jnc	short set_lbarw_7
+		call	again
+set_lbarw_9:
+		jnz	short set_lbarw_4
+		jmp	harderr
+; ---------------------------------------------------------------------------
+
+set_lbarw_4:
+;set_lbarw_9:	; 22/12/2023
+		cmp	ah, 0CCh	; Write fault (hard disk)
+		jnz	short set_lbarw_5
+		mov	bp, 1
+		jmp	short set_lbarw_6
+; ---------------------------------------------------------------------------
+
+set_lbarw_5:
+set_lbarw_10:	; 22/12/2023
+		mov	word [soft_ecc_cnt], 5 ; soft ecc error retry count
+set_lbarw_6:
+set_lbarw_11:
+		jmp	short set_lbarw_3
+; ---------------------------------------------------------------------------
+
+set_lbarw_7:
+		cmp	word [rflag], 103h
+		jnz	short set_lbarw_12
+		mov	ah, 44h
+		push	ds
+		push	cs
+		pop	ds
+		int	13h		; DISK - IBM/MS Extension - VERIFY SECTORS
+					;  (DL - drive, [SI - disk address packet)
+		pop	ds
+		jnc	short set_lbarw_12
+		cmp	ah, 11h		; ECC corrected data error (soft error - retried OK )
+		jnz	short set_lbarw_8
+		dec	word [soft_ecc_cnt]
+;set_lbarw_8:
+		jz	short set_lbarw_12
+set_lbarw_8:
+		call	ResetDisk
+		cmp	ah, 11h
+		jz	short set_lbarw_11
+		dec	word [vretry_cnt]
+		;jnz	short set_lbarw_9
+		;jmp	harderr
+		; 22/12/2023
+		jmp	short set_lbarw_9
+
+; ---------------------------------------------------------------------------
+;		; 22/12/2023
+;set_lbarw_9:
+;		cmp	ah, 0CCh
+;		jnz	short set_lbarw_10
+;		mov	bp, 1
+;		jmp	short set_lbarw_11
+; ---------------------------------------------------------------------------
+;		; 22/12/2023
+;set_lbarw_10:
+;		mov	word [soft_ecc_cnt], 5 ; soft ecc error retry count
+;set_lbarw_11:
+;		jmp	short set_lbarw_3
+; ---------------------------------------------------------------------------
+
+set_lbarw_12:
+		xor	ax, ax
+skip_dpt_setting:	; 23/12/2023
+		retn
+		;;;	; 22/12/2023
+%endif
+
+; ---------------------------------------------------------------------------
+
+		; 22/12/2023
+;baddrive_brdg:
+		;jmp	baddrive
 
 ; =============== S U B	R O U T	I N E =======================================
 
 ;--------------------------------------------------------------
-; set the drive-last-accessed flag for diskette only. 
+; set the drive-last-accessed flag for diskette only.
 ; we know that the hard disk will not be removed.
 ; es:di -> current bds.
 ; ds -> Bios_Data
 ; ax,cx,si are destroyed.
 ;--------------------------------------------------------------
 
+		; 23/12/2023 - Retro DOS v5.0
+
 		; 19/10/2022
-iosetup:	
+iosetup:
 		mov	al, [es:di+4]	; [es:di+BDS.drivenum]
 		mov	[tim_drv], al	; save drive letter
 
@@ -13521,8 +15255,10 @@ iosetup:
 		push	ds
 		lds	si, [dpt]	; get pointer to disk base table
 		mov	[si+4],	al
+		; 23/12/2023
+		mov	ah, al
 		mov	al, [si+10]	; [si+DISK_PARMS.DISK_MOTOR_STRT]
-		mov	ah, [si+4]	; [si+DISK_PARMS.DISK_EOT]
+		;mov	ah, [si+4]	; [si+DISK_PARMS.DISK_EOT]
 		pop	ds
 		mov	[motorstartup], al
 		mov	[save_eot], ah
@@ -13533,7 +15269,9 @@ iosetup:
 
 		push	ds
 		lds	si, [dpt]	; get pointer to disk base table
-		cmp	byte [es:di+22h], 2 ; [es:di+BDS.formfactor]
+		; 23/12/2023  - Retro DOS v5.0
+		cmp	byte [es:di+3Eh], 2 ; (PCDOS 7.1 IBMBIO.COM)
+		;cmp	byte [es:di+22h], 2 ; [es:di+BDS.formfactor]
 					; ffSmall
 		jnz	short motor_start_ok
 		mov	al, 4
@@ -13542,7 +15280,7 @@ motor_start_ok:
 
 ; ds:si now points to disk parameter table.
 ; get current settle and set fast settle
-				
+
 		;xor	al, al
 		;inc	al		; ibm wants fast settle	to be 1
 		; 18/12/2022
@@ -13555,7 +15293,8 @@ motor_start_ok:
 		mov	al, 15		; NORMSETTLE
 					; someone has diddled the settle
 		mov	[settleslow], al
-skip_dpt_setting:			
+		; 23/12/2023
+;skip_dpt_setting:
 		retn
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -13566,15 +15305,19 @@ skip_dpt_setting:
 ;	  note: trashes (at least) si
 ;--------------------------------------------------------------
 
+		; 23/12/2023 - Retro DOS v5.0
+
 		; 19/10/2022
-done:
-		test	byte [es:di+23h], 1 ; [es:di+BDS.flags]
+done:		
+		;test	byte [es:di+23h], 1 ; [es:di+BDS.flags]
 					; fnon_removable
+		; 23/12/2023
+		test	byte [es:di+3Fh], 1 ; (PCDOS 7.1 IBMBIO.COM)
 		jnz	short ddbx	; do not set for non-removable media
 		call	set_tim
 ;diddleback:
 ; 09/12/2022
-diddle_back:				
+diddle_back:
 		pushf
 		cmp	byte [media_set_for_format], 0
 		jnz	short nodiddleback
@@ -13590,26 +15333,30 @@ diddle_back:
 		mov	[es:si+0Ah], ah	; [es:si+DISK_PARMS.DISK_MOTOR_STRT]
 		pop	es
 		pop	ax
-nodiddleback:				
+nodiddleback:
 		popf
-ddbx:					
+ddbx:
 		retn
 
 ; =============== S U B	R O U T	I N E =======================================
 
 ;--------------------------------------------------------------
-;read the number of sectors specified in ax, 
+;read the number of sectors specified in ax,
 ;handling track boundaries
 ;es:di -> bds for this drive
 ;--------------------------------------------------------------
 
-		 ; 19/10/2022
+		; 23/12/2023 - Retro DOS v5.0
+
+		; 19/10/2022
 block:	
 		or	ax, ax
 		jz	short ddbx
-		test	byte [es:di+23h], 1 ; [es:di+BDS.flags]
-					; fnon_removable
-		jz	short block_floppy ;
+		; 23/12/2023
+		test	byte [es:di+3Fh], 1 ; (PCDOS 7.1 IBMBIO.COM)
+		;test	byte [es:di+23h], 1 ; [es:di+BDS.flags]
+					    ; fnon_removable
+		jz	short block_floppy
 
 ; check	to see if multi	track operation	is allowed. if not
 ; we have to go	to the block_floppy below to break up the operation.
@@ -13625,20 +15372,21 @@ block:
 block_floppy:
 
 ; read at most 1 track worth. perform minimization at sector / track
-				
+
 		mov	cl, [es:di+19]	; [es:di+BDS.secpertrack]
-		inc	cl
+		;inc	cl
+		; 23/12/2023
+		inc	cx
 		sub	cl, [cursec]
 		xor	ch, ch
 		cmp	ax, cx
 		jnb	short gotmin
 		mov	cx, ax
-
 gotmin:
 
 ; ax is the requested number of sectors to read
 ; cx is the number that we can do on this track
-					
+
 		push	ax
 		push	cx
 		mov	ax, cx
@@ -13652,7 +15400,7 @@ gotmin:
 		shl	cl, 1
 		add	bh, cl		; adjust transfer address
 		jmp	short block
-dskerr_brdg:				
+dskerr_brdg:
 		jmp	dskerr
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -13669,7 +15417,10 @@ dskerr_brdg:
 ; [verify] = 0 for normal, 1 for verify after write
 ;--------------------------------------------------------------
 
-		 ; 19/10/2022
+		; 23/12/2023 - Retro DOS v5.0
+		; (PCDOS 7.1 IBMBIO.COM - BIOSCODE:0C74h)
+
+		; 19/10/2022
 Disk:
 
 ; Check for hard disk format and
@@ -13677,7 +15428,11 @@ Disk:
 
 		mov	bp, 5		; MAXERR
 					; set up retry count
-		test	byte [es:di+23h], 1	;
+		; 23/12/2023
+		mov	cl, [es:di+3Fh]
+		and	cx, 1
+		;test	byte [es:di+3Fh], 1
+		;;test	byte [es:di+23h], 1 
 					; [es:di+BDS.flags], fnon_removable
 		jz	short GetRdWrInd
 		cmp	ah, 4		; romverify ; Is this a	track verify?
@@ -13689,17 +15444,25 @@ GetRdWrInd:
 		mov	ah, [rflag]	; get read/write indicator
 ;retry:
 ; 09/12/2022
-_retry:					
+_retry:
 		push	ax
 		mov	dx, [curtrk]
-		test	byte [es:di+23h], 1
-		jz	short disk_not_mini
-		cmp	word [es:di+47h], 1 ; [es:di+BDS.bdsm_ismini]
+		; 23/12/2023
+		jcxz	disk_not_mini
+		;test	byte [es:di+3Fh], 1
+		;;test	byte [es:di+23h], 1
+		;jz	short disk_not_mini
+
+		; 23/12/2023
+		cmp	word [es:di+79h], 1
+		;cmp	word [es:di+47h], 1 ; [es:di+BDS.bdsm_ismini]
 					; is this a mini disk? ((logical dos partition))
 		jnz	short disk_not_mini ; no. continue to next.
-		add	dx, [es:di+49h]	; [es:di+BDS.bdsm_hidden_trks]
+		; 23/12/2023
+		add     dx, [es:di+7Bh]
+		;add	dx, [es:di+49h]	; [es:di+BDS.bdsm_hidden_trks]
 					; add hidden trks.
-disk_not_mini:				
+disk_not_mini:
 		ror	dh, 1
 		ror	dh, 1
 		or	dh, [cursec]
@@ -13708,7 +15471,9 @@ disk_not_mini:
 		mov	dh, [curhd]	; load current head number and
 		mov	dl, [es:di+4]	; physical drive number
 					; [es:di+BDS.drivenum]
-		cmp	byte [es:di+22h], 5 ; [es:di+BDS.formfactor], ffHardFile
+		; 23/12/2023
+		cmp	byte [es:di+3Eh], 5 
+		;cmp	byte [es:di+22h], 5 ; [es:di+BDS.formfactor], ffHardFile
 		jz	short do_fast	; hard files use fast speed
 
 ; if we have [step_drv] set to -1, we use the slow settle time.
@@ -13716,33 +15481,46 @@ disk_not_mini:
 ; been moved to another cylinder - the problem crops up with 3.5" drives.
 
 		cmp	byte [step_drv], 0FFh ; -1
-		jz	short do_writej
+		;jz	short do_writej
+		; 23/12/2023
+		jz	short do_write
 		cmp	ah, 2		; romread
 		jz	short do_fast
 		cmp	ah, 4		; romverify
-		jz	short do_fast
-do_writej:	
+		;jz	short do_fast
+		; 23/12/2023
+		jnz	short do_write
+;do_writej:
 
 ; reads always fast, unless we have just done a disk reset operation
 			
-		jmp	short do_write	; reads	always fast
+		;jmp	short do_write	; reads	always fast
 ; ---------------------------------------------------------------------------
 
-do_fast:				
+do_fast:
 		call	fastspeed	; change settle	mode
-
-testerr:				
+testerr:
 		jb	short dskerr_brdg
+
+		; 23/12/2023 Retro DOS v5.0
+		; (PCDOS 7.1 IBMBIO.COM)
+		cmp	bp, 5		; is there retry ?
+		jnz	short testerror	; yes
+		cmp	ah, 0BBh	; Undefined error (hard disk)
+		jz	short dskerr_brdg
+testerror:
 
 ; set drive and track of last access
 
 		mov	[step_drv], dl
-		mov	[es:di+46h], ch	; [es:di+BDS.track]
+		; 23/12/2023
+		mov	[es:di+78h], ch
+		;mov	[es:di+46h], ch	; [es:di+BDS.track]
 no_set:
 		;cmp	word [wrtverify], 103h
 		cmp	word [rflag], 103h ; check for write and verify
 		jz	short doverify
-noverify:				
+noverify:
 		pop	ax
 
 ; check the flags word in the bds to see if the drive is non removable
@@ -13751,12 +15529,14 @@ noverify:
 ; is specified. if specified we don't have to calculate for the next
 ; track since we are already done. so we can go to the exit of this routine.
 
-		test	byte [es:di+23h], 1 ; [es:di+BDS.flags]
+		; 23/12/2023
+		test	byte [es:di+3Fh], 1
+		;test	byte [es:di+23h], 1 ; [es:di+BDS.flags]
 					; fnon_removable
 		jz	short its_removable
 		test	byte [multrk_flag], 80h ; multrk_on
 		jnz	short disk_ret
-its_removable:				
+its_removable:
 		and	cl, 3Fh		; eliminate cylinder bits from sector
 		xor	ah, ah
 		sub	[seccnt], ax	; reduce count of sectors to go	next sector
@@ -13772,27 +15552,30 @@ its_removable:
 		jb	short noxor
 		xor	dh, dh
 		inc	word [curtrk]
-noxor:					
+noxor:
 		mov	[curhd], dh
-disk_ret:				
+disk_ret:
 		clc
 		retn
 ; ---------------------------------------------------------------------------
 
 ; 15/10/2022
 
+; 24/12/2023 - Retro DOS v5.0
+
 ;--------------------------------------------------------------
 ; the request is for write. determine if we are talking about
 ; the same track and drive. if so, use the fast speed.
 ;--------------------------------------------------------------
 
-do_write:				
+do_write:
 		cmp	dl, [step_drv]
 		jnz	short do_norm	; we have changed drives
-		cmp	ch, [es:di+46h]	; [es:di+BDS.track]
+		; 24/12/2023
+		cmp	ch, [es:di+78h]
+		;cmp	ch, [es:di+46h]	; [es:di+BDS.track]
 		jz	short do_fast	; we are still on the same track
-
-do_norm:				
+do_norm:
 		call	normspeed
 		jmp	short testerr
 ; ---------------------------------------------------------------------------
@@ -13801,7 +15584,7 @@ do_norm:
 ; we have a verify request also. get state info and go verify
 ;--------------------------------------------------------------
 
-doverify:				
+doverify:
 		pop	ax
 		push	ax
 		mov	ah, 4
@@ -13823,7 +15606,7 @@ doverify:
 		jmp	short dskerr1	; retry
 ; ---------------------------------------------------------------------------
 
-not_softecc_err:			; other error.			
+not_softecc_err:			; other error.
 		call	ResetDisk
 		dec	word [vretry_cnt]
 		jmp	short dskerr0
@@ -13834,37 +15617,39 @@ not_softecc_err:			; other error.
 ; if we get this, we need to return it.
 ;--------------------------------------------------------------
 
-dskerr:					
+dskerr:
 		cmp	byte [fhave96], 0	; do we	have changeline	support?
 		jz	short dskerr_nochangeline ; brif not
 		call	checkio
-dskerr_nochangeline:			
+dskerr_nochangeline:
 		cmp	byte [multitrk_format_flag], 1 ; multi trk format request?
 		jnz	short dochkagain ; no more retry.
 		mov	bp, 1
 		mov	byte [multitrk_format_flag], 0 ; clear the flag.
-dochkagain:				
+dochkagain:
 		call	again
-dskerr0:				
+dskerr0:
 		jz	short harderr
-		test	byte [es:di+23h], 1 ; [es:di+BDS.flags]
+		; 24/12/2023
+		test	byte [es:di+3Fh], 1
+		;test	byte [es:di+23h], 1 ; [es:di+BDS.flags]
 					; fnon_removable
 		jnz	short skip_timeout_chk
 		cmp	ah, 80h		; timeout?
 		jz	short harderr
-skip_timeout_chk:			
+skip_timeout_chk:
 		cmp	ah, 0CCh	; write	fault error?
 		jz	short write_fault_err ;	then, don't retry.
 		mov	word [soft_ecc_cnt], 5 ; MAXERR
 					; set soft_ecc_cnt back	to maxerr
-dskerr1:				
+dskerr1:
 		pop	ax		; restore sector count
 		;jmp	retry
 		; 09/12/2022
 		jmp	_retry
 ; ---------------------------------------------------------------------------
 
-write_fault_err:			
+write_fault_err:
 		mov	bp, 1		; just retry only once
 					; for write fault error.
 		jmp	short dskerr1
@@ -13874,9 +15659,9 @@ write_fault_err:
 
 ; entry point for routines that call maperror themselves
 
-harderr:				
+harderr:
 		call	maperror
-harderr2:				
+harderr2:
 		mov	byte [tim_drv], 0FFh
 					; force a media check through rom
 		mov	cx, [seccnt]	; get count of sectors to go
@@ -13905,11 +15690,17 @@ normspeed:
 		pop	ax
 		pop	es
 		call	fastspeed
-		push	es
-		les	si, [dpt]
-		mov	byte [es:si+9], 1 ; [es:si+DISK_PARMS.DISK_HEAD_STTL]
-					; 1 is fast settle value
-		pop	es
+		; 24/12/2023
+		;push	es
+		;les	si, [dpt]
+		;mov	byte [es:si+9], 1 ; [es:si+DISK_PARMS.DISK_HEAD_STTL]
+		;			; 1 is fast settle value
+		;pop	es
+		push	ds
+		lds	si, [dpt]
+		mov	byte [si+9], 1
+		pop	ds
+
 		retn
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -13917,10 +15708,13 @@ normspeed:
 ; if the drive has been marked as too big (i.e. starting sector of the
 ; partition is > 16 bits, then always return drive not ready.
 
-fastspeed:		
-		test	byte [es:di+1Fh], 80h ; [es:di+BDS.fatsiz]
-					; ftoobig
-		jnz	short notready
+		; 24/12/2023 - Retro DOS v5.0
+		; (PCDOS 7.1 IBMBIO.COM - BIOSCODE:0DDDh)
+fastspeed:
+		;;test	byte [es:di+3Bh], 80h ; [es:di+BDS.fatsiz]
+		;test	byte [es:di+1Fh], 80h ; [es:di+BDS.fatsiz]
+		;			; ftoobig
+		;jnz	short notready
 		push	es
 		mov	es, [xfer_seg]
 		int	13h		; DISK -
@@ -13928,33 +15722,36 @@ fastspeed:
 		pop	es
 		retn
 ; ---------------------------------------------------------------------------
-
-notready:				
-		stc
-		mov	ah, 80h
-		retn
+;		; 24/12/2023
+;notready:
+		;stc
+		;mov	ah, 80h
+		;retn
 
 ; =============== S U B	R O U T	I N E =======================================
 
 ; map error returned by rom in ah into corresponding code to be returned to
 ; dos in al. trashes di. guaranteed to set carry.
 
-maperror:	
+maperror:
 		push	cx
 		push	es
 		push	ds		; set es=Bios_Data
 		pop	es
 		mov	al, ah		; put error code in al
 		mov	[lsterr], al	; terminate list with error code
-		;mov	cx, 11 ; PCDOS 7.1 ; 02/09/2023
-		mov	cx, 9		; numerr (= errout-errin)
+		; 24/12/2023
+		mov	cx, 11 ; PCDOS 7.1 ; 02/09/2023
+		;mov	cx, 9		; numerr (= errout-errin)
 					; number of possible error conditions
 		mov	di, errin	; point to error conditions
 		repne scasb
+
+		; 24/12/2023
 		; 02/09/2023
-		;mov	al, [di+10] ; PCDOS 7.1
+		mov	al, [di+10] ; PCDOS 7.1 IBMBIO.COM
 		; 10/12/2022
-		mov	al, [di+8]	; [di+numerr-1]
+		;mov	al, [di+8]	; [di+numerr-1]
 					; get translation
 		; 19/10/2022 - Temporary ! 
 		;db	8Ah, 85h, 8, 0	; mov al, [di+8]
@@ -13968,24 +15765,32 @@ maperror:
 ; set the time of last access for this drive.
 ; this is done only for removable media. es:di -> bds
 
-set_tim:		
+set_tim:
 		push	ax
 		call	GetTickCnt	; Does INT 1A ah=0 & updates daycnt
 
 ; we have the new time. if we see that the time has passed,
 ; then we reset the threshold counter...
 
-		cmp	dx, [es:di+47h]	; [es:di+BDS.tim_lo]
-		jnz	short setaccess
-		cmp	cx, [es:di+49h]	; [es:di+BDS.tim_hi]
+		; 24/12/2023 - Retro DOS v5.0
+		cmp	dx, [es:di+79h]	; PCDOS 7.1 IBMBIO.COM
+		;cmp	dx, [es:di+47h]	; [es:di+BDS.tim_lo]
+		jne	short setaccess
+		; 24/12/2023
+		cmp	cx, [es:di+7Bh]	; PCDOS 7.1 IBMBIO.COM
+		;cmp	cx, [es:di+49h]	; [es:di+BDS.tim_hi]
 		;jz	short done_set
 		; 12/12/2022
 		je	short done_set2
-setaccess:				
+setaccess:
 		mov	byte [accesscount], 0
-		mov	[es:di+47h], dx	; [es:di+BDS.tim_lo]
-		mov	[es:di+49h], cx	; [es:di+BDS.tim_hi]
-done_set:				
+		
+		; 24/12/2023 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		mov	[es:di+79h], dx
+		mov	[es:di+7Bh], cx
+		;mov	[es:di+47h], dx	; [es:di+BDS.tim_lo]
+		;mov	[es:di+49h], cx	; [es:di+BDS.tim_hi]
+done_set:
 		clc
 done_set2:		; 12/12/2022
 		pop	ax
@@ -13999,7 +15804,7 @@ done_set2:		; 12/12/2022
 ;	     bp    - contains retry count
 ; on exit    flags indicate result of decrementing retry count
 
-again:	
+again:
 		call	ResetDisk
 		cmp	ah, 6
 		jz	short dont_dec_retry_count ; If	it is a	media change error
@@ -14008,9 +15813,123 @@ again:
 		retn
 ; ---------------------------------------------------------------------------
 
-dont_dec_retry_count:			
+dont_dec_retry_count:
 		or	ah, ah
 		retn
+
+;----------------------------------------------------------------------------
+; Retro DOS v5.0 - PCDOS 7.1 IBMBIO.COM - BIOSCODE:0E30h
+;----------------------------------------------------------------------------
+; 24/12/2023 - Retro DOS v5.0
+;;;;
+
+ioctl_drvnum:	db 0
+
+		; 24/12/2023
+
+; =============== S U B R O U T I N E =======================================
+
+get_phy_drv_num:
+		call	SetDrive	; get physical drive number
+					; INPUT: al = logical drive number (BDS.drivelet)
+					; OUTPUT: physical drive number (BDS.drivenum)
+		mov	dl, [es:di+4]	; [es:di+BDS.drivenum]
+		retn
+
+; =============== S U B R O U T I N E =======================================
+
+		; 24/12/2023
+ioctl_output:
+		call	get_phy_drv_num
+		mov	[cs:ioctl_drvnum], dl
+		mov	ah, 41h
+		mov	bx, 55AAh
+		int	13h		; DISK - Check for INT 13h Extensions
+					; BX = 55AAh, DL = drive number
+					; Return: CF set if not supported
+					; AH = extensions version
+					; BX = AA55h
+					; CX = Interface support bit map
+		jc	short int13h_exts_err
+ioctl_input_1:
+		les	di, [ptrsav]
+		les	di, [es:di+14]	; [es:di+IOCTL_REQ.MINORFUNCTION]
+		jc	short ioctl_input_2
+		mov	ax, 4600h	; Eject removable media
+		cmp	[es:di], al	; al = 0 ; disk ioctl function = 0
+		je	short ioctl_output_1
+		cmp	byte [es:di], 1 ; al = 1 ; disk ioctl function = 1
+		jne	short ioctl_output_2
+		mov	ax, 4501h	; Lock/unlock media
+					; (al, 0 = lock, 1 = unlock)
+		cmp	byte [es:di+1], 0 ; unlock (reverse of INT 13h ah=45h)
+		jz	short ioctl_output_1
+		cmp	[es:di+1], al	; lock (reverse of INT 13h ah=45h)
+		jne	short ioctl_output_2
+		dec	ax
+ioctl_output_1:
+		mov	dl, [cs:ioctl_drvnum]
+		int	13h		; DISK - IBM/MS Extension - LOCK/UNLOCK DRIVE (DL - drive, [SI - disk address packet)
+		jc	short int13h_exts_err
+ioctl_lock_err:
+		; cf=0
+ioctl_output_ret:
+		;clc
+		retn
+; ---------------------------------------------------------------------------
+
+ioctl_output_2:
+		mov	ah, 1
+int13h_exts_err:
+		cmp	ah, 0B0h	; volume not locked in drive
+		je	short ioctl_lock_err
+		cmp	ah, 0B4h	; lock count exceeded
+		je	short ioctl_lock_err
+		jmp	err_exitj
+
+; =============== S U B R O U T I N E =======================================
+
+		; 24/12/2023
+ioctl_input:
+		call	get_phy_drv_num
+		stc
+		jmp	short ioctl_input_1
+ioctl_input_2:
+		cmp	byte [es:di], 6	; disk ioctl function = 6
+		jne	short ioctl_output_2
+		mov	ax, 4502h	; get lock status
+		int	13h		; DISK - IBM/MS Extension - LOCK/UNLOCK DRIVE (DL - drive, [SI - disk address packet)
+		jc	short int13h_exts_err
+		mov	bx, 0Ch		; bit 1 lock bit
+		cmp	al, 0		; not locked
+		jz	short ioctl_input_3
+		mov	bl, 0Eh
+ioctl_input_3:
+		push	bx
+		mov	ah, 4
+		mov	cx, 101h
+		mov	dh, 1
+		int	13h		; DISK - VERIFY SECTORS
+					; AL = number of sectors to verify, CH = track, CL = sector
+					; DH = head, DL = drive
+					; Return: CF set on error, AH = status
+					; AL = number of sectors verified
+		pop	bx
+		cmp	ah, 31h		; no media in drive (IBM/MS INT 13 extensions)
+		je	short ioctl_input_5
+		cmp	ah, 80h		; timeout (not ready)
+		je	short ioctl_input_5
+ioctl_input_4:
+		mov	[es:di+1], bx
+		jmp	short ioctl_lock_err
+ioctl_input_5:
+		or	bx, 801h	; bit 0 error bit (1 = error, 31h or 80h)
+					; bit 11 (not ready -removable media error- bit)
+					; if bit 11 = 0, another error (except 31h and 80h)
+		jmp	short ioctl_input_4
+
+; ---------------------------------------------------------------------------
+;;;;
 
 ; 16/10/2022 - Retro DOS 4.0 (Modified MSDOS 5.0 IO.SYS)
 
@@ -14039,9 +15958,12 @@ dont_dec_retry_count:
 
 ; BIOSCODE:0C3Ch (MSDOS 6.21, IO.SYS)
 
-; ---------------------------------------------------------------------------
-		db 0
+; 24/12/2023
+; BIOSCODE:0ECAh (PCDOS 7.1, IBMBIO.COM)
 
+; ---------------------------------------------------------------------------
+		; 24/12/2023
+		;db 0
 ; 09/12/2022 
 %if 0
 
@@ -14067,9 +15989,12 @@ IoWriteJumpTable: db 7	; ((IOC_DC_Table-IoWriteJumpTable)-1)/2
 		dw 1280h	; 47h	; SetAccessFlag ; unpublished function
 
 %endif
+		; 24/12/2023 - Retro DOS v5.0
+		; (PCDOS 7.1 IBMBIO.COM - BIOSCODE:0ECAh)
 
 		; 09/12/2022
-IoReadJumpTable: db ((IoWriteJumpTable-IoReadJumpTable)-1)/2 ; 8
+IoReadJumpTable:
+		db ((IoWriteJumpTable-IoReadJumpTable)-1)/2 ; 15
 		dw GetDeviceParameters	; 60h
 		dw ReadTrack		; 61h
 		dw VerifyTrack		; 62h
@@ -14079,8 +16004,18 @@ IoReadJumpTable: db ((IoWriteJumpTable-IoReadJumpTable)-1)/2 ; 8
 		dw GetMediaId		; 66h
 		dw GetAccessFlag	; 67h ; unpublished function
 		dw SenseMediaType	; 68h
+		; 24/12/2023
+		; Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		dw Cmd_Error_Proc	; 69h
+		dw Cmd_Error_Proc	; 6Ah
+		dw Cmd_Error_Proc
+		dw Cmd_Error_Proc
+		dw Cmd_Error_Proc
+		dw Cmd_Error_Proc	; 6Eh
+		dw GetDrvMapInfo	; 6Fh
 
-IoWriteJumpTable: db ((IOC_DC_Table-IoWriteJumpTable)-1)/2 ; 7
+IoWriteJumpTable:
+		db ((IOC_DC_Table-IoWriteJumpTable)-1)/2 ; 9
 		dw SetDeviceParameters	; 40h
 		dw WriteTrack		; 41h
 		dw FormatTrack		; 42h
@@ -14089,7 +16024,11 @@ IoWriteJumpTable: db ((IOC_DC_Table-IoWriteJumpTable)-1)/2 ; 7
 		dw Cmd_Error_Proc
 		dw SetMediaId		; 46h
 		dw SetAccessFlag	; 47h ; unpublished function
-
+		; 24/12/2023
+		; Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		dw SetLockState		; 48h
+		dw EjectMedia		; 49h	
+		
 ; ==========================================================================
 ; IOC_DC_Table
 ;
@@ -14097,6 +16036,9 @@ IoWriteJumpTable: db ((IOC_DC_Table-IoWriteJumpTable)-1)/2 ; 7
 ; major function 08 to be used by the Ioctl_Support_Query function.
 ; Added for 5.00
 ; ==========================================================================
+
+		; 24/12/2023 - Retro DOS v5.0
+		; (PCDOS 7.1 IBMBIO.COM - BIOSCODE:0F00h)
 
 IOC_DC_Table:	db 60h			; GET_DEVICE_PARAMETERS
 		db 40h			; SET_DEVICE_PARAMETERS
@@ -14109,8 +16051,18 @@ IOC_DC_Table:	db 60h			; GET_DEVICE_PARAMETERS
 		db 67h			; GET_ACCESS_FLAG
 		db 47h			; SET_ACCESS_FLAG
 		db 68h			; SENSE_MEDIA_TYPE
+		; 24/12/2023
+		; Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
+		db 48h			; SET_LOCK_STATE
+		db 49h			; EJECT_MEDIA
+		db 6Fh			; GET_DRV_MAP_INFO
 
 ;IOC_DC_TABLE_LEN EQU $ - IOC_DC_Table
+
+		; 24/12/2023 - Retro DOS v5.0
+		; (PCDOS 7.1 IBMBIO.COM - BIOSCODE:0F0Eh)
+
+new_genioctl:	db 0
 
 ; ---------------------------------------------------------------------------
 
@@ -14128,16 +16080,35 @@ IOC_DC_Table:	db 60h			; GET_DEVICE_PARAMETERS
 ; ==========================================================================
 
 ; 11/03/2019
+		; 24/12/2023 - Retro DOS v5.0
+		; (PCDOS 7.1 IBMBIO.COM - BIOSCODE:0F0Fh)
+
 		; 19/10/2022
 do_generic_ioctl:			; 2C7h:0C6Bh = 70h:31DBh
 		call	SetDrive	; ES:DI	Points to bds for drive
+		
+		; 24/12/2023
+		;;;
+		mov	byte [cs:new_genioctl], 0
+					; 0, old generic ioctl function
 		push	es
 		les	bx, [ptrsav]	; ES:BX	Points to request header
 		cmp	byte [es:bx+0Dh], 8 ; [es:bx+IOCTL_REQ.MAJORFUNCTION]
 					; RAWIO
+		; 24/12/2023
+		;mov	al, [es:bx+0Eh]	; [es:bx+IOCTL_REQ.MINORFUNCTION]
+		;pop	es
+		;jnz	short IoctlFuncErr
+		jz	short chk_genioctl_minor
+		inc	byte [cs:new_genioctl]
+					; 1, new generic ioctl function (FAT32)
+		cmp	byte [es:bx+0Dh], 48h ; Generic IOCtl Request support
+				; (called only if bit 6 of attribute is set to 1)
+chk_genioctl_minor:
 		mov	al, [es:bx+0Eh]	; [es:bx+IOCTL_REQ.MINORFUNCTION]
 		pop	es
 		jnz	short IoctlFuncErr
+		;;;
 
 		; cas note: Could do the above two blocks in reverse order.
 		; Would have to preserve al for SetDrive
@@ -14152,13 +16123,15 @@ do_generic_ioctl:			; 2C7h:0C6Bh = 70h:31DBh
 		mov	si, IoWriteJumpTable
 		;mov	si, 0C4Fh	; IoWriteJumpTable
 					; at 2C7h:0C4Fh	= 70h:31BFh
-NotGenericWrite:			
+NotGenericWrite:
 		and	al, 0DFh	; ~GEN_IOCTL_FN_TST ; get rid of read/write bit
 		sub	al, 40h		; offset for base function
 		cmp	al, [cs:si]
 		ja	short IoctlFuncErr
 		cbw
-		shl	ax, 1
+		; 24/12/2023
+		;shl	ax, 1
+		add	ax, ax
 		inc	si
 		add	si, ax
 		call	near [cs:si]
@@ -14174,8 +16147,7 @@ NotGenericWrite:
 		; as a fall through from above
 Cmd_Error_Proc:				; 2C7h:0CA3h = 70h:3213h
 		pop	dx
-
-IoctlFuncErr:				
+IoctlFuncErr:
 		jmp	bc_cmderr
 ; ---------------------------------------------------------------------------
 
@@ -14193,6 +16165,9 @@ IoctlFuncErr:
 ;	USES	??? BUGBUG
 ; ==========================================================================
 
+		; 24/12/2023 - Retro DOS v5.0
+		; (PCDOS 7.1 IBMBIO.COM - BIOSCODE:0F5Dh)
+
 		; 19/10/2022
 GetDeviceParameters:
 		; Copy info from bds to the device parameters packet
@@ -14200,19 +16175,28 @@ GetDeviceParameters:
 		lds	bx, [ptrsav]	; DS:BX	points to request header
 		lds	bx, [bx+19]	; [bx+IOCTL_REQ.GENERICIOCTL_PACKET]
 					; (DS:BX) = return buffer
-		mov	al, [es:di+34]	; [es:di+BDS.formfactor]
+		; 24/12/2023
+		mov	al, [es:di+3Eh]
+		;mov	al, [es:di+34]	; [es:di+BDS.formfactor]
 		mov	[bx+1],	al	; [bx+A_DEVICEPARAMETERS.DP_DEVICETYPE]
-		mov	ax, [es:di+35]	; [es:di+BDS.flags]
+		; 24/12/2023
+		mov	ax, [es:di+3Fh]
+		;mov	ax, [es:di+35]	; [es:di+BDS.flags]
 		and	ax, 3		; fnon_removable+fchangeline
 					; Mask off other bits
 		mov	[bx+2],	ax	; [bx+A_DEVICEPARAMETERS.DP_DEVICEATTRIBUTES]
-		mov	ax, [es:di+37]	; [es:di+BDS.cylinders]
+		; 24/12/2023
+		mov     ax, [es:di+41h]
+		;mov	ax, [es:di+37]	; [es:di+BDS.cylinders]
 		mov	[bx+4],	ax	; [bx+A_DEVICEPARAMETERS.DP_CYLINDERS]
 		xor	al, al		; Set media type to default
 		mov	[bx+6],	al	; [bx+A_DEVICEPARAMETERS.DP_MEDIATYPE]
 					
 		; copy recommended bpb
-		lea	si, [di+39]	; [di+BDS.rbytespersec]	= [di+BDS.R_BPB]
+
+		; 24/12/2023
+		lea     si, [di+43h]
+		;lea	si, [di+39]	; [di+BDS.rbytespersec]	= [di+BDS.R_BPB]
 		test	byte [bx], 1	; [bx+A_DEVICEPARAMETERS.DP_SPECIALFUNCTIONS]
 					; BUILD_DEVICE_BPB
 		jz	short UseBpbPresent
@@ -14230,13 +16214,38 @@ GetDeviceParameters:
 UseBpbPresent:				
 		lea	di, [bx+7]	; [bx+A_DEVICEPARAMETERS.DP_BPB]
 					; This is where	the result goes
-		mov	cx, 25		; A_BPB.size - 6
+		; 24/12/2023
+		xor	dx, dx ; 0
+		
+		; 24/12/2023
+		mov	cx, 31		; A_BPB.size = 31
+		;mov	cx, 25		; A_BPB.size - 6
 					; For now use 'small' bpb
+		; 24/12/2023
+		;;;
+		cmp	[cs:new_genioctl], dl ; 0 ? ; *
+		jz	short gdp_1	; old type (FAT12 & FAT16) structure
+		;mov	cx, 53		; FAT32 BPB size
+		;mov	dx, 32		; 53+32 = 85 bytes (A_BPB_FAT32.size)
+		mov	cl, 53
+		mov	dl, 32
+gdp_1:
+		;;;
 		push	ds		; reverse segments for copy
 		push	es
 		pop	ds
 		pop	es
 		rep movsb
+
+		; 24/12/2023
+		;;;
+		mov	cx, dx		; 0 or 32
+		jcxz	gdp_2
+		xor	al, al		; 32 zeros
+		rep stosb
+gdp_2:
+		;clc	; cf is already 0 ; * ; 24/12/2023
+		;;;		
 		
 		; 12/12/2022
 		; cf=0 (test instruction -above- resets cf) 	
@@ -14254,19 +16263,32 @@ GetParmRet:
 ; input: ES:di points to bds for drive
 ; ==========================================================================
 
+		; 24/12/2023 - Retro DOS v5.0
+		; (PCDOS 7.1 IBMBIO.COM - BIOSCODE:0FC0h)
+
 		; 19/10/2022
 SetDeviceParameters:			; 2C7h:0CF3h = 70h:3263h
 		lds	bx, [ptrsav]	; DS:BX	points to request header
 		lds	bx, [bx+19]	; [bx+IOCTL_REQ.GENERICIOCTL_PACKET]
-		or	word [es:di+23h], 140h ; [es:di+BDS.flags]
+		; 24/12/2023
+		or	word [es:di+3Fh], 140h
+		;or	word [es:di+23h], 140h ; [es:di+BDS.flags]
 					; fchanged_by_format|fchanged
 		test	byte [bx], 2	; [bx+A_DEVICEPARAMETERS.DP_SPECIALFUNCTIONS]
 					; ONLY_SET_TRACKLAYOUT
-		jnz	short setTrackTable
+		;jnz	short setTrackTable
+		; 24/12/2023
+		jz	short sdp_1
+		jmp	setTrackTable
+sdp_1:	
 		mov	al, [bx+1]	; [bx+A_DEVICEPARAMETERS.DP_DEVICETYPE]
-		mov	[es:di+34], al	; [es:di+BDS.formfactor]
+		; 24/12/2023
+		mov	[es:di+3Eh], al
+		;mov	[es:di+34], al	; [es:di+BDS.formfactor]
 		mov	ax, [bx+4]	; [bx+A_DEVICEPARAMETERS.DP_CYLINDERS]
-		mov	[es:di+37], ax	; [es:di+BDS.cylinders]
+		; 24/12/2023
+		mov	[es:di+41h], ax
+		;mov	[es:di+37], ax	; [es:di+BDS.cylinders]
 		mov	ax, [bx+2]	; [bx+A_DEVICEPARAMETERS.DP_DEVICEATTRIBUTES]
 		push	ds
 		; 17/10/2022
@@ -14282,12 +16304,16 @@ SetDeviceParameters:			; 2C7h:0CF3h = 70h:3263h
 		;and	ax, 0FFFDh	; ~fchangeline
 
 		; Ignore all bits except non_removable and changeline
-HaveChange:				
+HaveChange:
 		and	ax, 3		; fnon_removable|fchangeline
-		mov	cx, [es:di+35]	; [es:di+BDS.flags]
+		; 24/12/2023
+		mov	cx, [es:di+3Fh]
+		;mov	cx, [es:di+35]	; [es:di+BDS.flags]
 		and	cx, 0FDF4h	; ~(fnon_removable|fchangeline|good_tracklayout|unformatted_media)
 		or	ax, cx
-		mov	[es:di+35], ax	; [es:di+BDS.flags]
+		; 24/12/2023
+		mov	[es:di+3Fh], ax
+		;mov	[es:di+35], ax	; [es:di+BDS.flags]
 		mov	al, [bx+6]	; [bx+A_DEVICEPARAMETERS.DP_MEDIATYPE]
 					; Set media type
 		push	ds
@@ -14295,14 +16321,26 @@ HaveChange:
 		;mov	ds, word ptr cs:BIOSDATAWORD ; [cs:Bios_Data_Word]
 		mov	[mediatype], al
 		;mov	ds:mediatype, al
+
+		; 24/12/2023
+		;;;
+		mov	cx, 53		; FAT32 BPB size
+		cmp	byte [cs:new_genioctl], 0
+		jnz	short sdp_2	; new type (FAT32) structure
+		;mov	cx, 31		; A_BPB.size = 31
+		mov	cl, 31
+sdp_2:
+		;;;	
 		pop	ds
 
 		; The media changed (maybe) so we will have to do a set dasd
 		; the next time we format a track
 
+		; 24/12/2023
+		or	byte [es:di+3Fh], 80h
 		; 10/12/2022
-		or	byte [es:di+35], 80h
-		;or	word [es:di+35], 80h ; [es:di+BDS.flags]
+		;or	byte [es:di+35], 80h
+		;;or	word [es:di+35], 80h ; [es:di+BDS.flags]
 					; set_dasd_true
 		push	di		; Save bds pointer
 
@@ -14315,33 +16353,43 @@ HaveChange:
 
 		; were we returning a fake bpb when asked to build a bpb?
 
+		; 24/12/2023
+		test	byte [es:di+3Fh], 4
 		; 10/12/2022
-		test	byte [es:di+35], 4
-		;test	word [es:di+35], 4 ; [es:di+BDS.flags]
+		;test	byte [es:di+35], 4
+		;;test	word [es:di+35], 4 ; [es:di+BDS.flags]
 					; return_fake_bpb
 		jz	short InstallRecommendedBpb
 
 		; we were returning a fake bpb but we can stop now
 
+		; 24/12/2023
+		and	byte [es:di+3Fh], 0FBh
 		; 10/12/2022
-		and	byte [es:di+35], 0FBh
-		;and	word [es:di+35], 0FFFBh ; [es:di+BDS.flags]
+		;and	byte [es:di+35], 0FBh
+		;;and	word [es:di+35], 0FFFBh ; [es:di+BDS.flags]
 					; ~return_fake_bpb
-InstallRecommendedBpb:			
-		mov	cx, 31		; A_BPB.size
-		lea	di, [di+27h]	; [di+BDS.R_BPB] = [di+BDS.rbytespersec]
+InstallRecommendedBpb:
+		; 24/12/2023
+		;mov	cx, 31		; A_BPB.size
+		;lea	di, [di+27h]	; [di+BDS.R_BPB] = [di+BDS.rbytespersec]
+		; cx = 53 or 31
+		lea	di, [di+43h]	; (PCDOS 7.1 IBMBIO.COM)
 		jmp	short CopyTheBpb
 ; ---------------------------------------------------------------------------
 
 InstallFakeBpb:
+		; 24/12/2023
+		or	byte [es:di+3Fh], 4
 		; 10/12/2022
-		or	byte [es:di+35], 4				
-		;or	word [es:di+35], 4 ; byte [es:di+BDS.flags]
+		;or	byte [es:di+35], 4
+		;;or	word [es:di+35], 4 ; byte [es:di+BDS.flags]
 					; return_fake_bpb
-		mov	cx, 25		; A_BPB.size - 6
+		; 24/12/2023
+		; cx = 53 or 31
+		;mov	cx, 25		; A_BPB.size - 6
 					; move 'smaller' bpb
 		lea	di, [di+6]	; [es:di+BDS.BPB] = [es:di+BDS.bytespersec]
-
 CopyTheBpb:				
 		lea	si, [bx+7]	; [bx+A_DEVICEPARAMETERS.DP_BPB]
 		rep movsb
@@ -14353,30 +16401,59 @@ CopyTheBpb:
 		call	RestoreOldDpt	; Restore the old Dpt from TempDpt
 		pop	ds		; Restore packet segment
 		pop	di		; Restore bds pointer
-setTrackTable:				
-		mov	cx, [bx+38]
+setTrackTable:	
+		; 24/12/2023
+		;mov	cx, [bx+38]	; [bx+26h]
+		;;;
+		mov	cx, [bx+5Ch]	; [bx+A_DEVICEPARAMETERS.DP_TRACKTABLEENTRIES]
+					; offset 85+7 (A_BPB.size+7) (FAT32)
+		cmp	byte [cs:new_genioctl], 0
+		jnz	short sdp_3	; new type (FAT32) structure
+		mov	cx, [bx+26h]	; [bx+A_DEVICEPARAMETERS.DP_TRACKTABLEENTRIES]
+					; offset 31+7 (A_BPB.size+7)
+sdp_3:
+		;;;
+
 		push	ds
 		mov	ds, [cs:BIOSDATAWORD]
 		mov	[sectorspertrack], cx
 		pop	ds
+		
+		; 24/12/2023
+		and	byte [es:di+3Fh], 0F7h
 		; 10/12/2022
-		and	byte [es:di+35], 0F7h
-		;and	word [es:di+35], 0FFF7h ; [es:di+BDS.flags]
+		;and	byte [es:di+35], 0F7h
+		;;and	word [es:di+35], 0FFF7h ; [es:di+BDS.flags]
 					; ~good_tracklayout
 		test	byte [bx], 4	; [bx+A_DEVICEPARAMETERS.DP_SPECIALFUNCTIONS]
 					; TRACKLAYOUT_IS_GOOD
 		jz	short UglyTrackLayOut
+		; 24/12/2023
+		or	byte [es:di+3Fh], 8
 		; 10/12/2022
-		or	byte [es:di+35], 8
-		;or	word [es:di+35], 8 ; [es:di+BDS.flags]
+		;or	byte [es:di+35], 8
+		;;or	word [es:di+35], 8 ; [es:di+BDS.flags]
 					; good_tracklayout
-UglyTrackLayOut:			
+UglyTrackLayOut:
 		cmp	cx, 63		; MAX_SECTORS_IN_TRACK
 		ja	short TooManyPerTrack
 		;jcxz	short SectorInfoSaved
 		jcxz	SectorInfoSaved	; 19/10/2022
+		
 		mov	di, tracktable
-		lea	si, [bx+40]	; [bx+A_DEVICEPARAMETERS.DP_SECTORTABLE]
+
+		; 24/12/2023
+		;lea	si, [bx+40]	; [bx+A_DEVICEPARAMETERS.DP_SECTORTABLE]
+		;;;
+		lea	si, [bx+5Eh]	; [bx+A_DEVICEPARAMETERS.DP_SECTORTABLE]
+					; offset 85+9 (A_BPB.size+9) (FAT32)
+		cmp	byte [cs:new_genioctl], 0
+		jnz	short sdp_4	; new type (FAT32) structure
+		lea	si, [bx+28h]	; [bx+A_DEVICEPARAMETERS.DP_SECTORTABLE]
+					; offset 31+9 (A_BPB.size+9)
+sdp_4:
+		;;;
+
 		; 17/10/2022
 		mov	es, [cs:BIOSDATAWORD]
 		;mov	es, word ptr cs:BIOSDATAWORD ; [cs:Bios_Data_Word]
@@ -14388,6 +16465,7 @@ StoreSectorInfo:
 		stosb			; Copy it
 		lodsw			; Get sector size
 		
+		; 24/12/2023
 		; 02/09/2023 (PCDOS 7.1)
 		;call	SectSizeToSectIndex
 		cmp	ah, 3 ; 02/09/2023
@@ -14397,7 +16475,7 @@ StoreSectorInfo:
 		mov	al, ah		; value	in AH is the index!
 		jmp	short sdp_s
 OneK:
-		mov	al, 3
+		mov	al, 3		; 1024 bytes per sector
 sdp_s:
 		stosb			; Store	sector SIZE index
 		loop	StoreSectorInfo
@@ -14406,7 +16484,7 @@ SectorInfoSaved:
 		retn
 ; ---------------------------------------------------------------------------
 
-TooManyPerTrack:			
+TooManyPerTrack:
 		mov	al, 0Ch
 		stc
 		retn
@@ -14437,6 +16515,8 @@ TooManyPerTrack:
 ; ==========================================================================
 
 ; 16/03/2019
+		; 24/12/2023 - Retro DOS 5.0
+		; (PCDOS 7.1 IBMBIO.COM - BIOSCODE:10B7h)
 
 		; 19/10/2022
 FormatTrack:
@@ -14456,8 +16536,10 @@ FormatTrack:
 		retn
 ; ---------------------------------------------------------------------------
 
-DoFormatTrack:				
-		cmp	byte [es:di+34], 5 ; [es:di+BDS.formfactor]
+DoFormatTrack:
+		; 24/12/2023 - Retro DOS 5.0
+		cmp	byte [es:di+3Eh], 5				
+		;cmp	byte [es:di+34], 5 ; [es:di+BDS.formfactor]
 					; DEV_HARDDISK
 		jnz	short DoFormatDiskette
 		; 17/10/2022
@@ -14467,7 +16549,7 @@ DoFormatTrack:
 		jmp	VerifyTrack
 ; ---------------------------------------------------------------------------
 
-DoFormatDiskette:			
+DoFormatDiskette:
 		mov	cx, [bx+1]
 		mov	dx, [bx+3]
 		test	byte [bx], 2
@@ -14479,7 +16561,7 @@ DoFormatDiskette:
 		jmp	VerifyTrack_Err
 ; ---------------------------------------------------------------------------
 
-DoFormatDiskette_1:			
+DoFormatDiskette_1:
 		call	SetMediaForFormat ; Also moves current Dpt to TempDpt
 		cmp	al, 1		;  ROM support for sec/trk,# trks comb?
 		jz	short NeedToSetDasd ; Old rom
@@ -14489,11 +16571,11 @@ DoFormatDiskette_1:
 		jmp	short FormatFailed
 ; ---------------------------------------------------------------------------
 
-NeedToSetDasd:				
+NeedToSetDasd:
 		push	dx
 		call	SetDasd		; INT 13h, AH=17h
 		pop	dx
-NoSetDasd:				
+NoSetDasd:
 		call	checksingle	; Do any needed	diskette swapping
 		mov	ax, dx		; Get track from packet
 		mov	[trknum], ax
@@ -14501,15 +16583,17 @@ NoSetDasd:
 		mov	ah, cl
 		mov	bx, tracktable
 		mov	cx, [sectorspertrack]
-
-StoreCylinderHead:			
+		; 24/12/2023 - Retro DOS 5.0
+		jcxz	set_fmt_retry_count
+StoreCylinderHead:
 		mov	[bx], ax	; Store	into TrackTable
 		add	bx, 4		; Skip to next sector field
 		loop	StoreCylinderHead
+set_fmt_retry_count:	; 24/12/2023
 		;mov	cx, 5		; MAXERR - Set up retry	count
 		; 02/09/2023
 		mov	cl, 5
-FormatRetry:				
+FormatRetry:
 		push	cx
 		mov	bx, tracktable
 		mov	al, [sectorspertrack]
@@ -14531,7 +16615,7 @@ FormatRetry:
 		pop	bx
 		pop	cx
 		jnb	short FormatOk
-FormatError:				
+FormatError:
 		call	ResetDisk
 		mov	byte [had_format_error], 1
 		push	ax
@@ -14541,22 +16625,22 @@ FormatError:
 		cmp	al, 1
 		jnz	short WhileErr
 		call	SetDasd
-WhileErr:				
+WhileErr:
 		pop	dx
 		pop	cx
 		pop	ax
 		loop	FormatRetry
-FormatFailed:				
+FormatFailed:
 		mov	byte [had_format_error], 1
 					; Set the format error flag
 		cmp	ah, 6		; DSK_CHANGELINE_ERR - convert change line
 		jnz	short DoMapIt	; Error	to time	out error
 		mov	ah, 80h		; DSK_TIMEOUT_ERR
-DoMapIt:				
+DoMapIt:
 		jmp	maperror
 ; ---------------------------------------------------------------------------
 
-FormatOk:				
+FormatOk:
 		mov	byte [had_format_error], 0 ; reset the format error flag
 		retn
 ; ---------------------------------------------------------------------------
@@ -14570,7 +16654,8 @@ FormatOk:
 ; input: ES:di points to bds for drive
 ; ==========================================================================
 
-VerifyTrack:				
+		; 24/12/2023 - Retro DOS 5.0
+VerifyTrack:
 		push	ds
 		lds	bx, [ptrsav]	; DS:BX points to request header.
 		lds	bx, [bx+19]	; [bx+IOCTL_REQ.GENERICIOCTL_PACKET]
@@ -14610,9 +16695,11 @@ VerifyTrack:
 		or	ah, ah
 		jnz	short VerifyTrack_Err ; #sectors > 255	
 		mov	cx, ax
+		; 24/12/2023
+		test	byte [es:di+3Fh], 1 ; PCDOS 7.1 IBMBIO.COM
 		; 10/12/2022
-		test	byte [es:di+35], 1
-		;test	word [es:di+35], 1 ; [es:di+BDS.flags]
+		;test	byte [es:di+35], 1
+		;;test	word [es:di+35], 1 ; [es:di+BDS.flags]
 					; fnon_removable
 		jz	short NormVerifyTrack
 					; Multitrack operation = on?
@@ -14623,7 +16710,7 @@ VerifyTrack:
 		;;test	ds:multrk_flag,	80h ; MULTI_TRK_ON
 		jz	short NormVerifyTrack
 		mov	byte [multitrk_format_flag], 1
-NormVerifyTrack:			
+NormVerifyTrack:
 		xor	ax, ax		; 1st sector
 		xor	bx, bx
 		mov	[xfer_seg], bx	; Use 0:0 as the transfer address for verify
@@ -14632,7 +16719,7 @@ NormVerifyTrack:
 		retn
 ; ---------------------------------------------------------------------------
 
-VerifyTrack_Err:			
+VerifyTrack_Err:
 		mov	ah, 1
 		jmp	maperror
 ; ---------------------------------------------------------------------------
@@ -14647,7 +16734,7 @@ VerifyTrack_Err:
 ;
 ; ==========================================================================
 
-ReadTrack:				
+ReadTrack:
 		mov	byte [rflag], 2	; romread
 		jmp	short ReadWriteTrack
 ; ---------------------------------------------------------------------------
@@ -14681,7 +16768,7 @@ ReadWriteTrack:
 		; our packet. Notice that this is not the standard register
 		; assignment for accessing packets
 		
-		; 19/10/2022	
+		; 19/10/2022
 		push	es
 		les	bx, [ptrsav]	; ES:BX	-> to request header
 		les	bx, [es:bx+19]	; [es:bx+IOCTL_REQ.GENERICIOCTL_PACKET]
@@ -14724,9 +16811,11 @@ ReadWriteTrack:
 ; ==========================================================================
 
 ; 16/03/2019 - Retro DOS v4.0
-		
+
+		; 24/12/2023 - Retro DOS 5.0		
+
 		; 19/10/2022
-TrackIo:	
+TrackIo:
 					; Procedure `disk' will pop stack to
 		mov	[spsav], sp	; SpSav	and return if error
 		call	checksingle	; Ensure correct disk is in drv
@@ -14740,6 +16829,9 @@ TrackIo:
 		pop	ax
 Dptalreadyset:				; Point si at the table entry of the			
 		mov	si, tracktable	; first sector to be io'd
+		; 24/12/2023
+		;add	ax, ax		; PCDOS 7.1 IBMBIO.COM
+		;add	ax, ax
 		shl	ax, 1
 		shl	ax, 1
 		add	si, ax
@@ -14749,14 +16841,17 @@ Dptalreadyset:				; Point si at the table entry of the
 		; DX to	be the number of sectors we read on each iteration
 		
 		mov	dx, 1
+
+		; 24/12/2023
+		test	byte [es:di+3Fh], 8 ; PCDOS 7.1 IBMBIO.COM
 		; 12/12/2022
-		test	byte [es:di+23h], 8
-		;test	word [es:di+35], 8 ; [es:di+BDS.flags]
+		;test	byte [es:di+23h], 8
+		;;test	word [es:di+35], 8 ; [es:di+BDS.flags]
 					; good_tracklayout
 		jz	short ionextsector
 		
 		xchg	dx, cx		; HEY! We can read all secs in one blow
-ionextsector:				
+ionextsector:
 		push	cx
 		push	dx
 		inc	si
@@ -14771,11 +16866,14 @@ ionextsector:
 		; 2). Sector size should be set	to 512 bytes.
 		; 3). Good track layout
 		
+		; 24/12/2023
+		test	byte [es:di+3Fh], 1 ; PCDOS 7.1 IBMBIO.COM
 		; 12/12/2022
-		test	byte [es:di+23h], 1
-		;test	word [es:di+35], 1 ; [es:di+BDS.flags]
+		;test	byte [es:di+23h], 1
+		;;test	word [es:di+35], 1 ; [es:di+BDS.flags]
 					; fnon_removable ; Fixed disk?
 		jz	short IoRemovable ; No
+
 		; 12/12/2022
 		test	byte [multrk_flag], 80h
 		;test	word [multrk_flag], 80h ; MULTI_TRK_ON
@@ -14790,7 +16888,7 @@ ionextsector:
 		retn
 ; ---------------------------------------------------------------------------
 
-IoRemovable:				
+IoRemovable:
 		lodsb			; Get sector size index	from track
 					; table	and save it
 		push	ax
@@ -14809,11 +16907,13 @@ IoRemovable:
 		call	Disk
 		pop	si		; Advance buffer pointer by adding
 					; sector size
-		pop	ax
+		;pop	ax
+		; 24/12/2023
+		pop	cx
 
 		; 02/09/2023 (PCDOS 7.1)
 		;call	SectorSizeIndexToSectorSize
-		mov	cl, al
+		;mov	cl, al	; 24/12/2023
 		mov	ax, 128
 		shl	ax, cl
 
@@ -14828,7 +16928,7 @@ IoRemovable:
 		call	done		; set time of last access, and reset
 					; entries in Dpt.
 NoNeedDone:
-		clc
+		clc	; not necessary ('done' clears cf) ; 24/12/2023
 NoNeedDone2:
 		retn
 
@@ -14884,41 +16984,51 @@ NoNeedDone2:
 ;
 ; ---------------------------------------------------------------------------
 
+		; 24/12/2023 - Retro DOS 5.0
+		; (PCDOS 7.1 IBMBIO.COM - BIOSCODE:129Bh)
+
 		; 19/10/2022
 SetDasd:
 		cmp	byte [had_format_error], 1 ;
 					; See if we've previously set dasd type
 		jz	short DoSetDasd
+		; 24/12/2023
+		test	byte [es:di+3Fh], 80h
 		; 10/12/2022
-		test	byte [es:di+23h], 80h
-		;test	word [es:di+23h], 80h ; [es:di+BDS.flags]
+		;test	byte [es:di+23h], 80h
+		;;test	word [es:di+23h], 80h ; [es:di+BDS.flags]
 					; set_dasd_true
 		jz	short DasdHasBeenSet
+		; 24/12/2023
+		and	byte [es:di+3Fh], 7Fh
 		; 10/12/2022
-		and	byte [es:di+23h], 7Fh
-		;and	word [es:di+23h], 0FF7Fh ; [es:di+BDS.flags]
+		;and	byte [es:di+23h], 7Fh
+		;;and	word [es:di+23h], 0FF7Fh ; [es:di+BDS.flags]
 					; ~set_dasd_true
 DoSetDasd:
 		mov	byte [had_format_error], 0 ; Reset it
 		mov	byte [gap_patch], 50h ; Format gap for 48tpi disks
 		mov	al, 4
+		; 24/12/2023
+		mov	ah, [es:di+3Eh]
 		; 02/09/2023
-		mov	ah, [es:di+22h] ; [es:di+BDS.formfactor]
+		;mov	ah, [es:di+22h] ; [es:di+BDS.formfactor]
 		cmp	ah, 2
 		;cmp	byte [es:di+22h], 2 ; [es:di+BDS.formfactor]
 					; DEV_3INCH720KB
 		jz	short DoSet
-		cmp	ah, 1
+		; 24/12/2023
+		mov	al, 1
+		;cmp	ah, 1
+		cmp	ah, al	; 1
 		;cmp	byte [es:di+22h], 1 ; [es:di+BDS.formfactor]
 					; DEV_5INCH96TPI
 		;jz	short GotBig
-		mov	al, 1
+		; 24/12/2023
+		;mov	al, 1
 		;jmp	short DoSet
 		; 02/09/2023
 		jnz	short DoSet
-
-; ---------------------------------------------------------------------------
-
 GotBig:
 		;mov	al, 2		; 160/320k in a	1.2 meg	drive
 		; 02/09/2023
@@ -14982,6 +17092,8 @@ DasdHasBeenSet:
 ;
 ; ---------------------------------------------------------------------------
 
+		; 24/12/2023 - Retro DOS 5.0
+
 		; 19/10/2022
 SetMediaForFormat:	
 		push	cx
@@ -14998,7 +17110,7 @@ SetMediaForFormat:
 		jmp	SetMediaRet	; Media	already	set
 ; ---------------------------------------------------------------------------
 
-DoSetMediaForFormat:			
+DoSetMediaForFormat:
 		push	es
 		push	si
 
@@ -15020,7 +17132,9 @@ DoSetMediaForFormat:
 		pop	si
 		pop	es
 SkipSaveDskAdr:
-		mov	cx, [es:di+25h]	; [es:di+BDS.cylinders]
+		; 24/12/2023
+		mov	cx, [es:di+41h]	; (PCDOS 7.1 IBMBIO.COM)
+		;mov	cx, [es:di+25h]	; [es:di+BDS.cylinders]
 		dec	cx
 		and	ch, 3
 		ror	ch, 1
@@ -15035,7 +17149,7 @@ SkipSaveDskAdr:
 		mov	ah, 18h
 		int	13h		; DISK - SET MEDIA TYPE	FOR FORMAT (AT model 3x9,XT2,XT286,PS)
 					; DL = drive number, CH	= lower	8 bits of number of tracks, CL = sectors per track
-		jb	short FormaStatErr
+		jc	short FormaStatErr
 		cmp	byte [had_format_error], 1
 		jz	short skip_disk_base_setting
 		push	es		; Save segment returned	by the rom
@@ -15073,7 +17187,7 @@ skip_disk_base_setting:
 FormaStatErr:
 		; 10/12/2022
 		mov	al, 3
-				
+
 		cmp	ah, 0Ch		; DSK_ILLEGAL_COMBINATION
 					; Illegal combination =	0Ch
 		jz	short FormatStatIllegalComb
@@ -15093,7 +17207,7 @@ FormatStatIllegalComb:
 		;dec	al	; 3 -> 2 or 2 -> 1
 		; 18/12/2022
 		dec	ax
-		; al = 2				
+		; al = 2
 		;mov	al, 2		; Function supported, but
 					; Illegal sect/trk,trk combination.
 		; 10/12/2022
@@ -15174,8 +17288,10 @@ ResetDisk_cont:
 ;
 ; ---------------------------------------------------------------------------
 
+		; 24/12/2023 - Retro DOS 5.0
+
 		; 19/10/2022
-ToRom:	
+ToRom:
 		push	bx
 		push	si
 
@@ -15187,9 +17303,12 @@ ToRom:
 		jnz	short GotValidDpt
 		push	ax
 		push	es		; Save bds segment
-		cmp	byte [es:di+22h], 2 ; [es:di+BDS.formfactor]
+		; 24/12/2023
+		cmp	byte [es:di+3Eh], 2
+		;cmp	byte [es:di+22h], 2 ; [es:di+BDS.formfactor]
 					; ffSmall ; is it a 3.5" drive?
-		pushf			; (Save	the cmp	result)
+		; 24/12/2023
+		;pushf	; not necessary	; (Save	the cmp	result)
 		mov	es, [zeroseg]
 		;les	si, es:78h	; Get pointer to disk base table
 		les	si, [es:DSKADR]
@@ -15206,13 +17325,14 @@ ToRom:
 		mov	byte [es:si+9], 0Fh ; [es:si+DISK_PARMS.DISK_HEAD_STTL]
 					; Assume we are	doing a	seek operation
 					; Setup	motor start correctly for 3.5" drives
-		popf			; Get result of	earlier	cmp
+		; 24/12/2023
+		;popf			; Get result of	earlier	cmp
 		jnz	short MotorStrtOK
 		mov	byte [es:si+0Ah], 4 ; [es:si+DISK_PARMS.DISK_MOTOR_STRT]
-MotorStrtOK:				
+MotorStrtOK:
 		pop	es		; Restore bds segment
 		pop	ax
-GotValidDpt:				
+GotValidDpt:
 		mov	dx, [trknum]	; Set track number
 		mov	ch, dl		; Set low 8 bits in ch
 		mov	dl, [es:di+4]	; Set drive number
@@ -15228,8 +17348,10 @@ GotValidDpt:
 ; ---------------------------------------------------------------------------
 
 ; 16/10/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
+; 24/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMBIO.COM)
 
 ; BIOSCODE:1124h (MSDOS 6.21, IO.SYS)
+; PCDOS 7.1 IBMBIO.COM - BIOSCODE:1404h
 
 ; ==========================================================================
 ;
@@ -15239,21 +17361,25 @@ GotValidDpt:
 ;
 ; ==========================================================================
 
+		; 24/12/2023 - Retro DOS 5.0
+
 		; 19/10/2022
 ioctl_getown:
 		call	SetDrive
 		mov	al, [es:di+4]	; [es:di+BDS.drivenum]
 					; Get physical drive number
 		les	di, [start_bds] ; Get start of bds chain
-ownloop:				
+ownloop:
 		cmp	[es:di+4], al	; [es:di+BDS.drivenum]
 		jnz	short getnextBDS
+		; 24/12/2023
+		test	byte [es:di+3Fh], 20h ; (PCDOS 7.1 IBMBIO.COM)
 		; 10/12/2022
-		test	byte [es:di+23h], 20h
-		;test	word [es:di+23h], 20h ; [es:di+BDS.flags]
+		;test	byte [es:di+23h], 20h
+		;;test	word [es:di+23h], 20h ; [es:di+BDS.flags]
 					; fi_own_physical
 		jnz	short exitown
-getnextBDS:				
+getnextBDS:
 		les	di, [es:di]	; [es:di+BDS.link]
 		jmp	short ownloop
 ; ---------------------------------------------------------------------------
@@ -15264,6 +17390,8 @@ getnextBDS:
 ; in al to al.
 ;
 ; ==========================================================================
+
+		; 24/12/2023 - Retro DOS 5.0
 
 		; 19/10/2022
 ioctl_setown:
@@ -15284,18 +17412,21 @@ ioctl_setown:
 ;
 ; ==========================================================================
 
-exitown:				
+		; 24/12/2023 - Retro DOS 5.0
+exitown:
 		xor	cl, cl
+		; 24/12/2023
+		test	byte [es:di+3Fh], 10h ; (PCDOS 7.1 IBMBIO.COM)
 		; 12/12/2022
-		test	byte [es:di+23h], 10h
-		;test	word [es:di+23h], 10h ; [es:di+BDS.flags]
+		;test	byte [es:di+23h], 10h
+		;;test	word [es:di+23h], 10h ; [es:di+BDS.flags]
 					; fi_am_mult
 		jz	short exitnomult
 		mov	cl, [es:di+5]	; [es:di+BDS.drivelet]
 					; Get logical drive number
 					; Get it 1-based
 		inc	cl
-exitnomult:				
+exitnomult:
 		lds	bx, [ptrsav]
 		mov	[bx+1],	cl	; [bx+unit]
 					; Exit normal termination
@@ -15316,11 +17447,12 @@ exitnomult:
 ;
 ; ---------------------------------------------------------------------------
 
+		; 24/12/2023
 		; 19/10/2022
 RestoreOldDpt:
 		; if we have already restored the disk base table earlier,
 		; do not do it again.
-	
+
 		push	ax
 		xor	al, al
 		mov	[had_format_error], al	; Reset flag and 
@@ -15333,19 +17465,23 @@ RestoreOldDpt:
 		lds	si, [tempdpt]
 
 		; 17/10/2022
-		mov	es, [cs:BIOSDATAWORD]
-		;mov	es, word ptr cs:BIOSDATAWORD ; [cs:Bios_Data_Word]
-		mov	es, [es:zeroseg]
-		;mov	es, es:zeroseg	; CAS -- bleeeech!
+		;mov	es, [cs:BIOSDATAWORD]
+		;;mov	es, word ptr cs:BIOSDATAWORD ; [cs:Bios_Data_Word]
+		;mov	es, [es:zeroseg]
+		;;mov	es, es:zeroseg	; CAS -- bleeeech!
 
-		;mov	es:78h,	si	; [es:DSKADR]
+		; 24/12/2023
+		xor	ax, ax
+		mov	es, ax ; 0
+
+		;mov	es:78h,	si	; [es:DSKADR]  (Int 1Eh)
 		mov	[es:DSKADR], si
 		;mov	word ptr es:7Ah, ds ; [es:DSKADR+2]
 		mov	[es:DSKADR+2], ds
 		pop	es
 		pop	ds
 		pop	si
-DontRestore:				
+DontRestore:
 		pop	ax
 		; 12/12/2022
 		; cf=0
@@ -15403,6 +17539,9 @@ DontRestore:
 ;;size_of_EXT_BOOT_VOL_LABEL equ 11
 ;;size_of_EXT_SYSTEM_ID equ 8
 
+		; 24/12/2023 - Retro DOS 5.0
+		; (PCDOS 7.1 IBMBIO.COM - BIOSCODE:1478h)
+
 		; 19/10/2022
 GetMediaId:
 		call	ChangeLineChk
@@ -15413,20 +17552,39 @@ GetMediaId:
 					; Valid? (0F0h-0FFh?)
 		cmp	byte [disksector+15h], 0F0h
 					; [disksector+EXT_BOOT.BPB+EBPB.MEDIADESCRIPTOR]
-		jb	short IOCtl_If2	; brif not valid (0F0h - 0FFh)
+		;jb	short IOCtl_If2	; brif not valid (0F0h - 0FFh)
+		; 24/12/2023
+		jb	short IOCtl_If7		
+
+		; 24/12/2023
 		; 10/12/2022
-		mov	si, disksector+26h
+		;mov	si, disksector+26h
+		;;;
+		; 24/12/2023
+		;mov	si, disksector+43h ; BS_FAT32_VolID
+		mov	si, disksector+42h ; BS_FAT32_BootSig ; 24/12/2023
+		cmp	word [disksector+16h], 0 ; BPB.FATSz16
+		jz	short IOCtl_If3 ; FAT32 fs
+		sub	si, 1Ch         ; FAT (12-16) fs ; 43h-1Ch = 27h ; BS_VolID
+		; si = disksector+26h = BS_BootSig ; 24/12/2023
+IOCtl_If3:
+		;cmp	byte [si-1], 29h ; BS_BootSig or BS_FAT32_BootSig
+		;;;
 		cmp	byte [si], 29h
 		;cmp	byte [disksector+26h], 29h ; [disksector+EXT_BOOT.SIG]
 					; EXT_BOOT_SIGNATURE
-		jnz	short IOCtl_If2	; not extended boot record
+		jne	short IOCtl_If2	; not extended boot record
 		les	di, [ptrsav]	; es:di	points to request header
 		les	di, [es:bx+19]	; [es:bx+IOCTL_REQ.GENERICIOCTL_PACKET]
 		; 10/12/2022
-		inc	si
-		; si = disksector+27h 
 		;mov	si, disksector+27h ; disksector+EXT_BOOT.SERIAL
+		inc	si
+		; 24/12/2023
+		; si = disksector+27h (BS_VolID)
+		;      or disksector+43h (BS_FAT32_VolID)
+
 		add	di, 2		; A_MEDIA_ID_INFO.MI_SERIAL
+IOCtl_If4:		; 24/12/2023
 		mov	cx, 23		; size_of_EXT_BOOT_SERIAL
 					; L+size_of_EXT_BOOT_VOL_LABEL
 					; +size_of_EXT_SYSTEM_ID
@@ -15439,10 +17597,14 @@ GetMediaId:
 		retn
 ; ---------------------------------------------------------------------------
 
-IOCtl_If2:				
+		; 24/12/2023
+IOCtl_If2:
+		stc	
+IOCtl_If7:
 		mov	al, 7		; error_unknown_media
-		stc
-IOCtl_If1:				
+		;stc
+IOCtl_If6:
+IOCtl_If1:
 		retn
 ; ---------------------------------------------------------------------------
 
@@ -15493,6 +17655,8 @@ IOCtl_If1:
 ;
 ; ==========================================================================
 
+		; 24/12/2023 - Retro DOS 5.0
+
 		; 19/10/2022
 SetMediaId:
 		call	ChangeLineChk
@@ -15508,21 +17672,53 @@ SetMediaId:
 		cmp	byte [disksector+15h], 0F0h
 					; [disksector+EXT_BOOT.BPB+EBPB.MEDIADESCRIPTOR]
 		jb	short IOCtl_If7	; Brif not
-		cmp	byte [disksector+26h], 29h ; [disksector+EXT_BOOT.SIG]
-					; EXT_BOOT_SIGNATURE
-		jnz	short IOCtl_If7	; not extended boot record
+
+		; 24/12/2023
+		;cmp	byte [disksector+26h], 29h ; [disksector+EXT_BOOT.SIG]
+		;			; EXT_BOOT_SIGNATURE
+		;jnz	short IOCtl_If7	; not extended boot record
+		
 		push	es		; Save BDS pointer
 		push	di
 		push	ds		; Point	ES To boot record
 		pop	es
-		mov	di, disksector+27h ; disksector+EXT_BOOT.SERIAL
+
+		; 24/12/2023
+		;;;
+		;mov	di, disksector+43h ; disksector+EXT_BOOT.SERIAL
+		mov	di, disksector+42h ; BS_FAT32_BootSig ; 24/12/2023 
+		cmp	word [disksector+16h], 0 ; BPB.FATSz16
+		jz      short IOCtl_If5	; FAT32 fs
+		sub	di, 1Ch		; 67-28 ; offset disksektor+27h
+		; di = disksector+26h = BS_BootSig ; 24/12/2023
+IOCtl_If5:
+		;cmp	byte [di-1], 29h ; BS_BootSig or BS_FAT32_BootSig
+		cmp	byte [di], 29h
+		je	short IOCtl_If8
+		pop	di		; not extended boot record
+		pop	es
+		;jmp	short IOCtl_If7
+		; 24/12/2023
+		jmp	short IOCtl_If2
+IOCtl_If8:
+		;;;
+		; 24/12/2023
+		;mov	di, disksector+27h ; disksector+EXT_BOOT.SERIAL
+		inc	di
+		; di = disksector+27h (BS_VolID)
+		;      or disksector+43h (BS_FAT32_VolID)
+
 		lds	si, [ptrsav]	; ds:si	points to request header.
 		lds	si, [si+19]	; [si+IOCTL_REQ.GENERICIOCTL_PACKET]
 		add	si, 2		; A_MEDIA_ID_INFO.MI_SERIAL
-		mov	cx, 23		; size_of_EXT_BOOT_SERIAL
-					; +size_of_EXT_BOOT_VOL_LABEL
-					; +size_of_EXT_SYSTEM_ID
-		rep movsb
+		
+		; 24/12/2023
+		;mov	cx, 23		; size_of_EXT_BOOT_SERIAL
+		;			; +size_of_EXT_BOOT_VOL_LABEL
+		;			; +size_of_EXT_SYSTEM_ID
+		;rep movsb
+		call	IOCtl_If4       ; copy volume serial, label and system id
+
 		push	es		; point	ds back	to Bios_Data
 		pop	ds
 		pop	di		; restore bds pointer
@@ -15537,11 +17733,12 @@ SetMediaId:
 		retn
 ; ---------------------------------------------------------------------------
 
-IOCtl_If7:				
-		mov	al, 7		; error_unknown_media
-		stc
-IOCtl_If6:				
-		retn
+		; 24/12/2023
+;IOCtl_If7:
+;		mov	al, 7		; error_unknown_media
+;		stc
+;IOCtl_If6:
+;		retn
 
 ; =============== S U B	R O U T	I N E =======================================
 
@@ -15628,16 +17825,19 @@ BootIo:
 ;
 ; ---------------------------------------------------------------------------
 
+		; 24/12/2023 - Retro DOS 5.0
 ChangeLineChk:	
 		mov	dl, [es:di+4]	; [es:di+BDS.drivenum]
 		or	dl, dl		; Fixed	disk?
 		js	short ChangeLnChkRet ; Yes, skip it.
+		; 24/12/2023
+		test	byte [es:di+3Fh], 4 ; [es:di+BDS.flags] ; PCDOS 7.1
 		; 12/12/2022
-		test	byte [es:di+23h], 4
-		;test	word [es:di+23h], 4 ; [es:di+BDS.flags]
+		;test	byte [es:di+23h], 4
+		;;test	word [es:di+23h], 4 ; [es:di+BDS.flags]
 					; return_fake_bpb
 		jnz	short ChangeLnChkRet
-		cmp	byte [fhave96], 1	; This rom support change line?
+		cmp	byte [fhave96], 1   ; This rom support change line?
 		jnz	short ChangeLnChkRet
 		call	haschange	; This drive support change line?
 		jz	short ChangeLnChkRet ; Do nothing
@@ -15645,9 +17845,9 @@ ChangeLineChk:
 		; Execute the rom disk interrupt to check changeline activity.
 
 		mov	ah, 16h
-		int	13h		; DISK - FLOPPY	DISK - CHANGE OF DISK STATUS (AT,XT2,XT286,CONV,PS)
-					; DL = drive to	check
-					; Return: AH = disk change status
+		int	13h	; DISK - FLOPPY	DISK - CHANGE OF DISK STATUS (AT,XT2,XT286,CONV,PS)
+				; DL = drive to	check
+				; Return: AH = disk change status
 		jnb	short ChangeLnChkRet
 		push	bx
 		mov	bx, 40h		; fchanged
@@ -15675,6 +17875,8 @@ ChangeLnChkRet:
 ;						 = 1 if disk i/o allowed.
 ; ==========================================================================
 
+		; 24/12/2023 - Retro DOS 5.0
+
 		; 19/10/2022
 GetAccessFlag:				
 		lds	bx, [ptrsav]	; DS:BX	points to request header
@@ -15682,13 +17884,17 @@ GetAccessFlag:
 		;mov	al, 0		; Assume result	is unformatted
 		; 10/12/2022
 		sub	al, al
+		; 24/12/2023
+		test	byte [es:di+40h], 02h ; (PCDOS 7.1 IBMBIO.COM)
+		;test	word ptr es:[di+3Fh], 200h
 		; 10/12/2022
-		test	byte [es:di+36], 02h
-		;test	word [es:di+35], 200h ; [es:di+BDS.flags]
+		;test	byte [es:di+36], 02h
+		;;test	word [es:di+35], 200h ; [es:di+BDS.flags]
 					; unformatted_media
 		jnz	short GafDone	; Done if unformatted
-		inc	al		; Return true for formatted
-
+		;inc	al		; Return true for formatted
+		; 24/12/2023
+		inc	ax
 GafDone:				
 		mov	[bx+1],	al	; [bx+A_DISKACCESS_CONTROL.DAC_ACCESS_FLAG]
 		retn
@@ -15708,16 +17914,24 @@ GafDone:
 ; output:   unformtted_media bit modified according to the user request
 ; ==========================================================================
 
+		; 24/12/2023 - Retro DOS 5.0
+
 		; 19/10/2022
 SetAccessFlag:				
 		lds	bx, [ptrsav]	; ES:BX	points to request header
 		lds	bx, [bx+19]	; [bx+IOCTL_REQ.GENERICIOCTL_PACKET]
+		; 24/12/2023
+		and	byte [es:di+40h], 0FDh ; (PCDOS 7.1 IBMBIO.COM)
+		;and	word ptr es:[di+3Fh], 0FDFFh
 		; 10/12/2022
-		and	byte [es:di+36], 0FDh
-		;and	word [es:di+35], 0FDFFh ; [es:di+BDS.flags]
+		;and	byte [es:di+36], 0FDh
+		;;and	word [es:di+35], 0FDFFh ; [es:di+BDS.flags]
 					; ~unformatted_media
 		cmp	byte [bx+1], 0	; [bx+A_DISKACCESS_CONTROL.DAC_ACCESS_FLAG]
 		jnz	short saf_Done
+		; 24/12/2023
+		or	byte [es:di+40h], 02h ; (PCDOS 7.1 IBMBIO.COM)
+		;or	word ptr es:[di+3Fh], 200h
 		; 10/12/2022
 		or	byte [es:di+36], 02h
 		;or	word [es:di+35], 200h ; [es:di+BDS.flags]
@@ -15738,27 +17952,30 @@ saf_Done:
 ;
 ; ==========================================================================
 
+		; 24/12/2023 - Retro DOS 5.0
+
 		; 19/10/2022
 ioctl_support_query:
 		push	es
 		les	bx, [ptrsav]	; ES:BX Points to request header.
 		mov	ax, [es:bx+13]	; [es:bx+IOCTL_REQ.MAJORFUNCTION]
 					; AL ==	Major, AH == Minor
-
+		; 24/12/2023
 		; 02/09/2023 (PCDOS 7.1)
-		;cmp	al, 48h		; IOC_NEW_DC (PCDOS 7.1)
-		;			; new generic ioctl function (FAT32)
-		;jz	short ioctl_support
+		cmp	al, 48h		; IOC_NEW_DC (PCDOS 7.1)
+					; new generic ioctl function (FAT32)
+		je	short ioctl_support
 
 		cmp	al, 8		; IOC_DC
 					; See if major code is 8
-		jnz	short nosupport
+		jne	short nosupport
 ioctl_support:
 		push	cs
 		pop	es
+		; 24/12/2023
 		; 02/09/2023
-		;mov	cx, 14          ; (PCDOS 7.1) IOC_DC_TABLE_LEN
-		mov	cx, 11		; IOC_DC_TABLE_LEN
+		mov	cx, 14          ; (PCDOS 7.1) IOC_DC_TABLE_LEN
+		;mov	cx, 11		; IOC_DC_TABLE_LEN
 		; 10/12/2022
 		mov	di, IOC_DC_Table
 		;mov	di, 0C60h	; IOC_DC_Table
@@ -15819,7 +18036,7 @@ nosupport:
 ; ==========================================================================
 
 		; 19/10/2022
-SenseMediaType:				
+SenseMediaType:
 		lds	bx, [ptrsav]	; DS:BX	points to request header.
 		lds	bx, [bx+19]	; bx+IOCTL_REQ.GENERICIOCTL_PACKET]
 		; 10/10/2022
@@ -15834,9 +18051,9 @@ SenseMediaType:
 		mov	ah, 20h		; Get Media Type function
 					; If no	carry media type in AL
 		int	13h		; DISK - QCACHE	- DISMOUNT
-		jb	short MediaSenseEr ; error code	in AH
+		jc	short MediaSenseEr ; error code	in AH
 		inc	byte [bx]	; Signal media type is default (bit 1)
-DetermineMediaType:			
+DetermineMediaType:
 		dec	al
 		cmp	al, 2		; Chk for 720K ie: (3-1) = 2
 		jz	short GotMediaType
@@ -15845,7 +18062,7 @@ DetermineMediaType:
 		jz	short GotMediaType
 		cmp	al, 9		; Chk for 2.88M	ie: (6-1+4) = 9
 		jnz	short UnknownMediaType ; Just didn't recognize media type
-GotMediaType:				
+GotMediaType:
 		mov	[bx+1],	al	; Save the return value
 		; 10/12/2022
 		; cf = 0
@@ -15853,25 +18070,180 @@ GotMediaType:
 		retn
 ; ---------------------------------------------------------------------------
 
-MediaSenseEr:				
+MediaSenseEr:
 		cmp	ah, 32h		; See if not default media error
 		jz	short DetermineMediaType ; Not really an error
 		mov	al, 2		; Now assume drive not ready
 		cmp	ah, 31h		; See if media was present
 		jz	short SenseErrExit ; Return drive not ready
-UnknownMediaType:			
+UnknownMediaType:
 		mov	al, 7		; Just don't know the media type
-SenseErrExit:				
+SenseErrExit:
 		mov	ah, 81h		; Signal error return
 		stc
 		retn
 
-; ---------------------------------------------------------------------------
+; ----------------------------------------------------------------------------
 		; 10/12/2022
 		;db    0
-; ---------------------------------------------------------------------------
+; ----------------------------------------------------------------------------
+
+;-----------------------------------------------------------------------------
+; PCDOS 7.1 IBMBIO.COM - BIOSCODE:15F2h
+;-----------------------------------------------------------------------------
+; 26/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1)
+
+; =============== S U B R O U T I N E =======================================
+
+SetLockState:
+		lds	bx, [ptrsav]	; set media lock state
+		lds	bx, [bx+13h]	; [bx+IOCTL_REQ.GENERICIOCTL_PACKET]
+		;mov	dl, [es:di+4]	; [es:di+BDS.drivenum]
+		;call	check_int13h_exts_present
+		; 26/12/2023
+		call	check_int13h_exts_p
+		;mov	al, 3		; unknown command error
+		jc	short setlockst_ret
+		mov	al, [bx]	; [bx+A_LOCKSTATE_CONTROL.LOCKSTATE_FUNCTIONS]
+		mov	ah, 45h
+		int	13h		; DISK - IBM/MS Extension - LOCK/UNLOCK DRIVE
+		; (DL - drive, [SI - disk address packet)
+		mov	[bx+1], al	; 1 = locked, 0 = not locked
+		; [bx+A_LOCKSTATE_CONTROL.LOCKSTATE_FLAG]
+		
+		; 26/12/2023
+		jmp	short sls_em
+
+;		jnc	short setlockst_ret
+;		mov	al, ah
+;		call	maperror
+;setlockst_ret:
+;		mov	ah, 81h		; Return this status in case of carry
+;		retn
+
+; =============== S U B R O U T I N E =======================================
+
+EjectMedia:
+		;mov	dl, [es:di+4]	; eject media in drive
+		;			; [es:di+BDS.drivenum]
+		;call	check_int13h_exts_present
+		; 26/12/2023
+		call	check_int13h_exts_p
+		;mov	al, 3		; unknown command error
+		jc	short ejectm_ret
+		mov	ax, 4600h
+		int	13h		; DISK - IBM/MS Extension - EJECT MEDIA
+		; (DL - drive)
+sls_em:			; 26/12/2023
+		jnc	short ejectm_ret
+		mov	al, ah
+		call	maperror
+setlockst_ret:		; 26/12/2023
+ejectm_ret:
+		mov	ah, 81h		; Return this status in case of carry
+		retn
+
+; =============== S U B R O U T I N E =======================================
+
+		; 26/12/2023
+check_int13h_exts_p:
+		mov	dl, [es:di+4]
+
+check_int13h_exts_present:
+		mov	ah, 41h
+		push	bx
+		mov	bx, 55AAh
+		int	13h		; DISK - Check for INT 13h Extensions
+					; BX = 55AAh, DL = drive number
+					; Return: CF set if not supported
+					; AH = extensions version
+					; BX = AA55h
+					; CX = Interface support bit map
+		cmp	bx, 0AA55h
+		pop	bx
+		jnz	short exts_notsupported
+		test	cl, 2		; bit 1 - drive locking and ejecting subset
+		jnz	short exts_supported
+exts_notsupported:
+		; 26/12/2023
+		mov	al, 3
+		;
+		stc
+exts_supported:
+		retn
+
+; =============== S U B R O U T I N E =======================================
+
+GetDrvMapInfo:
+		mov	cx, ds		; get drive map information
+					;
+					; es:di points to BDS which belongs to
+					;	  the requested logical/dos drive number
+					;
+					; Format of parameter block:
+					; Offset  Description (Table 01570)
+					;  00h    (call) length of this buffer (in bytes)
+					;  01h    (ret) number of bytes in parameter block
+					;	    actually used
+					;  02h    (ret) drive flags
+					;  03h    (ret) physical drive number
+					;	    00h-7Fh floppy
+					;	    80h-FEh hard
+					;	    FFh no physical drive
+					;  04h    (ret) bitmap of logical drives associated with
+					;	    physical drive
+					;	    bit 0 = drive A:, etc.
+					;  08h    (ret) relative block address of partition start
+					;	    qword
+					;
+					; Ref: Ralf Brown's Interrupt List, INTERRUP.G
+		lds	bx, [ptrsav]
+		lds	bx, [bx+13h]	; [bx+IOCTL_REQ.GENERICIOCTL_PACKET]
+		mov	ax, 8103h	; ah = generic ioctl error code (81h)
+					; al = unknown command error (03h)
+		cmp	byte [bx], 10h	; parameter buffer length = 16 bytes
+		jb	short gdmi_4
+		mov	dl, [es:di+4]	; [es:di+BDS.drivenum]
+		mov	[bx+3], dl	; parameter block - offset 3 - physical drive number
+		mov	byte [bx+1], 10h ; parameter block - actually used length
+		mov	ax, [es:di+17h]	; [es:di+BDS.hiddensectors]
+		mov	[bx+8], ax	; parameter block - offset 8 - partition start LBA
+		mov	ax, [es:di+19h]	; [es:di+BDS.hiddensectors+2]
+		mov	[bx+0Ah], ax	; parameter block - offset 10
+		xor	ax, ax ; 0
+		mov	[bx+2], al	; drive flags = 0 (protected mode flags etc.)
+		mov	[bx+0Ch], ax	; high dword of partition start address (LBA) is 0
+		mov	[bx+0Eh], ax
+		mov	[bx+4], ax	; logical drive bitmap of same physical drive
+					; initialized as 0
+		mov	[bx+6], ax ; 0
+		mov	es, cx
+		;les	di, dword ptr es:start_bds ; 1st BDS
+		les	di, [es:start_bds]
+		mov	cx, 1		; bit 0 (drive A:)
+gdmi_1:
+		cmp	di, 0FFFFh	; last BDS ?
+		jz	short gdmi_3	; yes
+		cmp	[es:di+4], dl	; [es:di+BDS.drivenum], dl
+					; is it same physical drive ?
+		jnz	short gdmi_2	; no
+		or	[bx+4], cx	; set bit for logical drive index of this BDS
+					; (previously) shifted bit (which is 1/ON) is in ax:cx
+		or	[bx+6], ax
+gdmi_2:
+		shl	cx, 1		; shift one left for setting the next drive's bit
+		rcl	ax, 1		; set high word of the bit select (set) value
+		les	di, [es:di]	; next BDS
+		jmp	short gdmi_1	; loop until di = -1 (last BDS sign)
+gdmi_3:
+		mov	ax, 100h	; success
+gdmi_4:
+		retn
+
+;-----------------------------------------------------------------------------
 
 ; 16/10/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
+; 26/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMBIO.COM)
 
 ;-----------------------------------------------------------------------------
 ; MSINT13.ASM - MSDOS 6.0 - 1991
@@ -15907,9 +18279,10 @@ SenseErrExit:
 ;	    informations without calling generic ioctl get device parm call.)
 
 ;BIOSSEGMENT equ 70h
-DOSBIOSSEG equ 0070h ; 17/10/2022	
+DOSBIOSSEG equ 0070h ; 17/10/2022
 
 ;;BIOSCODE:1302h (MSDOS 6.21, IO.SYS)
+;BIOSCODE:16AAh (PCDOS 7.1, IBMBIO.COM) ; 26/12/2023
 
 i2f_handler:				; here is 02C7h:1302h =	0070h:3872h
 		cmp	ah, 13h
@@ -15931,6 +18304,7 @@ i2f_handler_iret:
 ; ---------------------------------------------------------------------------
 
 int2f_replace_int13:
+		cli	; 26/12/2023
 		push	ax	; free up a register for caller's ds
 		mov	ax, ds	; then we can use ds: -> Bios_Data
 		;;mov	ds, word [cs:0030h] ; 15/10/2022	
@@ -15993,7 +18367,7 @@ disp_func:
 ; set up pointer to request packet
 
 		push	ds
-		mov	ds, [cs:BIOSDATAWORD] ; 17/10/2022	
+		mov	ds, [cs:BIOSDATAWORD] ; 17/10/2022
 		;mov	ds, word ptr cs:BIOSDATAWORD ; [cs:Bios_Data_Word]
 					; = [0070h:25A0h] = [02C7h:0030h]
 		; 19/10/2022
@@ -16007,7 +18381,7 @@ disp_func:
 		; PCDOS 7.1 IBMBIO.COM - BIOSCODE:1708h
 		jmp	DOSBIOSSEG:dsk_entry ; BIOSDATA:dsk_entry
 		;; 17/10/2022
-		;;jmp	far DOSBIOSSEG:dsk_entry		
+		;;jmp	far DOSBIOSSEG:dsk_entry
 		;jmp	DOSBIOSSEG:i2f_dskentry ; 70h:i2f_dskentry
 					; NOTE: jump to a FAR function, not an
 					;  IRET type function. Callers of
@@ -16022,7 +18396,7 @@ do_subfun_01:
 		push	ds
 		pop	es
 		; 17/10/2022
-		mov	ds, [cs:BIOSDATAWORD]	
+		mov	ds, [cs:BIOSDATAWORD]
 		;mov	ds, word ptr cs:BIOSDATAWORD ; [cs:Bios_Data_Word]
 					; point	ds: -> Bios_Data
 		call	install_bds
@@ -16035,7 +18409,7 @@ do_subfun_01:
 
 do_get_bds_vector:
 		; 17/10/2022
-		mov	ds, [cs:BIOSDATAWORD]			
+		mov	ds, [cs:BIOSDATAWORD]
 		;mov	ds, word ptr cs:BIOSDATAWORD ; [cs:Bios_Data_Word]
 		lds	di, [start_bds]
 		;lds	di, ds:start_bds
@@ -16052,7 +18426,7 @@ do_get_bds_vector:
 ; flag and return instance data. If exiting, we reset the WIN386 present flag
 ; NOTE: We assume that the BIOS int 2fh is at the bottom of the chain.
 
-win386call:				
+win386call:
 		push	ds
 		mov	ds, [cs:BIOSDATAWORD]
 		;mov	ds, word ptr cs:BIOSDATAWORD ; [cs:Bios_Data_Word]
@@ -16149,7 +18523,7 @@ try_4:
 		;and	bx, 0FFF0h
 		; 10/12/2022
 		and	bl, 0F0h
-		;add	ds:FreeHMAPtr, bx ; update the free pointer	
+		;add	ds:FreeHMAPtr, bx ; update the free pointer
 		add	[FreeHMAPtr], bx
 		jnz	short InsuffHMA
 		mov	word [FreeHMAPtr], 0FFFFh ; -1
@@ -16158,7 +18532,7 @@ try_4:
 InsuffHMA:
 		pop	ds
 		; 10/12/2022
-try_3:		
+try_3:
 		;jmp	short ii2f_iret
 		; 02/09/2023
 		iret
@@ -16204,7 +18578,7 @@ HMAPtr:
 		;call	ds:MoveDOSIntoHMA ; call far [MoveDOSIntoHMA]
 		mov	di, [FreeHMAPtr]
 		;mov	di, ds:FreeHMAPtr
-HMAPtr_retn:				
+HMAPtr_retn:
 		retn
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -16244,7 +18618,7 @@ move_sector:
 		retn
 ; ---------------------------------------------------------------------------
 
-movsec_bytes:				
+movsec_bytes:
 		shl	cx, 1
 		rep movsb
 		pop	cx
@@ -16272,6 +18646,7 @@ movsec_bytes:
 ;	(the above may or may not have been changed, and are 0-based)
 ;	all other registers preserved.
 
+		; 26/12/2023 - Retro DOS 5.0
 check_wrap:	
 		push	ax
 		push	bx
@@ -16279,9 +18654,11 @@ check_wrap:
 		push	di
 		call	find_bds	; get pointer to bds for drive in dl
 		jb	short no_wrap	; finished if DOS doesn't use it
+		; 26/12/2023
+		test	byte [es:di+3Fh], 1
 		; 12/12/2022
-		test	byte [es:di+23h], 1
-		;test	word [es:di+23h], 1 ; [es:di+BDS.flags],fnon_removable
+		;test	byte [es:di+23h], 1
+		;;test	word [es:di+23h], 1 ; [es:di+BDS.flags],fnon_removable
 		jz	short no_wrap	; no wrapping for removable media
 		mov	bx, [es:di+13h]	; [es:di+BDS.secpertrack]
 		mov	ax, cx
@@ -16465,7 +18842,10 @@ dointdone:
 
 ; ---------------------------------------------------------------------------
 
-dtype_array:	dd 400090h		; 40:90	is drive type array
+		; 26/12/2023 - Retro DOS v5.0
+		; PCDOS 7.1 IBMBIO.COM - BIOSCODE:1889h
+dtype_array:
+		dd 400090h		; 40h:90h is drive type array addr
 
 ; 17/10/2022
 ;DTYPEARRAY equ dtype_array - DOSBIOSEG_2C7h ; (14F5h for MSDOS 5.0 IO.SYS)
@@ -16480,7 +18860,7 @@ DTYPEARRAY equ dtype_array
 ; support, then flag some special changed stuff and set changed
 ; by format bit for all logical drives using this physical drive
 
-format_special_stuff:			
+format_special_stuff:
 		cmp	byte [fhave96], 0	; do we have changeline support?
 		jz	short format_special_stuff_done ; brif not
 		push	bx
@@ -16497,7 +18877,7 @@ format_special_stuff:
 ; drive is an ec35. If so, set dtype_array[drive]=93h
 
 		; 19/10/2022
-ec35_special_stuff:			
+ec35_special_stuff:
 		test	dl, dl		; floppy or hard disk?
 		js	short ec35_special_stuff_done ;	if hard	drive, we're done
 		push	ax		; see if this PARTICULAR drive is ec35
@@ -16533,16 +18913,19 @@ ec35_special_stuff:
 ; to solve this problem, when we detect ah=8h, then we will save the result and
 ; will issue ah=1 (read status) call to reset the buses.
 
-ps2_special_stuff:			
+ps2_special_stuff:
 		cmp	byte [prevoper], 8 ; (ps2_30)
 					; read driver parm ?
 		jz	short ps2_30_problem
 		cmp	byte [prevoper], 15h
 					; apparently function 15h fails, too
 		jnz	short ps2_special_stuff_done
-ps2_30_problem:				
+ps2_30_problem:
 		push	ax
 		mov	ah, 1
+		; 26/12/2023
+		;call	70h:70Bh ; PCDOS 7.1 IBMBIO.COM BIOSCODE:18D7h
+		;		 ; call BIOSDATA:call_orig13	
 		;;call	far 70:797h ; MSDOS 6.21 IO.SYS BIOSCODE:1543h
 		; 17/10/2022
 		call	DOSBIOSSEG:call_orig13
@@ -16576,12 +18959,14 @@ i13z:					; 0070h:3ABBh =	02C7h:154Bh
 		cmp	ah, 5		; romformat
 		jz	short format_special_stuff
 					; go do special stuff for format
- format_special_stuff_done:		
+format_special_stuff_done:
 		cmp	byte [ec35flag], 0 ; any electrically compat 3.5 inchers?
 		jnz	short ec35_special_stuff
 					; go handle it out of line if so
 ec35_special_stuff_done:
-		;;call	far 70:797h ; MSDOS 6.21 IO.SYS BIOSCODE:1560h		
+		; 26/12/2023
+		;call	70h:70Bh ; PCDOS 7.1 IBMBIO.COM BIOSCODE:18EDh
+		;;call	far 70:797h ; MSDOS 6.21 IO.SYS BIOSCODE:1560h
 		call	DOSBIOSSEG:call_orig13
 		;call	call_orig13	; call far KERNEL_SEGMENT:call_orig13
 		
@@ -16591,10 +18976,10 @@ ec35_special_stuff_done:
 					; mdl_ps2_30
 		jz	short ps2_special_stuff
 					; exit mainline to address special
-ps2_special_stuff_done:			; ps2/30 problem if so		
+ps2_special_stuff_done:			; ps2/30 problem if so
 		popf
 		jb	short goterr13	; error	on original orig13 call-thru?
-ret_from_i13:				
+ret_from_i13:
 		pop	ds
 		retf	2		; restore ds &	iret w/flags
 ; ---------------------------------------------------------------------------
@@ -16618,17 +19003,17 @@ i13_ret_error:
 		mov	bx, 40h		; fchanged
 		call	set_changed_dl
 		pop	bx
-int13b:					
+int13b:
 		stc			; now return the error
 		jmp	short ret_from_i13
 ; ---------------------------------------------------------------------------
 
 ; some kind of error occurred. see if it is dma violation
 
-goterr13:				
+goterr13:
 		cmp	ah, 9		; dma error?
 		jz	short gotdmaerr
-goterr13_xxxx:				
+goterr13_xxxx:
 		cmp	ah, 11h		; ecc error?
 		jnz	short i13_ret_error ; other error. just	return back.
 		cmp	byte [media_set_for_format], 1 ; formatting?
@@ -16654,7 +19039,7 @@ goterr13_xxxx:
 		push	cx
 		push	dx
 		mov	[number_of_sec], al
-loop_ecc:				
+loop_ecc:
 		mov	ax, 201h	; read one sector
 
 ; we do reads one sector at a time. this ensures that we will eventually
@@ -16688,7 +19073,7 @@ loop_ecc:
 					; was the last sector, no error	code
 					; will be returned for the corrected
 					; read.	(clear carry too.)
-ok11_op:				
+ok11_op:
 		dec	byte [number_of_sec]
 		jz	short ok11_exit	; all done?
 		inc	cl		; advance sector number
@@ -16700,9 +19085,9 @@ ok11_op:
 
 ; locate error returns centrally
 
-ok11_exit_err:				
+ok11_exit_err:
 		stc			; set carry bit again.
-ok11_exit:				
+ok11_exit:
 		pop	dx
 		pop	cx
 		pop	bx
@@ -16713,7 +19098,7 @@ ok11_exit:
 ; buffer, which is guaranteed not to have a DMA error, then
 ; move the data to its proper location and proceed
 
-handle_dma_during_ecc:			
+handle_dma_during_ecc:
 		push	es
 		push	bx
 		mov	bx, disksector
@@ -16733,7 +19118,7 @@ handle_dma_during_ecc:
 ; now we're kosher. Copy the data to where it belongs and resume
 ; the ECC looping code.
 
-handle_dma_during_ecc_noerr:		
+handle_dma_during_ecc_noerr:
 		push	si
 		push	di
 		mov	di, bx
@@ -16747,7 +19132,7 @@ handle_dma_during_ecc_noerr:
 ; we truly have a dma violation. restore register ax and retry the
 ; operation as best we can.
 
-gotdmaerr:				
+gotdmaerr:
 		mov	ax, [prevoper]	; 19/10/2022
 		sti
 		cmp	ah, 2		; romread
@@ -16771,6 +19156,11 @@ gotdmaerr:
 		push	bp
 		mov	bp, sp
 		mov	dx, es		; check	for 64k	boundary error
+		; 26/12/2023
+		;add	dx, dx
+		;add	dx, dx
+		;add	dx, dx
+		;add	dx, dx		; dx = dx*16
 		shl	dx, 1
 		shl	dx, 1
 		shl	dx, 1
@@ -16785,7 +19175,7 @@ gotdmaerr:
 		jmp	bufferx		; restore dh=head & do buffer
 ; ---------------------------------------------------------------------------
 
-no_skip_first:				
+no_skip_first:
 		shr	dh, 1		; dh = number of sectors before	address
 		mov	ah, 128		; ah = max number of sectors in	segment
 		sub	ah, dh
@@ -16810,7 +19200,7 @@ no_skip_first:
 		jmp	bad13		; and return from this place
 ; ---------------------------------------------------------------------------
 
-i13_done_dmaerr:			
+i13_done_dmaerr:
 		mov	ah, 9		; pass dma error thru to caller
 		stc
 		jmp	ret_from_i13	; return with error,
@@ -16819,12 +19209,12 @@ i13_done_dmaerr:
 
 ; verify the given sectors. place the buffer pointer into our space.
 
-intverify:				
+intverify:
 		push	es		; save caller's dma address
 		push	bx
 		push	ds		; es:bx	-> Bios_Data:disksector
 		pop	es
-dosimple:				
+dosimple:
 		mov	bx, disksector
 					; do the i/o from Bios_Data:disksector
 		;;call	far 70:797h ; MSDOS 6.21 IO.SYS BIOSCODE:1665h
@@ -16838,7 +19228,7 @@ dosimple:
 
 ; format operation. copy the parameter table into Bios_Data:disksector
 
-intformat:				
+intformat:
 		push	es
 		push	bx
 		push	si
@@ -16874,6 +19264,7 @@ intformat:
 ; doblock will handle the first block of requested sectors within the
 ; boundary of this safe value.
 
+		; 26/12/2023 - Retro DOS v5.0
 doblock:
 
 ; try to get the # of sectors/track from bds via rom drive number.
@@ -16888,18 +19279,20 @@ doblock:
 					; al - requested # of sectors for i/o.
 		call	find_bds
 		mov	cx, [es:di+13h]	; [es:di+BDS.secpertrack]
+		; 26/12/2023
+		test	byte [es:di+3Fh], 1
 		; 12/12/2022
-		test	byte [es:di+23h], 1
-		;test	word [es:di+23h], 1 ; [es:di+BDS.flags],fnon_removable
+		;test	byte [es:di+23h], 1
+		;;test	word [es:di+23h], 1 ; [es:di+BDS.flags],fnon_removable
 		pop	di
 		pop	es
 		mov	al, ah		; set al=ah for	floppies
 		jz	short doblockflop ; they are track by track operation
 		mov	ah, 63		; ah = 63-secpt	(# safe	sectors??)
 		sub	ah, cl		; al - # of sectors before dma boundary
-doblockflop:				
+doblockflop:
 		pop	cx
-doblockcontinue:			
+doblockcontinue:
 		cmp	ah, al		; if safe_# >= #_of_sectors_to_go_before dma,
 		jnb	short doblocklast ; then #_of_sectors_to_go as it is for doint.
 		push	ax
@@ -16907,10 +19300,10 @@ doblockcontinue:
 		jmp	short doblockdoint
 ; ---------------------------------------------------------------------------
 
-doblocklast:				
+doblocklast:
 		mov	ah, al
 		push	ax
-doblockdoint:				; let ah = al =	# of sectors for this shot	
+doblockdoint:				; let ah = al =	# of sectors for this shot
 		call	doint
 		jb	short bad13	; something happened, bye!
 		pop	ax
@@ -16928,10 +19321,10 @@ doblockdoint:				; let ah = al =	# of sectors for this shot
 		jmp	short doblockcontinue ;	handles	next sectors left.
 ; ---------------------------------------------------------------------------
 
-bufferx:				
+bufferx:
 		mov	dh, [bp+9]	; [bp+INT13FRAME.olddx+1]
 					; set up head number
-buffer:					
+buffer:
 		push	bx
 		mov	ah, [bp+3]	; [bp+INT13FRAME.oldax+1]
 		cmp	ah, 3		; romwrite
@@ -16978,7 +19371,7 @@ buffer:
 
 ; reading a sector. do int first, then move things around
 
-doread:					
+doread:
 		push	es
 		push	bx
 		push	ds		; es = Bios_Code
@@ -17006,7 +19399,7 @@ doread:
 
 ; note the fact that we've done 1 more sector
 
-dotail:					
+dotail:
 		pop	bx		; retrieve new dma area
 		add	bh, 2		; advance over sector
 		inc	cx
@@ -17032,7 +19425,7 @@ dotail:
 ;	   When the DMA error that got us here in the first
 ;	   place occurs, it'll handle it.
 
-bad13:					
+bad13:
 		mov	sp, bp
 		pop	bp
 		pop	bx
@@ -17043,7 +19436,7 @@ bad13:
 		jmp	ret_from_i13	; non-error exit
 ; ---------------------------------------------------------------------------
 
-xgoterr13_xxxx:				
+xgoterr13_xxxx:	
 		jmp	goterr13_xxxx
 
 ; ---------------------------------------------------------------------------
@@ -17076,6 +19469,8 @@ dsk_init:				; 2C7h:1742h = 70h:3CB2h
 ; list. Trashes (at least) ax, bx, di, si
 ;---------------------------------------------------------------------------
 
+		; 26/12/2023 - Retro DOS v5.0
+		; PCDOS 7.1 IBMBIO.COM - BIOSCODE:1AE0h
 install_bds:
 		push	ds		; save Bios_Data segment
 		mov	si, start_bds	; beginning of chain
@@ -17090,15 +19485,21 @@ loop_next_bds:
 					; drive	with new one?
 		jnz	short next_bds
 		mov	bl, 10h		; fi_am_mult
-		or	[es:di+23h], bl	; [es:di+BDS.flags]
+		; 26/12/2023
+		or	[es:di+3Fh], bl
+		;or	[es:di+23h], bl	; [es:di+BDS.flags]
 					; set both of them to i_am_mult	if so
-		or	[si+23h], bl	; [si+BDS.flags]
-		and	byte [es:di+23h], 0DFh ; [es:di+BDS.flags],~fi_own_physical
+		or	[si+3Fh], bl
+		;or	[si+23h], bl	; [si+BDS.flags]
+		and	byte [es:di+3Fh], 0DFh
+		;and	byte [es:di+23h], 0DFh ; [es:di+BDS.flags],~fi_own_physical
 					; we don't own it
-		mov	bl, [si+23h]	; [si+BDS.flags]
+		mov	bl, [si+3Fh]
+		;mov	bl, [si+23h]	; [si+BDS.flags]
 					; determine if changeline available
 		and	bl, 2		; fchangeline
-		or	[es:di+23h], bl	; [es:di+BDS.flags]
+		or	[es:di+3Fh], bl
+		;or	[es:di+23h], bl	; [es:di+BDS.flags]
 next_bds:
 		; 02/09/2023 (PCDOS 7.1)
 		mov	ax, 0FFFFh	; -1
@@ -17120,8 +19521,10 @@ next_bds:
 ; **** If the new drive has a higher EOT value, we must alter the
 ;      'eot' variable appropriately.
 
+		; 26/12/2023
+		mov	al, [es:di+50h]	; [es:di+BDS.rsecpertrack]
 		; 01/06/2019
-		mov	al,[es:di+52]
+		;mov	al,[es:di+52]
 		; 22/07/2023
 		;mov	al,[es:di+BDS.rsecpertrack]
 		cmp	al,[eot]
@@ -17134,7 +19537,7 @@ _eot_ok:
 
 ; 17/10/2022
 ;DRVLET	equ drvlet - DOSBIOSEG_2C7h
-;SNGMSG	equ sngmsg - DOSBIOSEG_2C7h	
+;SNGMSG	equ sngmsg - DOSBIOSEG_2C7h
 ; 09/12/2022
 DRVLET equ drvlet
 SNGMSG equ sngmsg
@@ -17147,18 +19550,21 @@ SNGMSG equ sngmsg
 ;	ds -> Bios_Data
 ;---------------------------------------------------------------------------
 
+		; 26/12/2023 - Retro DOS v5.0
+
 		; 19/10/2022
-swpdsk:		test	byte [IsWin386], 1			
+swpdsk:		test	byte [IsWin386], 1
 		;test	ds:IsWin386, 1	; Is win386 present?
 		jz	short no_win386	; no, skip SetFocus
 		
 		; set focus to the correct VM
+		;call	far ptr 70h:813h ; PCDOS 7.1 IBMBIO.COM BIOSCODE:1B2Ch
 		;;call	far 70h:8D1h	; MSDOS 6.21 IO.SYS BIOSCODE:179Ah
 		; 17/10/2022
-		call	DOSBIOSSEG:V86_Crit_SetFocus
+		call	DOSBIOSSEG:V86_Crit_SetFocus ; BIOSDATA:V86_Crit_SetFocus
 		;call	far ptr	V86_Crit_SetFocus ; call far 70h:8D1h
 					; call far KERNEL_SEGMENT:V86_Crit_SetFocus
-no_win386:				
+no_win386:
 		push	cx
 		push	dx
 		mov	dl, [es:di+5]	; [es:di+BDS.drivelet]
@@ -17173,7 +19579,7 @@ no_win386:
 		mov	ax, 4A00h	; multMULT<<8)|multMULTSWPDSK
 					; broad	cast code for swap disk
 					; Broadcast it
-		int	2Fh	
+		int	2Fh
 		inc	cx		; cx == -1 ?
 		jz	short swpdsk9	; somebody has handled it
 
@@ -17181,19 +19587,19 @@ no_win386:
 
 		add	dl, 'A'
 		; 17/10/2022
-		mov	[cs:DRVLET], dl
+		mov	[cs:DRVLET], dl	; "A: and press any key when ready\r\n\n"
 		; 16/10/2022
 		;;mov	byte [cs:drvlet], dl
 		;mov	byte ptr cs:17E4h, dl ; [cs:drvlet]
 					; 0070h:3D54h =	2C7h:17E4h
-		mov	si, SNGMSG
+		mov	si, SNGMSG	; "\r\nInsert diskette for drive "
 		;mov	si, 17C8h	; sngmsg
 					; 0070h:3D38h =	2C7h:17C8h
 		push	bx
 		cs
 		lodsb			; get the next character of the message
 		;lods	byte ptr cs:[si]
-wrmsg_loop:				
+wrmsg_loop:
 		int	29h		; DOS 2+ internal - FAST PUTCHAR
 					; AL = character to display
 		cs
@@ -17208,7 +19614,7 @@ wrmsg_loop:
 		int	16h		; KEYBOARD - READ CHAR FROM BUFFER, WAIT IF EMPTY
 					; Return: AH = scan code, AL = character
 		pop	bx
-swpdsk9:				
+swpdsk9:
 		pop	dx
 		pop	cx
 		retn
@@ -17223,12 +19629,15 @@ swpdsk9:
 ; (MSDOS 6.21 IO.SYS BIOSCODE:17D5h)
 ;--------------------------------------------------------
 ; 17/03/2019 - Retro DOS v4.0
+; 26/12/2023 - Retro DOS v5.0
 
 		; MSDOS 5.0 IO.SYS offset 0070h:3D38h or 02C7h:17C8h
+		; PCDOS 7.1 IBMBIO.COM - BIOSCODE:1B67h
 sngmsg:		db 0Dh,0Ah
 		db 'Insert diskette for drive '
 
 		; MSDOS 5.0 IO.SYS offset 0070h:3D54h or 02C7h:17E4h
+		; PCDOS 7.1 IBMBIO.COM - BIOSCODE:1B83h
 drvlet:		db 'A: and press any key when ready',0Dh,0Ah
 		db 0Ah,0
 
@@ -17240,8 +19649,10 @@ drvlet:		db 'A: and press any key when ready',0Dh,0Ah
 ;	   zero reset if open files
 ;---------------------------------------------------------------------------
 
-chkopcnt:		
-		cmp	word [es:di+20h], 0 ; [es:di+BDS.opcnt]
+		; 26/12/2023 - Retro DOS v5.0
+chkopcnt:	
+		cmp     word [es:di+3Ch], 0
+		;cmp	word [es:di+20h], 0 ; [es:di+BDS.opcnt]
 		retn
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -17253,11 +19664,15 @@ chkopcnt:
 ;	es:di -> bds, ds -> Bios_Data
 ;---------------------------------------------------------------------------
 
-mediacheck:	
+		; 26/12/2023 - Retro DOS v5.0
+		; PCDOS 7.1 IBMBIO.COM - BIOSCODE:1BA6h
+mediacheck:
 		call	checksingle	; make sure correct disk is in place
 		xor	si, si
 		call	haschange
 		jz	short mediaret
+		; 26/12/2023
+		;test	byte [es:di+3Fh], 40h ; [es:di+BDS.flags], fchanged ; 40h
 		call	checkromchange
 		jnz	short mediadovolid
 		push	ax
@@ -17304,7 +19719,7 @@ mediacheck:
 		jz	short mediadovolid ; check_time	says ">= 2 secs	passed"
 					; (volume id will be checked)
 		xor	si, si		; return "i don't know"
-mediaret:				
+mediaret:
 		retn
 ; ---------------------------------------------------------------------------
 
@@ -17312,7 +19727,7 @@ mediaret:
 ; because this may be different since we only set medbyt when doing a read
 ; or write.
 
-mediadovolid:				
+mediadovolid:
 		call	GetBp		; build	a new bpb in current bds
 		jb	short mediaret
 		call	check_vid
@@ -17331,15 +19746,20 @@ mediadovolid:
 ;	***** warning:  this routine will return one level up on the stack
 ;			if an error occurs!
 
-checklatchio:	
+checklatchio:
 
 ; if returning fake bpb then assume the disk has not changed
-			
+
+		; 26/12/2023
+		;cmp	word [es:di+3Ch], 0 ; [es:di+BDS.opcnt]	
 		call	chkopcnt
 		jz	short checkret	; done if zero
 
 ; check for past rom indications. if no rom change indicated, then return ok.
 
+		; 26/12/2023
+		;test	word [es:di+3Fh], 40h
+		;			; test [es:di+BDS.flags], fchanged ; 40h
 		call	checkromchange
 		jz	short checkret
 
@@ -17353,12 +19773,12 @@ checklatchio:
 		or	si, si		; is changed for sure?
 		jns	short checkret
 		call	returnvid
-checklatchret:				
+checklatchret:
 		call	maperror	; fix up al for	return to dos
-ret_no_error_map:			
+ret_no_error_map:
 		stc
 		pop	si		; pop off return address
-checkret:				
+checkret:
 		retn
 ; ---------------------------------------------------------------------------
 
@@ -17367,10 +19787,10 @@ checkret:
 ;
 ;	called with es:di -> bds, ds -> Bios_Data
 
-checkfatvid:				
+checkfatvid:
 		call	fat_check	; check	the fat	and the	vid
 		or	si, si
-		js	short changed_drv ;
+		js	short changed_drv
 
 ; the fat was the same. fall into check_vid and check volume id.
 
@@ -17397,6 +19817,7 @@ checkfatvid:
 ;
 ;	called with es:di -> bds, ds -> bds
 
+		; 26/12/2023 - Retro DOS v5.0
 		; 19/10/2022
 check_vid:
 
@@ -17404,14 +19825,24 @@ check_vid:
 ; boot signature. if it is set then go to do the extended
 ; id check otherwise continue with code below
 
+		; 26/12/2023
+		;;;
+		cmp	word [disksector+16h], 0 ; BPB_FATSz16
+		jnz     short chk_vid_1
+		cmp     byte [disksector+42h], 29h ; BS_FAT32_BootSig
+					; [disksector+EXT_BOOT.SIG],EXT_BOOT_SIGNATURE
+		jmp     short chk_vid_2
+chk_vid_1:
+		;;;
 		cmp	byte [disksector+26h], 29h
 					; [disksector+EXT_BOOT.SIG],
 					; EXT_BOOT_SIGNATURE
+chk_vid_2:		; 26/12/2023
 		jz	short do_ext_check_id
 		call	haschange
 		jz	short checkret
 		xor	si, si
-		cmp	byte [disksector+10h], 0 
+		cmp	byte [disksector+10h], 0 ; BPB_NumFATs
 					; [disksector+EXT_BOOT.BPB+EBPB.NUMBEROFFATS]
 		jz	short checkfatret ; don't read vol id
 					; if not fat system
@@ -17423,12 +19854,12 @@ check_vid:
 		jnz	short changed_drv
 
 		inc	si		; not changed
-vid_no_changed:				
+vid_no_changed:
 		call	resetchanged
 		; 12/12/2022
 		; cf=0 ('and' instruction in 'resetchanged' clears cf) 
 		;clc
-checkfatret:				
+checkfatret:
 		retn
 ; ---------------------------------------------------------------------------
 
@@ -17459,12 +19890,40 @@ changed_drv:
 ;
 ; bds fields in inc\msbds.inc
 
+		; 26/12/2023 - Retro DOS v5.0
 		; 19/10/2022
 do_ext_check_id:
-		push	ax
-		;mov	ax, word ptr ds:disksector+27h
-					; [DiskSector+EXT_BOOT.SERIAL]
-		mov	ax, [disksector+27h]
+		; 26/12/2023
+		;push	ax
+		;;mov	ax, word ptr ds:disksector+27h
+		;			; [DiskSector+EXT_BOOT.SERIAL]
+		;mov	ax, [disksector+27h]
+; 26/12/2023
+%if 1
+		;;;
+		push	di
+		mov	si, disksector+43h ; BS_FAT32_VolID
+					; [DiskSector+FAT32_EXT_BOOT.SERIAL]
+		cmp	word [disksector+16h], 0 ; BPB_FATSz16
+		jz	short chk_vid_3
+		sub	si, 28		; BS_VolID
+		; si = disksector+27h	; [DiskSector+EXT_BOOT.SERIAL]
+chk_vid_3:
+		; [es:di+89h] = [es:di+BDS.vol_serial]
+		add	di, 137		; BDS.vol_serial
+		cmpsw	; [DiskSector+EXT_BOOT.SERIAL] ; (or FAT32_EXT_BOOT)
+			;		= [di+BDS.vol_serial] ?
+		jnz	short chk_vid_4
+		cmpsw	; [DiskSector+EXT_BOOT.SERIAL+2] ; (or FAT32_EXT_BOOT)
+			;		= [di+BDS.vol_serial+2] ?
+chk_vid_4:
+		pop	di
+		;pop	ax
+		jnz	short ext_changed ; not equal/same
+		xor	si, si 		 ; 0 ; don't know
+		jmp	short vid_no_changed ; reset the flag
+		;;;
+%else
 		; 02/09/2023
 		xor	si, si ; 0
 		cmp	ax, [es:di+57h]	; [di+BDS.vol_serial]
@@ -17477,13 +19936,16 @@ do_ext_check_id:
 		pop	ax
 		jmp	short vid_no_changed
 					; reset the flag
+%endif
+
 ; ---------------------------------------------------------------------------
 
 ext_changed:
-		pop	ax
+		; 26/12/2023
+		;pop	ax
 		; 02/09/2023
-		dec	si ; mov si, 0FFFFh ; -1
-		;mov	si, 0FFFFh	; -1
+		;dec	si ; mov si, 0FFFFh ; -1
+		mov	si, 0FFFFh	; -1
 					; disk changed!
 		; 12/12/2022
 		; ('changed_drv' clears cf)
@@ -17591,20 +20053,25 @@ dofloppy:	; 18/12/2022
 ;
 ;----------------------------------------------------------------------------
 
+		; 26/12/2023 - Retro DOS v5.0
 hidensity:
 
 ; check for correct drive
 		
+		; 26/12/2023
+		test	byte [es:di+3Fh], 2 ; is it special?
 		; 12/12/2022
-		test	byte [es:di+23h], 2		
-		;test	word [es:di+23h], 2 ; is it special?	
+		;test	byte [es:di+23h], 2
+		;;test	word [es:di+23h], 2 ; is it special?
 					; [es:di+BDS.flags], fchangeline
 		jz	short dofloppy	; no, do normal floppy test
 
 ; we have a media byte that is pretty complex. examine drive information
 ; table to see what kind it is.
 
-		cmp	byte [es:di+22h], 2 ; is it single-media?
+		; 26/12/2023
+		cmp	byte [es:di+3Eh], 2 ; is it single-media?
+		;cmp	byte [es:di+22h], 2 ; is it single-media?
 		jz	short dofloppy	; [es:di+BDS.formfactor], ffSmall
 					; yes, use fatid...
 ; 96 tpi drive?
@@ -17615,7 +20082,9 @@ hidensity:
 ;------ a 720K diskette
 
 		; 02/09/2023 (PCDOS 7.1)
-		mov	al, [es:di+22h]	; [es:di+BDS.formfactor]
+		; 26/12/2023
+		mov	al, [es:di+3Eh] ; [es:di+BDS.formfactor]
+		;mov	al, [es:di+22h]	; [es:di+BDS.formfactor]
 		cmp	al, 7
 		;cmp	byte [es:di+22h], 7 ; [es:di+BDS.formfactor]
 					; ffOther
@@ -17642,7 +20111,7 @@ hidensity:
 
 Is720K:
 		; 02/09/2023
-		pop	bx		; pop off return address	
+		pop	bx		; pop off return address
 		;add	sp, 2		; pop off return address
 		jmp	Has720K		; return to 720K code
 ; ---------------------------------------------------------------------------
@@ -17669,6 +20138,7 @@ Is720K:
 ; in the virtual drive system we *must* flag the other drives as being changed
 ;---------------------------------------------------------------------------
 
+		; 26/12/2023 - Retro DOS v5.0
 set_changed_dl:	
 		push	es
 		push	di
@@ -17678,16 +20148,18 @@ set_changed_dl:
 
 ; note: we assume that the list is non-empty
 
-scan_bds:				
+scan_bds:
 		cmp	[es:di+4], dl	; [es:di+BDS.drivenum]
 		jnz	short get_next_bds
 
 ; someone may complain, but this *always* must be done when a disk change is
 ; noted. there are *no* other compromising circumstances.
 
-		or	[es:di+23h], bx	; [es:di+BDS.flags]
+		; 26/12/2023
+		or	[es:di+3Fh], bx	; [es:di+BDS.flags]
+		;or	[es:di+23h], bx	; [es:di+BDS.flags]
 					; signal change	on other drive
-get_next_bds:				
+get_next_bds:
 		les	di, [es:di]	; [es:di+BDS.link]
 					; go to	next bds
 		cmp	di, 0FFFFh
@@ -17707,11 +20179,14 @@ get_next_bds:
 ;   registers modified: none
 ;---------------------------------------------------------------------------
 
+		; 26/12/2023 - Retro DOS v5.0
 checkromchange:	
 		;test	word [es:di+BDS.flags], fchanged ; 40h
+		; 26/12/2023
+		test	byte [es:di+3Fh], 40h
 		; 10/12/2022
-		test	byte [es:di+23h], 40h
-		;test	word [es:di+23h], 40h ; [es:di+BDS.flags]
+		;test	byte [es:di+23h], 40h
+		;;test	word [es:di+23h], 40h ; [es:di+BDS.flags]
 					; fchanged
 		retn
 
@@ -17725,11 +20200,14 @@ checkromchange:
 ;   registers modified: none
 ;---------------------------------------------------------------------------
 
-resetchanged:	
-		;and	word [es:di+BDS.flags], ~fchanged ; 0FFBFh	
+		; 26/12/2023 - Retro DOS v5.0
+resetchanged:
+		;and	word [es:di+BDS.flags], ~fchanged ; 0FFBFh
+		; 26/12/2023
+		and	byte [es:di+3Fh], 0BFh
 		; 10/12/2022
-		and	byte [es:di+23h], 0BFh
-		;and	word [es:di+23h], 0FFBFh ; [es:di+BDS.flags]
+		;and	byte [es:di+23h], 0BFh
+		;;and	word [es:di+23h], 0FFBFh ; [es:di+BDS.flags]
 					; ~fchanged
 		retn
 
@@ -17744,11 +20222,14 @@ resetchanged:
 ;   registers modified: none
 ;---------------------------------------------------------------------------
 
+		; 26/12/2023 - Retro DOS v5.0
 haschange:
 		;test	word [es:di+BDS.flags], fchangeline ; 2
+		; 26/12/2023
+		test	byte [es:di+3Fh], 2
 		; 10/12/2022
-		test	byte [es:di+23h], 2		
-		;test	word [es:di+23h], 2 ; [es:di+BDS.flags]
+		;test	byte [es:di+23h], 2
+		;;test	word [es:di+23h], 2 ; [es:di+BDS.flags]
 					; fchangeline
 		retn
 
@@ -17778,7 +20259,7 @@ haschange:
 ;	carry set
 ;	   error and ax has error code
 
-set_volume_id:				
+set_volume_id:
 		push	dx		; save registers
 		push	ax
 		call	haschange	; does drive have changeline support?
@@ -17796,7 +20277,7 @@ setvret:
 		retn
 ; ---------------------------------------------------------------------------
 
-seterr:					
+seterr:
 		pop	dx		; pop stack but don't overwrite ax
 		pop	dx		; restore dx
 		retn
@@ -17837,9 +20318,20 @@ read_volume_id:
 		pop	es
 		mov	di, tmp_vid	; "NO NAME	 "
 		mov	si, nul_vid	; "NO NAME	 "
-		;mov	cx, 11		; PCDOS 7.1 - 02/09/2023
-		mov	cx, 12		; initialize tmp_vid to	null vi_id
-		rep movsb
+		; 26/12/2023
+		mov	cx, 11		; PCDOS 7.1 - 02/09/2023
+		;mov	cx, 12		; initialize tmp_vid to	null vi_id
+		
+		;rep	movsb
+		; 26/12/2023
+		;rep movs byte ptr es:[di], byte ptr cs:[si]
+		;db 0FBh,2Eh,0A4h 
+		;cs	; nul_vid is in BIOSCODE segment 
+		;rep movsb
+		rep
+		cs
+		movsb	
+		
 		pop	di
 		pop	es
 		mov	al, [es:di+11]	; [es:di+BDS.fats]
@@ -17912,7 +20404,7 @@ notfound:
 
 found_vid:
 		; 02/09/2023
-		; cf = 0  ('test' instruction clears cf)  			
+		; cf = 0  ('test' instruction clears cf)
 		pop	cx		; clean stack of outer loop counter
 		mov	si, bx		; point	to volume_id
 		push	es		; preserve current bds
@@ -17956,21 +20448,22 @@ no_vid:
 
 readviderr:
 		pop	si		; trash the outer loop counter
-		pop	si		; caller's ax, return error code instead 
+		pop	si		; caller's ax, return error code instead
 		jmp	short rvidret
 
 ; ---------------------------------------------------------------------------
+		; 26/12/2023 - Retro DOS v5.0
 		; 02/09/2023 - Retro DOS v4.2 (IO.SYS optimization)
 		; PCDOS 7.1 - IBMBIO.COM - BIOSCODE:1DCFh 
 preset_volid_addr:
 		mov	si, tmp_vid	; "NO NAME    "
-		;
+		; 26/12/2023
 		; PCDOS 7.1
-		;add	di, 125		; BDS.volid
-		;mov	cx, 11		; VOLID_SIZ (12 for MSDOS 5.0-6.22 versions)
+		add	di, 125		; BDS.volid
+		mov	cx, 11		; VOLID_SIZ (12 for MSDOS 5.0-6.22 versions)
 		; MSDOS 6.21 (MSDOS 5.0 & 6.?)
-		add	di, 75		; BDS.volid
-		mov	cx, 12		; VOLID_SIZ
+		;add	di, 75		; BDS.volid
+		;mov	cx, 12		; VOLID_SIZ
 		;
 		cld
 		retn
@@ -17982,11 +20475,14 @@ preset_volid_addr:
 ; inputs:	es:di has current bds
 ; outputs:	bds for drive has volume id from tmp
 
+		; 27/12/2023 - Retro DOS v5.0
 transfer_volume_id:
 		push	di		; copy the volume id from tmp to special drive
-		push	si
+		;push	si
 		push	cx
-		
+		; 27/12/2023
+		push	si
+
 		;mov	si, tmp_vid	; "NO NAME	 "
 		;;add	di, BDS.volid
 		;add	di, 75		; BDS.volid
@@ -17997,8 +20493,12 @@ transfer_volume_id:
 		call	preset_volid_addr
 
 		rep movsb
-		pop	cx
+		
+		; 27/12/2023
 		pop	si
+chk_volid_ok:
+		pop	cx
+		;pop	si
 		pop	di
 		retn
 
@@ -18010,6 +20510,7 @@ transfer_volume_id:
 ;   inputs:	es:di has current bds for drive
 ;   outputs:	zero true means it matched
 
+		; 27/12/2023 - Retro DOS v5.0
 check_volume_id:
 		push	di
 		push	cx
@@ -18024,9 +20525,12 @@ check_volume_id:
 		call	preset_volid_addr
 
 		repe cmpsb		; are the 2 volume_ids the same?
-		pop	cx
-		pop	di
-		retn
+		
+		; 27/12/2023
+		;pop	cx
+		;pop	di
+		;retn
+		jmp	short chk_volid_ok
 
 ; =============== S U B	R O U T	I N E =======================================
 
@@ -18041,7 +20545,7 @@ check_volume_id:
 ;
 ;   no other registers changed.
 
-fat_check:		
+fat_check:
 		push	ax
 		xor	si, si		; say fat id's are same.
 		mov	al, [medbyt]	; 19/10/2022
@@ -18049,13 +20553,16 @@ fat_check:
 					; compare it with the bds medbyte
 		jz	short okret1	; carry	clear
 		dec	si
-okret1:					
+okret1:
 		pop	ax
 		retn
 
 ; ---------------------------------------------------------------------------
 
-; BIOSCODE:1A69h (MSDOS 6.21, IO.SYS)
+; BIOSCODE:1DFEh (PCDOS 7.1 IBMBIO.COM) ; 27/12/2023
+		;times 2 db 0
+
+; BIOSCODE:1A69h (MSDOS 6.21 IO.SYS) ((& MSDOS 6.22 IO.SYS))
 		;times 7 db 0
 
 ; BIOSCODE:180Bh (MSDOS 5.0 IO.SYS)	
@@ -18104,6 +20611,8 @@ SYSINITSEG	equ IOSYSCODESEG+(SYSINITOFFSET>>4)
 ;=============================================================================
 ; 09/12/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
 ; 30/12/2022 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
+;
+; 27/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMBIO.COM)
 
 section .SYSINIT vstart=0
 
@@ -19485,7 +21994,7 @@ SYSINIT$:
 ;    . Allows system to work if the only stack that got too big was the most
 ;      deeply nested one
 ; 3. Disables NMI interrupts while setting the NMI vector.
-; 4. Does not intercept any interupts on a PCjr.
+; 4. Does not intercept any interrupts on a PCjr.
 ; 5. Double checks that a nested interrupt didn't get the same stack.
 ; 6. Intercepts Ints 70, 72-77 for PC-ATs and other future products
 
@@ -20337,6 +22846,18 @@ GOINIT:		; (MSDOS 6.21 IO.SYS, SYSINIT:0412h)
 	; 12/12/2023
 	push	cs
 	pop	ds
+
+; 27/12/2023 temporary
+push ds
+push bx
+mov bx, 0B800h
+mov ds, bx
+xor bx, bx
+mov ah, 4Eh
+mov al, '!'
+mov [bx], ax
+pop bx
+pop ds 
 
 	; 12/12/2022
 	; 22/03/2019 - Retro DOS v4.0
@@ -41719,6 +44240,9 @@ switches:
 ; 02/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
 ; MSDOS 5.0 IO.SYS - SYSINIT:3AA9h
 
+; 27/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMBIO.COM)
+; PCDOS 7.1 IBMBIO.COM - SYSINIT:56BBh	
+
 ; 48 tpi diskettes
 
 bpb48t	dw	512
@@ -41733,6 +44257,9 @@ bpb48t	dw	512
 	dw	2
 	dd	0
         dd      0
+	; 27/12/2023
+	times	28 db 0            ; FAT32 extensions (to BDS)
+	db	90h	
 
 ; 96tpi diskettes
 
@@ -41748,6 +44275,9 @@ bpb96t:	dw	512
 	dw	2
 	dd	0
         dd      0
+	; 27/12/2023
+	times	28 db 0            ; FAT32 extensions (to BDS)
+	db	90h	
 
 ; 3 1/2 inch diskette bpb
 
@@ -41763,6 +44293,9 @@ bpb35:	dw	512
 	dw	2
 	dd	0
         dd      0
+	; 27/12/2023
+	times	28 db 0            ; FAT32 extensions (to BDS)
+	db	90h
       
 bpb35h:	dw	512
 	db	1
@@ -41776,6 +44309,9 @@ bpb35h:	dw	512
 	dw	2
 	dd	0
         dd      0
+	; 27/12/2023
+	times	28 db 0            ; FAT32 extensions (to BDS)
+	db	90h
 
 ; m037 - BEGIN
 
@@ -41791,6 +44327,9 @@ bpb288:	dw	512
 	dw	2
 	dd	0
         dd      0
+	; 27/12/2023
+	times	28 db 0            ; FAT32 extensions (to BDS)
+	db	90h
 
 ; m037 - END
 
@@ -41885,25 +44424,37 @@ OnOff2:	db	'OFF'
 ;	db	'Starting MS-DOS...',0Dh,0Ah
 ;	db	0Ah,0
 
+	; 17/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMBIO.COM)
+	; (SYSINIT:58F7h)
+StartMsg:
+	db	'Starting PC DOS...',0Dh,0Ah
+	db	0Ah,0
+
 _$PauseMsg:
-	db	'Press any key to continue . . .',0Dh,0Ah,'$'
+	; 17/12/2023
+	;db	'Press any key to continue . . .',0Dh,0Ah,'$'
 	; 04/08/2023 (PCDOS 7.10 - IBMBIO.COM SYSINIT:590Dh)
-	;db	'Press any key to continue...',0Dh,0Ah,'$'
+	db	'Press any key to continue...',0Dh,0Ah,'$'
 _$CleanMsg:
-	db	'MS-DOS is bypassing your CONFIG.SYS and AUTOEXEC.BAT files.',0Dh,0Ah,'$'
+	;db	'MS-DOS is bypassing your CONFIG.SYS and AUTOEXEC.BAT files.',0Dh,0Ah,'$'
+	; 17/12/2023
+	db	'PC DOS is bypassing your CONFIG.SYS and AUTOEXEC.BAT files.',0Dh,0Ah,'$'
 _$InterMsg:
-	db	'MS-DOS will prompt you to confirm each CONFIG.SYS command.',0Dh,0Ah,'$'
+	;db	'MS-DOS will prompt you to confirm each CONFIG.SYS command.',0Dh,0Ah,'$'
+	; 17/12/2023
+	db	'PC DOS will prompt you to confirm each CONFIG.SYS command.',0Dh,0Ah,'$'
 _$MenuHeader:
 	db	0Dh,0Ah
-	db	'  MS-DOS 6.2 Startup Menu',0Dh,0Ah
-	db	'  '
-	times	23 db (0CDh)  ; ALT 205 ; '=======================' ; 06/08/2023
-	db 	0Dh,0Ah,'$'
-	; 04/08/2023 (PCDOS 7.10 - IBMBIO.COM SYSINIT:59A7h)
-	;db	'  PC DOS 7.1 Startup Menu',0Dh,0Ah
+	; 17/12/2023
+	;db	'  MS-DOS 6.2 Startup Menu',0Dh,0Ah
 	;db	'  '
 	;times	23 db (0CDh)  ; ALT 205 ; '=======================' ; 06/08/2023
 	;db 	0Dh,0Ah,'$'
+	; 04/08/2023 (PCDOS 7.10 - IBMBIO.COM SYSINIT:59A7h)
+	db	'  PC DOS 7.1 Startup Menu',0Dh,0Ah
+	db	'  '
+	times	23 db (0CDh)  ; ALT 205 ; '=======================' ; 06/08/2023
+	db 	0Dh,0Ah,'$'
 _$MenuPrmpt:
 	db	'  Enter a choice: $'
 _$StatusLine:

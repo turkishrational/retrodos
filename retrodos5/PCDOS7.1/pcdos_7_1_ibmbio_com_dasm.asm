@@ -32,91 +32,52 @@ START$:
                 db 90h
 SysVersionMajor db 7
 SysVersionMinor db 10
-NumHeads        dw 0                    ; DATA XREF: MSLOAD:00BB↓w
-                                        ; ReadSectors+9C↓r ...
-ClusterSize     dw 0                    ; DATA XREF: MSLOAD:CalcFatSize↓w
-                                        ; MSLOAD:02A9↓r ...
-StartSecL       dw 0                    ; DATA XREF: MSLOAD:0268↓w
-                                        ; MSLOAD:0278↓w ...
-StartSecH       dw 0                    ; DATA XREF: MSLOAD:0270↓w
-                                        ; MSLOAD:027C↓w ...
-TempH           dw 0                    ; DATA XREF: MSLOAD:0215↓w
-                                        ; MSLOAD:0224↓r ...
-TempCluster     dw 0                    ; DATA XREF: GetNextFatEntry+57↓w
-                                        ; GetNextFatEntry+6E↓r ...
-LastFatSectorL  dw 0FFFFh               ; DATA XREF: GetFatSector+1D↓r
-                                        ; GetFatSector+23↓w
-LastFatSectorH  dw 0FFFFh               ; DATA XREF: GetFatSector+17↓r
-                                        ; GetFatSector+26↓w
-SectorCount     dw 0                    ; DATA XREF: MSLOAD:02B9↓w
-                                        ; MSLOAD:02EF↓w ...
-FATSectorsL     dw 0                    ; DATA XREF: MSLOAD:00C4↓w
-                                        ; MSLOAD:not_big↓r ...
-FATSectorsH     dw 0                    ; DATA XREF: MSLOAD:013A↓w
-                                        ; MSLOAD:01E0↓r
-HiddenSectorsL  dw 0                    ; DATA XREF: MSLOAD:00F4↓w
-                                        ; GetFatSector+2D↓r
-HiddenSectorsH  dw 0                    ; DATA XREF: MSLOAD:010E↓w
-                                        ; GetFatSector+31↓r
-BytesPerSec     dw 0                    ; DATA XREF: MSLOAD:00A0↓w
-                                        ; MSLOAD:0180↓r ...
-ReservSectors   dw 0                    ; DATA XREF: MSLOAD:00EB↓w
-                                        ; MSLOAD:01D5↓r ...
-CurrentClusterL dw 0                    ; DATA XREF: MSLOAD:0252↓w
-                                        ; MSLOAD:02C2↓w ...
-CurrentClusterH dw 0                    ; DATA XREF: MSLOAD:024E↓w
-                                        ; MSLOAD:02C6↓w ...
-NextBioLocation dw 0                    ; DATA XREF: MSLOAD:02E4↓w
-                                        ; MSLOAD:032F↓r ...
-FirstSectorL    dw 0                    ; DATA XREF: MSLOAD:SaveInputValues↓w
-                                        ; MSLOAD:0264↓r ...
-FirstSectorH    dw 0                    ; DATA XREF: MSLOAD:0107↓w
-                                        ; MSLOAD:026C↓r ...
-TotalSectorsL   dw 0                    ; DATA XREF: MSLOAD:00FD↓w
-                                        ; MSLOAD:011A↓w ...
-TotalSectorsH   dw 0                    ; DATA XREF: MSLOAD:0121↓w
-                                        ; MSLOAD:01CE↓r
-SecPerTrack     dw 0                    ; DATA XREF: MSLOAD:00B2↓w
-                                        ; ReadSectors+42↓r ...
-BootDrive       db 0                    ; DATA XREF: MSLOAD:0053↓w
-                                        ; MSLOAD:034E↓r ...
-FatType         db 0                    ; DATA XREF: MSLOAD:01C9↓w
-                                        ; MSLOAD:021F↓w ...
-MediaByte       db 0                    ; DATA XREF: MSLOAD:004E↓w
-                                        ; MSLOAD:GoToBioInit↓r
-EndOfFile       db 0                    ; DATA XREF: MSLOAD:0304↓r
-                                        ; GetNextFatEntry+6↓w ...
-OrgDasdPtr      dd 0                    ; DATA XREF: MSLOAD:loc_5C↓w
-                                        ; MSLOAD:0359↓r ...
-FatSegment      dw 0                    ; DATA XREF: MSLOAD:018A↓w
-                                        ; GetNextFatEntry+1↓r
-SecPerCluster   db 0                    ; DATA XREF: MSLOAD:00A9↓w
-                                        ; MSLOAD:01B9↓r ...
-NumFats         db 0                    ; DATA XREF: MSLOAD:00D9↓w
-                                        ; MSLOAD:01E6↓r
-RootEntCnt      dw 0                    ; DATA XREF: MSLOAD:00E2↓w
-                                        ; MSLOAD:01FB↓r ...
-RootClusterL    dw 0                    ; DATA XREF: MSLOAD:0143↓w
-RootClusterH    dw 0                    ; DATA XREF: MSLOAD:014C↓w
-                                        ; BIOSDATA:1DF3↓r ...
-FirstCluster    dw 2 dup(0)             ; DATA XREF: MSLOAD:008E↓w
-                                        ; MSLOAD:ReadInFirstCluster↓r ...
+NumHeads        dw 0                    ; ...
+ClusterSize     dw 0                    ; ...
+StartSecL       dw 0                    ; ...
+StartSecH       dw 0                    ; ...
+TempH           dw 0                    ; ...
+TempCluster     dw 0                    ; ...
+LastFatSectorL  dw 0FFFFh               ; ...
+LastFatSectorH  dw 0FFFFh               ; ...
+SectorCount     dw 0                    ; ...
+FATSectorsL     dw 0                    ; ...
+FATSectorsH     dw 0                    ; ...
+HiddenSectorsL  dw 0                    ; ...
+HiddenSectorsH  dw 0                    ; ...
+BytesPerSec     dw 0                    ; ...
+ReservSectors   dw 0                    ; ...
+CurrentClusterL dw 0                    ; ...
+CurrentClusterH dw 0                    ; ...
+NextBioLocation dw 0                    ; ...
+FirstSectorL    dw 0                    ; ...
+FirstSectorH    dw 0                    ; ...
+TotalSectorsL   dw 0                    ; ...
+TotalSectorsH   dw 0                    ; ...
+SecPerTrack     dw 0                    ; ...
+BootDrive       db 0                    ; ...
+FatType         db 0                    ; ...
+MediaByte       db 0                    ; ...
+EndOfFile       db 0                    ; ...
+OrgDasdPtr      dd 0                    ; ...
+FatSegment      dw 0                    ; ...
+SecPerCluster   db 0                    ; ...
+NumFats         db 0                    ; ...
+RootEntCnt      dw 0                    ; ...
+RootClusterL    dw 0                    ; ...
+RootClusterH    dw 0                    ; ...
+FirstCluster    dw 2 dup(0)             ; ...
 ; ---------------------------------------------------------------------------
 
-SaveInputValues:                        ; CODE XREF: MSLOAD:START$↑j
-                                        ; DATA XREF: check_int13h_extensions+1F↓r ...
+SaveInputValues:                        ; ...
                 mov     cs:FirstSectorL, bx ; Start sector # of data
                                         ; (high word in ax and also in es)
-                mov     cs:MediaByte, ch
-                                        ; DATA XREF: aux_init+7↓r
+                mov     cs:MediaByte, ch ; ...
                                         ; BPB_Media
-                mov     cs:BootDrive, dl
-                                        ; DATA XREF: BIOSDATA:1E64↓r
-                                        ; BIOSDATA:2002↓r ...
+                mov     cs:BootDrive, dl ; ...
                                         ; BS_DrvNum
 
-loc_58:                                 ; DATA XREF: ReadSectors+5C↓r
-                                        ; BIOSDATA:1B8A↓r ...
+loc_58:                                 ; ...
                 pop     si              ; from BS code..
                                         ; ss:sp = 0:7BE4h, bp = 7BECh
                                         ; Clear stack and load disk parameters table in ds:si
@@ -126,14 +87,11 @@ loc_58:                                 ; DATA XREF: ReadSectors+5C↓r
                 pop     si              ; pop.. Original INT 1Eh disk table address
                 pop     ds
 
-loc_5C:                                 ; DATA XREF: print_init+5↓r
+loc_5C:                                 ; ...
                 mov     word ptr cs:OrgDasdPtr, si
                 push    ds
-                pop     word ptr cs:OrgDasdPtr+2
-                                        ; DATA XREF: ReadSectors+6F↓r
-                                        ; BIOSDATA:SkipVDisk↓r
-                xor     cx, cx          ; DATA XREF: BIOSDATA:1865↓r
-                                        ; read_real_date+5↓r ...
+                pop     word ptr cs:OrgDasdPtr+2 ; ...
+                xor     cx, cx          ; ...
                 mov     ds, cx          ; 0
                 mov     es, cx          ; 0
                 mov     si, word ptr ds:78h ; INT 1Eh disk parameters table address
@@ -147,9 +105,7 @@ loc_75:                                 ; Sec9 ; new location of DSK_PARMS
                 rep movsb
                 push    es
                 pop     ds
-                mov     word ptr ds:78h, 522h
-                                        ; DATA XREF: SYSINIT:05D8↓r
-                                        ; SYSINIT:05DC↓r ...
+                mov     word ptr ds:78h, 522h ; ...
                                         ; Offset Sec9
                 mov     word ptr ds:78h+2, ds
                 mov     cx, word ptr ds:51Ah ; LW of IBMBIO.COM (IO.SYS) first cluster
@@ -157,16 +113,13 @@ loc_75:                                 ; Sec9 ; new location of DSK_PARMS
                 mov     cx, word ptr ds:514h ; HW of IBMBIO.COM (IO.SYS) first cluster
                 mov     cs:FirstCluster+2, cx
                 mov     cx, ds:7C0Bh    ; BPB_BytsPerSec ; 512
-                mov     cs:BytesPerSec, cx
-                                        ; DATA XREF: con_writ+6↓r
-                                        ; swpdsk:wrmsg_loop↓r
+                mov     cs:BytesPerSec, cx ; ...
                 mov     cl, ds:7C0Dh    ; BPB_SecPerClus
                 mov     cs:SecPerCluster, cl
                 mov     cx, ds:7C18h    ; BPB_SecPerTrk
                 mov     cs:SecPerTrack, cx
                 mov     cx, ds:7C1Ah    ; BPB_NumHeads
-                mov     cs:NumHeads, cx ; DATA XREF: MSLOAD:017A↓r
-                                        ; BIOSDATA:0821↓r ...
+                mov     cs:NumHeads, cx ; ...
                 mov     cx, ds:7C16h    ; BPB_FATSz16
                 mov     cs:FATSectorsL, cx
                 mov     bl, ds:7C26h    ; BS_BootSig ; (FAT12 and FAT16)
@@ -174,7 +127,7 @@ loc_75:                                 ; Sec9 ; new location of DSK_PARMS
                 jnz     short not_fat32
                 mov     bl, ds:7C42h    ; BS_BootSig ; (FAT32)
 
-not_fat32:                              ; CODE XREF: MSLOAD:00CF↑j
+not_fat32:                              ; ...
                 mov     cl, ds:7C10h    ; BPB_NumFATs
                 mov     cs:NumFats, cl
                 mov     cx, ds:7C11h    ; BPB_RootEntCnt
@@ -198,7 +151,7 @@ not_fat32:                              ; CODE XREF: MSLOAD:00CF↑j
                 mov     ax, ds:7C22h    ; BPB_TotSec32+2
                 mov     cs:TotalSectorsH, ax
 
-not_big:                                ; CODE XREF: MSLOAD:0115↑j
+not_big:                                ; ...
                 cmp     cs:FATSectorsL, 0
                 jnz     short Relocate  ; FAT12 or FAT16 fs
                 mov     cx, ds:7C24h    ; BPB_FATSz32 ; FAT32 fs
@@ -210,8 +163,7 @@ not_big:                                ; CODE XREF: MSLOAD:0115↑j
                 mov     cx, ds:7C2Eh    ; BPB_RootClus+2
                 mov     cs:RootClusterH, cx
 
-Relocate:                               ; CODE XREF: MSLOAD:0105↑j
-                                        ; MSLOAD:012B↑j
+Relocate:                               ; ...
                 cld                     ; copy code from start to top of memory
                                         ; the length to copy is EndOfLoader
                                         ; jump to relocated code
@@ -235,8 +187,7 @@ Relocate:                               ; CODE XREF: MSLOAD:0105↑j
                 int     2Fh             ; Get new TOM from any RPL
                 mov     ax, dx
 
-Skip_RPL:                               ; CODE XREF: MSLOAD:016D↑j
-                                        ; MSLOAD:0173↑j
+Skip_RPL:                               ; ...
                 mov     cl, 4
                 mov     dx, cs:BytesPerSec
                 shr     dx, cl
@@ -259,7 +210,7 @@ Skip_RPL:                               ; CODE XREF: MSLOAD:016D↑j
                 retf
 ; ---------------------------------------------------------------------------
 
-SetupStack:                             ; DATA XREF: MSLOAD:01A0↑o
+SetupStack:                             ; ...
                 mov     ax, cs
                 sub     ax, 40h         ; move ss to 400h backward for stack space
                                         ; then set sp to the end of this stack space
@@ -279,7 +230,7 @@ FindClusterSize:
                 jmp     ErrorOut
 ; ---------------------------------------------------------------------------
 
-CalcFatSize:                            ; CODE XREF: MSLOAD:01C1↑j
+CalcFatSize:                            ; ...
                 mov     ds:ClusterSize, ax ; cluster size in bytes
                 mov     ds:FatType, 1   ; FAT12
                 mov     dx, ds:TotalSectorsH
@@ -333,8 +284,7 @@ CalcFatSize:                            ; CODE XREF: MSLOAD:01C1↑j
                 jb      short ReadInFirstCluster
                 mov     ds:FatType, 4   ; set FAT type to FAT16
 
-ReadInFirstCluster:                     ; CODE XREF: MSLOAD:0229↑j
-                                        ; MSLOAD:022E↑j ...
+ReadInFirstCluster:                     ; ...
                 mov     ax, ds:FirstCluster ; dx:ax = BIOS starting cluster
                 sub     ax, 2           ; First cluster is 2 so
                                         ; decrement to make 0 based
@@ -391,7 +341,7 @@ ReadInFirstCluster:                     ; CODE XREF: MSLOAD:0229↑j
                 pop     ax
                 inc     ax              ; +1 cluster loaded
 
-SetNextClusterNum:                      ; CODE XREF: MSLOAD:025F↑j
+SetNextClusterNum:                      ; ...
                 inc     ax              ; ax = total clusters read in based 2
                 add     ds:CurrentClusterL, ax ; CurrentCluster = Last cluster read
                 adc     ds:CurrentClusterH, 0
@@ -416,7 +366,7 @@ SaveLoadedBios:
                 pop     ds
                 assume ds:nothing
 
-GetContigClusters:                      ; CODE XREF: MSLOAD:0348↓j
+GetContigClusters:                      ; ...
                 xor     ah, ah          ; go find clusters as long as they are contiguous
                 mov     al, ds:SecPerCluster
                 mov     ds:SectorCount, ax
@@ -453,7 +403,7 @@ GetContigClusters:                      ; CODE XREF: MSLOAD:0348↓j
                 jmp     short GetContigClusters
 ; ---------------------------------------------------------------------------
 
-GoToBioInit:                            ; CODE XREF: MSLOAD:0309↑j
+GoToBioInit:                            ; ...
                 mov     ch, ds:MediaByte ; Set up required registers for iosys,
                                         ;  then jump to it (70:0)
                                         ;
@@ -475,7 +425,7 @@ GoToBioInit:                            ; CODE XREF: MSLOAD:0309↑j
 ; =============== S U B R O U T I N E =======================================
 
 
-check_int13h_extensions proc near       ; CODE XREF: ReadSectors+C↓p
+check_int13h_extensions proc near       ; ...
                 push    ax
                 push    dx
                 xor     ax, ax
@@ -498,7 +448,7 @@ check_int13h_extensions proc near       ; CODE XREF: ReadSectors+C↓p
                 int     13h             ; DISK - IBM/MS Extension - GET DRIVE PARAMETERS
                                         ; (DL - drive, DS:SI - buffer)
 
-not_hard_disk:                          ; CODE XREF: check_int13h_extensions+1D↑j
+not_hard_disk:                          ; ...
                 pop     ds
                 assume ds:nothing
                 mov     sp, bx
@@ -508,8 +458,7 @@ not_hard_disk:                          ; CODE XREF: check_int13h_extensions+1D�
                 jz      short int13h_ext_err
                 stc
 
-int13h_ext_err:                         ; CODE XREF: check_int13h_extensions+25↑j
-                                        ; check_int13h_extensions+2A↑j
+int13h_ext_err:                         ; ...
                 pop     dx
                 pop     ax
                 retn
@@ -519,12 +468,10 @@ check_int13h_extensions endp
 ; =============== S U B R O U T I N E =======================================
 
 
-ReadSectors     proc near               ; CODE XREF: MSLOAD:02BC↑p
-                                        ; MSLOAD:033C↑p ...
+ReadSectors     proc near               ; ...
                 mov     cx, 5
 
-TryRead:                                ; CODE XREF: ReadSectors+D8↓j
-                                        ; ReadSectors+DE↓j
+TryRead:                                ; ...
                 push    cx              ; (*)
                 mov     ax, ds:StartSecL
                 mov     dx, ds:StartSecH
@@ -563,23 +510,22 @@ TryRead:                                ; CODE XREF: ReadSectors+D8↓j
                 jmp     ReadOk
 ; ---------------------------------------------------------------------------
 
-lba_read_err:                           ; CODE XREF: ReadSectors+31↑j
+lba_read_err:                           ; ...
                 add     sp, bx
 
-chs_read:                               ; CODE XREF: ReadSectors+F↑j
+chs_read:                               ; ...
                 mov     ax, dx          ; start sector, hw
                 xor     dx, dx
                 cmp     ds:SecPerTrack, ax ; hw of disk (LBA) address
                                         ; (must not be > sectors per track)
                 jnb     short DoDivide
 
-ErrorOut:                               ; CODE XREF: MSLOAD:01C3↑j
-                                        ; ReadSectors:ReadError↓j
+ErrorOut:                               ; ...
                 push    cs
                 pop     ds
                 mov     si, offset NonSystemDiskMsg ; "\r\nNon-System disk or disk error\r\nRe"...
 
-WriteTTY:                               ; CODE XREF: ReadSectors+58↓j
+WriteTTY:                               ; ...
                 lodsb
                 or      al, al
                 jz      short wait_key_reboot
@@ -589,7 +535,7 @@ WriteTTY:                               ; CODE XREF: ReadSectors+58↓j
                 jmp     short WriteTTY
 ; ---------------------------------------------------------------------------
 
-wait_key_reboot:                        ; CODE XREF: ReadSectors+50↑j
+wait_key_reboot:                        ; ...
                 xor     ah, ah
                 int     16h             ; KEYBOARD -
                 xor     bx, bx
@@ -602,7 +548,7 @@ wait_key_reboot:                        ; CODE XREF: ReadSectors+50↑j
                 int     19h             ; DISK BOOT
                                         ; causes reboot of disk system
 
-DoDivide:                               ; CODE XREF: ReadSectors+46↑j
+DoDivide:                               ; ...
                 div     ds:SecPerTrack  ; 32 bit division
                 mov     ds:TempH, ax
                 pop     ax              ; start sector, lw
@@ -614,7 +560,7 @@ DoDivide:                               ; CODE XREF: ReadSectors+46↑j
                 jnb     short GotLength
                 mov     si, ds:SectorCount
 
-GotLength:                              ; CODE XREF: ReadSectors+89↑j
+GotLength:                              ; ...
                 inc     dl              ; Sector numbers are 1-based
                 mov     bl, dl
                 mov     dx, ds:TempH    ; dx:ax = Track
@@ -662,18 +608,16 @@ GotLength:                              ; CODE XREF: ReadSectors+89↑j
                 pop     cx
                 dec     cx              ; Get retry count back
                 jz      short ReadError
-                jmp     TryRead         ; DATA XREF: BIOSDATA:1712↓w
-                                        ; BIOSDATA:1720↓w ...
+                jmp     TryRead         ; ...
 ; ---------------------------------------------------------------------------
 
-ReadError:                              ; CODE XREF: ReadSectors+D6↑j
+ReadError:                              ; ...
                 jmp     ErrorOut
 ; ---------------------------------------------------------------------------
                 jmp     TryRead
 ; ---------------------------------------------------------------------------
 
-ReadOk:                                 ; CODE XREF: ReadSectors+39↑j
-                                        ; ReadSectors+C5↑j
+ReadOk:                                 ; ...
                 xor     ah, ah          ;  Mask out read command, just get # read
                 sub     ds:SectorCount, ax ; Bump number down
                 jz      short EndRead
@@ -687,7 +631,7 @@ ReadOk:                                 ; CODE XREF: ReadSectors+39↑j
                 jmp     ReadSectors
 ; ---------------------------------------------------------------------------
 
-EndRead:                                ; CODE XREF: ReadSectors+E7↑j
+EndRead:                                ; ...
                 retn
 ReadSectors     endp ; sp-analysis failed
 
@@ -695,7 +639,7 @@ ReadSectors     endp ; sp-analysis failed
 ; =============== S U B R O U T I N E =======================================
 
 
-GetNextFatEntry proc near               ; CODE XREF: MSLOAD:02F6↑p
+GetNextFatEntry proc near               ; ...
                 push    es
                 mov     ax, ds:FatSegment
                 mov     es, ax
@@ -721,11 +665,11 @@ Got32Bit:                               ; Multiply cluster number by 4
                 jnz     short GotFAT32ClusterDone
                 cmp     ax, 0FFF8h
 
-GotFAT32ClusterDone:                    ; CODE XREF: GetNextFatEntry+31↑j
+GotFAT32ClusterDone:                    ; ...
                 jmp     short GotClusterDoneJ
 ; ---------------------------------------------------------------------------
 
-chk_fat_type:                           ; CODE XREF: GetNextFatEntry+17↑j
+chk_fat_type:                           ; ...
                 cmp     ds:FatType, 1
                 jnz     short Got16Bit
 
@@ -756,49 +700,46 @@ Got12Bit:
                 jmp     short EvenOdd
 ; ---------------------------------------------------------------------------
 
-ClusterOk:                              ; CODE XREF: GetNextFatEntry+52↑j
+ClusterOk:                              ; ...
                 mov     ax, es:[bx]
 
-EvenOdd:                                ; CODE XREF: GetNextFatEntry+71↑j
+EvenOdd:                                ; ...
                 test    cs:CurrentClusterL, 1
                 jnz     short OddResult
                 and     ax, 0FFFh
                 jmp     short TestEOF
 ; ---------------------------------------------------------------------------
 
-OddResult:                              ; CODE XREF: GetNextFatEntry+7D↑j
+OddResult:                              ; ...
                 mov     cl, 4
                 shr     ax, cl
 
-TestEOF:                                ; CODE XREF: GetNextFatEntry+82↑j
+TestEOF:                                ; ...
                 xor     di, di
                 cmp     ax, 0FF8h
                 jnb     short GotClusterDone
                 jmp     short NotLastCluster
 ; ---------------------------------------------------------------------------
 
-Got16Bit:                               ; CODE XREF: GetNextFatEntry+3D↑j
+Got16Bit:                               ; ...
                 push    dx
                 xor     dx, dx
                 shl     ax, 1           ; Multiply cluster by 2
                 adc     di, di
-
-loc_534:                                ; Get the FAT offset (di:si)
-                mov     si, ax
+                mov     si, ax          ; Get the FAT offset (di:si)
                 call    GetFatSector
                 pop     dx
                 xor     di, di          ; HW of cluster number is 0
                 mov     ax, es:[bx]
                 cmp     ax, 0FFF8h
 
-GotClusterDoneJ:                        ; CODE XREF: GetNextFatEntry:GotFAT32ClusterDone↑j
+GotClusterDoneJ:                        ; ...
                 jnb     short GotClusterDone
 
-NotLastCluster:                         ; CODE XREF: GetNextFatEntry+8F↑j
+NotLastCluster:                         ; ...
                 mov     cs:EndOfFile, 0 ; NOT END_OF_FILE ; Assume not last cluster
 
-GotClusterDone:                         ; CODE XREF: GetNextFatEntry+8D↑j
-                                        ; GetNextFatEntry:GotClusterDoneJ↑j
+GotClusterDone:                         ; ...
                 pop     es
                 retn
 GetNextFatEntry endp
@@ -807,8 +748,7 @@ GetNextFatEntry endp
 ; =============== S U B R O U T I N E =======================================
 
 
-GetFatSector    proc near               ; CODE XREF: GetNextFatEntry+23↑p
-                                        ; GetNextFatEntry+4E↑p ...
+GetFatSector    proc near               ; ...
                 push    ax              ; di:si = byte offset in (entire) FAT
                 push    si
                 push    di
@@ -824,7 +764,7 @@ GetFatSector    proc near               ; CODE XREF: GetNextFatEntry+23↑p
                 jnz     short not_same_fat_sector
                 cmp     ax, ds:LastFatSectorL ; The same fat sector?
 
-not_same_fat_sector:                    ; CODE XREF: GetFatSector+1B↑j
+not_same_fat_sector:                    ; ...
                 jz      short SplitChk  ; Don't need to read it again.
                 mov     ds:LastFatSectorL, ax
                 mov     ds:LastFatSectorH, bx
@@ -842,7 +782,7 @@ not_same_fat_sector:                    ; CODE XREF: GetFatSector+1B↑j
                 pop     dx
                 mov     cx, ds:BytesPerSec
 
-SplitChk:                               ; CODE XREF: GetFatSector:not_same_fat_sector↑j
+SplitChk:                               ; ...
                 dec     cx              ; cx = sector size - 1  (= 511)
                 cmp     dx, cx          ; If last byte of sector, splitted entry.
                 mov     bx, dx          ; set bx to dx
@@ -853,7 +793,7 @@ SplitChk:                               ; CODE XREF: GetFatSector:not_same_fat_s
 GetFatSector    endp                    ;  (next FAT12 sector will be read)
 
 ; ---------------------------------------------------------------------------
-NonSystemDiskMsg db 0Dh,0Ah             ; DATA XREF: ReadSectors+4A↑o
+NonSystemDiskMsg db 0Dh,0Ah             ; ...
                 db 'Non-System disk or disk error',0Dh,0Ah ; EndOfLoader (MSLOAD:05F0h)
                 db 'Replace and press any key when ready',0Dh,0Ah,0
 MSLOAD          ends
@@ -866,38 +806,27 @@ BIOSDATA        segment byte public 'BIOSDATA' use16
                 assume cs:BIOSDATA
                 assume es:nothing, ss:nothing, ds:nothing, fs:nothing, gs:nothing
 
-hdrv_pat:                               ; CODE XREF: BIOSDATA:0202↓j
-                                        ; DATA XREF: BIOSDATA:1FCC↓w
+hdrv_pat:                               ; ...
                 jmp     init            ; BData_start
 ; ---------------------------------------------------------------------------
-DosDataSg       dw 0                    ; DATA XREF: cdev_entry+9↓r
-                                        ; BIOSDATA:232E↓w
+DosDataSg       dw 0                    ; ...
 bios_i2f        db 0EAh                 ; far jump to int_2f
                 dw offset i2f_handler
-bios_i2f_seg    dw 364h                 ; DATA XREF: BIOSCODE:0042↓w
+bios_i2f_seg    dw 364h                 ; ...
                                         ; IOSYSCODESEG (IBMBIO.COM code segment)
                                         ; BIOSCODE (2F4h+070h) segment
 romstartaddr    dw 0
-altah           db 0                    ; DATA XREF: BIOSDATA:cbreak↓w
-                                        ; BIOSDATA:07FC↓o ...
-inHMA           db 0                    ; DATA XREF: cdev_entry↓r
-                                        ; block13↓r ...
-xms             dd 0                    ; DATA XREF: EnsureA20On+9↓r
-                                        ; AllocHMA+10↓w ...
-ptrsav          dd 0                    ; DATA XREF: BIOSDATA:strategy↓w
-                                        ; BIOSCODE:0065↓r ...
-auxbuf          db 4 dup(0)             ; DATA XREF: getbx+4↓o
-zeroseg         dw 0                    ; DATA XREF: checksingle+45↓r
-                                        ; checksingle+5F↓r ...
-i13_ds          dw 0                    ; DATA XREF: block13:skipa20↓w
-                                        ; block13+16↓r ...
-prevoper        dw 0                    ; DATA XREF: BIOSCODE:ps2_special_stuff↓r
-                                        ; BIOSCODE:18CD↓r ...
-number_of_sec   db 0                    ; DATA XREF: BIOSCODE:1950↓w
-                                        ; BIOSCODE:ok11_op↓w
-auxnum          dw 0                    ; DATA XREF: BIOSCODE:005E↓w
-                                        ; prnop↓r ...
-res_dev_list    dw offset auxdev2       ; DATA XREF: BIOSDATA:1F71↓o
+altah           db 0                    ; ...
+inHMA           db 0                    ; ...
+xms             dd 0                    ; ...
+ptrsav          dd 0                    ; ...
+auxbuf          db 4 dup(0)             ; ...
+zeroseg         dw 0                    ; ...
+i13_ds          dw 0                    ; ...
+prevoper        dw 0                    ; ...
+number_of_sec   db 0                    ; ...
+auxnum          dw 0                    ; ...
+res_dev_list    dw offset auxdev2       ; ...
                                         ; CONHeader
                                         ; HEADER FOR DEVICE "CON"
                 dw 70h
@@ -905,68 +834,62 @@ res_dev_list    dw offset auxdev2       ; DATA XREF: BIOSDATA:1F71↓o
                 dw offset strategy
                 dw offset con_entry
                 db 'CON     '
-auxdev2         dw offset prndev2       ; DATA XREF: BIOSDATA:res_dev_list↑o
+auxdev2         dw offset prndev2       ; ...
                                         ; HEADER FOR DEVICE "AUX"
                 dw 70h
                 dw 8000h
-                dw offset strategy
+off_62B         dw offset strategy
                 dw offset aux0_entry
-                db 'AUX     '
-prndev2         dw offset timdev        ; DATA XREF: BIOSDATA:auxdev2↑o
+asc_62F         db 'AUX     '
+prndev2         dw offset timdev        ; ...
                                         ; HEADER FOR DEVICE "PRN"
                 dw 70h
                 dw 0A0C0h
                 dw offset strategy
                 dw offset prn0_entry
                 db 'PRN     '
-timdev          dw offset dskdev        ; DATA XREF: BIOSDATA:prndev2↑o
+timdev          dw offset dskdev        ; ...
                                         ; HEADER FOR DEVICE "CLOCK$"
                 dw 70h
                 dw 8008h
                 dw offset strategy
                 dw offset tim_entry
                 db 'CLOCK$  '
-dskdev          dw offset com1dev       ; DATA XREF: BIOSDATA:timdev↑o
+dskdev          dw offset com1dev       ; ...
                                         ; HEADER FOR DISK DEVICES
                 dw 70h
                 dw 48C2h
                 dw offset strategy
                 dw offset dsk_entry
-drvmax          db 4                    ; DATA XREF: BIOSDATA:1FD5↓w
-                                        ; BIOSDATA:loop_drive↓r ...
+drvmax          db 4                    ; ...
                                         ; maximum number of drives
-step_drv        db 0FEh                 ; DATA XREF: read_sector:okret2↓w
-                                        ; disk+50↓r ...
+step_drv        db 0FEh                 ; ...
                                         ; -2 ; last drive accessed
-fhave96         db 0                    ; DATA XREF: BIOSDATA:20CF↓w
-                                        ; BIOSDATA:212B↓w ...
+fhave96         db 0                    ; ...
                                         ; 96tpi support
-single          db 0                    ; DATA XREF: BIOSDATA:settwodrive↓w
-                                        ; BIOSDATA:219C↓r ...
+single          db 0                    ; ...
                                         ; used to detect single drive systems
-fhavek09        db 0                    ; DATA XREF: BIOSDATA:2302↓w
-                                        ; con_rdnd+F↓r
+fhavek09        db 0                    ; ...
                                         ; indicates if this is a k09 or not
                                         ; used by console driver.
-fsetowner       db 0                    ; DATA XREF: checksingle+32↓r
-                                        ; ioctl_getown+21↓w ...
+fsetowner       db 0                    ; ...
                                         ; = 1 if we are setting the owner of a drive.
                                         ; (examined by checksingle)
-com1dev         dw offset lpt1dev       ; DATA XREF: BIOSDATA:dskdev↑o
+com1dev         dw offset lpt1dev       ; ...
                                         ; Device Header for device "COM1"
                 dw 70h
                 dw 8000h
                 dw offset strategy
                 dw offset aux0_entry
                 db 'COM1    '
-lpt1dev         dw offset lpt2dev       ; DATA XREF: BIOSDATA:com1dev↑o
+lpt1dev         dw offset lpt2dev       ; ...
                                         ; Device Header for device LPT1
                 dw 70h
                 dw 0A0C0h
                 dw offset strategy
                 dw offset prn1_entry
                 db 'LPT1    '
-lpt2dev         dw offset lpt3dev       ; DATA XREF: BIOSDATA:lpt1dev↑o
+lpt2dev         dw offset lpt3dev       ; ...
                                         ; Device Header for device LPT2
                 dw 70h
                 dw 0A0C0h
@@ -974,45 +897,42 @@ lpt2dev         dw offset lpt3dev       ; DATA XREF: BIOSDATA:lpt1dev↑o
                 dw offset prn2_entry
                 db 'LPT2    '
                 db 3 dup(0)
-Orig13          dd 0                    ; DATA XREF: call_orig13+5↓r
-                                        ; BIOSDATA:1DB0↓w ...
+Orig13          dd 0                    ; ...
                                         ; to make Orig13 offset 0B4h
-lpt3dev         dw offset com2dev       ; DATA XREF: BIOSDATA:lpt2dev↑o
+lpt3dev         dw offset com2dev       ; ...
                                         ; Device Header for device LPT3
                 dw 70h
                 dw 0A0C0h
                 dw offset strategy
                 dw offset prn3_entry
                 db 'LPT3    '
-com2dev         dw offset com3dev       ; DATA XREF: BIOSDATA:lpt3dev↑o
+com2dev         dw offset com3dev       ; ...
                                         ; Device Header for device "COM2"
                 dw 70h
                 dw 8000h
                 dw offset strategy
                 dw offset aux1_entry
                 db 'COM2    '
-com3dev         dw offset com4dev       ; DATA XREF: BIOSDATA:com2dev↑o
+com3dev         dw offset com4dev       ; ...
                                         ; Device Header for device "COM3"
                 dw 70h
                 dw 8000h
                 dw offset strategy
                 dw offset aux2_entry
                 db 'COM3    '
-com4dev         dw 0FFFFh               ; DATA XREF: BIOSDATA:com3dev↑o
+com4dev         dw 0FFFFh               ; ...
                                         ; Device Header for device "COM4"
                 dw 70h
                 dw 8000h
                 dw offset strategy
                 dw offset aux3_entry
                 db 'COM4    '
-RomVectors      db 10h                  ; DATA XREF: BIOSDATA:0761↓o
-                                        ; BIOSDATA:1D94↓o
+RomVectors      db 10h                  ; ...
 Old10           dd 0
                 db 13h
-Old13           dd 0                    ; DATA XREF: BIOSDATA:atd1↓r
-                                        ; BIOSDATA:no_hookit↓r ...
+Old13           dd 0                    ; ...
                 db 15h
-Old15           dd 0                    ; DATA XREF: BIOSDATA:Old15_j↓r
+Old15           dd 0                    ; ...
                 db 19h
 Old19           dd 0
                 db 1Bh
@@ -1020,72 +940,50 @@ Old1B           dd 0                    ; ;
                                         ; EndRomVectors equ $
                                         ; NUMROMVECTORS equ ((EndRomVectors - RomVectors)/5)
                                         ; ;
-start_bds       dw offset bds1          ; DATA XREF: BIOSDATA:2024↓o
-                                        ; remap↓r ...
+start_bds       dw offset bds1          ; ...
                                         ; Start of linked list of BDS's
                 dw 70h                  ; BIOSDATA segment
-accesscount     db 0                    ; DATA XREF: Check_Time_Of_Access+12↓r
-                                        ; Check_Time_Of_Access:timecheck_ret↓w ...
-tim_drv         db 0FFh                 ; DATA XREF: BIOSCODE:05D4↓w
-                                        ; BIOSCODE:0600↓r ...
-medbyt          db 0                    ; DATA XREF: diskio+D↓w
-                                        ; fat_check+3↓r
-rflag           db 2                    ; DATA XREF: BIOSCODE:dsk_writv↓w
-                                        ; BIOSCODE:dsk_writ↓w ...
+accesscount     db 0                    ; ...
+tim_drv         db 0FFh                 ; ...
+medbyt          db 0                    ; ...
+rflag           db 2                    ; ...
                                         ; 2 for read, 3 for write
 verify          db 0                    ; 1 if verify after write
-seccnt          dw 0                    ; DATA XREF: diskio+19↓w
-                                        ; diskio+BF↓r ...
+seccnt          dw 0                    ; ...
                 db 0                    ; -- pad where hardnum was
-dsktnum         db 1                    ; DATA XREF: BIOSDATA:1FD8↓w
-                                        ; BIOSDATA:2245↓r ...
+dsktnum         db 1                    ; ...
                                         ; number of diskette drives
-motorstartup    db 0                    ; DATA XREF: BIOSDATA:1F13↓w
-                                        ; iosetup+20↓w ...
+motorstartup    db 0                    ; ...
                                         ; value from table
-settlecurrent   db 0                    ; DATA XREF: iosetup+40↓w
-                                        ; done+1F↓r
+settlecurrent   db 0                    ; ...
                                         ; value from table
-settleslow      db 0                    ; DATA XREF: iosetup+45↓w
-                                        ; normspeed+9↓r
+settleslow      db 0                    ; ...
                                         ; slow settle value
 nextspeed       db 0                    ; value of speed to be used
-save_head_sttl  db 0                    ; DATA XREF: read_sector+37↓w
-                                        ; read_sector+4D↓r
+save_head_sttl  db 0                    ; ...
                                         ; used by read_sector routine
-save_eot        db 0                    ; DATA XREF: iosetup+23↓w
-                                        ; done+18↓r
+save_eot        db 0                    ; ...
                                         ; saved eot from the default DPT
-eot             db 9                    ; DATA XREF: BIOSDATA:201F↓w
-                                        ; BIOSDATA:20AC↓r ...
-dpt             dd 0                    ; DATA XREF: read_sector+2B↓r
-                                        ; read_sector+51↓r ...
+eot             db 9                    ; ...
+dpt             dd 0                    ; ...
                                         ; pointer to Disk Parameter Table
-cursec          db 0                    ; DATA XREF: diskio+157↓w
-                                        ; block+1D↓r ...
+cursec          db 0                    ; ...
                                         ; current sector
-curhd           db 0                    ; DATA XREF: diskio+173↓w
-                                        ; disk+41↓r ...
+curhd           db 0                    ; ...
                                         ; current head
-curtrk          dw 0                    ; DATA XREF: diskio+177↓w
-                                        ; disk+1F↓r ...
+curtrk          dw 0                    ; ...
                                         ; current track
-spsav           dw 0                    ; DATA XREF: diskio+1D↓w
-                                        ; disk+13E↓r ...
+spsav           dw 0                    ; ...
                                         ; save the stack pointer
-formt_eot       db 8                    ; DATA XREF: SetDasd+5B↓w
-                                        ; ToRom+21↓r
+formt_eot       db 8                    ; ...
                                         ; eot used for format
-hdnum           db 0                    ; DATA XREF: BIOSCODE:110D↓w
-                                        ; ToRom+47↓r
+hdnum           db 0                    ; ...
                                         ; head number
-trknum          dw 0                    ; DATA XREF: BIOSCODE:110A↓w
-                                        ; ToRom:GotValidDpt↓r
+trknum          dw 0                    ; ...
                                         ; track being manipulated
-gap_patch       db 50h                  ; DATA XREF: SetDasd+1A↓w
-                                        ; SetDasd+3A↓w ...
+gap_patch       db 50h                  ; ...
                                         ; format gap patched into dpt
-errin           db 0CCh                 ; DATA XREF: maperror+C↓o
+errin           db 0CCh                 ; ...
                                         ; write fault (hard disk)
                 db 80h                  ; timeout (not ready)
                 db 40h                  ; seek failed
@@ -1096,7 +994,7 @@ errin           db 0CCh                 ; DATA XREF: maperror+C↓o
                 db 3                    ; disk write-protected
                 db 1                    ; invalid function in AH or invalid parameter
                 db 0B2h                 ; volume not removable
-lsterr          db 0                    ; DATA XREF: maperror+6↓w
+lsterr          db 0                    ; ...
 errout          db 10                   ; write fault error
                 db 2                    ; no response (timeout)
                 db 6                    ; seek failure
@@ -1108,8 +1006,7 @@ errout          db 10                   ; write fault error
                 db 3                    ; unknown command error
                 db 3                    ; unknown command error
                 db 12                   ; general error
-disksector      db 174 dup(0)           ; DATA XREF: BIOSDATA:1C54↓o
-                                        ; sethard+19A↓o ...
+disksector      db 174 dup(0)           ; ...
                                         ; 512 byte buffer
 ; ---------------------------------------------------------------------------
 
@@ -1120,12 +1017,12 @@ JB_sign:                                ; 'BJ' (nasm) ; dw 424Ah
 ; ---------------------------------------------------------------------------
 IBMBIOCOM$      db '@#IBM:12.01.2003.build_1.32#@ IBMBIO.COM(USA)',0
                 db 287 dup(0)
-bds1            dw offset bds2          ; DATA XREF: BIOSDATA:start_bds↑o
+bds1            dw offset bds2          ; ...
                                         ; dword link to next structure
                 dw 70h
                 db 0                    ; int 13h drive number
                 db 0                    ; logical drive letter
-fdrive1         dw 512                  ; DATA XREF: BIOSDATA:dskdrvs↓o
+fdrive1         dw 512                  ; ...
                                         ; physical sector size in bytes
                 db 0FFh                 ; sectors/allocation unit
                 dw 1                    ; reserved sectors for dos
@@ -1179,11 +1076,11 @@ recommended_bps dw 512                  ; recommended bps for this drive
                 db 'NO NAME    ',0      ; volume id for this disk
                 dd 0                    ; current volume serial from boot record
                 db 'FAT12   ',0         ; current file system id from boot record
-bds2            dw 0FFFFh               ; DATA XREF: BIOSDATA:bds1↑o
+bds2            dw 0FFFFh               ; ...
                 dw 70h
                 db 0
                 db 0
-fdrive2         dw 512                  ; DATA XREF: BIOSDATA:053E↓o
+fdrive2         dw 512                  ; ...
                 db 0FFh
                 dw 1
                 db 2
@@ -1231,34 +1128,23 @@ recbpb2         dw 512
                 db 'NO NAME    ',0
                 dd 0
                 db 'FAT12   ',0
-keyrd_func      db 0                    ; DATA XREF: BIOSDATA:1FB9↓w
-                                        ; chrin↓r ...
-keysts_func     db 1                    ; DATA XREF: BIOSDATA:1FBF↓w
-                                        ; con_rdnd+7↓r ...
-printdev        db 0                    ; DATA XREF: BIOSCODE:0061↓w
-                                        ; BIOSCODE:029D↓r ...
+keyrd_func      db 0                    ; ...
+keysts_func     db 1                    ; ...
+printdev        db 0                    ; ...
                                         ; printer device index
-wait_count      dw 50h                  ; DATA XREF: BIOSCODE:02A3↓r
-                                        ; BIOSCODE:02E1↓r ...
+wait_count      dw 50h                  ; ...
                                         ; retry counts for printers
                 dw 50h
                 dw 50h
                 dw 50h
-daycnt          dw 0                    ; DATA XREF: BIOSDATA:185A↓w
-                                        ; cmos_clock_read+33↓w ...
+daycnt          dw 0                    ; ...
                                         ; flag for updating daycnt
-t_switch        db 0                    ; DATA XREF: GetTickCnt+6↓r
-                                        ; doconf+A46↓w
-havecmoscloc    db 0                    ; DATA XREF: cmos_clock_read:clock_present↓w
-                                        ; BIOSCODE:03EE↓r ...
-base_century    db 19                   ; DATA XREF: daycnttoday+C↓w
-                                        ; daycnttoday:century20↓w ...
-base_year       db 80                   ; DATA XREF: daycnttoday+32↓w
-                                        ; daycnttoday+42↓w ...
-month_table     db 31                   ; DATA XREF: read_real_date+9D↓o
-                                        ; daycnttoday+6F↓o
-february        db 28                   ; DATA XREF: daycnttoday:leapyear↓w
-                                        ; daycnttoday:month_done↓w
+t_switch        db 0                    ; ...
+havecmoscloc    db 0                    ; ...
+base_century    db 19                   ; ...
+base_year       db 80                   ; ...
+month_table     db 31                   ; ...
+february        db 28                   ; ...
                 db 31
                 db 30
                 db 31
@@ -1269,34 +1155,23 @@ february        db 28                   ; DATA XREF: daycnttoday:leapyear↓w
                 db 31
                 db 30
                 db 31
-set_id_flag     db 0                    ; DATA XREF: get_bpb+10↓w
-                                        ; get_bpb+1A↓r ...
+set_id_flag     db 0                    ; ...
                                         ; flag for getbp routine
-start_sec_h     dw 0                    ; DATA XREF: getclus+F9↓w
-                                        ; get_fat_sector+35↓w ...
+start_sec_h     dw 0                    ; ...
                                         ; starting sector number high word
-saved_word      dw 0                    ; DATA XREF: sethard+174↓w
-                                        ; sethard+185↓r ...
+saved_word      dw 0                    ; ...
                                         ; tempory saving place for a word
-multrk_flag     dw 0                    ; DATA XREF: block+B↓r
-                                        ; disk+88↓r ...
-ec35_flag       db 0                    ; DATA XREF: BIOSCODE:18AA↓r
-                                        ; BIOSCODE:format_special_stuff_done↓r ...
+multrk_flag     dw 0                    ; ...
+ec35_flag       db 0                    ; ...
                                         ; flags for 3.5 inch disk drives
-vretry_cnt      dw 0                    ; DATA XREF: diskio+C9↓w
-                                        ; diskio+128↓w ...
-soft_ecc_cnt    dw 0                    ; DATA XREF: diskio+CD↓w
-                                        ; diskio:set_lbarw_5↓w ...
-multitrk_format_flag db 0               ; DATA XREF: disk:dskerr_nochangeline↓r
-                                        ; disk+108↓w ...
+vretry_cnt      dw 0                    ; ...
+soft_ecc_cnt    dw 0                    ; ...
+multitrk_format_flag db 0               ; ...
                                         ; multi track format request flag
-xfer_seg        dw 0                    ; DATA XREF: diskio+2↓w
-                                        ; diskio+B8↓r ...
+xfer_seg        dw 0                    ; ...
                                         ; temp for transfer segment
-sectorspertrack dw 36                   ; DATA XREF: BIOSCODE:106D↓w
-                                        ; BIOSCODE:1116↓r ...
-tracktable      db 0, 0, 1, 2           ; DATA XREF: BIOSCODE:1088↓o
-                                        ; BIOSCODE:1113↓o ...
+sectorspertrack dw 36                   ; ...
+tracktable      db 0, 0, 1, 2           ; ...
                 db 0, 0, 2, 2
                 db 0, 0, 3, 2
                 db 0, 0, 4, 2
@@ -1332,30 +1207,22 @@ tracktable      db 0, 0, 1, 2           ; DATA XREF: BIOSCODE:1088↓o
                 db 0, 0, 34, 2
                 db 0, 0, 35, 2
                 db 0, 0, 36, 2
-dskdrvs         dw offset fdrive1       ; DATA XREF: BIOSDATA:last_dskdrv_table↓o
-                                        ; BIOSDATA:2050↓o ...
+dskdrvs         dw offset fdrive1       ; ...
                 dw offset fdrive2
                 dw 52 dup(0)            ; times (((4*63)-144)-4) db 0
                                         ; 4*max_sectors_curr_sup-($-tracktable)-4 dup (0)
-mediatype       db 0                    ; DATA XREF: BIOSCODE:1011↓w
-                                        ; SetDasd+32↓r
-media_set_for_format db 0               ; DATA XREF: read_sector+22↓r
-                                        ; read_sector+45↓r ...
+mediatype       db 0                    ; ...
+media_set_for_format db 0               ; ...
                                         ; 1 if we have done an int 13h set media
                                         ; type for format call
-had_format_error db 0                   ; DATA XREF: BIOSCODE:1151↓w
-                                        ; BIOSCODE:FormatFailed↓w ...
+had_format_error db 0                   ; ...
                                         ; 1 if the previous format operation failed.
-tempdpt         dd 0FFFFFFFFh           ; DATA XREF: SetMediaForFormat+60↓w
-                                        ; RestoreOldDpt+11↓r ...
+tempdpt         dd 0FFFFFFFFh           ; ...
                                         ; -1 ; temp disk base table
-model_byte      db 0FFh                 ; DATA XREF: BIOSDATA:1E71↓w
-                                        ; BIOSDATA:1E88↓w ...
+model_byte      db 0FFh                 ; ...
                                         ; model byte set at init time
-secondary_model_byte db 0               ; DATA XREF: BIOSDATA:1E79↓w
-                                        ; cmosck+9↓r ...
-int19sem        db 0                    ; DATA XREF: BIOSDATA:076F↓r
-                                        ; stackinit+37A↓w
+secondary_model_byte db 0               ; ...
+int19sem        db 0                    ; ...
                                         ; indicate that all int 19h initialization is complete
                                         ;
                                         ; irp    aa,<02,08,09,0a,0b,0c,0d,0e,70,72,73,74,76,77>
@@ -1363,140 +1230,132 @@ int19sem        db 0                    ; DATA XREF: BIOSDATA:076F↓r
                                         ; db     aa&h       ; store the number as a byte
                                         ; int19old&aa dd -1 ; original hardware int. vectors for int 19h.
                                         ; endm
-i19_lst         db 2                    ; DATA XREF: BIOSDATA:0775↓o
-int19old02      dd 0FFFFFFFFh           ; DATA XREF: stackinit+A9↓o
+i19_lst         db 2                    ; ...
+int19old02      dd 0FFFFFFFFh           ; ...
                                         ; Int19old&aa
                                         ; db aa&h
                                         ; dd -1 ; original hardware int. vectors for int 19h
                 db 8
-int19old08      dd 0FFFFFFFFh           ; DATA XREF: stackinit+B8↓o
+int19old08      dd 0FFFFFFFFh           ; ...
                 db 9
-int19old09      dd 0FFFFFFFFh           ; DATA XREF: stackinit+C7↓o
+int19old09      dd 0FFFFFFFFh           ; ...
                 db 0Ah
-int19old0A      dd 0FFFFFFFFh           ; DATA XREF: stackinit+113↓o
+int19old0A      dd 0FFFFFFFFh           ; ...
                 db 0Bh
-int19old0B      dd 0FFFFFFFFh           ; DATA XREF: stackinit+153↓o
+int19old0B      dd 0FFFFFFFFh           ; ...
                 db 0Ch
-int19old0C      dd 0FFFFFFFFh           ; DATA XREF: stackinit+193↓o
+int19old0C      dd 0FFFFFFFFh           ; ...
                 db 0Dh
-int19old0D      dd 0FFFFFFFFh           ; DATA XREF: stackinit+1D3↓o
+int19old0D      dd 0FFFFFFFFh           ; ...
                 db 0Eh
-int19old0E      dd 0FFFFFFFFh           ; DATA XREF: stackinit+213↓o
+int19old0E      dd 0FFFFFFFFh           ; ...
                 db 70h
-int19old70      dd 0FFFFFFFFh           ; DATA XREF: stackinit+D6↓o
+int19old70      dd 0FFFFFFFFh           ; ...
                 db 72h
-int19old72      dd 0FFFFFFFFh           ; DATA XREF: stackinit+253↓o
+int19old72      dd 0FFFFFFFFh           ; ...
                 db 73h
-int19old73      dd 0FFFFFFFFh           ; DATA XREF: stackinit+293↓o
+int19old73      dd 0FFFFFFFFh           ; ...
                 db 74h
-int19old74      dd 0FFFFFFFFh           ; DATA XREF: stackinit+2D3↓o
+int19old74      dd 0FFFFFFFFh           ; ...
                 db 76h
-int19old76      dd 0FFFFFFFFh           ; DATA XREF: stackinit+313↓o
+int19old76      dd 0FFFFFFFFh           ; ...
                 db 77h
-int19old77      dd 0FFFFFFFFh           ; DATA XREF: stackinit+353↓o
-int6c_ret_addr  dd 0                    ; DATA XREF: BIOSDATA:184D↓w
-                                        ; BIOSDATA:1868↓r ...
-bin_date_time   db 0, 0, 0, 0           ; DATA XREF: read_real_date:read_ok↓w
-                                        ; read_real_date+50↓r ...
-daycnt2         dw 0                    ; DATA XREF: read_real_date+E↓w
-                                        ; read_real_date+2D↓w ...
-cdev            dw offset chardev_entry ; DATA XREF: cdev_entry:ce_enter_codeseg↓r
-cdev_2          dw 364h                 ; DATA XREF: BIOSDATA:1B79↓r
-                                        ; BIOSCODE:0037↓o
+int19old77      dd 0FFFFFFFFh           ; ...
+int6c_ret_addr  dd 0                    ; ...
+bin_date_time   db 0, 0, 0, 0           ; ...
+daycnt2         dw 0                    ; ...
+cdev            dw offset chardev_entry ; ...
+cdev_2          dw 364h                 ; ...
                                         ; BIOSCODE segment = 364h (for PCDOS 7.1 IBMBIO.COM)
-ttticks         dw offset time_to_ticks ; DATA XREF: read_real_time+34↓r
-                                        ; BIOSCODE:0420↓r
+ttticks         dw offset time_to_ticks ; ...
                 dw 364h                 ; BIOSCODE segment (70h+2F4h)
-i13x            dw offset i13z          ; DATA XREF: block13+11↓r
+i13x            dw offset i13z          ; ...
                 dw 364h                 ; BIOSCODE segment
 ; ---------------------------------------------------------------------------
 
-cbreak:                                 ; DATA XREF: BIOSDATA:1EE1↓o
+cbreak:                                 ; ...
                 mov     cs:altah, 3     ; indicate break key set
 
-intret:                                 ; DATA XREF: BIOSDATA:1EF6↓o
-                                        ; BIOSDATA:resetintf↓o
+intret:                                 ; ...
                 iret
 ; ---------------------------------------------------------------------------
 
-strategy:                               ; DATA XREF: BIOSDATA:0029↑o
-                                        ; BIOSDATA:003B↑o ...
+strategy:                               ; ...
                 mov     word ptr cs:ptrsav, bx ; store es:bx (device driver request packet)
                                         ;      away at [ptrsav] for next driver function call
                 mov     word ptr cs:ptrsav+2, es
                 retf
 ; ---------------------------------------------------------------------------
 
-con_entry:                              ; DATA XREF: BIOSDATA:002B↑o
+con_entry:                              ; ...
                 call    cdev_entry
 ; ---------------------------------------------------------------------------
                 dw offset con_table
 ; ---------------------------------------------------------------------------
 
-prn0_entry:                             ; DATA XREF: BIOSDATA:004F↑o
+prn0_entry:                             ; ...
                 call    cdev_entry
 ; ---------------------------------------------------------------------------
                 dw offset prn_table
                 db 0, 0
 ; ---------------------------------------------------------------------------
 
-prn1_entry:                             ; DATA XREF: BIOSDATA:0095↑o
+prn1_entry:                             ; ...
                 call    cdev_entry
 ; ---------------------------------------------------------------------------
                 dw offset prn_table
                 db 0, 1
 ; ---------------------------------------------------------------------------
 
-prn2_entry:                             ; DATA XREF: BIOSDATA:00A7↑o
+prn2_entry:                             ; ...
                 call    cdev_entry
 ; ---------------------------------------------------------------------------
                 dw offset prn_table     ; 364h:0FBh = BIOSCODE:0FBh = 70h:303Bh
                 db 1, 2
 ; ---------------------------------------------------------------------------
 
-prn3_entry:                             ; DATA XREF: BIOSDATA:00C0↑o
+prn3_entry:                             ; ...
                 call    cdev_entry
 ; ---------------------------------------------------------------------------
                 dw offset prn_table
                 db 2, 3
 ; ---------------------------------------------------------------------------
 
-aux0_entry:                             ; DATA XREF: BIOSDATA:003D↑o
-                                        ; BIOSDATA:0083↑o
+aux0_entry:                             ; ...
                 call    cdev_entry
 ; ---------------------------------------------------------------------------
                 dw offset aux_table
                 db 0
 ; ---------------------------------------------------------------------------
 
-aux1_entry:                             ; DATA XREF: BIOSDATA:00D2↑o
+aux1_entry:                             ; ...
                 call    cdev_entry
 ; ---------------------------------------------------------------------------
                 dw offset aux_table     ; 364h:130h = BIOSCODE:130h = 70h:3070h
                 db 1
 ; ---------------------------------------------------------------------------
 
-aux2_entry:                             ; DATA XREF: BIOSDATA:00E4↑o
+aux2_entry:                             ; ...
                 call    cdev_entry
 ; ---------------------------------------------------------------------------
                 dw offset aux_table
                 db 2
 ; ---------------------------------------------------------------------------
 
-aux3_entry:                             ; DATA XREF: BIOSDATA:00F6↑o
+aux3_entry:                             ; ...
                 call    cdev_entry
 ; ---------------------------------------------------------------------------
                 dw offset aux_table
                 db 3
 ; ---------------------------------------------------------------------------
 
-tim_entry:                              ; DATA XREF: BIOSDATA:0061↑o
+tim_entry:                              ; ...
                 call    cdev_entry
 ; ---------------------------------------------------------------------------
                 dw offset tim_table     ; 364h:147h ; BIOSCODE:147h ; 70h:3087h
 ; ---------------------------------------------------------------------------
 
-dsk_entry:                              ; DATA XREF: BIOSDATA:0073↑o
+dsk_entry:                              ; ...
                 call    cdev_entry
 ; ---------------------------------------------------------------------------
                 dw offset DSKTBL        ; 364h:579h ; BIOSCODE:579h ; 70h:34B9h
@@ -1504,8 +1363,7 @@ dsk_entry:                              ; DATA XREF: BIOSDATA:0073↑o
 ; =============== S U B R O U T I N E =======================================
 
 
-cdev_entry      proc near               ; CODE XREF: BIOSDATA:con_entry↑p
-                                        ; BIOSDATA:prn0_entry↑p ...
+cdev_entry      proc near               ; ...
                 cmp     cs:inHMA, 0
                 jz      short ce_enter_codeseg ; optimized for DOS in HMA
                 push    ax
@@ -1515,12 +1373,11 @@ cdev_entry      proc near               ; CODE XREF: BIOSDATA:con_entry↑p
                 jnz     short not_from_dos ; jump is coded this way to fall thru
                                         ; in 99.99% of the cases
 
-ce_enter_codeseg:                       ; CODE XREF: cdev_entry+6↑j
-                                        ; cdev_entry+1D↓j
+ce_enter_codeseg:                       ; ...
                 jmp     dword ptr cs:cdev ; jmp far [cs:cdev]
 ; ---------------------------------------------------------------------------
 
-not_from_dos:                           ; CODE XREF: cdev_entry+13↑j
+not_from_dos:                           ; ...
                 call    EnsureA20On
                 jmp     short ce_enter_codeseg
 cdev_entry      endp
@@ -1529,7 +1386,7 @@ cdev_entry      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-outchr          proc far                ; DATA XREF: BIOSDATA:1EEA↓o
+outchr          proc far                ; ...
                 push    ax              ; INT 29h handler
                 push    si
                 push    di
@@ -1549,10 +1406,10 @@ outchr          proc far                ; DATA XREF: BIOSDATA:1EEA↓o
                 jmp     short outchr_ok
 ; ---------------------------------------------------------------------------
 
-win_outchr:                             ; CODE XREF: outchr+13↑j
+win_outchr:                             ; ...
                 int     10h             ; - VIDEO -
 
-outchr_ok:                              ; CODE XREF: outchr+1B↑j
+outchr_ok:                              ; ...
                 pop     ds
                 assume ds:nothing
                 pop     bx
@@ -1567,19 +1424,18 @@ outchr          endp
                 db  50h ; P             ; 'PCI' signature
                 db  43h ; C
                 db  49h ; I
-Orig1A          dd 0                    ; DATA XREF: Int1A+5↓r
-                                        ; Int1A+F↓r ...
+Orig1A          dd 0                    ; ...
 
 ; =============== S U B R O U T I N E =======================================
 
 
-Int1A           proc far                ; DATA XREF: BIOSDATA:1DD4↓o
+Int1A           proc far                ; ...
                 cmp     ah, 4           ; (Y2K-fix)
                 jz      short int1a_1   ; Reads the date from the computer's real-time clock
                 jmp     cs:Orig1A       ; jmp far [cs:Orig1A]
 ; ---------------------------------------------------------------------------
 
-int1a_1:                                ; CODE XREF: Int1A+3↑j
+int1a_1:                                ; ...
                 push    bp
 
 int1a_2:
@@ -1602,19 +1458,17 @@ int1a_2:
                 pop     cx
                 jb      short int1a_4
 
-int1a_3:                                ; CODE XREF: Int1A+19↑j
-                                        ; Int1A+1E↑j
+int1a_3:                                ; ...
                 pop     bp
                 and     byte ptr [bp+6], 0FEh ; clear carry flag
                 jmp     short int1a_5
 ; ---------------------------------------------------------------------------
 
-int1a_4:                                ; CODE XREF: Int1A+14↑j
-                                        ; Int1A+2E↑j
+int1a_4:                                ; ...
                 pop     bp
                 or      byte ptr [bp+6], 1 ; set carry flag
 
-int1a_5:                                ; CODE XREF: Int1A+35↑j
+int1a_5:                                ; ...
                 pop     bp
                 iret
 Int1A           endp
@@ -1623,12 +1477,12 @@ Int1A           endp
 ; =============== S U B R O U T I N E =======================================
 
 
-block13         proc far                ; DATA XREF: BIOSDATA:1DBC↓o
+block13         proc far                ; ...
                 cmp     cs:inHMA, 0
                 jz      short skipa20
                 call    EnsureA20On     ; assure a20 enabled
 
-skipa20:                                ; CODE XREF: block13+6↑j
+skipa20:                                ; ...
                 mov     cs:i13_ds, ds   ; save caller's ds for call-through
                 pushf                   ; fake interrupt
                 call    dword ptr cs:i13x ; call through Bios_Code entry table
@@ -1653,7 +1507,7 @@ call_orig13     proc far
                 jz      short corig13_popf_retf
                 call    EnsureA20On
 
-corig13_popf_retf:                      ; CODE XREF: call_orig13+18↑j
+corig13_popf_retf:                      ; ...
                 popf
 
 re_init:
@@ -1664,8 +1518,7 @@ call_orig13     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-EnsureA20On     proc near               ; CODE XREF: cdev_entry:not_from_dos↑p
-                                        ; block13+8↑p ...
+EnsureA20On     proc near               ; ...
                 call    IsA20Off
                 jnz     short enable_A20_ok
 
@@ -1677,7 +1530,7 @@ EnableA20:                              ; A20 line is OFF
                 pop     bx
                 pop     ax
 
-enable_A20_ok:                          ; CODE XREF: EnsureA20On+3↑j
+enable_A20_ok:                          ; ...
                 retn
 EnsureA20On     endp
 
@@ -1685,7 +1538,7 @@ EnsureA20On     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-IsA20Off        proc near               ; CODE XREF: EnsureA20On↑p
+IsA20Off        proc near               ; ...
                 push    ds
                 push    es
                 push    cx
@@ -1700,7 +1553,7 @@ IsA20Off        proc near               ; CODE XREF: EnsureA20On↑p
                 assume ds:nothing
                 mov     di, 80h         ; 0000h:0080h ; LoMem
 
-cpu386_cmpsd:                           ; DATA XREF: SYSINIT:0506↓o
+cpu386_cmpsd:                           ; ...
                 nop
                 mov     cx, 8
                 repe cmpsw              ;
@@ -1717,7 +1570,7 @@ IsA20Off        endp
 
 ; ---------------------------------------------------------------------------
 
-int19:                                  ; DATA XREF: BIOSDATA:1DE8↓o
+int19:                                  ; ...
                 push    cs
                 pop     ds
                 assume ds:BIOSDATA
@@ -1727,7 +1580,7 @@ int19:                                  ; DATA XREF: BIOSDATA:1DE8↓o
                 mov     cl, 5
                 mov     si, offset RomVectors
 
-_next_int:                              ; CODE XREF: BIOSDATA:076D↓j
+_next_int:                              ; ...
                 lodsb                   ; get int number
                 cbw                     ; assume < 128
                 shl     ax, 1
@@ -1742,7 +1595,7 @@ _next_int:                              ; CODE XREF: BIOSDATA:076D↓j
                                         ; stkinit in sysinit1 will initialize int19oldxx values
                 mov     cl, 14          ; num_i19
 
-i19_restore_loop:                       ; CODE XREF: BIOSDATA:i19_restor_1↓j
+i19_restore_loop:                       ; ...
                 lodsb                   ; get interrupt number
                 cbw                     ; assume < 128
                 xchg    ax, di
@@ -1759,29 +1612,29 @@ i19_restore_loop:                       ; CODE XREF: BIOSDATA:i19_restor_1↓j
                 xchg    ax, bx
                 stosw                   ; put the vector back
 
-i19_restor_1:                           ; CODE XREF: BIOSDATA:0781↑j
+i19_restor_1:                           ; ...
                 loop    i19_restore_loop
 
-doint19:                                ; CODE XREF: BIOSDATA:0773↑j
+doint19:                                ; ...
                 cmp     inHMA, cl       ; Is dos running from HMA ?
                 jz      short SkipVDisk ; no
                 call    EraseVDiskHead  ; Then erase our VDISK header at 1MB boundary
                                         ; Some m/c's (AST 386 & HP QS/16 do not clear
                                         ; the memory above 1MB during a warm boot.
 
-SkipVDisk:                              ; CODE XREF: BIOSDATA:0792↑j
+SkipVDisk:                              ; ...
                 int     19h             ; DISK BOOT
                                         ; causes reboot of disk system
 
-Int15:                                  ; DATA XREF: BIOSDATA:1DDE↓o
+Int15:                                  ; ...
                 cmp     ax, 4F53h       ; del keystroke ?  (4F00h+DELKEY)
                 jz      short int15_1
 
-Old15_j:                                ; CODE XREF: BIOSDATA:07BF↓j
+Old15_j:                                ; ...
                 jmp     cs:Old15
 ; ---------------------------------------------------------------------------
 
-int15_1:                                ; CODE XREF: BIOSDATA:079C↑j
+int15_1:                                ; ...
                 push    ds
                 push    ax
                 xor     ax, ax
@@ -1795,8 +1648,7 @@ int15_1:                                ; CODE XREF: BIOSDATA:079C↑j
                 jz      short int15_2   ; no
                 call    EraseVDiskHead
 
-int15_2:                                ; CODE XREF: BIOSDATA:07B0↑j
-                                        ; BIOSDATA:07B7↑j
+int15_2:                                ; ...
                 pop     ax
                 pop     ds
                 assume ds:nothing
@@ -1806,8 +1658,7 @@ int15_2:                                ; CODE XREF: BIOSDATA:07B0↑j
 ; =============== S U B R O U T I N E =======================================
 
 
-EraseVDiskHead  proc near               ; CODE XREF: BIOSDATA:0794↑p
-                                        ; BIOSDATA:07B9↑p
+EraseVDiskHead  proc near               ; ...
                 push    cx
                 push    di
                 push    es
@@ -1827,23 +1678,19 @@ EraseVDiskHead  proc near               ; CODE XREF: BIOSDATA:0794↑p
 EraseVDiskHead  endp
 
 ; ---------------------------------------------------------------------------
-FreeHMAPtr      dw 0FFFFh               ; DATA XREF: BIOSCODE:1799↓w
-                                        ; BIOSCODE:179F↓w ...
-MoveDOSIntoHMA  dw offset FTRYTOMOVDOSHI
-                                        ; DATA XREF: HMAptr+15↓r
+FreeHMAPtr      dw 0FFFFh               ; ...
+MoveDOSIntoHMA  dw offset FTRYTOMOVDOSHI ; ...
                                         ; SYSINITSEG:FTRYTOMOVDOSHI
-MoveDOSIntoHMA_2 dw 544h                ; DATA XREF: SYSINIT:0518↓w
+MoveDOSIntoHMA_2 dw 544h                ; ...
                                         ; SYSINITSEG
-SysinitPresent  db 0                    ; DATA XREF: HMAptr+E↓r
-                                        ; SYSINIT:BiosComBlock↓o ...
-Win386_SI       db 3, 0                 ; DATA XREF: BIOSCODE:1754↓o
-SI_Next         dd 0                    ; DATA XREF: BIOSCODE:174C↓w
-                                        ; BIOSCODE:1750↓w
+SysinitPresent  db 0                    ; ...
+Win386_SI       db 3, 0                 ; ...
+SI_Next         dd 0                    ; ...
                 dd 0
                 dd 0
                 dw offset Instance_Table
                 dw 70h
-Instance_Table  dw 0                    ; DATA XREF: BIOSDATA:07EC↑o
+Instance_Table  dw 0                    ; ...
                                         ; print screen status
                 dw 50h
                 dw 2                    ; 2 bytes
@@ -1853,18 +1700,15 @@ Instance_Table  dw 0                    ; DATA XREF: BIOSDATA:07EC↑o
                 dw offset altah         ; a con device buffer
                 dw 70h
                 dw 1
-NextStack       dw 2 dup(0)             ; DATA XREF: endfile+297↓w
-                                        ; endfile+29D↓w
+NextStack       dw 2 dup(0)             ; ...
                                         ; pointer to next stack to be used
                 dw 2                    ; 2 bytes
-IT_StackLoc     dd 0                    ; DATA XREF: endfile+2A9↓w
-                                        ; endfile+2B4↓w
+IT_StackLoc     dd 0                    ; ...
                                         ; location of hardware stacks
-IT_StackSize    dw 0                    ; DATA XREF: endfile+2C4↓w
+IT_StackSize    dw 0                    ; ...
                                         ; size of hardware stacks
                 dd 0                    ; terminate the instance table
-IsWin386        db 0                    ; DATA XREF: outchr+8↑r
-                                        ; BIOSCODE:173A↓w ...
+IsWin386        db 0                    ; ...
                                         ; Flag to indicate whether
                                         ; Win386 is running or not
 ; ---------------------------------------------------------------------------
@@ -1878,8 +1722,7 @@ V86_Crit_SetFocus:
                 mov     es, di
                 assume es:nothing
 
-offset_081Bh:                           ; CODE XREF: doint+13↓P
-                                        ; BIOSCODE:18D7↓P ...
+offset_081Bh:                           ; ...
                 mov     bx, 15h         ; Device ID of DOSMGR device
                 mov     ax, 1684h
                 int     2Fh             ; - Multiplex - MS WINDOWS - GET DEVICE API ENTRY POINT
@@ -1896,8 +1739,7 @@ offset_081Bh:                           ; CODE XREF: doint+13↓P
                 retf                    ; do the call
 ; ---------------------------------------------------------------------------
 
-Skip:                                   ; CODE XREF: BIOSDATA:0827↑j
-                                        ; DATA XREF: BIOSDATA:082A↑o
+Skip:                                   ; ...
                 pop     ax
                 pop     bx
                 pop     es
@@ -1905,14 +1747,11 @@ Skip:                                   ; CODE XREF: BIOSDATA:0827↑j
                 pop     di
                 retf
 ; ---------------------------------------------------------------------------
-endfloppy       db 0                    ; DATA XREF: BIOSDATA:2263↓o
-offset_0839h    db 7 dup(0)             ; CODE XREF: SYSINIT:06EB↓P
-tmp_vid         db 'NO NAME    '        ; DATA XREF: read_volume_id+8↓o
-                                        ; read_volume_id+7B↓o ...
-harddrv         db 80h                  ; DATA XREF: BIOSDATA:1FCC↓o
-                                        ; BIOSDATA:2259↓o
-bdss            dw 0FFFFh               ; DATA XREF: BIOSDATA:end_of_bdss↓o
-                                        ; BIOSDATA:2253↓o
+endfloppy       db 0                    ; ...
+offset_0839h    db 7 dup(0)             ; ...
+tmp_vid         db 'NO NAME    '        ; ...
+harddrv         db 80h                  ; ...
+bdss            dw 0FFFFh               ; ...
                                         ; max_mini_dsk_num equ 23
                                         ; BDS_STRUC (2+max_mini_dsk_num) dup (<>)
                                         ; currently max. 25
@@ -2072,7 +1911,7 @@ bds_4           dw 0FFFFh
                 db 4Dh, 45h, 20h, 20h, 20h, 20h, 0, 0, 0, 0, 0, 46h, 41h
                 db 54h, 31h, 32h, 20h, 20h, 20h, 0
                 dw 0FFFFh
-                db 0, 0, 50h, 3, 0, 2, 1, 1, 0, 2, 10h, 0, 0, 0, 0F8h
+byte_14B0       db 0, 0, 50h, 3, 0, 2, 1, 1, 0, 2, 10h, 0, 0, 0, 0F8h
                 db 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
                 db 0, 0, 0, 0, 0, 0, 0, 0, 0FFh, 0FFh, 0FFh, 0FFh, 0, 0
                 db 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 20h, 0, 28h
@@ -2227,7 +2066,7 @@ bds_24          dw 0FFFFh
                 db 54h, 31h, 32h, 20h, 20h, 20h, 0
 ; ---------------------------------------------------------------------------
 
-ibm_disk_io:                            ; DATA XREF: BIOSDATA:228E↓o
+ibm_disk_io:                            ; ...
                 cmp     dl, 80h         ; main routine, fixes at rom bug
                                         ; pass through floppy disk calls
                 jb      short atd1
@@ -2236,12 +2075,11 @@ ibm_disk_io:                            ; DATA XREF: BIOSDATA:228E↓o
                 cmp     ah, 0Ah         ; and call 0Ah (read long)
                 jz      short atd2
 
-atd1:                                   ; CODE XREF: BIOSDATA:16F5↑j
+atd1:                                   ; ...
                 jmp     cs:Old13        ; use rom int 13h handler
 ; ---------------------------------------------------------------------------
 
-atd2:                                   ; CODE XREF: BIOSDATA:16FA↑j
-                                        ; BIOSDATA:16FF↑j
+atd2:                                   ; ...
                 push    bx
                 push    cx
                 push    dx
@@ -2261,7 +2099,7 @@ atd2:                                   ; CODE XREF: BIOSDATA:16FA↑j
                 jmp     short atd4      ; disk number out of range error, return
 ; ---------------------------------------------------------------------------
 
-atd3:                                   ; CODE XREF: BIOSDATA:171E↑j
+atd3:                                   ; ...
                 push    bx
                 mov     ax, es
                 shr     bx, 4           ; make es:bx to seg:000x form
@@ -2282,15 +2120,14 @@ atd3:                                   ; CODE XREF: BIOSDATA:171E↑j
                 call    docmd           ; carry out command
 ; ---------------------------------------------------------------------------
 
-atd4:                                   ; CODE XREF: BIOSDATA:1725↑j
-                                        ; BIOSDATA:1739↑j
+atd4:                                   ; ...
                 pop     ax
                 mov     ah, ds:74h      ; [disk_status1]
                 or      ah, ah
                 jz      short atd5
                 stc
 
-atd5:                                   ; CODE XREF: BIOSDATA:174E↑j
+atd5:                                   ; ...
                 pop     es
                 pop     ds
                 assume ds:nothing
@@ -2304,7 +2141,7 @@ atd5:                                   ; CODE XREF: BIOSDATA:174E↑j
 
 ; Attributes: noreturn
 
-setcmd          proc near               ; CODE XREF: BIOSDATA:173D↑p
+setcmd          proc near               ; ...
                 mov     ds:43h, al      ; [cmd_block+sec_cnt]
                 mov     byte ptr ds:48h, 20h
                 cmp     ah, 2           ; cmd_reg = 20h if function 02h (read)
@@ -2312,7 +2149,7 @@ setcmd          proc near               ; CODE XREF: BIOSDATA:173D↑p
                 mov     byte ptr ds:48h, 22h ; [cmd_block+cmd_reg]
                                         ; cmd_reg = 22h if function 0Ah (read long)
 
-setc1:                                  ; CODE XREF: setcmd+B↑j
+setc1:                                  ; ...
                 mov     al, cl
                 and     al, 3Fh         ; mask sector number
                 mov     ds:44h, al      ; [cmd_block+sec_num]
@@ -2351,14 +2188,14 @@ setcmd          endp
 
 ; Attributes: noreturn
 
-docmd           proc near               ; CODE XREF: BIOSDATA:1744↑p
+docmd           proc near               ; ...
                 mov     di, bx
                 push    cs
                 call    command
 ; ---------------------------------------------------------------------------
                 jnz     short doc3
 
-doc1:                                   ; CODE XREF: docmd+3B↓j
+doc1:                                   ; ...
                 push    cs
                 call    waitt           ; wait for controller to complete read
 ; ---------------------------------------------------------------------------
@@ -2368,7 +2205,7 @@ doc1:                                   ; CODE XREF: docmd+3B↓j
                 cld
                 cli
 
-rsct_loop:                              ; CODE XREF: docmd+17↓j
+rsct_loop:                              ; ...
                 insw                    ; read in sector
                 loop    rsct_loop
                 sti
@@ -2384,7 +2221,7 @@ rsct_loop:                              ; CODE XREF: docmd+17↓j
                 rep insb                ; read in ecc
                 sti
 
-doc2:                                   ; CODE XREF: docmd+1F↑j
+doc2:                                   ; ...
                 push    cs
                 call    check_status
 ; ---------------------------------------------------------------------------
@@ -2392,8 +2229,7 @@ doc2:                                   ; CODE XREF: docmd+1F↑j
                 dec     byte ptr ds:43h ; [cmd_block+sec_cnt]
                 jnz     short doc1
 
-doc3:                                   ; CODE XREF: docmd+6↑j
-                                        ; docmd+C↑j ...
+doc3:                                   ; ...
                 retn
 docmd           endp
 
@@ -2402,7 +2238,7 @@ docmd           endp
 
 ; Attributes: noreturn
 
-get_vec         proc near               ; CODE XREF: setcmd+37↑p
+get_vec         proc near               ; ...
                 push    0FF65h          ; get pointer to hard disk parameters
                 jmp     far ptr 0F000h:2F8Eh
 get_vec         endp
@@ -2412,7 +2248,7 @@ get_vec         endp
 
 ; Attributes: noreturn
 
-command         proc near               ; CODE XREF: docmd+3↑p
+command         proc near               ; ...
                 push    0FF65h          ; send contents of cmd_block to disk controller
                 jmp     far ptr 0F000h:2E1Eh
 command         endp
@@ -2422,7 +2258,7 @@ command         endp
 
 ; Attributes: noreturn
 
-waitt           proc near               ; CODE XREF: docmd+9↑p
+waitt           proc near               ; ...
                 push    0FF65h          ; wait for disk interrupt
                 jmp     far ptr 0F000h:2E7Fh
 waitt           endp
@@ -2432,7 +2268,7 @@ waitt           endp
 
 ; Attributes: noreturn
 
-wait_drq        proc near               ; CODE XREF: docmd+22↑p
+wait_drq        proc near               ; ...
                 push    0FF65h          ; wait for data request
                 jmp     far ptr 0F000h:2EE2h
 wait_drq        endp
@@ -2442,7 +2278,7 @@ wait_drq        endp
 
 ; Attributes: noreturn
 
-check_status    proc near               ; CODE XREF: docmd+32↑p
+check_status    proc near               ; ...
                 push    0FF65h          ; check hard disk status
                 jmp     far ptr 0F000h:2EF8h
 check_status    endp
@@ -2452,23 +2288,22 @@ check_status    endp
 
 ; Attributes: noreturn
 
-check_dma       proc near               ; CODE XREF: BIOSDATA:1736↑p
+check_dma       proc near               ; ...
                 push    0FF65h          ; check for dma overrun 64k segment
                 jmp     far ptr 0F000h:2F69h
 check_dma       endp
 
 ; ---------------------------------------------------------------------------
 
-endatrom:                               ; DATA XREF: BIOSDATA:228B↓o
-                                        ; BIOSDATA:22E3↓o
+endatrom:                               ; ...
                 cmp     ah, 15h         ; compaq_disk_io
                 ja      short mebbe_hookit
 
-no_hookit:                              ; CODE XREF: BIOSDATA:182D↓j
+no_hookit:                              ; ...
                 jmp     cs:Old13
 ; ---------------------------------------------------------------------------
 
-mebbe_hookit:                           ; CODE XREF: BIOSDATA:1823↑j
+mebbe_hookit:                           ; ...
                 cmp     dl, 80h
                 jb      short no_hookit
                 push    ds
@@ -2481,17 +2316,17 @@ mebbe_hookit:                           ; CODE XREF: BIOSDATA:1823↑j
                 assume ds:nothing
                 retf    2
 ; ---------------------------------------------------------------------------
-end_compaq_i13hook db 0                 ; DATA XREF: BIOSDATA:do_compaq_patch↓o
+end_compaq_i13hook db 0                 ; ...
 ; ---------------------------------------------------------------------------
 
-int_6Ch:                                ; DATA XREF: BIOSDATA:2315↓o
+int_6Ch:                                ; ...
                 cmp     cs:inHMA, 0     ; The K09 requires the routines for reading the clock
                                         ; because of the suspend/resume facility.
                 jz      short int6c
                 mov     bx, offset EnsureA20On
                 call    bx ; EnsureA20On
 
-int6c:                                  ; CODE XREF: BIOSDATA:1844↑j
+int6c:                                  ; ...
                 push    cs
                 pop     ds
                 assume ds:BIOSDATA
@@ -2514,8 +2349,7 @@ int6c:                                  ; CODE XREF: BIOSDATA:1844↑j
 ; =============== S U B R O U T I N E =======================================
 
 
-read_real_date  proc near               ; CODE XREF: BIOSDATA:1856↑p
-                                        ; cmos_clock_read+2F↓p
+read_real_date  proc near               ; ...
                 push    ax
                 push    cx
                 push    dx
@@ -2543,7 +2377,7 @@ read_real_date  proc near               ; CODE XREF: BIOSDATA:1856↑p
                 jmp     r_d_ret
 ; ---------------------------------------------------------------------------
 
-read_ok:                                ; CODE XREF: read_real_date+18↑j
+read_ok:                                ; ...
                 mov     bin_date_time, ch
                 mov     bin_date_time+1, cl
                 mov     bin_date_time+2, dh
@@ -2562,7 +2396,7 @@ read_ok:                                ; CODE XREF: read_real_date+18↑j
                 jnz     short century_19
                 add     ax, 100         ; add in a century
 
-century_19:                             ; CODE XREF: read_real_date+55↑j
+century_19:                             ; ...
                 sub     ax, 80          ; subtract off 1-1-80
                 mov     cl, 4           ; leap year every 4
                 div     cl              ; al= # leap year blocks, ah= remainder
@@ -2583,14 +2417,14 @@ century_19:                             ; CODE XREF: read_real_date+55↑j
                                         ; possibly account for a leap day
 ; ---------------------------------------------------------------------------
 
-leap_year:                              ; CODE XREF: read_real_date+71↑j
+leap_year:                              ; ...
                 cmp     bin_date_time+2, 2 ; is month february?
                 jbe     short no_leap_adjustment ; jan or feb. no leap day yet
 
-leap_adjustment:                        ; CODE XREF: read_real_date+7C↑j
+leap_adjustment:                        ; ...
                 inc     daycnt2         ; account for leap day
 
-no_leap_adjustment:                     ; CODE XREF: read_real_date+83↑j
+no_leap_adjustment:                     ; ...
                 mov     cl, bin_date_time+3 ; get days of month
                 xor     ch, ch
                 dec     cx              ; because of offset from day 1, not day 0
@@ -2601,13 +2435,12 @@ no_leap_adjustment:                     ; CODE XREF: read_real_date+83↑j
                 mov     ah, 0
                 mov     si, offset month_table
 
-r_d_sum_loop:                           ; CODE XREF: read_real_date+A5↓j
+r_d_sum_loop:                           ; ...
                 lodsb
                 add     daycnt2, ax
                 loop    r_d_sum_loop
 
-r_d_ret:                                ; CODE XREF: read_real_date+1A↑j
-                                        ; read_real_date+36↑j ...
+r_d_ret:                                ; ...
                 mov     si, daycnt2
                 pop     dx
                 pop     cx
@@ -2619,8 +2452,7 @@ read_real_date  endp
 ; ---------------------------------------------------------------------------
 ; START OF FUNCTION CHUNK FOR read_real_time
 
-r_t_retj:                               ; CODE XREF: read_real_time+4↓j
-                                        ; read_real_time+1A↓j ...
+r_t_retj:                               ; ...
                 xor     cx, cx
                 xor     dx, dx
                 jmp     short r_t_ret
@@ -2629,7 +2461,7 @@ r_t_retj:                               ; CODE XREF: read_real_time+4↓j
 ; =============== S U B R O U T I N E =======================================
 
 
-read_real_time  proc near               ; CODE XREF: BIOSDATA:185F↑p
+read_real_time  proc near               ; ...
 
 ; FUNCTION CHUNK AT 191C SIZE 00000006 BYTES
 
@@ -2657,7 +2489,7 @@ read_real_time  proc near               ; CODE XREF: BIOSDATA:185F↑p
                                         ; cx:dx = number of ticks
                                         ; (at 18.2 ticks per sec.)
 
-r_t_ret:                                ; CODE XREF: read_real_time-2↑j
+r_t_ret:                                ; ...
                 retn
 read_real_time  endp
 
@@ -2665,8 +2497,7 @@ read_real_time  endp
 ; =============== S U B R O U T I N E =======================================
 
 
-in_bin          proc near               ; CODE XREF: read_real_date+49↑p
-                                        ; read_real_time+21↑p
+in_bin          proc near               ; ...
                 mov     al, bin_date_time ; century or hours
                 call    bcd_to_bin
                 mov     bin_date_time, al
@@ -2686,8 +2517,7 @@ in_bin          endp
 ; =============== S U B R O U T I N E =======================================
 
 
-bcd_to_bin      proc near               ; CODE XREF: in_bin+3↑p
-                                        ; in_bin+C↑p ...
+bcd_to_bin      proc near               ; ...
                 mov     ah, al          ; bcd_to_bin converts two bcd nibbles in al
                                         ; (value <= 99.) to a binary representation in al
                 and     al, 0Fh
@@ -2701,7 +2531,7 @@ bcd_to_bin      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-date_verify     proc near               ; CODE XREF: read_real_date+3E↑p
+date_verify     proc near               ; ...
                 cmp     bin_date_time, 20h ; century check
                 ja      short date_error
                 jz      short century_20 ; jmp in 21th century
@@ -2710,7 +2540,7 @@ date_verify     proc near               ; CODE XREF: read_real_date+3E↑p
                 cmp     bin_date_time+1, 80h ; year check
                 jb      short date_error
 
-century_20:                             ; CODE XREF: date_verify+7↑j
+century_20:                             ; ...
                 cmp     bin_date_time+1, 99h ; year check
                 ja      short date_error
                 cmp     bin_date_time+2, 12h ; month check
@@ -2725,8 +2555,7 @@ century_20:                             ; CODE XREF: date_verify+7↑j
                 retn
 ; ---------------------------------------------------------------------------
 
-date_error:                             ; CODE XREF: date_verify+5↑j
-                                        ; date_verify+E↑j ...
+date_error:                             ; ...
                 stc
                 retn
 date_verify     endp
@@ -2735,7 +2564,7 @@ date_verify     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-time_verify     proc near               ; CODE XREF: read_real_time+1C↑p
+time_verify     proc near               ; ...
                 cmp     bin_date_time, 24h ; hour check
                 ja      short time_error
                 cmp     bin_date_time+1, 59h ; minute check
@@ -2746,8 +2575,7 @@ time_verify     proc near               ; CODE XREF: read_real_time+1C↑p
                 retn
 ; ---------------------------------------------------------------------------
 
-time_error:                             ; CODE XREF: time_verify+5↑j
-                                        ; time_verify+C↑j ...
+time_error:                             ; ...
                 stc
                 retn
 time_verify     endp
@@ -2756,12 +2584,11 @@ time_verify     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-bcd_verify      proc near               ; CODE XREF: read_real_date+33↑p
-                                        ; read_real_time+17↑p
+bcd_verify      proc near               ; ...
                 mov     cx, 4           ; 4 bytes to check
                 mov     bx, offset bin_date_time
 
-bv_loop:                                ; CODE XREF: bcd_verify+23↓j
+bv_loop:                                ; ...
                 mov     al, [bx]        ; get a bcd number (0..99)
                 mov     ah, al
                 and     ax, 0F00Fh      ; 10's place in high ah, 1's in al
@@ -2782,44 +2609,28 @@ bv_loop:                                ; CODE XREF: bcd_verify+23↓j
                 retn
 ; ---------------------------------------------------------------------------
 
-bv_error:                               ; CODE XREF: bcd_verify+F↑j
-                                        ; bcd_verify+1F↑j
+bv_error:                               ; ...
                 stc                     ; set error flag
                 retn
 bcd_verify      endp
 
 ; ---------------------------------------------------------------------------
 endk09          db 90h
-drvfat          dw 0                    ; DATA XREF: BIOSDATA:1F31↓w
-                                        ; BIOSDATA:2332↓r ...
-First_Data_Sector dw 2 dup(0)           ; DATA XREF: BIOSDATA:1CEF↓w
-                                        ; BIOSDATA:2377↓w ...
-doscnt          dw 0                    ; DATA XREF: getclus+2↓w
-                                        ; getclus+D2↓w ...
-fbigfat         db 0                    ; DATA XREF: BIOSDATA:236C↓w
-                                        ; BIOSDATA:2397↓r ...
-fatloc          dw 0                    ; DATA XREF: BIOSDATA:1F60↓w
-                                        ; getclus+38↓r
-init_bootseg    dw 0                    ; DATA XREF: BIOSDATA:1F67↓w
-                                        ; getboot↓r
-rom_drv_num     db 80h                  ; DATA XREF: sethard:set2↓w
-                                        ; sethard+1BB↓r ...
-md_sectorsize   dw 200h                 ; DATA XREF: BIOSDATA:2364↓w
-                                        ; get_fat_sector+8↓r ...
-temp_cluster    dw 0                    ; DATA XREF: getclus+79↓w
-                                        ; getclus+8C↓r ...
-last_fat_sec_num dw 0FFFFh              ; DATA XREF: get_fat_sector+29↓r
-                                        ; get_fat_sector+30↓w
-num_heads       dw 2                    ; DATA XREF: BIOSDATA:209D↓w
-                                        ; BIOSDATA:20EB↓w ...
-sec_trk         db 9                    ; DATA XREF: BIOSDATA:20A9↓w
-                                        ; BIOSDATA:20F3↓w ...
-num_cyln        dw 40                   ; DATA XREF: BIOSDATA:2063↓w
-                                        ; BIOSDATA:20A3↓w ...
-fakefloppydrv   db 0                    ; DATA XREF: BIOSDATA:_set_fake_flpdrv↓w
-                                        ; BIOSDATA:2027↓r ...
-Orig_Int1Eh_Table dw 2 dup(0)           ; DATA XREF: BIOSDATA:1C85↓r
-                                        ; BIOSDATA:1CE0↓w ...
+drvfat          dw 0                    ; ...
+First_Data_Sector dw 2 dup(0)           ; ...
+doscnt          dw 0                    ; ...
+fbigfat         db 0                    ; ...
+fatloc          dw 0                    ; ...
+init_bootseg    dw 0                    ; ...
+rom_drv_num     db 80h                  ; ...
+md_sectorsize   dw 200h                 ; ...
+temp_cluster    dw 0                    ; ...
+last_fat_sec_num dw 0FFFFh              ; ...
+num_heads       dw 2                    ; ...
+sec_trk         db 9                    ; ...
+num_cyln        dw 40                   ; ...
+fakefloppydrv   db 0                    ; ...
+Orig_Int1Eh_Table dw 2 dup(0)           ; ...
                                         ;
                                         ; 08/08/2023
                                         ; ; disktable.totalsectors: resd 1
@@ -2827,7 +2638,7 @@ Orig_Int1Eh_Table dw 2 dup(0)           ; DATA XREF: BIOSDATA:1C85↓r
                                         ; ; disktable.secperclus:   resb 1
                                         ; ; disktable.rdirentries:  resw 1
                                         ; ; disktable.bigflag:      resw 1
-disktable2      dw 0                    ; DATA XREF: copybpb_fat+10C↓o
+disktable2      dw 0                    ; ...
                 dw 32680
                 dw 803h
                 dw 512
@@ -2865,23 +2676,16 @@ disktable2      dw 0                    ; DATA XREF: copybpb_fat+10C↓o
                 dw 60h                  ; > 2144 MB ; FAT32 (fbigbig = 20h)
                                         ; (fbig and fbigbig flags are set)
                                         ; ;
-rom_minidisk_num db 0                   ; DATA XREF: domini+1E↓w
-                                        ; domini+37↓r ...
-hnum            db 0                    ; DATA XREF: BIOSDATA:2017↓w
-                                        ; BIOSDATA:dohard↓r ...
-last_dskdrv_table dw offset dskdrvs     ; DATA XREF: BIOSDATA:1FDD↓w
-                                        ; BIOSDATA:2053↓w ...
-end_of_bdss     dw offset bdss          ; DATA XREF: BIOSDATA:2056↓r
-                                        ; BIOSDATA:21F7↓r ...
-mini_hdlim      dw 0                    ; DATA XREF: domini+2B↓w
-                                        ; find_mini_partition+4A↓r
-mini_seclim     dw 0                    ; DATA XREF: domini+33↓w
-                                        ; find_mini_partition:fmpgot1↓r
-ld_p_number     dw 2BADh                ; DATA XREF: find_mini_partition+4↓w
-                                        ; find_mini_partition:fmpnext↓w ...
-bios_date       db '01/10/84',0         ; DATA XREF: BIOSDATA:227D↓o
+rom_minidisk_num db 0                   ; ...
+hnum            db 0                    ; ...
+last_dskdrv_table dw offset dskdrvs     ; ...
+end_of_bdss     dw offset bdss          ; ...
+mini_hdlim      dw 0                    ; ...
+mini_seclim     dw 0                    ; ...
+ld_p_number     dw 2BADh                ; ...
+bios_date       db '01/10/84',0         ; ...
                 db 90h
-bpb48t          dw 512                  ; DATA XREF: BIOSDATA:bpbtable↓o
+bpb48t          dw 512                  ; ...
                 db 2
                 dw 1
                 db 2
@@ -2897,7 +2701,7 @@ bpb48t          dw 512                  ; DATA XREF: BIOSDATA:bpbtable↓o
                 dw 0
                 db 28 dup(0)            ; FAT32 extensions (to BDS)
                 db 90h
-bpb96t          dw 512                  ; DATA XREF: BIOSDATA:1B60↓o
+bpb96t          dw 512                  ; ...
                 db 1
                 dw 1
                 db 2
@@ -2915,8 +2719,7 @@ bpb96t          dw 512                  ; DATA XREF: BIOSDATA:1B60↓o
                 db 0
                 db 28 dup(0)
                 db 90h
-bpb35           dw 512                  ; DATA XREF: BIOSDATA:1B62↓o
-                                        ; BIOSDATA:1B64↓o ...
+bpb35           dw 512                  ; ...
                 db 2
                 dw 1
                 db 2
@@ -2931,7 +2734,7 @@ bpb35           dw 512                  ; DATA XREF: BIOSDATA:1B62↓o
                 dd 0
                 db 28 dup(0)
                 db 90h
-bpb288          dw 512                  ; DATA XREF: BIOSDATA:1B70↓o
+bpb288          dw 512                  ; ...
                 db 2
                 dw 1
                 db 2
@@ -2946,7 +2749,7 @@ bpb288          dw 512                  ; DATA XREF: BIOSDATA:1B70↓o
                 dd 0
                 db 28 dup(0)
                 db 90h
-bpbtable        dw offset bpb48t        ; DATA XREF: setdrvparms+A0↓o
+bpbtable        dw offset bpb48t        ; ...
                 dw offset bpb96t
                 dw offset bpb35
                 dw offset bpb35
@@ -2956,31 +2759,27 @@ bpbtable        dw offset bpb48t        ; DATA XREF: setdrvparms+A0↓o
                 dw offset bpb35
                 dw offset bpb35
                 dw offset bpb288
-addr_of_bcretf  dw offset bc_retf       ; DATA XREF: BIOSDATA:call_bios_code↓r
+addr_of_bcretf  dw offset bc_retf       ; ...
 ; ---------------------------------------------------------------------------
 
-call_bios_code:                         ; CODE XREF: BIOSDATA:2339↓p
-                                        ; BIOSDATA:2340↓p ...
+call_bios_code:                         ; ...
                 push    cs:addr_of_bcretf ; set up near return to far return
                 push    cs:cdev_2       ; [cs:cdev+2] ; push Bios_Code segment
                 push    bp
                 retf
 ; ---------------------------------------------------------------------------
-flp_drvs        db 0                    ; DATA XREF: BIOSDATA:1E10↓w
-                                        ; BIOSDATA:1E1D↓r ...
-firstcluster_hw dw 0                    ; DATA XREF: BIOSDATA:1ED4↓w
-                                        ; BIOSDATA:2390↓r
-Boot_Drv        db 0                    ; DATA XREF: BIOSDATA:1CF4↓w
-                                        ; BIOSDATA:1E51↓w ...
+flp_drvs        db 0                    ; ...
+firstcluster_hw dw 0                    ; ...
+Boot_Drv        db 0                    ; ...
 ; ---------------------------------------------------------------------------
 
-cd_boot_option:                         ; CODE XREF: BIOSDATA:1D36↓p
+cd_boot_option:                         ; ...
                 push    ax
                 push    ds
                 push    es
                 push    dx
 
-cdbo_1:                                 ; CODE XREF: BIOSDATA:1B92↓j
+cdbo_1:                                 ; ...
                 mov     ah, 1
                 int     16h             ; KEYBOARD -
                 jz      short cdbo_2
@@ -2990,13 +2789,13 @@ cdbo_1:                                 ; CODE XREF: BIOSDATA:1B92↓j
                 jmp     short cdbo_1
 ; ---------------------------------------------------------------------------
 
-cdbo_2:                                 ; CODE XREF: BIOSDATA:1B8C↑j
+cdbo_2:                                 ; ...
                 push    cs
                 pop     ds
                 mov     si, offset cd_boot_msg ; "\r\nPress the ENTER key to boot from CD"...
                 lodsb
 
-cdbo_3:                                 ; CODE XREF: BIOSDATA:1BA4↓j
+cdbo_3:                                 ; ...
                 mov     bx, 7
                 mov     ah, 0Eh
                 int     10h             ; - VIDEO - WRITE CHARACTER AND ADVANCE CURSOR (TTY WRITE)
@@ -3011,7 +2810,7 @@ cdbo_3:                                 ; CODE XREF: BIOSDATA:1BA4↓j
                 mov     bx, ds:6Ch      ; 0:46Ch = Daily timer counter (4 bytes)
                 mov     si, ds:6Eh
 
-wait_for_key:                           ; CODE XREF: BIOSDATA:1BFF↓j
+wait_for_key:                           ; ...
                 push    bx
                 mov     bx, 7
                 mov     ax, 0E08h
@@ -3030,7 +2829,7 @@ wait_for_key:                           ; CODE XREF: BIOSDATA:1BFF↓j
                 add     bx, 18          ; 18.2 ticks per second
                 adc     si, 0           ; next second (if carry flag is 1)
 
-continue_to_wait:                       ; CODE XREF: BIOSDATA:cdb0_6↓j
+continue_to_wait:                       ; ...
                 mov     ah, 1
                 int     16h             ; KEYBOARD -
                 jz      short cdbo_5
@@ -3040,7 +2839,7 @@ continue_to_wait:                       ; CODE XREF: BIOSDATA:cdb0_6↓j
                 cmp     ax, 11Bh
                 jz      short cdb0_7
 
-cdbo_4:                                 ; CODE XREF: BIOSDATA:cdbo_8↓j
+cdbo_4:                                 ; ...
                 mov     bx, 7
                 mov     ax, 0E0Dh
                 int     10h             ; - VIDEO - WRITE CHARACTER AND ADVANCE CURSOR (TTY WRITE)
@@ -3058,17 +2857,17 @@ cdbo_4:                                 ; CODE XREF: BIOSDATA:cdbo_8↓j
                 retn
 ; ---------------------------------------------------------------------------
 
-cdbo_5:                                 ; CODE XREF: BIOSDATA:1BD1↑j
+cdbo_5:                                 ; ...
                 cmp     si, ds:6Eh
                 jnz     short cdb0_6
                 cmp     bx, ds:6Ch
 
-cdb0_6:                                 ; CODE XREF: BIOSDATA:1BF2↑j
+cdb0_6:                                 ; ...
                 jnb     short continue_to_wait
                 dec     cs:time_counter
                 jnz     short wait_for_key
 
-cdb0_7:                                 ; CODE XREF: BIOSDATA:1BDA↑j
+cdb0_7:                                 ; ...
                 mov     bx, 7
                 mov     ax, 0E0Dh
                 int     10h             ; - VIDEO - WRITE CHARACTER AND ADVANCE CURSOR (TTY WRITE)
@@ -3120,11 +2919,11 @@ cdb0_7:                                 ; CODE XREF: BIOSDATA:1BDA↑j
                 cmp     word ptr es:[bx+1FEh], 0AA55h
                 jz      short cdbo_9
 
-cdbo_8:                                 ; CODE XREF: BIOSDATA:1C5F↑j
+cdbo_8:                                 ; ...
                 jmp     cdbo_4
 ; ---------------------------------------------------------------------------
 
-cdbo_9:                                 ; CODE XREF: BIOSDATA:1C68↑j
+cdbo_9:                                 ; ...
                 push    cs
                 pop     ds
                 xor     ax, ax
@@ -3146,15 +2945,15 @@ cdbo_9:                                 ; CODE XREF: BIOSDATA:1C68↑j
                 mov     [si+2], ax
                 retf
 ; ---------------------------------------------------------------------------
-empty_dap_buff  db 19                   ; DATA XREF: BIOSDATA:1C15↑o
+empty_dap_buff  db 19                   ; ...
                 db 18 dup(0)
-time_counter    db 5                    ; DATA XREF: BIOSDATA:1BFA↑w
+time_counter    db 5                    ; ...
                                         ; 5 seconds
-cd_boot_msg     db 0Dh,0Ah              ; DATA XREF: BIOSDATA:1B96↑o
+cd_boot_msg     db 0Dh,0Ah              ; ...
                 db 'Press the ENTER key to boot from CD or DVD......',0
 ; ---------------------------------------------------------------------------
 
-init:                                   ; CODE XREF: BIOSDATA:hdrv_pat↑j
+init:                                   ; ...
                 cli
                 mov     cs:Orig_Int1Eh_Table+2, ds ; DS:SI from MSLOAD (not boot sector)
                 mov     cs:Orig_Int1Eh_Table, si
@@ -3180,7 +2979,7 @@ init:                                   ; CODE XREF: BIOSDATA:hdrv_pat↑j
                 mov     si, 540h        ; ROOT DIRECTORY BUFFER offset 40h
                                         ; (BOOT DRV's root directory the 3rd entry)
 
-chk_boot_hdnoz:                         ; CODE XREF: BIOSDATA:1D42↓j
+chk_boot_hdnoz:                         ; ...
                 cmp     byte ptr [si], 0
                 jz      short chk_no_logo_noz
                 cmp     word ptr [si], 425Fh ; '_BOOT_HDNOZ'
@@ -3199,17 +2998,15 @@ chk_boot_hdnoz:                         ; CODE XREF: BIOSDATA:1D42↓j
                 jmp     short chk_no_logo_noz
 ; ---------------------------------------------------------------------------
 
-chk_next_1:                             ; CODE XREF: BIOSDATA:1D12↑j
-                                        ; BIOSDATA:1D19↑j ...
+chk_next_1:                             ; ...
                 add     si, 32          ; (next entry)
                 cmp     si, 700h
                 jb      short chk_boot_hdnoz
 
-chk_no_logo_noz:                        ; CODE XREF: BIOSDATA:1D0C↑j
-                                        ; BIOSDATA:1D39↑j
+chk_no_logo_noz:                        ; ...
                 mov     si, 540h        ; (BOOT DRV's root directory the 3rd entry)
 
-chk_no_logo_noz2_nxt:                   ; CODE XREF: BIOSDATA:1D7B↓j
+chk_no_logo_noz2_nxt:                   ; ...
                 cmp     byte ptr [si], 0
                 jz      short write_start_msg
                 cmp     word ptr [si], 4F4Eh ; 'NO_LOGO NOZ'
@@ -3225,18 +3022,17 @@ chk_no_logo_noz2_nxt:                   ; CODE XREF: BIOSDATA:1D7B↓j
                 cmp     byte ptr [si+0Ah], 5Ah
                 jz      short startmsg_ok
 
-chk_next_2:                             ; CODE XREF: BIOSDATA:1D50↑j
-                                        ; BIOSDATA:1D57↑j ...
+chk_next_2:                             ; ...
                 add     si, 32          ; (next entry)
                 cmp     si, 700h
                 jb      short chk_no_logo_noz2_nxt
 
-write_start_msg:                        ; CODE XREF: BIOSDATA:1D4A↑j
+write_start_msg:                        ; ...
                 mov     ds, ax          ; SYSINIT segment
                 assume ds:nothing
                 mov     si, offset StartMsg ; "Starting PC DOS...\r\n\n"
 
-startmsg_nxt_chr:                       ; CODE XREF: BIOSDATA:1D8E↓j
+startmsg_nxt_chr:                       ; ...
                 lodsb
                 or      al, al
                 jz      short startmsg_ok
@@ -3248,13 +3044,12 @@ startmsg_nxt_chr:                       ; CODE XREF: BIOSDATA:1D8E↓j
                 jmp     short startmsg_nxt_chr
 ; ---------------------------------------------------------------------------
 
-startmsg_ok:                            ; CODE XREF: BIOSDATA:1D72↑j
-                                        ; BIOSDATA:1D85↑j
+startmsg_ok:                            ; ...
                 pop     ds
                 mov     cx, 5
                 mov     si, offset RomVectors
 
-next_int:                               ; CODE XREF: BIOSDATA:1DA8↓j
+next_int:                               ; ...
                 lods    byte ptr cs:[si]
                 cbw
                 shl     ax, 1
@@ -3294,7 +3089,7 @@ next_int:                               ; CODE XREF: BIOSDATA:1DA8↓j
                 push    ax              ; 50h ; 'P'
                 push    bx              ; 53h ; 'S'
 
-chk_fd_count:                           ; CODE XREF: BIOSDATA:1DF5↑j
+chk_fd_count:                           ; ...
                 or      ax, 1
                 test    ax, 1
                 jnz     short normalfloppydrv
@@ -3314,7 +3109,7 @@ chk_fd_count:                           ; CODE XREF: BIOSDATA:1DF5↑j
                 jb      short _gdskp_error
                 mov     cs:flp_drvs, dl
 
-_gdskp_error:                           ; CODE XREF: BIOSDATA:1E0E↑j
+_gdskp_error:                           ; ...
                 pop     es
                 assume es:nothing
                 pop     di
@@ -3330,26 +3125,25 @@ _gdskp_error:                           ; CODE XREF: BIOSDATA:1E0E↑j
                 jmp     short got_num_flp_drvs
 ; ---------------------------------------------------------------------------
 
-_set_fake_flpdrv:                       ; CODE XREF: BIOSDATA:1E23↑j
+_set_fake_flpdrv:                       ; ...
                 mov     cs:fakefloppydrv, 1
                 mov     ax, 1
                 jmp     short settwodrive
 ; ---------------------------------------------------------------------------
 
-normalfloppydrv:                        ; CODE XREF: BIOSDATA:1E00↑j
-                                        ; BIOSDATA:1E1B↑j
+normalfloppydrv:                        ; ...
                 rol     al, 1
                 rol     al, 1
 
-got_num_flp_drvs:                       ; CODE XREF: BIOSDATA:1E2B↑j
+got_num_flp_drvs:                       ; ...
                 and     ax, 3
                 jnz     short notsingle
                 inc     ax
 
-settwodrive:                            ; CODE XREF: BIOSDATA:1E36↑j
+settwodrive:                            ; ...
                 inc     cs:single
 
-notsingle:                              ; CODE XREF: BIOSDATA:1E3F↑j
+notsingle:                              ; ...
                 inc     ax
                 mov     cl, al
                 test    dl, 80h
@@ -3357,7 +3151,7 @@ notsingle:                              ; CODE XREF: BIOSDATA:1E3F↑j
                 xor     ax, ax
                 mov     cs:Boot_Drv, al
 
-gothrd:                                 ; CODE XREF: BIOSDATA:1E4D↑j
+gothrd:                                 ; ...
                 xor     dx, dx
                 cli
                 mov     ss, dx
@@ -3379,15 +3173,14 @@ gothrd:                                 ; CODE XREF: BIOSDATA:1E4D↑j
                 jmp     short turn_timer_on
 ; ---------------------------------------------------------------------------
 
-no_rom_system_conf:                     ; CODE XREF: BIOSDATA:1E66↑j
-                                        ; BIOSDATA:1E6B↑j
+no_rom_system_conf:                     ; ...
                 mov     si, 0FFFFh
                 mov     es, si
                 assume es:nothing
                 mov     al, es:0Eh
                 mov     cs:model_byte, al
 
-turn_timer_on:                          ; CODE XREF: BIOSDATA:1E7D↑j
+turn_timer_on:                          ; ...
                 mov     al, 20h
                 out     20h, al         ; Interrupt controller, 8259A.
                 cmp     cs:model_byte, 0
@@ -3401,8 +3194,7 @@ turn_timer_on:                          ; CODE XREF: BIOSDATA:1E7D↑j
                 test    al, 1
                 jz      short skip_aux_port_init
 
-not_olivetti_m24:                       ; CODE XREF: BIOSDATA:1E96↑j
-                                        ; BIOSDATA:1E9C↑j
+not_olivetti_m24:                       ; ...
                 mov     al, 3
                 call    aux_init
                 mov     al, 2
@@ -3412,7 +3204,7 @@ not_olivetti_m24:                       ; CODE XREF: BIOSDATA:1E96↑j
                 xor     al, al
                 call    aux_init
 
-skip_aux_port_init:                     ; CODE XREF: BIOSDATA:1EA6↑j
+skip_aux_port_init:                     ; ...
                 mov     al, 2
                 call    print_init
                 mov     al, 1
@@ -3465,7 +3257,7 @@ skip_aux_port_init:                     ; CODE XREF: BIOSDATA:1EA6↑j
                 mov     byte ptr ds:522h, 0DFh ; [SEC9+DISK_PARMS.DISK_SPECIFY_1]
                                         ; set 1st specify byte on pc-1 pc-2 pc-xt hal0
 
-no_diddle:                              ; CODE XREF: BIOSDATA:1F1D↑j
+no_diddle:                              ; ...
                 int     12h             ; MEMORY SIZE -
                                         ; Return: AX = number of contiguous 1K blocks of memory
                 mov     cl, 6
@@ -3489,8 +3281,7 @@ no_diddle:                              ; CODE XREF: BIOSDATA:1F1D↑j
                 int     2Fh             ; Get new TOM from any RPL
                 mov     ax, dx
 
-SkipRPL:                                ; CODE XREF: BIOSDATA:1F4A↑j
-                                        ; BIOSDATA:1F50↑j
+SkipRPL:                                ; ...
                 pop     bx
                 pop     ds
                 sub     ax, 40h
@@ -3520,11 +3311,11 @@ SkipRPL:                                ; CODE XREF: BIOSDATA:1F4A↑j
                 cmp     ax, 0F000h
                 jnz     short keepintf
 
-resetintf:                              ; CODE XREF: BIOSDATA:1F9B↑j
+resetintf:                              ; ...
                 mov     ds:3Ch, offset intret
                 mov     word ptr ds:3Eh, cs
 
-keepintf:                               ; CODE XREF: BIOSDATA:1FA0↑j
+keepintf:                               ; ...
                 xor     cx, cx
                 mov     ds, cx
                 mov     cl, byte ptr ds:496h ; get keyboard flag
@@ -3533,7 +3324,7 @@ keepintf:                               ; CODE XREF: BIOSDATA:1FA0↑j
                 mov     cs:keyrd_func, 10h ; extended keyboard function
                 mov     cs:keysts_func, 11h ; extended keyboard function
 
-org_key:                                ; CODE XREF: BIOSDATA:1FB7↑j
+org_key:                                ; ...
                 push    cs
                 pop     ds
                 assume ds:BIOSDATA
@@ -3569,8 +3360,7 @@ org_key:                                ; CODE XREF: BIOSDATA:1FB7↑j
                 mov     ax, 0E480h      ; set advanced system info
                 int     15h
 
-skip_mode2:                             ; CODE XREF: BIOSDATA:1FED↑j
-                                        ; BIOSDATA:1FF5↑j ...
+skip_mode2:                             ; ...
                 pop     ds
                 assume ds:nothing
                 mov     dl, 80h
@@ -3583,7 +3373,7 @@ skip_mode2:                             ; CODE XREF: BIOSDATA:1FED↑j
                 jb      short enddrv
                 mov     ds:hnum, dl     ; save number of hard drives
 
-enddrv:                                 ; CODE XREF: BIOSDATA:2015↑j
+enddrv:                                 ; ...
                 xor     dl, dl          ; drive number = 0
                 push    cs
                 pop     ds
@@ -3598,14 +3388,13 @@ enddrv:                                 ; CODE XREF: BIOSDATA:2015↑j
                 jmp     dohard          ; allocate/initialise bds for harddrives
 ; ---------------------------------------------------------------------------
 
-loop_drive:                             ; CODE XREF: BIOSDATA:202C↑j
-                                        ; BIOSDATA:21E5↓j
+loop_drive:                             ; ...
                 cmp     dl, drvmax
                 jb      short got_more
                 jmp     done_drives
 ; ---------------------------------------------------------------------------
 
-got_more:                               ; CODE XREF: BIOSDATA:203D↑j
+got_more:                               ; ...
                 xor     cx, cx          ; zero all flags
                 mov     di, [di]        ; [di+BDS.link] ; get next bds
                 cmp     di, 0FFFFh      ; end of link ?
@@ -3619,7 +3408,7 @@ got_more:                               ; CODE XREF: BIOSDATA:203D↑j
                 call    xinstall_bds
                 dec     drvmax
 
-not_last_bds:                           ; CODE XREF: BIOSDATA:2049↑j
+not_last_bds:                           ; ...
                 mov     dh, 0           ; ff48tpi ; set form factor to 48 tpi
                 mov     num_cyln, 40    ; 40 tracks per side
                 push    ds
@@ -3641,7 +3430,7 @@ not_last_bds:                           ; CODE XREF: BIOSDATA:2049↑j
                 jmp     noparmsfromrom
 ; ---------------------------------------------------------------------------
 
-chk_drv_type:                           ; CODE XREF: BIOSDATA:2078↑j
+chk_drv_type:                           ; ...
                 cmp     bl, 10h         ; ATAPI Removable Media Device
                 jnz     short not_atapi_removable
                 push    ds
@@ -3670,14 +3459,14 @@ chk_drv_type:                           ; CODE XREF: BIOSDATA:2078↑j
                 jbe     short _eotok
                 mov     ds:eot, al
 
-_eotok:                                 ; CODE XREF: BIOSDATA:20B0↑j
+_eotok:                                 ; ...
                 xor     al, al
                 test    byte ptr [si+2], 10h ; information flags
                                         ; bit 4 = Device has change line support
                 jz      short not_chgline_sup
                 or      al, 2           ; change line support
 
-not_chgline_sup:                        ; CODE XREF: BIOSDATA:20BB↑j
+not_chgline_sup:                        ; ...
                 add     sp, 30
                 pop     si
                 pop     ds
@@ -3693,16 +3482,16 @@ not_chgline_sup:                        ; CODE XREF: BIOSDATA:20BB↑j
                 or      cl, al
                 mov     ds:fhave96, 1   ; Device has change line support
 
-gotother_j:                             ; CODE XREF: BIOSDATA:20CB↑j
+gotother_j:                             ; ...
                 jmp     short gotother
 ; ---------------------------------------------------------------------------
 
-ext_gdp_err:                            ; CODE XREF: BIOSDATA:2098↑j
+ext_gdp_err:                            ; ...
                 add     sp, 30
                 pop     si
                 pop     ds
 
-not_atapi_removable:                    ; CODE XREF: BIOSDATA:2080↑j
+not_atapi_removable:                    ; ...
                 cmp     ch, 0           ; if ch=0, then cl,dh=0 too.
                 jnz     short pfr_ok    ;
                                         ; rom gave wrong info.
@@ -3711,7 +3500,7 @@ not_atapi_removable:                    ; CODE XREF: BIOSDATA:2080↑j
                 mov     cl, 9
                 mov     dh, 1
 
-pfr_ok:                                 ; CODE XREF: BIOSDATA:20DE↑j
+pfr_ok:                                 ; ...
                 xchg    dl, dh
                 xor     dh, dh
                 inc     dx              ; make number of heads 1-based
@@ -3731,7 +3520,7 @@ pfr_ok:                                 ; CODE XREF: BIOSDATA:20DE↑j
                 jbe     short eotok
                 mov     ds:eot, cl
 
-eotok:                                  ; CODE XREF: BIOSDATA:210E↑j
+eotok:                                  ; ...
                 pop     es
                 pop     cx
                 pop     dx
@@ -3752,20 +3541,18 @@ eotok:                                  ; CODE XREF: BIOSDATA:210E↑j
                 or      cl, 2           ; fchangeline ; change line support
                 mov     ds:fhave96, 1   ; remember that we have 96tpi disks
 
-changeline_done:                        ; CODE XREF: BIOSDATA:2121↑j
-                                        ; BIOSDATA:2126↑j
+changeline_done:                        ; ...
                 cmp     ds:num_cyln, 40
                 jnz     short try_80
                 cmp     ds:sec_trk, 9
                 jbe     short nextdrive
 
-gotother:                               ; CODE XREF: BIOSDATA:gotother_j↑j
-                                        ; BIOSDATA:2147↓j ...
+gotother:                               ; ...
                 mov     dh, 7           ; ffOther ; we have a "strange" medium
                 jmp     short nextdrive
 ; ---------------------------------------------------------------------------
 
-try_80:                                 ; CODE XREF: BIOSDATA:2135↑j
+try_80:                                 ; ...
                 cmp     ds:num_cyln, 80
                 jnz     short gotother
                 mov     dh, 9           ; ff288 ; assume 2.88 MB drive
@@ -3779,12 +3566,12 @@ try_80:                                 ; CODE XREF: BIOSDATA:2135↑j
                 jmp     short nextdrive
 ; ---------------------------------------------------------------------------
 
-got96:                                  ; CODE XREF: BIOSDATA:2157↑j
+got96:                                  ; ...
                 mov     dh, 1           ; ff96tpi
                 jmp     short nextdrive
 ; ---------------------------------------------------------------------------
 
-noparmsfromrom:                         ; CODE XREF: BIOSDATA:207A↑j
+noparmsfromrom:                         ; ...
                 pop     es
                 pop     cx
                 pop     dx
@@ -3812,8 +3599,7 @@ noparmsfromrom:                         ; CODE XREF: BIOSDATA:207A↑j
                 jbe     short nextdrive
                 mov     ds:eot, al
 
-nextdrive:                              ; CODE XREF: BIOSDATA:213C↑j
-                                        ; BIOSDATA:2140↑j ...
+nextdrive:                              ; ...
                 or      cl, 20h         ; fi_own_physical
                                         ; set this true for all drives
                 mov     bh, dl          ; save int13 drive number
@@ -3823,7 +3609,7 @@ nextdrive:                              ; CODE XREF: BIOSDATA:213C↑j
                 xor     cl, 20h         ; fi_own_physical
                                         ; reset ownership flag for logical drive
 
-not_special:                            ; CODE XREF: BIOSDATA:21A1↑j
+not_special:                            ; ...
                 mov     ax, ds:num_heads
                 mov     [di+52h], ax    ; [di+BDS.rheads]
                 xor     ax, ax
@@ -3848,21 +3634,21 @@ not_special:                            ; CODE XREF: BIOSDATA:21A1↑j
                 jmp     short nextdrive ; Use same info for BDS as previous
 ; ---------------------------------------------------------------------------
 
-no_single:                              ; CODE XREF: BIOSDATA:21D0↑j
+no_single:                              ; ...
                 inc     dl
                 jmp     loop_drive
 ; ---------------------------------------------------------------------------
 
-done_drives:                            ; CODE XREF: BIOSDATA:203F↑j
+done_drives:                            ; ...
                 mov     word ptr [di], 0FFFFh ; -1
 
-dohard:                                 ; CODE XREF: BIOSDATA:2036↑j
+dohard:                                 ; ...
                 mov     dh, ds:hnum
                 or      dh, dh
                 jz      short static_configure
                 mov     dl, 80h
 
-dohard1:                                ; CODE XREF: BIOSDATA:2213↓j
+dohard1:                                ; ...
                 push    dx
                 mov     di, ds:end_of_bdss
                 mov     bl, ds:drvmax
@@ -3873,8 +3659,7 @@ dohard1:                                ; CODE XREF: BIOSDATA:2213↓j
                 jnb     short hardfile_err
                 call    xinstall_bds
 
-hardfile_err:                           ; CODE XREF: BIOSDATA:2204↑j
-                                        ; BIOSDATA:2209↑j
+hardfile_err:                           ; ...
                 pop     dx
                 inc     dl
                 dec     dh
@@ -3883,10 +3668,10 @@ hardfile_err:                           ; CODE XREF: BIOSDATA:2204↑j
                 mov     dh, ds:hnum
                 mov     dl, 80h
 
-dohardx1:                               ; CODE XREF: BIOSDATA:2243↓j
+dohardx1:                               ; ...
                 mov     bh, 1
 
-dohardx2:                               ; CODE XREF: BIOSDATA:223B↓j
+dohardx2:                               ; ...
                 push    dx
                 push    bx
                 mov     di, ds:end_of_bdss
@@ -3902,8 +3687,7 @@ dohardx2:                               ; CODE XREF: BIOSDATA:223B↓j
                 jmp     short dohardx2
 ; ---------------------------------------------------------------------------
 
-dohardx4:                               ; CODE XREF: BIOSDATA:222D↑j
-                                        ; BIOSDATA:2232↑j
+dohardx4:                               ; ...
                 pop     bx
                 pop     dx
                 inc     dl
@@ -3913,8 +3697,7 @@ dohardx4:                               ; CODE XREF: BIOSDATA:222D↑j
                 jbe     short static_configure
                 call    remap
 
-static_configure:                       ; CODE XREF: BIOSDATA:21F2↑j
-                                        ; BIOSDATA:224A↑j
+static_configure:                       ; ...
                 mov     di, ds:end_of_bdss
                 cmp     di, offset bdss
                 jnz     short dynamic_configure
@@ -3923,8 +3706,7 @@ static_configure:                       ; CODE XREF: BIOSDATA:21F2↑j
                 jnz     short dynamic_configure
                 mov     di, offset endfloppy
 
-dynamic_configure:                      ; CODE XREF: BIOSDATA:2257↑j
-                                        ; BIOSDATA:2261↑j
+dynamic_configure:                      ; ...
                 push    cs
                 pop     es
                 assume es:BIOSDATA
@@ -3948,43 +3730,41 @@ dynamic_configure:                      ; CODE XREF: BIOSDATA:2257↑j
                 jmp     short install_int13_patch
 ; ---------------------------------------------------------------------------
 
-checkcompaqbug:                         ; CODE XREF: BIOSDATA:226E↑j
-                                        ; BIOSDATA:2275↑j ...
+checkcompaqbug:                         ; ...
                 mov     ax, 0F000h
                 mov     es, ax
                 cmp     word ptr es:0FFEAh, 4F43h ; 'CO'
-                jnz     short checkk09
+                jnz     short checkcmosclock
                 cmp     word ptr es:0FFECh, 504Dh ; 'MP'
-                jnz     short checkk09
+                jnz     short checkcmosclock
                 cmp     word ptr es:0FFEEh, 5141h ; 'AQ'
-                jnz     short checkk09
+                jnz     short checkcmosclock
                 mov     ax, es:0FFFBh
                 xchg    ah, al
                 cmp     ax, 3836h       ; '68' (NASM syntax) (('86' in MASM syntax))
-                ja      short checkk09
+                ja      short checkcmosclock
                 jz      short chkcompaqbug1
                 cmp     ax, 3739h       ; '97'
-                jbe     short checkk09
+                jbe     short checkcmosclock
                 stc
 
-chkcompaqbug1:                          ; CODE XREF: BIOSDATA:22BE↑j
+chkcompaqbug1:                          ; ...
                 jb      short do_compaq_patch
                 mov     ax, es:0FFF5h
                 xchg    ah, al
                 cmp     ax, 3038h       ; '80'
-                ja      short checkk09
+                ja      short checkcmosclock
                 jb      short do_compaq_patch
                 mov     ax, es:0FFF8h
                 xchg    ah, al
                 cmp     ax, 3034h       ; '40'
-                jnb     short checkk09
+                jnb     short checkcmosclock
 
-do_compaq_patch:                        ; CODE XREF: BIOSDATA:chkcompaqbug1↑j
-                                        ; BIOSDATA:22D3↑j
+do_compaq_patch:                        ; ...
                 mov     cx, offset end_compaq_i13hook
                 mov     si, offset endatrom
 
-install_int13_patch:                    ; CODE XREF: BIOSDATA:2291↑j
+install_int13_patch:                    ; ...
                 push    cs
                 pop     es
                 assume es:BIOSDATA
@@ -3993,10 +3773,11 @@ install_int13_patch:                    ; CODE XREF: BIOSDATA:2291↑j
                 sub     cx, si
                 rep movsb
 
-checkk09:                               ; CODE XREF: BIOSDATA:229F↑j
-                                        ; BIOSDATA:22A8↑j ...
+checkcmosclock:                         ; ...
                 push    cs
                 pop     es
+
+checkk09:
                 push    di
                 mov     ax, 4100h       ; wait for any external event (al=0)
                 mov     bl, 4           ; wait for 4 clock ticks
@@ -4021,7 +3802,7 @@ checkk09:                               ; CODE XREF: BIOSDATA:229F↑j
                 mov     cx, 461         ; endk09-int_6Ch (size of k09 routine)
                 rep movsb
 
-configdone:                             ; CODE XREF: BIOSDATA:2300↑j
+configdone:                             ; ...
                 push    cs
                 pop     ds              ; di is final ending address of msbio.
                 assume ds:BIOSDATA
@@ -4096,7 +3877,7 @@ boot_drv_removable:                     ; calculate cluster count and set fbig o
                 mov     ax, [di+1Bh]    ; [di+BDS.totalsecs32]
                 mov     dx, [di+1Dh]
 
-prep_totalsecs_ok:                      ; CODE XREF: BIOSDATA:23B1↑j
+prep_totalsecs_ok:                      ; ...
                 sub     ax, [di+9]      ; [di+BDS.resectors]
                 sbb     dx, 0
                 push    ax
@@ -4108,7 +3889,7 @@ prep_totalsecs_ok:                      ; CODE XREF: BIOSDATA:23B1↑j
                 mov     bx, [di+1Fh]    ; [di+BDS.fatsecs32]
                 mov     ax, [di+21h]
 
-prep_fatsecs_ok:                        ; CODE XREF: BIOSDATA:23C8↑j
+prep_fatsecs_ok:                        ; ...
                 mov     cl, [di+0Bh]    ; ax:bx = 32 bit count of FAT sectors
                                         ; [di+BDS.fats]
                 xor     ch, ch
@@ -4143,27 +3924,26 @@ prep_fatsecs_ok:                        ; CODE XREF: BIOSDATA:23C8↑j
                 cmp     ax, 0FFF6h
                 jb      short set_fbig_flag
 
-set_fbigbig_flag:                       ; CODE XREF: BIOSDATA:2405↑j
+set_fbigbig_flag:                       ; ...
                 or      es:fbigfat, 20h ; FAT32  ; fbigbig
                 jmp     short set_fbig_flag_ok
 ; ---------------------------------------------------------------------------
 
-set_fbig_flag:                          ; CODE XREF: BIOSDATA:240A↑j
+set_fbig_flag:                          ; ...
                 cmp     ax, 0FF6h       ; 4096-10
                                         ; is this 16-bit fat?
                 jb      short set_fbig_flag_ok ; no, small fat
                 or      es:fbigfat, 40h ; FAT16 ; fbig
 
-set_fbig_flag_ok:                       ; CODE XREF: BIOSDATA:2412↑j
-                                        ; BIOSDATA:2417↑j
+set_fbig_flag_ok:                       ; ...
                 pop     dx
                 pop     cx
                 pop     bx
 
-boot_drv_fixed:                         ; CODE XREF: BIOSDATA:23A5↑j
+boot_drv_fixed:                         ; ...
                 xor     di, di
 
-loadit:                                 ; CODE XREF: BIOSDATA:iseofx↓j
+loadit:                                 ; ...
                 mov     ax, 544h        ; Load DOS kernel (IBMDOS.COM)
                                         ; SYSINIT segment = 544h
                 mov     es, ax
@@ -4181,18 +3961,17 @@ eofbigbig:                              ; si:bx = 32 bit cluster number
                 jmp     short iseofx
 ; ---------------------------------------------------------------------------
 
-iseof:                                  ; CODE XREF: BIOSDATA:2437↑j
+iseof:                                  ; ...
                 test    cs:fbigfat, 40h ; fbig ; FAT16 fs flag
                 jnz     short eofbig
                 cmp     bx, 0FF7h
                 jmp     short iseofx
 ; ---------------------------------------------------------------------------
 
-eofbig:                                 ; CODE XREF: BIOSDATA:244A↑j
+eofbig:                                 ; ...
                 cmp     bx, 0FFF7h
 
-iseofx:                                 ; CODE XREF: BIOSDATA:243D↑j
-                                        ; BIOSDATA:2442↑j ...
+iseofx:                                 ; ...
                 jb      short loadit
                 pop     ax              ; (*) restore fbigfat flags
                                         ; (after loading DOS kernel)
@@ -4203,10 +3982,10 @@ iseofx:                                 ; CODE XREF: BIOSDATA:243D↑j
 ; =============== S U B R O U T I N E =======================================
 
 
-remap           proc near               ; CODE XREF: BIOSDATA:224C↑p
+remap           proc near               ; ...
                 mov     di, cs:start_bds ; get first bds
 
-drive_loop:                             ; CODE XREF: remap+10↓j
+drive_loop:                             ; ...
                 cmp     byte ptr [di+4], 80h ; [di+BDS.drivenum] ; first hard disk??
                 jz      short fdrv_found ; yes, continue
                 mov     di, [di]        ; [di+BDS.link] ; get next bds, assume segment
@@ -4215,10 +3994,10 @@ drive_loop:                             ; CODE XREF: remap+10↓j
                 jmp     short rmap_exit ; yes, no hard drive on system
 ; ---------------------------------------------------------------------------
 
-fdrv_found:                             ; CODE XREF: remap+9↑j
+fdrv_found:                             ; ...
                 mov     al, 2           ; start with logical drv num=2
 
-fdrv_loop:                              ; CODE XREF: remap+20↓j
+fdrv_loop:                              ; ...
                 mov     [di+5], al      ; [di+BDS.drivelet]
                 mov     di, [di]        ; [di+BDS.link] ; ds:di--> next bds
                 inc     al              ; set num for next drive
@@ -4229,7 +4008,7 @@ fdrv_loop:                              ; CODE XREF: remap+20↓j
                 mov     ah, cs:dsktnum  ; get number of floppies to remap
                 sub     ah, 2           ; adjust for a: & b:
 
-remap_loop1:                            ; CODE XREF: remap+3A↓j
+remap_loop1:                            ; ...
                 mov     di, [di]        ; [di+BDS.link] ; set new num to next floppy
                 mov     [di+5], al      ; [di+BDS.drivelet]
                 inc     al              ; new number for next floppy
@@ -4244,10 +4023,10 @@ remap_loop1:                            ; CODE XREF: remap+3A↓j
                 jmp     short remap_change_boot_drv
 ; ---------------------------------------------------------------------------
 
-remap_boot_flop:                        ; CODE XREF: remap+49↑j
+remap_boot_flop:                        ; ...
                 add     al, cs:drvmax   ; bootdrv += (drvmax-dsktnum)
 
-remap_change_boot_drv:                  ; CODE XREF: remap+4D↑j
+remap_change_boot_drv:                  ; ...
                 mov     byte ptr cs:drvfat, al
                 inc     al
                 push    ds
@@ -4258,8 +4037,7 @@ remap_change_boot_drv:                  ; CODE XREF: remap+4D↑j
                 pop     ds
                 assume ds:nothing
 
-rmap_exit:                              ; CODE XREF: remap+12↑j
-                                        ; remap+42↑j
+rmap_exit:                              ; ...
                 retn
 remap           endp
 
@@ -4267,8 +4045,7 @@ remap           endp
 ; =============== S U B R O U T I N E =======================================
 
 
-getboot         proc near               ; CODE XREF: sethard+30↓p
-                                        ; domini+3B↓p
+getboot         proc near               ; ...
                 mov     ax, cs:init_bootseg
                 mov     es, ax
                 mov     bx, 200h        ; bootbias
@@ -4284,10 +4061,10 @@ getboot         proc near               ; CODE XREF: sethard+30↓p
                                         ; Dave Litton magic word?
                 jz      short norm_ret  ; yes
 
-erret:                                  ; CODE XREF: getboot+13↑j
+erret:                                  ; ...
                 stc
 
-norm_ret:                               ; CODE XREF: getboot+1C↑j
+norm_ret:                               ; ...
                 retn
 getboot         endp
 
@@ -4295,8 +4072,7 @@ getboot         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-sethard         proc near               ; CODE XREF: BIOSDATA:2201↑p
-                                        ; BIOSDATA:222A↑p
+sethard         proc near               ; ...
                 push    di              ; inputs:
                                         ;     dl is rom drive number (80h...)
                                         ;     bh is partition number (0....)
@@ -4333,11 +4109,11 @@ sethard         proc near               ; CODE XREF: BIOSDATA:2201↑p
                 pop     dx              ; restore partition number
                 jnb     short chk_act_part
 
-setret_j:                               ; CODE XREF: sethard+27↑j
+setret_j:                               ; ...
                 jmp     setret
 ; ---------------------------------------------------------------------------
 
-chk_act_part:                           ; CODE XREF: sethard+34↑j
+chk_act_part:                           ; ...
                 xor     bx, bx
                 mov     cs:ep_start_sector, bx
                 mov     cs:ep_start_sector+2, bx
@@ -4345,7 +4121,7 @@ chk_act_part:                           ; CODE XREF: sethard+34↑j
                 mov     cs:ep_hidden_secs+2, bx
                 mov     bx, 3C2h        ; 1C2h+bootbias
 
-act_part:                               ; CODE XREF: sethard+8A↓j
+act_part:                               ; ...
                 test    byte ptr es:[bx-4], 80h
                 jz      short no_act
                 cmp     byte ptr es:[bx], 1 ; FAT12
@@ -4361,14 +4137,12 @@ act_part:                               ; CODE XREF: sethard+8A↓j
                 cmp     byte ptr es:[bx], 6 ; FAT16 BIG CHS (> 32MB)
                 jnz     short no_act
 
-got_good_act:                           ; CODE XREF: sethard+5D↑j
-                                        ; sethard+63↑j ...
+got_good_act:                           ; ...
                 or      dh, dh
                 jz      short set2
                 dec     dh
 
-no_act:                                 ; CODE XREF: sethard+57↑j
-                                        ; sethard+7B↑j
+no_act:                                 ; ...
                 add     bx, 16
                 cmp     bx, 402h        ; 202h+bootbias
                                         ; last entry done?
@@ -4376,7 +4150,7 @@ no_act:                                 ; CODE XREF: sethard+57↑j
                 mov     bx, 3C2h        ; 1C2h+bootbias
                                         ; restore original value of bx
 
-get_primary:                            ; CODE XREF: sethard+C7↓j
+get_primary:                            ; ...
                 test    byte ptr es:[bx-4], 80h
                 jnz     short not_prim  ; we've already scanned
                                         ; the ACTIVE ones
@@ -4393,31 +4167,25 @@ get_primary:                            ; CODE XREF: sethard+C7↓j
                 cmp     byte ptr es:[bx], 6 ; FAT16 big fs (> 32 MB)
                 jnz     short not_prim
 
-got_prim:                               ; CODE XREF: sethard+9A↑j
-                                        ; sethard+A0↑j ...
+got_prim:                               ; ...
                 or      dh, dh
                 jz      short set2
                 dec     dh
 
-not_prim:                               ; CODE XREF: sethard+94↑j
-                                        ; sethard+B8↑j
+not_prim:                               ; ...
                 add     bx, 16
                 cmp     bx, 402h        ; 202h+bootbias
                 jnz     short get_primary ; loop till we've gone through table
 
-setret:                                 ; CODE XREF: sethard:setret_j↑j
-                                        ; sethard:set3_err↓j
+setret:                                 ; ...
                 stc
                 jmp     ret_hard_err
 ; ---------------------------------------------------------------------------
-ep_start_sector dw 2 dup(0)             ; DATA XREF: sethard+3B↑w
-                                        ; domini+D↓w ...
-ep_hidden_secs  dw 2 dup(0)             ; DATA XREF: sethard+45↑w
-                                        ; sethard:okdrive↓r ...
+ep_start_sector dw 2 dup(0)             ; ...
+ep_hidden_secs  dw 2 dup(0)             ; ...
 ; ---------------------------------------------------------------------------
 
-set2:                                   ; CODE XREF: sethard+7F↑j
-                                        ; sethard+BC↑j ...
+set2:                                   ; ...
                 mov     cs:rom_drv_num, dl
                 mov     ax, es:[bx+4]   ; start sector (LBA) of the partition
                 mov     dx, es:[bx+6]
@@ -4428,13 +4196,13 @@ set2:                                   ; CODE XREF: sethard+7F↑j
                 jnb     short okdrive
                 or      ds:fbigfat, 80h ; ftoobig
 
-okdrive:                                ; CODE XREF: sethard+F0↑j
+okdrive:                                ; ...
                 add     ax, cs:ep_hidden_secs
                 adc     dx, cs:ep_hidden_secs+2
                 jnb     short okdrive_1
                 or      ds:fbigfat, 80h ; ftoobig
 
-okdrive_1:                              ; CODE XREF: sethard+101↑j
+okdrive_1:                              ; ...
                 cmp     byte ptr es:[bx], 0Ch ; FAT32 LBA partition ID
                 jz      short set_lba_flag
                 cmp     byte ptr es:[bx], 0Eh ; FAT16 LBA partition ID
@@ -4448,11 +4216,10 @@ okdrive_1:                              ; CODE XREF: sethard+101↑j
                                         ;  set LBA r/w flag
                 jb      short set3
 
-set_lba_flag:                           ; CODE XREF: sethard+10C↑j
-                                        ; sethard+112↑j ...
+set_lba_flag:                           ; ...
                 or      byte ptr [di+40h], 4 ; fLBArw ; LBA r/w flag
 
-set3:                                   ; CODE XREF: sethard+124↑j
+set3:                                   ; ...
                 mov     ax, es:[bx+4]   ; start sector (LBA) of the partition
                 mov     dx, es:[bx+6]
                 add     ax, cs:ep_hidden_secs ; + hidden secs of the extd dos partion
@@ -4460,8 +4227,8 @@ set3:                                   ; CODE XREF: sethard+124↑j
                 mov     [di+17h], ax    ; [di+BDS.hiddensectors]
                 mov     [di+19h], dx
                 xor     ax, ax
-                mov     [di+7Bh], ax
-                mov     [di+0Eh], ax
+                mov     [di+7Bh], ax    ; [di+BDS.bdsm_hidden_trks]
+                mov     [di+0Eh], ax    ; [di+BDS.totalsec16]
                 mov     dx, es:[bx+10]  ; totals sectors (size) of the partition
                 mov     ax, es:[bx+8]
                 mov     [di+1Dh], dx
@@ -4471,7 +4238,7 @@ set3:                                   ; CODE XREF: sethard+124↑j
                 cmp     ax, 64
                 jb      short set3_err
 
-set3_read:                              ; CODE XREF: sethard+15B↑j
+set3_read:                              ; ...
                 mov     dx, [di+19h]    ; [di+BDS.hiddensectors+2]
                 mov     ax, [di+17h]    ; [di+BDS.hiddensectors]
                 xor     bx, bx
@@ -4530,24 +4297,23 @@ set3_lba_read:
                 pop     ds
                 assume ds:nothing
 
-set3_err:                               ; CODE XREF: sethard+160↑j
-                                        ; sethard+1FA↓j
+set3_err:                               ; ...
                 jmp     setret
 ; ---------------------------------------------------------------------------
 
-set3_lba_read_ok:                       ; CODE XREF: sethard+1C4↑j
+set3_lba_read_ok:                       ; ...
                 add     sp, 16
                 pop     si
                 pop     ds
                 jmp     short set3_read_ok
 ; ---------------------------------------------------------------------------
 
-set3_chs_read:                          ; CODE XREF: sethard+196↑j
+set3_chs_read:                          ; ...
                 cmp     word ptr [di+79h], 1 ; [di+BDS.bdsm_ismini] ; check for mini disk
                 jnz     short oknotmini
                 add     ax, [di+7Bh]    ; [di+BDS.bdsm_hidden_trks]
 
-oknotmini:                              ; CODE XREF: sethard+1D9↑j
+oknotmini:                              ; ...
                 ror     ah, 1           ; move high two bits of cyl to high
                 ror     ah, 1           ; two bits of upper byte
                 and     ah, 0C0h        ; turn off remainder of bits
@@ -4566,7 +4332,7 @@ oknotmini:                              ; CODE XREF: sethard+1D9↑j
                                         ; Return: CF set on error, AH = status, AL = number of sectors read
                 jb      short set3_err
 
-set3_read_ok:                           ; CODE XREF: sethard+1D3↑j
+set3_read_ok:                           ; ...
                 mov     bx, offset disksector
                 push    bx
                 push    ax
@@ -4582,7 +4348,7 @@ set3_read_ok:                           ; CODE XREF: sethard+1D3↑j
                 assume ds:BIOSDATA
                 mov     cx, 28
                 lea     si, [bx+24h]    ; move offset 36 to 63
-                                        ;      to offset offset 64 (28 bytes)
+                                        ;      to offset 64 (28 bytes)
                 lea     di, [bx+40h]    ; boot sector offset 64
                 cld
                 rep movsb
@@ -4591,15 +4357,15 @@ set3_read_ok:                           ; CODE XREF: sethard+1D3↑j
                 pop     ds
                 assume ds:nothing
 
-check_1:                                ; CODE XREF: sethard+20F↑j
+check_1:                                ; ...
                 cmp     byte ptr cs:[bx], 0E9h ; is it a near jump?
-                jz      short check_1_ok ; yes
+                jz      short check_2   ; yes
                 cmp     byte ptr cs:[bx], 0EBh ; is it a short jump?
                 jnz     short invalid_boot_record ; no
                 cmp     byte ptr cs:[bx+2], 90h ; yes, is the next one a nop?
                 jnz     short invalid_boot_record ; no
 
-check_1_ok:                             ; CODE XREF: sethard+229↑j
+check_2:                                ; ...
                 mov     bx, (offset disksector+0Bh) ;  disksector+EXT_BOOT.BPB ; disksector+11
                 mov     al, cs:[bx+10]  ; [bx+EBPB.MEDIADESCRIPTOR]
                 and     al, 0F0h        ; mask off low nibble
@@ -4612,20 +4378,19 @@ check_1_ok:                             ; CODE XREF: sethard+229↑j
                 or      al, al          ; is it zero?
                 jz      short invalid_boot_record ; yes, invalid boot record
 
-ck_power_of_two:                        ; CODE XREF: sethard+256↓j
+ck_power_of_two:                        ; ...
                 shr     al, 1           ; shift until first bit emerges
                 jnb     short ck_power_of_two
                 jz      short valid_boot_record
 
-invalid_boot_record:                    ; CODE XREF: sethard+208↑j
-                                        ; sethard+22F↑j ...
+invalid_boot_record:                    ; ...
                 pop     ax
                 pop     bx
                 jmp     unknown         ; jump to invalid boot record
                                         ; unformatted or illegal media.
 ; ---------------------------------------------------------------------------
 
-valid_boot_record:                      ; CODE XREF: sethard+258↑j
+valid_boot_record:                      ; ...
                 pop     ax
                 pop     bx              ;
                                         ; Signature found. Now check version.
@@ -4636,13 +4401,11 @@ valid_boot_record:                      ; CODE XREF: sethard+258↑j
                 jmp     short copybpb
 ; ---------------------------------------------------------------------------
 
-unknown3_0_j:                           ; CODE XREF: sethard+293↓j
-                                        ; sethard+29C↓j
+unknown3_0_j:                           ; ...
                 jmp     unknown3_0
 ; ---------------------------------------------------------------------------
 
-try5:                                   ; CODE XREF: sethard+267↑j
-                                        ; sethard+26E↑j
+try5:                                   ; ...
                 call    cover_fdisk_bug
                 cmp     word ptr cs:[bx+8], 2E30h ; '0.' (NASM syntax)
                 jnz     short no_os2
@@ -4653,27 +4416,26 @@ try5:                                   ; CODE XREF: sethard+267↑j
                 jmp     unknown
 ; ---------------------------------------------------------------------------
 
-no_os2:                                 ; CODE XREF: sethard+27E↑j
+no_os2:                                 ; ...
                 cmp     word ptr cs:[bx+8], 2E33h ; '3.' (NASM syntax)
                 jb      short unknown3_0_j
                 jnz     short copybpb
                 cmp     byte ptr cs:[bx+0Ah], 31h ; '1'
                 jb      short unknown3_0_j
 
-copybpb:                                ; CODE XREF: sethard+270↑j
-                                        ; sethard+288↑j ...
-                cmp     word ptr cs:disksector+4Dh, 0 ; BPB_SecPerClus (at 0Dh)
-                jnz     short check_2   ; NOTE: This check is not propfer for FAT32 boot sector (standard spec)
+copybpb:                                ; ...
+                cmp     word ptr cs:disksector+4Dh, 0
+                jnz     short check_3   ; NOTE: This check is not proper for FAT32 boot sector (standard spec)
                                         ; (after PCDOS 7.1). So, it is not existing in Windows ME IO.SYS
                                         ; Erdogan Tan - 01/09/2023
                 cmp     cs:disksector+42h, 29h ; BS_BootSig (FAT32)
-                jmp     short check_3
+                jmp     short check_4
 ; ---------------------------------------------------------------------------
 
-check_2:                                ; CODE XREF: sethard+2A4↑j
+check_3:                                ; ...
                 cmp     cs:disksector+26h, 29h ; BS_BootSig (FAT16/FAT12)
 
-check_3:                                ; CODE XREF: sethard+2AC↑j
+check_4:                                ; ...
                 jnz     short copybpb_fat
                 cmp     cs:disksector+10h, 0 ; BPB.fats
                 jnz     short copybpb_fat
@@ -4702,8 +4464,7 @@ check_3:                                ; CODE XREF: sethard+2AC↑j
                 mov     ax, [di+17h]
                 mov     cs:[si+17h], ax
 
-already_nonz:                           ; CODE XREF: sethard+2CF↑j
-                                        ; sethard+2D6↑j ...
+already_nonz:                           ; ...
                 mov     cx, 53          ; copy contents of the bootsector's BPB
                                         ;                      to the BDS's BPB
                 rep movsb
@@ -4730,8 +4491,7 @@ sethard         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-copybpb_fat     proc near               ; CODE XREF: sethard:check_3↑j
-                                        ; sethard+2BC↑j
+copybpb_fat     proc near               ; ...
                 mov     si, (offset disksector+0Bh) ; BIOSDATA:015Dh
                                         ; disksector+11
                                         ; disksector+EXT_BOOT.BPB
@@ -4745,11 +4505,11 @@ copybpb_fat     proc near               ; CODE XREF: sethard:check_3↑j
                 or      cx, ax          ; see if it is a big zero
                 jz      short fat_big_small ; screw it. it was bogus.
 
-copy_totsec:                            ; CODE XREF: copybpb_fat+B↑j
+copy_totsec:                            ; ...
                 mov     [di+1Bh], ax    ; [di+BDS.totalsecs32]
                 mov     [di+1Dh], dx    ; [di+BDS.totalsecs32+2]
 
-fat_big_small:                          ; CODE XREF: copybpb_fat+19↑j
+fat_big_small:                          ; ...
                 mov     ax, [di+1Bh]
                 mov     dx, [di+1Dh]
                 mov     bx, cs:[si+3]   ; BPB.resectors
@@ -4791,7 +4551,7 @@ fat_big_small:                          ; CODE XREF: copybpb_fat+19↑j
                                         ;   jmp short fat_32bit
 ; ---------------------------------------------------------------------------
 
-fat_16bit:                              ; CODE XREF: copybpb_fat+3D↑j
+fat_16bit:                              ; ...
                 shl     bx, 1           ; always 2 fats ! BUG!
                 sub     ax, bx          ; sub # fat sectors
                 sbb     dx, 0           ; BUG! Erdogan Tan - 8/8/2023
@@ -4803,7 +4563,7 @@ fat_16bit:                              ; CODE XREF: copybpb_fat+3D↑j
                                         ;   dec cl
                                         ;   jg short sub_fat_size
 
-fat_32bit:                              ; CODE XREF: copybpb_fat+7F↑j
+fat_32bit:                              ; ...
                 mov     bx, cs:[si+6]   ; BPB.direntries
                 mov     [di+0Ch], bx    ; [di+BDS.direntries]
                 mov     cl, 4
@@ -4827,29 +4587,28 @@ fat_32bit:                              ; CODE XREF: copybpb_fat+7F↑j
                 jnz     short fat32_clust_limit
                 cmp     ax, 0FFF6h      ; FAT32 cluster number limit: 0FFFFFF6h
 
-fat32_clust_limit:                      ; CODE XREF: copybpb_fat+BB↑j
+fat32_clust_limit:                      ; ...
                 ja      short toobig_ret
                 cmp     cs:saved_word, bx
                 jnz     short fat16_clust_limit
                 cmp     ax, 0FFF6h      ; FAT16 cluster number limit: 0FFF6h
 
-fat16_clust_limit:                      ; CODE XREF: copybpb_fat+C7↑j
+fat16_clust_limit:                      ; ...
                 jbe     short fat12_clust_limit
                 or      ds:fbigfat, 20h ; fbigbig ; FAT32 fs
                 jmp     short copymediaid
 ; ---------------------------------------------------------------------------
 
-chk_clnum_hw:                           ; CODE XREF: copybpb_fat+B2↑j
+chk_clnum_hw:                           ; ...
                 cmp     cs:saved_word, 0
                 ja      short toobig_ret
 
-fat12_clust_limit:                      ; CODE XREF: copybpb_fat:fat16_clust_limit↑j
+fat12_clust_limit:                      ; ...
                 cmp     ax, 0FF6h       ; FAT12 cluster number limit: 0FF6h
                 jb      short copymediaid ; FAT12 fs
                 or      ds:fbigfat, 40h ; fbig ; FAT16 fs
 
-copymediaid:                            ; CODE XREF: copybpb_fat+D3↑j
-                                        ; copybpb_fat+E0↑j
+copymediaid:                            ; ...
                 push    es
                 push    ds
                 pop     es
@@ -4867,39 +4626,36 @@ copymediaid:                            ; CODE XREF: copybpb_fat+D3↑j
                 jmp     massage_bpb
 ; ---------------------------------------------------------------------------
 
-toobig_ret:                             ; CODE XREF: copybpb_fat:fat32_clust_limit↑j
-                                        ; copybpb_fat+DB↑j
+toobig_ret:                             ; ...
                 or      cs:fbigfat, 80h ; ftoobig ; too big (32 bit cluster #) for FAT16
                 jmp     goodret         ; still drive letter is assigned
                                         ; but useless. to big for
                                         ; current pc dos fat file system
 ; ---------------------------------------------------------------------------
 
-unknown:                                ; CODE XREF: sethard+25C↑j
-                                        ; sethard+28A↑j
+unknown:                                ; ...
                 or      byte ptr [di+40h], 2 ; [di+BDS.flags+1] ; unformatted_media
                                         ; Set unformatted media flag.
 
-unknown3_0:                             ; CODE XREF: sethard:unknown3_0_j↑j
+unknown3_0:                             ; ...
                 mov     dx, [di+1Dh]    ; skip setting unformatted_media bit
                                         ; [di+BDS.totalsecs32+2]
                 mov     ax, [di+1Bh]    ; [di+BDS.totalsecs32]
                 mov     si, offset disktable2
 
-scan:                                   ; CODE XREF: copybpb_fat+11F↓j
+scan:                                   ; ...
                 cmp     dx, cs:[si]     ; total sectors hw
                 jb      short gotparm
                 ja      short scan_next
                 cmp     ax, cs:[si+2]   ; total sectors lw
                 jbe     short gotparm
 
-scan_next:                              ; CODE XREF: copybpb_fat+114↑j
+scan_next:                              ; ...
                 add     si, 10
                 jmp     short scan
 ; ---------------------------------------------------------------------------
 
-gotparm:                                ; CODE XREF: copybpb_fat+112↑j
-                                        ; copybpb_fat+11A↑j
+gotparm:                                ; ...
                 mov     cl, [si+8]      ; bigfat flags
                                         ; (FAT16 fbig=40h, FAT32 fbigbig=20h)
                 or      ds:fbigfat, cl
@@ -4930,7 +4686,7 @@ gotparm:                                ; CODE XREF: copybpb_fat+112↑j
                 jmp     short massage_bpb
 ; ---------------------------------------------------------------------------
 
-dobig:                                  ; CODE XREF: copybpb_fat+141↑j
+dobig:                                  ; ...
                 mov     cl, 4           ; 16 (2^4) directory entries per sector
                 push    dx              ; save total sectors (high)
                 mov     dx, [di+0Ch]    ; [di+BDS.direntries]
@@ -4979,7 +4735,7 @@ dobig:                                  ; CODE XREF: copybpb_fat+141↑j
                 sbb     dx, 0           ; dx:ax = TmpVal1+(2*TmpVal2)-TmpVal2-1
                                         ;       = TmpVal1+(TmpVal2-1)
 
-dobig1:                                 ; CODE XREF: copybpb_fat+18A↑j
+dobig1:                                 ; ...
                 push    ax              ; save lw of dividend
                 mov     ax, dx          ; divide hw of dx:ax at first (as 1st stage)
                 xor     dx, dx
@@ -5001,7 +4757,7 @@ dobig1:                                 ; CODE XREF: copybpb_fat+18A↑j
                 mov     word ptr [di+9], 32 ; [di+BDS.resectors]
                                         ; set reserved sectors to 32 (FAT32 de facto)
 
-dobig2:                                 ; CODE XREF: copybpb_fat+1B2↑j
+dobig2:                                 ; ...
                 push    ds              ; set the default filesys_id,
                                         ;     volume label, serial number
                 push    ds
@@ -5015,8 +4771,7 @@ dobig2:                                 ; CODE XREF: copybpb_fat+1B2↑j
                 pop     ds
                 assume ds:nothing
 
-massage_bpb:                            ; CODE XREF: copybpb_fat+F6↑j
-                                        ; copybpb_fat+15F↑j
+massage_bpb:                            ; ...
                 mov     dx, [di+1Dh]    ; [di+BDS.totalsecs32+2]
                 mov     ax, [di+1Bh]    ; [di+BDS.totalsecs32]
                 cmp     dx, 0
@@ -5029,14 +4784,13 @@ massage_bpb:                            ; CODE XREF: copybpb_fat+F6↑j
                 mov     [di+0Eh], ax    ; [di+BDS.totalsecs16]
                 mov     word ptr [di+1Bh], 0
 
-goodret:                                ; CODE XREF: sethard+30A↑j
-                                        ; copybpb_fat+FF↑j ...
+goodret:                                ; ...
                 mov     bl, ds:fbigfat
                 mov     [di+3Bh], bl    ; [di+BDS.fatsiz]
                                         ; set size of fat on media
                 clc
 
-ret_hard_err:                           ; CODE XREF: sethard+CA↑j
+ret_hard_err:                           ; ...
                 pop     es
                 pop     ds
                 pop     bx
@@ -5048,7 +4802,7 @@ copybpb_fat     endp ; sp-analysis failed
 ; =============== S U B R O U T I N E =======================================
 
 
-cover_fdisk_bug proc near               ; CODE XREF: sethard:try5↑p
+cover_fdisk_bug proc near               ; ...
                 push    ax              ; fdisk of pc dos 3.3 and below, os2 1.0 has a bug.
                                         ; the maximum number of sector that can be handled by pc dos 3.3
                                         ; ibmbio should be 0ffffh. instead, sometimes fdisk use 10000h to
@@ -5067,7 +4821,7 @@ cover_fdisk_bug proc near               ; CODE XREF: sethard:try5↑p
                 cmp     byte ptr cs:[bx+0Ah], 30h ; '0'
                 jnz     short cfb_retit
 
-cfb_chk_totalsecs:                      ; CODE XREF: cover_fdisk_bug+19↑j
+cfb_chk_totalsecs:                      ; ...
                 mov     si, (offset disksector+0Bh) ; 15Dh
                                         ; disksector+EXT_BOOT.BPB
                 cmp     word ptr cs:[si+8], 0 ; [cs:si+EBPB.TOTALSECTORS]
@@ -5081,8 +4835,7 @@ cfb_chk_totalsecs:                      ; CODE XREF: cover_fdisk_bug+19↑j
                 sub     word ptr [di+1Bh], 1 ; [di+BDS.totalsecs32]
                 sbb     word ptr [di+1Dh], 0 ; [di+BDS.totalsecs32+2]
 
-cfb_retit:                              ; CODE XREF: cover_fdisk_bug+9↑j
-                                        ; cover_fdisk_bug+11↑j ...
+cfb_retit:                              ; ...
                 pop     si
                 pop     dx
                 pop     ax
@@ -5090,14 +4843,14 @@ cfb_retit:                              ; CODE XREF: cover_fdisk_bug+9↑j
 cover_fdisk_bug endp
 
 ; ---------------------------------------------------------------------------
-word2           dw 2                    ; DATA XREF: setdrvparms+8C↓r
-word3           dw 3                    ; DATA XREF: setdrvparms+87↓r
-word512         dw 200h                 ; DATA XREF: setdrvparms+93↓r
+word2           dw 2                    ; ...
+word3           dw 3                    ; ...
+word512         dw 200h                 ; ...
 
 ; =============== S U B R O U T I N E =======================================
 
 
-setdrvparms     proc near               ; CODE XREF: BIOSDATA:245C↑p
+setdrvparms     proc near               ; ...
                 xor     bx, bx          ; setdrvparms sets up the recommended bpb in each bds
                                         ; in the system based on the form factor.
                                         ; it is assumed that the bpbs for the various form factors
@@ -5105,7 +4858,7 @@ setdrvparms     proc near               ; CODE XREF: BIOSDATA:245C↑p
                                         ; the recommended bpb is the same as the bpb on the drive.
                 les     di, dword ptr ds:start_bds ; get first bds in list
 
-_next_bds:                              ; CODE XREF: setdrvparms+B7↓j
+_next_bds:                              ; ...
                 push    es
                 push    di
                 mov     bl, es:[di+3Eh] ; [es:di+BDS.formfactor]
@@ -5118,7 +4871,7 @@ _next_bds:                              ; CODE XREF: setdrvparms+B7↓j
                 mov     dx, es:[di+1Dh] ; [es:di+BDS.totalsecs32+2]
                 mov     ax, es:[di+1Bh] ; [es:di+BDS.totalsecs32]
 
-get_ccyl:                               ; CODE XREF: setdrvparms+19↑j
+get_ccyl:                               ; ...
                 push    dx
                 push    ax
                 mov     ax, es:[di+15h] ; [es:di+BDS.heads]
@@ -5138,7 +4891,7 @@ get_ccyl:                               ; CODE XREF: setdrvparms+19↑j
                 jz      short no_cyl_rnd
                 inc     ax              ; round up
 
-no_cyl_rnd:                             ; CODE XREF: setdrvparms+41↑j
+no_cyl_rnd:                             ; ...
                 mov     es:[di+41h], ax ; [es:di+BDS.cylinders]
                 push    es
                 pop     ds
@@ -5147,7 +4900,7 @@ no_cyl_rnd:                             ; CODE XREF: setdrvparms+41↑j
                 jmp     short set_recbpb
 ; ---------------------------------------------------------------------------
 
-nothardff:                              ; CODE XREF: setdrvparms+F↑j
+nothardff:                              ; ...
                 push    cs
                 pop     ds              ; if fake floppy drive variable is set
                                         ; then we don't have to handle this bds.
@@ -5168,7 +4921,7 @@ nothardff:                              ; CODE XREF: setdrvparms+F↑j
                 dec     ax
                 mov     dl, 1
 
-_again:                                 ; CODE XREF: setdrvparms+78↓j
+_again:                                 ; ...
                 cmp     ax, 0FF6h       ; 4096-10
                 jb      short _@@
                 shr     ax, 1
@@ -5176,12 +4929,12 @@ _again:                                 ; CODE XREF: setdrvparms+78↓j
                 jmp     short _again
 ; ---------------------------------------------------------------------------
 
-_@@:                                    ; CODE XREF: setdrvparms+72↑j
+_@@:                                    ; ...
                 cmp     dl, 1           ; is it a small disk ?
                 jz      short __@@      ; yes, 224 root entries is enuf
                 mov     word ptr [di+49h], 240 ; [di+BDS.rdirentries]
 
-__@@:                                   ; CODE XREF: setdrvparms+7D↑j
+__@@:                                   ; ...
                 mov     [di+45h], dl    ; [di+BDS.rsecperclus]
                 mul     cs:word3        ; * 3
                 div     cs:word2        ; / 2
@@ -5192,19 +4945,18 @@ __@@:                                   ; CODE XREF: setdrvparms+7D↑j
                 jmp     short go_to_next_bds
 ; ---------------------------------------------------------------------------
 
-not_process_other:                      ; CODE XREF: setdrvparms+5C↑j
+not_process_other:                      ; ...
                 shl     bx, 1           ; bx is word index into table of bpbs
                 mov     si, offset bpbtable
                 mov     si, [bx+si]     ; get address of bpb
 
-set_recbpb:                             ; CODE XREF: setdrvparms+4D↑j
+set_recbpb:                             ; ...
                 lea     di, [di+43h]    ; [di+BDS.R_BPB]
                                         ; es:di -> recbpb
                 mov     cx, 53          ; bpbx.size
                 rep movsb               ; move (size bpbx) bytes
 
-go_to_next_bds:                         ; CODE XREF: setdrvparms+57↑j
-                                        ; setdrvparms+9C↑j
+go_to_next_bds:                         ; ...
                 pop     di
                 pop     es              ; restore pointer to bds
                 les     di, es:[di]     ; [es:di+BDS.link]
@@ -5213,7 +4965,7 @@ go_to_next_bds:                         ; CODE XREF: setdrvparms+57↑j
                 jmp     _next_bds
 ; ---------------------------------------------------------------------------
 
-got_end_of_bds_chain:                   ; CODE XREF: setdrvparms+B5↑j
+got_end_of_bds_chain:                   ; ...
                 retn
 setdrvparms     endp
 
@@ -5221,8 +4973,7 @@ setdrvparms     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-print_init      proc near               ; CODE XREF: BIOSDATA:1EBE↑p
-                                        ; BIOSDATA:1EC3↑p ...
+print_init      proc near               ; ...
                 cbw
                 mov     dx, ax
                 mov     ah, 1
@@ -5236,8 +4987,7 @@ print_init      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-aux_init        proc near               ; CODE XREF: BIOSDATA:1EAA↑p
-                                        ; BIOSDATA:1EAF↑p ...
+aux_init        proc near               ; ...
                 cbw
                 mov     dx, ax
                 mov     al, 0A3h        ; RSINIT ; 0A3h
@@ -5253,14 +5003,14 @@ aux_init        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-domini          proc near               ; CODE XREF: BIOSDATA:2215↑p
+domini          proc near               ; ...
                 mov     dh, hnum        ; mini disk initialization routine
                                         ; get number of hardfiles
                 cmp     dh, 0
                 jz      short dominiret ; no hard file? then exit.
                 mov     dl, 80h         ; start with hardfile 80h
 
-domini_loop:                            ; CODE XREF: domini+49↓j
+domini_loop:                            ; ...
                 xor     ax, ax
                 mov     cs:ep_start_sector, ax
                 mov     cs:ep_start_sector+2, ax
@@ -5288,14 +5038,14 @@ domini_loop:                            ; CODE XREF: domini+49↓j
                 jb      short domininext
                 call    find_mini_partition
 
-domininext:                             ; CODE XREF: domini+3E↑j
+domininext:                             ; ...
                 pop     es
                 pop     dx
                 inc     dl              ; next hard file
                 dec     dh
                 jnz     short domini_loop
 
-dominiret:                              ; CODE XREF: domini+7↑j
+dominiret:                              ; ...
                 retn
 domini          endp
 
@@ -5303,13 +5053,12 @@ domini          endp
 ; =============== S U B R O U T I N E =======================================
 
 
-find_mini_partition proc near           ; CODE XREF: domini+40↑p
+find_mini_partition proc near           ; ...
                 add     bx, 1C2h        ; tries to find every extended partition on a disk
                                         ; bx -> file system id
                 mov     ld_p_number, 26
 
-fmpnext:                                ; CODE XREF: find_mini_partition+2A↓j
-                                        ; find_mini_partition:fmpnextchain↓j
+fmpnext:                                ; ...
                 add     ld_p_number, 16
                 cmp     ld_p_number, 4122 ; 64 logical disk partitions (64 EBRs)
                                         ; (64*4 = 256 pte's, 256*16 = 4096, + 26 = 4122)
@@ -5322,13 +5071,11 @@ fmpnext:                                ; CODE XREF: find_mini_partition+2A↓j
                 cmp     bx, 402h        ; 202h+bootbias
                 jnz     short fmpnext
 
-fmpnextfound:                           ; CODE XREF: find_mini_partition+15↑j
-                                        ; find_mini_partition+32↓j ...
+fmpnextfound:                           ; ...
                 jmp     _fmpnextfound   ; extended partition not found
 ; ---------------------------------------------------------------------------
 
-fmpgot:                                 ; CODE XREF: find_mini_partition+1B↑j
-                                        ; find_mini_partition+21↑j
+fmpgot:                                 ; ...
                 call    dmax_check      ; check for drvmax already 26
                 jnb     short fmpnextfound ; done if too many
                 mov     di, end_of_bdss ; get next free bds
@@ -5338,8 +5085,6 @@ fmpgot:                                 ; CODE XREF: find_mini_partition+1B↑j
                 mov     fbigfat, 0      ; assume 12 bit fat.
                 mov     ax, mini_hdlim
                 mov     [di+15h], ax    ; [di+BDS.heads]
-
-fmpgot1:
                 mov     ax, mini_seclim
                 mov     [di+13h], ax    ; [di+BDS.secpertrack]
                 mov     al, rom_minidisk_num
@@ -5347,11 +5092,11 @@ fmpgot1:
                 mov     al, drvmax
                 mov     [di+5], al      ; [di+BDS.drivelet] ; set logical number
                 cmp     word ptr es:[bx+10], 0
-                ja      short fmpgot2
+                ja      short fmpgot1
                 cmp     word ptr es:[bx+8], 64 ; minimum 64 sectors
                 jb      short fmpnextfound
 
-fmpgot2:                                ; CODE XREF: find_mini_partition+67↑j
+fmpgot1:                                ; ...
                 sub     bx, 4           ; let bx point to the start of the entry
                 mov     dh, es:[bx+2]   ; cylinder
                 and     dh, 0C0h        ; get higher bits of cyl
@@ -5365,14 +5110,13 @@ fmpgot2:                                ; CODE XREF: find_mini_partition+67↑j
                 add     cx, ep_start_sector
                 adc     ax, ep_start_sector+2
                 cmp     ep_start_sector, 0
-                jnz     short fmpgot3
+                jnz     short fmpgot2
                 cmp     ep_start_sector+2, 0
-                jnz     short fmpgot3
+                jnz     short fmpgot2
                 mov     ep_start_sector, cx
                 mov     ep_start_sector+2, ax
 
-fmpgot3:                                ; CODE XREF: find_mini_partition+9B↑j
-                                        ; find_mini_partition+A2↑j
+fmpgot2:                                ; ...
                 mov     ep_hidden_secs, cx
                 mov     ep_hidden_secs+2, ax ;
                                         ; convert start sector address to CHS
@@ -5393,7 +5137,7 @@ fmpgot3:                                ; CODE XREF: find_mini_partition+9B↑j
                 cmp     ax, 1024        ; cylinder number < 1024, CHS read is proper
                 jb      short fmpgot_chs_rd
 
-fmpgot_lba_rd:                          ; CODE XREF: find_mini_partition+CA↑j
+fmpgot_lba_rd:                          ; ...
                 or      byte ptr [di+40h], 4 ; set fLBArw flag ; LBA read/write ok/ready
                 mov     dl, rom_minidisk_num
                 push    ds
@@ -5426,10 +5170,10 @@ fmpgot_lba_rd:                          ; CODE XREF: find_mini_partition+CA↑j
                 pop     si
                 pop     ds
                 assume ds:nothing
-                jmp     short fmpgot_cont
+                jmp     short fmpgot3
 ; ---------------------------------------------------------------------------
 
-fmpgot_chs_rd:                          ; CODE XREF: find_mini_partition+CF↑j
+fmpgot_chs_rd:                          ; ...
                 mov     cx, es:[bx+2]   ; cylinder,cylinder/sector
                 mov     dh, es:[bx+1]   ; head
                 mov     dl, ds:rom_minidisk_num
@@ -5440,7 +5184,7 @@ fmpgot_chs_rd:                          ; CODE XREF: find_mini_partition+CF↑j
                                         ; DH = head, DL = drive, ES:BX -> buffer to fill
                                         ; Return: CF set on error, AH = status, AL = number of sectors read
 
-fmpgot_cont:                            ; CODE XREF: find_mini_partition+105↑j
+fmpgot3:                                ; ...
                 jb      short _fmpnextfound
                 mov     bx, 3C2h        ; 1C2h+bootbias
                 cmp     word ptr es:[bx+3Ch], 0AA55h ; 03C2h+03Ch = 3FEh
@@ -5452,12 +5196,11 @@ fmpgot_cont:                            ; CODE XREF: find_mini_partition+105↑j
                 jb      short fmpnextchain
                 call    xinstall_bds    ; -- install the bdsm into table
 
-fmpnextchain:                           ; CODE XREF: find_mini_partition+12D↑j
+fmpnextchain:                           ; ...
                 jmp     fmpnext
 ; ---------------------------------------------------------------------------
 
-_fmpnextfound:                          ; CODE XREF: find_mini_partition:fmpnextfound↑j
-                                        ; find_mini_partition:fmpgot_cont↑j ...
+_fmpnextfound:                          ; ...
                 retn
 find_mini_partition endp
 
@@ -5465,13 +5208,13 @@ find_mini_partition endp
 ; =============== S U B R O U T I N E =======================================
 
 
-setmini         proc near               ; CODE XREF: find_mini_partition+129↑p
+setmini         proc near               ; ...
                 push    di
                 push    bx
                 push    ds
                 push    es
 
-setmini_1:                              ; CODE XREF: setmini+2F↓j
+setmini_1:                              ; ...
                 cmp     byte ptr es:[bx], 1 ; FAT12 partition
                 jz      short setmini_2
                 cmp     byte ptr es:[bx], 4 ; FAT16 (CHS) partition
@@ -5495,8 +5238,7 @@ setmini_1:                              ; CODE XREF: setmini+2F↓j
                 retn
 ; ---------------------------------------------------------------------------
 
-setmini_2:                              ; CODE XREF: setmini+8↑j
-                                        ; setmini+E↑j ...
+setmini_2:                              ; ...
                 jmp     set2            ; branch into middle of sethard
 setmini         endp
 
@@ -5504,8 +5246,7 @@ setmini         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-dmax_check      proc near               ; CODE XREF: BIOSDATA:2206↑p
-                                        ; BIOSDATA:222F↑p ...
+dmax_check      proc near               ; ...
                 cmp     ds:drvmax, 26   ; checks for drvmax < 26
                 jb      short dmax_ok   ; returns with carry if okay
                 push    es
@@ -5516,7 +5257,7 @@ dmax_check      proc near               ; CODE XREF: BIOSDATA:2206↑p
                 pop     es
                 assume es:nothing
 
-dmax_ok:                                ; CODE XREF: dmax_check+5↑j
+dmax_ok:                                ; ...
                 retn
 dmax_check      endp
 
@@ -5524,22 +5265,21 @@ dmax_check      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-xinstall_bds    proc near               ; CODE XREF: BIOSDATA:205A↑p
-                                        ; BIOSDATA:220B↑p ...
+xinstall_bds    proc near               ; ...
                 push    si              ; link next bds (at ds:di) into the chain.
                                         ; assume that the chain is entirely within ds == datagrp.
                                         ; also update drvmax, dskdrv_table, and end_of_bdss.
                 push    bx
                 mov     si, ds:start_bds ; get first bds
 
-xinstall_bds_1:                         ; CODE XREF: xinstall_bds+D↓j
+xinstall_bds_1:                         ; ...
                 cmp     word ptr [si], 0FFFFh ; is this the last one?
                 jz      short xinstall_bds_2
                 mov     si, [si]        ; [si+BDS.link] ; chain through list
                 jmp     short xinstall_bds_1
 ; ---------------------------------------------------------------------------
 
-xinstall_bds_2:                         ; CODE XREF: xinstall_bds+9↑j
+xinstall_bds_2:                         ; ...
                 mov     [si], di        ; [si+BDS.link]
                 mov     word ptr [si+2], ds ; [si+BDS.link+2]
                 mov     word ptr [di], 0FFFFh ; -1 ; make sure it is a null ptr.
@@ -5559,14 +5299,14 @@ xinstall_bds    endp
 ; =============== S U B R O U T I N E =======================================
 
 
-cmos_clock_read proc near               ; CODE XREF: BIOSDATA:1FC9↑p
+cmos_clock_read proc near               ; ...
                 push    ax
                 push    cx
                 push    dx
                 push    bp
                 xor     bp, bp
 
-loop_clock:                             ; CODE XREF: cmos_clock_read+23↓j
+loop_clock:                             ; ...
                 xor     cx, cx
                 xor     dx, dx
                 mov     ah, 2
@@ -5583,13 +5323,12 @@ loop_clock:                             ; CODE XREF: cmos_clock_read+23↓j
                 inc     bp              ; only perform delay once.
                 mov     cx, 4000h       ; 16384
 
-delay:                                  ; CODE XREF: cmos_clock_read:delay↓j
+delay:                                  ; ...
                 loop    delay
                 jmp     short loop_clock
 ; ---------------------------------------------------------------------------
 
-clock_present:                          ; CODE XREF: cmos_clock_read+11↑j
-                                        ; cmos_clock_read+16↑j
+clock_present:                          ; ...
                 mov     cs:havecmoscloc, 1 ; set the flag for cmos clock
                 call    cmosck          ; reset cmos clock rate that may be
                                         ; possibly destroyed by cp dos and
@@ -5601,7 +5340,7 @@ clock_present:                          ; CODE XREF: cmos_clock_read+11↑j
                 sti
                 pop     si
 
-no_readdate:                            ; CODE XREF: cmos_clock_read+1B↑j
+no_readdate:                            ; ...
                 pop     bp
                 pop     dx
                 pop     cx
@@ -5613,7 +5352,7 @@ cmos_clock_read endp
 ; =============== S U B R O U T I N E =======================================
 
 
-cmosck          proc near               ; CODE XREF: cmos_clock_read+2B↑p
+cmosck          proc near               ; ...
                 push    ax              ; check and reset rtc rate bits
                                         ;
                                         ; the following code is written by jack gulley in engineering group.
@@ -5633,7 +5372,7 @@ cmosck          proc near               ; CODE XREF: cmos_clock_read+2B↑p
                                         ; RESET THE CMOS PERIODIC RATE
                                         ; Model=FC submodel=00,01,02,03 or 06
 
-cmosck4:                                ; CODE XREF: cmosck+F↑j
+cmosck4:                                ; ...
                 mov     al, 8Ah         ; cmos_reg_a|nmi
                                         ; NMI disabled on return
                 mov     ah, 26h         ; 00100110b
@@ -5649,8 +5388,7 @@ cmosck4:                                ; CODE XREF: cmosck+F↑j
                                         ; NMI enabled on return
                 call    cmos_write
 
-cmosck9:                                ; CODE XREF: cmosck+7↑j
-                                        ; cmosck+17↑j
+cmosck9:                                ; ...
                 pop     ax
                 retn
 cmosck          endp
@@ -5659,7 +5397,7 @@ cmosck          endp
 ; =============== S U B R O U T I N E =======================================
 
 
-cmos_read       proc near               ; CODE XREF: cmosck+22↑p
+cmos_read       proc near               ; ...
                 pushf                   ; read location (al) into (al)
                                         ; bit 7 = 0 for nmi enabled and 1 for nmi disabled on exit
                 cli
@@ -5689,8 +5427,7 @@ cmos_read       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-cmos_popf       proc far                ; CODE XREF: cmos_read+1B↑p
-                                        ; cmos_write+19↓p
+cmos_popf       proc far                ; ...
                 iret                    ; popf for level b- parts
 cmos_popf       endp                    ; return far and restore flags
 
@@ -5698,8 +5435,7 @@ cmos_popf       endp                    ; return far and restore flags
 ; =============== S U B R O U T I N E =======================================
 
 
-cmos_write      proc near               ; CODE XREF: cmosck+1D↑p
-                                        ; cmosck+2B↑p
+cmos_write      proc near               ; ...
                 pushf                   ; write (ah) to location (al)
                                         ; bit 7 = 0 for nmi enabled and 1 for nmi disabled on exit
                 push    ax
@@ -5725,13 +5461,12 @@ cmos_write      proc near               ; CODE XREF: cmosck+1D↑p
 cmos_write      endp
 
 ; ---------------------------------------------------------------------------
-ClusterH        dw 0                    ; DATA XREF: getclus+9↓w
-                                        ; getclus+11↓w ...
+ClusterH        dw 0                    ; ...
 
 ; =============== S U B R O U T I N E =======================================
 
 
-getclus         proc near               ; CODE XREF: BIOSDATA:242E↑p
+getclus         proc near               ; ...
                 push    cx              ; 1*
                                         ; si:bx = (32 bit) cluster to read
                                         ; cx = sectors per cluster
@@ -5753,7 +5488,7 @@ getclus         proc near               ; CODE XREF: BIOSDATA:242E↑p
                 adc     dx, cs:First_Data_Sector+2 ;
                                         ; dx:ax = first logical sector to read
 
-unpack:                                 ; CODE XREF: getclus+D7↓j
+unpack:                                 ; ...
                 push    ds              ; 3*
                 push    ax              ; 4*
                 push    si              ; 5*
@@ -5779,7 +5514,7 @@ unpack32:                               ; yes
                 jmp     short getcl1
 ; ---------------------------------------------------------------------------
 
-not_32bit_cluster:                      ; CODE XREF: getclus+44↑j
+not_32bit_cluster:                      ; ...
                 mov     si, bx          ; next cluster
                 test    cs:fbigfat, 40h ; fbig
                                         ; FAT16 ?
@@ -5807,7 +5542,7 @@ unpack12:
                 mov     byte ptr cs:temp_cluster+1, al
                 mov     ax, cs:temp_cluster ; mov al,[cs:temp_cluster]
 
-even_odd:                               ; CODE XREF: getclus+75↑j
+even_odd:                               ; ...
                 pop     bx              ; restore old fat entry value
                 push    bx              ; 6*
                 shr     bx, 1           ; was it even or odd?
@@ -5818,13 +5553,13 @@ even_odd:                               ; CODE XREF: getclus+75↑j
                 shr     ax, 1
                 shr     ax, 1
 
-havclus:                                ; CODE XREF: getclus+94↑j
+havclus:                                ; ...
                 mov     bx, ax          ; now bx = new fat entry
                 and     bx, 0FFFh       ; keep low 12 bits
                 jmp     short unpackx
 ; ---------------------------------------------------------------------------
 
-unpack16:                               ; CODE XREF: getclus+66↑j
+unpack16:                               ; ...
                 push    dx
                 xor     dx, dx          ; extend to 32 bit offset
                 shl     si, 1           ; cluster number * 2
@@ -5833,11 +5568,11 @@ unpack16:                               ; CODE XREF: getclus+66↑j
                 pop     dx
                 mov     bx, [bx]        ; bx = new fat entry
 
-unpackx:                                ; CODE XREF: getclus+A4↑j
+unpackx:                                ; ...
                 xor     si, si          ; high word of cluster number = 0
                                         ; (FAT12 or FAT16)
 
-getcl1:                                 ; CODE XREF: getclus+5C↑j
+getcl1:                                 ; ...
                 pop     ax              ; 6* - cluster number lw
                 pop     cs:ClusterH     ; 5* - cluster number hw
                 sub     ax, bx          ; previous - current (or current - new)
@@ -5846,7 +5581,7 @@ getcl1:                                 ; CODE XREF: getclus+5C↑j
                 jnz     short not_consenquental
                 cmp     ax, -1          ; 0FFFFh ; is [ClusterH]:ax = -1 ?
 
-not_consenquental:                      ; CODE XREF: getclus+C9↑j
+not_consenquental:                      ; ...
                 pop     ax              ; 4* - low word of first logical sector
                 pop     ds              ; 3*
                 jnz     short getcl2
@@ -5855,7 +5590,7 @@ not_consenquental:                      ; CODE XREF: getclus+C9↑j
                 jmp     unpack
 ; ---------------------------------------------------------------------------
 
-getcl2:                                 ; CODE XREF: getclus+D0↑j
+getcl2:                                 ; ...
                 push    bx
                 push    si
                 push    dx              ; sector to read (high)
@@ -5871,7 +5606,7 @@ getcl2:                                 ; CODE XREF: getclus+D0↑j
                 jbe     short getcl3
                 mov     cx, cs:doscnt
 
-getcl3:                                 ; CODE XREF: getclus+F1↑j
+getcl3:                                 ; ...
                 pop     dx              ; sector to read for diskrd (low)
                 pop     cs:start_sec_h  ; sector to read for diskrd (high)
                 push    cx
@@ -5899,8 +5634,7 @@ getclus         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-get_fat_sector  proc near               ; CODE XREF: getclus+53↑p
-                                        ; getclus+6F↑p ...
+get_fat_sector  proc near               ; ...
                 push    ax              ; dx:si = offset value (starting from fat entry 0)
                                         ;         of fat entry to find
                 push    cx
@@ -5955,7 +5689,7 @@ get_fat_sector  proc near               ; CODE XREF: getclus+53↑p
                 pop     dx
                 mov     cx, cs:md_sectorsize ; 512
 
-gfs_split_chk:                          ; CODE XREF: get_fat_sector+2E↑j
+gfs_split_chk:                          ; ...
                 dec     cx              ; 511
                 cmp     dx, cx          ; if offset points to the last byte of this sector,
                                         ; then splitted entry.
@@ -5978,19 +5712,19 @@ BIOSCODE        segment byte public 'BIOSCODE' use16
                 assume cs:BIOSCODE
                 assume es:nothing, ss:nothing, ds:nothing, fs:nothing, gs:nothing
 BCode_start     db 30h dup(0)
-Bios_Data_Word  dw 70h                  ; DATA XREF: BIOSCODE:_seg_reinit↓r
-                                        ; BIOSCODE:0055↓r ...
+Bios_Data_Word  dw 70h                  ; ...
                                         ; BIOSDATA segment
 ; ---------------------------------------------------------------------------
 
-_seg_reinit:                            ; DATA XREF: SYSINIT:_seg_reinit_ptr↓o
+_seg_reinit:                            ; ...
                 mov     es, cs:Bios_Data_Word
                 assume es:nothing
                 mov     di, offset cdev_2 ; (offset cdev+2)
-                mov     cx, 3           ; (it was 4 in MSDOS 6.21 IO.SYS)
-                                        ; ('bcode_i2f: dw i2f_handler, IOSYSCODESEG' is removed)
 
-_seg_reinit_1:                          ; CODE XREF: BIOSCODE:0040↓j
+loc_356A:                               ; (it was 4 in MSDOS 6.21 IO.SYS)
+                mov     cx, 3           ; ('bcode_i2f: dw i2f_handler, IOSYSCODESEG' is removed)
+
+_seg_reinit_1:                          ; ...
                 stosw                   ; ax = new code (BIOSCODE) segment value
                 inc     di
                 inc     di
@@ -5999,10 +5733,12 @@ _seg_reinit_1:                          ; CODE XREF: BIOSCODE:0040↓j
                                         ;  from BIOSDATA:bios_i2f)
                                         ; (instead of 'bcode_i2f: dw i2f_handler, IOSYSCODESEG'
                                         ;  in MSDOS 6.21 IO.SYS)
+
+locret_3576:
                 retf
 ; ---------------------------------------------------------------------------
 
-chardev_entry:                          ; DATA XREF: BIOSDATA:cdev↑o
+chardev_entry:                          ; ...
                 push    si
                 push    ax
                 push    cx
@@ -6025,12 +5761,8 @@ chardev_entry:                          ; DATA XREF: BIOSDATA:cdev↑o
                 les     bx, ds:ptrsav   ; get pointer to i/o packet
                 mov     al, es:[bx+1]   ; [es:bx+unit] ; al = unit code
                 mov     ah, es:[bx+13]  ; [es:bx+media] ; ah = media descrip
-
-loc_35A1:                               ; [es:bx+count] ; cx = count
-                mov     cx, es:[bx+18]
-
-loc_35A5:                               ; [es:bx+start] ; dx = start sector
-                mov     dx, es:[bx+20]
+                mov     cx, es:[bx+18]  ; [es:bx+count] ; cx = count
+                mov     dx, es:[bx+20]  ; [es:bx+start] ; dx = start sector
                 cmp     si, offset DSKTBL ; BIOSCODE:579h
                 jnz     short no_sector32_mapping
                 mov     ds:start_sec_h, 0
@@ -6042,8 +5774,7 @@ loc_35A5:                               ; [es:bx+start] ; dx = start sector
                 mov     dx, es:[bx+26]  ; [es:bx+start_l]
                                         ; dx = packet.start_l
 
-no_sector32_mapping:                    ; CODE XREF: BIOSCODE:007D↑j
-                                        ; BIOSCODE:0088↑j
+no_sector32_mapping:                    ; ...
                 xchg    ax, di
                 mov     al, es:[bx+2]   ; [es:bx+cmd]
                 cmp     al, cs:[si]
@@ -6058,8 +5789,7 @@ no_sector32_mapping:                    ; CODE XREF: BIOSCODE:007D↑j
                 jb      short already_got_ah_status
                 mov     ah, 1
 
-already_got_ah_status:                  ; CODE XREF: BIOSCODE:00AF↑j
-                                        ; BIOSCODE:00CE↓j
+already_got_ah_status:                  ; ...
                 mov     ds, cs:Bios_Data_Word
                 lds     bx, ds:ptrsav
                 assume ds:nothing
@@ -6077,11 +5807,11 @@ already_got_ah_status:                  ; CODE XREF: BIOSCODE:00AF↑j
                 inc     sp              ; get rid of fake return address
                 inc     sp
 
-bc_retf:                                ; DATA XREF: BIOSDATA:addr_of_bcretf↑o
+bc_retf:                                ; ...
                 retf
 ; ---------------------------------------------------------------------------
 
-command_error:                          ; CODE XREF: BIOSCODE:009E↑j
+command_error:                          ; ...
                 call    bc_cmderr
                 jmp     short already_got_ah_status
 ; ---------------------------------------------------------------------------
@@ -6091,12 +5821,10 @@ _offset_D0h     db 5 dup(0)             ; 5 bytes from 0:C0h will be copied onto
 ; =============== S U B R O U T I N E =======================================
 
 
-bc_cmderr       proc near               ; CODE XREF: BIOSCODE:command_error↑p
-                                        ; BIOSCODE:prnfuncerr↓j ...
+bc_cmderr       proc near               ; ...
                 mov     al, 3           ; unknown command error
 
-bc_err_cnt:                             ; CODE XREF: BIOSCODE:prn_input↓p
-                                        ; BIOSCODE:pmessg↓j ...
+bc_err_cnt:                             ; ...
                 les     bx, ds:ptrsav
                 mov     ah, 81h         ; mark error return
                 sub     es:[bx+18], cx  ; [es:bx+count]
@@ -6107,7 +5835,7 @@ bc_cmderr       endp
 
 ; ---------------------------------------------------------------------------
                 db    0
-con_table       db 11                   ; DATA XREF: BIOSDATA:0623↑o
+con_table       db 11                   ; ...
                                         ; ((con_table_end - con_table)-1)/2 = 11
                 dw offset bc_exvec
                 dw offset bc_exvec
@@ -6120,8 +5848,7 @@ con_table       db 11                   ; DATA XREF: BIOSDATA:0623↑o
                 dw offset con_writ
                 dw offset con_writ
                 dw offset bc_exvec
-prn_table       db 26                   ; DATA XREF: BIOSDATA:0628↑o
-                                        ; BIOSDATA:062F↑o ...
+prn_table       db 26                   ; ...
                                         ; ((prn_table_end - prn_table)-1)/2 = 26
                 dw offset bc_exvec
                 dw offset bc_exvec
@@ -6149,8 +5876,7 @@ prn_table       db 26                   ; DATA XREF: BIOSDATA:0628↑o
                 dw offset bc_exvec
                 dw offset bc_exvec
                 dw offset prn_ioctl_query
-aux_table       db 11                   ; DATA XREF: BIOSDATA:0644↑o
-                                        ; BIOSDATA:064A↑o ...
+aux_table       db 11                   ; ...
                                         ; ((aux_table_end - aux_table)-1)/2 = 11
                 dw offset bc_exvec
                 dw offset bc_exvec
@@ -6163,7 +5889,7 @@ aux_table       db 11                   ; DATA XREF: BIOSDATA:0644↑o
                 dw offset aux_writ
                 dw offset aux_writ
                 dw offset aux_wrst
-tim_table       db 10                   ; DATA XREF: BIOSDATA:065C↑o
+tim_table       db 10                   ; ...
                                         ; ((tim_table_end - tim_table)-1)/2 = 10
                 dw offset bc_exvec
                 dw offset bc_exvec
@@ -6179,15 +5905,15 @@ tim_table       db 10                   ; DATA XREF: BIOSDATA:065C↑o
 ; =============== S U B R O U T I N E =======================================
 
 
-con_read        proc near               ; DATA XREF: BIOSCODE:00ED↑o
+con_read        proc near               ; ...
                 jcxz    short con_exit  ; read cx bytes from keyboard into buffer
 
-con_loop:                               ; CODE XREF: con_read+6↓j
+con_loop:                               ; ...
                 call    chrin           ; get char in al
                 stosb                   ; store char at es:di
                 loop    con_loop
 
-con_exit:                               ; CODE XREF: con_read↑j
+con_exit:                               ; ...
                 clc
                 retn
 con_read        endp
@@ -6196,8 +5922,7 @@ con_read        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-chrin           proc near               ; CODE XREF: con_read:con_loop↑p
-                                        ; chrin+12↓j
+chrin           proc near               ; ...
                 mov     ah, ds:keyrd_func ; set by msinit. 0 or 10h
                 xor     al, al
                 xchg    al, ds:altah    ; get character & zero altah
@@ -6212,7 +5937,7 @@ chrin           proc near               ; CODE XREF: con_read:con_loop↑p
                 jmp     short keyret
 ; ---------------------------------------------------------------------------
 
-alt_ext_chk:                            ; CODE XREF: chrin+17↑j
+alt_ext_chk:                            ; ...
                 cmp     ds:keyrd_func, 0
                 jz      short not_ext
                 cmp     al, 0E0h
@@ -6223,16 +5948,14 @@ alt_ext_chk:                            ; CODE XREF: chrin+17↑j
                 jmp     short alt_save
 ; ---------------------------------------------------------------------------
 
-not_ext:                                ; CODE XREF: chrin+22↑j
-                                        ; chrin+26↑j
+not_ext:                                ; ...
                 or      al, al          ; special case?
                 jnz     short keyret
 
-alt_save:                               ; CODE XREF: chrin+2E↑j
+alt_save:                               ; ...
                 mov     ds:altah, ah    ; store special key
 
-keyret:                                 ; CODE XREF: chrin+C↑j
-                                        ; chrin+1B↑j ...
+keyret:                                 ; ...
                 retn
 chrin           endp
 
@@ -6240,8 +5963,7 @@ chrin           endp
 ; =============== S U B R O U T I N E =======================================
 
 
-con_rdnd        proc near               ; CODE XREF: con_rdnd+37↓j
-                                        ; DATA XREF: BIOSCODE:00EF↑o
+con_rdnd        proc near               ; ...
                 mov     al, ds:altah    ; keyboard non destructive read, no wait
                 or      al, al
                 jnz     short rdexit
@@ -6260,14 +5982,13 @@ con_rdnd        proc near               ; CODE XREF: con_rdnd+37↓j
                                         ; BL = timeout value times 55 milliseconds, 00h means no timeout
                                         ; DX = I/O port address if AL bit 4 set
 
-z_bus_exit:                             ; CODE XREF: con_rdnd+14↑j
-                                        ; con_rdnd+20↑j ...
+z_bus_exit:                             ; ...
                 stc
                 mov     ah, 3           ; indicate busy status
                 retn
 ; ---------------------------------------------------------------------------
 
-gotchr:                                 ; CODE XREF: con_rdnd+D↑j
+gotchr:                                 ; ...
                 or      ax, ax
                 jnz     short notbrk    ; check for null after break
                 mov     ah, ds:keyrd_func ; issue keyboard read function
@@ -6275,14 +5996,14 @@ gotchr:                                 ; CODE XREF: con_rdnd+D↑j
                 jmp     short con_rdnd  ; get a real status
 ; ---------------------------------------------------------------------------
 
-notbrk:                                 ; CODE XREF: con_rdnd+2F↑j
+notbrk:                                 ; ...
                 cmp     ax, 7200h       ; check for ctrl-prtsc
                 jnz     short rd_ext_chk
                 mov     al, 10h         ; ('P' & 1Fh) ; return control p
                 jmp     short rdexit
 ; ---------------------------------------------------------------------------
 
-rd_ext_chk:                             ; CODE XREF: con_rdnd+3C↑j
+rd_ext_chk:                             ; ...
                 cmp     ds:keyrd_func, 0 ; extended keyboard function?
                 jz      short rdexit
                 cmp     al, 0E0h        ; extended key value or greek alpha?
@@ -6292,14 +6013,12 @@ rd_ext_chk:                             ; CODE XREF: con_rdnd+3C↑j
                 mov     al, 0           ; no. extended key stroke.
                                         ; change it for compatibility
 
-rdexit:                                 ; CODE XREF: con_rdnd+5↑j
-                                        ; con_rdnd+40↑j ...
+rdexit:                                 ; ...
                 les     bx, ds:ptrsav
                 mov     es:[bx+13], al  ; [es:bx+media]
                                         ; return keyboard character here
 
-bc_exvec:                               ; CODE XREF: con_writ↓j
-                                        ; DATA XREF: BIOSCODE:00E5↑o ...
+bc_exvec:                               ; ...
                 clc                     ; indicate normal termination
                 retn
 con_rdnd        endp
@@ -6308,11 +6027,10 @@ con_rdnd        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-con_writ        proc near               ; DATA XREF: BIOSCODE:00F5↑o
-                                        ; BIOSCODE:00F7↑o
+con_writ        proc near               ; ...
                 jcxz    short bc_exvec  ; console write routine
 
-con_lp:                                 ; CODE XREF: con_writ+8↓j
+con_lp:                                 ; ...
                 mov     al, es:[di]
                 inc     di
                 int     29h             ; DOS 2+ internal - FAST PUTCHAR
@@ -6322,7 +6040,7 @@ con_writ        endp
 
 ; START OF FUNCTION CHUNK FOR con_flush
 
-cc_ret:                                 ; CODE XREF: con_flush+9↓j
+cc_ret:                                 ; ...
                 clc
                 retn
 ; END OF FUNCTION CHUNK FOR con_flush
@@ -6330,15 +6048,14 @@ cc_ret:                                 ; CODE XREF: con_flush+9↓j
 ; =============== S U B R O U T I N E =======================================
 
 
-con_flush       proc near               ; CODE XREF: swpdsk+37↓p
-                                        ; DATA XREF: BIOSCODE:00F3↑o
+con_flush       proc near               ; ...
 
 ; FUNCTION CHUNK AT 0207 SIZE 00000002 BYTES
 
                 mov     ds:altah, 0     ; flush out keyboard queue
                                         ; clear out holding buffer
 
-flloop:                                 ; CODE XREF: con_flush+F↓j
+flloop:                                 ; ...
                 mov     ah, 1           ; while (charavail()) charread();
                 int     16h             ; KEYBOARD - CHECK BUFFER, DO NOT CLEAR
                                         ; Return: ZF clear if character in buffer
@@ -6353,21 +6070,20 @@ con_flush       endp
 
 ; ---------------------------------------------------------------------------
 
-prn_input:                              ; DATA XREF: BIOSCODE:0104↑o
+prn_input:                              ; ...
                 call    bc_err_cnt      ; reset count to zero
                                         ; (sub reqpkt.count,cx)
                 clc                     ; but return with carry   reset for no error
                 retn
 ; ---------------------------------------------------------------------------
 
-prn_writ:                               ; DATA XREF: BIOSCODE:010C↑o
-                                        ; BIOSCODE:010E↑o
+prn_writ:                               ; ...
                 jcxz    short prn_done  ; write cx bytes from es:di to printer device
 
-prn_loop:                               ; CODE XREF: BIOSCODE:024D↓j
+prn_loop:                               ; ...
                 mov     bx, 2           ; retry count
 
-prn_out:                                ; CODE XREF: BIOSCODE:0247↓j
+prn_out:                                ; ...
                 call    prnstat         ; get status
                 jnz     short TestPrnError
                 mov     al, es:[di]     ; get character to print
@@ -6381,31 +6097,28 @@ prn_out:                                ; CODE XREF: BIOSCODE:0247↓j
                 jmp     short pmessg
 ; ---------------------------------------------------------------------------
 
-_prnwf:                                 ; CODE XREF: BIOSCODE:0236↑j
+_prnwf:                                 ; ...
                 test    ah, 1           ; timeoutstatus
                 jz      short prn_con
 
-TestPrnError:                           ; CODE XREF: BIOSCODE:0227↑j
+TestPrnError:                           ; ...
                 dec     bx              ; retry until count is exhausted
                 jnz     short prn_out
 
-pmessg:                                 ; CODE XREF: BIOSCODE:023F↑j
-                                        ; BIOSCODE:0254↓j
+pmessg:                                 ; ...
                 jmp     bc_err_cnt
 ; ---------------------------------------------------------------------------
 
-prn_con:                                ; CODE XREF: BIOSCODE:0231↑j
-                                        ; BIOSCODE:0244↑j
+prn_con:                                ; ...
                 inc     di              ; point to next char and continue
                 loop    prn_loop
 
-prn_done:                               ; CODE XREF: BIOSCODE:prn_writ↑j
-                                        ; BIOSCODE:0259↓j
+prn_done:                               ; ...
                 clc
                 retn
 ; ---------------------------------------------------------------------------
 
-prn_stat:                               ; DATA XREF: BIOSCODE:0110↑o
+prn_stat:                               ; ...
                 call    prnstat         ; device in dx
                 jnz     short pmessg
                 test    ah, 80h         ; notbusystatus
@@ -6415,8 +6128,7 @@ prn_stat:                               ; DATA XREF: BIOSCODE:0110↑o
 ; =============== S U B R O U T I N E =======================================
 
 
-prnstat         proc near               ; CODE XREF: BIOSCODE:prn_out↑p
-                                        ; BIOSCODE:prn_stat↑p ...
+prnstat         proc near               ; ...
                 mov     ah, 2           ; PRINTER - GET STATUS
 prnstat         endp                    ; set command for get status
                                         ; DX = printer port (0-3)
@@ -6425,8 +6137,7 @@ prnstat         endp                    ; set command for get status
 ; =============== S U B R O U T I N E =======================================
 
 
-prnop           proc near               ; CODE XREF: BIOSCODE:022E↑p
-                                        ; BIOSCODE:02B9↓p
+prnop           proc near               ; ...
                 mov     dx, ds:auxnum   ; get printer number
                 push    ds
                 push    di
@@ -6447,7 +6158,7 @@ prnop           proc near               ; CODE XREF: BIOSCODE:022E↑p
                 and     ah, 0DFh        ; ~nopaperstatus
                 or      ah, 8           ; ioerrstatus
 
-NextTest:                               ; CODE XREF: prnop+1A↑j
+NextTest:                               ; ...
                 test    ah, 28h         ; (ioerrstatus+nopaperstatus)
                                         ; i/o error?
                 jz      short checknotready ; no, try not ready
@@ -6457,11 +6168,11 @@ NextTest:                               ; CODE XREF: prnop+1A↑j
                 jnz     short ret1      ; yes, error is set
                 inc     al              ; return al=10 (i/o error)
 
-ret1:                                   ; CODE XREF: prnop+2C↑j
+ret1:                                   ; ...
                 retn
 ; ---------------------------------------------------------------------------
 
-checknotready:                          ; CODE XREF: prnop+25↑j
+checknotready:                          ; ...
                 mov     al, 2           ; assume not-ready
                 test    ah, 1
                 retn
@@ -6469,10 +6180,10 @@ prnop           endp
 
 ; ---------------------------------------------------------------------------
 
-prn_tilbusy:                            ; DATA XREF: BIOSCODE:011C↑o
+prn_tilbusy:                            ; ...
                 mov     si, di
 
-prn_tilbloop:                           ; CODE XREF: BIOSCODE:02BE↓j
+prn_tilbloop:                           ; ...
                 push    cx
                 push    bx
                 xor     bh, bh
@@ -6481,7 +6192,7 @@ prn_tilbloop:                           ; CODE XREF: BIOSCODE:02BE↓j
                 mov     cx, ds:wait_count[bx] ; wait count times to come ready
                 pop     bx
 
-prn_getstat:                            ; CODE XREF: BIOSCODE:02B0↓j
+prn_getstat:                            ; ...
                 call    prnstat         ; get status
                 jnz     short prn_bperr ; error
                 test    ah, 80h         ; ready yet?
@@ -6497,15 +6208,14 @@ prn_getstat:                            ; CODE XREF: BIOSCODE:02B0↓j
                 retn
 ; ---------------------------------------------------------------------------
 
-prn_bperr:                              ; CODE XREF: BIOSCODE:02AB↑j
+prn_bperr:                              ; ...
                 pop     cx
 
-prn_berr:                               ; CODE XREF: BIOSCODE:02B3↑j
-                                        ; BIOSCODE:02BC↑j
+prn_berr:                               ; ...
                 jmp     bc_err_cnt
 ; ---------------------------------------------------------------------------
 
-prn_genioctl:                           ; DATA XREF: BIOSCODE:0122↑o
+prn_genioctl:                           ; ...
                 les     di, ds:ptrsav
                 cmp     byte ptr es:[di+13], 5 ; [es:di+IOCTL_REQ.MAJORFUNCTION]
                                         ; ioc_pc
@@ -6522,18 +6232,17 @@ prn_genioctl:                           ; DATA XREF: BIOSCODE:0122↑o
                 jnz     short prnfuncerr
                 mov     cx, es:[di]
 
-prngetcount:                            ; CODE XREF: BIOSCODE:02E7↑j
+prngetcount:                            ; ...
                 mov     ds:wait_count[bx], cx
                 mov     es:[di], cx     ; [es:di+A_RETRYCOUNT.RC_COUNT]
                                         ; return current retry count
 
-IOCtlSupported:                         ; CODE XREF: BIOSCODE:030A↓j
-                                        ; BIOSCODE:030E↓j
+IOCtlSupported:                         ; ...
                 clc
                 retn
 ; ---------------------------------------------------------------------------
 
-prn_ioctl_query:                        ; DATA XREF: BIOSCODE:012E↑o
+prn_ioctl_query:                        ; ...
                 les     di, ds:ptrsav
                 cmp     byte ptr es:[di+13], 5 ; [es:di+IOCTL_REQ.MAJORFUNCTION]
                                         ; ioc_pc
@@ -6544,15 +6253,14 @@ prn_ioctl_query:                        ; DATA XREF: BIOSCODE:012E↑o
                 cmp     al, 45h         ; SET_RETRY_COUNT
                 jz      short IOCtlSupported
 
-prn_query_err:                          ; CODE XREF: BIOSCODE:0302↑j
+prn_query_err:                          ; ...
                 stc
 
-prnfuncerr:                             ; CODE XREF: BIOSCODE:02CF↑j
-                                        ; BIOSCODE:02EB↑j
+prnfuncerr:                             ; ...
                 jmp     bc_cmderr
 ; ---------------------------------------------------------------------------
 
-aux_read:                               ; DATA XREF: BIOSCODE:0139↑o
+aux_read:                               ; ...
                 jcxz    short exvec2
                 call    getbx           ; put address of auxbuf   in bx
                 xor     al, al
@@ -6560,28 +6268,26 @@ aux_read:                               ; DATA XREF: BIOSCODE:0139↑o
                 or      al, al
                 jnz     short aux2
 
-aux1:                                   ; CODE XREF: BIOSCODE:0325↓j
+aux1:                                   ; ...
                 call    auxin           ; get character from port
                                         ; won't return if error
 
-aux2:                                   ; CODE XREF: BIOSCODE:031F↑j
+aux2:                                   ; ...
                 stosb
                 loop    aux1            ; if more characters, go around again
 
-exvec2:                                 ; CODE XREF: BIOSCODE:aux_read↑j
-                                        ; BIOSCODE:aux_writ↓j
+exvec2:                                 ; ...
                 clc                     ; all done, successful exit
 
-auxin_ok:                               ; CODE XREF: BIOSCODE:0331↓j
+auxin_retn:                             ; ...
                 retn
 ; ---------------------------------------------------------------------------
 
-auxin:                                  ; CODE XREF: BIOSCODE:aux1↑p
-                                        ; BIOSCODE:034D↓p
+auxin:                                  ; ...
                 mov     ah, 2
                 call    auxop
                 test    ah, 0Eh         ; flag_frame|flag_parity|flag_overrun
-                jz      short auxin_ok
+                jz      short auxin_retn
 
 arbad:
                 pop     ax
@@ -6589,7 +6295,7 @@ arbad:
                 jmp     short bc_err_cnt_j
 ; ---------------------------------------------------------------------------
 
-aux_rdnd:                               ; DATA XREF: BIOSCODE:013B↑o
+aux_rdnd:                               ; ...
                 call    getbx           ; non-destructive aux port read
                 mov     al, [bx]
                 or      al, al
@@ -6603,31 +6309,27 @@ aux_rdnd:                               ; DATA XREF: BIOSCODE:013B↑o
                 call    auxin           ; else aux is ready, get character
                 mov     [bx], al
 
-auxrdx:                                 ; CODE XREF: BIOSCODE:033F↑j
+auxrdx:                                 ; ...
                 jmp     rdexit          ; return busy status
 ; ---------------------------------------------------------------------------
 
-auxbus:                                 ; CODE XREF: BIOSCODE:0347↑j
-                                        ; BIOSCODE:034B↑j ...
+auxbus:                                 ; ...
                 jmp     z_bus_exit
 ; ---------------------------------------------------------------------------
 
-aux_wrst:                               ; DATA XREF: BIOSCODE:0145↑o
+aux_wrst:                               ; ...
                 call    auxstat         ; return aux port write status
                 test    al, 20h         ; test data set ready
                 jz      short auxbus    ; then device is busy (not ready)
                 test    ah, 20h         ; flag_tranhol_emp - test transmit hold reg
                 jz      short auxbus    ; then device is busy (not ready)
-
-loc_3894:
                 clc
                 retn
 
 ; =============== S U B R O U T I N E =======================================
 
 
-auxstat         proc near               ; CODE XREF: BIOSCODE:0341↑p
-                                        ; BIOSCODE:aux_wrst↑p
+auxstat         proc near               ; ...
                 mov     ah, 3           ; auxfunc_status
 auxstat         endp
 
@@ -6635,8 +6337,7 @@ auxstat         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-auxop           proc near               ; CODE XREF: BIOSCODE:032B↑p
-                                        ; BIOSCODE:038B↓p
+auxop           proc near               ; ...
                 mov     dx, ds:auxnum   ; ah=function code
                                         ; 0=init, 1=send, 2=receive, 3=status
                                         ; get port number
@@ -6659,7 +6360,7 @@ auxop           endp
 
 ; ---------------------------------------------------------------------------
 
-aux_flsh:                               ; DATA XREF: BIOSCODE:013F↑o
+aux_flsh:                               ; ...
                 call    getbx           ; flush aux input buffer
                                         ; get bx to point to auxbuf
                                         ; zero out buffer
@@ -6669,11 +6370,10 @@ aux_flsh:                               ; DATA XREF: BIOSCODE:013F↑o
                 retn
 ; ---------------------------------------------------------------------------
 
-aux_writ:                               ; DATA XREF: BIOSCODE:0141↑o
-                                        ; BIOSCODE:0143↑o
+aux_writ:                               ; ...
                 jcxz    short exvec2    ; write to aux device (if cx > 0)
 
-aux_loop:                               ; CODE XREF: BIOSCODE:awok↓j
+aux_loop:                               ; ...
                 mov     al, es:[di]     ; get character to be written
                 inc     di              ; move di pointer to next character
                 mov     ah, 1           ; auxfunc_send - indicates a write
@@ -6682,11 +6382,11 @@ aux_loop:                               ; CODE XREF: BIOSCODE:awok↓j
                 jz      short awok      ; then no error
                 mov     al, 10          ; else indicate write fault
 
-bc_err_cnt_j:                           ; CODE XREF: BIOSCODE:0336↑j
+bc_err_cnt_j:                           ; ...
                 jmp     bc_err_cnt      ; call error routines
 ; ---------------------------------------------------------------------------
 
-awok:                                   ; CODE XREF: BIOSCODE:0391↑j
+awok:                                   ; ...
                 loop    aux_loop        ; move di pointer to next character
                 clc
                 retn
@@ -6694,8 +6394,7 @@ awok:                                   ; CODE XREF: BIOSCODE:0391↑j
 ; =============== S U B R O U T I N E =======================================
 
 
-getbx           proc near               ; CODE XREF: BIOSCODE:0316↑p
-                                        ; BIOSCODE:aux_rdnd↑p ...
+getbx           proc near               ; ...
                 mov     bx, ds:auxnum   ; return bx -> single byte input buffer
                                         ; for selected aux port ([auxnum])
                 add     bx, offset auxbuf
@@ -6704,7 +6403,7 @@ getbx           endp
 
 ; ---------------------------------------------------------------------------
 
-time_to_ticks:                          ; DATA XREF: BIOSDATA:ttticks↑o
+time_to_ticks:                          ; ...
                 mov     al, 60          ; convert time to ticks
                                         ; input : time in cx and dx
                                         ; output: ticks returned in cx:dx
@@ -6750,8 +6449,7 @@ time_to_ticks:                          ; DATA XREF: BIOSDATA:ttticks↑o
                 retf
 ; ---------------------------------------------------------------------------
 
-tim_writ:                               ; DATA XREF: BIOSCODE:0158↑o
-                                        ; BIOSCODE:015A↑o
+tim_writ:                               ; ...
                 mov     ax, es:[di]     ; sets the current time
                 push    ax              ; daycnt. we need to set this at the very
                                         ; end to avoid tick windows
@@ -6776,7 +6474,7 @@ tim_writ:                               ; DATA XREF: BIOSCODE:0158↑o
                                         ; Return: CMOS clock set
                 sti
 
-no_cmos_1:                              ; CODE XREF: BIOSCODE:03F3↑j
+no_cmos_1:                              ; ...
                 push    ds
                 lds     cx, es:[di+2]
                 mov     dx, ds
@@ -6801,14 +6499,14 @@ no_cmos_1:                              ; CODE XREF: BIOSCODE:03F3↑j
                                         ; Return: CMOS clock set
                 sti
 
-no_cmos_2:                              ; CODE XREF: BIOSCODE:0433↑j
+no_cmos_2:                              ; ...
                 clc
                 retn
 
 ; =============== S U B R O U T I N E =======================================
 
 
-daycnttoday     proc near               ; CODE XREF: BIOSCODE:0435↑p
+daycnttoday     proc near               ; ...
                 push    ds:daycnt       ; entry: [daycnt] = number of days since 1-1-80
                                         ; return: ch - century in bcd
                                         ;         cl - year in bcd
@@ -6822,13 +6520,13 @@ daycnttoday     proc near               ; CODE XREF: BIOSCODE:0435↑p
                 jmp     short years
 ; ---------------------------------------------------------------------------
 
-century20:                              ; CODE XREF: daycnttoday+A↑j
+century20:                              ; ...
                 mov     word ptr ds:base_century, 20 ; base century = 20
                                         ; base year = 0
                 sub     ds:daycnt, 7305 ; 365*20+(20/4))
                                         ; adjust daycnt
 
-years:                                  ; CODE XREF: daycnttoday+12↑j
+years:                                  ; ...
                 xor     dx, dx
                 mov     ax, ds:daycnt
                 mov     bx, 1461        ; 366+365*3)
@@ -6847,28 +6545,26 @@ years:                                  ; CODE XREF: daycnttoday+12↑j
                 sub     ds:daycnt, 366
                 mov     cx, 3           ; And next three years are normal
 
-regularyear:                            ; CODE XREF: daycnttoday+61↓j
+regularyear:                            ; ...
                 cmp     ds:daycnt, 365  ; for(i=1; i>3 or daycnt <=365; i++)
                 jbe     short yeardone  ; {if (daycnt > 365)
                 inc     ds:base_year    ; { daycnt -= 365
-
-loc_39CB:                               ; }
-                sub     ds:daycnt, 365
+                sub     ds:daycnt, 365  ; }
                 loop    regularyear     ; }
                                         ; should never fall through loop
 
-leapyear:                               ; CODE XREF: daycnttoday+40↑j
+leapyear:                               ; ...
                 mov     ds:february, 29 ; leap year.
                                         ; change month table.
 
-yeardone:                               ; CODE XREF: daycnttoday+55↑j
+yeardone:                               ; ...
                 xor     bx, bx
                 xor     dx, dx
                 mov     ax, ds:daycnt
                 mov     si, offset month_table
                 mov     cx, 12
 
-months:                                 ; CODE XREF: daycnttoday+80↓j
+months:                                 ; ...
                 inc     bl
                 mov     dl, [si]
                 cmp     ax, dx          ; cmp daycnt for each month till fit
@@ -6879,7 +6575,7 @@ months:                                 ; CODE XREF: daycnttoday+80↓j
                 loop    months          ;
                                         ; should never fall through loop
 
-month_done:                             ; CODE XREF: daycnttoday+7B↑j
+month_done:                             ; ...
                 mov     ds:february, 28 ; restore month table value
                 mov     dl, bl
                 mov     dh, ds:base_year
@@ -6901,8 +6597,7 @@ daycnttoday     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-bintobcd        proc near               ; CODE XREF: BIOSCODE:03F9↑p
-                                        ; BIOSCODE:0402↑p ...
+bintobcd        proc near               ; ...
                 aam                     ; convert a binary input in al
                                         ; (less than 63h or 99 decimal)
                                         ; into a bcd value in al. ah destroyed
@@ -6915,7 +6610,7 @@ bintobcd        endp
 
 ; ---------------------------------------------------------------------------
 
-tim_read:                               ; DATA XREF: BIOSCODE:0150↑o
+tim_read:                               ; ...
                 call    GetTickCnt      ; gettime reads date and time
                                         ;
                                         ; 65,536 seconds = 1,193,180 ticks
@@ -6949,7 +6644,7 @@ tim_read:                               ; DATA XREF: BIOSCODE:0150↑o
                 jb      short noadj
                 sub     dl, 100         ; keep 1/100's less than 100
 
-noadj:                                  ; CODE XREF: BIOSCODE:051B↑j
+noadj:                                  ; ...
                 cmc                     ; if we subtracted 100, carry is now set
                 mov     bl, dl          ; save 1/100's
                 rcl     ax, 1           ; multiply by two
@@ -6977,8 +6672,7 @@ noadj:                                  ; CODE XREF: BIOSCODE:051B↑j
 ; =============== S U B R O U T I N E =======================================
 
 
-GetTickCnt      proc near               ; CODE XREF: BIOSCODE:tim_read↑p
-                                        ; Check_Time_Of_Access+3↓p ...
+GetTickCnt      proc near               ; ...
                 xor     ah, ah          ; Returns the tick count in cx:dx
                                         ; Takes care of DayCnt in case of rollover
                                         ; if ( rollover ) {
@@ -7000,23 +6694,21 @@ GetTickCnt      proc near               ; CODE XREF: BIOSCODE:tim_read↑p
                 retn
 ; ---------------------------------------------------------------------------
 
-inc_case:                               ; CODE XREF: GetTickCnt+A↑j
+inc_case:                               ; ...
                 or      al, al
                 jz      short no_rollover
                 inc     ds:daycnt
 
-no_rollover:                            ; CODE XREF: GetTickCnt+13↑j
+no_rollover:                            ; ...
                 retn
 GetTickCnt      endp
 
 ; ---------------------------------------------------------------------------
-fat_12_id       db 'FAT12   '           ; DATA XREF: clear_ids+2C↓o
-fat_16_id       db 'FAT16   '           ; DATA XREF: clear_ids+27↓o
-fat_32_id       db 'FAT32   '           ; DATA XREF: clear_ids+1D↓o
-nul_vid         db 'NO NAME    '        ; DATA XREF: clear_ids+F↓o
-                                        ; read_volume_id+B↓o
-DSKTBL          db 26                   ; DATA XREF: BIOSDATA:0661↑o
-                                        ; BIOSCODE:0079↑o
+fat_12_id       db 'FAT12   '           ; ...
+fat_16_id       db 'FAT16   '           ; ...
+fat_32_id       db 'FAT32   '           ; ...
+nul_vid         db 'NO NAME    '        ; ...
+DSKTBL          db 26                   ; ...
                 dw offset dsk_init
                 dw offset media_chk
                 dw offset get_bpb
@@ -7036,7 +6728,7 @@ DSKTBL          db 26                   ; DATA XREF: BIOSDATA:0661↑o
                 dw offset ret_carry_clear
                 dw offset ret_carry_clear
                 dw offset ret_carry_clear
-                dw offset Do_Generic_IOCtl
+                dw offset do_generic_ioctl
                 dw offset ret_carry_clear
                 dw offset ret_carry_clear
                 dw offset ret_carry_clear
@@ -7047,11 +6739,10 @@ DSKTBL          db 26                   ; DATA XREF: BIOSDATA:0661↑o
 ; =============== S U B R O U T I N E =======================================
 
 
-SetDrive        proc near               ; CODE XREF: BIOSCODE:media_chk↓p
-                                        ; get_bpb+3↓p ...
+SetDrive        proc near               ; ...
                 les     di, dword ptr ds:start_bds ; Point es:di to first bds
 
-X_Scan_Loop:                            ; CODE XREF: SetDrive+10↓j
+X_Scan_Loop:                            ; ...
                 cmp     es:[di+5], al   ; logical drive number (BDS.drivelet)
                 jz      short X_SetDrv
                 les     di, es:[di]     ; [es:di+BDS.link] ; Go to next bds
@@ -7059,13 +6750,13 @@ X_Scan_Loop:                            ; CODE XREF: SetDrive+10↓j
                 jnz     short X_Scan_Loop
                 stc
 
-X_SetDrv:                               ; CODE XREF: SetDrive+8↑j
+X_SetDrv:                               ; ...
                 retn
 SetDrive        endp
 
 ; ---------------------------------------------------------------------------
 
-media_chk:                              ; DATA XREF: BIOSCODE:057C↑o
+media_chk:                              ; ...
                 call    SetDrive
                 mov     si, 1
                 test    byte ptr es:[di+40h], 1 ; [es:di+BDS.flags+1], fchanged_by_format
@@ -7080,11 +6771,11 @@ media_chk:                              ; DATA XREF: BIOSCODE:057C↑o
                 jmp     short Media_Done
 ; ---------------------------------------------------------------------------
 
-WeAreNotFakingIt:                       ; CODE XREF: BIOSCODE:05CD↑j
+WeAreNotFakingIt:                       ; ...
                 test    byte ptr es:[di+3Fh], 1 ; [es:di+BDS.flags], fnon_removable
                 jnz     short Media_Done
 
-wehaveafloppy:                          ; CODE XREF: BIOSCODE:05DE↑j
+wehaveafloppy:                          ; ...
                 dec     si              ; 0 ; Presume "I don't know"
                 cmp     ds:fhave96, 0   ; Do we have changeline support?
                 jz      short mChk_NoChangeLine ; Brif not
@@ -7093,7 +6784,7 @@ wehaveafloppy:                          ; CODE XREF: BIOSCODE:05DE↑j
                 call    haschange
                 jnz     short Media_Done
 
-mChk_NoChangeLine:                      ; CODE XREF: BIOSCODE:05F1↑j
+mChk_NoChangeLine:                      ; ...
                 mov     si, 1           ; Presume no change
                 mov     al, ds:tim_drv  ; Last drive accessed
                 cmp     al, es:[di+4]   ; [es:di+BDS.drivenum]
@@ -7103,11 +6794,10 @@ mChk_NoChangeLine:                      ; CODE XREF: BIOSCODE:05F1↑j
                 jmp     short Media_Done
 ; ---------------------------------------------------------------------------
 
-Media_Unk:                              ; CODE XREF: BIOSCODE:0607↑j
+Media_Unk:                              ; ...
                 dec     si              ; 0 ; Return "I don't know"
 
-Media_Done:                             ; CODE XREF: BIOSCODE:05E2↑j
-                                        ; BIOSCODE:05E9↑j ...
+Media_Done:                             ; ...
                 push    es
                 les     bx, ds:ptrsav
                 mov     es:[bx+14], si  ; [es:bx+trans]
@@ -7118,22 +6808,20 @@ Media_Done:                             ; CODE XREF: BIOSCODE:05E2↑j
                 jz      short mChk1_NoChangeLine
                 call    media_set_vid
 
-mChk1_NoChangeLine:                     ; CODE XREF: BIOSCODE:0622↑j
+mChk1_NoChangeLine:                     ; ...
                 mov     ds:tim_drv, 0FFh ; -1
                                         ; Make sure we ask rom for media check
 
-ret_carry_clear:                        ; CODE XREF: BIOSCODE:061B↑j
-                                        ; DATA XREF: BIOSCODE:0586↑o ...
+ret_carry_clear:                        ; ...
                 clc                     ; volidok
                 retn
 ; ---------------------------------------------------------------------------
 
-err_exitj:                              ; CODE XREF: BIOSCODE:05F6↑j
-                                        ; BIOSCODE:0663↓j ...
+err_exitj:                              ; ...
                 call    maperror        ; guaranteed to set carry
 ; START OF FUNCTION CHUNK FOR get_bpb
 
-ret81:                                  ; CODE XREF: get_bpb+18↓j
+ret81:                                  ; ...
                 mov     ah, 81h         ; return error status
                 retn                    ; return with carry set
 ; END OF FUNCTION CHUNK FOR get_bpb
@@ -7141,8 +6829,7 @@ ret81:                                  ; CODE XREF: get_bpb+18↓j
 ; =============== S U B R O U T I N E =======================================
 
 
-Check_Time_Of_Access proc near          ; CODE XREF: BIOSCODE:0609↑p
-                                        ; mediacheck+30↓p
+Check_Time_Of_Access proc near          ; ...
                 mov     si, 1           ; presume no change
                 call    GetTickCnt      ; cx:dx is the elapsed time
                 mov     ax, es:[di+79h] ; [es:di+BDS.tim_lo]
@@ -7161,17 +6848,15 @@ Check_Time_Of_Access proc near          ; CODE XREF: BIOSCODE:0609↑p
                 jmp     short timecheck_unk
 ; ---------------------------------------------------------------------------
 
-timepassed:                             ; CODE XREF: Check_Time_Of_Access+19↑j
+timepassed:                             ; ...
                 cmp     dx, 36          ; 18*2 ; 18.2 tics per second.
                                         ; min elapsed time? (2 seconds)
                 jbe     short timecheck_ret
 
-timecheck_unk:                          ; CODE XREF: Check_Time_Of_Access+15↑j
-                                        ; Check_Time_Of_Access+23↑j
+timecheck_unk:                          ; ...
                 dec     si              ; presume i don't know
 
-timecheck_ret:                          ; CODE XREF: Check_Time_Of_Access+1F↑j
-                                        ; Check_Time_Of_Access+28↑j
+timecheck_ret:                          ; ...
                 mov     ds:accesscount, al
                 retn
 Check_Time_Of_Access endp
@@ -7182,7 +6867,7 @@ Check_Time_Of_Access endp
 ; =============== S U B R O U T I N E =======================================
 
 
-get_bpb         proc near               ; DATA XREF: BIOSCODE:057E↑o
+get_bpb         proc near               ; ...
 
 ; FUNCTION CHUNK AT 0631 SIZE 00000003 BYTES
 
@@ -7203,11 +6888,10 @@ get_bpb         proc near               ; DATA XREF: BIOSCODE:057E↑o
                 jz      short already_gotbpb ; brif not
                 call    set_volume_id
 
-already_gotbpb:                         ; CODE XREF: get_bpb+B↑j
-                                        ; get_bpb+24↑j ...
+already_gotbpb:                         ; ...
                 add     di, 6           ; BDS.BPB (BDS offset 6)
 
-SetPtrSav:                              ; CODE XREF: dsk_init+9↓j
+SetPtrSav:                              ; ...
                 push    ds              ; return point for dsk_init
                 lds     bx, ds:ptrsav
                 mov     [bx+0Dh], ah    ; [bx+media]
@@ -7224,8 +6908,7 @@ get_bpb         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-clear_ids       proc near               ; CODE XREF: get_bpb+D↑p
-                                        ; DATA XREF: copybpb_fat+1C9↑o
+clear_ids       proc near               ; ...
                 push    di
                 xor     cx, cx          ; 0
                 mov     es:[di+89h], cx ; [es:di+BDS.vol_serial]
@@ -7254,14 +6937,13 @@ clear_ids       proc near               ; CODE XREF: get_bpb+D↑p
                                         ; option of 'clear_ids' is FAT12 volid and filesys_id text
                                         ; when the flag bit has wrong value for FAT16/40h or FAT32/20h.)
                 mov     si, offset fat_32_id ; "FAT32   "
-                jnz     short ci_big_fat
+                jnz     short ci_bigfat
                 test    byte ptr es:[di+59], 40h ; [es:di+BDS.fatsiz], fbig
                 mov     si, offset fat_16_id ; "FAT16   "
-                jnz     short ci_big_fat
+                jnz     short ci_bigfat
                 mov     si, offset fat_12_id ; "FAT12   "
 
-ci_big_fat:                             ; CODE XREF: clear_ids+20↑j
-                                        ; clear_ids+2A↑j
+ci_bigfat:                              ; ...
                 mov     cl, 8           ; size_of_EXT_SYSTEM_ID
                 add     di, 5           ; (BDS.filesys_id-BDS.volid)-size_of_EXT_BOOT_VOL_LABEL
                                         ; BDS.filesys_id (BDS offset 141)
@@ -7269,7 +6951,7 @@ ci_big_fat:                             ; CODE XREF: clear_ids+20↑j
                                         ; cs rep movsb
                 pop     di              ; restore bds pointer
 
-getret_exit:                            ; CODE XREF: GetBp+5↓j
+getret_exit:                            ; ...
                 retn
 clear_ids       endp
 
@@ -7277,8 +6959,7 @@ clear_ids       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-GetBp           proc near               ; CODE XREF: get_bpb+15↑p
-                                        ; BIOSCODE:0F92↓p ...
+GetBp           proc near               ; ...
                 test    byte ptr es:[di+3Fh], 5 ; [es:di+BDS.flags],
                                         ; return_fake_bpb|fnon_removable
                 jnz     short getret_exit
@@ -7293,19 +6974,18 @@ GetBp           proc near               ; CODE XREF: get_bpb+15↑p
                 jmp     getret
 ; ---------------------------------------------------------------------------
 
-getbp_err_ret_brdg:                     ; CODE XREF: GetBp+D↑j
-                                        ; GetBp+1F↓j
+getbp_err_ret_brdg:                     ; ...
                 jmp     getbp_err_ret
 ; ---------------------------------------------------------------------------
 
-dofatbpb:                               ; CODE XREF: GetBp+11↑j
+dofatbpb:                               ; ...
                 call    readfat         ; puts media descriptor byte in ah
                 jb      short getbp_err_ret_brdg
                 cmp     ds:fhave96, 0   ; changeline support available?
                 jz      short bpb_nochangeline ; brif not
                 call    hidensity
 
-bpb_nochangeline:                       ; CODE XREF: GetBp+26↑j
+bpb_nochangeline:                       ; ...
                 cmp     byte ptr es:[di+3Eh], 2 ; [es:di+BDS.formfactor], ffSmall
                 jnz     short is_floppy
                 cmp     ah, 0F9h        ; is it a valid fat id byte for 3.5" ?
@@ -7313,8 +6993,7 @@ bpb_nochangeline:                       ; CODE XREF: GetBp+26↑j
                 jmp     got_unknown_medium
 ; ---------------------------------------------------------------------------
 
-Has720K:                                ; CODE XREF: GetBp+35↑j
-                                        ; hidensity+30↓j
+Has720K:                                ; ...
                 mov     al, 3           ; bpbtype.sbf = 3
                 mov     cx, 1440        ; bpbtype.csec = 1440
                 mov     dx, 202h        ; dl = bpbtype.spau = 2
@@ -7324,13 +7003,13 @@ Has720K:                                ; CODE XREF: GetBp+35↑j
                 jmp     short Has1
 ; ---------------------------------------------------------------------------
 
-is_floppy:                              ; CODE XREF: GetBp+30↑j
+is_floppy:                              ; ...
                 cmp     ah, 0F8h
                 jnb     short chk_160K
                 jmp     got_unknown_medium
 ; ---------------------------------------------------------------------------
 
-chk_160K:                               ; CODE XREF: GetBp+4A↑j
+chk_160K:                               ; ...
                 mov     al, 1           ; bpbtype.sbf = 1
                 mov     bx, 4008h       ; bl = bpbtype.spt = 8
                                         ; bh = bpbtype.dire = 64
@@ -7343,7 +7022,7 @@ chk_160K:                               ; CODE XREF: GetBp+4A↑j
                 inc     bx              ; bpbtype.spt = 9
                 add     cx, 40          ; 180K (360 sectors)
 
-has8:                                   ; CODE XREF: GetBp+5D↑j
+has8:                                   ; ...
                 test    ah, 1           ; bpbtype.sbf = 1
                 jz      short Has1
                 add     cx, cx
@@ -7351,8 +7030,7 @@ has8:                                   ; CODE XREF: GetBp+5D↑j
                 inc     dh              ; bpbtype.chead = 2
                 inc     dx              ; bpbtype.spau = 2
 
-Has1:                                   ; CODE XREF: GetBp+45↑j
-                                        ; GetBp+67↑j ...
+Has1:                                   ; ...
                 push    ds
                 push    es
                 pop     ds
@@ -7390,22 +7068,20 @@ Has1:                                   ; CODE XREF: GetBp+45↑j
                 mov     [di+2Dh], bx    ; [di+BDS.bkbootsec] ; BPB_BkBootSec
                 pop     ds
 
-getret:                                 ; CODE XREF: GetBp+16↑j
-                                        ; GetBp+D6↓j ...
+getret:                                 ; ...
                 pop     bx
                 pop     dx
                 pop     cx
                 retn
 ; ---------------------------------------------------------------------------
 
-getbp_err_ret:                          ; CODE XREF: GetBp:getbp_err_ret_brdg↑j
+getbp_err_ret:                          ; ...
                 mov     ds:set_id_flag, 0
                 call    maperror
                 jmp     short getret
 ; ---------------------------------------------------------------------------
 
-got_unknown_medium:                     ; CODE XREF: GetBp+37↑j
-                                        ; GetBp+4C↑j
+got_unknown_medium:                     ; ...
                 mov     ds:set_id_flag, 0
                 mov     al, 7
                 stc
@@ -7416,7 +7092,7 @@ GetBp           endp
 ; =============== S U B R O U T I N E =======================================
 
 
-readbootsec     proc near               ; CODE XREF: GetBp+A↑p
+readbootsec     proc near               ; ...
                 mov     dh, 0           ; head 0
                 mov     cx, 1           ; cylinder 0, sector 1
                 call    read_sector
@@ -7432,8 +7108,7 @@ readbootsec     proc near               ; CODE XREF: GetBp+A↑p
                 cmp     ds:disksector+2, 90h ; is next one a nop?
                 jnz     short invalidbootsec
 
-check_bpb_mediabyte:                    ; CODE XREF: readbootsec+11↑j
-                                        ; readbootsec+15↑j
+check_bpb_mediabyte:                    ; ...
                 mov     al, ds:disksector+15h ;
                                         ; [disksector+EXT_BOOT.BPB+EBPB.MEDIADESCRIPTOR]
                 push    ax
@@ -7450,22 +7125,20 @@ check_bpb_mediabyte:                    ; CODE XREF: readbootsec+11↑j
                 cmp     ds:disksector+0Ah, 32h ; '2' ; 2
                 jnb     short gooddsk
 
-mustbeearlier:                          ; CODE XREF: readbootsec+3B↑j
+mustbeearlier:                          ; ...
                 mov     ds:disksector+0Dh, 1 ; we must have a pre-3.20 diskette.
                                         ; set the sec/clus field to 1
                                         ; [disksector+EXT_BOOT.BPB+EBPB.SECTORSPERCLUSTER]
                 jmp     short gooddsk
 ; ---------------------------------------------------------------------------
 
-invalidbootsec:                         ; CODE XREF: readbootsec+19↑j
-                                        ; readbootsec+20↑j ...
+invalidbootsec:                         ; ...
                 inc     bx              ; indicate that boot sector invalid (bx = 1)
 
-gooddsk:                                ; CODE XREF: readbootsec+2F↑j
-                                        ; readbootsec+33↑j ...
+gooddsk:                                ; ...
                 clc
 
-err_ret:                                ; CODE XREF: readbootsec+8↑j
+err_ret:                                ; ...
                 retn
 readbootsec     endp
 
@@ -7473,7 +7146,7 @@ readbootsec     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-movbpb          proc near               ; CODE XREF: GetBp+13↑p
+movbpb          proc near               ; ...
                 push    di
                 add     di, 6           ; BDS+6 = BDS.BPB
                 lea     si, disksector+0Bh
@@ -7489,7 +7162,7 @@ movbpb          proc near               ; CODE XREF: GetBp+13↑p
                                         ; to 32 bit total sectors field
                 mov     es:[di-30], ax  ; BPB_TotalSec32+2 (BDS offset 29, BPB offset 23)
 
-movbpb_bigdisk:                         ; CODE XREF: movbpb+13↑j
+movbpb_bigdisk:                         ; ...
                 cmp     [si-42], ax     ; BPB_FATSz16 = disksector+22
                 jz      short movbpb_fat32
 
@@ -7507,7 +7180,7 @@ movbpb_fat:                             ;
                                         ; (BPB offset 41 to 53) (disksector offset 52 to 64)
                 rep stosb
 
-movbpb_fat32:                           ; CODE XREF: movbpb+20↑j
+movbpb_fat32:                           ; ...
                 pop     di
                 cmp     ds:set_id_flag, 1 ; called by get_bpb?
                 jnz     short movbpb_ret
@@ -7515,13 +7188,12 @@ movbpb_fat32:                           ; CODE XREF: movbpb+20↑j
                 jb      short movbpb_conv ; conventional boot record?
                 mov     ds:set_id_flag, 2 ; signals that volume id is set
 
-movbpb_conv:                            ; CODE XREF: movbpb+3E↑j
+movbpb_conv:                            ; ...
                 cmp     ds:fhave96, 1
                 jnz     short movbpb_ret
                 call    resetchanged    ; reset flags in bds to not fchanged
 
-movbpb_ret:                             ; CODE XREF: movbpb+39↑j
-                                        ; movbpb+4A↑j
+movbpb_ret:                             ; ...
                 clc
                 retn
 movbpb          endp
@@ -7530,9 +7202,7 @@ movbpb          endp
 ; =============== S U B R O U T I N E =======================================
 
 
-mov_media_ids   proc near               ; CODE XREF: movbpb+3B↑p
-                                        ; BIOSCODE:1501↓p
-                                        ; DATA XREF: ...
+mov_media_ids   proc near               ; ...
                 cmp     word ptr ds:disksector+16h, 0 ; BPB.FATSz16
                 jnz     short mmi_chk_fat
                 cmp     ds:disksector+42h, 29h ; [disksector+FAT32_EXT_BOOT.SIG],
@@ -7540,10 +7210,10 @@ mov_media_ids   proc near               ; CODE XREF: movbpb+3B↑p
                 jmp     short mmi_chk_fat32
 ; ---------------------------------------------------------------------------
 
-mmi_chk_fat:                            ; CODE XREF: mov_media_ids+5↑j
+mmi_chk_fat:                            ; ...
                 cmp     ds:disksector+26h, 29h ; [disksector+EXT_BOOT.SIG],EXT_BOOT_SIGNATURE
 
-mmi_chk_fat32:                          ; CODE XREF: mov_media_ids+C↑j
+mmi_chk_fat32:                          ; ...
                 jnz     short mmi_not_ext
                 push    cx
                 push    ax
@@ -7560,12 +7230,12 @@ mmi_fat32:                              ; FAT32 system
                 jmp     short mmi_do
 ; ---------------------------------------------------------------------------
 
-mmi_fat:                                ; CODE XREF: mov_media_ids+1F↑j
+mmi_fat:                                ; ...
                 lds     cx, dword ptr ds:disksector+27h ; BS_VolID
                 mov     si, (offset disksector+2Bh) ; BS_VolLab
                 mov     ax, (offset disksector+36h) ; BS_FilSysType
 
-mmi_do:                                 ; CODE XREF: mov_media_ids+2B↑j
+mmi_do:                                 ; ...
                 mov     es:[di+89h], cx ; [es:di+BDS.vol_serial]
                                         ; (BDS offset 137)
                 mov     word ptr es:[di+8Bh], ds ; [es:di+BDS.vol_serial+2]
@@ -7586,7 +7256,7 @@ mmi_do:                                 ; CODE XREF: mov_media_ids+2B↑j
                 retn
 ; ---------------------------------------------------------------------------
 
-mmi_not_ext:                            ; CODE XREF: mov_media_ids:mmi_chk_fat32↑j
+mmi_not_ext:                            ; ...
                 stc
                 retn
 mov_media_ids   endp
@@ -7595,14 +7265,14 @@ mov_media_ids   endp
 ; =============== S U B R O U T I N E =======================================
 
 
-readfat         proc near               ; CODE XREF: GetBp:dofatbpb↑p
+readfat         proc near               ; ...
                 mov     dh, 0           ; head 0
                 mov     cx, 2           ; cylinder 0, sector 2
                 call    read_sector
                 jb      short bad_fat_ret
                 mov     ah, [bx]        ; media byte
 
-bad_fat_ret:                            ; CODE XREF: readfat+8↑j
+bad_fat_ret:                            ; ...
                 retn
 readfat         endp
 
@@ -7610,14 +7280,13 @@ readfat         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-read_sector     proc near               ; CODE XREF: readbootsec+5↑p
-                                        ; readfat+5↑p ...
+read_sector     proc near               ; ...
                 push    bp
                 mov     bp, 3           ; make 3 attempts
                 mov     dl, es:[di+4]   ; [es:di+BDS.drivenum]
                 mov     bx, offset disksector ; BIOSDATA:0152h
 
-rd_ret:                                 ; CODE XREF: read_sector+20↓j
+rd_ret:                                 ; ...
                 push    es
                 push    ds
                 pop     es
@@ -7629,7 +7298,7 @@ rd_ret:                                 ; CODE XREF: read_sector+20↓j
                 pop     es
                 jnb     short okret2
 
-rd_rty:                                 ; CODE XREF: read_sector+5D↓j
+rd_rty:                                 ; ...
                 call    again           ; reset disk, decrement bp
                 jz      short err_rd_ret
                 test    byte ptr es:[di+3Fh], 1 ; [es:di+BDS.flags], fnon_removable
@@ -7646,7 +7315,7 @@ rd_rty:                                 ; CODE XREF: read_sector+5D↓j
                 mov     ds:save_head_sttl, al
                 pop     ax
 
-rd_skip1_dpt:                           ; CODE XREF: read_sector+27↑j
+rd_skip1_dpt:                           ; ...
                 push    es
                 push    ds
                 pop     es
@@ -7667,18 +7336,17 @@ rd_skip1_dpt:                           ; CODE XREF: read_sector+27↑j
                 pop     ds
                 pop     ax
 
-rd_skip2_dpt:                           ; CODE XREF: read_sector+4A↑j
+rd_skip2_dpt:                           ; ...
                 popf
                 jnb     short okret2
                 jmp     short rd_rty
 ; ---------------------------------------------------------------------------
 
-err_rd_ret:                             ; CODE XREF: read_sector+19↑j
+err_rd_ret:                             ; ...
                 mov     dl, 0FFh        ; make sure we ask rom if media has changed
                 stc                     ; return error
 
-okret2:                                 ; CODE XREF: read_sector+14↑j
-                                        ; read_sector+5B↑j
+okret2:                                 ; ...
                 mov     ds:step_drv, dl
                 mov     ds:tim_drv, dl
                 mov     es:[di+78h], ch ; [es:di+BDS.track]
@@ -7695,14 +7363,14 @@ read_sector     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-dsk_open        proc near               ; DATA XREF: BIOSCODE:0594↑o
+dsk_open        proc near               ; ...
                 cmp     ds:fhave96, 0
                 jz      short dsk_open_exit ; done if no changeline support
                 call    SetDrive        ; get bds for drive
                 inc     word ptr es:[di+3Ch] ; [es:di+BDS.opcnt]
                                         ; (BDS offset 60)
 
-dsk_open_exit:                          ; CODE XREF: dsk_open+5↑j
+dsk_open_exit:                          ; ...
                 clc                     ; CF is already ZERO here - Erdogan Tan
                 retn
 dsk_open        endp
@@ -7711,7 +7379,7 @@ dsk_open        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-dsk_close       proc near               ; DATA XREF: BIOSCODE:0596↑o
+dsk_close       proc near               ; ...
                 cmp     ds:fhave96, 0
                 jz      short exitjx    ; done if no changeline support
                 call    SetDrive        ; get bds for drive
@@ -7719,8 +7387,7 @@ dsk_close       proc near               ; DATA XREF: BIOSCODE:0596↑o
                 jz      short exitjx    ; watch out for wrap
                 dec     word ptr es:[di+3Ch]
 
-exitjx:                                 ; CODE XREF: dsk_close+5↑j
-                                        ; dsk_close+F↑j ...
+exitjx:                                 ; ...
                 clc                     ; CF is already ZERO here - Erdogan Tan
                 retn
 dsk_close       endp
@@ -7729,47 +7396,46 @@ dsk_close       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-dsk_rem         proc near               ; DATA XREF: BIOSCODE:0598↑o
+dsk_rem         proc near               ; ...
                 call    SetDrive
                 test    byte ptr es:[di+3Fh], 1 ; [es:di+BDS.flags], fnon_removable
                 jz      short exitjx
 
-x_bus_exit:                             ; DATA XREF: BIOSCODE:0584↑o
+x_bus_exit:                             ; ...
                 mov     ah, 3           ; non_rem
                                         ; return busy status
                 stc
 
-dsk_ret:                                ; CODE XREF: BIOSCODE:dsk_io↓j
+dsk_ret:                                ; ...
                 retn
 dsk_rem         endp
 
 ; ---------------------------------------------------------------------------
 
-dsk_writv:                              ; DATA XREF: BIOSCODE:058C↑o
+dsk_writv:                              ; ...
                 mov     word ptr ds:rflag, 103h ; write and verify
                 jmp     short dsk_cl
 ; ---------------------------------------------------------------------------
 
-dsk_writ:                               ; DATA XREF: BIOSCODE:058A↑o
+dsk_writ:                               ; ...
                 mov     word ptr ds:rflag, 3 ; romwrite
 
-dsk_cl:                                 ; CODE XREF: BIOSCODE:097D↑j
+dsk_cl:                                 ; ...
                 call    diskio          ; prepare for rombios read/write
 
-dsk_io:                                 ; CODE XREF: BIOSCODE:0990↓j
+dsk_io:                                 ; ...
                 jnb     short dsk_ret
                 jmp     bc_err_cnt
 ; ---------------------------------------------------------------------------
 
-dsk_read:                               ; DATA XREF: BIOSCODE:0582↑o
+dsk_read:                               ; ...
                 call    DISKRD
                 jmp     short dsk_io
 
 ; =============== S U B R O U T I N E =======================================
 
 
-checksingle     proc near               ; CODE XREF: diskio+77↓p
-                                        ; BIOSCODE:0F8F↓p ...
+checksingle     proc near               ; ...
                 push    ax
                 push    bx
                 mov     bx, es:[di+3Fh] ; [es:di+BDS.flags]
@@ -7784,7 +7450,7 @@ checksingle     proc near               ; CODE XREF: diskio+77↓p
                 push    di
                 les     di, dword ptr ds:start_bds ; get first bds
 
-scan_list:                              ; CODE XREF: checksingle+79↓j
+scan_list:                              ; ...
                 cmp     es:[di+4], al
                 jnz     short scan_skip ; Not our drive. Try next bds.
                 mov     bl, 20h         ; fi_own_physical ; test ownership flag
@@ -7810,7 +7476,7 @@ scan_list:                              ; CODE XREF: checksingle+79↓j
                 jmp     short singleret
 ; ---------------------------------------------------------------------------
 
-not_fsetowner:                          ; CODE XREF: checksingle+37↑j
+not_fsetowner:                          ; ...
                 cmp     ds:single, 2    ; if (single_drive_system)
                 jnz     short ignore_sdsb
                 push    ax
@@ -7827,13 +7493,12 @@ not_fsetowner:                          ; CODE XREF: checksingle+37↑j
                 pop     ax              ; swap(curr_drv,req_drv)
                 jz      short singleret ; issue swap_dsk_msg
 
-ignore_sdsb:                            ; CODE XREF: checksingle+55↑j
+ignore_sdsb:                            ; ...
                 call    swpdsk
                 jmp     short singleret
 ; ---------------------------------------------------------------------------
 
-scan_skip:                              ; CODE XREF: checksingle+1E↑j
-                                        ; checksingle+26↑j
+scan_skip:                              ; ...
                 les     di, es:[di]
                 cmp     di, 0FFFFh      ; -1  ; end of list?
                 jnz     short scan_list ; continue until hit end of list
@@ -7841,8 +7506,7 @@ scan_skip:                              ; CODE XREF: checksingle+1E↑j
                 pop     di              ; restore current bds
                 pop     es
 
-singleret:                              ; CODE XREF: checksingle+9↑j
-                                        ; checksingle+E↑j ...
+singleret:                              ; ...
                 pop     bx
                 pop     ax
                 retn
@@ -7851,37 +7515,33 @@ checksingle     endp
 ; ---------------------------------------------------------------------------
 ; START OF FUNCTION CHUNK FOR diskio
 
-baddrive:                               ; CODE XREF: diskio+32↓j
-                                        ; diskio+38↓j ...
+baddrive:                               ; ...
                 mov     al, 8           ; sector not found
                 jmp     short baddrive_ret
 ; ---------------------------------------------------------------------------
 
-unformatteddrive:                       ; CODE XREF: diskio+17↓j
+unformatteddrive:                       ; ...
                 mov     al, 7           ; unknown media
 
-baddrive_ret:                           ; CODE XREF: diskio-1B↑j
+baddrive_ret:                           ; ...
                 stc
 ; END OF FUNCTION CHUNK FOR diskio
 
-ioret:                                  ; CODE XREF: diskio+10↓j
+ioret:                                  ; ...
                 retn
 ; ---------------------------------------------------------------------------
-LBA_Packet      db 16                   ; DATA XREF: diskio+E1↓o
+LBA_Packet      db 16                   ; ...
                                         ; DAP buffer
                 db 0
-dap_block_cnt   dw 0                    ; DATA XREF: diskio+C2↓w
-dap_trans_buf   dw 2 dup(0)             ; DATA XREF: diskio+B3↓w
-                                        ; diskio+BB↓w
-dap_lba_value   dw 2 dup(0)             ; DATA XREF: diskio:set_lbarw_2↓w
-                                        ; diskio+AE↓w
+dap_block_cnt   dw 0                    ; ...
+dap_trans_buf   dw 2 dup(0)             ; ...
+dap_lba_value   dw 2 dup(0)             ; ...
                 db 4 dup(0)
 
 ; =============== S U B R O U T I N E =======================================
 
 
-DISKRD          proc near               ; CODE XREF: BIOSCODE:dsk_read↑p
-                                        ; DATA XREF: getclus+103↑o ...
+DISKRD          proc near               ; ...
                 mov     ds:rflag, 2     ; romread
 DISKRD          endp
 
@@ -7889,8 +7549,7 @@ DISKRD          endp
 ; =============== S U B R O U T I N E =======================================
 
 
-diskio          proc near               ; CODE XREF: BIOSCODE:dsk_cl↑p
-                                        ; BootIo+11↓p
+diskio          proc near               ; ...
 
 ; FUNCTION CHUNK AT 0A13 SIZE 00000007 BYTES
 
@@ -7924,7 +7583,7 @@ diskio          proc near               ; CODE XREF: BIOSCODE:dsk_cl↑p
                 jmp     short sanityok
 ; ---------------------------------------------------------------------------
 
-sanity32:                               ; CODE XREF: diskio+2E↑j
+sanity32:                               ; ...
                 add     si, ds:start_sec_h
                 cmp     si, es:[di+1Dh] ; [es:di+BDS.totalsecs32+2]
                 jb      short sanityok
@@ -7932,8 +7591,7 @@ sanity32:                               ; CODE XREF: diskio+2E↑j
                 cmp     dx, es:[di+1Bh] ; [es:di+BDS.totalsecs32]
                 ja      short baddrive
 
-sanityok:                               ; CODE XREF: diskio+3A↑j
-                                        ; diskio+44↑j
+sanityok:                               ; ...
                 mov     dx, ds:start_sec_h
                 add     ax, es:[di+17h] ; [es:di+BDS.hiddensecs]
                 adc     dx, es:[di+19h] ; [es:di+BDS.hiddensecs+2]
@@ -7955,17 +7613,17 @@ sanityok:                               ; CODE XREF: diskio+3A↑j
                 jz      short diskio_nochangeline ; brif not
                 call    checklatchio
 
-diskio_nochangeline:                    ; CODE XREF: diskio+7F↑j
+diskio_nochangeline:                    ; ...
                 call    iosetup
 
-chk_13h_ext_flag:                       ; CODE XREF: diskio+75↑j
+chk_13h_ext_flag:                       ; ...
                 test    byte ptr es:[di+40h], 4 ; [es:di+BDS.flags+1], fLBArw
                                         ; LBA read/write flag
                 jnz     short set_lbarw_1
                 jmp     skip_setup
 ; ---------------------------------------------------------------------------
 
-set_lbarw_1:                            ; CODE XREF: diskio+8C↑j
+set_lbarw_1:                            ; ...
                 mov     ax, ds:saved_word ; check for mini disk (logical dos drive/partition)
                 cmp     word ptr es:[di+79h], 1 ; [di+BDS.bdsm_ismini] ; logical dos partition
                 jnz     short set_lbarw_2 ; not a logical dos partition/drive
@@ -7974,8 +7632,7 @@ set_lbarw_1:                            ; CODE XREF: diskio+8C↑j
                 add     ax, es:[di+17h] ; [es:di+BDS.hiddensecs]
                 adc     dx, es:[di+19h] ; [es:di+BDS.hiddensecs+2]
 
-set_lbarw_2:                            ; CODE XREF: diskio+99↑j
-                                        ; diskio+A0↑j
+set_lbarw_2:                            ; ...
                 mov     cs:dap_lba_value, ax
                 mov     cs:dap_lba_value+2, dx
                 mov     cs:dap_trans_buf, bx
@@ -7987,8 +7644,7 @@ set_lbarw_2:                            ; CODE XREF: diskio+99↑j
                 mov     ds:vretry_cnt, bp ; verify op. retry cnt for write-verify
                 mov     ds:soft_ecc_cnt, bp ; soft ecc error retry count
 
-set_lbarw_3:                            ; CODE XREF: diskio:set_lbarw_6↓j
-                                        ; diskio:set_lbarw_11↓j
+set_lbarw_3:                            ; ...
                 mov     dl, es:[di+4]   ; [es:di+BDS.drivenum]
                 mov     ah, ds:rflag    ; get read/write indicator
                 add     ah, 40h
@@ -8007,21 +7663,21 @@ set_lbarw_3:                            ; CODE XREF: diskio:set_lbarw_6↓j
                 jmp     harderr
 ; ---------------------------------------------------------------------------
 
-set_lbarw_4:                            ; CODE XREF: diskio+EC↑j
+set_lbarw_4:                            ; ...
                 cmp     ah, 0CCh        ; Write fault (hard disk)
                 jnz     short set_lbarw_5
                 mov     bp, 1
                 jmp     short set_lbarw_6
 ; ---------------------------------------------------------------------------
 
-set_lbarw_5:                            ; CODE XREF: diskio+F4↑j
+set_lbarw_5:                            ; ...
                 mov     ds:soft_ecc_cnt, 5
 
-set_lbarw_6:                            ; CODE XREF: diskio+F9↑j
+set_lbarw_6:                            ; ...
                 jmp     short set_lbarw_3
 ; ---------------------------------------------------------------------------
 
-set_lbarw_7:                            ; CODE XREF: diskio+E7↑j
+set_lbarw_7:                            ; ...
                 cmp     word ptr ds:rflag, 103h
                 jnz     short set_lbarw_12
                 mov     ah, 44h
@@ -8038,7 +7694,7 @@ set_lbarw_7:                            ; CODE XREF: diskio+E7↑j
                 jnz     short set_lbarw_8
                 dec     ds:soft_ecc_cnt
 
-set_lbarw_8:                            ; CODE XREF: diskio+118↑j
+set_lbarw_8:                            ; ...
                 jz      short set_lbarw_12
                 call    ResetDisk
                 cmp     ah, 11h
@@ -8048,28 +7704,26 @@ set_lbarw_8:                            ; CODE XREF: diskio+118↑j
                 jmp     harderr
 ; ---------------------------------------------------------------------------
 
-set_lbarw_9:                            ; CODE XREF: diskio+12C↑j
+set_lbarw_9:                            ; ...
                 cmp     ah, 0CCh
                 jnz     short set_lbarw_10
                 mov     bp, 1
                 jmp     short set_lbarw_11
 ; ---------------------------------------------------------------------------
 
-set_lbarw_10:                           ; CODE XREF: diskio+134↑j
+set_lbarw_10:                           ; ...
                 mov     ds:soft_ecc_cnt, 5 ; soft ecc error retry count
 
-set_lbarw_11:                           ; CODE XREF: diskio+126↑j
-                                        ; diskio+139↑j
+set_lbarw_11:                           ; ...
                 jmp     short set_lbarw_3
 ; ---------------------------------------------------------------------------
 
-set_lbarw_12:                           ; CODE XREF: diskio+109↑j
-                                        ; diskio+113↑j ...
+set_lbarw_12:                           ; ...
                 xor     ax, ax
                 retn
 ; ---------------------------------------------------------------------------
 
-skip_setup:                             ; CODE XREF: diskio+8E↑j
+skip_setup:                             ; ...
                 push    bp
                 xchg    ax, dx
                 xor     dx, dx
@@ -8105,8 +7759,7 @@ skip_setup:                             ; CODE XREF: diskio+8E↑j
                 retn
 ; ---------------------------------------------------------------------------
 
-baddrive_brdg:                          ; CODE XREF: diskio+16C↑j
-                                        ; diskio+171↑j
+baddrive_brdg:                          ; ...
                 jmp     baddrive
 diskio          endp
 
@@ -8114,8 +7767,7 @@ diskio          endp
 ; =============== S U B R O U T I N E =======================================
 
 
-iosetup         proc near               ; CODE XREF: diskio:diskio_nochangeline↑p
-                                        ; TrackIo+10↓p
+iosetup         proc near               ; ...
                 mov     al, es:[di+4]   ; [es:di+BDS.drivenum]
                 mov     ds:tim_drv, al  ; save drive letter
                 cmp     ds:media_set_for_format, 0
@@ -8136,7 +7788,7 @@ iosetup         proc near               ; CODE XREF: diskio:diskio_nochangeline�
                 mov     al, 4
                 xchg    al, [si+10]     ; [si+DISK_PARMS.DISK_MOTOR_STRT]
 
-motor_start_ok:                         ; CODE XREF: iosetup+31↑j
+motor_start_ok:                         ; ...
                 xor     al, al
                 inc     al              ; ibm wants fast settle to be 1
                 xchg    al, [si+9]      ; [si+DISK_PARMS.DISK_HEAD_STTL]
@@ -8147,7 +7799,7 @@ motor_start_ok:                         ; CODE XREF: iosetup+31↑j
                                         ; someone has diddled the settle
                 mov     ds:settleslow, al
 
-skip_dpt_setting:                       ; CODE XREF: iosetup+C↑j
+skip_dpt_setting:                       ; ...
                 retn
 iosetup         endp
 
@@ -8155,13 +7807,12 @@ iosetup         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-done            proc near               ; CODE XREF: diskio+180↑p
-                                        ; TrackIo+83↓p
+done            proc near               ; ...
                 test    byte ptr es:[di+3Fh], 1 ; [es:di+BDS.flags], fnon_removable
                 jnz     short ddbx      ; do not set for non-removable media
                 call    set_tim
 
-diddle_back:                            ; CODE XREF: disk+142↓j
+diddle_back:                            ; ...
                 pushf
                 cmp     ds:media_set_for_format, 0
                 jnz     short nodiddleback
@@ -8178,11 +7829,10 @@ diddle_back:                            ; CODE XREF: disk+142↓j
                 pop     es
                 pop     ax
 
-nodiddleback:                           ; CODE XREF: done+10↑j
+nodiddleback:                           ; ...
                 popf
 
-ddbx:                                   ; CODE XREF: done+5↑j
-                                        ; block+2↓j
+ddbx:                                   ; ...
                 retn
 done            endp
 
@@ -8190,8 +7840,7 @@ done            endp
 ; =============== S U B R O U T I N E =======================================
 
 
-block           proc near               ; CODE XREF: diskio+17D↑p
-                                        ; block+38↓j
+block           proc near               ; ...
                 or      ax, ax
                 jz      short ddbx
                 test    byte ptr es:[di+3Fh], 1 ; [es:di+BDS.flags], fnon_removable
@@ -8203,8 +7852,7 @@ block           proc near               ; CODE XREF: diskio+17D↑p
                 retn
 ; ---------------------------------------------------------------------------
 
-block_floppy:                           ; CODE XREF: block+9↑j
-                                        ; block+10↑j
+block_floppy:                           ; ...
                 mov     cl, es:[di+19]  ; [es:di+BDS.secpertrack]
                 inc     cx
                 sub     cl, ds:cursec
@@ -8213,7 +7861,7 @@ block_floppy:                           ; CODE XREF: block+9↑j
                 jnb     short gotmin
                 mov     cx, ax
 
-gotmin:                                 ; CODE XREF: block+25↑j
+gotmin:                                 ; ...
                 push    ax
                 push    cx
                 mov     ax, cx
@@ -8229,16 +7877,14 @@ block           endp
 ; ---------------------------------------------------------------------------
 ; START OF FUNCTION CHUNK FOR disk
 
-dskerr_brdg:                            ; CODE XREF: disk:testerr↓j
-                                        ; disk+6E↓j
+dskerr_brdg:                            ; ...
                 jmp     dskerr
 ; END OF FUNCTION CHUNK FOR disk
 
 ; =============== S U B R O U T I N E =======================================
 
 
-disk            proc near               ; CODE XREF: block+12↑p
-                                        ; block+2D↑p ...
+disk            proc near               ; ...
 
 ; FUNCTION CHUNK AT 0C71 SIZE 00000003 BYTES
 
@@ -8257,13 +7903,12 @@ disk            proc near               ; CODE XREF: block+12↑p
                 jz      short GetRdWrInd
                 mov     bp, 2           ; This is not verify so only 1 retry
 
-GetRdWrInd:                             ; CODE XREF: disk+8↑j
-                                        ; disk+D↑j
+GetRdWrInd:                             ; ...
                 mov     ds:vretry_cnt, bp ; verify op. retry cnt for write-verify
                 mov     ds:soft_ecc_cnt, bp ; soft ecc error retry count
                 mov     ah, ds:rflag    ; get read/write indicator
 
-_retry:                                 ; CODE XREF: disk+12A↓j
+_retry:                                 ; ...
                 push    ax
                 mov     dx, ds:curtrk
                 test    byte ptr es:[di+3Fh], 1 ; [es:di+BDS.bdsm_ismini]
@@ -8274,8 +7919,7 @@ _retry:                                 ; CODE XREF: disk+12A↓j
                 add     dx, es:[di+7Bh] ; [es:di+BDS.bdsm_hidden_trks]
                                         ; add hidden tracks
 
-disk_not_mini:                          ; CODE XREF: disk+28↑j
-                                        ; disk+2F↑j
+disk_not_mini:                          ; ...
                 ror     dh, 1
                 ror     dh, 1
                 or      dh, ds:cursec
@@ -8293,32 +7937,30 @@ disk_not_mini:                          ; CODE XREF: disk+28↑j
                 cmp     ah, 4           ; romverify
                 jnz     short do_write
 
-do_fast:                                ; CODE XREF: disk+4E↑j
-                                        ; disk+5A↑j ...
+do_fast:                                ; ...
                 call    fastspeed
 
-testerr:                                ; CODE XREF: disk+D0↓j
+testerr:                                ; ...
                 jb      short dskerr_brdg
                 cmp     bp, 5           ; is there retry ?
                 jnz     short testerror ; yes
                 cmp     ah, 0BBh        ; Undefined error (hard disk)
                 jz      short dskerr_brdg
 
-testerror:                              ; CODE XREF: disk+69↑j
+testerror:                              ; ...
                 mov     ds:step_drv, dl
                 mov     es:[di+78h], ch ; [es:di+BDS.track]
                 cmp     word ptr ds:rflag, 103h ; check for write and verify
                 jz      short doverify
 
-noverify:                               ; CODE XREF: disk+D9↓j
-                                        ; disk+E4↓j
+noverify:                               ; ...
                 pop     ax
                 test    byte ptr es:[di+3Fh], 1 ; [es:di+BDS.flags], fnon_removable
                 jz      short its_removable
                 test    byte ptr ds:multrk_flag, 80h ; multrk_on
                 jnz     short disk_ret
 
-its_removable:                          ; CODE XREF: disk+86↑j
+its_removable:                          ; ...
                 and     cl, 3Fh         ; eliminate cylinder bits from sector
                 xor     ah, ah
                 sub     ds:seccnt, ax   ; reduce count of sectors to go next sector
@@ -8336,28 +7978,26 @@ its_removable:                          ; CODE XREF: disk+86↑j
                 xor     dh, dh          ; head 0
                 inc     ds:curtrk       ; next track
 
-noxor:                                  ; CODE XREF: disk+B3↑j
+noxor:                                  ; ...
                 mov     ds:curhd, dh
 
-disk_ret:                               ; CODE XREF: disk+8D↑j
-                                        ; disk+A2↑j
+disk_ret:                               ; ...
                 clc
                 retn
 ; ---------------------------------------------------------------------------
 
-do_write:                               ; CODE XREF: disk+55↑j
-                                        ; disk+5F↑j
+do_write:                               ; ...
                 cmp     dl, ds:step_drv
                 jnz     short do_norm   ; we have changed drives
                 cmp     ch, es:[di+78h] ; [es:di+BDS.track]
                 jz      short do_fast   ; we are still on the same track
 
-do_norm:                                ; CODE XREF: disk+C5↑j
+do_norm:                                ; ...
                 call    normspeed
                 jmp     short testerr
 ; ---------------------------------------------------------------------------
 
-doverify:                               ; CODE XREF: disk+7E↑j
+doverify:                               ; ...
                 pop     ax
                 push    ax
                 mov     ah, 4
@@ -8371,56 +8011,54 @@ doverify:                               ; CODE XREF: disk+7E↑j
                 jmp     short diskerr1  ; retry
 ; ---------------------------------------------------------------------------
 
-not_softecc_err:                        ; CODE XREF: disk+DE↑j
+not_softecc_err:                        ; ...
                 call    ResetDisk
                 dec     ds:vretry_cnt
                 jmp     short dskerr0
 ; ---------------------------------------------------------------------------
 
-dskerr:                                 ; CODE XREF: disk:dskerr_brdg↑j
+dskerr:                                 ; ...
                 cmp     ds:fhave96, 0   ; do we have changeline support?
                 jz      short dskerr_nochangeline ; brif not
                 call    checkio
 
-dskerr_nochangeline:                    ; CODE XREF: disk+F9↑j
+dskerr_nochangeline:                    ; ...
                 cmp     ds:multitrk_format_flag, 1 ; multi trk format request?
                 jnz     short dochkagain ; no more retry
                 mov     bp, 1
                 mov     ds:multitrk_format_flag, 0 ; clear the flag
 
-dochkagain:                             ; CODE XREF: disk+103↑j
+dochkagain:                             ; ...
                 call    again
 
-dskerr0:                                ; CODE XREF: disk+F2↑j
+dskerr0:                                ; ...
                 jz      short harderr
                 test    byte ptr es:[di+3Fh], 1 ; [es:di+BDS.flags], fnon_removable
                 jnz     short skip_timeout_chk
                 cmp     ah, 80h         ; timeout?
                 jz      short harderr
 
-skip_timeout_chk:                       ; CODE XREF: disk+117↑j
+skip_timeout_chk:                       ; ...
                 cmp     ah, 0CCh        ; write fault error?
                 jz      short write_fault_err ; then, don't retry.
                 mov     ds:soft_ecc_cnt, 5 ; MAXERR
                                         ; set soft_ecc_cnt back   to maxerr
 
-diskerr1:                               ; CODE XREF: disk+E9↑j
-                                        ; disk+130↓j
+diskerr1:                               ; ...
                 pop     ax              ; restore sector count
                 jmp     _retry
 ; ---------------------------------------------------------------------------
 
-write_fault_err:                        ; CODE XREF: disk+121↑j
+write_fault_err:                        ; ...
                 mov     bp, 1           ; just retry only once
                                         ; for write fault error
                 jmp     short diskerr1
 ; ---------------------------------------------------------------------------
 
-harderr:                                ; CODE XREF: diskio+EE↑j
-                                        ; diskio+12E↑j ...
+harderr:                                ; ...
                 call    maperror
 
-harderr2:                               ; CODE XREF: checkio:no_error_map↓j
+harderr2:                               ; ...
                 mov     ds:tim_drv, 0FFh ; force a media check through rom
                 mov     cx, ds:seccnt   ; get count of sectors to go
                 mov     sp, ds:spsav    ; recover entry stack pointer
@@ -8431,7 +8069,7 @@ disk            endp
 ; =============== S U B R O U T I N E =======================================
 
 
-normspeed       proc near               ; CODE XREF: disk:do_norm↑p
+normspeed       proc near               ; ...
                 cmp     ds:media_set_for_format, 0
                 jnz     short fastspeed
                 push    es
@@ -8454,8 +8092,7 @@ normspeed       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-fastspeed       proc near               ; CODE XREF: disk:do_fast↑p
-                                        ; disk+D6↑p ...
+fastspeed       proc near               ; ...
                 push    es
                 mov     es, ds:xfer_seg
                 int     13h             ; DISK -
@@ -8468,8 +8105,7 @@ fastspeed       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-maperror        proc near               ; CODE XREF: BIOSCODE:err_exitj↑p
-                                        ; GetBp+D3↑p ...
+maperror        proc near               ; ...
                 push    cx
                 push    es
                 push    ds
@@ -8492,8 +8128,7 @@ maperror        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-set_tim         proc near               ; CODE XREF: read_sector+6F↑p
-                                        ; done+7↑p
+set_tim         proc near               ; ...
                 push    ax              ; set the time of last access for this drive.
                                         ; this is done only for removable media.
                                         ; es:di -> bds
@@ -8503,13 +8138,13 @@ set_tim         proc near               ; CODE XREF: read_sector+6F↑p
                 cmp     cx, es:[di+7Bh] ; [es:di+BDS.tim_hi]
                 jz      short done_set
 
-setaccess:                              ; CODE XREF: set_tim+8↑j
+setaccess:                              ; ...
                 mov     ds:accesscount, 0 ; the time has passed
                                         ; reset the threshold counter
                 mov     es:[di+79h], dx
                 mov     es:[di+7Bh], cx
 
-done_set:                               ; CODE XREF: set_tim+E↑j
+done_set:                               ; ...
                 clc
                 pop     ax
                 retn
@@ -8519,8 +8154,7 @@ set_tim         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-again           proc near               ; CODE XREF: read_sector:rd_rty↑p
-                                        ; diskio+E9↑p ...
+again           proc near               ; ...
                 call    ResetDisk
                 cmp     ah, 6           ; If it is a media change error
                                         ; do not decrement retry count
@@ -8529,20 +8163,18 @@ again           proc near               ; CODE XREF: read_sector:rd_rty↑p
                 retn
 ; ---------------------------------------------------------------------------
 
-dont_dec_retry_count:                   ; CODE XREF: again+6↑j
+dont_dec_retry_count:                   ; ...
                 or      ah, ah
                 retn
 again           endp
 
 ; ---------------------------------------------------------------------------
-ioctl_drvnum    db 0                    ; DATA XREF: BIOSCODE:0E3C↓w
-                                        ; BIOSCODE:ioctl_output_1↓r
+ioctl_drvnum    db 0                    ; ...
 
 ; =============== S U B R O U T I N E =======================================
 
 
-get_phy_drv_num proc near               ; CODE XREF: BIOSCODE:ioctl_output↓p
-                                        ; BIOSCODE:ioctl_input↓p
+get_phy_drv_num proc near               ; ...
                 call    SetDrive        ; get physcial drive number
                                         ; INPUT: al = logical drive number (BDS.drivelet)
                                         ; OUTPUT: physical drive number (BDS.drivenum
@@ -8552,7 +8184,7 @@ get_phy_drv_num endp
 
 ; ---------------------------------------------------------------------------
 
-ioctl_output:                           ; DATA XREF: BIOSCODE:0592↑o
+ioctl_output:                           ; ...
                 call    get_phy_drv_num
                 mov     cs:ioctl_drvnum, dl
                 mov     ah, 41h
@@ -8565,7 +8197,7 @@ ioctl_output:                           ; DATA XREF: BIOSCODE:0592↑o
                                         ; CX = Interface support bit map
                 jb      short int13h_exts_err
 
-ioctl_input_1:                          ; CODE XREF: BIOSCODE:0E91↓j
+ioctl_input_1:                          ; ...
                 les     di, ds:ptrsav
                 les     di, es:[di+14]  ; [es:di+IOCTL_REQ.MINORFUNCTION]
                 jb      short ioctl_input_2
@@ -8582,24 +8214,20 @@ ioctl_input_1:                          ; CODE XREF: BIOSCODE:0E91↓j
                 jnz     short ioctl_output_2
                 dec     ax
 
-ioctl_output_1:                         ; CODE XREF: BIOSCODE:0E5A↑j
-                                        ; BIOSCODE:0E6A↑j
+ioctl_output_1:                         ; ...
                 mov     dl, cs:ioctl_drvnum
                 int     13h             ; DISK - IBM/MS Extension - LOCK/UNLOCK DRIVE (DL - drive, DS:SI - disk address packet)
                 jb      short int13h_exts_err
 
-ioctl_lock_err:                         ; CODE XREF: BIOSCODE:0E83↓j
-                                        ; BIOSCODE:0E88↓j ...
+ioctl_lock_err:                         ; ...
                 clc
                 retn
 ; ---------------------------------------------------------------------------
 
-ioctl_output_2:                         ; CODE XREF: BIOSCODE:0E60↑j
-                                        ; BIOSCODE:0E70↑j ...
+ioctl_output_2:                         ; ...
                 mov     ah, 1
 
-int13h_exts_err:                        ; CODE XREF: BIOSCODE:0E48↑j
-                                        ; BIOSCODE:0E7A↑j ...
+int13h_exts_err:                        ; ...
                 cmp     ah, 0B0h        ; volume not locked in drive
                 jz      short ioctl_lock_err
                 cmp     ah, 0B4h        ; lock count exceeded
@@ -8607,13 +8235,13 @@ int13h_exts_err:                        ; CODE XREF: BIOSCODE:0E48↑j
                 jmp     err_exitj
 ; ---------------------------------------------------------------------------
 
-ioctl_input:                            ; DATA XREF: BIOSCODE:0580↑o
+ioctl_input:                            ; ...
                 call    get_phy_drv_num
                 stc
                 jmp     short ioctl_input_1
 ; ---------------------------------------------------------------------------
 
-ioctl_input_2:                          ; CODE XREF: BIOSCODE:0E52↑j
+ioctl_input_2:                          ; ...
                 cmp     byte ptr es:[di], 6 ; disk ioctl function = 6
                 jnz     short ioctl_output_2
                 mov     ax, 4502h       ; get lock status
@@ -8624,7 +8252,7 @@ ioctl_input_2:                          ; CODE XREF: BIOSCODE:0E52↑j
                 jz      short ioctl_input_3
                 mov     bl, 0Eh
 
-ioctl_input_3:                          ; CODE XREF: BIOSCODE:0EA5↑j
+ioctl_input_3:                          ; ...
                 push    bx
                 mov     ah, 4
                 mov     cx, 101h
@@ -8640,19 +8268,18 @@ ioctl_input_3:                          ; CODE XREF: BIOSCODE:0EA5↑j
                 cmp     ah, 80h         ; timeout (not ready)
                 jz      short ioctl_input_5
 
-ioctl_input_4:                          ; CODE XREF: BIOSCODE:0EC8↓j
+ioctl_input_4:                          ; ...
                 mov     es:[di+1], bx
                 jmp     short ioctl_lock_err
 ; ---------------------------------------------------------------------------
 
-ioctl_input_5:                          ; CODE XREF: BIOSCODE:0EB7↑j
-                                        ; BIOSCODE:0EBC↑j
+ioctl_input_5:                          ; ...
                 or      bx, 801h        ; bit 0 error bit (1 = error, 31h or 80h)
                                         ; bit 11 (not ready -removable media error- bit)
                                         ; if bit 11 = 0, another error (except 31h and 80h)
                 jmp     short ioctl_input_4
 ; ---------------------------------------------------------------------------
-IoReadJumpTable db 15                   ; DATA XREF: BIOSCODE:0F35↓o
+IoReadJumpTable db 15                   ; ...
                 dw offset GetDeviceParameters ; 60h
                 dw offset ReadTrack     ; 61h
                 dw offset VerifyTrack   ; 62h
@@ -8669,7 +8296,7 @@ IoReadJumpTable db 15                   ; DATA XREF: BIOSCODE:0F35↓o
                 dw offset Cmd_Error_Proc ; 6Dh
                 dw offset Cmd_Error_Proc ; 6Eh
                 dw offset GetDrvMapInfo ; 6Fh
-IoWriteJumpTable db 9                   ; DATA XREF: BIOSCODE:0F3C↓o
+IoWriteJumpTable db 9                   ; ...
                 dw offset SetDeviceParameters ; 40h
                 dw offset WriteTrack    ; 41h
                 dw offset FormatTrack   ; 42h
@@ -8680,14 +8307,12 @@ IoWriteJumpTable db 9                   ; DATA XREF: BIOSCODE:0F3C↓o
                 dw offset SetAccessFlag ; 47h
                 dw offset SetLockState  ; 48h
                 dw offset EjectMedia    ; 49h
-IOC_DC_Table    db 60h, 40h, 61h, 41h, 62h, 42h, 66h, 46h, 67h, 47h, 68h
-                                        ; DATA XREF: ioctl_support_query+16↓o
+IOC_DC_Table    db 60h, 40h, 61h, 41h, 62h, 42h, 66h, 46h, 67h, 47h, 68h ; ...
                 db 48h, 49h, 6Fh
-new_genioctl    db 0                    ; DATA XREF: BIOSCODE:0F12↓w
-                                        ; BIOSCODE:0F24↓w ...
+new_genioctl    db 0                    ; ...
 ; ---------------------------------------------------------------------------
 
-Do_Generic_IOCtl:                       ; DATA XREF: BIOSCODE:05A0↑o
+do_generic_ioctl:                       ; ...
                 call    SetDrive        ; es:di points to bds for drive
                 mov     cs:new_genioctl, 0 ; 0, old generic ioctl function
                 push    es
@@ -8699,7 +8324,7 @@ Do_Generic_IOCtl:                       ; DATA XREF: BIOSCODE:05A0↑o
                 cmp     byte ptr es:[bx+0Dh], 48h ; Generic IOCtl Request support
                                         ; (called only if bit 6 of attribute is set to 1)
 
-chk_genioctl_minor:                     ; CODE XREF: BIOSCODE:0F22↑j
+chk_genioctl_minor:                     ; ...
                 mov     al, es:[bx+0Eh] ; [es:bx+IOCTL_REQ.MINORFUNCTION]
                 pop     es
                 jnz     short IoctlFuncErr
@@ -8708,7 +8333,7 @@ chk_genioctl_minor:                     ; CODE XREF: BIOSCODE:0F22↑j
                 jnz     short NotGenericWrite
                 mov     si, offset IoWriteJumpTable
 
-NotGenericWrite:                        ; CODE XREF: BIOSCODE:0F3A↑j
+NotGenericWrite:                        ; ...
                 and     al, 0DFh        ; ~GEN_IOCTL_FN_TST ; get rid of read/write
                 sub     al, 40h         ; offset for base function
                 cmp     al, cs:[si]
@@ -8724,16 +8349,14 @@ NotGenericWrite:                        ; CODE XREF: BIOSCODE:0F3A↑j
                 retn
 ; ---------------------------------------------------------------------------
 
-Cmd_Error_Proc:                         ; DATA XREF: BIOSCODE:0ED1↑o
-                                        ; BIOSCODE:0ED3↑o ...
+Cmd_Error_Proc:                         ; ...
                 pop     dx
 
-IoctlFuncErr:                           ; CODE XREF: BIOSCODE:0F33↑j
-                                        ; BIOSCODE:0F46↑j
+IoctlFuncErr:                           ; ...
                 jmp     bc_cmderr
 ; ---------------------------------------------------------------------------
 
-GetDeviceParameters:                    ; DATA XREF: BIOSCODE:0ECB↑o
+GetDeviceParameters:                    ; ...
                 lds     bx, ds:ptrsav   ; ds:bx points to request header
                 assume ds:nothing
                 lds     bx, [bx+13h]    ; [bx+IOCTL_REQ.GENERICIOCTL_PACKET]
@@ -8764,7 +8387,7 @@ GetDeviceParameters:                    ; DATA XREF: BIOSCODE:0ECB↑o
                 lea     si, [di+6]      ; [di+BDS.bytespersec] = [di+BSD.DP_BPB]
                                         ; Use this subfield of bds instead
 
-UseBpbPresent:                          ; CODE XREF: BIOSCODE:0F87↑j
+UseBpbPresent:                          ; ...
                 lea     di, [bx+7]      ; [bx+A_DEVICEPARAMETERS.DP_BPB]
                                         ; This is where the result goes
                 xor     dx, dx
@@ -8774,7 +8397,7 @@ UseBpbPresent:                          ; CODE XREF: BIOSCODE:0F87↑j
                 mov     cx, 53          ; FAT32 BPB size
                 mov     dx, 32          ; 53+32 = 85 bytes (A_BPB_FAT32.size)
 
-gdp_1:                                  ; CODE XREF: BIOSCODE:0FA8↑j
+gdp_1:                                  ; ...
                 push    ds              ; reverse segments for copy
                 push    es
                 pop     ds
@@ -8785,14 +8408,14 @@ gdp_1:                                  ; CODE XREF: BIOSCODE:0FA8↑j
                 xor     al, al          ; 32 zeros
                 rep stosb
 
-gdp_2:                                  ; CODE XREF: BIOSCODE:0FB8↑j
+gdp_2:                                  ; ...
                 clc
 
-GetParmRet:                             ; CODE XREF: BIOSCODE:0F96↑j
+GetParmRet:                             ; ...
                 retn
 ; ---------------------------------------------------------------------------
 
-SetDeviceParameters:                    ; DATA XREF: BIOSCODE:0EEC↑o
+SetDeviceParameters:                    ; ...
                 lds     bx, ds:ptrsav   ; ds:bx points to request header
                 lds     bx, [bx+13h]    ; [bx+IOCTL_REQ.GENERICIOCTL_PACKET]
                 or      word ptr es:[di+3Fh], 140h ; [es:di+BDS.flags],
@@ -8803,7 +8426,7 @@ SetDeviceParameters:                    ; DATA XREF: BIOSCODE:0EEC↑o
                 jmp     setTrackTable
 ; ---------------------------------------------------------------------------
 
-sdp_1:                                  ; CODE XREF: BIOSCODE:0FD0↑j
+sdp_1:                                  ; ...
                 mov     al, [bx+1]      ; [bx+A_DEVICEPARAMETERS.DP_DEVICETYPE]
                 mov     es:[di+3Eh], al ; [es:di+BDS.formfactor]
                 mov     ax, [bx+4]      ; [bx+A_DEVICEPARAMETERS.DP_CYLINDERS]
@@ -8818,7 +8441,7 @@ sdp_1:                                  ; CODE XREF: BIOSCODE:0FD0↑j
                 jnz     short HaveChange ; we have changeline support
                 and     ax, 0FFFDh
 
-HaveChange:                             ; CODE XREF: BIOSCODE:0FF2↑j
+HaveChange:                             ; ...
                 and     ax, 3           ; Ignore all bits except non_removable and changeline
                                         ; fnon_removable|fchangeline
                 mov     cx, es:[di+3Fh] ; [es:di+BDS.flags]
@@ -8836,7 +8459,7 @@ HaveChange:                             ; CODE XREF: BIOSCODE:0FF2↑j
                 jnz     short sdp_2     ; new type (FAT32) structure
                 mov     cx, 31          ; A_BPB.size = 31
 
-sdp_2:                                  ; CODE XREF: BIOSCODE:101D↑j
+sdp_2:                                  ; ...
                 pop     ds
                 assume ds:nothing
                 or      word ptr es:[di+3Fh], 80h ; [es:di+BDS.flags],
@@ -8851,16 +8474,16 @@ sdp_2:                                  ; CODE XREF: BIOSCODE:101D↑j
                 and     word ptr es:[di+3Fh], 0FFFBh ; [es:di+BDS.flags], ~return_fake_bpb
                                         ; we were returning a fake bpb but we can stop now
 
-InstallRecommendedBpb:                  ; CODE XREF: BIOSCODE:1035↑j
+InstallRecommendedBpb:                  ; ...
                 lea     di, [di+43h]    ; [di+BDS.R_BPB] = [di+BDS.rbytespersec]
                 jmp     short CopyTheBpb
 ; ---------------------------------------------------------------------------
 
-InstallFakeBpb:                         ; CODE XREF: BIOSCODE:102D↑j
+InstallFakeBpb:                         ; ...
                 or      word ptr es:[di+3Fh], 4 ; byte [es:di+BDS.flags], return_fake_bpb
                 lea     di, [di+6]      ; [es:di+BDS.BPB] = [es:di+BDS.bytespersec]
 
-CopyTheBpb:                             ; CODE XREF: BIOSCODE:103F↑j
+CopyTheBpb:                             ; ...
                 lea     si, [bx+7]      ; [bx+A_DEVICEPARAMETERS.DP_BPB]
                 rep movsb
                 push    ds              ; Save packet segment
@@ -8871,7 +8494,7 @@ CopyTheBpb:                             ; CODE XREF: BIOSCODE:103F↑j
                 assume ds:nothing
                 pop     di
 
-setTrackTable:                          ; CODE XREF: BIOSCODE:0FD2↑j
+setTrackTable:                          ; ...
                 mov     cx, [bx+5Ch]    ; [bx+A_DEVICEPARAMETERS.DP_TRACKTABLEENTRIES]
                                         ; offset 85+7 (A_BPB.size+7) (FAT32)
                 cmp     cs:new_genioctl, 0
@@ -8879,7 +8502,7 @@ setTrackTable:                          ; CODE XREF: BIOSCODE:0FD2↑j
                 mov     cx, [bx+26h]    ; [bx+A_DEVICEPARAMETERS.DP_TRACKTABLEENTRIES]
                                         ; offset 31+7 (A_BPB.size+7)
 
-sdp_3:                                  ; CODE XREF: BIOSCODE:1062↑j
+sdp_3:                                  ; ...
                 push    ds
                 mov     ds, cs:Bios_Data_Word
                 assume ds:nothing
@@ -8892,7 +8515,7 @@ sdp_3:                                  ; CODE XREF: BIOSCODE:1062↑j
                 jz      short UglyTrackLayOut
                 or      word ptr es:[di+3Fh], 8 ; [es:di+BDS.flags], good_tracklayout
 
-UglyTrackLayOut:                        ; CODE XREF: BIOSCODE:107A↑j
+UglyTrackLayOut:                        ; ...
                 cmp     cx, 63          ; MAX_SECTORS_IN_TRACK
                 ja      short TooManyPerTrack
                 jcxz    short SectorInfoSaved
@@ -8904,12 +8527,12 @@ UglyTrackLayOut:                        ; CODE XREF: BIOSCODE:107A↑j
                 lea     si, [bx+28h]    ; [bx+A_DEVICEPARAMETERS.DP_SECTORTABLE]
                                         ; offset 31+9 (A_BPB.size+9)
 
-sdp_4:                                  ; CODE XREF: BIOSCODE:1094↑j
+sdp_4:                                  ; ...
                 mov     es, cs:Bios_Data_Word ; BIOSDATA segment
                                         ; Trash our bds pointer
                 assume es:nothing
 
-StoreSectorInfo:                        ; CODE XREF: BIOSCODE:10AF↓j
+StoreSectorInfo:                        ; ...
                 inc     di
                 inc     di              ; Skip over cylinder and head
                 lodsw                   ; Get sector id
@@ -8925,26 +8548,26 @@ StoreSectorInfo:                        ; CODE XREF: BIOSCODE:10AF↓j
                 jmp     short sdp_5
 ; ---------------------------------------------------------------------------
 
-OneK:                                   ; CODE XREF: BIOSCODE:10A6↑j
+OneK:                                   ; ...
                 mov     al, 3           ; 1024 bytes per sector
                                         ; set index to 3
 
-sdp_5:                                  ; CODE XREF: BIOSCODE:10AA↑j
+sdp_5:                                  ; ...
                 stosb
                 loop    StoreSectorInfo
 
-SectorInfoSaved:                        ; CODE XREF: BIOSCODE:1086↑j
+SectorInfoSaved:                        ; ...
                 clc
                 retn
 ; ---------------------------------------------------------------------------
 
-TooManyPerTrack:                        ; CODE XREF: BIOSCODE:1084↑j
+TooManyPerTrack:                        ; ...
                 mov     al, 0Ch
                 stc
                 retn
 ; ---------------------------------------------------------------------------
 
-FormatTrack:                            ; DATA XREF: BIOSCODE:0EF0↑o
+FormatTrack:                            ; ...
                 lds     bx, ds:ptrsav
                 lds     bx, [bx+13h]    ; [bx+IOCTL_REQ.GENERICIOCTL_PACKET]
                 test    byte ptr [bx], 1 ; bx+A_DEVICEPARAMETERS.DP_SPECIALFUNCTIONS],
@@ -8961,7 +8584,7 @@ FormatTrack:                            ; DATA XREF: BIOSCODE:0EF0↑o
                 retn
 ; ---------------------------------------------------------------------------
 
-DoFormatTrack:                          ; CODE XREF: BIOSCODE:10C1↑j
+DoFormatTrack:                          ; ...
                 cmp     byte ptr es:[di+3Eh], 5 ; [es:di+BDS.formfactor], DEV_HARDDISK
                 jnz     short DoFormatDiskette
                 mov     ds, cs:Bios_Data_Word
@@ -8969,7 +8592,7 @@ DoFormatTrack:                          ; CODE XREF: BIOSCODE:10C1↑j
                 jmp     VerifyTrack
 ; ---------------------------------------------------------------------------
 
-DoFormatDiskette:                       ; CODE XREF: BIOSCODE:10D6↑j
+DoFormatDiskette:                       ; ...
                 mov     cx, [bx+1]      ; [bx+A_FORMATPACKET.FP_HEAD]
                 mov     dx, [bx+3]      ; [bx+A_FORMATPACKET.FP_CYLINDER]
                 test    byte ptr [bx], 2 ; [bx+A_FORMATPACKET.FP_SPECIALFUNCTIONS]
@@ -8980,7 +8603,7 @@ DoFormatDiskette:                       ; CODE XREF: BIOSCODE:10D6↑j
                 jmp     VerifyTrack_Err
 ; ---------------------------------------------------------------------------
 
-DoFormatDiskette_1:                     ; CODE XREF: BIOSCODE:10EE↑j
+DoFormatDiskette_1:                     ; ...
                 call    SetMediaForFormat ; Also moves current Dpt to TempDpt
                 cmp     al, 1
                 jz      short NeedToSetDasd ; Old rom
@@ -8990,12 +8613,12 @@ DoFormatDiskette_1:                     ; CODE XREF: BIOSCODE:10EE↑j
                 jmp     short FormatFailed
 ; ---------------------------------------------------------------------------
 
-NeedToSetDasd:                          ; CODE XREF: BIOSCODE:10F8↑j
+NeedToSetDasd:                          ; ...
                 push    dx
                 call    SetDasd         ; INT 13h, ah=17h
                 pop     dx
 
-NoSetDasd:                              ; CODE XREF: BIOSCODE:10FC↑j
+NoSetDasd:                              ; ...
                 call    checksingle     ; Do any needed diskette swapping
                 mov     ax, dx          ; Get track from packet
                 mov     ds:trknum, ax
@@ -9005,15 +8628,15 @@ NoSetDasd:                              ; CODE XREF: BIOSCODE:10FC↑j
                 mov     cx, ds:sectorspertrack
                 jcxz    short set_fmt_retry_count
 
-StoreCylinderHead:                      ; CODE XREF: BIOSCODE:1121↓j
+StoreCylinderHead:                      ; ...
                 mov     [bx], ax        ; Store into TrackTable
                 add     bx, 4           ; Skip to next sector field
                 loop    StoreCylinderHead
 
-set_fmt_retry_count:                    ; CODE XREF: BIOSCODE:111A↑j
+set_fmt_retry_count:                    ; ...
                 mov     cl, 5           ; MAXERR - Set up retry count
 
-FormatRetry:                            ; CODE XREF: BIOSCODE:1166↓j
+FormatRetry:                            ; ...
                 push    cx              ; Now verify the sectors just formatted.
                                         ; NOTE: because of bug in some BIOSes
                                         ;       we have to set ES:BX to 00:00
@@ -9036,7 +8659,7 @@ FormatRetry:                            ; CODE XREF: BIOSCODE:1166↓j
                 pop     cx
                 jnb     short FormatOk
 
-FormatError:                            ; CODE XREF: BIOSCODE:1136↑j
+FormatError:                            ; ...
                 call    ResetDisk
                 mov     ds:had_format_error, 1
                 push    ax
@@ -9047,30 +8670,29 @@ FormatError:                            ; CODE XREF: BIOSCODE:1136↑j
                 jnz     short WhileErr
                 call    SetDasd
 
-WhileErr:                               ; CODE XREF: BIOSCODE:115E↑j
+WhileErr:                               ; ...
                 pop     dx
                 pop     cx
                 pop     ax
                 loop    FormatRetry
 
-FormatFailed:                           ; CODE XREF: BIOSCODE:10FE↑j
+FormatFailed:                           ; ...
                 mov     ds:had_format_error, 1 ; Set the format error flag
                 cmp     ah, 6           ; DSK_CHANGELINE_ERR
                                         ; convert change line error to time out error
                 jnz     short DoMapIt
                 mov     ah, 80h         ; DSK_TIMEOUT_ERR
 
-DoMapIt:                                ; CODE XREF: BIOSCODE:1170↑j
+DoMapIt:                                ; ...
                 jmp     maperror
 ; ---------------------------------------------------------------------------
 
-FormatOk:                               ; CODE XREF: BIOSCODE:114C↑j
+FormatOk:                               ; ...
                 mov     ds:had_format_error, 0 ; reset the format error flag
                 retn
 ; ---------------------------------------------------------------------------
 
-VerifyTrack:                            ; CODE XREF: BIOSCODE:10DD↑j
-                                        ; DATA XREF: BIOSCODE:0ECF↑o
+VerifyTrack:                            ; ...
                 push    ds
                 lds     bx, ds:ptrsav   ; ds:bx points to request header.
                 assume ds:nothing
@@ -9099,8 +8721,7 @@ VerifyTrack:                            ; CODE XREF: BIOSCODE:10DD↑j
                 jz      short NormVerifyTrack
                 mov     ds:multitrk_format_flag, 1
 
-NormVerifyTrack:                        ; CODE XREF: BIOSCODE:11A4↑j
-                                        ; BIOSCODE:11BA↑j ...
+NormVerifyTrack:                        ; ...
                 xor     ax, ax          ; 1st sector
                 xor     bx, bx
                 mov     ds:xfer_seg, bx ; Use 0:0 as the transfer address for verify
@@ -9109,21 +8730,20 @@ NormVerifyTrack:                        ; CODE XREF: BIOSCODE:11A4↑j
                 retn
 ; ---------------------------------------------------------------------------
 
-VerifyTrack_Err:                        ; CODE XREF: BIOSCODE:10F0↑j
-                                        ; BIOSCODE:11AA↑j ...
+VerifyTrack_Err:                        ; ...
                 mov     ah, 1
                 jmp     maperror
 ; ---------------------------------------------------------------------------
 
-ReadTrack:                              ; DATA XREF: BIOSCODE:0ECD↑o
+ReadTrack:                              ; ...
                 mov     ds:rflag, 2     ; romread
                 jmp     short ReadWriteTrack
 ; ---------------------------------------------------------------------------
 
-WriteTrack:                             ; DATA XREF: BIOSCODE:0EEE↑o
+WriteTrack:                             ; ...
                 mov     ds:rflag, 3
 
-ReadWriteTrack:                         ; CODE XREF: BIOSCODE:11E4↑j
+ReadWriteTrack:                         ; ...
                 push    es
                 les     bx, ds:ptrsav   ; es:bx -> to request header
                 assume es:nothing
@@ -9142,7 +8762,7 @@ ReadWriteTrack:                         ; CODE XREF: BIOSCODE:11E4↑j
 ; =============== S U B R O U T I N E =======================================
 
 
-TrackIo         proc near               ; CODE XREF: BIOSCODE:11D1↑p
+TrackIo         proc near               ; ...
                 mov     ds:spsav, sp    ; performs track read/write/verify
                                         ;
                                         ;  input:
@@ -9164,7 +8784,7 @@ TrackIo         proc near               ; CODE XREF: BIOSCODE:11D1↑p
                 pop     cx
                 pop     ax
 
-Dptalreadyset:                          ; CODE XREF: TrackIo+C↑j
+Dptalreadyset:                          ; ...
                 mov     si, offset tracktable ; Point si at the table entry of the
                                         ; first sector to be io'd
                 add     ax, ax
@@ -9175,8 +8795,7 @@ Dptalreadyset:                          ; CODE XREF: TrackIo+C↑j
                 jz      short ionextsector
                 xchg    dx, cx          ; We can read all secs in one blow
 
-ionextsector:                           ; CODE XREF: TrackIo+27↑j
-                                        ; TrackIo+7A↓j
+ionextsector:                           ; ...
                 push    cx
                 push    dx
                 inc     si
@@ -9198,8 +8817,7 @@ ionextsector:                           ; CODE XREF: TrackIo+27↑j
                 retn
 ; ---------------------------------------------------------------------------
 
-IoRemovable:                            ; CODE XREF: TrackIo+39↑j
-                                        ; TrackIo+41↑j
+IoRemovable:                            ; ...
                 lodsb                   ; Get sector size index from track
                                         ; table and save it
                 push    ax
@@ -9231,7 +8849,7 @@ IoRemovable:                            ; CODE XREF: TrackIo+39↑j
                 call    done            ; set time of last access, and reset
                                         ; entries in Dpt.
 
-NoNeedDone:                             ; CODE XREF: TrackIo+81↑j
+NoNeedDone:                             ; ...
                 clc
                 retn
 TrackIo         endp
@@ -9240,15 +8858,14 @@ TrackIo         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-SetDasd         proc near               ; CODE XREF: BIOSCODE:1101↑p
-                                        ; BIOSCODE:1160↑p
+SetDasd         proc near               ; ...
                 cmp     ds:had_format_error, 1 ; See if we've previously set dasd type
                 jz      short DoSetDasd
                 test    word ptr es:[di+3Fh], 80h ; [es:di+BDS.flags], set_dasd_true
                 jz      short DasdHasBeenSet
                 and     word ptr es:[di+3Fh], 0FF7Fh ; [es:di+BDS.flags], ~set_dasd_true
 
-DoSetDasd:                              ; CODE XREF: SetDasd+5↑j
+DoSetDasd:                              ; ...
                 mov     ds:had_format_error, 0 ; Reset it
                 mov     ds:gap_patch, 50h ; Format gap for 48tpi disks
                 mov     al, 4
@@ -9266,8 +8883,7 @@ DoSetDasd:                              ; CODE XREF: SetDasd+5↑j
                                         ; 1.2meg in a 1.2meg drive
                 mov     ds:gap_patch, 54h ; Format gap for 96 tpi, 1.2MB diskette
 
-DoSet:                                  ; CODE XREF: SetDasd+28↑j
-                                        ; SetDasd+2F↑j ...
+DoSet:                                  ; ...
                 push    ds
                 push    si
                 xor     si, si
@@ -9283,7 +8899,7 @@ DoSet:                                  ; CODE XREF: SetDasd+28↑j
                 int     13h             ; DISK - SET TYPE (AT,XT2,XT286,CONV,PS
                                         ; AL = disk type
 
-DasdHasBeenSet:                         ; CODE XREF: SetDasd+D↑j
+DasdHasBeenSet:                         ; ...
                 mov     ah, es:[di+13h] ; [es:di+BDS.secpertrack]
                 mov     ds:formt_eot, ah
                 retn
@@ -9293,8 +8909,7 @@ SetDasd         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-SetMediaForFormat proc near             ; CODE XREF: BIOSCODE:10C9↑p
-                                        ; BIOSCODE:DoFormatDiskette_1↑p ...
+SetMediaForFormat proc near             ; ...
                 push    cx
                 push    dx
                 cmp     ds:had_format_error, 1
@@ -9305,7 +8920,7 @@ SetMediaForFormat proc near             ; CODE XREF: BIOSCODE:10C9↑p
                 jmp     SetMediaRet     ; Media already set
 ; ---------------------------------------------------------------------------
 
-DoSetMediaForFormat:                    ; CODE XREF: SetMediaForFormat+10↑j
+DoSetMediaForFormat:                    ; ...
                 push    es
                 push    si
                 xor     si, si
@@ -9320,7 +8935,7 @@ DoSetMediaForFormat:                    ; CODE XREF: SetMediaForFormat+10↑j
                 pop     si
                 pop     es
 
-SkipSaveDskAdr:                         ; CODE XREF: SetMediaForFormat+7↑j
+SkipSaveDskAdr:                         ; ...
                 mov     cx, es:[di+41h] ; [es:di+BDS.cylinders]
                 dec     cx
                 and     ch, 3
@@ -9356,13 +8971,13 @@ SkipSaveDskAdr:                         ; CODE XREF: SetMediaForFormat+7↑j
                 pop     word ptr es:78h+2
                 mov     ds:media_set_for_format, 1
 
-skip_disk_base_setting:                 ; CODE XREF: SetMediaForFormat+54↑j
+skip_disk_base_setting:                 ; ...
                 xor     al, al          ; Legal combination + rom support code
                 mov     ds:had_format_error, al ; Reset the flag
                 jmp     short PopStatRet
 ; ---------------------------------------------------------------------------
 
-FormaStatErr:                           ; CODE XREF: SetMediaForFormat+4D↑j
+FormaStatErr:                           ; ...
                 cmp     ah, 0Ch         ; DSK_ILLEGAL_COMBINATION
                                         ; Illegal combination = 0Ch
                 jz      short FormatStatIllegalComb
@@ -9372,25 +8987,24 @@ FormaStatErr:                           ; CODE XREF: SetMediaForFormat+4D↑j
                 jmp     short PopStatRet
 ; ---------------------------------------------------------------------------
 
-FormatStatIllegalComb:                  ; CODE XREF: SetMediaForFormat+85↑j
+FormatStatIllegalComb:                  ; ...
                 mov     al, 2           ; Function supported, but
                                         ; Illegal sect/trk,trk combination.
                 jmp     short PopStatRet
 ; ---------------------------------------------------------------------------
 
-FormatStatTimeOut:                      ; CODE XREF: SetMediaForFormat+8A↑j
+FormatStatTimeOut:                      ; ...
                 mov     al, 3           ; Function supported, but
                                         ; Media not present
 
-PopStatRet:                             ; CODE XREF: SetMediaForFormat+80↑j
-                                        ; SetMediaForFormat+8E↑j ...
+PopStatRet:                             ; ...
                 pop     di
                 pop     si
                 pop     ds
                 pop     es
                 assume es:nothing
 
-SetMediaRet:                            ; CODE XREF: SetMediaForFormat+12↑j
+SetMediaRet:                            ; ...
                 pop     dx
                 pop     cx
                 retn
@@ -9400,8 +9014,7 @@ SetMediaForFormat endp
 ; =============== S U B R O U T I N E =======================================
 
 
-ResetDisk       proc near               ; CODE XREF: diskio+120↑p
-                                        ; disk+E6↑p ...
+ResetDisk       proc near               ; ...
                 push    ax
                 mov     ax, 1           ; Reset while formatting?
                 cmp     ds:media_set_for_format, al
@@ -9410,7 +9023,7 @@ ResetDisk       proc near               ; CODE XREF: diskio+120↑p
                                         ; Might have failed.
                                         ; So signals that we had a format error.
 
-ResetDisk_cont:                         ; CODE XREF: ResetDisk+8↑j
+ResetDisk_cont:                         ; ...
                 int     13h             ; DISK - RESET DISK SYSTEM
                                         ; DL = drive (if bit 7 is set both hard disks and floppy disks reset)
                 mov     ds:step_drv, 0FFh ; -1
@@ -9423,8 +9036,7 @@ ResetDisk       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-ToRom           proc near               ; CODE XREF: BIOSCODE:1132↑p
-                                        ; BIOSCODE:1147↑p
+ToRom           proc near               ; ...
                 push    bx
                 push    si
                 test    ds:media_set_for_format, 1
@@ -9450,11 +9062,11 @@ ToRom           proc near               ; CODE XREF: BIOSCODE:1132↑p
                 jnz     short MotorStrtOK
                 mov     byte ptr es:[si+0Ah], 4 ; [es:si+DISK_PARMS.DISK_MOTOR_STRT]
 
-MotorStrtOK:                            ; CODE XREF: ToRom+34↑j
+MotorStrtOK:                            ; ...
                 pop     es              ; Restore bds segment
                 pop     ax
 
-GotValidDpt:                            ; CODE XREF: ToRom+7↑j
+GotValidDpt:                            ; ...
                 mov     dx, ds:trknum   ; Set track number
                 mov     ch, dl          ; Set low 8 bits in ch
                 mov     dl, es:[di+4]   ; Set drive number
@@ -9472,30 +9084,30 @@ ToRom           endp
 ; =============== S U B R O U T I N E =======================================
 
 
-ioctl_getown    proc near               ; DATA XREF: BIOSCODE:05A8↑o
+ioctl_getown    proc near               ; ...
                 call    SetDrive
                 mov     al, es:[di+4]   ; [es:di+BDS.drivenum]
                                         ; Get physical drive number
                 les     di, dword ptr ds:start_bds ; Get start of bds chain
 
-ownloop:                                ; CODE XREF: ioctl_getown+1C↓j
+ownloop:                                ; ...
                 cmp     es:[di+4], al   ; [es:di+BDS.drivenum]
                 jnz     short getnextBDS
                 test    word ptr es:[di+3Fh], 20h ; [es:di+BDS.flags], fi_own_physical
                 jnz     short exitown
 
-getnextBDS:                             ; CODE XREF: ioctl_getown+F↑j
+getnextBDS:                             ; ...
                 les     di, es:[di]     ; [es:di+BDS.link]
                 jmp     short ownloop
 ; ---------------------------------------------------------------------------
 
-ioctl_setown:                           ; DATA XREF: BIOSCODE:05AA↑o
+ioctl_setown:                           ; ...
                 call    SetDrive
                 mov     ds:fsetowner, 1 ; set flag for CheckSingle to look at.
                 call    checksingle
                 dec     ds:fsetowner    ; 0 ; set ownership of drive reset flag
 
-exitown:                                ; CODE XREF: ioctl_getown+17↑j
+exitown:                                ; ...
                 xor     cl, cl
                 test    word ptr es:[di+3Fh], 10h ; [es:di+BDS.flags], fi_am_mult
                 jz      short ExitNoMult
@@ -9503,7 +9115,7 @@ exitown:                                ; CODE XREF: ioctl_getown+17↑j
                                         ; Get logical drive number
                 inc     cx              ; Get it 1-based
 
-ExitNoMult:                             ; CODE XREF: ioctl_getown+35↑j
+ExitNoMult:                             ; ...
                 lds     bx, ds:ptrsav
                 mov     [bx+1], cl      ; [bx+unit]
                                         ; Exit normal termination
@@ -9515,7 +9127,7 @@ ioctl_getown    endp
 ; =============== S U B R O U T I N E =======================================
 
 
-RestoreOldDpt   proc near               ; CODE XREF: BIOSCODE:1054↑p
+RestoreOldDpt   proc near               ; ...
                 push    ax
                 xor     al, al
                 mov     ds:had_format_error, al ; Reset flag and
@@ -9537,7 +9149,7 @@ RestoreOldDpt   proc near               ; CODE XREF: BIOSCODE:1054↑p
                 pop     ds
                 pop     si
 
-DontRestore:                            ; CODE XREF: RestoreOldDpt+C↑j
+DontRestore:                            ; ...
                 pop     ax
                 clc
                 retn
@@ -9547,7 +9159,7 @@ RestoreOldDpt   endp
 ; =============== S U B R O U T I N E =======================================
 
 
-GetMediaId      proc near               ; DATA XREF: BIOSCODE:0ED7↑o
+GetMediaId      proc near               ; ...
                 call    ChangeLineChk   ; get volume serial number
                 mov     al, es:[di+5]   ; [es:di+BDS.drivelet] ; Logical drive number
                 mov     ds:rflag, 2     ; Read operation
@@ -9560,7 +9172,7 @@ GetMediaId      proc near               ; DATA XREF: BIOSCODE:0ED7↑o
                 jz      short IOCtl_If3 ; FAT32 fs
                 sub     si, 1Ch         ; FAT (12-16) fs ; 43h-1Ch = 27h ; BS_VolID
 
-IOCtl_If3:                              ; CODE XREF: GetMediaId+20↑j
+IOCtl_If3:                              ; ...
                 cmp     byte ptr [si-1], 29h ; si-1 = offset disksector+26h (FAT)
                                         ;       or  = offset disksector+42h (FAT32)
                                         ;             disksector+EXT_BOOT.SIG
@@ -9570,7 +9182,7 @@ IOCtl_If3:                              ; CODE XREF: GetMediaId+20↑j
                 les     di, es:[bx+19]  ; [es:bx+IOCTL_REQ.GENERICIOCTL_PACKET]
                 add     di, 2           ; A_MEDIA_ID_INFO.MI_SERIAL
 
-IOCtl_If4:                              ; CODE XREF: BIOSCODE:14FA↓p
+IOCtl_If4:                              ; ...
                 mov     cx, 23          ; size_of_EXT_BOOT_SERIAL
                                         ; + size_of_EXT_BOOT_VOL_LABEL
                                         ; + size_of_EXT_SYSTEM_ID
@@ -9579,18 +9191,17 @@ IOCtl_If4:                              ; CODE XREF: BIOSCODE:14FA↓p
                 retn
 ; ---------------------------------------------------------------------------
 
-IOCtl_If2:                              ; CODE XREF: GetMediaId+16↑j
-                                        ; GetMediaId+29↑j
+IOCtl_If2:                              ; ...
                 mov     al, 7
                 stc
 
-IOCtl_If1:                              ; CODE XREF: GetMediaId+F↑j
+IOCtl_If1:                              ; ...
                 retn
 GetMediaId      endp
 
 ; ---------------------------------------------------------------------------
 
-SetMediaId:                             ; DATA XREF: BIOSCODE:0EF8↑o
+SetMediaId:                             ; ...
                 call    ChangeLineChk
                 mov     al, es:[di+5]   ; [es:di+BDS.drivelet]
                                         ; Logical drive number
@@ -9612,7 +9223,7 @@ SetMediaId:                             ; DATA XREF: BIOSCODE:0EF8↑o
                 jz      short IOCtl_If5 ; FAT32 fs
                 sub     di, 1Ch         ; 67-28 ; offset disksektor+27h
 
-IOCtl_If5:                              ; CODE XREF: BIOSCODE:14E1↑j
+IOCtl_If5:                              ; ...
                 cmp     byte ptr [di-1], 29h ; [disksector+EXT_BOOT.SIG], EXT_BOOT_SIGNATURE
                 jz      short IOCtl_If8
                 pop     di              ; not extended boot record
@@ -9620,7 +9231,7 @@ IOCtl_If5:                              ; CODE XREF: BIOSCODE:14E1↑j
                 jmp     short IOCtl_If7
 ; ---------------------------------------------------------------------------
 
-IOCtl_If8:                              ; CODE XREF: BIOSCODE:14EA↑j
+IOCtl_If8:                              ; ...
                 lds     si, ds:ptrsav
                 lds     si, [si+13h]    ; [si+IOCTL_REQ.GENERICIOCTL_PACKET]
                 add     si, 2           ; A_MEDIA_ID_INFO.MI_SERIAL
@@ -9638,19 +9249,17 @@ IOCtl_If8:                              ; CODE XREF: BIOSCODE:14EA↑j
                 retn
 ; ---------------------------------------------------------------------------
 
-IOCtl_If7:                              ; CODE XREF: BIOSCODE:14D3↑j
-                                        ; BIOSCODE:14EE↑j
+IOCtl_If7:                              ; ...
                 mov     al, 7           ; error_unknown_media
                 stc
 
-IOCtl_If6:                              ; CODE XREF: BIOSCODE:14CC↑j
+IOCtl_If6:                              ; ...
                 retn
 
 ; =============== S U B R O U T I N E =======================================
 
 
-BootIo          proc near               ; CODE XREF: GetMediaId+C↑p
-                                        ; BIOSCODE:14C8↑p ...
+BootIo          proc near               ; ...
                 push    es
                 push    di
                 push    bx
@@ -9671,8 +9280,7 @@ BootIo          endp
 ; =============== S U B R O U T I N E =======================================
 
 
-ChangeLineChk   proc near               ; CODE XREF: GetMediaId↑p
-                                        ; BIOSCODE:SetMediaId↑p
+ChangeLineChk   proc near               ; ...
                 mov     dl, es:[di+4]   ; [es:di+BDS.drivenum]
                 or      dl, dl          ; Fixed disk?
                 js      short ChangeLnChkRet
@@ -9693,8 +9301,7 @@ ChangeLineChk   proc near               ; CODE XREF: GetMediaId↑p
                 call    Set_Changed_DL
                 pop     bx
 
-ChangeLnChkRet:                         ; CODE XREF: ChangeLineChk+6↑j
-                                        ; ChangeLineChk+E↑j ...
+ChangeLnChkRet:                         ; ...
                 retn
 ChangeLineChk   endp
 
@@ -9702,7 +9309,7 @@ ChangeLineChk   endp
 ; =============== S U B R O U T I N E =======================================
 
 
-GetAccessFlag   proc near               ; DATA XREF: BIOSCODE:0ED9↑o
+GetAccessFlag   proc near               ; ...
                 lds     bx, ds:ptrsav   ; ds:bx points to request header
                 lds     bx, [bx+13h]    ; [bx+IOCTL_REQ.GENERICIOCTL_PACKET]
                 mov     al, 0           ; Assume result is unformatted
@@ -9710,7 +9317,7 @@ GetAccessFlag   proc near               ; DATA XREF: BIOSCODE:0ED9↑o
                 jnz     short GafDone   ; Done if unformatted
                 inc     ax              ; Return true for formatted
 
-GafDone:                                ; CODE XREF: GetAccessFlag+F↑j
+GafDone:                                ; ...
                 mov     [bx+1], al      ; [bx+A_DISKACCESS_CONTROL.DAC_ACCESS_FLAG]
                 retn
 GetAccessFlag   endp
@@ -9719,7 +9326,7 @@ GetAccessFlag   endp
 ; =============== S U B R O U T I N E =======================================
 
 
-SetAccessFlag   proc near               ; DATA XREF: BIOSCODE:0EFA↑o
+SetAccessFlag   proc near               ; ...
                 lds     bx, ds:ptrsav   ; ds:bx points to request header
                 lds     bx, [bx+13h]    ; [bx+IOCTL_REQ.GENERICIOCTL_PACKET]
                 and     word ptr es:[di+3Fh], 0FDFFh ; [es:di+BDS.flags], ~unformatted_media
@@ -9727,7 +9334,7 @@ SetAccessFlag   proc near               ; DATA XREF: BIOSCODE:0EFA↑o
                 jnz     short saf_Done
                 or      word ptr es:[di+3Fh], 200h ; [es:di+BDS.flags], unformatted_media
 
-saf_Done:                               ; CODE XREF: SetAccessFlag+11↑j
+saf_Done:                               ; ...
                 retn
 SetAccessFlag   endp
 
@@ -9735,7 +9342,7 @@ SetAccessFlag   endp
 ; =============== S U B R O U T I N E =======================================
 
 
-ioctl_support_query proc near           ; DATA XREF: BIOSCODE:05AC↑o
+ioctl_support_query proc near           ; ...
                 push    es
                 les     bx, ds:ptrsav   ; es:bx points to request header.
                 mov     ax, es:[bx+0Dh] ; [es:bx+IOCTL_REQ.MAJORFUNCTION]
@@ -9747,7 +9354,7 @@ ioctl_support_query proc near           ; DATA XREF: BIOSCODE:05AC↑o
                                         ; (old) generic ioctl function (FAT12-FAT16)
                 jnz     short nosupport
 
-ioctl_support:                          ; CODE XREF: ioctl_support_query+B↑j
+ioctl_support:                          ; ...
                 push    cs
                 pop     es
                 assume es:BIOSCODE
@@ -9763,15 +9370,14 @@ ioctl_support:                          ; CODE XREF: ioctl_support_query+B↑j
                 retn
 ; ---------------------------------------------------------------------------
 
-nosupport:                              ; CODE XREF: ioctl_support_query+F↑j
-                                        ; ioctl_support_query+1D↑j
+nosupport:                              ; ...
                 pop     es
                 jmp     bc_cmderr
 ioctl_support_query endp
 
 ; ---------------------------------------------------------------------------
 
-SenseMediaType:                         ; DATA XREF: BIOSCODE:0EDB↑o
+SenseMediaType:                         ; ...
                 lds     bx, ds:ptrsav   ; ds:bx points to request header.
                 lds     bx, [bx+13h]    ; [bx+IOCTL_REQ.GENERICIOCTL_PACKET]
                 xor     dx, dx          ; 0 ; Initialize the 2 packet bytes
@@ -9794,7 +9400,7 @@ SenseMediaType:                         ; DATA XREF: BIOSCODE:0EDB↑o
                 inc     byte ptr [bx]   ; [bx+A_MEDIA_SENSE.MS_ISDEFAULT]
                                         ; 1 = default media type
 
-DetermineMediaType:                     ; CODE XREF: BIOSCODE:15E3↓j
+DetermineMediaType:                     ; ...
                 dec     al              ; 3 -> 2, 4 -> 3, 6 -> 5
                 cmp     al, 2           ; 3.5 inch, 720 KB
                 jz      short GotMediaType
@@ -9804,14 +9410,13 @@ DetermineMediaType:                     ; CODE XREF: BIOSCODE:15E3↓j
                 cmp     al, 9           ; 3.5 inch, 2.88 MB
                 jnz     short UnknownMediaType ; Just didn't recognize media type
 
-GotMediaType:                           ; CODE XREF: BIOSCODE:15CF↑j
-                                        ; BIOSCODE:15D5↑j
+GotMediaType:                           ; ...
                 mov     [bx+1], al      ; [bx+A_MEDIA_SENSE.MS_DEVICETYPE]
                 clc
                 retn
 ; ---------------------------------------------------------------------------
 
-MediaSenseErr:                          ; CODE XREF: BIOSCODE:15C7↑j
+MediaSenseErr:                          ; ...
                 cmp     ah, 32h         ; non-default media /
                                         ; drive does not support media type
                 jz      short DetermineMediaType
@@ -9819,10 +9424,10 @@ MediaSenseErr:                          ; CODE XREF: BIOSCODE:15C7↑j
                 cmp     ah, 31h         ; no such drive / media not present
                 jz      short SenseErrExit
 
-UnknownMediaType:                       ; CODE XREF: BIOSCODE:15D9↑j
+UnknownMediaType:                       ; ...
                 mov     al, 7           ; error_unknown_media
 
-SenseErrExit:                           ; CODE XREF: BIOSCODE:15EA↑j
+SenseErrExit:                           ; ...
                 mov     ah, 81h         ; Return this status in case of carry
                 stc
                 retn
@@ -9830,7 +9435,7 @@ SenseErrExit:                           ; CODE XREF: BIOSCODE:15EA↑j
 ; =============== S U B R O U T I N E =======================================
 
 
-SetLockState    proc near               ; DATA XREF: BIOSCODE:0EFC↑o
+SetLockState    proc near               ; ...
                 lds     bx, ds:ptrsav   ; set media lock state
                 lds     bx, [bx+13h]    ; [bx+IOCTL_REQ.GENERICIOCTL_PACKET]
                 mov     dl, es:[di+4]   ; [es:di+BDS.drivenum]
@@ -9847,8 +9452,7 @@ SetLockState    proc near               ; DATA XREF: BIOSCODE:0EFC↑o
                 mov     al, ah
                 call    maperror
 
-setlockst_ret:                          ; CODE XREF: SetLockState+10↑j
-                                        ; SetLockState+1B↑j
+setlockst_ret:                          ; ...
                 mov     ah, 81h         ; Return this status in case of carry
                 retn
 SetLockState    endp
@@ -9857,7 +9461,7 @@ SetLockState    endp
 ; =============== S U B R O U T I N E =======================================
 
 
-EjectMedia      proc near               ; DATA XREF: BIOSCODE:0EFE↑o
+EjectMedia      proc near               ; ...
                 mov     dl, es:[di+4]   ; eject media in drive
                                         ; [es:di+BDS.drivenum]
                 call    check_int13h_exts_present
@@ -9870,8 +9474,7 @@ EjectMedia      proc near               ; DATA XREF: BIOSCODE:0EFE↑o
                 mov     al, ah
                 call    maperror
 
-ejectm_ret:                             ; CODE XREF: EjectMedia+9↑j
-                                        ; EjectMedia+10↑j
+ejectm_ret:                             ; ...
                 mov     ah, 81h         ; Return this status in case of carry
                 retn
 EjectMedia      endp
@@ -9880,8 +9483,7 @@ EjectMedia      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-check_int13h_exts_present proc near     ; CODE XREF: SetLockState+B↑p
-                                        ; EjectMedia+4↑p
+check_int13h_exts_present proc near     ; ...
                 mov     ah, 41h
                 push    bx
                 mov     bx, 55AAh
@@ -9897,16 +9499,16 @@ check_int13h_exts_present proc near     ; CODE XREF: SetLockState+B↑p
                 test    cl, 2           ; bit 1 - drive locking and ejecting subset
                 jnz     short exts_supported
 
-exts_notsupported:                      ; CODE XREF: check_int13h_exts_present+D↑j
+exts_notsupported:                      ; ...
                 stc
 
-exts_supported:                         ; CODE XREF: check_int13h_exts_present+12↑j
+exts_supported:                         ; ...
                 retn
 check_int13h_exts_present endp
 
 ; ---------------------------------------------------------------------------
 
-GetDrvMapInfo:                          ; DATA XREF: BIOSCODE:0EE9↑o
+GetDrvMapInfo:                          ; ...
                 mov     cx, ds          ; get drive map information
                                         ;
                                         ; es:di points to BDS which belongs to
@@ -9953,7 +9555,7 @@ GetDrvMapInfo:                          ; DATA XREF: BIOSCODE:0EE9↑o
                 les     di, dword ptr es:start_bds ; 1st BDS
                 mov     cx, 1           ; bit 0 (drive A:)
 
-gdmi_1:                                 ; CODE XREF: BIOSCODE:16A4↓j
+gdmi_1:                                 ; ...
                 cmp     di, 0FFFFh      ; last BDS ?
                 jz      short gdmi_3    ; yes
                 cmp     es:[di+4], dl   ; [es:di+BDS.drivenum], dl
@@ -9963,21 +9565,21 @@ gdmi_1:                                 ; CODE XREF: BIOSCODE:16A4↓j
                                         ; (previously) shifted bit (which is 1/ON) is in ax:cx
                 or      [bx+6], ax
 
-gdmi_2:                                 ; CODE XREF: BIOSCODE:1695↑j
+gdmi_2:                                 ; ...
                 shl     cx, 1           ; shift one left for setting the next drive's bit
                 rcl     ax, 1           ; set high word of the bit select (set) value
                 les     di, es:[di]     ; next BDS
                 jmp     short gdmi_1    ; loop until di = -1 (last BDS sign)
 ; ---------------------------------------------------------------------------
 
-gdmi_3:                                 ; CODE XREF: BIOSCODE:168F↑j
+gdmi_3:                                 ; ...
                 mov     ax, 100h        ; success
 
-gdmi_4:                                 ; CODE XREF: BIOSCODE:1656↑j
+gdmi_4:                                 ; ...
                 retn
 ; ---------------------------------------------------------------------------
 
-i2f_handler:                            ; DATA XREF: BIOSDATA:0006↑o
+i2f_handler:                            ; ...
                 cmp     ah, 13h
                 jz      short int2f_replace_int13
                 cmp     ah, 8
@@ -9989,11 +9591,11 @@ i2f_handler:                            ; DATA XREF: BIOSDATA:0006↑o
                 jmp     handle_multmult
 ; ---------------------------------------------------------------------------
 
-i2f_handler_iret:                       ; CODE XREF: BIOSCODE:16BC↑j
+i2f_handler_iret:                       ; ...
                 iret
 ; ---------------------------------------------------------------------------
 
-int2f_replace_int13:                    ; CODE XREF: BIOSCODE:16AD↑j
+int2f_replace_int13:                    ; ...
                 cli
                 push    ax
                 mov     ax, ds
@@ -10010,11 +9612,11 @@ int2f_replace_int13:                    ; CODE XREF: BIOSCODE:16AD↑j
                 assume ds:nothing
                 pop     ax
 
-i2f_iret:                               ; CODE XREF: BIOSCODE:16E8↓j
+i2f_iret:                               ; ...
                 iret
 ; ---------------------------------------------------------------------------
 
-mine:                                   ; CODE XREF: BIOSCODE:16B2↑j
+mine:                                   ; ...
                 cmp     al, 0F8h        ; iret on reserved functions
                 jnb     short i2f_iret
                 or      al, al          ; a get installed state request?
@@ -10023,7 +9625,7 @@ mine:                                   ; CODE XREF: BIOSCODE:16B2↑j
                 iret
 ; ---------------------------------------------------------------------------
 
-disp_func:                              ; CODE XREF: BIOSCODE:16EC↑j
+disp_func:                              ; ...
                 cmp     al, 1           ; request for installing bds?
                 jz      short do_subfun_01
                 cmp     al, 3           ; get bds vector?
@@ -10043,7 +9645,7 @@ disp_func:                              ; CODE XREF: BIOSCODE:16EC↑j
                                         ; to be careful to do a popf
 ; ---------------------------------------------------------------------------
 
-do_subfun_01:                           ; CODE XREF: BIOSCODE:16F3↑j
+do_subfun_01:                           ; ...
                 push    es
                 push    ds
                 push    ds
@@ -10057,7 +9659,7 @@ do_subfun_01:                           ; CODE XREF: BIOSCODE:16F3↑j
                 iret
 ; ---------------------------------------------------------------------------
 
-do_get_bds_vector:                      ; CODE XREF: BIOSCODE:16F7↑j
+do_get_bds_vector:                      ; ...
                 mov     ds, cs:Bios_Data_Word
                 assume ds:nothing
                 lds     di, dword ptr ds:start_bds
@@ -10065,7 +9667,7 @@ do_get_bds_vector:                      ; CODE XREF: BIOSCODE:16F7↑j
                 iret
 ; ---------------------------------------------------------------------------
 
-win386call:                             ; CODE XREF: BIOSCODE:16B7↑j
+win386call:                             ; ...
                 push    ds
                 mov     ds, cs:Bios_Data_Word ; BIOSDATA segment
                 assume ds:nothing
@@ -10081,7 +9683,7 @@ win386call:                             ; CODE XREF: BIOSCODE:16B7↑j
                 jmp     short win_iret
 ; ---------------------------------------------------------------------------
 
-Win386Init:                             ; CODE XREF: BIOSCODE:172E↑j
+Win386Init:                             ; ...
                 test    dx, 1           ; is it win386 or win286 dos extender?
                 jnz     short win_iret  ; if not win386, then continue
                 or      ds:IsWin386, 1
@@ -10092,14 +9694,13 @@ Win386Init:                             ; CODE XREF: BIOSCODE:172E↑j
                 pop     es
                 assume es:nothing
 
-win_iret:                               ; CODE XREF: BIOSCODE:1732↑j
-                                        ; BIOSCODE:1738↑j ...
+win_iret:                               ; ...
                 pop     ds
                 assume ds:nothing
                 iret                    ; return back up the chain
 ; ---------------------------------------------------------------------------
 
-handle_multmult:                        ; CODE XREF: BIOSCODE:16BE↑j
+handle_multmult:                        ; ...
                 cmp     al, 1
                 jnz     short try_2
                 push    ds
@@ -10113,12 +9714,12 @@ handle_multmult:                        ; CODE XREF: BIOSCODE:16BE↑j
                 jz      short try_1
                 inc     bx
 
-try_1:                                  ; CODE XREF: BIOSCODE:176E↑j
+try_1:                                  ; ...
                 pop     ds
                 iret
 ; ---------------------------------------------------------------------------
 
-try_2:                                  ; CODE XREF: BIOSCODE:175D↑j
+try_2:                                  ; ...
                 cmp     al, 2           ; multMULTALLOCHMA
                 jnz     short try_3
                 push    ds
@@ -10135,7 +9736,7 @@ try_2:                                  ; CODE XREF: BIOSCODE:175D↑j
                 iret
 ; ---------------------------------------------------------------------------
 
-try_4:                                  ; CODE XREF: BIOSCODE:1789↑j
+try_4:                                  ; ...
                 call    get_FreeHMAPtr
                 add     bx, 15
                 and     bl, 0F0h
@@ -10144,18 +9745,16 @@ try_4:                                  ; CODE XREF: BIOSCODE:1789↑j
                 mov     ds:FreeHMAPtr, 0FFFFh ; -1
                                         ; no more HMA if we have wrapped
 
-InsuffHMA:                              ; CODE XREF: BIOSCODE:1783↑j
-                                        ; BIOSCODE:179D↑j
+InsuffHMA:                              ; ...
                 pop     ds
 
-try_3:                                  ; CODE XREF: BIOSCODE:1775↑j
+try_3:                                  ; ...
                 iret
 
 ; =============== S U B R O U T I N E =======================================
 
 
-HMAptr          proc near               ; CODE XREF: BIOSCODE:1760↑p
-                                        ; BIOSCODE:177D↑p
+HMAptr          proc near               ; ...
                 mov     ds, cs:Bios_Data_Word
                 assume ds:nothing
                 mov     di, ds:FreeHMAPtr
@@ -10170,11 +9769,10 @@ HMAptr          endp
 ; =============== S U B R O U T I N E =======================================
 
 
-get_FreeHMAPtr  proc near               ; CODE XREF: BIOSCODE:try_4↑p
+get_FreeHMAPtr  proc near               ; ...
                 mov     di, ds:FreeHMAPtr
 
-HMAPtr_retn:                            ; CODE XREF: HMAptr+C↑j
-                                        ; HMAptr+13↑j
+HMAPtr_retn:                            ; ...
                 retn
 get_FreeHMAPtr  endp
 
@@ -10182,8 +9780,7 @@ get_FreeHMAPtr  endp
 ; =============== S U B R O U T I N E =======================================
 
 
-move_sector     proc near               ; CODE XREF: BIOSCODE:199F↓p
-                                        ; BIOSCODE:1A0F↓p ...
+move_sector     proc near               ; ...
                 cld
                 push    cx
                 mov     cx, 256
@@ -10196,8 +9793,7 @@ move_sector     proc near               ; CODE XREF: BIOSCODE:199F↓p
                 retn
 ; ---------------------------------------------------------------------------
 
-movsec_bytes:                           ; CODE XREF: move_sector+9↑j
-                                        ; move_sector+F↑j
+movsec_bytes:                           ; ...
                 shl     cx, 1
                 rep movsb
                 pop     cx
@@ -10208,8 +9804,7 @@ move_sector     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-check_wrap      proc near               ; CODE XREF: BIOSCODE:1956↓p
-                                        ; BIOSCODE:1A56↓p ...
+check_wrap      proc near               ; ...
                 push    ax
                 push    bx
                 push    es
@@ -10230,7 +9825,7 @@ check_wrap      proc near               ; CODE XREF: BIOSCODE:1956↓p
                 dec     al              ; if on boundary
                                         ; also decrement # of head wrap
 
-not_on_bound:                           ; CODE XREF: check_wrap+22↑j
+not_on_bound:                           ; ...
                 and     cl, 0C0h        ; zero out sector #
                 or      cl, ah          ; or in new sector #
                 xor     ah, ah          ; ax = # of head wraps
@@ -10253,8 +9848,7 @@ not_on_bound:                           ; CODE XREF: check_wrap+22↑j
                 jz      short no_head_bound
                 dec     ax              ; reduce number of cylinder wraps
 
-no_head_bound:                          ; CODE XREF: check_wrap+46↑j
-                                        ; check_wrap+4C↑j
+no_head_bound:                          ; ...
                 mov     bh, dl          ; bh has new head number
                 pop     dx              ; restore drive number and head number
                 dec     bh
@@ -10270,8 +9864,7 @@ no_head_bound:                          ; CODE XREF: check_wrap+46↑j
                 xchg    bl, cl          ; restore cylinder bits into cl
                 or      cl, bh          ; or in sector number
 
-no_wrap:                                ; CODE XREF: check_wrap+7↑j
-                                        ; check_wrap+F↑j ...
+no_wrap:                                ; ...
                 clc
                 pop     di
                 pop     es
@@ -10281,7 +9874,7 @@ no_wrap:                                ; CODE XREF: check_wrap+7↑j
                 retn
 ; ---------------------------------------------------------------------------
 
-no_wrap_head:                           ; CODE XREF: check_wrap+39↑j
+no_wrap_head:                           ; ...
                 mov     dh, al          ; do not lose new head number
                 dec     dh              ; get it 0-based
                 jmp     short no_wrap
@@ -10291,11 +9884,10 @@ check_wrap      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-find_bds        proc near               ; CODE XREF: check_wrap+4↑p
-                                        ; BIOSCODE:1A1D↓p
+find_bds        proc near               ; ...
                 les     di, dword ptr ds:start_bds ; point es:di to first bds
 
-fbds_1:                                 ; CODE XREF: find_bds+10↓j
+fbds_1:                                 ; ...
                 cmp     es:[di+4], dl   ; [es:di+BDS.drivenum]
                 jz      short fdbs_2
                 les     di, es:[di]     ; [es:di+BDS.link]
@@ -10304,7 +9896,7 @@ fbds_1:                                 ; CODE XREF: find_bds+10↓j
                 jnz     short fbds_1
                 stc
 
-fdbs_2:                                 ; CODE XREF: find_bds+8↑j
+fdbs_2:                                 ; ...
                 retn
 find_bds        endp
 
@@ -10312,8 +9904,7 @@ find_bds        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-doint           proc near               ; CODE XREF: BIOSCODE:19E4↓p
-                                        ; BIOSCODE:doblockdoint↓p ...
+doint           proc near               ; ...
                 mov     dl, [bp+8]      ; [bp+INT13FRAME.olddx]
                                         ; get physical drive number
                 xor     ah, ah
@@ -10328,16 +9919,16 @@ doint           proc near               ; CODE XREF: BIOSCODE:19E4↓p
                 pushf
                 pop     word ptr [bp+10h] ; [bp+INT13FRAME.oldf]
 
-dointdone:                              ; CODE XREF: doint+8↑j
+dointdone:                              ; ...
                 retn
 doint           endp
 
 ; ---------------------------------------------------------------------------
-dtype_array     dd 400090h              ; DATA XREF: BIOSCODE:18B4↓r
+dtype_array     dd 400090h              ; ...
                                         ; 40h:90h is drive type array
 ; ---------------------------------------------------------------------------
 
-format_special_stuff:                   ; CODE XREF: BIOSCODE:18EB↓j
+format_special_stuff:                   ; ...
                 cmp     ds:fhave96, 0   ; do we have changeline support?
                 jz      short format_special_stuff_done ; brif not
                 push    bx
@@ -10347,7 +9938,7 @@ format_special_stuff:                   ; CODE XREF: BIOSCODE:18EB↓j
                 jmp     short format_special_stuff_done
 ; ---------------------------------------------------------------------------
 
-ec35_special_stuff:                     ; CODE XREF: BIOSCODE:18F2↓j
+ec35_special_stuff:                     ; ...
                 test    dl, dl          ; floppy or hard disk?
                 js      short ec35_special_stuff_done ; if hard drive, we're done
                 push    ax              ; see if this PARTICULAR drive is ec35
@@ -10372,14 +9963,14 @@ ec35_special_stuff:                     ; CODE XREF: BIOSCODE:18F2↓j
                 jmp     short ec35_special_stuff_done
 ; ---------------------------------------------------------------------------
 
-ps2_special_stuff:                      ; CODE XREF: BIOSCODE:18FF↓j
+ps2_special_stuff:                      ; ...
                 cmp     ds:prevoper, 8  ; (ps2_30)
                                         ; read driver parm?
                 jz      short ps2_30_problem
                 cmp     ds:prevoper, 15h ; apparently function 15h fails, too
                 jnz     short ps2_special_stuff_done
 
-ps2_30_problem:                         ; CODE XREF: BIOSCODE:18CB↑j
+ps2_30_problem:                         ; ...
                 push    ax
                 mov     ah, 1
                 call    70h:70Bh        ; call BIOSDATA:call_orig13
@@ -10387,44 +9978,38 @@ ps2_30_problem:                         ; CODE XREF: BIOSCODE:18CB↑j
                 jmp     short ps2_special_stuff_done
 ; ---------------------------------------------------------------------------
 
-i13z:                                   ; DATA XREF: BIOSDATA:i13x↑o
+i13z:                                   ; ...
                 push    ds
                 mov     ds, cs:Bios_Data_Word
                 mov     ds:prevoper, ax ; save request
                 cmp     ah, 5           ; romformat
                 jz      short format_special_stuff
 
-format_special_stuff_done:              ; CODE XREF: BIOSCODE:1892↑j
-                                        ; BIOSCODE:189C↑j
+format_special_stuff_done:              ; ...
                 cmp     ds:ec35_flag, 0 ; any electrically compat 3.5 inchers?
                 jnz     short ec35_special_stuff ; go handle it out of line if so
 
-ec35_special_stuff_done:                ; CODE XREF: BIOSCODE:18A0↑j
-                                        ; BIOSCODE:18B0↑j ...
+ec35_special_stuff_done:                ; ...
                 call    70h:70Bh        ; call BIOSDATA:call_orig13
                 pushf
                 cmp     ds:model_byte, 0FAh ; is this a ps2/30?
                                         ; mdl_ps2_30
                 jz      short ps2_special_stuff ; exit mainline to address special
 
-ps2_special_stuff_done:                 ; CODE XREF: BIOSCODE:18D2↑j
-                                        ; BIOSCODE:18DD↑j
+ps2_special_stuff_done:                 ; ...
                 popf
                 jb      short goterr13  ; error on original orig13 call-thru?
 
-ret_from_i13:                           ; CODE XREF: BIOSCODE:i13ret_ck_chglinerr↓j
-                                        ; BIOSCODE:1923↓j ...
+ret_from_i13:                           ; ...
                 pop     ds
                 assume ds:nothing
                 retf    2               ; restore ds & iret w/flags
 ; ---------------------------------------------------------------------------
 
-i13ret_ck_chglinerr:                    ; CODE XREF: BIOSCODE:197E↓j
-                                        ; BIOSCODE:19FE↓j
+i13ret_ck_chglinerr:                    ; ...
                 jnb     short ret_from_i13 ; done if not an error termination
 
-i13_ret_error:                          ; CODE XREF: BIOSCODE:192D↓j
-                                        ; BIOSCODE:1934↓j ...
+i13_ret_error:                          ; ...
                 cmp     ah, 6           ; did i see a change event?
                 jnz     short int13b    ; skip if wrong error
                 or      dl, dl          ; is this for the hard disk?
@@ -10438,17 +10023,16 @@ i13_ret_error:                          ; CODE XREF: BIOSCODE:192D↓j
                 call    Set_Changed_DL
                 pop     bx
 
-int13b:                                 ; CODE XREF: BIOSCODE:190D↑j
-                                        ; BIOSCODE:1911↑j ...
+int13b:                                 ; ...
                 stc                     ; now return the error
                 jmp     short ret_from_i13
 ; ---------------------------------------------------------------------------
 
-goterr13:                               ; CODE XREF: BIOSCODE:1902↑j
+goterr13:                               ; ...
                 cmp     ah, 9           ; dma error?
                 jz      short gotdmaerr
 
-goterr13_xxxx:                          ; CODE XREF: BIOSCODE:xgoterr13_xxxx↓j
+goterr13_xxxx:                          ; ...
                 cmp     ah, 11h         ; ecc error?
                 jnz     short i13_ret_error ; other error. just return back.
                 cmp     ds:media_set_for_format, 1 ; formatting?
@@ -10469,7 +10053,7 @@ goterr13_xxxx:                          ; CODE XREF: BIOSCODE:xgoterr13_xxxx↓j
                 push    dx
                 mov     ds:number_of_sec, al
 
-loop_ecc:                               ; CODE XREF: BIOSCODE:1978↓j
+loop_ecc:                               ; ...
                 mov     ax, 201h        ; read one sector
                 call    check_wrap      ; get correct parameters for int 13
                 call    70h:70Bh        ; call BIOSDATA:call_orig13
@@ -10485,8 +10069,7 @@ loop_ecc:                               ; CODE XREF: BIOSCODE:1978↓j
                                         ; will be returned for the corrected read.
                                         ; (clear carry too.)
 
-ok11_op:                                ; CODE XREF: BIOSCODE:195E↑j
-                                        ; BIOSCODE:19A4↓j
+ok11_op:                                ; ...
                 dec     ds:number_of_sec
                 jz      short ok11_exit ; all done?
                 inc     cl              ; advance sector number
@@ -10496,18 +10079,17 @@ ok11_op:                                ; CODE XREF: BIOSCODE:195E↑j
                 jmp     short loop_ecc
 ; ---------------------------------------------------------------------------
 
-ok11_exit_err:                          ; CODE XREF: BIOSCODE:1968↑j
-                                        ; BIOSCODE:1996↓j
+ok11_exit_err:                          ; ...
                 stc                     ; set carry bit again.
 
-ok11_exit:                              ; CODE XREF: BIOSCODE:1970↑j
+ok11_exit:                              ; ...
                 pop     dx
                 pop     cx
                 pop     bx
                 jmp     short i13ret_ck_chglinerr
 ; ---------------------------------------------------------------------------
 
-handle_dma_during_ecc:                  ; CODE XREF: BIOSCODE:1963↑j
+handle_dma_during_ecc:                  ; ...
                 push    es
                 push    bx
                 mov     bx, offset disksector ; BIOSDATA:0152h
@@ -10521,7 +10103,7 @@ handle_dma_during_ecc:                  ; CODE XREF: BIOSCODE:1963↑j
                 cmp     ah, 11h
                 jnz     short ok11_exit_err
 
-handle_dma_during_ecc_noerr:            ; CODE XREF: BIOSCODE:1991↑j
+handle_dma_during_ecc_noerr:            ; ...
                 push    si
                 push    di
                 mov     di, bx
@@ -10532,7 +10114,7 @@ handle_dma_during_ecc_noerr:            ; CODE XREF: BIOSCODE:1991↑j
                 jmp     short ok11_op
 ; ---------------------------------------------------------------------------
 
-gotdmaerr:                              ; CODE XREF: BIOSCODE:1928↑j
+gotdmaerr:                              ; ...
                 mov     ax, ds:prevoper
                 sti
                 cmp     ah, 2           ; romread
@@ -10559,7 +10141,7 @@ gotdmaerr:                              ; CODE XREF: BIOSCODE:1928↑j
                 jmp     bufferx         ; restore dh=head & do buffer
 ; ---------------------------------------------------------------------------
 
-no_skip_first:                          ; CODE XREF: BIOSCODE:19D2↑j
+no_skip_first:                          ; ...
                 shr     dh, 1           ; dh = number of sectors before address
                 mov     ah, 128         ; ah = max number of sectors in segment
                 sub     ah, dh
@@ -10572,21 +10154,20 @@ no_skip_first:                          ; CODE XREF: BIOSCODE:19D2↑j
                 jmp     bad13           ; and return from this place
 ; ---------------------------------------------------------------------------
 
-i13_done_dmaerr:                        ; CODE XREF: BIOSCODE:19AD↑j
-                                        ; BIOSCODE:19B9↑j
+i13_done_dmaerr:                        ; ...
                 mov     ah, 9           ; pass dma error thru to caller
                 stc
                 jmp     ret_from_i13    ; return with error,
                                         ; we know it's not a changeline error
 ; ---------------------------------------------------------------------------
 
-intverify:                              ; CODE XREF: BIOSCODE:19B2↑j
+intverify:                              ; ...
                 push    es              ; save caller's dma address
                 push    bx
                 push    ds
                 pop     es              ; es:bx -> BIOSDATA:disksector
 
-dosimple:                               ; CODE XREF: BIOSCODE:1A15↓j
+dosimple:                               ; ...
                 mov     bx, offset disksector
                 call    70h:70Bh        ; call DOSBIOSSEG:call_orig13
                                         ; call BIOSDATA:call_orig13
@@ -10595,7 +10176,7 @@ dosimple:                               ; CODE XREF: BIOSCODE:1A15↓j
                 jmp     i13ret_ck_chglinerr
 ; ---------------------------------------------------------------------------
 
-intformat:                              ; CODE XREF: BIOSCODE:19B7↑j
+intformat:                              ; ...
                 push    es
                 push    bx
                 push    si
@@ -10614,7 +10195,7 @@ intformat:                              ; CODE XREF: BIOSCODE:19B7↑j
                 jmp     short dosimple  ; BIOSDATA:disksector
 ; ---------------------------------------------------------------------------
 
-doblock:                                ; CODE XREF: BIOSCODE:19DF↑j
+doblock:                                ; ...
                 mov     dx, [bp+8]      ; [bp+INT13FRAME.olddx]
                                         ; get head #, drive #
                 push    cx
@@ -10631,10 +10212,10 @@ doblock:                                ; CODE XREF: BIOSCODE:19DF↑j
                 mov     ah, 63          ; ah = 63-secpt (# safe sectors??)
                 sub     ah, cl          ; al - # of sectors before dma boundary
 
-doblockflop:                            ; CODE XREF: BIOSCODE:1A2E↑j
+doblockflop:                            ; ...
                 pop     cx
 
-doblockcontinue:                        ; CODE XREF: BIOSCODE:1A59↓j
+doblockcontinue:                        ; ...
                 cmp     ah, al          ; if safe_# >= #_of_sectors_to_go_before dma,
                 jnb     short doblocklast ; then #_of_sectors_to_go as it is for doint.
                 push    ax
@@ -10642,11 +10223,11 @@ doblockcontinue:                        ; CODE XREF: BIOSCODE:1A59↓j
                 jmp     short doblockdoint
 ; ---------------------------------------------------------------------------
 
-doblocklast:                            ; CODE XREF: BIOSCODE:1A37↑j
+doblocklast:                            ; ...
                 mov     ah, al
                 push    ax
 
-doblockdoint:                           ; CODE XREF: BIOSCODE:1A3C↑j
+doblockdoint:                           ; ...
                 call    doint           ; let ah = al = # of sectors for this shot
                 jb      short bad13     ; something happened, bye!
                 pop     ax
@@ -10664,11 +10245,11 @@ doblockdoint:                           ; CODE XREF: BIOSCODE:1A3C↑j
                 jmp     short doblockcontinue ; handles next sectors left.
 ; ---------------------------------------------------------------------------
 
-bufferx:                                ; CODE XREF: BIOSCODE:19D4↑j
+bufferx:                                ; ...
                 mov     dh, [bp+9]      ; [bp+INT13FRAME.olddx+1]
                                         ; set up head number
 
-buffer:                                 ; CODE XREF: BIOSCODE:1A52↑j
+buffer:                                 ; ...
                 push    bx
                 mov     ah, [bp+3]      ; [bp+INT13FRAME.oldax+1]
                 cmp     ah, 3           ; romwrite
@@ -10707,7 +10288,7 @@ buffer:                                 ; CODE XREF: BIOSCODE:1A52↑j
                 jmp     short dotail
 ; ---------------------------------------------------------------------------
 
-doread:                                 ; CODE XREF: BIOSCODE:1A65↑j
+doread:                                 ; ...
                 push    es
                 push    bx
                 push    ds
@@ -10732,7 +10313,7 @@ doread:                                 ; CODE XREF: BIOSCODE:1A65↑j
                 pop     di
                 pop     si
 
-dotail:                                 ; CODE XREF: BIOSCODE:1A8A↑j
+dotail:                                 ; ...
                 pop     bx              ; retrieve new dma area
                 add     bh, 2           ; advance over sector
                 inc     cx
@@ -10744,8 +10325,7 @@ dotail:                                 ; CODE XREF: BIOSCODE:1A8A↑j
                 call    check_wrap
                 call    doint
 
-bad13:                                  ; CODE XREF: BIOSCODE:19E7↑j
-                                        ; BIOSCODE:1A44↑j ...
+bad13:                                  ; ...
                 mov     sp, bp
                 pop     bp
                 pop     bx
@@ -10756,7 +10336,7 @@ bad13:                                  ; CODE XREF: BIOSCODE:19E7↑j
                 jmp     ret_from_i13    ; non-error exit
 ; ---------------------------------------------------------------------------
 
-xgoterr13_xxxx:                         ; CODE XREF: BIOSCODE:1ACB↑j
+xgoterr13_xxxx:                         ; ...
                 jmp     goterr13_xxxx
 ; ---------------------------------------------------------------------------
                 db    0
@@ -10764,7 +10344,7 @@ xgoterr13_xxxx:                         ; CODE XREF: BIOSCODE:1ACB↑j
 ; =============== S U B R O U T I N E =======================================
 
 
-dsk_init        proc near               ; DATA XREF: BIOSCODE:057A↑o
+dsk_init        proc near               ; ...
                 mov     ah, ds:drvmax
                 mov     di, offset dskdrvs ; pass result in es:di
                 push    ds
@@ -10776,11 +10356,11 @@ dsk_init        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-install_bds     proc near               ; CODE XREF: BIOSCODE:1716↑p
+install_bds     proc near               ; ...
                 push    ds              ; save Bios_Data (BIOSDATA) segment
                 mov     si, offset start_bds ; beginning of chain
 
-loop_next_bds:                          ; CODE XREF: install_bds+2C↓j
+loop_next_bds:                          ; ...
                 lds     si, [si]        ; [si+BDS.link]
                                         ; fetch next bds
                 mov     al, es:[di+4]   ; [es:di+BDS.drivenum]
@@ -10798,7 +10378,7 @@ loop_next_bds:                          ; CODE XREF: install_bds+2C↓j
                 and     bl, 2           ; fchangeline
                 or      es:[di+3Fh], bl ; [es:di+BDS.flags]
 
-next_bds:                               ; CODE XREF: install_bds+D↑j
+next_bds:                               ; ...
                 mov     ax, 0FFFFh
                 cmp     [si], ax        ; [si+BDS.link],-1
                                         ; are we at end of list?
@@ -10814,7 +10394,7 @@ next_bds:                               ; CODE XREF: install_bds+D↑j
                 jbe     short _eot_ok
                 mov     ds:eot, al
 
-_eot_ok:                                ; CODE XREF: install_bds+3F↑j
+_eot_ok:                                ; ...
                 retn
 install_bds     endp
 
@@ -10822,13 +10402,13 @@ install_bds     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-swpdsk          proc near               ; CODE XREF: checksingle:ignore_sdsb↑p
+swpdsk          proc near               ; ...
                 test    ds:IsWin386, 1  ; Is win386 present?
                 jz      short no_win386 ; no, skip SetFocus
                 call    far ptr 70h:813h ; call DOSBIOSSEG:V86_Crit_SetFocus
                                         ; call BIOSDATA:V86_Crit_SetFocus
 
-no_win386:                              ; CODE XREF: swpdsk+5↑j
+no_win386:                              ; ...
                 push    cx
                 push    dx
                 mov     dl, es:[di+5]   ; [es:di+BDS.drivelet]
@@ -10848,7 +10428,7 @@ no_win386:                              ; CODE XREF: swpdsk+5↑j
                 push    bx
                 lods    byte ptr cs:[si] ; get the next character of the message
 
-wrmsg_loop:                             ; CODE XREF: swpdsk+35↓j
+wrmsg_loop:                             ; ...
                 int     29h             ; DOS 2+ internal - FAST PUTCHAR
                                         ; AL = character to display
                 lods    byte ptr cs:[si] ; cs lodsb
@@ -10862,23 +10442,22 @@ wrmsg_loop:                             ; CODE XREF: swpdsk+35↓j
                                         ; Return: AH = scan code, AL = character
                 pop     bx
 
-swpdsk9:                                ; CODE XREF: swpdsk+1F↑j
+swpdsk9:                                ; ...
                 pop     dx
                 pop     cx
                 retn
 swpdsk          endp
 
 ; ---------------------------------------------------------------------------
-sngmsg          db 0Dh,0Ah              ; DATA XREF: swpdsk+29↑o
+sngmsg          db 0Dh,0Ah              ; ...
                 db 'Insert diskette for drive '
-drvlet          db 'A: and press any key when ready',0Dh,0Ah
-                                        ; DATA XREF: swpdsk+24↑w
+drvlet          db 'A: and press any key when ready',0Dh,0Ah ; ...
                 db 0Ah,0
 
 ; =============== S U B R O U T I N E =======================================
 
 
-mediacheck      proc near               ; CODE XREF: BIOSCODE:05F3↑p
+mediacheck      proc near               ; ...
                 call    checksingle     ; make sure correct disk is in place
                 xor     si, si
                 call    haschange
@@ -10916,13 +10495,11 @@ mediacheck      proc near               ; CODE XREF: BIOSCODE:05F3↑p
                                         ; (volume id will be checked)
                 xor     si, si          ; return "i don't know"
 
-mediaret:                               ; CODE XREF: mediacheck+8↑j
-                                        ; mediacheck+2B↑j ...
+mediaret:                               ; ...
                 retn
 ; ---------------------------------------------------------------------------
 
-mediadovolid:                           ; CODE XREF: mediacheck+10↑j
-                                        ; mediacheck+1E↑j ...
+mediadovolid:                           ; ...
                 call    GetBp           ; build a new bpb in current bds
                 jb      short mediaret
                 call    check_vid
@@ -10934,7 +10511,7 @@ mediacheck      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-checklatchio    proc near               ; CODE XREF: diskio+81↑p
+checklatchio    proc near               ; ...
                 cmp     word ptr es:[di+3Ch], 0 ; [di+BDS.opcnt]
                 jz      short checkret  ; done if zero
                 test    word ptr es:[di+3Fh], 40h ; test [es:di+BDS.flags], fchanged ; 40h
@@ -10947,15 +10524,14 @@ checklatchio    proc near               ; CODE XREF: diskio+81↑p
                 jns     short checkret  ; no
                 call    returnvid       ; yes
 
-checklatchret:                          ; CODE XREF: checklatchio+17↑j
+checklatchret:                          ; ...
                 call    maperror        ; fix up al for return to dos
 
-ret_no_error_map:                       ; CODE XREF: checklatchio+12↑j
+ret_no_error_map:                       ; ...
                 stc
                 pop     si              ; pop off return address
 
-checkret:                               ; CODE XREF: checklatchio+5↑j
-                                        ; checklatchio+D↑j ...
+checkret:                               ; ...
                 retn
 checklatchio    endp ; sp-analysis failed
 
@@ -10963,7 +10539,7 @@ checklatchio    endp ; sp-analysis failed
 ; =============== S U B R O U T I N E =======================================
 
 
-checkfatvid     proc near               ; CODE XREF: checkio+11↓p
+checkfatvid     proc near               ; ...
                 call    fat_check       ; check the fat and the vid
                 or      si, si
                 js      short changed_drv ;
@@ -10973,8 +10549,7 @@ checkfatvid     endp                    ; fall into check_vid
 ; =============== S U B R O U T I N E =======================================
 
 
-check_vid       proc near               ; CODE XREF: mediacheck+42↑p
-                                        ; checklatchio+14↑p
+check_vid       proc near               ; ...
                 cmp     word ptr ds:disksector+16h, 0 ; BPB_FATSz16
                 jnz     short chk_vid_1
                 cmp     ds:disksector+42h, 29h ; BS_FAT32_BootSig
@@ -10982,11 +10557,11 @@ check_vid       proc near               ; CODE XREF: mediacheck+42↑p
                 jmp     short chk_vid_2
 ; ---------------------------------------------------------------------------
 
-chk_vid_1:                              ; CODE XREF: check_vid+5↑j
+chk_vid_1:                              ; ...
                 cmp     ds:disksector+26h, 29h ; BS_FAT_BootSig ; BS_BootSig
                                         ; [disksector+EXT_BOOT.SIG],EXT_BOOT_SIGNATURE
 
-chk_vid_2:                              ; CODE XREF: check_vid+C↑j
+chk_vid_2:                              ; ...
                 jz      short do_ext_check_id
                 call    haschange
                 jz      short checkret
@@ -11002,24 +10577,22 @@ chk_vid_2:                              ; CODE XREF: check_vid+C↑j
                 jnz     short changed_drv
                 inc     si
 
-vid_no_changed:                         ; CODE XREF: check_vid+5A↓j
+vid_no_changed:                         ; ...
                 call    resetchanged
                 clc
 
-checkfatret:                            ; CODE XREF: check_vid+21↑j
-                                        ; check_vid+26↑j ...
+checkfatret:                            ; ...
                 retn
 ; ---------------------------------------------------------------------------
 
-changed_drv:                            ; CODE XREF: checkfatvid+5↑j
-                                        ; check_vid+2E↑j ...
+changed_drv:                            ; ...
                 clc                     ; cas -- return no error
                 mov     ds:tim_drv, 0FFh ; ensure that we ask rom for media
                                         ;   check next time round
                 retn
 ; ---------------------------------------------------------------------------
 
-do_ext_check_id:                        ; CODE XREF: check_vid:chk_vid_2↑j
+do_ext_check_id:                        ; ...
                 push    ax
                 push    di
                 mov     si, (offset disksector+43h) ; BS_FAT32_VolID
@@ -11028,14 +10601,14 @@ do_ext_check_id:                        ; CODE XREF: check_vid:chk_vid_2↑j
                 jz      short chk_vid_3
                 sub     si, 28          ; offset disksector+27h ; BS_VolID
 
-chk_vid_3:                              ; CODE XREF: check_vid+47↑j
+chk_vid_3:                              ; ...
                 add     di, 137         ; BDS.vol_serial
                 cmpsw                   ; [DiskSector+EXT_BOOT.SERIAL] = [di+BDS.vol_serial] ?
                 jnz     short chk_vid_4
                 cmpsw                   ; [DiskSector+EXT_BOOT.SERIAL+2] =
                                         ;          [di+BDS.vol_serial+2] ?
 
-chk_vid_4:                              ; CODE XREF: check_vid+51↑j
+chk_vid_4:                              ; ...
                 pop     di
                 pop     ax
                 jnz     short ext_changed ; not equal/same
@@ -11043,7 +10616,7 @@ chk_vid_4:                              ; CODE XREF: check_vid+51↑j
                 jmp     short vid_no_changed ; reset the flag
 ; ---------------------------------------------------------------------------
 
-ext_changed:                            ; CODE XREF: check_vid+56↑j
+ext_changed:                            ; ...
                 mov     si, 0FFFFh      ; -1
                                         ; disk changed!
                 clc
@@ -11054,7 +10627,7 @@ check_vid       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-checkio         proc near               ; CODE XREF: disk+FB↑p
+checkio         proc near               ; ...
                 cmp     ah, 6
                 jnz     short checkfatret
                 cmp     word ptr es:[di+3Ch], 0
@@ -11069,15 +10642,15 @@ checkio         proc near               ; CODE XREF: disk+FB↑p
                 retn
 ; ---------------------------------------------------------------------------
 
-checkioerr:                             ; CODE XREF: checkio+18↑j
+checkioerr:                             ; ...
                 call    returnvid
 
-checkioret:                             ; CODE XREF: checkio+14↑j
+checkioret:                             ; ...
                 stc                     ; make sure carry gets passed through
                 jmp     harderr
 ; ---------------------------------------------------------------------------
 
-no_error_map:                           ; CODE XREF: checkio+F↑j
+no_error_map:                           ; ...
                 jmp     harderr2
 checkio         endp
 
@@ -11085,8 +10658,7 @@ checkio         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-returnvid       proc near               ; CODE XREF: checklatchio+1D↑p
-                                        ; checkio:checkioerr↑p
+returnvid       proc near               ; ...
                 mov     si, 22          ; trans+8
                                         ; offset into pointer to return value
                 call    vid_into_packet
@@ -11099,10 +10671,10 @@ returnvid       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-media_set_vid   proc near               ; CODE XREF: BIOSCODE:0624↑p
+media_set_vid   proc near               ; ...
                 mov     si, 15          ; trans+1
 
-vid_into_packet:                        ; CODE XREF: returnvid+3↑p
+vid_into_packet:                        ; ...
                 push    ds
                 lds     bx, ds:ptrsav
                 add     di, 125         ; BDS.volid (BDS offset 125)
@@ -11111,8 +10683,7 @@ vid_into_packet:                        ; CODE XREF: returnvid+3↑p
                 mov     word ptr [bx+si+2], es
                 pop     ds
 
-dofloppy:                               ; CODE XREF: hidensity+6↓j
-                                        ; hidensity+D↓j ...
+dofloppy:                               ; ...
                 retn
 media_set_vid   endp
 
@@ -11120,7 +10691,7 @@ media_set_vid   endp
 ; =============== S U B R O U T I N E =======================================
 
 
-hidensity       proc near               ; CODE XREF: GetBp+28↑p
+hidensity       proc near               ; ...
                 test    word ptr es:[di+3Fh], 2 ; check for correct drive
                                         ; is it special?
                                         ; [es:di+BDS.flags], fchangeline
@@ -11146,8 +10717,7 @@ hidensity       proc near               ; CODE XREF: GetBp+28↑p
                 jmp     Has1            ; return to tail of getbp
 ; ---------------------------------------------------------------------------
 
-Is720K:                                 ; CODE XREF: hidensity+1A↑j
-                                        ; hidensity+1E↑j
+Is720K:                                 ; ...
                 pop     bx              ; pop off return address
                 jmp     Has720K         ; return to 720K code
 hidensity       endp ; sp-analysis failed
@@ -11156,19 +10726,18 @@ hidensity       endp ; sp-analysis failed
 ; =============== S U B R O U T I N E =======================================
 
 
-Set_Changed_DL  proc near               ; CODE XREF: ChangeLineChk+26↑p
-                                        ; BIOSCODE:1898↑p ...
+Set_Changed_DL  proc near               ; ...
                 push    es
                 push    di
                 les     di, dword ptr ds:start_bds
 
-scan_bds:                               ; CODE XREF: Set_Changed_DL+16↓j
+scan_bds:                               ; ...
                 cmp     es:[di+4], dl   ; [es:di+BDS.drivenum]
                 jnz     short get_next_bds
                 or      es:[di+3Fh], bx ; [es:di+BDS.flags]
                                         ; signal change on other drive
 
-get_next_bds:                           ; CODE XREF: Set_Changed_DL+A↑j
+get_next_bds:                           ; ...
                 les     di, es:[di]     ; [es:di+BDS.link]
                                         ; go to next bds
                 cmp     di, 0FFFFh
@@ -11182,8 +10751,7 @@ Set_Changed_DL  endp
 ; =============== S U B R O U T I N E =======================================
 
 
-resetchanged    proc near               ; CODE XREF: movbpb+4C↑p
-                                        ; check_vid:vid_no_changed↑p ...
+resetchanged    proc near               ; ...
                 and     word ptr es:[di+3Fh], 0FFBFh ; [es:di+BDS.flags], ~fchanged
                 retn
 resetchanged    endp
@@ -11192,8 +10760,7 @@ resetchanged    endp
 ; =============== S U B R O U T I N E =======================================
 
 
-haschange       proc near               ; CODE XREF: BIOSCODE:05F8↑p
-                                        ; ChangeLineChk+17↑p ...
+haschange       proc near               ; ...
                 test    word ptr es:[di+3Fh], 2 ; [es:di+BDS.flags], fchangeline
                 retn
 haschange       endp
@@ -11202,7 +10769,7 @@ haschange       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-set_volume_id   proc near               ; CODE XREF: get_bpb+2D↑p
+set_volume_id   proc near               ; ...
                 push    dx
                 push    ax
                 call    haschange       ; does drive have changeline support?
@@ -11212,29 +10779,27 @@ set_volume_id   proc near               ; CODE XREF: get_bpb+2D↑p
                 call    transfer_volume_id ; copy the volume id to special drive
                 call    resetchanged    ; restore value of change line
 
-setvret:                                ; CODE XREF: set_volume_id+5↑j
+setvret:                                ; ...
                 clc
                 pop     ax
                 pop     dx
                 retn
 ; ---------------------------------------------------------------------------
 
-seterr:                                 ; CODE XREF: set_volume_id+A↑j
+seterr:                                 ; ...
                 pop     dx              ; pop stack but don't overwrite ax
                 pop     dx
                 retn
 set_volume_id   endp
 
 ; ---------------------------------------------------------------------------
-root_sec        dw 0                    ; DATA XREF: read_volume_id+24↓w
-                                        ; read_volume_id+32↓r ...
+root_sec        dw 0                    ; ...
                                         ; root sector #
 
 ; =============== S U B R O U T I N E =======================================
 
 
-read_volume_id  proc near               ; CODE XREF: check_vid+23↑p
-                                        ; set_volume_id+7↑p
+read_volume_id  proc near               ; ...
                 push    dx
                 push    cx
                 push    bx
@@ -11265,7 +10830,7 @@ read_volume_id  proc near               ; CODE XREF: check_vid+23↑p
                 shr     ax, cl          ; divide by 16
                 xchg    ax, cx          ; cx is # of sectors to scan
 
-next_sec:                               ; CODE XREF: read_volume_id+6E↓j
+next_sec:                               ; ...
                 push    cx
                 mov     ax, cs:root_sec ; get sector #
                 mov     cx, es:[di+13h] ; [es:di+BDS.secpertrack]
@@ -11286,7 +10851,7 @@ next_sec:                               ; CODE XREF: read_volume_id+6E↓j
                 mov     cx, 16          ; # of dir entries in a block of root
                 mov     al, 8           ; volume label bit
 
-fvid_loop:                              ; CODE XREF: read_volume_id+66↓j
+fvid_loop:                              ; ...
                 cmp     [bx], ch        ; 0 ; end of dir?
                 jz      short no_vid    ; yes, no vol id
                 cmp     byte ptr [bx], 0E5h ; empty entry?
@@ -11294,7 +10859,7 @@ fvid_loop:                              ; CODE XREF: read_volume_id+66↓j
                 test    [bx+0Bh], al    ; is volume label bit set in fcb?
                 jnz     short found_vid ; yes
 
-ent_loop:                               ; CODE XREF: read_volume_id+5C↑j
+ent_loop:                               ; ...
                 add     bx, 32          ; add length of directory entry
                 loop    fvid_loop
                 pop     cx              ; outer loop
@@ -11302,12 +10867,12 @@ ent_loop:                               ; CODE XREF: read_volume_id+5C↑j
                                         ; next sector
                 loop    next_sec        ; continue
 
-notfound:                               ; CODE XREF: read_volume_id+8F↓j
+notfound:                               ; ...
                 xor     si, si
                 jmp     short fvid_ret
 ; ---------------------------------------------------------------------------
 
-found_vid:                              ; CODE XREF: read_volume_id+61↑j
+found_vid:                              ; ...
                 pop     cx              ; clean stack of outer loop counter
                 mov     si, bx          ; point to volume_id
                 push    es              ; preserve current bds
@@ -11324,23 +10889,23 @@ found_vid:                              ; CODE XREF: read_volume_id+61↑j
                 pop     di              ; restore current bds
                 pop     es
 
-fvid_ret:                               ; CODE XREF: read_volume_id+72↑j
+fvid_ret:                               ; ...
                 pop     ax
                 clc
 
-rvidret:                                ; CODE XREF: read_volume_id+93↓j
+rvidret:                                ; ...
                 pop     bx
                 pop     cx
                 pop     dx
                 retn
 ; ---------------------------------------------------------------------------
 
-no_vid:                                 ; CODE XREF: read_volume_id+57↑j
+no_vid:                                 ; ...
                 pop     cx              ; clean stack of outer loop counter
                 jmp     short notfound
 ; ---------------------------------------------------------------------------
 
-readviderr:                             ; CODE XREF: read_volume_id+4E↑j
+readviderr:                             ; ...
                 pop     si              ; trash the outer loop counter
                 pop     si              ; caller's ax, return error code instead
                 jmp     short rvidret
@@ -11350,8 +10915,7 @@ read_volume_id  endp
 ; =============== S U B R O U T I N E =======================================
 
 
-preset_volid_addr proc near             ; CODE XREF: BIOSCODE:1DDD↓p
-                                        ; check_volume_id+2↓p
+preset_volid_addr proc near             ; ...
                 mov     si, offset tmp_vid ; "NO NAME    "
                 add     di, 125         ; BDS.volid
                 mov     cx, 11          ; VOLID_SIZ (12 for MSDOS 5.0-6.22 versions)
@@ -11361,7 +10925,7 @@ preset_volid_addr endp
 
 ; ---------------------------------------------------------------------------
 
-transfer_volume_id:                     ; CODE XREF: set_volume_id+C↑p
+transfer_volume_id:                     ; ...
                 push    di
                 push    cx
                 push    si
@@ -11370,7 +10934,7 @@ transfer_volume_id:                     ; CODE XREF: set_volume_id+C↑p
                 pop     si
 ; START OF FUNCTION CHUNK FOR check_volume_id
 
-chk_volid_ok:                           ; CODE XREF: check_volume_id+7↓j
+chk_volid_ok:                           ; ...
                 pop     cx
                 pop     di
                 retn
@@ -11379,7 +10943,7 @@ chk_volid_ok:                           ; CODE XREF: check_volume_id+7↓j
 ; =============== S U B R O U T I N E =======================================
 
 
-check_volume_id proc near               ; CODE XREF: check_vid+28↑p
+check_volume_id proc near               ; ...
 
 ; FUNCTION CHUNK AT 1DE3 SIZE 00000003 BYTES
 
@@ -11394,7 +10958,7 @@ check_volume_id endp
 ; =============== S U B R O U T I N E =======================================
 
 
-fat_check       proc near               ; CODE XREF: checkfatvid↑p
+fat_check       proc near               ; ...
                 push    ax
                 xor     si, si          ; say fat id's are same.
                 mov     al, ds:medbyt
@@ -11403,7 +10967,7 @@ fat_check       proc near               ; CODE XREF: checkfatvid↑p
                 jz      short okret1
                 dec     si
 
-okret1:                                 ; CODE XREF: fat_check+A↑j
+okret1:                                 ; ...
                 pop     ax
                 retn
 fat_check       endp
@@ -11419,27 +10983,19 @@ SYSINIT         segment byte public 'SYSINIT' use16
                 assume cs:SYSINIT
                 assume es:nothing, ss:nothing, ds:nothing, fs:nothing, gs:nothing
 SYSINIT$        dw 0
-stackcount      dw 0                    ; DATA XREF: stackinit+D↓w
-                                        ; stackinit+35↓r ...
-stackat         dw 0                    ; DATA XREF: stackinit+3E↓w
-                                        ; stackinit+47↓r
-stacksize       dw 0                    ; DATA XREF: stackinit+14↓w
-                                        ; stackinit+4C↓r ...
-stacks          dw 2 dup(0)             ; DATA XREF: SYSINIT:firstentry↓o
-                                        ; stackinit+1C↓w ...
-firstentry      dw offset stacks        ; DATA XREF: do_int_stacks:foundbad02↓r
-                                        ; longpath:inuse↓r ...
-lastentry       dw 48h                  ; DATA XREF: longpath↓r
-                                        ; stackinit+87↓w
+stackcount      dw 0                    ; ...
+stackat         dw 0                    ; ...
+stacksize       dw 0                    ; ...
+stacks          dw 2 dup(0)             ; ...
+firstentry      dw offset stacks        ; ...
+lastentry       dw 48h                  ; ...
                                         ; stacks+(defaultcount*entrysize)-entrysize
-nextentry       dw 48h                  ; DATA XREF: do_int_stacks+8↓r
-                                        ; do_int_stacks+17↓w ...
+nextentry       dw 48h                  ; ...
                                         ; stacks+(defaultcount*entrysize)-entrysize
-old02           dd 0                    ; DATA XREF: SYSINIT:002D↓r
-                                        ; SYSINIT:0036↓o ...
+old02           dd 0                    ; ...
 ; ---------------------------------------------------------------------------
 
-int02:                                  ; DATA XREF: stackinit+AF↓o
+int02:                                  ; ...
                 push    ax
                 push    es
                 mov     ax, 0F000h
@@ -11460,25 +11016,22 @@ int02:                                  ; DATA XREF: stackinit+AF↓o
                 jmp     cs:old02
 ; ---------------------------------------------------------------------------
 
-normal02:                               ; CODE XREF: SYSINIT:0024↑j
-                                        ; SYSINIT:002A↑j
+normal02:                               ; ...
                 pop     ax
                 call    near ptr do_int_stacks
 ; ---------------------------------------------------------------------------
                 dw offset old02
-old08           dd 0                    ; DATA XREF: SYSINIT:003F↓o
-                                        ; stackinit+BB↓o
+old08           dd 0                    ; ...
 ; ---------------------------------------------------------------------------
 
-int08:                                  ; DATA XREF: stackinit+BE↓o
+int08:                                  ; ...
                 call    near ptr do_int_stacks
 ; ---------------------------------------------------------------------------
                 dw offset old08
-old09           dd 0                    ; DATA XREF: SYSINIT:004C↓o
-                                        ; stackinit+CA↓o
+old09           dd 0                    ; ...
 ; ---------------------------------------------------------------------------
 
-int09:                                  ; DATA XREF: stackinit+CD↓o
+int09:                                  ; ...
                 jmp     short keyboard_lbl
 ; ---------------------------------------------------------------------------
                 nop
@@ -11486,25 +11039,23 @@ int09:                                  ; DATA XREF: stackinit+CD↓o
                 db 0
 ; ---------------------------------------------------------------------------
 
-keyboard_lbl:                           ; CODE XREF: SYSINIT:int09↑j
+keyboard_lbl:                           ; ...
                 call    near ptr do_int_stacks
 ; ---------------------------------------------------------------------------
                 dw offset old09
-old70           dd 0                    ; DATA XREF: SYSINIT:0055↓o
-                                        ; stackinit+D9↓o
+old70           dd 0                    ; ...
 ; ---------------------------------------------------------------------------
 
-int70:                                  ; DATA XREF: stackinit+DC↓o
+int70:                                  ; ...
                 call    near ptr do_int_stacks
 ; ---------------------------------------------------------------------------
                 dw offset old70
 ; ---------------------------------------------------------------------------
 
-int0A:                                  ; DATA XREF: stackinit+119↓o
+int0A:                                  ; ...
                 jmp     short entry_int0A_stk
 ; ---------------------------------------------------------------------------
-old0A           dd 0                    ; DATA XREF: SYSINIT:006C↓o
-                                        ; stackinit+116↓o
+old0A           dd 0                    ; ...
                 dw 424Bh
 firstflag0A     db 0
 ; ---------------------------------------------------------------------------
@@ -11513,21 +11064,20 @@ firstflag0A     db 0
 byte_5392       db 7 dup(0)
 ; ---------------------------------------------------------------------------
 
-entry_int0A_stk:                        ; CODE XREF: SYSINIT:int0A↑j
+entry_int0A_stk:                        ; ...
                 call    near ptr do_int_stacks
 ; ---------------------------------------------------------------------------
                 dw offset old0A
 ; ---------------------------------------------------------------------------
 
-intret_0A:                              ; CODE XREF: SYSINIT:0060↑j
+intret_0A:                              ; ...
                 iret
 ; ---------------------------------------------------------------------------
 
-int0B:                                  ; DATA XREF: stackinit+159↓o
+int0B:                                  ; ...
                 jmp     short entry_int0B_stk
 ; ---------------------------------------------------------------------------
-old0B           dd 0                    ; DATA XREF: SYSINIT:0084↓o
-                                        ; stackinit+156↓o
+old0B           dd 0                    ; ...
                 dw 424Bh
 firstflag0B     db 0
 ; ---------------------------------------------------------------------------
@@ -11536,21 +11086,20 @@ firstflag0B     db 0
                 db 7 dup(0)
 ; ---------------------------------------------------------------------------
 
-entry_int0B_stk:                        ; CODE XREF: SYSINIT:int0B↑j
+entry_int0B_stk:                        ; ...
                 call    near ptr do_int_stacks
 ; ---------------------------------------------------------------------------
                 dw offset old0B
 ; ---------------------------------------------------------------------------
 
-intret_0B:                              ; CODE XREF: SYSINIT:0078↑j
+intret_0B:                              ; ...
                 iret
 ; ---------------------------------------------------------------------------
 
-int0C:                                  ; DATA XREF: stackinit+199↓o
+int0C:                                  ; ...
                 jmp     short entry_int0C_stk
 ; ---------------------------------------------------------------------------
-old0C           dd 0                    ; DATA XREF: SYSINIT:009C↓o
-                                        ; stackinit+196↓o
+old0C           dd 0                    ; ...
                 dw 424Bh
 firstflag0C     db 0
 ; ---------------------------------------------------------------------------
@@ -11559,21 +11108,20 @@ firstflag0C     db 0
                 db 7 dup(0)
 ; ---------------------------------------------------------------------------
 
-entry_int0C_stk:                        ; CODE XREF: SYSINIT:int0C↑j
+entry_int0C_stk:                        ; ...
                 call    near ptr do_int_stacks
 ; ---------------------------------------------------------------------------
                 dw offset old0C
 ; ---------------------------------------------------------------------------
 
-intret_0C:                              ; CODE XREF: SYSINIT:0090↑j
+intret_0C:                              ; ...
                 iret
 ; ---------------------------------------------------------------------------
 
-int0D:                                  ; DATA XREF: stackinit+1D9↓o
+int0D:                                  ; ...
                 jmp     short int0D_stk
 ; ---------------------------------------------------------------------------
-old0D           dd 0                    ; DATA XREF: SYSINIT:00B4↓o
-                                        ; stackinit+1D6↓o
+old0D           dd 0                    ; ...
                 dw 424Bh
 firstflag0D     db 0
 ; ---------------------------------------------------------------------------
@@ -11582,21 +11130,20 @@ firstflag0D     db 0
                 db 7 dup(0)
 ; ---------------------------------------------------------------------------
 
-int0D_stk:                              ; CODE XREF: SYSINIT:int0D↑j
+int0D_stk:                              ; ...
                 call    near ptr do_int_stacks
 ; ---------------------------------------------------------------------------
                 dw offset old0D
 ; ---------------------------------------------------------------------------
 
-intret_0D:                              ; CODE XREF: SYSINIT:00A8↑j
+intret_0D:                              ; ...
                 iret
 ; ---------------------------------------------------------------------------
 
-int0E:                                  ; DATA XREF: stackinit+219↓o
+int0E:                                  ; ...
                 jmp     short entry_int0E_stk
 ; ---------------------------------------------------------------------------
-old0E           dd 0                    ; DATA XREF: SYSINIT:00CC↓o
-                                        ; stackinit+216↓o
+old0E           dd 0                    ; ...
                 dw 424Bh
 firstflag0E     db 0
 ; ---------------------------------------------------------------------------
@@ -11605,21 +11152,20 @@ firstflag0E     db 0
                 db 7 dup(0)
 ; ---------------------------------------------------------------------------
 
-entry_int0E_stk:                        ; CODE XREF: SYSINIT:int0E↑j
+entry_int0E_stk:                        ; ...
                 call    near ptr do_int_stacks
 ; ---------------------------------------------------------------------------
                 dw offset old0E
 ; ---------------------------------------------------------------------------
 
-intret_0E:                              ; CODE XREF: SYSINIT:00C0↑j
+intret_0E:                              ; ...
                 iret
 ; ---------------------------------------------------------------------------
 
-int72:                                  ; DATA XREF: stackinit+259↓o
+int72:                                  ; ...
                 jmp     short entry_int72_stk
 ; ---------------------------------------------------------------------------
-old72           dd 0                    ; DATA XREF: SYSINIT:00E4↓o
-                                        ; stackinit+256↓o
+old72           dd 0                    ; ...
                 dw 424Bh
 firstflag72     db 0
 ; ---------------------------------------------------------------------------
@@ -11628,21 +11174,20 @@ firstflag72     db 0
                 db 7 dup(0)
 ; ---------------------------------------------------------------------------
 
-entry_int72_stk:                        ; CODE XREF: SYSINIT:int72↑j
+entry_int72_stk:                        ; ...
                 call    near ptr do_int_stacks
 ; ---------------------------------------------------------------------------
                 dw offset old72
 ; ---------------------------------------------------------------------------
 
-intret_72:                              ; CODE XREF: SYSINIT:00D8↑j
+intret_72:                              ; ...
                 iret
 ; ---------------------------------------------------------------------------
 
-int73:                                  ; DATA XREF: stackinit+299↓o
+int73:                                  ; ...
                 jmp     short entry_int73_stk
 ; ---------------------------------------------------------------------------
-old73           dd 0                    ; DATA XREF: SYSINIT:00FC↓o
-                                        ; stackinit+296↓o
+old73           dd 0                    ; ...
                 dw 424Bh
 firstflag73     db 0
 ; ---------------------------------------------------------------------------
@@ -11651,21 +11196,20 @@ firstflag73     db 0
                 db 7 dup(0)
 ; ---------------------------------------------------------------------------
 
-entry_int73_stk:                        ; CODE XREF: SYSINIT:int73↑j
+entry_int73_stk:                        ; ...
                 call    near ptr do_int_stacks
 ; ---------------------------------------------------------------------------
                 dw offset old73
 ; ---------------------------------------------------------------------------
 
-intret_73:                              ; CODE XREF: SYSINIT:00F0↑j
+intret_73:                              ; ...
                 iret
 ; ---------------------------------------------------------------------------
 
-int74:                                  ; DATA XREF: stackinit+2D9↓o
+int74:                                  ; ...
                 jmp     short entry_int74_stk
 ; ---------------------------------------------------------------------------
-old74           dd 0                    ; DATA XREF: SYSINIT:0114↓o
-                                        ; stackinit+2D6↓o
+old74           dd 0                    ; ...
                 dw 424Bh
 firstflag74     db 0
 ; ---------------------------------------------------------------------------
@@ -11674,21 +11218,20 @@ firstflag74     db 0
                 db 7 dup(0)
 ; ---------------------------------------------------------------------------
 
-entry_int74_stk:                        ; CODE XREF: SYSINIT:int74↑j
+entry_int74_stk:                        ; ...
                 call    near ptr do_int_stacks
 ; ---------------------------------------------------------------------------
                 dw offset old74
 ; ---------------------------------------------------------------------------
 
-intret_74:                              ; CODE XREF: SYSINIT:0108↑j
+intret_74:                              ; ...
                 iret
 ; ---------------------------------------------------------------------------
 
-int76:                                  ; DATA XREF: stackinit+319↓o
+int76:                                  ; ...
                 jmp     short entry_int76_stk
 ; ---------------------------------------------------------------------------
-old76           dd 0                    ; DATA XREF: SYSINIT:012C↓o
-                                        ; stackinit+316↓o
+old76           dd 0                    ; ...
                 dw 424Bh
 firstflag76     db 0
 ; ---------------------------------------------------------------------------
@@ -11697,21 +11240,20 @@ firstflag76     db 0
                 db 7 dup(0)
 ; ---------------------------------------------------------------------------
 
-entry_int76_stk:                        ; CODE XREF: SYSINIT:int76↑j
+entry_int76_stk:                        ; ...
                 call    near ptr do_int_stacks
 ; ---------------------------------------------------------------------------
                 dw offset old76
 ; ---------------------------------------------------------------------------
 
-intret_76:                              ; CODE XREF: SYSINIT:0120↑j
+intret_76:                              ; ...
                 iret
 ; ---------------------------------------------------------------------------
 
-int77:                                  ; DATA XREF: stackinit+359↓o
+int77:                                  ; ...
                 jmp     short entry_int77_stk
 ; ---------------------------------------------------------------------------
-old77           dd 0                    ; DATA XREF: SYSINIT:0144↓o
-                                        ; stackinit+356↓o
+old77           dd 0                    ; ...
                 dw 424Bh
 firstflag77     db 0
 ; ---------------------------------------------------------------------------
@@ -11720,20 +11262,19 @@ firstflag77     db 0
                 db 7 dup(0)
 ; ---------------------------------------------------------------------------
 
-entry_int77_stk:                        ; CODE XREF: SYSINIT:int77↑j
+entry_int77_stk:                        ; ...
                 call    near ptr do_int_stacks
 ; ---------------------------------------------------------------------------
                 dw offset old77
 ; ---------------------------------------------------------------------------
 
-intret_77:                              ; CODE XREF: SYSINIT:0138↑j
+intret_77:                              ; ...
                 iret
 
 ; =============== S U B R O U T I N E =======================================
 
 
-do_int_stacks   proc far                ; CODE XREF: SYSINIT:0033↑p
-                                        ; SYSINIT:int08↑p ...
+do_int_stacks   proc far                ; ...
                 push    ax
                 push    bp
                 push    es
@@ -11746,7 +11287,7 @@ do_int_stacks   proc far                ; CODE XREF: SYSINIT:0033↑p
                 jnz     short notfree02
                 sub     cs:nextentry, 8 ; entrysize ; set for next interrupt
 
-found02:                                ; CODE XREF: do_int_stacks+73↓j
+found02:                                ; ...
                 mov     es:[bp+2], sp   ; [es:bp+savedsp],sp ; save sp value
                 mov     word ptr es:[bp+4], ss ; [es:bp+savedss],ss ; save ss also
                 mov     ax, bp          ; temp save of table offset
@@ -11782,18 +11323,17 @@ found02:                                ; CODE XREF: do_int_stacks+73↓j
                 iret                    ; done with this interrupt
 ; ---------------------------------------------------------------------------
 
-notfree02:                              ; CODE XREF: do_int_stacks+15↑j
+notfree02:                              ; ...
                 cmp     al, 1           ; allocated ; error flag
                 jz      short findnext02 ; no, continue
                 xchg    al, es:[bp+0]   ; [es:bp+allocbyte] ; yes, restore error value
 
-findnext02:                             ; CODE XREF: do_int_stacks+6A↑j
-                                        ; do_int_stacks+7A↓j ...
+findnext02:                             ; ...
                 call    longpath
                 jmp     short found02
 ; ---------------------------------------------------------------------------
 
-foundbad02:                             ; CODE XREF: do_int_stacks+2F↑j
+foundbad02:                             ; ...
                 cmp     bp, cs:firstentry
                 jb      short findnext02
                 mov     bp, ax          ; flag this entry
@@ -11805,10 +11345,10 @@ do_int_stacks   endp
 ; =============== S U B R O U T I N E =======================================
 
 
-longpath        proc near               ; CODE XREF: do_int_stacks:findnext02↑p
+longpath        proc near               ; ...
                 mov     bp, cs:lastentry ; start with last entry in table
 
-lploopp:                                ; CODE XREF: longpath+28↓j
+lploopp:                                ; ...
                 cmp     byte ptr es:[bp+0], 0 ; free ?
                 jnz     short inuse     ; no, try next one
                 mov     al, 1
@@ -11820,19 +11360,18 @@ lploopp:                                ; CODE XREF: longpath+28↓j
                 jz      short inuse     ; no, check the next one
                 mov     es:[bp+0], al   ; yes, put back the error state
 
-inuse:                                  ; CODE XREF: longpath+A↑j
-                                        ; longpath+18↑j
+inuse:                                  ; ...
                 cmp     bp, cs:firstentry
                 jz      short fatal
                 sub     bp, 8
                 jmp     short lploopp
 ; ---------------------------------------------------------------------------
 
-found:                                  ; CODE XREF: longpath+14↑j
+found:                                  ; ...
                 retn
 ; ---------------------------------------------------------------------------
 
-fatal:                                  ; CODE XREF: longpath+23↑j
+fatal:                                  ; ...
                 push    ds
                 mov     ax, 0F000h      ; look at the model byte
                 mov     ds, ax
@@ -11844,7 +11383,7 @@ fatal:                                  ; CODE XREF: longpath+23↑j
                 mov     al, 7           ; disable pc convertible nmis
                 out     72h, al         ; CMOS Memory/RTC Index Register (Extended RAM)
 
-skip_nmis:                              ; CODE XREF: longpath+37↑j
+skip_nmis:                              ; ...
                 cli                     ; disable and mask
                 mov     al, 0FFh        ; all other ints
                 out     21h, al         ; Interrupt controller, 8259A.
@@ -11865,8 +11404,7 @@ skip_nmis:                              ; CODE XREF: longpath+37↑j
                 jz      short fatal_loop
                 call    far ptr 70h:813h ; call DOSBIODATASEG:V86_Crit_SetFocus
 
-fatal_loop:                             ; CODE XREF: longpath+59↑j
-                                        ; longpath+6B↓j
+fatal_loop:                             ; ...
                 lodsb
                 cmp     al, 24h ; '$'
                 jz      short fatal_done
@@ -11879,120 +11417,84 @@ fatal_loop:                             ; CODE XREF: longpath+59↑j
                 jmp     short fatal_loop
 ; ---------------------------------------------------------------------------
 
-fatal_done:                             ; CODE XREF: longpath+63↑j
-                                        ; longpath:fatal_done↓j
+fatal_done:                             ; ...
                 jmp     short fatal_done
 longpath        endp
 
 ; ---------------------------------------------------------------------------
-fatal_msg       db 0Dh,0Ah              ; DATA XREF: longpath+48↑o
+fatal_msg       db 0Dh,0Ah              ; ...
                 db 7,0Dh,0Ah
                 db 'Internal stack overflow',0Dh,0Ah
                 db 'System halted',0Dh,0Ah,'$'
 ; ---------------------------------------------------------------------------
 
-_SYSINIT:                               ; DATA XREF: endfile+285↓o
+_SYSINIT:                               ; ...
                 jmp     goinit
 ; ---------------------------------------------------------------------------
-runhigh         db 0                    ; DATA XREF: SYSINIT:0823↓r
-                                        ; SYSINIT:dolast↓r ...
-DOSINFO         dd 0                    ; DATA XREF: SYSINIT:05A5↓w
-                                        ; SYSINIT:NoRPLArena↓r ...
+runhigh         db 0                    ; ...
+DOSINFO         dd 0                    ; ...
                                         ; address of the DOS Sysini Variables
-dosinit         dw 0                    ; DATA XREF: SYSINIT:0543↓w
-                                        ; SYSINIT:058A↓r ...
-CURRENTDOSLOCATION dw 0                 ; DATA XREF: BIOSDATA:1F84↑w
-                                        ; BIOSDATA:2429↑r ...
-DEVICE_LIST     dd 0                    ; DATA XREF: BIOSDATA:1F71↑w
-                                        ; SYSINIT:0577↓r ...
-sysi_country    dd 0                    ; DATA XREF: SYSINIT:05B5↓w
-                                        ; doconf:tryq_set_for_dos↓r ...
+dosinit         dw 0                    ; ...
+CURRENTDOSLOCATION dw 0                 ; ...
+DEVICE_LIST     dd 0                    ; ...
+sysi_country    dd 0                    ; ...
                                         ; pointer to country table in dos
-dos_segreinit   dd 0                    ; DATA XREF: SYSINIT:059D↓w
-                                        ; SYSINIT:0832↓r ...
+dos_segreinit   dd 0                    ; ...
                                         ; room for dword
-lo_doscod_size  dw 0                    ; DATA XREF: SYSINIT:0598↓w
-                                        ; MovDOSLo+8↓r ...
+lo_doscod_size  dw 0                    ; ...
                                         ; dos code size when in low mem
-hi_doscod_size  dw 0                    ; DATA XREF: SYSINIT:0594↓w
-                                        ; MovDOSHi+D↓r
+hi_doscod_size  dw 0                    ; ...
                                         ; dos code size when in HMA
-def_php         dw 0                    ; DATA XREF: SYSINIT:058F↓w
-                                        ; SYSINIT:06E6↓r
-_seg_reinit_ptr dw offset _seg_reinit   ; DATA XREF: SYSINIT:056D↓r
-                                        ; MovBIOS+1B↓r
+def_php         dw 0                    ; ...
+_seg_reinit_ptr dw offset _seg_reinit   ; ...
                                         ; BIOSCODE:0032h
-temp_bcode_seg  dw 364h                 ; DATA XREF: SYSINIT:0556↓w
-                                        ; MovBIOS↓r
+temp_bcode_seg  dw 364h                 ; ...
                                         ; DOSBIOCODESEG (BIOSCODE)
-fake_floppy_drv db 0                    ; DATA XREF: SYSINIT:0466↓w
-                                        ; fooset+1F↓r
+fake_floppy_drv db 0                    ; ...
                                         ; set to 1 if this machine
                                         ; does not have any floppies!!!
-stack_count     dw 9                    ; DATA XREF: endfile:doinstallstack↓r
-                                        ; endfile+2BF↓r ...
+stack_count     dw 9                    ; ...
                                         ; defaultcount ; 9
-stack_size      dw 128                  ; DATA XREF: endfile+2BA↓r
-                                        ; stackinit+11↓r ...
+stack_size      dw 128                  ; ...
                                         ; defaultsize  ; 128
-stack_addr      dw 2 dup(0)             ; DATA XREF: endfile+256↓r
-                                        ; endfile+2A5↓w ...
-MEMORY_SIZE     dw 1                    ; DATA XREF: BIOSDATA:1F7B↑w
-                                        ; BIOSDATA:1F96↑r ...
-RPLMemTop       dw 0                    ; DATA XREF: SYSINIT:04A5↓w
-                                        ; SYSINIT:05CB↓r ...
-DEFAULT_DRIVE   db 0                    ; DATA XREF: BIOSDATA:1F80↑w
-                                        ; remap+60↑w ...
+stack_addr      dw 2 dup(0)             ; ...
+MEMORY_SIZE     dw 1                    ; ...
+RPLMemTop       dw 0                    ; ...
+DEFAULT_DRIVE   db 0                    ; ...
                                         ; initialized by ibminit
-buffers         dw 0FFFFh               ; DATA XREF: endfile+102↓r
-                                        ; endfile+112↓w ...
+buffers         dw 0FFFFh               ; ...
                                         ; initialized during buffer allocation
-h_buffers       dw 0                    ; DATA XREF: endfile:dodefaultbuff↓w
-                                        ; endfile+1AF↓r ...
+h_buffers       dw 0                    ; ...
                                         ; # of the heuristic buffers. initially 0.
-singlebuffersize dw 0                   ; DATA XREF: SYSINIT:0643↓w
-                                        ; SYSINIT:068A↓r ...
+singlebuffersize dw 0                   ; ...
                                         ; maximum sector size + buffer head
-FILES           db 8                    ; DATA XREF: endfile+31↓r
-                                        ; endfile:dosdata_noumb↓r ...
+FILES           db 8                    ; ...
                                         ; enough files for pipe
-FCBS            db 4                    ; DATA XREF: endfile+95↓r
-                                        ; doconf+9B5↓w
+FCBS            db 4                    ; ...
                                         ; performance for recycling
-KEEP            db 0                    ; DATA XREF: endfile+B0↓r
-                                        ; doconf+9B9↓w
+KEEP            db 0                    ; ...
                                         ; keep original set
-NUM_CDS         db 5                    ; DATA XREF: endfile+211↓r
-                                        ; endfile+218↓r ...
+NUM_CDS         db 5                    ; ...
                                         ; 5 net drives
-CONFBOT         dw 0                    ; DATA XREF: SYSINIT:06A9↓w
-                                        ; endfile+14↓r ...
-ALLOCLIM        dw 0                    ; DATA XREF: SYSINIT:06A5↓w
-                                        ; endfile+18↓w ...
-top_of_cdss     dw 0                    ; DATA XREF: SYSINIT:069A↓w
-                                        ; TempCDS+17↓r
-DirStrng        db 'A:\',0              ; DATA XREF: fooset↓r
-                                        ; fooset+D↓w ...
+CONFBOT         dw 0                    ; ...
+ALLOCLIM        dw 0                    ; ...
+top_of_cdss     dw 0                    ; ...
+DirStrng        db 'A:\',0              ; ...
                                         ; string for the root directory of a drive
-ZERO            db 0                    ; DATA XREF: SYSINIT:EXEC0_6C_FCB↓o
-sepchr          db 0                    ; DATA XREF: check_switch+3F↓w
-                                        ; check_switch+48↓w ...
-linecount       dw 0                    ; DATA XREF: multi_pass+1C↓w
-                                        ; doconf+CB↓w ...
+ZERO            db 0                    ; ...
+sepchr          db 0                    ; ...
+linecount       dw 0                    ; ...
                                         ; line count in config.sys
-showcount       db '     ',0Dh,0Ah,'$'  ; DATA XREF: showlinenum+7↓o
+showcount       db '     ',0Dh,0Ah,'$'  ; ...
                                         ; used to convert linecount to ascii.
-buffer_linenum  dw 0                    ; DATA XREF: doconf+22D↓w
+buffer_linenum  dw 0                    ; ...
                                         ; line count for "buffers=" command if entered.
-sys_model_byte  db 0FFh                 ; DATA XREF: SYSINIT:0428↓w
-                                        ; SYSINIT:043E↓w ...
+sys_model_byte  db 0FFh                 ; ...
                                         ; model byte used in sysinit
-sys_scnd_model_byte db 0                ; DATA XREF: SYSINIT:0430↓w
-                                        ; endfile+25D↓r
+sys_scnd_model_byte db 0                ; ...
                                         ; secondary model byte used in sysinit
-buf_prev_off    dw 0                    ; DATA XREF: set_buffer_info↓r
-                                        ; set_buffer_info+9↓w
-EXEC0_ENVIRON   dw 0                    ; DATA XREF: SYSINIT:09D6↓o
+buf_prev_off    dw 0                    ; ...
+EXEC0_ENVIRON   dw 0                    ; ...
                                         ; COMEXE  ; seg addr of environment
 EXEC0_COM_LINE  dw offset command_line  ; pointer to asciz command line
                 dw 544h                 ; SYSINIT segment
@@ -12000,8 +11502,7 @@ EXEC0_5C_FCB    dw offset DEFAULT_DRIVE
                 dw 544h                 ; SYSINIT segment
 EXEC0_6C_FCB    dw offset ZERO
                 dw 544h                 ; SYSINIT segment
-multi_pass_id   db 0                    ; DATA XREF: SYSINIT:skip_magicbackdoor↓w
-                                        ; SYSINIT:0873↓w ...
+multi_pass_id   db 0                    ; ...
                                         ; parameter passed to multi_pass
                                         ; indicating the pass number
                                         ;  0 - do scan for DOS=HIGH/LOW
@@ -12010,135 +11511,94 @@ multi_pass_id   db 0                    ; DATA XREF: SYSINIT:skip_magicbackdoor�
                                         ;      now it is unused
                                         ;  3 - do install=
                                         ; >3 - nop
-install_flag    dw 0                    ; DATA XREF: SYSINIT:08A4↓r
-                                        ; SYSINIT:08DA↓r ...
+install_flag    dw 0                    ; ...
                                         ; bit 0 - config.sys has install= commands
                                         ; bit 1 - sysinit_base installed
-config_size     dw 0                    ; DATA XREF: sum_up+B↓r
-                                        ; doconf+3F↓w
+config_size     dw 0                    ; ...
                                         ; size of config.sys file
-sysinit_base_ptr dd 0                   ; DATA XREF: endfile+40E↓w
-                                        ; do_install_exec+70↓r ...
+sysinit_base_ptr dd 0                   ; ...
                                         ; pointer to sysinit_base
-sysinit_ptr     dw 2 dup(0)             ; DATA XREF: endfile+427↓w
-                                        ; SYSINIT:sysinit_base_end↓r ...
+sysinit_ptr     dw 2 dup(0)             ; ...
                                         ; returning address from sysinit_base
-checksum        dw 0                    ; DATA XREF: do_install_exec+63↓w
-                                        ; SYSINIT:1458↓r
+checksum        dw 0                    ; ...
                                         ; used by sum_up
-ldexec_fcb      db 14h dup(20h)         ; DATA XREF: SYSINIT:iexec_ldexec_5c_fcb↓o
-                                        ; SYSINIT:iexec_ldexec_6c_fcb↓o
+ldexec_fcb      db 14h dup(20h)         ; ...
                                         ; db 20 dup (' ') ; big enough
-ldexec_line     db 0                    ; DATA XREF: SYSINIT:iexec_ldexec_line↓o
-                                        ; do_install_exec:done_installparm↓w
+ldexec_line     db 0                    ; ...
                                         ; # of parm characters
-ldexec_start    db ' '                  ; DATA XREF: do_install_exec+A↓w
-                                        ; do_install_exec+31↓w
-ldexec_parm     db 80 dup(  0)          ; DATA XREF: do_install_exec+10↓o
+ldexec_start    db ' '                  ; ...
+ldexec_parm     db 80 dup(  0)          ; ...
                                         ; times 80 db 0
-iexec_environ   dw 0                    ; DATA XREF: do_install_exec:no_envdata2↓w
-                                        ; do_install_exec+6B↓o
+iexec_environ   dw 0                    ; ...
                                         ; instexe ; seg addr of environment
 iexec_ldexec_line dw offset ldexec_line ; pointer to asciiz command line
-iexec_ldexec_line_seg dw 544h           ; DATA XREF: do_install_exec+54↓w
+iexec_ldexec_line_seg dw 544h           ; ...
 iexec_ldexec_5c_fcb dw offset ldexec_fcb ; default fcb at 5Ch
-iexec_ldexec_5c_fcb_seg dw 544h         ; DATA XREF: do_install_exec+58↓w
+iexec_ldexec_5c_fcb_seg dw 544h         ; ...
 iexec_ldexec_6c_fcb dw offset ldexec_fcb ; default fcb at 6Ch
-iexec_ldexec_6c_fcb_seg dw 544h         ; DATA XREF: do_install_exec+5C↓w
-com_level       db 0                    ; DATA XREF: organize+D↓w
-                                        ; organize+26↓w ...
+iexec_ldexec_6c_fcb_seg dw 544h         ; ...
+com_level       db 0                    ; ...
                                         ; level of " " in command line
-cmmt            db 0                    ; DATA XREF: organize+151↓w
-                                        ; organize+16E↓w ...
+cmmt            db 0                    ; ...
                                         ; length of comment string token
-cmmt1           db 0                    ; DATA XREF: organize+14D↓w
-                                        ; skip_comment+15↓r
+cmmt1           db 0                    ; ...
                                         ; token
-cmmt2           db 0                    ; DATA XREF: organize+16A↓w
-                                        ; skip_comment+28↓r
+cmmt2           db 0                    ; ...
                                         ; token
-cmd_indicator   db 0                    ; DATA XREF: organize+99↓w
-                                        ; organize:org3↓r ...
-donotshownum    db 0                    ; DATA XREF: SYSINIT:ConfigDone↓w
-                                        ; badfil+22↓r
-count           dw 0                    ; DATA XREF: doconf+2E↓w
-                                        ; doconf+3C↓r ...
-org_count       dw 0                    ; DATA XREF: multi_pass+E↓r
-                                        ; SYSINIT:44BD↓w ...
-chrptr          dw 0                    ; DATA XREF: multi_pass+18↓w
-                                        ; doconf:multi_pass_adjust↓w ...
-cntryfilehandle dw 0                    ; DATA XREF: doconf+748↓w
-                                        ; doconf:coffj4↓r
-old_area        dw 0                    ; DATA XREF: SYSINIT:08E5↓r
-                                        ; endfile+440↓w
-impossible_owner_size dw 0              ; DATA XREF: SYSINIT:08EA↓r
-                                        ; endfile+3F9↓w
+cmd_indicator   db 0                    ; ...
+donotshownum    db 0                    ; ...
+count           dw 0                    ; ...
+org_count       dw 0                    ; ...
+chrptr          dw 0                    ; ...
+cntryfilehandle dw 0                    ; ...
+old_area        dw 0                    ; ...
+impossible_owner_size dw 0              ; ...
                                         ; paragraph
-memlo           dw 0                    ; DATA XREF: endfile+42↓r
-                                        ; endfile+5B↓r ...
+memlo           dw 0                    ; ...
                                         ; bufptr, bucketptr (dword)
-memhi           dw 0                    ; DATA XREF: SYSINIT:wfk2s_8↓r
-                                        ; AllocFreeMem+F↓w ...
+memhi           dw 0                    ; ...
                                         ; prmblk (word)
 ldoff           dw 0
-area            dw 0                    ; DATA XREF: SYSINIT:07E3↓r
-                                        ; SYSINIT:07F1↓r ...
-prev_memhi      dw 0                    ; DATA XREF: endfile+22↓w
-                                        ; endfile+313↓r ...
-prev_alloclim   dw 0                    ; DATA XREF: endfile+2A↓w
-                                        ; endfile+35F↓r
-dosdata_umb     db 0                    ; DATA XREF: endfile+2DE↓r
-                                        ; endfile+352↓w ...
-packet          db 25                   ; DATA XREF: MagicPreload+4D↓o
-                                        ; calldev+15↓o
+area            dw 0                    ; ...
+prev_memhi      dw 0                    ; ...
+prev_alloclim   dw 0                    ; ...
+dosdata_umb     db 0                    ; ...
+packet          db 25                   ; ...
                                         ; was 24 (in MSDOS 6.21)
                 db 0
                 db 0                    ; initialize code
                 dw 0
                 db 8 dup(0)
-unitcount       db 0                    ; DATA XREF: MagicPreload:_isblock↓r
-                                        ; doconf:isblock↓r
-break_addr      dw 2 dup(0)             ; DATA XREF: MagicPreload+50↓w
-                                        ; MagicPreload:magic_is_resident↓r ...
-bpb_addr        dd 0                    ; DATA XREF: MagicPreload+11D↓r
-                                        ; MagicPostload+24↓w ...
-devdrivenum     db 0                    ; DATA XREF: MagicPreload+63↓w
-                                        ; doconf+476↓w
-configmsgflag   db 0                    ; DATA XREF: doconf+481↓w
-                                        ; doconf+4E0↓r ...
+unitcount       db 0                    ; ...
+break_addr      dw 2 dup(0)             ; ...
+bpb_addr        dd 0                    ; ...
+devdrivenum     db 0                    ; ...
+configmsgflag   db 0                    ; ...
                                         ; used to control "error in config.sys line #" message
                                         ; (configmsgflag is the last word of the 25 byte packet)
                                         ; ((default value is 0, device driver init may change? it))
                 db 0
-drivenumber     db 0                    ; DATA XREF: SYSINIT:0681↓w
-                                        ; MagicPreload+5F↓r ...
-toomanydrivesflag db 0                  ; DATA XREF: dmax_check+D↑w
-                                        ; SYSINIT:0716↓r
+drivenumber     db 0                    ; ...
+toomanydrivesflag db 0                  ; ...
                                         ; >24 fixed disk partitions flag
-BCodeSeg        dw 364h                 ; DATA XREF: MovBIOS+17↓w
+BCodeSeg        dw 364h                 ; ...
                                         ; DOSBIOCODESEG (BIOSCODE segment)
-_timer_lw_      dw 0                    ; DATA XREF: SYSINIT:073C↓w
-                                        ; kbd_read+1D↓r
-F5_key          db 0                    ; DATA XREF: SYSINIT:07C7↓w
-                                        ; SYSINIT:084E↓r ...
-F8_key          db 0                    ; DATA XREF: SYSINIT:wfk2s_5↓w
-                                        ; SYSINIT:0856↓r ...
-MagicBackdoor   dd 0                    ; DATA XREF: SYSINIT:0747↓w
-                                        ; SYSINIT:0860↓r ...
+_timer_lw_      dw 0                    ; ...
+F5_key          db 0                    ; ...
+F8_key          db 0                    ; ...
+MagicBackdoor   dd 0                    ; ...
 ; ---------------------------------------------------------------------------
 
-NullBackdoor:                           ; DATA XREF: SYSINIT:0747↓o
-                                        ; MagicPreload+88↓o
+NullBackdoor:                           ; ...
                 retf
 ; ---------------------------------------------------------------------------
-BiosComBlock    dw offset SysinitPresent
-                                        ; DATA XREF: SYSINIT:0572↓r
+BiosComBlock    dw offset SysinitPresent ; ...
                                         ; BIOSDATA:07DDh
                 dw 70h                  ; BIOSDATA segment
 tempstack       db 128 dup(0)
 ; ---------------------------------------------------------------------------
 
-goinit:                                 ; CODE XREF: SYSINIT:_SYSINIT↑j
+goinit:                                 ; ...
                 mov     ah, 0C0h
                 int     15h             ; SYSTEM - GET CONFIGURATION
                                         ; (XT after 1/10/86,AT mdl 3x9,CONV,XT286,PS)
@@ -12152,8 +11612,7 @@ goinit:                                 ; CODE XREF: SYSINIT:_SYSINIT↑j
                 jmp     short move_myself
 ; ---------------------------------------------------------------------------
 
-no_rom_config:                          ; CODE XREF: SYSINIT:041D↑j
-                                        ; SYSINIT:0422↑j
+no_rom_config:                          ; ...
                 mov     ax, 0F000h
                 mov     ds, ax
                 assume ds:nothing
@@ -12168,7 +11627,7 @@ no_rom_config:                          ; CODE XREF: SYSINIT:041D↑j
                 db  53h ; S
 ; ---------------------------------------------------------------------------
 
-check_for_fake_floppy:                  ; CODE XREF: SYSINIT:0444↑j
+check_for_fake_floppy:                  ; ...
                 or      ax, 1           ; (nonsense! this may be overwritten/disabled
                                         ; by using 'RPS' sign position) 03/07/2023 - Erdogan Tan
                 test    ax, 1           ; have any floppies?
@@ -12190,8 +11649,7 @@ check_for_fake_floppy:                  ; CODE XREF: SYSINIT:0444↑j
                 jnz     short move_myself
                 mov     cs:fake_floppy_drv, 1 ; set fake flag
 
-move_myself:                            ; CODE XREF: SYSINIT:0434↑j
-                                        ; SYSINIT:044F↑j ...
+move_myself:                            ; ...
                 cld                     ; set up move
                 xor     si, si
                 mov     di, si
@@ -12223,8 +11681,7 @@ loc_57CC:                               ; Get new TOM from any RPL
                 mov     cs:RPLMemTop, dx
                 dec     cx
 
-NoRPL:                                  ; CODE XREF: SYSINIT:048D↑j
-                                        ; SYSINIT:0494↑j ...
+NoRPL:                                  ; ...
                 mov     ax, 5B40h       ; SI_end ; need this much room for sysinit
                                         ; (SI_end == sysinit code size)
                 call    _off_to_para
@@ -12246,7 +11703,7 @@ NoRPL:                                  ; CODE XREF: SYSINIT:048D↑j
 ; =============== S U B R O U T I N E =======================================
 
 
-get_cpu_type    proc near               ; CODE XREF: SYSINIT:04FB↓p
+get_cpu_type    proc near               ; ...
                 pushf
                 push    bx
                 xor     bx, bx
@@ -12269,10 +11726,10 @@ get_cpu_type    proc near               ; CODE XREF: SYSINIT:04FB↓p
 cpu_386:
                 inc     bx
 
-cpu_286:                                ; CODE XREF: get_cpu_type+1C↑j
+cpu_286:                                ; ...
                 inc     bx
 
-cpu_8086:                               ; CODE XREF: get_cpu_type+10↑j
+cpu_8086:                               ; ...
                 mov     ax, bx
                 pop     bx
                 popf
@@ -12281,7 +11738,7 @@ get_cpu_type    endp
 
 ; ---------------------------------------------------------------------------
 
-SYSIN:                                  ; DATA XREF: SYSINIT:04C9↑o
+SYSIN:                                  ; ...
                 mov     ax, 70h
                 mov     ds, ax          ; DOSBIODATASEG
                 assume ds:nothing
@@ -12303,7 +11760,7 @@ SYSIN:                                  ; DATA XREF: SYSINIT:04C9↑o
                 mov     ax, 0A766h      ; cmpsd ; 66A7
                 stosw
 
-not_386_system:                         ; CODE XREF: SYSINIT:0501↑j
+not_386_system:                         ; ...
                 pop     di
                 pop     ax              ; not needed (*) E.TAN - 03/07/2023
                 pop     es
@@ -12357,8 +11814,7 @@ not_386_system:                         ; CODE XREF: SYSINIT:0501↑j
                 mov     ss, ax
                 assume ss:SYSINIT
 
-locstack:                               ; DATA XREF: SYSINIT:locstack↓o
-                                        ; sum_up:sum_sys_code↓o
+locstack:                               ; ...
                 mov     sp, offset locstack ; set stack
                                         ; mov sp, 586h ; mov sp, locstack
                                         ; %define locstack ($ - SYSINIT$) & 0FFFEh
@@ -12418,7 +11874,7 @@ locstack:                               ; DATA XREF: SYSINIT:locstack↓o
                 int     21h             ; DOS - 2+ - FREE MEMORY
                                         ; ES = segment address of area to be freed
 
-NoRPLArena:                             ; CODE XREF: SYSINIT:05D1↑j
+NoRPLArena:                             ; ...
                 les     di, cs:DOSINFO
                 clc
                 mov     ah, 88h
@@ -12431,8 +11887,7 @@ NoRPLArena:                             ; CODE XREF: SYSINIT:05D1↑j
                 jz      short no_ext_memory
                 call    ClrVDISKHeader
 
-no_ext_memory:                          ; CODE XREF: SYSINIT:062F↑j
-                                        ; SYSINIT:0637↑j
+no_ext_memory:                          ; ...
                 mov     ax, es:[di+10h] ; [es:di+SYSI_MAXSEC]
                 add     ax, 24          ; bufinsiz
                                         ; size of buffer header = 24 (PCDOS v7.1 IBMBIO.COM)
@@ -12464,10 +11919,10 @@ _get_cpu_type:
 _cpu_386:
                 inc     bx
 
-_cpu_286:                               ; CODE XREF: SYSINIT:066B↑j
+_cpu_286:                               ; ...
                 inc     bx
 
-_cpu_8086:                              ; CODE XREF: SYSINIT:065F↑j
+_cpu_8086:                              ; ...
                 mov     ax, bx
                 pop     bx
                 popf
@@ -12476,7 +11931,7 @@ _cpu_8086:                              ; CODE XREF: SYSINIT:065F↑j
                 mov     byte ptr es:[di+44h], 1 ; [es:di+SYSI_DWMOVE],1
                                         ; set doubleword moving flag
 
-_not_386_cpu:                           ; CODE XREF: SYSINIT:0676↑j
+_not_386_cpu:                           ; ...
                 mov     al, es:[di+20h] ; [es:di+SYSI_NUMIO]
                 mov     cs:drivenumber, al ; save start of installable block drvs
                 mov     ax, cs
@@ -12550,7 +12005,7 @@ _not_386_cpu:                           ; CODE XREF: SYSINIT:0676↑j
                 mov     dx, offset TooManyDrivesMsg ; "WARNING! Logical drives past Z: exist a"...
                 call    print
 
-no_err:                                 ; CODE XREF: SYSINIT:071B↑j
+no_err:                                 ; ...
                 pop     ds
                 assume ds:nothing
                 mov     dl, cs:DEFAULT_DRIVE
@@ -12562,7 +12017,7 @@ no_err:                                 ; CODE XREF: SYSINIT:071B↑j
                                         ; DL = new default drive number (0 = A, 1 = B, etc.)
                                         ; Return: AL = number of logical drives
 
-nodrvset:                               ; CODE XREF: SYSINIT:072B↑j
+nodrvset:                               ; ...
                 push    ds
                 sub     ax, ax
                 mov     ds, ax          ; 0  ; ROMBIOS data area
@@ -12578,11 +12033,10 @@ nodrvset:                               ; CODE XREF: SYSINIT:072B↑j
                 mov     word ptr cs:MagicBackdoor+2, cs
                 mov     word ptr cs:MagicBackdoor, offset NullBackdoor
 
-set_drvspc_size:                        ; CODE XREF: SYSINIT:0778↓j
+set_drvspc_size:                        ; ...
                 mov     si, offset MagicDDName ; "\\DBLSPACE.BIN"
 
-set_dblspc_size:                        ; CODE XREF: SYSINIT:0767↓j
-                                        ; SYSINIT:0783↓j
+set_dblspc_size:                        ; ...
                 call    SizeDevice
                 jnb     short wait_for_key_2s
                 cmp     byte ptr cs:[si], 'C'
@@ -12593,22 +12047,21 @@ set_dblspc_size:                        ; CODE XREF: SYSINIT:0767↓j
                 jmp     short set_dblspc_size
 ; ---------------------------------------------------------------------------
 
-set_drvspc_name:                        ; CODE XREF: SYSINIT:075A↑j
-                                        ; SYSINIT:0762↑j
+set_drvspc_name:                        ; ...
                 cmp     byte ptr cs:MagicDDName+2, 'R' ; "BLSPACE.BIN"
                 jz      short set_stacker_name
                 mov     word ptr cs:MagicDDName+2, 'VR' ; 'RV' ; DRVSPACE.BIN
                 jmp     short set_drvspc_size
 ; ---------------------------------------------------------------------------
 
-set_stacker_name:                       ; CODE XREF: SYSINIT:076F↑j
+set_stacker_name:                       ; ...
                 cmp     si, offset StackerName ; "C:\\STACKER.BIN"
                 jnb     short wfk2s_4
                 mov     si, (offset StackerName+2) ; "\\STACKER.BIN"
                 jmp     short set_dblspc_size
 ; ---------------------------------------------------------------------------
 
-wait_for_key_2s:                        ; CODE XREF: SYSINIT:0754↑j
+wait_for_key_2s:                        ; ...
                 mov     cs:MagicDDNamePtr, si
                 push    ds
                 sub     ax, ax
@@ -12616,7 +12069,7 @@ wait_for_key_2s:                        ; CODE XREF: SYSINIT:0754↑j
                 assume ds:nothing
                 mov     dx, word ptr ds:46Ch ; Counter for Interrupt 1Ah
 
-wfk2s_1:                                ; CODE XREF: SYSINIT:07A8↓j
+wfk2s_1:                                ; ...
                 mov     ah, 1
                 int     16h             ; KEYBOARD - CHECK BUFFER, DO NOT CLEAR
                                         ; Return: ZF clear if character in buffer
@@ -12633,8 +12086,7 @@ wfk2s_1:                                ; CODE XREF: SYSINIT:07A8↓j
                 cmp     al, 37          ; 2 seconds
                 jb      short wfk2s_1   ; wait for user's key press
 
-wfk2s_2:                                ; CODE XREF: SYSINIT:0797↑j
-                                        ; SYSINIT:079F↑j
+wfk2s_2:                                ; ...
                 pop     ds              ; read/check the pressed key
                 assume ds:nothing
                 sub     bx, bx          ; bx = 0
@@ -12646,7 +12098,7 @@ wfk2s_2:                                ; CODE XREF: SYSINIT:0797↑j
                 inc     bx
                 inc     bx              ; bx = 2
 
-wfk2s_3:                                ; CODE XREF: SYSINIT:07B3↑j
+wfk2s_3:                                ; ...
                 mov     ah, 1
                 int     16h             ; KEYBOARD - CHECK BUFFER, DO NOT CLEAR
                                         ; Return: ZF clear if character in buffer
@@ -12659,17 +12111,16 @@ wfk2s_3:                                ; CODE XREF: SYSINIT:07B3↑j
                 jnz     short wfk2s_6
                 mov     cs:F5_key, 1
 
-wfk2s_4:                                ; CODE XREF: SYSINIT:077E↑j
+wfk2s_4:                                ; ...
                 jmp     short ProcessConfig ; continue (as normal/default state)
 ; ---------------------------------------------------------------------------
 
-wfk2s_5:                                ; CODE XREF: SYSINIT:07C0↑j
+wfk2s_5:                                ; ...
                 mov     cs:F8_key, 1
                 jmp     short ProcessConfig
 ; ---------------------------------------------------------------------------
 
-wfk2s_6:                                ; CODE XREF: SYSINIT:07BB↑j
-                                        ; SYSINIT:07C5↑j
+wfk2s_6:                                ; ...
                 call    AllocFreeMem    ; get the largest free block from DOS
                 call    MagicPreload    ; **** PRE-LOAD MAGICDRV!!! ****
 
@@ -12686,7 +12137,7 @@ PreloadFailed:                          ; Dealloc ; free the block if no load
                 jmp     short ProcessConfig
 ; ---------------------------------------------------------------------------
 
-wfk2s_8:                                ; CODE XREF: SYSINIT:07DF↑j
+wfk2s_8:                                ; ...
                 mov     bx, cs:memhi
                 mov     es, cs:area
                 sub     bx, cs:area     ; get desired block size in paras
@@ -12705,8 +12156,7 @@ wfk2s_8:                                ; CODE XREF: SYSINIT:07DF↑j
                 inc     ax              ; get addr of next MCB
                 mov     [si-2], ax      ; store that
 
-ProcessConfig:                          ; CODE XREF: SYSINIT:wfk2s_4↑j
-                                        ; SYSINIT:07D5↑j ...
+ProcessConfig:                          ; ...
                 call    doconf
                 cmp     cs:runhigh, 0   ; Did user choose to run low ?
                 jz      short dont_install_stub ; yes, don't install dos low mem stub
@@ -12717,7 +12167,7 @@ ProcessConfig:                          ; CODE XREF: SYSINIT:wfk2s_4↑j
                 jmp     short do_multi_pass
 ; ---------------------------------------------------------------------------
 
-dont_install_stub:                      ; CODE XREF: SYSINIT:0829↑j
+dont_install_stub:                      ; ...
                 xor     bx, bx
                 call    MovDOSLo
                 mov     ax, 1
@@ -12725,7 +12175,7 @@ dont_install_stub:                      ; CODE XREF: SYSINIT:0829↑j
                 call    cs:dos_segreinit ; call far [cs:dos_segreinit]
                                         ; inform dos about new seg
 
-do_multi_pass:                          ; CODE XREF: SYSINIT:0837↑j
+do_multi_pass:                          ; ...
                 call    AllocFreeMem    ; allocate all the free mem & update [memhi]
                                         ; & [area] start of free memory.
                 cmp     cs:F5_key, 1
@@ -12735,8 +12185,7 @@ do_multi_pass:                          ; CODE XREF: SYSINIT:0837↑j
                 xor     bx, bx          ; bx=0 ; magic backdoor to place int hooks
                 call    cs:MagicBackdoor
 
-skip_magicbackdoor:                     ; CODE XREF: SYSINIT:0854↑j
-                                        ; SYSINIT:085C↑j
+skip_magicbackdoor:                     ; ...
                 inc     cs:multi_pass_id ; multi_pass_id = 1
                 call    multi_pass      ; load device drivers
                 call    ShrinkUMB
@@ -12753,11 +12202,10 @@ skip_magicbackdoor:                     ; CODE XREF: SYSINIT:0854↑j
                 jmp     short _@_
 ; ---------------------------------------------------------------------------
 
-skip_magicpostload:                     ; CODE XREF: SYSINIT:0881↑j
-                                        ; SYSINIT:0889↑j
+skip_magicpostload:                     ; ...
                 call    endfile
 
-_@_:                                    ; CODE XREF: SYSINIT:0894↑j
+_@_:                                    ; ...
                 mov     ax, 70h         ; DOSBIODATASEG
                 mov     es, ax          ; BIOSDATA segment
                 assume es:nothing
@@ -12768,17 +12216,17 @@ _@_:                                    ; CODE XREF: SYSINIT:0894↑j
                 inc     cs:multi_pass_id
                 call    multi_pass
 
-dolast:                                 ; CODE XREF: SYSINIT:08AB↑j
+dolast:                                 ; ...
                 cmp     cs:runhigh, 0FFh ; are we still waiting to be moved?
                 jnz     short _@@_      ; no, our job is over
                 call    LoadDOSHiOrLo
 
-_@@_:                                   ; CODE XREF: SYSINIT:08BB↑j
+_@@_:                                   ; ...
                 cmp     cs:runhigh, 0   ; are we running low
                 jz      short ConfigDone ; yes, no CPM hack needed
                 call    CPMHack         ; make ffff:d0 same as 0:c0
 
-ConfigDone:                             ; CODE XREF: SYSINIT:08C6↑j
+ConfigDone:                             ; ...
                 mov     cs:donotshownum, 1
                 mov     es, cs:area
                 assume es:nothing
@@ -12805,12 +12253,12 @@ ConfigDone:                             ; CODE XREF: SYSINIT:08C6↑j
                 pop     es
                 assume es:nothing
 
-skip_free_sysinitbase:                  ; CODE XREF: SYSINIT:08E1↑j
+skip_free_sysinitbase:                  ; ...
                 cmp     cs:runhigh, 0
                 jz      short _@@@_
                 call    InstVDiskHeader ; Install VDISK header (allocates some mem from DOS)
 
-_@@@_:                                  ; CODE XREF: SYSINIT:090E↑j
+_@@@_:                                  ; ...
                 push    cs
                 pop     ds
                 assume ds:SYSINIT
@@ -12823,20 +12271,20 @@ _@@@_:                                  ; CODE XREF: SYSINIT:090E↑j
                 cmp     F5_key, 1
                 jz      short _@@@@@_   ; F5 key pressed, bypass AUTOEXEC.BAT (clean boot)
 
-_@@@@_:                                 ; CODE XREF: SYSINIT:0923↑j
+_@@@@_:                                 ; ...
                 popf
                 jnb     short process_autoexec ; we should process autoexec normally
                 jmp     short bypass_autoexec
 ; ---------------------------------------------------------------------------
 
-_@@@@@_:                                ; CODE XREF: SYSINIT:092A↑j
+_@@@@@_:                                ; ...
                 popf                    ; cf status at the return from 'query_user' call
 
-bypass_autoexec:                        ; CODE XREF: SYSINIT:092F↑j
+bypass_autoexec:                        ; ...
                 or      bQueryOpt, 4    ; set "skip all" flag
                 call    disable_autoexec ; no, we should disable it
 
-process_autoexec:                       ; CODE XREF: SYSINIT:092D↑j
+process_autoexec:                       ; ...
                 call    CheckQueryOpt
                 mov     cl, byte ptr command_line ; "\x02/P"
                 mov     ch, 0
@@ -12845,8 +12293,7 @@ process_autoexec:                       ; CODE XREF: SYSINIT:092D↑j
                 add     si, cx          ; retry-4
                 mov     byte ptr [si], 0Dh ; cr-terminate command line
 
-retry:                                  ; CODE XREF: SYSINIT:do_exec↓j
-                                        ; DATA XREF: SYSINIT:098E↓t ...
+retry:                                  ; ...
                 mov     dx, offset commnd ; "\\COMMAND.COM"
                 push    dx              ; save pointer to file name
                 mov     bx, 0FFFFh      ; get biggest piece (second time gets it)
@@ -12868,7 +12315,7 @@ retry:                                  ; CODE XREF: SYSINIT:do_exec↓j
                 jcxz    short no_env    ; use config_wrkseg only if there's env data
                 mov     ax, config_wrkseg
 
-no_env:                                 ; CODE XREF: SYSINIT:096F↑j
+no_env:                                 ; ...
                 sub     bx, ax
                 add     bx, 11h         ; add the sysinit php
                 sub     bp, bx          ; sub sysinit size from amount of free memory
@@ -12895,7 +12342,7 @@ no_env:                                 ; CODE XREF: SYSINIT:096F↑j
                                         ; ((MAJOR_VERSION&0Fh)<<4)|(MINOR_VERSION&0Fh)
                 jnz     short comerr
 
-skip_validation:                        ; CODE XREF: SYSINIT:098C↑j
+skip_validation:                        ; ...
                 xor     cx, cx
                 xor     dx, dx
                 mov     ax, 4202h
@@ -12913,14 +12360,13 @@ skip_validation:                        ; CODE XREF: SYSINIT:098C↑j
                 cmp     ax, bp          ; will command fit in available mem?
                 jb      short okld      ; jump if yes.
 
-memerrjx:                               ; CODE XREF: SYSINIT:095B↑j
-                                        ; SYSINIT:097B↑j
+memerrjx:                               ; ...
                 mov     dx, offset badmem ; "\r\nConfiguration too large for memory"...
                 call    print
                 jmp     short continue
 ; ---------------------------------------------------------------------------
 
-okld:                                   ; CODE XREF: SYSINIT:09C6↑j
+okld:                                   ; ...
                 mov     ah, 3Eh
                 int     21h             ; DOS - 2+ - CLOSE A FILE WITH HANDLE
                                         ; BX = file handle
@@ -12934,7 +12380,7 @@ okld:                                   ; CODE XREF: SYSINIT:09C6↑j
                 jcxz    short no_envdata
                 mov     cx, config_wrkseg
 
-no_envdata:                             ; CODE XREF: SYSINIT:09DE↑j
+no_envdata:                             ; ...
                 mov     [bx], cx        ; set segments
                                         ; [bx+EXEC0.ENVIRON],cx
                 mov     word ptr [bx+4], cs ; [bx+EXEC0.COM_LINE+2],cs
@@ -12950,19 +12396,17 @@ no_envdata:                             ; CODE XREF: SYSINIT:09DE↑j
                 pop     ds
                 push    dx
 
-comerr:                                 ; CODE XREF: SYSINIT:0983↑j
-                                        ; SYSINIT:099D↑j ...
+comerr:                                 ; ...
                 cmp     byte ptr commnd4, 0 ; "\\DOS\\COMMAND.COM"
                 jz      short comerr2   ; all defaults exhausted, print err msg
                 cmp     newcmd, 0
                 jz      short continue  ; don't print err msg for defaults just yet
 
-comerr2:                                ; CODE XREF: SYSINIT:09FD↑j
+comerr2:                                ; ...
                 mov     dx, offset badcom ; "Command Interpreter"
                 call    badfil
 
-continue:                               ; CODE XREF: SYSINIT:09CE↑j
-                                        ; SYSINIT:0A04↑j
+continue:                               ; ...
                 pop     dx
                 mov     ah, 19h
                 int     21h             ; DOS - GET DEFAULT DISK NUMBER
@@ -12975,11 +12419,11 @@ continue:                               ; CODE XREF: SYSINIT:09CE↑j
                 jmp     short do_def3   ; which is the same as our 2nd alt, so skip it
 ; ---------------------------------------------------------------------------
 
-do_def2:                                ; CODE XREF: SYSINIT:0A1D↑j
+do_def2:                                ; ...
                 cmp     byte ptr [si], 0 ; has 2nd alternate been tried?
                 jnz     short do_alt    ; no
 
-do_def3:                                ; CODE XREF: SYSINIT:0A22↑j
+do_def3:                                ; ...
                 mov     si, offset commnd3 ; "\\MSDOS\\COMMAND.COM"
                 cmp     byte ptr [si], 0 ; has 3rd alternate been tried?
                 jnz     short do_alt    ; no
@@ -12991,7 +12435,7 @@ do_def3:                                ; CODE XREF: SYSINIT:0A22↑j
                 call    print
                 pop     dx              ; recover default drive letter in dl
 
-request_input:                          ; CODE XREF: SYSINIT:0A69↓j
+request_input:                          ; ...
                 mov     ah, 2           ; STD_CON_OUTPUT
                 int     21h             ; DOS - DISPLAY OUTPUT
                                         ; DL = character to send to standard output
@@ -13017,14 +12461,13 @@ request_input:                          ; CODE XREF: SYSINIT:0A69↓j
                 jmp     short do_exec
 ; ---------------------------------------------------------------------------
 
-do_alt:                                 ; CODE XREF: SYSINIT:0A27↑j
-                                        ; SYSINIT:0A2F↑j ...
+do_alt:                                 ; ...
                 push    ds
                 pop     es
                 mov     newcmd, 0       ; force validation for alternate binaries
                 mov     di, offset commnd ; "\\COMMAND.COM"
 
-do_alt1:                                ; CODE XREF: SYSINIT:0A8F↓j
+do_alt1:                                ; ...
                 lodsb                   ; copy the alternate, zapping it as we go
                 mov     byte ptr [si-1], 0 ; so that we know it's been tried
                 stosb
@@ -13035,8 +12478,7 @@ do_alt1:                                ; CODE XREF: SYSINIT:0A8F↓j
                 jnz     short do_alt2
                 mov     [si+1], dl      ; stuff default drive into alt. command line
 
-do_alt2:                                ; CODE XREF: SYSINIT:0A98↑j
-                                        ; SYSINIT:0AA1↓j
+do_alt2:                                ; ...
                 lodsb
                 stosb
                 or      al, al
@@ -13046,14 +12488,13 @@ do_alt2:                                ; CODE XREF: SYSINIT:0A98↑j
                 call    disable_autoexec
                 call    CheckQueryOpt
 
-do_exec:                                ; CODE XREF: SYSINIT:0A7B↑j
+do_exec:                                ; ...
                 jmp     retry
 
 ; =============== S U B R O U T I N E =======================================
 
 
-AllocFreeMem    proc near               ; CODE XREF: SYSINIT:wfk2s_6↑p
-                                        ; SYSINIT:do_multi_pass↑p
+AllocFreeMem    proc near               ; ...
                 mov     bx, 0FFFFh
                 mov     ah, 48h
                 int     21h             ; DOS - 2+ - ALLOCATE MEMORY
@@ -13067,19 +12508,17 @@ AllocFreeMem    proc near               ; CODE XREF: SYSINIT:wfk2s_6↑p
 AllocFreeMem    endp
 
 ; ---------------------------------------------------------------------------
-DOSLOMSG        db 'HMA not available: Loading DOS low',0Dh,0Ah,'$'
-                                        ; DATA XREF: SYSINIT:0B26↓o
-FEmsg           db 'Fatal Error: Cannot allocate Memory for DOS',0Dh,0Ah,'$'
-                                        ; DATA XREF: AllocMemForDOS+70↓o
+DOSLOMSG        db 'HMA not available: Loading DOS low',0Dh,0Ah,'$' ; ...
+FEmsg           db 'Fatal Error: Cannot allocate Memory for DOS',0Dh,0Ah,'$' ; ...
 ; ---------------------------------------------------------------------------
 
-LoadDOSHiOrLo:                          ; CODE XREF: SYSINIT:08BD↑p
+LoadDOSHiOrLo:                          ; ...
                 call    TryToMovDOSHi   ; Try moving it into HMA
                 jb      short LdngLo    ; If that don't work...
                 retn
 ; ---------------------------------------------------------------------------
 
-LdngLo:                                 ; CODE XREF: SYSINIT:0B1F↑j
+LdngLo:                                 ; ...
                 push    cs
                 pop     ds
                 mov     ah, 9
@@ -13098,8 +12537,7 @@ LdngLo:                                 ; CODE XREF: SYSINIT:0B1F↑j
 ; =============== S U B R O U T I N E =======================================
 
 
-TryToMovDOSHi   proc near               ; CODE XREF: SYSINIT:LoadDOSHiOrLo↑p
-                                        ; SYSINIT:0CAF↓p ...
+TryToMovDOSHi   proc near               ; ...
                 call    MovDOSHi
                 jb      short ttldhx
                 mov     es, cs:CURRENTDOSLOCATION ; give dos its temporary loc.
@@ -13108,7 +12546,7 @@ TryToMovDOSHi   proc near               ; CODE XREF: SYSINIT:LoadDOSHiOrLo↑p
                 mov     cs:runhigh, 1
                 clc
 
-ttldhx:                                 ; CODE XREF: TryToMovDOSHi+3↑j
+ttldhx:                                 ; ...
                 retn
 TryToMovDOSHi   endp
 
@@ -13116,7 +12554,7 @@ TryToMovDOSHi   endp
 ; =============== S U B R O U T I N E =======================================
 
 
-MovDOSHi        proc near               ; CODE XREF: TryToMovDOSHi↑p
+MovDOSHi        proc near               ; ...
 
 arg_B86         = word ptr  0B88h
 
@@ -13131,7 +12569,7 @@ arg_B86         = word ptr  0B88h
                 call    SaveFreeHMAPtr
                 clc
 
-mdhx:                                   ; CODE XREF: MovDOSHi+3↑j
+mdhx:                                   ; ...
                 retn
 MovDOSHi        endp
 
@@ -13139,8 +12577,7 @@ MovDOSHi        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-MovDOSLo        proc near               ; CODE XREF: SYSINIT:083B↑p
-                                        ; SYSINIT:0B2E↑p
+MovDOSLo        proc near               ; ...
                 call    AllocMemForDOS  ; incestuosly!
                 mov     es, ax          ; pass the segment to MovBIOS
                 assume es:nothing
@@ -13154,8 +12591,7 @@ MovDOSLo        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-MovBIOS         proc near               ; CODE XREF: MovDOSHi+A↑p
-                                        ; MovDOSLo+5↑p
+MovBIOS         proc near               ; ...
                 mov     ds, cs:temp_bcode_seg
                 assume ds:nothing
                 mov     si, 30h         ; BCODE_START
@@ -13179,8 +12615,7 @@ MovBIOS         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-MovDOS          proc near               ; CODE XREF: MovDOSHi+12↑p
-                                        ; MovDOSLo+D↑p
+MovDOS          proc near               ; ...
                 push    es
                 push    di
                 lds     si, dword ptr cs:dosinit
@@ -13199,7 +12634,7 @@ MovDOS          endp
 ; =============== S U B R O U T I N E =======================================
 
 
-AllocMemForDOS  proc near               ; CODE XREF: MovDOSLo↑p
+AllocMemForDOS  proc near               ; ...
 
 ; FUNCTION CHUNK AT 1468 SIZE 00000001 BYTES
 
@@ -13223,7 +12658,7 @@ AllocMemForDOS  proc near               ; CODE XREF: MovDOSLo↑p
                 retn
 ; ---------------------------------------------------------------------------
 
-update_arena:                           ; CODE XREF: AllocMemForDOS+15↑j
+update_arena:                           ; ...
                 push    ds
                 push    di
                 push    cx
@@ -13253,8 +12688,7 @@ update_arena:                           ; CODE XREF: AllocMemForDOS+15↑j
                 retn
 ; ---------------------------------------------------------------------------
 
-FatalErr:                               ; CODE XREF: AllocMemForDOS+1B↑j
-                                        ; AllocMemForDOS+45↑j
+FatalErr:                               ; ...
                 push    cs
                 pop     ds
                 assume ds:SYSINIT
@@ -13269,7 +12703,7 @@ AllocMemForDOS  endp ; sp-analysis failed
 ; =============== S U B R O U T I N E =======================================
 
 
-AllocHMA        proc near               ; CODE XREF: MovDOSHi↑p
+AllocHMA        proc near               ; ...
                 push    ds
                 mov     ax, 70h         ; DOSBIODATASEG ; BIOSDATA segment
                 mov     ds, ax
@@ -13293,7 +12727,7 @@ AllocHMA        proc near               ; CODE XREF: MovDOSHi↑p
                 cmp     ax, 64          ; less than 64 K of hma ?
                 jb      short grabhma_error
 
-allocHMA_1:                             ; CODE XREF: AllocHMA+22↑j
+allocHMA_1:                             ; ...
                 mov     ah, 5           ; localenableA20
                 call    ds:xms
                 dec     ax
@@ -13312,8 +12746,7 @@ allocHMA_1:                             ; CODE XREF: AllocHMA+22↑j
                 retn
 ; ---------------------------------------------------------------------------
 
-grabhma_error:                          ; CODE XREF: AllocHMA+9↑j
-                                        ; AllocHMA+2B↑j ...
+grabhma_error:                          ; ...
                 stc
                 pop     ds
                 retn
@@ -13323,8 +12756,7 @@ AllocHMA        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-IsXMSLoaded     proc near               ; CODE XREF: AllocHMA+6↑p
-                                        ; InitAllocUMB↓p
+IsXMSLoaded     proc near               ; ...
                 mov     ax, 4300h
                 int     2Fh             ; - Multiplex - XMS - INSTALLATION CHECK
                                         ; Return: AL = 80h XMS driver installed
@@ -13335,7 +12767,7 @@ IsXMSLoaded     endp
 
 ; ---------------------------------------------------------------------------
 
-FTRYTOMOVDOSHI:                         ; DATA XREF: BIOSDATA:MoveDOSIntoHMA↑o
+FTRYTOMOVDOSHI:                         ; ...
                 push    ax
                 push    bx
                 push    cx
@@ -13348,7 +12780,7 @@ FTRYTOMOVDOSHI:                         ; DATA XREF: BIOSDATA:MoveDOSIntoHMA↑o
                 jnz     short _ftymdh_1
                 call    TryToMovDOSHi
 
-_ftymdh_1:                              ; CODE XREF: SYSINIT:0CAD↑j
+_ftymdh_1:                              ; ...
                 pop     es
                 assume es:nothing
                 pop     ds
@@ -13361,25 +12793,24 @@ _ftymdh_1:                              ; CODE XREF: SYSINIT:0CAD↑j
                 retf
 ; ---------------------------------------------------------------------------
                 db 0
-StartVDHead     dd 0                    ; DATA XREF: InstVDiskHeader+3A↓o
+StartVDHead     dd 0                    ; ...
                                         ; link to next device driver
                 dw 8000h                ; device attribute
                 dw 0                    ; strategy routine offset
                 dw 0                    ; interrupt routine offset
                 db 1
                 db 7 dup(0)             ; reserved area
-VDiskSig1       db 'VDISK'              ; DATA XREF: IsVDiskInstalled+10↓o
+VDiskSig1       db 'VDISK'              ; ...
                 db '  V3.3'             ; vdisk label ; VLEN1 equ ($-VDiskSig1)
                 db 15 dup(0)            ; pad
                 dw 0                    ; bits 0-15 of free HMA
                 db 11h                  ; bits 16-23 of free HMA (1M + 64K)
 VDInt19         db 0EAh                 ; jmp to old vector
-OldVDInt19      dw 2 dup(0)             ; DATA XREF: InstVDiskHeader+7↓w
-                                        ; InstVDiskHeader+E↓w
-VDiskHMAHead    db 0, 0, 0              ; DATA XREF: InstVDiskHeader+52↓o
+OldVDInt19      dw 2 dup(0)             ; ...
+VDiskHMAHead    db 0, 0, 0              ; ...
                                         ; EndVDHead
                                         ; non-bootable disk
-VDiskSig2       db 'VDISK'              ; DATA XREF: IsVDiskInstalled+1F↓o
+VDiskSig2       db 'VDISK'              ; ...
                 db '3.3'                ; VLEN2 equ ($-VDiskSig2)
                                         ; OEM - signature
                 dw 128                  ; number of bytes/sector
@@ -13398,7 +12829,7 @@ VDiskSig2       db 'VDISK'              ; DATA XREF: IsVDiskInstalled+1F↓o
 ; =============== S U B R O U T I N E =======================================
 
 
-InstVDiskHeader proc near               ; CODE XREF: SYSINIT:0910↑p
+InstVDiskHeader proc near               ; ...
                 xor     ax, ax          ; EndVDiskHMAHead (SYSINIT:0D10h)
                 mov     ds, ax          ; seg of int vect table
                                         ; save old int 19 vector
@@ -13447,12 +12878,12 @@ InstVDiskHeader proc near               ; CODE XREF: SYSINIT:0910↑p
 InstVDiskHeader endp
 
 ; ---------------------------------------------------------------------------
-dummy           db 8 dup(0)             ; DATA XREF: ClrVDISKHeader+3A↓o
+dummy           db 8 dup(0)             ; ...
                                         ; bmove
 gdt             db 8 dup(0)             ; times desc.size db 0
 src_desc        dw 0FFFFh               ; des <0ffffh,0,0,93h,0>
-desc_lo_word    dw 0                    ; DATA XREF: ClrVDISKHeader+2C↓w
-desc_hi_byte    db 0                    ; DATA XREF: ClrVDISKHeader+30↓w
+desc_lo_word    dw 0                    ; ...
+desc_hi_byte    db 0                    ; ...
                 db 93h
                 dw 0
 tgt_desc        dw 0FFFFh               ; desc <0ffffh,0,10h,93h,0>  ; 1MB
@@ -13463,12 +12894,12 @@ tgt_desc        dw 0FFFFh               ; desc <0ffffh,0,10h,93h,0>  ; 1MB
                 dw 0                    ; desc.reserved
 rombios_code    db 8 dup(0)             ; times desc.size db 0
 temp_stack      db 8 dup(0)
-ClrdVDISKHead   db 32 dup(0)            ; DATA XREF: ClrVDISKHeader+26↓o
+ClrdVDISKHead   db 32 dup(0)            ; ...
 
 ; =============== S U B R O U T I N E =======================================
 
 
-ClrVDISKHeader  proc near               ; CODE XREF: SYSINIT:0639↑p
+ClrVDISKHeader  proc near               ; ...
                 in      al, 64h         ; 8042 keyboard controller status register
                                         ; 7:  PERR    1=parity error in data received from keyboard
                                         ;    +----------- AT Mode ----------+------------ PS/2 Mode ------------+
@@ -13488,12 +12919,11 @@ ClrVDISKHeader  proc near               ; CODE XREF: SYSINIT:0639↑p
                 cmp     word ptr cs:sys_model_byte, 9FCh ; Check for PS/2 30-286 model
                 jnz     short ClrVDISKok
 
-ClrVDISKno:                             ; CODE XREF: ClrVDISKHeader+D↑j
+ClrVDISKno:                             ; ...
                 retn
 ; ---------------------------------------------------------------------------
 
-ClrVDISKok:                             ; CODE XREF: ClrVDISKHeader+4↑j
-                                        ; ClrVDISKHeader+16↑j
+ClrVDISKok:                             ; ...
                 push    es
                 mov     ax, cs
                 mov     dx, ax
@@ -13524,7 +12954,7 @@ ClrVDISKHeader  endp
 ; =============== S U B R O U T I N E =======================================
 
 
-SaveFreeHMAPtr  proc near               ; CODE XREF: MovDOSHi+15↑p
+SaveFreeHMAPtr  proc near               ; ...
                 mov     bx, es
                 mov     ax, 0FFFFh      ; HMA segment
                 sub     ax, bx
@@ -13548,7 +12978,7 @@ SaveFreeHMAPtr  endp
 ; =============== S U B R O U T I N E =======================================
 
 
-IsVDiskInstalled proc near              ; CODE XREF: AllocHMA+36↑p
+IsVDiskInstalled proc near              ; ...
                 xor     ax, ax
                 mov     ds, ax
                 assume ds:nothing
@@ -13570,7 +13000,7 @@ IsVDiskInstalled proc near              ; CODE XREF: AllocHMA+36↑p
                 mov     cx, 5
                 repe cmpsb
 
-ivdins_retn:                            ; CODE XREF: IsVDiskInstalled+15↑j
+ivdins_retn:                            ; ...
                 retn
 IsVDiskInstalled endp
 
@@ -13578,7 +13008,7 @@ IsVDiskInstalled endp
 ; =============== S U B R O U T I N E =======================================
 
 
-CPMHack         proc near               ; CODE XREF: SYSINIT:08C8↑p
+CPMHack         proc near               ; ...
                 push    ds
                 mov     cx, 0FFFFh
                 mov     es, cx
@@ -13600,8 +13030,7 @@ CPMHack         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_off_to_para    proc near               ; CODE XREF: SYSINIT:04AE↑p
-                                        ; SYSINIT:04BA↑p ...
+_off_to_para    proc near               ; ...
                 shr     ax, 1
                 shr     ax, 1
                 shr     ax, 1
@@ -13613,8 +13042,7 @@ _off_to_para    endp
 ; =============== S U B R O U T I N E =======================================
 
 
-TempCDS         proc near               ; CODE XREF: SYSINIT:06E3↑p
-                                        ; MagicPreload+1C9↓p ...
+TempCDS         proc near               ; ...
                 les     di, ds:DOSINFO
                 assume es:nothing
                 mov     cl, es:[di+20h] ; [es:di+SYSI_NUMIO]
@@ -13640,8 +13068,7 @@ TempCDS         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-fooset          proc near               ; CODE XREF: fooset+5B↓j
-                                        ; endfile+251↓p
+fooset          proc near               ; ...
                 mov     ax, word ptr cs:DirStrng ; "A:\"
                 stosw                   ; setup the root as the curdir
                 call    get_dpb_for_drive_al ; get dpb for drive in dpb
@@ -13670,30 +13097,28 @@ fooset          proc near               ; CODE XREF: fooset+5B↓j
                 jmp     short get_next_dpb
 ; ---------------------------------------------------------------------------
 
-fooset_zero:                            ; CODE XREF: fooset+1D↑j
+fooset_zero:                            ; ...
                 mov     cl, 3
                 rep stosw
                 pop     cx
                 jmp     short get_next_dpb ; jmp short fincds
 ; ---------------------------------------------------------------------------
 
-normcds:                                ; CODE XREF: fooset+25↑j
-                                        ; fooset+2A↑j
+normcds:                                ; ...
                 pop     cx
                 cmp     byte ptr [si+8], 0 ; [si+DPB.FAT_COUNT] ; non fat system?
                 jz      short setnormcds ; yes. set curdir_flags to 0. ax = 0 now.
                 mov     ax, 4000h       ; curdir_inuse ; else,fat system.
                                         ; set the flag to curdir_inuse.
 
-setnormcds:                             ; CODE XREF: fooset+3F↑j
+setnormcds:                             ; ...
                 stosw                   ; curdir_flags
                 mov     ax, si
                 stosw                   ; curdir_devptr
                 mov     ax, ds
                 stosw
 
-get_next_dpb:                           ; CODE XREF: fooset+31↑j
-                                        ; fooset+38↑j
+get_next_dpb:                           ; ...
                 mov     ax, 0FFFFh      ; entry point for fake_fooset_zero
                                         ; mov ax,-1
                 stosw                   ; curdir_id
@@ -13715,19 +13140,21 @@ fooset          endp
 ; =============== S U B R O U T I N E =======================================
 
 
-get_dpb_for_drive_al proc near          ; CODE XREF: fooset+5↑p
+get_dpb_for_drive_al proc near          ; ...
                 lds     si, cs:DOSINFO  ; point to first DPB
                 lds     si, [si]        ; (ds:si) = address of first DPB
                 sub     al, 'A'
 
-get_dpb_for_drive_1:                    ; CODE XREF: get_dpb_for_drive_al+13↓j
+get_dpb_for_drive_1:                    ; ...
                 cmp     al, [si]        ; cmp al,[si+DPB.DRIVE] ; match?
                 jz      short got_dpb_for_drive
                 lds     si, [si+19h]    ; lds si,[si+DPB.NEXT_DPB]
+
+loc_623E:
                 cmp     si, 0FFFFh
                 jnz     short get_dpb_for_drive_1 ; loop until hit end of DPBs
 
-got_dpb_for_drive:                      ; CODE XREF: get_dpb_for_drive_al+B↑j
+got_dpb_for_drive:                      ; ...
                 retn
 get_dpb_for_drive_al endp
 
@@ -13735,8 +13162,7 @@ get_dpb_for_drive_al endp
 ; =============== S U B R O U T I N E =======================================
 
 
-endfile         proc near               ; CODE XREF: SYSINIT:088E↑p
-                                        ; SYSINIT:skip_magicpostload↑p
+endfile         proc near               ; ...
                 push    ds              ; Build DOS structures
                 mov     ax, 70h         ; DOSBIODATASEG
                 mov     ds, ax
@@ -13746,7 +13172,7 @@ endfile         proc near               ; CODE XREF: SYSINIT:088E↑p
                 jnz     short multrk_flag_done
                 or      ds:multrk_flag, 80h ; or [multrk_flag],multrk_on
 
-multrk_flag_done:                       ; CODE XREF: endfile+B↑j
+multrk_flag_done:                       ; ...
                 pop     ds
                 assume ds:nothing
                 mov     ax, cs:CONFBOT
@@ -13759,7 +13185,7 @@ multrk_flag_done:                       ; CODE XREF: endfile+B↑j
                 mov     ax, cs:ALLOCLIM
                 mov     cs:prev_alloclim, ax
 
-dosfts:                                 ; CODE XREF: endfile+356↓j
+dosfts:                                 ; ...
                 call    round
                 mov     al, cs:FILES
                 sub     al, 5
@@ -13795,7 +13221,7 @@ dosfts:                                 ; CODE XREF: endfile+356↓j
                 xor     ax, ax
                 rep stosb               ; clean out the stuff
 
-dofcbs:                                 ; CODE XREF: endfile+37↑j
+dofcbs:                                 ; ...
                 push    cs
                 pop     ds
                 call    round
@@ -13830,7 +13256,7 @@ dofcbs:                                 ; CODE XREF: endfile+37↑j
                 add     di, ax          ; skip over header
                 mov     al, 'A'
 
-fillloop:                               ; CODE XREF: endfile+100↓j
+fillloop:                               ; ...
                 push    cx              ; save count
                 mov     cx, 59          ; number of bytes to fill
                 cld
@@ -13845,7 +13271,7 @@ fillloop:                               ; CODE XREF: endfile+100↓j
                 jmp     dobuff          ; the user entered the buffers=.
 ; ---------------------------------------------------------------------------
 
-dodefaultbuff:                          ; CODE XREF: endfile+107↑j
+dodefaultbuff:                          ; ...
                 mov     h_buffers, 0    ; default is no heuristic (secondary) buffers.
                 mov     buffers, 2      ; default to 2 buffers
                 push    ax
@@ -13855,7 +13281,7 @@ dodefaultbuff:                          ; CODE XREF: endfile+107↑j
                 push    cs
                 pop     ds
 
-nextdpb:                                ; CODE XREF: endfile+175↓j
+nextdpb:                                ; ...
                 mov     bl, es:[bp+0]   ; [es:bp+DPB.drive]
                 inc     bl
                 mov     ax, 4408h
@@ -13884,22 +13310,20 @@ nextdpb:                                ; CODE XREF: endfile+175↓j
                 cmp     ax, 720         ; 720 sectors * size factor of 1
                 jbe     short nosetbuf
 
-setbuf:                                 ; CODE XREF: endfile+15B↑j
+setbuf:                                 ; ...
                 mov     buffers, 3
                 jmp     short chk_memsize_for_buffers ; now check the memory size
                                         ; for default buffer count
 ; ---------------------------------------------------------------------------
 
-nosetbuf:                               ; CODE XREF: endfile+132↑j
-                                        ; endfile+147↑j ...
+nosetbuf:                               ; ...
                 cmp     word ptr es:[bp+19h], 0FFFFh ; [es:bp+DPB.NEXT_DPB],-1
                 jz      short chk_memsize_for_buffers
                 les     bp, es:[bp+19h] ; les bp,[es:bp+DPB.NEXT_DPB]
                 jmp     short nextdpb
 ; ---------------------------------------------------------------------------
 
-chk_memsize_for_buffers:                ; CODE XREF: endfile+168↑j
-                                        ; endfile+16F↑j
+chk_memsize_for_buffers:                ; ...
                 cmp     MEMORY_SIZE, 2000h ; 128kb
                 jbe     short bufset
                 mov     buffers, 5
@@ -13910,13 +13334,12 @@ chk_memsize_for_buffers:                ; CODE XREF: endfile+168↑j
                 jbe     short bufset
                 mov     buffers, 15
 
-bufset:                                 ; CODE XREF: endfile+17D↑j
-                                        ; endfile+18B↑j ...
+bufset:                                 ; ...
                 pop     ds
                 assume ds:nothing
                 pop     ax
 
-dobuff:                                 ; CODE XREF: endfile+109↑j
+dobuff:                                 ; ...
                 lds     bx, cs:DOSINFO  ; ds:bx -> sysinitvar
                 mov     ax, cs:buffers
                 mov     [bx+3Fh], ax    ; [bx+SYSI_BUFFERS] ; set sysi_buffers
@@ -13946,7 +13369,7 @@ dobuff:                                 ; CODE XREF: endfile+109↑j
                 or      cs:setdevmarkflag, 2 ; for_devmark
                 call    round
 
-xif16:                                  ; CODE XREF: endfile+1CE↑j
+xif16:                                  ; ...
                 call    round           ; buf1
                 push    ax
                 mov     ax, 'L'         ; devmark_cds
@@ -13958,7 +13381,7 @@ xif16:                                  ; CODE XREF: endfile+1CE↑j
                 jnb     short gotncds   ; user setting must be at least numio
                 mov     cl, cs:NUM_CDS
 
-gotncds:                                ; CODE XREF: endfile+216↑j
+gotncds:                                ; ...
                 xor     ch, ch
                 mov     es:[di+21h], cl ; [es:di+SYSI_NCDS]
                 mov     ax, cs:memhi
@@ -13985,8 +13408,7 @@ gotncds:                                ; CODE XREF: endfile+216↑j
                 cmp     sys_model_byte, 0FEh ; pc1, pc/xt or pc portable ?
                 jnb     short skipstack
 
-doinstallstack:                         ; CODE XREF: endfile+25B↑j
-                                        ; endfile+262↑j
+doinstallstack:                         ; ...
                 mov     ax, stack_count ; stack_count = 0?
                 or      ax, ax          ; then, stack size must be 0 too.
                 jz      short skipstack ; don't install stack.
@@ -14031,8 +13453,7 @@ doinstallstack:                         ; CODE XREF: endfile+25B↑j
                 call    stackinit       ; initialize hardware stack.
                                         ; cs=ds=sysinitseg,es=relocated stack code & data
 
-skipstack:                              ; CODE XREF: endfile+269↑j
-                                        ; endfile+270↑j
+skipstack:                              ; ...
                 push    cs
                 pop     ds
                 assume ds:SYSINIT
@@ -14089,14 +13510,13 @@ skipstack:                              ; CODE XREF: endfile+269↑j
                 jmp     dosfts
 ; ---------------------------------------------------------------------------
 
-dosdata_umb_done:                       ; CODE XREF: endfile+2E3↑j
+dosdata_umb_done:                       ; ...
                 mov     ax, prev_memhi  ; (recent memory block/segment before UMBs)
                 mov     memhi, ax
                 mov     ax, prev_alloclim
                 mov     ALLOCLIM, ax
 
-dosdata_noumb:                          ; CODE XREF: endfile+2E5↑j
-                                        ; endfile+2EC↑j ...
+dosdata_noumb:                          ; ...
                 mov     al, FILES
                 xor     ah, ah          ; do not use cbw instruction!
                                         ; it does sign extend.
@@ -14109,7 +13529,7 @@ dosdata_noumb:                          ; CODE XREF: endfile+2E5↑j
                                         ; need output so we can print message
                                         ;  in case we can't get new one open.
 
-rcclloop:                               ; CODE XREF: endfile+37A↓j
+rcclloop:                               ; ...
                 mov     ah, 3Eh
                 int     21h             ; DOS - 2+ - CLOSE A FILE WITH HANDLE
                                         ; BX = file handle
@@ -14128,7 +13548,7 @@ rcclloop:                               ; CODE XREF: endfile+37A↓j
                 jmp     short goaux2
 ; ---------------------------------------------------------------------------
 
-goaux:                                  ; CODE XREF: endfile+386↑j
+goaux:                                  ; ...
                 push    ax
                 mov     bx, 1           ; close standard output
                 mov     ah, 3Eh
@@ -14143,7 +13563,7 @@ goaux:                                  ; CODE XREF: endfile+386↑j
                 int     21h             ; DOS - 2+ - CREATE DUPLICATE HANDLE (DUP)
                                         ; BX = file handle to duplicate
 
-goaux2:                                 ; CODE XREF: endfile+38B↑j
+goaux2:                                 ; ...
                 mov     dx, offset auxdev ; "AUX"
                 mov     al, 2           ; read/write access
                 call    open_dev
@@ -14180,7 +13600,7 @@ goaux2:                                 ; CODE XREF: endfile+38B↑j
                                         ; ScndIntController
                 jz      short finishrearm
 
-startrearm:                             ; CODE XREF: endfile+3CF↑j
+startrearm:                             ; ...
                 mov     al, 0FFh        ; write any pattern to port
                 mov     dx, 6F2h        ; get starting address
                 out     dx, al
@@ -14194,8 +13614,7 @@ startrearm:                             ; CODE XREF: endfile+3CF↑j
                 inc     dx
                 out     dx, al          ; out 06f7h,0ffh
 
-finishrearm:                            ; CODE XREF: endfile+3D5↑j
-                                        ; endfile+3DC↑j
+finishrearm:                            ; ...
                 pop     es
                 assume es:nothing
                 pop     dx
@@ -14287,8 +13706,7 @@ endfile         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-do_install_exec proc near               ; CODE XREF: doconf+16F↓p
-                                        ; doconf+19F↓p
+do_install_exec proc near               ; ...
                 push    si              ; EXEC a program being loaded via the
                                         ; "install=" mechanism in config.sys
                 push    es
@@ -14303,7 +13721,7 @@ do_install_exec proc near               ; CODE XREF: doconf+16F↓p
                 mov     cs:ldexec_start, 20h ; ' ' ; clear out the parm area
                 mov     di, offset ldexec_parm
 
-installfilename:                        ; CODE XREF: do_install_exec+18↓j
+installfilename:                        ; ...
                 lodsb                   ; skip the file name
                                         ; al = ds:si; si++
                 cmp     al, 0
@@ -14311,8 +13729,7 @@ installfilename:                        ; CODE XREF: do_install_exec+18↓j
                 jmp     short installfilename
 ; ---------------------------------------------------------------------------
 
-got_installparm:                        ; CODE XREF: do_install_exec+16↑j
-                                        ; do_install_exec+25↓j
+got_installparm:                        ; ...
                 lodsb                   ; copy the parameters to ldexec_parm
                 mov     es:[di], al
                 cmp     al, 0Ah         ; lf ; line feed?
@@ -14322,13 +13739,13 @@ got_installparm:                        ; CODE XREF: do_install_exec+16↑j
                 jmp     short got_installparm
 ; ---------------------------------------------------------------------------
 
-done_installparm:                       ; CODE XREF: do_install_exec+20↑j
+done_installparm:                       ; ...
                 mov     cs:ldexec_line, cl ; length of the parm.
                 cmp     cl, 0           ; if no parm,then
                 jnz     short install_seg_set ; let the parm area
                 mov     cs:ldexec_start, 0Dh ; cr ; starts with cr.
 
-install_seg_set:                        ; CODE XREF: do_install_exec+2F↑j
+install_seg_set:                        ; ...
                 mov     cs:0, 0         ; make a null environment segment
                 mov     ax, cs          ; by overlap jmp instruction of sysinitseg.
                 mov     cx, ax
@@ -14336,7 +13753,7 @@ install_seg_set:                        ; CODE XREF: do_install_exec+2F↑j
                 jz      short no_envdata2
                 mov     cx, cs:config_wrkseg
 
-no_envdata2:                            ; CODE XREF: do_install_exec+48↑j
+no_envdata2:                            ; ...
                 mov     cs:iexec_environ, cx ; [cs:instexe.exec0_environ]
                                         ; set the environment seg.
                 mov     cs:iexec_ldexec_line_seg, ax ; [cs:instexe.exec0_com_line+2]
@@ -14355,7 +13772,7 @@ do_install_exec endp                    ; load/exec function and check sum.
 
 ; ---------------------------------------------------------------------------
 
-sysinitptr:                             ; DATA XREF: endfile+427↑o
+sysinitptr:                             ; ...
                 pop     si              ; returning far address from sysinit_base
                                         ; restore si for config.sys file.
                 push    es
@@ -14368,14 +13785,13 @@ sysinitptr:                             ; DATA XREF: endfile+427↑o
                 call    badload         ; es:si-> path,filename,0.
                 pop     si
 
-install_exit_ret:                       ; CODE XREF: SYSINIT:1427↑j
+install_exit_ret:                       ; ...
                 retn
 
 ; =============== S U B R O U T I N E =======================================
 
 
-ParaRound       proc near               ; CODE XREF: TempCDS+14↑p
-                                        ; endfile+239↑p ...
+ParaRound       proc near               ; ...
                 add     ax, 15          ; round up length in paragraphs
                                         ; 0Fh
                 rcr     ax, 1
@@ -14387,7 +13803,7 @@ ParaRound       endp
 
 ; ---------------------------------------------------------------------------
 
-sysinit_base:                           ; DATA XREF: endfile+412↑o
+sysinit_base:                           ; ...
                 mov     word ptr cs:sysinit_base_ss, ss ; sysinit_base module
                 mov     word ptr cs:sysinit_base_sp, sp
                 int     21h             ; load/exec dos call.
@@ -14411,23 +13827,20 @@ sysinit_base:                           ; DATA XREF: endfile+412↑o
 ; START OF FUNCTION CHUNK FOR AllocMemForDOS
 ;   ADDITIONAL PARENT FUNCTION round
 
-stall:                                  ; CODE XREF: AllocMemForDOS+77↑j
-                                        ; SYSINIT:1469↓j ...
+stall:                                  ; ...
                 hlt                     ; use HLT to minimize energy consumption
 ; END OF FUNCTION CHUNK FOR AllocMemForDOS
 ; ---------------------------------------------------------------------------
                 jmp     short stall
 ; ---------------------------------------------------------------------------
 
-sysinit_base_end:                       ; CODE XREF: SYSINIT:1453↑j
-                                        ; SYSINIT:145D↑j
+sysinit_base_end:                       ; ...
                 jmp     dword ptr es:sysinit_ptr ; return back to sysinit module
 
 ; =============== S U B R O U T I N E =======================================
 
 
-sum_up          proc near               ; CODE XREF: do_install_exec+60↑p
-                                        ; SYSINIT:1455↑p
+sum_up          proc near               ; ...
                 push    ds
                 mov     ax, es:CONFBOT
                 mov     ds, ax
@@ -14439,13 +13852,13 @@ sum_up          proc near               ; CODE XREF: do_install_exec+60↑p
                 shr     cx, 1
                 jz      short sum_sys_code ; when config.sys file not exist.
 
-sum1:                                   ; CODE XREF: sum_up+18↓j
+sum1:                                   ; ...
                 add     ax, [si]
                 inc     si
                 inc     si
                 loop    sum1
 
-sum_sys_code:                           ; CODE XREF: sum_up+12↑j
+sum_sys_code:                           ; ...
                 mov     si, offset locstack ; 586h
                                         ; starting after the stack.
                                         ; this does not cover the possible stack code!
@@ -14455,7 +13868,7 @@ sum_sys_code:                           ; CODE XREF: sum_up+12↑j
                 sub     cx, si
                 shr     cx, 1
 
-sum2:                                   ; CODE XREF: sum_up+29↓j
+sum2:                                   ; ...
                 add     ax, es:[si]
                 inc     si
                 inc     si
@@ -14473,7 +13886,7 @@ mem_alloc_err_msgx db 0Dh,0Ah
 ; =============== S U B R O U T I N E =======================================
 
 
-set_buffer      proc near               ; CODE XREF: endfile+1C3↑p
+set_buffer      proc near               ; ...
                 xor     dl, dl          ; input:
                                         ;   ds:bx -> buffinfo.
                                         ;   [memhi]:[memlo=0] = available space for the hash bucket.
@@ -14487,7 +13900,7 @@ set_buffer      proc near               ; CODE XREF: endfile+1C3↑p
                 jz      short set_buff_1
                 mov     dl, 1           ; buffers in HMA
 
-set_buff_1:                             ; CODE XREF: set_buffer+5↑j
+set_buff_1:                             ; ...
                 mov     [bx], di        ; [bx+BUFFINF.Buff_Queue] ; head of Buff Q
                 mov     word ptr [bx+2], es ; [bx+BUFFINF.Buff_Queue+2]
                 mov     word ptr [bx+4], 0 ; [bx+BUFFINF.Dirty_Buff_Count] ; set dirty_count to 0.
@@ -14495,7 +13908,7 @@ set_buff_1:                             ; CODE XREF: set_buffer+5↑j
                 mov     cx, cs:buffers
                 push    di              ; remember first buffer
 
-nxt_buff:                               ; CODE XREF: set_buffer+20↓j
+nxt_buff:                               ; ...
                 call    set_buffer_info ; set buf_link,buf_id...
                 mov     di, ax
                 loop    nxt_buff
@@ -14514,7 +13927,7 @@ nxt_buff:                               ; CODE XREF: set_buffer+20↓j
                 sub     ax, 24          ; bufinsiz ; 24 ; buffer head not required
                                         ; (bufinsiz is 20 in MSDOS 6.21 IO.SYS)
 
-set_buff_2:                             ; CODE XREF: set_buffer+33↑j
+set_buff_2:                             ; ...
                 add     cs:memlo, ax
                 or      cs:setdevmarkflag, 2 ; for_devmark = 2
                 call    round
@@ -14525,7 +13938,7 @@ set_buffer      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-GetBufferAddr   proc near               ; CODE XREF: set_buffer+2↑p
+GetBufferAddr   proc near               ; ...
                 push    bx
                 push    dx
                 cmp     cs:dosdata_umb, 2 ; is dosdata moved to UMB ? (DOSDATA=UMB done)
@@ -14533,7 +13946,7 @@ GetBufferAddr   proc near               ; CODE XREF: set_buffer+2↑p
                 cmp     word ptr [bx+2], 0FFFFh ; is the buffer (already) in HMA ?
                 jz      short gba_2     ; yes
 
-gba_1:                                  ; CODE XREF: GetBufferAddr+8↑j
+gba_1:                                  ; ...
                 mov     ax, cs:singlebuffersize
                 mul     cs:buffers
                 add     ax, 0Fh         ; 15
@@ -14563,13 +13976,13 @@ gba_1:                                  ; CODE XREF: GetBufferAddr+8↑j
                                         ; 'inc di' would be most proper instruction here)
                 mov     es, cs:memhi
 
-got_hma:                                ; CODE XREF: GetBufferAddr+29↑j
+got_hma:                                ; ...
                 pop     dx
                 pop     bx
                 retn
 ; ---------------------------------------------------------------------------
 
-gba_2:                                  ; CODE XREF: GetBufferAddr+E↑j
+gba_2:                                  ; ...
                 les     di, [bx]
                 or      di, di
                 pop     dx
@@ -14581,7 +13994,7 @@ GetBufferAddr   endp
 ; =============== S U B R O U T I N E =======================================
 
 
-set_buffer_info proc near               ; CODE XREF: set_buffer:nxt_buff↑p
+set_buffer_info proc near               ; ...
                 push    cs:buf_prev_off ; es:di -> buffer header to be set.
                                         ; ax = di
                 pop     word ptr es:[di+2] ; [es:di+buffinfo.buf_prev]
@@ -14599,7 +14012,7 @@ set_buffer_info endp
 ; =============== S U B R O U T I N E =======================================
 
 
-stackinit       proc near               ; CODE XREF: endfile+2D9↑p
+stackinit       proc near               ; ...
                 push    ax              ; ibmstack initialization routine
                                         ; in - cs, ds -> sysinitseg,
                                         ;      es -> relocated stack code & data.
@@ -14646,7 +14059,7 @@ stackinit       proc near               ; CODE XREF: endfile+2D9↑p
                                         ; es:bp => base of stacks - 2
                                         ; es:bx => first table entry
 
-buildloop:                              ; CODE XREF: stackinit+82↓j
+buildloop:                              ; ...
                 mov     byte ptr es:[bp+0], 0 ; [es:bp+allocbyte],free
                 mov     es:[bp+1], al   ; [es:bp+intlevel]
                                         ; ax = 0
@@ -14671,7 +14084,7 @@ buildloop:                              ; CODE XREF: stackinit+82↓j
                 mov     al, 7           ; disable convertible nmis
                 out     72h, al         ; CMOS Memory/RTC Index Register (Extended RAM)
 
-skip_disablenmis:                       ; CODE XREF: stackinit+9B↑j
+skip_disablenmis:                       ; ...
                 xor     ax, ax
                 mov     es, ax
                 assume es:nothing
@@ -14730,8 +14143,7 @@ stkinit_0A:                             ; 0Ah*4 ; 40
                 assume es:nothing
                 jz      short int_0A_first
 
-int_0A_not_first:                       ; CODE XREF: stackinit+FA↑j
-                                        ; stackinit+100↑j
+int_0A_not_first:                       ; ...
                 pop     ds              ; not the first. we are going to hook vector.
                 mov     di, offset int19old0A ; we have to set old&aa for int19 handler too.
                 mov     bx, offset old0A ; pass where to save original owner pointer
@@ -14741,11 +14153,10 @@ int_0A_not_first:                       ; CODE XREF: stackinit+FA↑j
                 jmp     short stkinit_0B
 ; ---------------------------------------------------------------------------
 
-int_0A_first:                           ; CODE XREF: stackinit+EE↑j
-                                        ; stackinit+F3↑j ...
+int_0A_first:                           ; ...
                 pop     ds              ; the first. don't have to hook stack code.
 
-stkinit_0B:                             ; CODE XREF: stackinit+11F↑j
+stkinit_0B:                             ; ...
                 mov     si, 2Ch         ; Int 0Bh vector table offset
                 push    ds
                 lds     bx, es:[si]
@@ -14770,8 +14181,7 @@ stkinit_0B:                             ; CODE XREF: stackinit+11F↑j
                 assume es:nothing
                 jz      short int_0B_first
 
-int_0B_not_first:                       ; CODE XREF: stackinit+13A↑j
-                                        ; stackinit+140↑j
+int_0B_not_first:                       ; ...
                 pop     ds
                 mov     di, offset int19old0B
                 mov     bx, offset old0B
@@ -14780,11 +14190,10 @@ int_0B_not_first:                       ; CODE XREF: stackinit+13A↑j
                 jmp     short stkinit_0C
 ; ---------------------------------------------------------------------------
 
-int_0B_first:                           ; CODE XREF: stackinit+12E↑j
-                                        ; stackinit+133↑j ...
+int_0B_first:                           ; ...
                 pop     ds
 
-stkinit_0C:                             ; CODE XREF: stackinit+15F↑j
+stkinit_0C:                             ; ...
                 mov     si, 30h         ; Int 0Ch vector table offset
                 push    ds
                 lds     bx, es:[si]
@@ -14809,8 +14218,7 @@ stkinit_0C:                             ; CODE XREF: stackinit+15F↑j
                 assume es:nothing
                 jz      short int_0C_first
 
-int_0C_not_first:                       ; CODE XREF: stackinit+17A↑j
-                                        ; stackinit+180↑j
+int_0C_not_first:                       ; ...
                 pop     ds
                 mov     di, offset int19old0C
                 mov     bx, offset old0C
@@ -14819,11 +14227,10 @@ int_0C_not_first:                       ; CODE XREF: stackinit+17A↑j
                 jmp     short stkinit_0D
 ; ---------------------------------------------------------------------------
 
-int_0C_first:                           ; CODE XREF: stackinit+16E↑j
-                                        ; stackinit+173↑j ...
+int_0C_first:                           ; ...
                 pop     ds
 
-stkinit_0D:                             ; CODE XREF: stackinit+19F↑j
+stkinit_0D:                             ; ...
                 mov     si, 34h         ; Int 0Dh vector table offset
                 push    ds
                 lds     bx, es:[si]
@@ -14848,8 +14255,7 @@ stkinit_0D:                             ; CODE XREF: stackinit+19F↑j
                 assume es:nothing
                 jz      short int_0D_first
 
-int_0D_not_first:                       ; CODE XREF: stackinit+1BA↑j
-                                        ; stackinit+1C0↑j
+int_0D_not_first:                       ; ...
                 pop     ds
                 mov     di, offset int19old0D
                 mov     bx, offset old0D
@@ -14858,11 +14264,10 @@ int_0D_not_first:                       ; CODE XREF: stackinit+1BA↑j
                 jmp     short stkinit_0E
 ; ---------------------------------------------------------------------------
 
-int_0D_first:                           ; CODE XREF: stackinit+1AE↑j
-                                        ; stackinit+1B3↑j ...
+int_0D_first:                           ; ...
                 pop     ds
 
-stkinit_0E:                             ; CODE XREF: stackinit+1DF↑j
+stkinit_0E:                             ; ...
                 mov     si, 38h         ; 0Eh*4 ; Int 0Eh vector table offset
                 push    ds
                 lds     bx, es:[si]
@@ -14887,8 +14292,7 @@ stkinit_0E:                             ; CODE XREF: stackinit+1DF↑j
                 assume es:nothing
                 jz      short int_0E_first
 
-int_0E_not_first:                       ; CODE XREF: stackinit+1FA↑j
-                                        ; stackinit+200↑j
+int_0E_not_first:                       ; ...
                 pop     ds
                 mov     di, offset int19old0E
                 mov     bx, offset old0E
@@ -14897,11 +14301,10 @@ int_0E_not_first:                       ; CODE XREF: stackinit+1FA↑j
                 jmp     short stkinit_72
 ; ---------------------------------------------------------------------------
 
-int_0E_first:                           ; CODE XREF: stackinit+1EE↑j
-                                        ; stackinit+1F3↑j ...
+int_0E_first:                           ; ...
                 pop     ds
 
-stkinit_72:                             ; CODE XREF: stackinit+21F↑j
+stkinit_72:                             ; ...
                 mov     si, 1C8h        ; 72h*4 ; 456
                                         ; Int 72h vector table offset
                 push    ds
@@ -14927,8 +14330,7 @@ stkinit_72:                             ; CODE XREF: stackinit+21F↑j
                 assume es:nothing
                 jz      short int_72_first
 
-int_72_not_first:                       ; CODE XREF: stackinit+23A↑j
-                                        ; stackinit+240↑j
+int_72_not_first:                       ; ...
                 pop     ds
                 mov     di, offset int19old72
                 mov     bx, offset old72
@@ -14937,11 +14339,10 @@ int_72_not_first:                       ; CODE XREF: stackinit+23A↑j
                 jmp     short stkinit_73
 ; ---------------------------------------------------------------------------
 
-int_72_first:                           ; CODE XREF: stackinit+22E↑j
-                                        ; stackinit+233↑j ...
+int_72_first:                           ; ...
                 pop     ds
 
-stkinit_73:                             ; CODE XREF: stackinit+25F↑j
+stkinit_73:                             ; ...
                 mov     si, 1CCh        ; 73h*4 ; 460
                 push    ds
                 lds     bx, es:[si]
@@ -14966,8 +14367,7 @@ stkinit_73:                             ; CODE XREF: stackinit+25F↑j
                 assume es:nothing
                 jz      short int_73_first
 
-int_73_not_first:                       ; CODE XREF: stackinit+27A↑j
-                                        ; stackinit+280↑j
+int_73_not_first:                       ; ...
                 pop     ds
                 mov     di, offset int19old73
                 mov     bx, offset old73
@@ -14976,11 +14376,10 @@ int_73_not_first:                       ; CODE XREF: stackinit+27A↑j
                 jmp     short stkinit_74
 ; ---------------------------------------------------------------------------
 
-int_73_first:                           ; CODE XREF: stackinit+26E↑j
-                                        ; stackinit+273↑j ...
+int_73_first:                           ; ...
                 pop     ds
 
-stkinit_74:                             ; CODE XREF: stackinit+29F↑j
+stkinit_74:                             ; ...
                 mov     si, 1D0h
                 push    ds
                 lds     bx, es:[si]
@@ -15005,8 +14404,7 @@ stkinit_74:                             ; CODE XREF: stackinit+29F↑j
                 assume es:nothing
                 jz      short int_74_first
 
-int_74_not_first:                       ; CODE XREF: stackinit+2BA↑j
-                                        ; stackinit+2C0↑j
+int_74_not_first:                       ; ...
                 pop     ds
                 mov     di, offset int19old74
                 mov     bx, offset old74
@@ -15015,11 +14413,10 @@ int_74_not_first:                       ; CODE XREF: stackinit+2BA↑j
                 jmp     short stkinit_76
 ; ---------------------------------------------------------------------------
 
-int_74_first:                           ; CODE XREF: stackinit+2AE↑j
-                                        ; stackinit+2B3↑j ...
+int_74_first:                           ; ...
                 pop     ds
 
-stkinit_76:                             ; CODE XREF: stackinit+2DF↑j
+stkinit_76:                             ; ...
                 mov     si, 1D8h        ; 76h*4 ; 472
                 push    ds
                 lds     bx, es:[si]
@@ -15044,8 +14441,7 @@ stkinit_76:                             ; CODE XREF: stackinit+2DF↑j
                 assume es:nothing
                 jz      short int_76_first
 
-int_76_not_first:                       ; CODE XREF: stackinit+2FA↑j
-                                        ; stackinit+300↑j
+int_76_not_first:                       ; ...
                 pop     ds
                 mov     di, offset int19old76
                 mov     bx, offset old76
@@ -15054,11 +14450,10 @@ int_76_not_first:                       ; CODE XREF: stackinit+2FA↑j
                 jmp     short stkinit_77
 ; ---------------------------------------------------------------------------
 
-int_76_first:                           ; CODE XREF: stackinit+2EE↑j
-                                        ; stackinit+2F3↑j ...
+int_76_first:                           ; ...
                 pop     ds
 
-stkinit_77:                             ; CODE XREF: stackinit+31F↑j
+stkinit_77:                             ; ...
                 mov     si, 1DCh        ; mov si,77h*4 ; 476
                                         ; Int 77h vector table offset
                 push    ds              ; save relocated stack code segment
@@ -15084,8 +14479,7 @@ stkinit_77:                             ; CODE XREF: stackinit+31F↑j
                 assume es:nothing
                 jz      short int_77_first
 
-int_77_not_first:                       ; CODE XREF: stackinit+33A↑j
-                                        ; stackinit+340↑j
+int_77_not_first:                       ; ...
                 pop     ds              ; not the first. we are going to hook vector.
                 mov     di, offset int19old77 ; we have to set old&aa for int19 handler too.
                 mov     bx, offset old77 ; pass where to save original owner pointer
@@ -15095,11 +14489,10 @@ int_77_not_first:                       ; CODE XREF: stackinit+33A↑j
                 jmp     short int_77_end
 ; ---------------------------------------------------------------------------
 
-int_77_first:                           ; CODE XREF: stackinit+32E↑j
-                                        ; stackinit+333↑j ...
+int_77_first:                           ; ...
                 pop     ds              ; the first. don't have to hook stack code.
 
-int_77_end:                             ; CODE XREF: stackinit+35F↑j
+int_77_end:                             ; ...
                 push    ds
                 mov     ax, 0F000h
                 mov     ds, ax
@@ -15111,7 +14504,7 @@ int_77_end:                             ; CODE XREF: stackinit+35F↑j
                 mov     al, 27h         ; enable convertible nmis
                 out     72h, al         ; CMOS Memory/RTC Index Register (Extended RAM)
 
-skip_enablenmis:                        ; CODE XREF: stackinit+36E↑j
+skip_enablenmis:                        ; ...
                 sti
                 mov     ax, 70h         ; DOSBIODATASEG
                 mov     ds, ax
@@ -15135,8 +14528,7 @@ stackinit       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-new_init_loop   proc near               ; CODE XREF: stackinit+B2↑p
-                                        ; stackinit+C1↑p ...
+new_init_loop   proc near               ; ...
                 cmp     cs:dosdata_umb, 2 ; is DOSDATA=UMB done ? (DOSDATA is in UMB)
                 jnz     short new_init_loop_1st
                 push    ds              ; restore original/previous interrupt handler
@@ -15150,7 +14542,7 @@ new_init_loop   proc near               ; CODE XREF: stackinit+B2↑p
                 mov     word ptr es:[si+2], ds
                 pop     ds
 
-new_init_loop_1st:                      ; CODE XREF: new_init_loop+6↑j
+new_init_loop_1st:                      ; ...
                 mov     ax, es:[si]     ; new stack initialization
                                         ; (dx = new handler offset,
                                         ;  bx = original handler saving addr,
@@ -15180,8 +14572,7 @@ new_init_loop   endp
 ; =============== S U B R O U T I N E =======================================
 
 
-setdevmark      proc near               ; CODE XREF: endfile+3C↑p
-                                        ; endfile+92↑p ...
+setdevmark      proc near               ; ...
                 push    es              ; set the devmark for mem command.
                                         ; in:
                                         ;   [memhi] - the address to place devmark
@@ -15205,15 +14596,12 @@ setdevmark      proc near               ; CODE XREF: endfile+3C↑p
 setdevmark      endp
 
 ; ---------------------------------------------------------------------------
-MagicDDNamePtr  dw offset MagicDDName   ; DATA XREF: SYSINIT:wait_for_key_2s↑w
-                                        ; MagicPreload+28↓r
+MagicDDNamePtr  dw offset MagicDDName   ; ...
                                         ; "\\DBLSPACE.BIN"
                 db 'C:'
-MagicDDName     db '\DBLSPACE.BIN',0    ; DATA XREF: SYSINIT:set_drvspc_size↑o
-                                        ; SYSINIT:MagicDDNamePtr↑o ...
-StackerName     db 'C:\STACKER.BIN',0   ; DATA XREF: SYSINIT:set_stacker_name↑o
-                                        ; SYSINIT:0780↑o
-tiny_stub_start dw 0FFFFh               ; DATA XREF: MagicPostload+38↓o
+MagicDDName     db '\DBLSPACE.BIN',0    ; ...
+StackerName     db 'C:\STACKER.BIN',0   ; ...
+tiny_stub_start dw 0FFFFh               ; ...
                                         ; phony device driver link
                 dw 0FFFFh               ; dw -1, -1
                 dw 8000h                ; mark as character device for MEM display
@@ -15224,7 +14612,7 @@ tiny_stub_start dw 0FFFFh               ; DATA XREF: MagicPostload+38↓o
 ; =============== S U B R O U T I N E =======================================
 
 
-MagicPreload    proc near               ; CODE XREF: SYSINIT:07DA↑p
+MagicPreload    proc near               ; ...
                 mov     cs:setdevmarkflag, 0 ; not for devmark
                 call    round
                 push    cs
@@ -15276,19 +14664,17 @@ _LoadDev:                               ; we're golden if not
                 mov     dx, offset baddblspace ; "Required system component is not instal"...
                 call    print           ; display the message
 
-fail_driver_load:                       ; CODE XREF: MagicPreload+95↓j
+fail_driver_load:                       ; ...
                 mov     word ptr cs:MagicBackdoor+2, cs
                 mov     word ptr cs:MagicBackdoor, offset NullBackdoor
 
-pre_exit_err:                           ; CODE XREF: MagicPreload+1D↑j
-                                        ; MagicPreload+24↑j ...
+pre_exit_err:                           ; ...
                 mov     ax, 40h         ; SYSPRE_BADFILE_ERROR
                                         ; (problem loading dblspace.bin)
                 retn
 ; ---------------------------------------------------------------------------
 
-no_driver_version_fail:                 ; CODE XREF: MagicPreload+6F↑j
-                                        ; MagicPreload+79↑j
+no_driver_version_fail:                 ; ...
                 or      ax, ax          ; error code returned?
                 jnz     short fail_driver_load
 
@@ -15311,7 +14697,7 @@ magic_is_resident:
                 call    cs:MagicBackdoor
                 mov     word ptr cs:DevBrkAddr+2, ax ; save end of low stub
 
-cant_move_driver:                       ; CODE XREF: MagicPreload+C2↑j
+cant_move_driver:                       ; ...
                 mov     ax, word ptr cs:DevBrkAddr+2 ; get terminate segment
                 cmp     ax, cs:DevLoadEnd ; terminate size TOO big?
                 ja      short pre_exit_err ; error out if so
@@ -15341,7 +14727,7 @@ _isblock:                               ; if no units found, erase the device
                 jmp     pre_exit_err
 ; ---------------------------------------------------------------------------
 
-_ok_block:                              ; CODE XREF: MagicPreload+114↑j
+_ok_block:                              ; ...
                 mov     es:[di+20h], ah ; [es:di+SYSI_NUMIO] ; update the amount
                 lds     bx, cs:bpb_addr ; point to bpb array (*)
                 xor     dh, dh
@@ -15352,7 +14738,7 @@ _perunit:
                                         ; get first dpb
                                         ; [es:bp+SysInitvars.SYSI_DPB] ; [es:bp+0]
 
-_scandpb:                               ; CODE XREF: MagicPreload+138↓j
+_scandpb:                               ; ...
                 cmp     word ptr es:[bp+19h], 0FFFFh ; -1 ; es:[bp.dpb_next_dpb]
                 jz      short _foundpb
                 les     bp, es:[bp+19h] ; les bp,es:[bp.dpb_next_dpb]
@@ -15360,8 +14746,7 @@ _scandpb:                               ; CODE XREF: MagicPreload+138↓j
                 jmp     short _scandpb
 ; ---------------------------------------------------------------------------
 
-_foundpb:                               ; CODE XREF: MagicPreload+132↑j
-                                        ; MagicPreload+1C4↓j
+_foundpb:                               ; ...
                 mov     ax, word ptr cs:DevBrkAddr
                 mov     es:[bp+19h], ax ; es:[bp.dpb_next_dpb] ; DPB.NEXT_DPB
                 mov     ax, word ptr cs:DevBrkAddr+2
@@ -15395,7 +14780,7 @@ _foundpb:                               ; CODE XREF: MagicPreload+132↑j
                 mov     es:[bp+21h], cx ; DPB.FREE_CNT+2 (-1 = unknown)
                 mov     cx, 4558h       ; CX = signature 4558h ('EX') for FAT32 extended BPB/DPB
 
-_setdpb:                                ; CODE XREF: MagicPreload+17B↑j
+_setdpb:                                ; ...
                 mov     ah, 53h         ; SETDPB ; hidden system call
                 int     21h             ; DOS - 2+ internal - TRANSLATE BIOS PARAMETER BLOCK
                                         ; DS:SI -> BPB (BIOS Parameter Block)
@@ -15414,7 +14799,7 @@ _setdpb:                                ; CODE XREF: MagicPreload+17B↑j
                 retn
 ; ---------------------------------------------------------------------------
 
-_iblk_1:                                ; CODE XREF: MagicPreload+1A6↑j
+_iblk_1:                                ; ...
                 push    ds
                 lds     ax, cs:DevEntry
                 mov     es:[bp+13h], ax ; [es:bp+DPB.DRIVER_ADDR]
@@ -15430,7 +14815,7 @@ _iblk_1:                                ; CODE XREF: MagicPreload+1A6↑j
                 jmp     _foundpb
 ; ---------------------------------------------------------------------------
 
-_linkit:                                ; CODE XREF: MagicPreload+1C2↑j
+_linkit:                                ; ...
                 push    cs
                 pop     ds
                 assume ds:SYSINIT
@@ -15462,7 +14847,7 @@ MagicPreload    endp
 ; =============== S U B R O U T I N E =======================================
 
 
-MagicPostload   proc near               ; CODE XREF: SYSINIT:088B↑p
+MagicPostload   proc near               ; ...
                 call    get_dblspace_version ; is it there?
                 jnz     short no_magic  ; done if not
                 test    dx, 8000h       ; is it already permanent?
@@ -15506,8 +14891,7 @@ MagicPostload   proc near               ; CODE XREF: SYSINIT:088B↑p
                 call    DevSetBreak     ; go ahead and alloc mem for device
                 call    DevBreak
 
-no_magic:                               ; CODE XREF: MagicPostload+3↑j
-                                        ; MagicPostload+9↑j
+no_magic:                               ; ...
                 retn
 MagicPostload   endp
 
@@ -15515,7 +14899,7 @@ MagicPostload   endp
 ; =============== S U B R O U T I N E =======================================
 
 
-MagicSetCdss    proc near               ; CODE XREF: SYSINIT:0891↑p
+MagicSetCdss    proc near               ; ...
                 call    get_dblspace_version ; is it there?
                 jnz     short magic_set_exit ; done if not
                                         ; ...
@@ -15532,7 +14916,7 @@ MagicSetCdss    proc near               ; CODE XREF: SYSINIT:0891↑p
                 mov     cl, ch          ; get DblSpace drive count into cx
                 xor     ch, ch
 
-magic_set_cdss_1:                       ; CODE XREF: MagicSetCdss+3C↓j
+magic_set_cdss_1:                       ; ...
                 push    cx
                 push    dx
                 push    ds
@@ -15551,12 +14935,12 @@ magic_set_cdss_1:                       ; CODE XREF: MagicSetCdss+3C↓j
                                         ; [si+curdir_list.cdir_flags],~curdir_inuse ; word
                                         ; (.. [si+1+curdir_list.cdir_flags],0BFh ; byte)
 
-magic_set_cdss_2:                       ; CODE XREF: MagicSetCdss+30↑j
+magic_set_cdss_2:                       ; ...
                 add     si, 88          ; curdirLen
                 inc     dl              ; next drive
                 loop    magic_set_cdss_1
 
-magic_set_exit:                         ; CODE XREF: MagicSetCdss+3↑j
+magic_set_exit:                         ; ...
                 retn
 MagicSetCdss    endp
 
@@ -15564,8 +14948,7 @@ MagicSetCdss    endp
 ; =============== S U B R O U T I N E =======================================
 
 
-get_dblspace_version proc near          ; CODE XREF: MagicPostload↑p
-                                        ; MagicSetCdss↑p ...
+get_dblspace_version proc near          ; ...
                 mov     ax, 4A11h       ; multMagicdrv
                                         ; DBLSPACE.BIN - "GetVersion" - INSTALLATION CHECK
                                         ; (BX = 0)
@@ -15584,97 +14967,74 @@ get_dblspace_version endp
 
 ; ---------------------------------------------------------------------------
                 db 0
-config_envlen   dw 0                    ; DATA XREF: SYSINIT:096B↑r
-                                        ; SYSINIT:09DA↑r ...
+config_envlen   dw 0                    ; ...
                                         ; when config_wrkseg is being used as
                                         ; a scratch env, this is its length
-config_wrkseg   dw 0                    ; DATA XREF: SYSINIT:0971↑r
-                                        ; SYSINIT:09E0↑r ...
+config_wrkseg   dw 0                    ; ...
                                         ; config work area (above confbot)
                                         ; segment of work area
-config_cmd      db 0                    ; DATA XREF: SYSINIT:0915↑w
-                                        ; doconf+DD↓w ...
+config_cmd      db 0                    ; ...
                                         ; current config cmd
                                         ; (with CONFIG_OPTION_QUERY bit intact)
-config_multi    db 0                    ; DATA XREF: doconf+E2↓r
-                                        ; copy_block+52↓r ...
+config_multi    db 0                    ; ...
                                         ; non-zero if multi-config config.sys
-multdeviceflag  db 0                    ; DATA XREF: doconf+CF↓w
-                                        ; doconf+453↓r ...
-devmark_addr    dw 0                    ; DATA XREF: setdevmark+7↑w
-                                        ; round+29↓r
+multdeviceflag  db 0                    ; ...
+devmark_addr    dw 0                    ; ...
                                         ; segment address for devmark.
-setdevmarkflag  db 0                    ; DATA XREF: endfile+7C↑w
-                                        ; endfile+DA↑w ...
+setdevmarkflag  db 0                    ; ...
                                         ; flag used for devmark
-drivers_units   db 0                    ; DATA XREF: doconf+3B1↓w
-                                        ; doconf+54C↓w ...
+drivers_units   db 0                    ; ...
                                         ; total unitcount for driver
 ems_stub_installed db 0                 ; (not used)
-badparm_ptr     dd 0                    ; DATA XREF: doconf+30A↓w
-                                        ; doconf+327↓w ...
+badparm_ptr     dd 0                    ; ...
                                         ; badparm_off equ badparm_ptr
                                         ; badparm_seg equ badparm_ptr+2
-_$P_ORDINAL     dw 0                    ; DATA XREF: SysParse+8↓w
-                                        ; SysParse+DC↓r ...
+_$P_ORDINAL     dw 0                    ; ...
                                         ; Operand ordinal save area
-_$P_RC          dw 0                    ; DATA XREF: SysParse+D↓w
-                                        ; SysParse:_$P_Too_Many_Error↓w ...
+_$P_RC          dw 0                    ; ...
                                         ; Return code from parser
-_$P_SI_Save     dw 0                    ; DATA XREF: SysParse:_$P_Pack_End↓w
-                                        ; SysParse+162↓r ...
+_$P_SI_Save     dw 0                    ; ...
                                         ; Pointer of command buffer
-_$P_DX          dw 0                    ; DATA XREF: SysParse+1B↓w
-                                        ; SysParse+167↓r ...
+_$P_DX          dw 0                    ; ...
                                         ; Return result buffer address
-_$P_Terminator  db 0                    ; DATA XREF: SysParse+16C↓r
-                                        ; _$P_File_Format:_$P_FileF00↓w ...
+_$P_Terminator  db 0                    ; ...
                                         ; Terminator code (ASCII)
-_$P_DBCSEV_OFF  dw 0                    ; DATA XREF: _$P_Chk_DBCS+28↓w
-                                        ; _$P_Chk_DBCS:_$P_DBCS00↓r
+_$P_DBCSEV_OFF  dw 0                    ; ...
                                         ; Offset of DBCS EV
-_$P_DBCSEV_SEG  dw 0                    ; DATA XREF: _$P_Chk_DBCS+3↓r
-                                        ; _$P_Chk_DBCS+2D↓w
+_$P_DBCSEV_SEG  dw 0                    ; ...
                                         ; Segment of DBCS EV
-_$P_Flags       db 0                    ; DATA XREF: SysParse↓w
+_$P_Flags       db 0                    ; ...
                                         ; Parser internal flags
                                         ; %define _$P_Flags1 _$P_Flags
                                         ;         to reference 1st byte flags
                                         ; %define _$P_Flags2 _$P_Flags+1
                                         ;         to reference 2nd byte flags only
-_$P_Flags2      db 0                    ; DATA XREF: SysParse+62↓r
-                                        ; SysParse+7A↓r ...
-_$P_SaveSI_Cmpx dw 0                    ; DATA XREF: SysParse:_$P_Start↓w
-                                        ; _$P_Chk_SW_Control+18↓w ...
+_$P_Flags2      db 0                    ; ...
+_$P_SaveSI_Cmpx dw 0                    ; ...
                                         ; save si for later use by complex
-_$P_KEYorSW_Ptr dw 0                    ; DATA XREF: _$P_Chk_SW_Control+12↓r
-                                        ; _$P_Chk_SW_Control+1E↓r ...
+_$P_KEYorSW_Ptr dw 0                    ; ...
                                         ; points next to "=" or ":" code
-_$P_Save_EOB    dw 0                    ; DATA XREF: SysParse+B6↓w
+_$P_Save_EOB    dw 0                    ; ...
                                         ; save pointer to EOB
-_$P_Found_SYNONYM dw 0                  ; DATA XREF: SysParse+14↓w
-                                        ; _$P_Search_KEYorSW:_$P_KEYorSW_Found↓w ...
+_$P_Found_SYNONYM dw 0                  ; ...
                                         ; es:@ points to found synonym
-_$P_STRING_BUF  db 128 dup(0)           ; DATA XREF: SysParse+5E↓o
-                                        ; SysParse+BE↓o ...
+_$P_STRING_BUF  db 128 dup(0)           ; ...
                                         ; Pick a operand from command line
-_$P_Char_CAP_Ptr db 0FFh                ; DATA XREF: _$P_Do_CAPS_Char+12↓o
+_$P_Char_CAP_Ptr db 0FFh                ; ...
                                         ; info id
                 dw 0                    ; offset of char case map table
                 dw 0                    ; segment of char case map table
-_$P_FileSp_Char db '[]|<>+=;"'          ; DATA XREF: SysParse+22↓w
-                                        ; _$P_FileSp_Chk+2↓o ...
+_$P_FileSp_Char db '[]|<>+=;"'          ; ...
                                         ; delimitters of file spec
                                         ; _$P_FileSp_Len equ $-_$P_FileSp_Char
-_$P_err_flag    db 0                    ; DATA XREF: _$P_Check_Match_Flags↓w
-                                        ; _$P_Check_Match_Flags:_$P_Match_Exit↓r ...
+_$P_err_flag    db 0                    ; ...
                                         ; flag set if filespec parsing error
                                         ; was detected.
 
 ; =============== S U B R O U T I N E =======================================
 
 
-SysParse        proc near               ; CODE XREF: sysinit_parse+13↓p
+SysParse        proc near               ; ...
 
 ; FUNCTION CHUNK AT 1E12 SIZE 00000069 BYTES
 
@@ -15700,12 +15060,12 @@ SysParse        proc near               ; CODE XREF: sysinit_parse+13↓p
                 jnb     short _$P_Fin   ; positional found.
                 mov     ax, 2           ; $P_Op_Missing ; If no, set exit code to missing operand
 
-_$P_Fin:                                ; CODE XREF: SysParse+4D↑j
+_$P_Fin:                                ; ...
                 pop     bx
                 jmp     _$P_Single_Exit ; return to the caller
 ; ---------------------------------------------------------------------------
 
-_$P_Start:                              ; CODE XREF: SysParse+41↑j
+_$P_Start:                              ; ...
                 mov     cs:_$P_SaveSI_Cmpx, si ; save ptr to command line for later use
                                         ; by complex quoted string or file spec.
                 push    bx
@@ -15715,8 +15075,7 @@ _$P_Start:                              ; CODE XREF: SysParse+41↑j
                 test    cs:_$P_Flags2, 20h ; _$P_Extra ; 3/9 extra delimiter encountered ?
                 jnz     short _$P_Pack_End ; 3/9 if yes, no need to copy
 
-_$P_Pack_Loop:                          ; CODE XREF: SysParse+A3↓j
-                                        ; SysParse+AA↓j
+_$P_Pack_Loop:                          ; ...
                 lodsb                   ; Pick a operand from buffer
                 call    _$P_Chk_Switch  ; Check switch character
                 jb      short _$P_Pack_End_BY_EOL ; if carry set found delimiter type slash,
@@ -15731,20 +15090,20 @@ _$P_Pack_Loop:                          ; CODE XREF: SysParse+A3↓j
                 jmp     short _$P_Pack_End ; finish copy by placing NUL at end
 ; ---------------------------------------------------------------------------
 
-_$P_Pack_End_backup_si:                 ; CODE XREF: SysParse+80↑j
+_$P_Pack_End_backup_si:                 ; ...
                 test    cs:_$P_Flags2, 41h ; _$P_SW+_$P_equ
                 jz      short _$P_Pack_End
                 dec     si
                 jmp     short _$P_Pack_End
 ; ---------------------------------------------------------------------------
 
-_$P_PL01:                               ; CODE XREF: SysParse+78↑j
+_$P_PL01:                               ; ...
                 mov     cs:[bx], al     ; move byte to STRING_BUF
                 cmp     al, 3Dh ; '='   ; _$P_Keyword ; if it is equal character,
                 jnz     short _$P_PL00  ; then
                 or      cs:_$P_Flags2, 1 ; _$P_equ ; remember it in flag
 
-_$P_PL00:                               ; CODE XREF: SysParse+97↑j
+_$P_PL00:                               ; ...
                 inc     bx              ; ready to see next byte
                 call    _$P_Chk_DBCS    ; was it 1st byte of DBCS ?
                 jnb     short _$P_Pack_Loop ; if no, process to next byte
@@ -15754,12 +15113,10 @@ _$P_PL00:                               ; CODE XREF: SysParse+97↑j
                 jmp     short _$P_Pack_Loop ; process to next byte
 ; ---------------------------------------------------------------------------
 
-_$P_Pack_End_BY_EOL:                    ; CODE XREF: SysParse+6E↑j
-                                        ; SysParse+73↑j
+_$P_Pack_End_BY_EOL:                    ; ...
                 dec     si              ; backup si pointer
 
-_$P_Pack_End:                           ; CODE XREF: SysParse+68↑j
-                                        ; SysParse+85↑j ...
+_$P_Pack_End:                           ; ...
                 mov     cs:_$P_SI_Save, si ; save next pointer, SI
                 mov     byte ptr cs:[bx], 0 ; _$P_NULL ; put NULL at the end
                 mov     cs:_$P_Save_EOB, bx ; keep the address for later use of complex
@@ -15774,7 +15131,7 @@ _$P_Pack_End:                           ; CODE XREF: SysParse+68↑j
                 test    cs:_$P_Flags2, 1 ; $P_equ ; the operand includes equal
                 jnz     short _$P_Key_Manager ; if yes, process as keyword
 
-_$P_Positional_Manager:                 ; CODE XREF: SysParse+CC↑j
+_$P_Positional_Manager:                 ; ...
                 mov     al, es:[bx+1]   ; else process as positional
                                         ; get maxp
                 xor     ah, ah          ; ax = maxp
@@ -15791,7 +15148,7 @@ _$P_Positional_Manager:                 ; CODE XREF: SysParse+CC↑j
                 jmp     short _$P_Return_to_Caller ; and return to the caller
 ; ---------------------------------------------------------------------------
 
-_$P_Too_Many_Error:                     ; CODE XREF: SysParse+E1↑j
+_$P_Too_Many_Error:                     ; ...
                 mov     cs:_$P_RC, 1    ; set exit code
                 jmp     short _$P_Return_to_Caller ; and return to the caller
 SysParse        endp
@@ -15800,8 +15157,7 @@ SysParse        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-get_maxp        proc near               ; CODE XREF: SysParse:_$P_SW_Manager↓p
-                                        ; SysParse:_$P_Key_Manager↓p
+get_maxp        proc near               ; ...
                 mov     al, es:[bx+1]   ; [es:bx+_$P_PARMSX_Blk.MaxP] ; get maxp
                 xor     ah, ah
                 inc     ax
@@ -15813,7 +15169,7 @@ get_maxp        endp
 ; ---------------------------------------------------------------------------
 ; START OF FUNCTION CHUNK FOR SysParse
 
-_$P_SW_Manager:                         ; CODE XREF: SysParse+C6↑j
+_$P_SW_Manager:                         ; ...
                 call    get_maxp
                 mov     cl, es:[bx]
                 xor     ch, ch          ; cx = maxs
@@ -15821,7 +15177,7 @@ _$P_SW_Manager:                         ; CODE XREF: SysParse+C6↑j
                 jcxz    short _$P_SW_Not_Found ; no
                 inc     bx              ; now bx points to 1st CONTROL address
 
-_$P_SW_Mgr_Loop:                        ; CODE XREF: SysParse+121↓j
+_$P_SW_Mgr_Loop:                        ; ...
                 push    bx
                 mov     bx, es:[bx]     ; bx points to Switch CONTROL itself
                 call    _$P_Chk_SW_Control
@@ -15833,13 +15189,13 @@ _$P_SW_Mgr_Loop:                        ; CODE XREF: SysParse+121↓j
                                         ; else bx points to the next CONTROL
                 loop    _$P_SW_Mgr_Loop ; and loop
 
-_$P_SW_Not_Found:                       ; CODE XREF: SysParse+112↑j
+_$P_SW_Not_Found:                       ; ...
                 mov     cs:_$P_RC, 3    ; _$P_Not_In_SW
                                         ; here no CONTROL for the switch has
                 jmp     short _$P_Return_to_Caller
 ; ---------------------------------------------------------------------------
 
-_$P_Key_Manager:                        ; CODE XREF: SysParse+D4↑j
+_$P_Key_Manager:                        ; ...
                 call    get_maxp
                 mov     al, es:[bx]
                 xor     ah, ah          ; ax = maxs
@@ -15851,7 +15207,7 @@ _$P_Key_Manager:                        ; CODE XREF: SysParse+D4↑j
                 jcxz    short _$P_Key_Not_Found ; no
                 inc     bx              ; now bx points to 1st CONTROL
 
-_$P_Key_Mgr_Loop:                       ; CODE XREF: SysParse+14D↓j
+_$P_Key_Mgr_Loop:                       ; ...
                 push    bx
                 mov     bx, es:[bx]     ; bx points to keyword CONTROL itself
                 call    _$P_Chk_Key_Control ; do process for keyword
@@ -15863,12 +15219,11 @@ _$P_Key_Mgr_Loop:                       ; CODE XREF: SysParse+14D↓j
                                         ; else bx points to the next CONTROL
                 loop    _$P_Key_Mgr_Loop ; and loop
 
-_$P_Key_Not_Found:                      ; CODE XREF: SysParse+13E↑j
+_$P_Key_Not_Found:                      ; ...
                 mov     cs:_$P_RC, 4    ; _$P_Not_In_Key
                                         ; here no CONTROL for the keyword has
 
-_$P_Return_to_Caller:                   ; CODE XREF: SysParse+F3↑j
-                                        ; SysParse+FC↑j ...
+_$P_Return_to_Caller:                   ; ...
                 pop     bp
                 pop     di
                 pop     bx
@@ -15878,7 +15233,7 @@ _$P_Return_to_Caller:                   ; CODE XREF: SysParse+F3↑j
                 mov     dx, cs:_$P_DX   ; return result buffer address
                 mov     bl, cs:_$P_Terminator ; return delimiter code found
 
-_$P_Single_Exit:                        ; CODE XREF: SysParse+53↑j
+_$P_Single_Exit:                        ; ...
                 clc
                 retn
 ; END OF FUNCTION CHUNK FOR SysParse
@@ -15886,14 +15241,14 @@ _$P_Single_Exit:                        ; CODE XREF: SysParse+53↑j
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_Chk_Pos_Control proc near           ; CODE XREF: SysParse+F0↑p
+_$P_Chk_Pos_Control proc near           ; ...
                 push    ax
                 mov     ax, es:[bx]     ; [es:bx+_$P_Control_Blk.Match_Flag]
                 test    ax, 2           ; $P_Repeat ; repeat allowed ?
                 jnz     short _$P_CPC00 ; then do not increment ORDINAL
                 inc     cs:_$P_ORDINAL  ; update the ordinal
 
-_$P_CPC00:                              ; CODE XREF: _$P_Chk_Pos_Control+7↑j
+_$P_CPC00:                              ; ...
                 cmp     byte ptr cs:[si], 0 ; _$P_NULL ; no data ?
                 jnz     short _$P_CPC01
                 test    ax, 1           ; _$P_Optional ; yes, then is it optional ?
@@ -15902,7 +15257,7 @@ _$P_CPC00:                              ; CODE XREF: _$P_Chk_Pos_Control+7↑j
                 jmp     short _$P_CPC_Exit
 ; ---------------------------------------------------------------------------
 
-_$P_CPC02:                              ; CODE XREF: _$P_Chk_Pos_Control+17↑j
+_$P_CPC02:                              ; ...
                 push    ax
                 mov     ax, 0FF03h      ; (_$P_No_Tag<<8)|_$P_String
                                         ; if it is optional return NULL
@@ -15912,11 +15267,10 @@ _$P_CPC02:                              ; CODE XREF: _$P_Chk_Pos_Control+17↑j
                 jmp     short _$P_CPC_Exit
 ; ---------------------------------------------------------------------------
 
-_$P_CPC01:                              ; CODE XREF: _$P_Chk_Pos_Control+12↑j
+_$P_CPC01:                              ; ...
                 call    _$P_Check_Match_Flags
 
-_$P_CPC_Exit:                           ; CODE XREF: _$P_Chk_Pos_Control+20↑j
-                                        ; _$P_Chk_Pos_Control+2A↑j
+_$P_CPC_Exit:                           ; ...
                 pop     ax
                 retn
 _$P_Chk_Pos_Control endp
@@ -15925,7 +15279,7 @@ _$P_Chk_Pos_Control endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_Chk_Key_Control proc near           ; CODE XREF: SysParse+145↑p
+_$P_Chk_Key_Control proc near           ; ...
                 stc                     ; this logic works
                                         ; when the KeySW is reset.
                 retn
@@ -15935,7 +15289,7 @@ _$P_Chk_Key_Control endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_Search_KEYorSW proc near            ; CODE XREF: _$P_Chk_SW_Control+6↓p
+_$P_Search_KEYorSW proc near            ; ...
                 push    bp
                 push    cx
                 mov     cl, es:[bx+8]   ; [es:bx+_$P_Control_Blk.nid] ; Get synonym count
@@ -15944,22 +15298,22 @@ _$P_Search_KEYorSW proc near            ; CODE XREF: _$P_Chk_SW_Control+6↓p
                                         ; then indicate not found by CY
                 lea     bp, [bx+9]      ; [bx+_$P_Control_Blk.KEYorSW]
 
-_$P_KEYorSW_Loop:                       ; CODE XREF: _$P_Search_KEYorSW+15↓j
+_$P_KEYorSW_Loop:                       ; ...
                 call    _$P_String_Comp ; compare string in buffer w/ the synonym
                 jnb     short _$P_KEYorSW_Found ; If match, set it to synonym pointer
                 call    _$P_MoveBP_NUL  ; else, bp points to the next string
                 loop    _$P_KEYorSW_Loop ; loop nid times
 
-_$P_KEYorSW_Not_Found:                  ; CODE XREF: _$P_Search_KEYorSW+8↑j
+_$P_KEYorSW_Not_Found:                  ; ...
                 stc                     ; indicate not found in synonym list
                 jmp     short _$P_KEYorSW_Exit ; and exit
 ; ---------------------------------------------------------------------------
 
-_$P_KEYorSW_Found:                      ; CODE XREF: _$P_Search_KEYorSW+10↑j
+_$P_KEYorSW_Found:                      ; ...
                 mov     cs:_$P_Found_SYNONYM, bp ; set synonym pointer
                 clc                     ; indicate found
 
-_$P_KEYorSW_Exit:                       ; CODE XREF: _$P_Search_KEYorSW+18↑j
+_$P_KEYorSW_Exit:                       ; ...
                 pop     cx
                 pop     bp
                 retn
@@ -15969,8 +15323,7 @@ _$P_Search_KEYorSW endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_MoveBP_NUL  proc near               ; CODE XREF: _$P_Search_KEYorSW+12↑p
-                                        ; _$P_MoveBP_NUL+8↓j
+_$P_MoveBP_NUL  proc near               ; ...
                 cmp     byte ptr es:[bp+0], 0 ; _$P_NULL
                                         ; Increment BP that points
                 jz      short _$P_MBP_Exit ; to the synomym list
@@ -15979,7 +15332,7 @@ _$P_MoveBP_NUL  proc near               ; CODE XREF: _$P_Search_KEYorSW+12↑p
                                         ; _$P_MBP_Loop
 ; ---------------------------------------------------------------------------
 
-_$P_MBP_Exit:                           ; CODE XREF: _$P_MoveBP_NUL+5↑j
+_$P_MBP_Exit:                           ; ...
                 inc     bp              ; bp points to next to NULL
                 retn
 _$P_MoveBP_NUL  endp
@@ -15988,7 +15341,7 @@ _$P_MoveBP_NUL  endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_Chk_SW_Control proc near            ; CODE XREF: SysParse+119↑p
+_$P_Chk_SW_Control proc near            ; ...
                 or      cs:_$P_Flags2, 10h ; (Check if switch is supported)
                                         ; _$P_SW_Cmp
                                         ; Indicate switch for later string comparison
@@ -16012,7 +15365,7 @@ _$P_Chk_SW_Control proc near            ; CODE XREF: SysParse+119↑p
                 jmp     short _$P_Chk_SW_Exit
 ; ---------------------------------------------------------------------------
 
-_$P_Chk_if_data_required:               ; CODE XREF: _$P_Chk_SW_Control+2E↑j
+_$P_Chk_if_data_required:               ; ...
                 cmp     word ptr es:[bx], 0 ; [es:bx+_$P_Control_Blk.Match_Flag]
                                         ; should have data?
                                         ; zero match flag means switch followed by nothing is OK
@@ -16025,26 +15378,25 @@ _$P_Chk_if_data_required:               ; CODE XREF: _$P_Chk_SW_Control+2E↑j
                 jmp     short _$P_Chk_SW_Exit
 ; ---------------------------------------------------------------------------
 
-_$P_CSW00:                              ; CODE XREF: _$P_Chk_SW_Control+27↑j
+_$P_CSW00:                              ; ...
                 call    _$P_Check_Match_Flags ; process match flag
                 clc                     ; indicate match
                 jmp     short _$P_Chk_SW_Single_Exit
 ; ---------------------------------------------------------------------------
 
-_$P_Chk_SW_Err0:                        ; CODE XREF: _$P_Chk_SW_Control+9↑j
+_$P_Chk_SW_Err0:                        ; ...
                 stc                     ; not found in switch synonym list
                 retn
 ; ---------------------------------------------------------------------------
 
-_$P_Chk_SW_Exit:                        ; CODE XREF: _$P_Chk_SW_Control+37↑j
-                                        ; _$P_Chk_SW_Control+3D↑j ...
+_$P_Chk_SW_Exit:                        ; ...
                 push    ax
                 mov     ax, 0FF03h      ; (_$P_No_Tag<<8)|_$P_String
                 call    _$P_Fill_Result ; set result buffer
                 pop     ax
                 clc
 
-_$P_Chk_SW_Single_Exit:                 ; CODE XREF: _$P_Chk_SW_Control+53↑j
+_$P_Chk_SW_Single_Exit:                 ; ...
                 retn
 _$P_Chk_SW_Control endp
 
@@ -16052,8 +15404,7 @@ _$P_Chk_SW_Control endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_Fill_Result proc near               ; CODE XREF: _$P_Chk_Pos_Control+26↑p
-                                        ; _$P_Chk_SW_Control+5B↑p ...
+_$P_Fill_Result proc near               ; ...
                 push    di
                 mov     di, es:[bx+4]   ; [es:bx+_$P_Control_Blk.Result_Buf]
                                         ; di points to result buffer
@@ -16070,14 +15421,13 @@ _$P_RLT04:                              ;
                 jnz     short _$P_RLT00 ;
                                         ; then store 32 bit
 
-_$P_RLT02:                              ; CODE XREF: _$P_Fill_Result+35↓j
-                                        ; _$P_Fill_Result+39↓j
+_$P_RLT02:                              ; ...
                 mov     es:[di+4], dx   ; [es:di+_$P_Result_Blk.Picked_Val]
                 mov     es:[di+6], cx   ; [es:di+_$P_Result_Blk.Picked_Val+2]
                 jmp     short _$P_RLT_Exit
 ; ---------------------------------------------------------------------------
 
-_$P_RLT00:                              ; CODE XREF: _$P_Fill_Result+1D↑j
+_$P_RLT00:                              ; ...
                 cmp     al, 2           ; _$P_List_Idx ; if list index
                 jnz     short _$P_RLT01 ;
                                         ; then store list index
@@ -16085,7 +15435,7 @@ _$P_RLT00:                              ; CODE XREF: _$P_Fill_Result+1D↑j
                 jmp     short _$P_RLT_Exit
 ; ---------------------------------------------------------------------------
 
-_$P_RLT01:                              ; CODE XREF: _$P_Fill_Result+2B↑j
+_$P_RLT01:                              ; ...
                 cmp     al, 7           ; _$P_Date_F ; Date format ?
                 jz      short _$P_RLT02
                 cmp     al, 8           ; _$P_Time_F ; Time format ?
@@ -16097,7 +15447,7 @@ _$P_RLT01:                              ; CODE XREF: _$P_Fill_Result+2B↑j
                 jmp     short _$P_RLT_Exit
 ; ---------------------------------------------------------------------------
 
-_$P_RLT03:                              ; CODE XREF: _$P_Fill_Result+3D↑j
+_$P_RLT03:                              ; ...
                 cmp     al, 4           ; _$P_Complex ; complex format ?
                 jnz     short _$P_RLT05
                 mov     ax, cs:_$P_SaveSI_Cmpx ;
@@ -16110,7 +15460,7 @@ _$P_RLT03:                              ; CODE XREF: _$P_Fill_Result+3D↑j
                 jmp     short _$P_RLT_Exit
 ; ---------------------------------------------------------------------------
 
-_$P_RLT05:                              ; CODE XREF: _$P_Fill_Result+47↑j
+_$P_RLT05:                              ; ...
                 mov     es:[di+4], si   ; AL = 3, 5, or 9
                                         ; [es:di+_$P_Result_Blk.Picked_Val]
                                         ; store offset of STRING_BUF
@@ -16125,7 +15475,7 @@ _$P_RLT05:                              ; CODE XREF: _$P_Fill_Result+47↑j
                 jmp     short _$P_RLT_CAP02
 ; ---------------------------------------------------------------------------
 
-_$P_RLT_CAP00:                          ; CODE XREF: _$P_Fill_Result+66↑j
+_$P_RLT_CAP00:                          ; ...
                 test    byte ptr es:[bx+2], 2 ; [es:bx+_$P_Control_Blk.Function_Flag],
                                         ; _$P_CAP_Char
                                         ; need CAPS by char table
@@ -16133,10 +15483,10 @@ _$P_RLT_CAP00:                          ; CODE XREF: _$P_Fill_Result+66↑j
                 mov     al, 2           ; _$P_DOSTBL_Char
                                         ; use character upper case table
 
-_$P_RLT_CAP02:                          ; CODE XREF: _$P_Fill_Result+6A↑j
+_$P_RLT_CAP02:                          ; ...
                 call    _$P_Do_CAPS_String ; process CAPS along the table
 
-_$P_RLT_CAP01:                          ; CODE XREF: _$P_Fill_Result+71↑j
+_$P_RLT_CAP01:                          ; ...
                 pop     ax
                 test    byte ptr es:[bx+2], 10h ; [es:bx+_$P_Control_Blk.Function_Flag],
                                         ; _$P_Rm_Colon
@@ -16144,8 +15494,7 @@ _$P_RLT_CAP01:                          ; CODE XREF: _$P_Fill_Result+71↑j
                 jz      short _$P_RLT_Exit
                 call    _$P_Remove_Colon ; then process it.
 
-_$P_RLT_Exit:                           ; CODE XREF: _$P_Fill_Result+27↑j
-                                        ; _$P_Fill_Result+31↑j ...
+_$P_RLT_Exit:                           ; ...
                 pop     di
                 retn
 _$P_Fill_Result endp
@@ -16154,8 +15503,7 @@ _$P_Fill_Result endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_Check_Match_Flags proc near         ; CODE XREF: _$P_Chk_Pos_Control:_$P_CPC01↑p
-                                        ; _$P_Chk_SW_Control:_$P_CSW00↑p
+_$P_Check_Match_Flags proc near         ; ...
                 mov     cs:_$P_err_flag, 0 ; _$P_NULL ; clear filespec error flag.
                 push    ax
                 mov     ax, es:[bx]     ; [es:bx+_$P_Control_Blk.Match_Flag]
@@ -16176,16 +15524,16 @@ _$P_Check_Match_Flags proc near         ; CODE XREF: _$P_Chk_Pos_Control:_$P_CPC
                 jmp     short _$P_Bridge
 ; ---------------------------------------------------------------------------
 
-_$P_Mat:                                ; CODE XREF: _$P_Check_Match_Flags+C↑j
+_$P_Mat:                                ; ...
                 jmp     short _$P_Match03
 ; ---------------------------------------------------------------------------
 
-_$P_Bridge:                             ; CODE XREF: _$P_Check_Match_Flags+23↑j
+_$P_Bridge:                             ; ...
                 jmp     short _$P_Match_Exit
 ; ---------------------------------------------------------------------------
                 nop                     ; 90h
 
-_$P_Match03:                            ; CODE XREF: _$P_Check_Match_Flags:_$P_Mat↑j
+_$P_Match03:                            ; ...
                 test    ax, 8000h       ; _$P_Num_Val ; Numeric value
                 jz      short _$P_Match04
                 mov     cs:_$P_RC, 0    ; _$P_No_Error ; assume no error
@@ -16193,7 +15541,7 @@ _$P_Match03:                            ; CODE XREF: _$P_Check_Match_Flags:_$P_M
                 cmp     cs:_$P_RC, 9    ; _$P_Syntax ; if error, examine the next type
                 jnz     short _$P_Match_Exit
 
-_$P_Match04:                            ; CODE XREF: _$P_Check_Match_Flags+2D↑j
+_$P_Match04:                            ; ...
                 test    ax, 4000h       ; _$P_SNum_Val ; Signed numeric value
                 jz      short _$P_Match05
                 mov     cs:_$P_RC, 0    ; _$P_No_Error ; assume no error
@@ -16201,7 +15549,7 @@ _$P_Match04:                            ; CODE XREF: _$P_Check_Match_Flags+2D↑
                 cmp     cs:_$P_RC, 9    ; _$P_Syntax ; if error, examine the next type
                 jnz     short _$P_Match_Exit
 
-_$P_Match05:                            ; CODE XREF: _$P_Check_Match_Flags+44↑j
+_$P_Match05:                            ; ...
                 test    ax, 100h        ; _$P_Drv_Only ; Drive only
                 jz      short _$P_Match06
                 mov     cs:_$P_RC, 0    ; _$P_No_Error ; assume no error
@@ -16210,7 +15558,7 @@ _$P_Match05:                            ; CODE XREF: _$P_Check_Match_Flags+44↑
                 cmp     cs:_$P_RC, 9    ; _$P_Syntax ; if error, examine the next type
                 jnz     short _$P_Match_Exit
 
-_$P_Match06:                            ; CODE XREF: _$P_Check_Match_Flags+5B↑j
+_$P_Match06:                            ; ...
                 test    ax, 200h        ; _$P_File_Spc ; File spec
                 jz      short _$P_Match07
                 mov     cs:_$P_RC, 0    ; _$P_No_Error ; assume no error
@@ -16218,22 +15566,20 @@ _$P_Match06:                            ; CODE XREF: _$P_Check_Match_Flags+5B↑
                 cmp     cs:_$P_RC, 9    ; _$P_Syntax ; if error, examine the next type
                 jnz     short _$P_Match_Exit
 
-_$P_Match07:                            ; CODE XREF: _$P_Check_Match_Flags+75↑j
+_$P_Match07:                            ; ...
                 test    ax, 2000h       ; _$P_Simple_S ; Simple string
                 jz      short _$P_Match_Exit
                 mov     cs:_$P_RC, 0    ; _$P_No_Error ; assume no error
                 call    _$P_Simple_String ; do process
 
-_$P_Match_Exit:                         ; CODE XREF: _$P_Check_Match_Flags:_$P_Bridge↑j
-                                        ; _$P_Check_Match_Flags+3F↑j ...
+_$P_Match_Exit:                         ; ...
                 cmp     cs:_$P_err_flag, 1 ; _$P_error_filespec ; bad filespec ?
                 jnz     short _$P_Match2_Exit ; no, continue
                 cmp     cs:_$P_RC, 0    ; _$P_No_Error ; check for other errors ?
                 jnz     short _$P_Match2_Exit ; no, continue
                 mov     cs:_$P_RC, 9    ; _$P_Syntax ; set error flag
 
-_$P_Match2_Exit:                        ; CODE XREF: _$P_Check_Match_Flags+9E↑j
-                                        ; _$P_Check_Match_Flags+A6↑j
+_$P_Match2_Exit:                        ; ...
                 pop     ax
                 retn
 _$P_Check_Match_Flags endp
@@ -16242,11 +15588,11 @@ _$P_Check_Match_Flags endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_Remove_Colon proc near              ; CODE XREF: _$P_Fill_Result+80↑p
+_$P_Remove_Colon proc near              ; ...
                 push    ax
                 push    si
 
-_$P_RCOL_Loop:                          ; CODE XREF: _$P_Remove_Colon+21↓j
+_$P_RCOL_Loop:                          ; ...
                 mov     al, cs:[si]     ; get character
                 or      al, al          ; end of string ?
                 jz      short _$P_RCOL_Exit ; if yes, just exit
@@ -16259,20 +15605,18 @@ _$P_RCOL_Loop:                          ; CODE XREF: _$P_Remove_Colon+21↓j
                 jmp     short _$P_RCOL_Exit ; and exit.
 ; ---------------------------------------------------------------------------
 
-_$P_RCOL00:                             ; CODE XREF: _$P_Remove_Colon+B↑j
-                                        ; _$P_Remove_Colon+12↑j
+_$P_RCOL00:                             ; ...
                 call    _$P_Chk_DBCS    ; if not colon, then check if
                                         ; DBCS leading byte.
                 jnb     short _$P_RCOL01
                 inc     si              ; if yes, skip trailing byte
 
-_$P_RCOL01:                             ; CODE XREF: _$P_Remove_Colon+1D↑j
+_$P_RCOL01:                             ; ...
                 inc     si              ; si points to next byte
                 jmp     short _$P_RCOL_Loop ; loop until NULL encountered
 ; ---------------------------------------------------------------------------
 
-_$P_RCOL_Exit:                          ; CODE XREF: _$P_Remove_Colon+7↑j
-                                        ; _$P_Remove_Colon+18↑j
+_$P_RCOL_Exit:                          ; ...
                 pop     si
                 pop     ax
                 retn
@@ -16282,12 +15626,12 @@ _$P_Remove_Colon endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_Do_CAPS_String proc near            ; CODE XREF: _$P_Fill_Result:_$P_RLT_CAP02↑p
+_$P_Do_CAPS_String proc near            ; ...
                 push    si
                 push    dx
                 mov     dl, al          ; save info id
 
-_$P_DCS_Loop:                           ; CODE XREF: _$P_Do_CAPS_String+1A↓j
+_$P_DCS_Loop:                           ; ...
                 mov     al, cs:[si]     ; load charater and
                 call    _$P_Chk_DBCS    ; check if DBCS leading byte
                 jb      short _$P_DCS00 ; if yes, do not need CAPS
@@ -16298,15 +15642,15 @@ _$P_DCS_Loop:                           ; CODE XREF: _$P_Do_CAPS_String+1A↓j
                 jmp     short _$P_DCS01 ; process next
 ; ---------------------------------------------------------------------------
 
-_$P_DCS00:                              ; CODE XREF: _$P_Do_CAPS_String+A↑j
+_$P_DCS00:                              ; ...
                 inc     si              ; skip DBCS leading and trailing byte
 
-_$P_DCS01:                              ; CODE XREF: _$P_Do_CAPS_String+16↑j
+_$P_DCS01:                              ; ...
                 inc     si              ; si points to next byte
                 jmp     short _$P_DCS_Loop ; loop until NULL encountered
 ; ---------------------------------------------------------------------------
 
-_$P_DCS_Exit:                           ; CODE XREF: _$P_Do_CAPS_String+E↑j
+_$P_DCS_Exit:                           ; ...
                 pop     dx
                 pop     si
                 retn
@@ -16316,8 +15660,7 @@ _$P_Do_CAPS_String endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_Do_CAPS_Char proc near              ; CODE XREF: _$P_Do_CAPS_String+10↑p
-                                        ; _$P_String_Comp+E↓p
+_$P_Do_CAPS_Char proc near              ; ...
                 cmp     al, 80h         ; _$P_ASCII80 ; need upper case table ?
                 jnb     short _$P_DCC_Go ; no
                 cmp     al, 'a'         ; check if  "a" <= AL <= "z"
@@ -16328,7 +15671,7 @@ _$P_Do_CAPS_Char proc near              ; CODE XREF: _$P_Do_CAPS_String+10↑p
                 retn
 ; ---------------------------------------------------------------------------
 
-_$P_DCC_Go:                             ; CODE XREF: _$P_Do_CAPS_Char+2↑j
+_$P_DCC_Go:                             ; ...
                 push    bx
                 push    es
                 push    di
@@ -16355,7 +15698,7 @@ _$P_DCC_Go:                             ; CODE XREF: _$P_Do_CAPS_Char+2↑j
                 pop     cx
                 pop     ax
 
-_$P_DCC01:                              ; CODE XREF: _$P_Do_CAPS_Char+19↑j
+_$P_DCC01:                              ; ...
                 les     bx, cs:[di+1]   ; bx = [cs:di+_$P_DOS_TBL.Off] ; [cs:di+1]
                                         ; es = [cs:di+_$P_DOS_TBL.Seg] ; [cs:di+3]
                 assume es:nothing
@@ -16367,8 +15710,7 @@ _$P_DCC01:                              ; CODE XREF: _$P_Do_CAPS_Char+19↑j
                 pop     es
                 pop     bx
 
-_$P_CAPS_Ret:                           ; CODE XREF: _$P_Do_CAPS_Char+6↑j
-                                        ; _$P_Do_CAPS_Char+A↑j
+_$P_CAPS_Ret:                           ; ...
                 retn
 _$P_Do_CAPS_Char endp
 
@@ -16376,7 +15718,7 @@ _$P_Do_CAPS_Char endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_SValue      proc near               ; CODE XREF: _$P_Check_Match_Flags+4D↑p
+_$P_SValue      proc near               ; ...
                 push    ax
                 or      cs:_$P_Flags2, 80h ; _$P_Signed ; indicate a signed numeric
                 and     cs:_$P_Flags2, 0FDh ; 0FFh-_$P_Neg ; assume positive value
@@ -16389,10 +15731,10 @@ _$P_SValue      proc near               ; CODE XREF: _$P_Check_Match_Flags+4D↑
                 or      cs:_$P_Flags2, 2 ; _$P_Neg
                                         ; set this is negative value
 
-_$P_SVal00:                             ; CODE XREF: _$P_SValue+12↑j
+_$P_SVal00:                             ; ...
                 inc     si              ; skip sign char
 
-_$P_Sval01:                             ; CODE XREF: _$P_SValue+16↑j
+_$P_Sval01:                             ; ...
                 call    _$P_Value       ; and process value
                 pop     ax
                 retn
@@ -16402,8 +15744,7 @@ _$P_SValue      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_Value       proc near               ; CODE XREF: _$P_Check_Match_Flags+36↑p
-                                        ; _$P_SValue:_$P_Sval01↑p
+_$P_Value       proc near               ; ...
                 push    ax
                 push    cx
                 push    dx
@@ -16412,7 +15753,7 @@ _$P_Value       proc near               ; CODE XREF: _$P_Check_Match_Flags+36↑
                 xor     dx, dx          ; dx = lower 16 bits
                 push    bx
 
-_$P_Value_Loop:                         ; CODE XREF: _$P_Value+36↓j
+_$P_Value_Loop:                         ; ...
                 mov     al, cs:[si]     ; get character
                 or      al, al          ; end of line ?
                 jz      short _$P_Value00
@@ -16437,28 +15778,26 @@ _$P_Value_Loop:                         ; CODE XREF: _$P_Value+36↓j
                 jmp     short _$P_Value_Loop
 ; ---------------------------------------------------------------------------
 
-_$P_Value_2x_OVF:                       ; CODE XREF: _$P_Value+19↑p
-                                        ; _$P_Value+20↑p ...
+_$P_Value_2x_OVF:                       ; ...
                 shl     dx, 1           ; to have 2*x
                 rcl     cx, 1           ; shift left w/ carry
 
-_$P_Value_Chk_Add_OVF:                  ; CODE XREF: _$P_Value+2A↑p
-                                        ; _$P_Value+32↑p
+_$P_Value_Chk_Add_OVF:                  ; ...
                 call    _$P_Check_OVF   ; check overflow (for the last shift or add)
                 jb      short _$P_Value_OVF
                 retn
 ; ---------------------------------------------------------------------------
 
-_$P_Value_OVF:                          ; CODE XREF: _$P_Value+3F↑j
+_$P_Value_OVF:                          ; ...
                 inc     sp              ; skip "call" return address to the caller
                 inc     sp
 
-_$P_Value_Err0:                         ; CODE XREF: _$P_Value+13↑j
+_$P_Value_Err0:                         ; ...
                 pop     bx
                 jmp     _$P_Value_Err   ; bridge
 ; ---------------------------------------------------------------------------
 
-_$P_Value00:                            ; CODE XREF: _$P_Value+E↑j
+_$P_Value00:                            ; ...
                 pop     bx              ; restore control pointer
                                         ; here cx,dx = 32bit value
                 test    cs:_$P_Flags2, 2 ; _$P_Neg ; was it negative ?
@@ -16468,7 +15807,7 @@ _$P_Value00:                            ; CODE XREF: _$P_Value+E↑j
                 add     dx, 1           ; |
                 adc     cx, 0           ; |
 
-_$P_Value01:                            ; CODE XREF: _$P_Value+4F↑j
+_$P_Value01:                            ; ...
                 mov     si, es:[bx+6]   ; [es:bx+_$P_Control_Blk.Value_List]
                                         ; si points to value list
                 mov     al, es:[si]     ; get nval
@@ -16480,14 +15819,14 @@ _$P_Value01:                            ; CODE XREF: _$P_Value+4F↑j
 ; ---------------------------------------------------------------------------
                 nop
 
-_$P_Value02:                            ; CODE XREF: _$P_Value+64↑j
+_$P_Value02:                            ; ...
                 inc     si
                 mov     al, es:[si]     ; al = number of range
                 cmp     al, 0           ; _$P_No_nrng
                 jz      short _$P_Value_Err ; _$P_Value03
                 inc     si              ; si points to 1st item_tag
 
-_$P_Val02_Loop:                         ; CODE XREF: _$P_Value+BE↓j
+_$P_Val02_Loop:                         ; ...
                 test    cs:_$P_Flags2, 80h ; _$P_Signed
                 jnz     short _$P_Val02_Sign
                 cmp     cx, es:[si+3]   ; [es:si+_$P_Val_List.Val_XH]
@@ -16498,7 +15837,7 @@ _$P_Val02_Loop:                         ; CODE XREF: _$P_Value+BE↓j
                                         ; comp dx with XL
                 jb      short _$P_Val02_Next
 
-_$P_Val_In:                             ; CODE XREF: _$P_Value+83↑j
+_$P_Val_In:                             ; ...
                 cmp     cx, es:[si+7]   ; [es:si+_$P_Val_List.Val_YH]
                                         ; comp cx with YH
                 ja      short _$P_Val02_Next
@@ -16509,7 +15848,7 @@ _$P_Val_In:                             ; CODE XREF: _$P_Value+83↑j
                 jmp     short _$P_Val_Found
 ; ---------------------------------------------------------------------------
 
-_$P_Val02_Sign:                         ; CODE XREF: _$P_Value+7B↑j
+_$P_Val02_Sign:                         ; ...
                 cmp     cx, es:[si+3]   ; [es:si+_$P_Val_List.Val_XH]
                                         ; comp cx with XH
                 jl      short _$P_Val02_Next
@@ -16518,7 +15857,7 @@ _$P_Val02_Sign:                         ; CODE XREF: _$P_Value+7B↑j
                                         ; comp dx with XL
                 jl      short _$P_Val02_Next
 
-_$P_SVal_In:                            ; CODE XREF: _$P_Value+A1↑j
+_$P_SVal_In:                            ; ...
                 cmp     cx, es:[si+7]   ; [es:si+_$P_Val_List.Val_YH]
                                         ; comp cx with YH
                 jg      short _$P_Val02_Next
@@ -16529,8 +15868,7 @@ _$P_SVal_In:                            ; CODE XREF: _$P_Value+A1↑j
                 jmp     short _$P_Val_Found
 ; ---------------------------------------------------------------------------
 
-_$P_Val02_Next:                         ; CODE XREF: _$P_Value+81↑j
-                                        ; _$P_Value+89↑j ...
+_$P_Val02_Next:                         ; ...
                 add     si, 9           ; _$P_Len_Range
                 dec     al              ; loop nrng times in AL
                 jnz     short _$P_Val02_Loop
@@ -16539,21 +15877,18 @@ _$P_Val02_Next:                         ; CODE XREF: _$P_Value+81↑j
                 jmp     short _$P_Value_Exit
 ; ---------------------------------------------------------------------------
 
-_$P_Val_Found:                          ; CODE XREF: _$P_Value+91↑j
-                                        ; _$P_Value+99↑j ...
+_$P_Val_Found:                          ; ...
                 mov     al, 1           ; _$P_Number
                 mov     ah, es:[si]     ; found ITEM_TAG set
                 jmp     short _$P_Value_Exit
 ; ---------------------------------------------------------------------------
 
-_$P_Value_Err:                          ; CODE XREF: _$P_Value+45↑j
-                                        ; _$P_Value+72↑j
+_$P_Value_Err:                          ; ...
                 mov     cs:_$P_RC, 9    ; _$P_Syntax
                 mov     ax, 0FF03h      ; (_$P_No_Tag<<8)|_$P_String
                                         ; No ITEM_TAG set
 
-_$P_Value_Exit:                         ; CODE XREF: _$P_Value+69↑j
-                                        ; _$P_Value+CA↑j ...
+_$P_Value_Exit:                         ; ...
                 call    _$P_Fill_Result
                 pop     si
                 pop     dx
@@ -16566,7 +15901,7 @@ _$P_Value       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_Check_OVF   proc near               ; CODE XREF: _$P_Value:_$P_Value_Chk_Add_OVF↑p
+_$P_Check_OVF   proc near               ; ...
                 pushf
                 test    cs:_$P_Flags2, 2 ; _$P_Neg ; is it negative value ?
                 jnz     short _$P_COVF
@@ -16574,7 +15909,7 @@ _$P_Check_OVF   proc near               ; CODE XREF: _$P_Value:_$P_Value_Chk_Add
                 retn
 ; ---------------------------------------------------------------------------
 
-_$P_COVF:                               ; CODE XREF: _$P_Check_OVF+7↑j
+_$P_COVF:                               ; ...
                 popf                    ; else, check overflow by the OF
                 jo      short _$P_COVF00
                 clc                     ; indicate it with CY bit
@@ -16582,7 +15917,7 @@ _$P_COVF:                               ; CODE XREF: _$P_Check_OVF+7↑j
                 retn
 ; ---------------------------------------------------------------------------
 
-_$P_COVF00:                             ; CODE XREF: _$P_Check_OVF+C↑j
+_$P_COVF00:                             ; ...
                 stc                     ; and CY=1 means overflow
                 retn
 _$P_Check_OVF   endp
@@ -16591,7 +15926,7 @@ _$P_Check_OVF   endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_0099        proc near               ; CODE XREF: _$P_Value+10↑p
+_$P_0099        proc near               ; ...
                 cmp     al, '0'         ; must be 0 =< al =< 9
                 jb      short _$P_0099Err
                 cmp     al, '9'
@@ -16602,8 +15937,7 @@ _$P_0099        proc near               ; CODE XREF: _$P_Value+10↑p
                 retn
 ; ---------------------------------------------------------------------------
 
-_$P_0099Err:                            ; CODE XREF: _$P_0099+2↑j
-                                        ; _$P_0099+6↑j
+_$P_0099Err:                            ; ...
                 stc                     ; indicate error (cf=1)
                 retn
 _$P_0099        endp
@@ -16612,7 +15946,7 @@ _$P_0099        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_Simple_String proc near             ; CODE XREF: _$P_Check_Match_Flags+95↑p
+_$P_Simple_String proc near             ; ...
                 push    ax
                 push    bx
                 push    dx
@@ -16626,7 +15960,7 @@ _$P_Simple_String proc near             ; CODE XREF: _$P_Check_Match_Flags+95↑
                 jmp     short _$P_Sim_Exit ; and set result buffer
 ; ---------------------------------------------------------------------------
 
-_$P_Sim00:                              ; CODE XREF: _$P_Simple_String+D↑j
+_$P_Sim00:                              ; ...
                 cmp     al, 3           ; Check if keyword or value list id #3 is supported
                                         ; _$P_nval_String ; String choice list provided ?
                 jnz     short _$P_Sim01 ; if no, syntax error
@@ -16646,7 +15980,7 @@ _$P_Sim00:                              ; CODE XREF: _$P_Simple_String+D↑j
                 inc     di              ; add '2' to di reg
                                         ; di points to 1st string in list
 
-_$P_Sim_Loop:                           ; CODE XREF: _$P_Simple_String+3E↓j
+_$P_Sim_Loop:                           ; ...
                 mov     bp, es:[di]     ; get string pointer
                 call    _$P_String_Comp ; compare it with operand
                 jnb     short _$P_Sim_Found ; found on list
@@ -16658,22 +15992,21 @@ _$P_Sim_Loop:                           ; CODE XREF: _$P_Simple_String+3E↓j
                 jmp     short _$P_Sim_Exit
 ; ---------------------------------------------------------------------------
 
-_$P_Sim_Found:                          ; CODE XREF: _$P_Simple_String+37↑j
+_$P_Sim_Found:                          ; ...
                 mov     ah, es:[di-1]   ; set item_tag
                 mov     al, 2           ; _$P_List_Idx
                 mov     dx, es:[di]     ; get address of STRING
                 jmp     short _$P_Sim_Exit0
 ; ---------------------------------------------------------------------------
 
-_$P_Sim01:                              ; CODE XREF: _$P_Simple_String+15↑j
+_$P_Sim01:                              ; ...
                 mov     cs:_$P_RC, 9    ; _$P_Syntax
                 mov     ah, 0FFh        ; _$P_No_Tag
 
-_$P_Sim_Exit:                           ; CODE XREF: _$P_Simple_String+11↑j
-                                        ; _$P_Simple_String+49↑j
+_$P_Sim_Exit:                           ; ...
                 mov     al, 3           ; _$P_String ; Set type
 
-_$P_Sim_Exit0:                          ; CODE XREF: _$P_Simple_String+54↑j
+_$P_Sim_Exit0:                          ; ...
                 call    _$P_Fill_Result
                 pop     di
                 pop     dx
@@ -16686,15 +16019,14 @@ _$P_Simple_String endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_String_Comp proc near               ; CODE XREF: _$P_Search_KEYorSW:_$P_KEYorSW_Loop↑p
-                                        ; _$P_Simple_String+34↑p
+_$P_String_Comp proc near               ; ...
                 push    ax
                 push    bp
                 push    dx
                 push    si
                 mov     dl, 2           ; _$P_DOSTBL_Char ; use character case map table
 
-_$P_SCOM_Loop:                          ; CODE XREF: _$P_String_Comp:_$P_SCOM01↓j
+_$P_SCOM_Loop:                          ; ...
                 mov     al, cs:[si]     ; get command character
                 call    _$P_Chk_DBCS    ; DBCS ?
                 jb      short _$P_SCOM00 ; yes
@@ -16711,7 +16043,7 @@ _$P_SCOM_Loop:                          ; CODE XREF: _$P_String_Comp:_$P_SCOM01�
                 jmp     short _$P_SCOM05 ; keyword found in synonym list
 ; ---------------------------------------------------------------------------
 
-_$P_SCOM04:                             ; CODE XREF: _$P_String_Comp+17↑j
+_$P_SCOM04:                             ; ...
                 test    cs:_$P_Flags2, 10h ; _$P_SW_Cmp ; switch search ?
                 jz      short _$P_SCOM03
                 cmp     al, ':'         ; _$P_Colon ; ":" is delimiter,
@@ -16723,14 +16055,13 @@ _$P_SCOM04:                             ; CODE XREF: _$P_String_Comp+17↑j
                                         ; at end of switch string
                                         ; in the control block THEN
 
-_$P_SCOM05:                             ; CODE XREF: _$P_String_Comp+24↑j
+_$P_SCOM05:                             ; ...
                 inc     si              ; found a match
                                         ; si points to just after "=" or ":"
                 jmp     short _$P_SCOM_Same ; exit
 ; ---------------------------------------------------------------------------
 
-_$P_SCOM03:                             ; CODE XREF: _$P_String_Comp+1B↑j
-                                        ; _$P_String_Comp+2C↑j ...
+_$P_SCOM03:                             ; ...
                 cmp     al, es:[bp+0]   ; compare operand w/ a synonym
                 jnz     short _$P_SCOM_Differ0 ; if different,
                                         ; check ignore colon option
@@ -16742,7 +16073,7 @@ _$P_SCOM03:                             ; CODE XREF: _$P_String_Comp+1B↑j
                                         ;  found in case
 ; ---------------------------------------------------------------------------
 
-_$P_SCOM00:                             ; CODE XREF: _$P_String_Comp+C↑j
+_$P_SCOM00:                             ; ...
                 cmp     al, es:[bp+0]   ; Here al is DBCS leading byte
                                         ; compare leading byte
                 jnz     short _$P_SCOM_Differ ; if not match, say different
@@ -16754,12 +16085,12 @@ _$P_SCOM00:                             ; CODE XREF: _$P_String_Comp+C↑j
                 inc     si              ; else update operand pointer
                 inc     bp              ; and synonym pointer
 
-_$P_SCOM01:                             ; CODE XREF: _$P_String_Comp+48↑j
+_$P_SCOM01:                             ; ...
                 jmp     short _$P_SCOM_Loop ; loop until NULL or "="
                                         ; or "/" found in case
 ; ---------------------------------------------------------------------------
 
-_$P_SCOM_Differ0:                       ; CODE XREF: _$P_String_Comp+40↑j
+_$P_SCOM_Differ0:                       ; ...
                 test    cs:_$P_Flags2, 40h ; _$P_SW
                 jz      short _$P_not_applicable
                 test    word ptr es:[bx+2], 20h ; [es:bx+_$P_Control_Blk.Function_Flag],
@@ -16768,8 +16099,7 @@ _$P_SCOM_Differ0:                       ; CODE XREF: _$P_String_Comp+40↑j
                 cmp     byte ptr es:[bp+0], 0 ; _$P_NULL
                 jz      short _$P_SCOM_Same
 
-_$P_not_applicable:                     ; CODE XREF: _$P_String_Comp+65↑j
-                                        ; _$P_String_Comp+6D↑j
+_$P_not_applicable:                     ; ...
                 test    word ptr es:[bx], 10h ; [es:bx+_$P_Control_Blk.Match_Flag],
                                         ; _$P_Ig_Colon
                                         ; ignore colon option specified ?
@@ -16781,25 +16111,23 @@ _$P_not_applicable:                     ; CODE XREF: _$P_String_Comp+65↑j
                 jmp     short _$P_SCOM_Same ; else, say same
 ; ---------------------------------------------------------------------------
 
-_$P_SCOM02:                             ; CODE XREF: _$P_String_Comp+7F↑j
+_$P_SCOM02:                             ; ...
                 cmp     al, 0           ; _$P_NULL ; end up NULL and :
                 jnz     short _$P_SCOM_Differ
                 cmp     byte ptr es:[bp+0], ':' ; _$P_Colon ; if no, say different
                 jz      short _$P_SCOM_Same ; else, say same
 
-_$P_SCOM_Differ:                        ; CODE XREF: _$P_String_Comp+22↑j
-                                        ; _$P_String_Comp+37↑j ...
+_$P_SCOM_Differ:                        ; ...
                 stc                     ; indicate not found
                 jmp     short _$P_SCOM_Exit
 ; ---------------------------------------------------------------------------
 
-_$P_SCOM_Same:                          ; CODE XREF: _$P_String_Comp+3A↑j
-                                        ; _$P_String_Comp+44↑j ...
+_$P_SCOM_Same:                          ; ...
                 mov     cs:_$P_KEYorSW_Ptr, si ; for later use by keyword or switch
                 clc                     ; indicate found
                                         ; (cf is already 0 here.. clc is not needed)
 
-_$P_SCOM_Exit:                          ; CODE XREF: _$P_String_Comp+96↑j
+_$P_SCOM_Exit:                          ; ...
                 pop     si
                 pop     dx
                 pop     bp
@@ -16811,8 +16139,7 @@ _$P_String_Comp endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_File_Format proc near               ; CODE XREF: _$P_Check_Match_Flags+64↑p
-                                        ; _$P_Check_Match_Flags+7E↑p
+_$P_File_Format proc near               ; ...
                 push    ax
                 push    di
                 push    si
@@ -16832,7 +16159,7 @@ _$P_FileF_Loop0:                        ; / skip special characters
                 jmp     short _$P_FileF02
 ; ---------------------------------------------------------------------------
 
-_$P_FileF_Err:                          ; CODE XREF: _$P_File_Format+D↑j
+_$P_FileF_Err:                          ; ...
                 pop     si
                 mov     byte ptr cs:[si], 0 ; _$P_NULL
                 pop     di
@@ -16843,11 +16170,11 @@ _$P_FileF_Err:                          ; CODE XREF: _$P_File_Format+D↑j
                 jmp     short _$P_FileF02
 ; ---------------------------------------------------------------------------
 
-_$P_FileF03:                            ; CODE XREF: _$P_File_Format+12↑j
+_$P_FileF03:                            ; ...
                 pop     ax              ; discard si on top of stack
                 push    si              ; save new si
 
-_$P_FileF_Loop1:                        ; CODE XREF: _$P_File_Format+4F↓j
+_$P_FileF_Loop1:                        ; ...
                 mov     al, cs:[si]     ; load character (not special char)
                 or      al, al          ; end of line ?
                 jz      short _$P_FileF_RLT
@@ -16858,24 +16185,23 @@ _$P_FileF_Loop1:                        ; CODE XREF: _$P_File_Format+4F↓j
                 inc     di              ; if yes, skip next byte
                 inc     si
 
-_$P_FileF01:                            ; CODE XREF: _$P_File_Format+49↑j
+_$P_FileF01:                            ; ...
                 inc     di
                 inc     si
                 jmp     short _$P_FileF_Loop1
 ; ---------------------------------------------------------------------------
 
-_$P_FileF00:                            ; CODE XREF: _$P_File_Format+44↑j
+_$P_FileF00:                            ; ...
                 mov     cs:_$P_Terminator, al
                 mov     byte ptr cs:[si], 0 ; _$P_NULL ; update end of string
                 inc     di
                 mov     cs:_$P_SI_Save, di ; update next pointer in command line
 
-_$P_FileF_RLT:                          ; CODE XREF: _$P_File_Format+3F↑j
+_$P_FileF_RLT:                          ; ...
                 pop     si
                 pop     di
 
-_$P_FileF02:                            ; CODE XREF: _$P_File_Format+20↑j
-                                        ; _$P_File_Format+2D↑j ...
+_$P_FileF02:                            ; ...
                 pop     ax
                 test    ax, 200h        ; _$P_File_Spc
                 jz      short _$P_Drv_Only_Exit
@@ -16885,7 +16211,7 @@ _$P_FileF02:                            ; CODE XREF: _$P_File_Format+20↑j
                 call    _$P_Fill_Result
                 pop     ax
 
-_$P_Drv_Only_Exit:                      ; CODE XREF: _$P_File_Format+65↑j
+_$P_Drv_Only_Exit:                      ; ...
                 retn
 _$P_File_Format endp
 
@@ -16893,8 +16219,7 @@ _$P_File_Format endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_FileSp_Chk  proc near               ; CODE XREF: _$P_File_Format+F↑p
-                                        ; _$P_File_Format+41↑p
+_$P_FileSp_Chk  proc near               ; ...
                 push    bx
                 push    cx
                 lea     bx, _$P_FileSp_Char ; "[]|<>+=;\""
@@ -16902,14 +16227,14 @@ _$P_FileSp_Chk  proc near               ; CODE XREF: _$P_File_Format+F↑p
                                         ; load length of special character table
                                         ; at SYSINIT:1CFEh (for PCDOS 7.1 IBMBIO.COM)
 
-_$P_FileSp_Loop:                        ; CODE XREF: _$P_FileSp_Chk+F↓j
+_$P_FileSp_Loop:                        ; ...
                 cmp     al, cs:[bx]     ; is it one of special character ?
                 jz      short _$P_FileSp_Exit
                 inc     bx
                 loop    _$P_FileSp_Loop
                 inc     cx              ; reset ZF
 
-_$P_FileSp_Exit:                        ; CODE XREF: _$P_FileSp_Chk+C↑j
+_$P_FileSp_Exit:                        ; ...
                 pop     cx
                 pop     bx
                 retn
@@ -16919,7 +16244,7 @@ _$P_FileSp_Chk  endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_Drive_Format proc near              ; CODE XREF: _$P_Check_Match_Flags+67↑p
+_$P_Drive_Format proc near              ; ...
                 push    ax
                 push    dx
                 mov     al, cs:[si]
@@ -16937,7 +16262,7 @@ _$P_Drive_Format proc near              ; CODE XREF: _$P_Check_Match_Flags+67↑
                 cmp     byte ptr cs:[si+1], 0 ; _$P_NULL ; "d", 0 ?
                 jnz     short _$P_Drv_Err
 
-_$P_DrvF00:                             ; CODE XREF: _$P_Drive_Format+13↑j
+_$P_DrvF00:                             ; ...
                 or      al, 20h         ; _$P_Make_Lower ; lower case
                 cmp     al, 61h ; 'a'   ; drive letter must
                 jb      short _$P_Drv_Err ; in range of
@@ -16952,12 +16277,10 @@ _$P_DrvF00:                             ; CODE XREF: _$P_Drive_Format+13↑j
                 jmp     short _$P_Drv_Exit
 ; ---------------------------------------------------------------------------
 
-_$P_Drv_Err:                            ; CODE XREF: _$P_Drive_Format+C↑j
-                                        ; _$P_Drive_Format+1A↑j ...
+_$P_Drv_Err:                            ; ...
                 mov     cs:_$P_RC, 9    ; _$P_Syntax
 
-_$P_Drv_Exit:                           ; CODE XREF: _$P_Drive_Format+7↑j
-                                        ; _$P_Drive_Format+38↑j
+_$P_Drv_Exit:                           ; ...
                 pop     dx
                 pop     ax
                 retn
@@ -16967,8 +16290,7 @@ _$P_Drive_Format endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_Skip_Delim  proc near               ; CODE XREF: SysParse+3E↑p
-                                        ; SysParse+82↑p ...
+_$P_Skip_Delim  proc near               ; ...
                 lodsb
                 call    _$P_Chk_EOL     ; is it EOL character ?
                 jz      short _$P_Skip_Delim_CY ; if yes, exit w/ CY on
@@ -16983,21 +16305,20 @@ _$P_Skip_Delim  proc near               ; CODE XREF: SysParse+3E↑p
                 jmp     short _$P_Exit_At_Extra
 ; ---------------------------------------------------------------------------
 
-_$P_Skip_Delim_CY:                      ; CODE XREF: _$P_Skip_Delim+4↑j
+_$P_Skip_Delim_CY:                      ; ...
                 stc                     ; indicate EOL
                 jmp     short _$P_Skip_Delim_Exit
 ; ---------------------------------------------------------------------------
 
-_$P_Skip_Delim_NCY:                     ; CODE XREF: _$P_Skip_Delim+9↑j
+_$P_Skip_Delim_NCY:                     ; ...
                 clc                     ; indicate non delim
 
-_$P_Skip_Delim_Exit:                    ; CODE XREF: _$P_Skip_Delim+1F↑j
+_$P_Skip_Delim_Exit:                    ; ...
                 dec     si              ; in this case, need backup index pointer
                 retn
 ; ---------------------------------------------------------------------------
 
-_$P_Exit_At_Extra:                      ; CODE XREF: _$P_Skip_Delim+19↑j
-                                        ; _$P_Skip_Delim+1C↑j
+_$P_Exit_At_Extra:                      ; ...
                 clc                     ; indicate extra delim
                 retn
 _$P_Skip_Delim  endp
@@ -17006,8 +16327,7 @@ _$P_Skip_Delim  endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_Chk_EOL     proc near               ; CODE XREF: SysParse+70↑p
-                                        ; _$P_Skip_Delim+1↑p
+_$P_Chk_EOL     proc near               ; ...
                 push    bx
                 push    cx
                 cmp     al, 0Dh         ; _$P_CR ; Carriage return ?
@@ -17029,17 +16349,16 @@ _$P_Chk_EOL     proc near               ; CODE XREF: SysParse+70↑p
                 xor     cx, cx          ; Get number of extra character
                 mov     cl, es:[bx+di]
 
-_$P_Chk_EOL_Loop:                       ; CODE XREF: _$P_Chk_EOL+2F↓j
+_$P_Chk_EOL_Loop:                       ; ...
                 inc     bx
                 cmp     al, es:[bx+di]  ; Check extra EOL character
                 jz      short _$P_Chk_EOL_Exit
                 loop    _$P_Chk_EOL_Loop
 
-_$P_Chk_EOL_NZ:                         ; CODE XREF: _$P_Chk_EOL+22↑j
+_$P_Chk_EOL_NZ:                         ; ...
                 cmp     al, 0Dh         ; _$P_CR ; reset ZF
 
-_$P_Chk_EOL_Exit:                       ; CODE XREF: _$P_Chk_EOL+4↑j
-                                        ; _$P_Chk_EOL+8↑j ...
+_$P_Chk_EOL_Exit:                       ; ...
                 pop     cx
                 pop     bx
                 retn
@@ -17049,8 +16368,7 @@ _$P_Chk_EOL     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_Chk_Delim   proc near               ; CODE XREF: SysParse+75↑p
-                                        ; _$P_Skip_Delim+6↑p
+_$P_Chk_Delim   proc near               ; ...
                 push    bx
                 push    cx
                 mov     cs:_$P_Terminator, 20h ; ' ' ; _$P_Space
@@ -17077,8 +16395,7 @@ _$P_Chk_Delim00:                        ; Note: _$P_Chk_Delim00 part of code is 
                 jmp     short _$P_Chk_Delim_Exit
 ; ---------------------------------------------------------------------------
 
-_$P_Chk_Delim01:                        ; CODE XREF: _$P_Chk_Delim+1C↑j
-                                        ; _$P_Chk_Delim+21↑j
+_$P_Chk_Delim01:                        ; ...
                 cmp     byte ptr es:[di+2], 1 ; [es:di-_$P_PARMS_Blk.Num_Extra],
                                         ; _$P_I_Have_Delim
                                         ; delimiter character specified ?
@@ -17090,31 +16407,29 @@ _$P_Chk_Delim01:                        ; CODE XREF: _$P_Chk_Delim+1C↑j
                 mov     bx, 3           ; _$P_Len_PARMS-1
                                         ; set bx to 1st extra delimiter
 
-_$P_Chk_Delim_Loop:                     ; CODE XREF: _$P_Chk_Delim+42↓j
+_$P_Chk_Delim_Loop:                     ; ...
                 inc     bx
                 cmp     al, es:[bx+di]  ; check extra delim character
                 jz      short _$P_Chk_Delim_Exit0
                 loop    _$P_Chk_Delim_Loop ; examine all extra delimiter
 
-_$P_Chk_Delim_NZ:                       ; CODE XREF: _$P_Chk_Delim+37↑j
+_$P_Chk_Delim_NZ:                       ; ...
                 cmp     al, 20h ; ' '   ; _$P_Space ; reset ZF
 
-_$P_Chk_Delim_Exit:                     ; CODE XREF: _$P_Chk_Delim+10↑j
-                                        ; _$P_Chk_Delim+14↑j ...
+_$P_Chk_Delim_Exit:                     ; ...
                 pop     cx
                 pop     bx
                 retn
 ; ---------------------------------------------------------------------------
 
-_$P_Chk_Delim_Exit0:                    ; CODE XREF: _$P_Chk_Delim+18↑j
-                                        ; _$P_Chk_Delim+40↑j
+_$P_Chk_Delim_Exit0:                    ; ...
                 mov     cs:_$P_Terminator, al ; keep terminated delimiter
                 test    cs:_$P_Flags2, 1 ; _$P_equ ; if terminating a key=
                 jnz     short _$P_No_Set_Extra ; then do not set the EXTRA bit
                 or      cs:_$P_Flags2, 20h ; _$P_Extra
                                         ; flag terminated extra delim or comma
 
-_$P_No_Set_Extra:                       ; CODE XREF: _$P_Chk_Delim+53↑j
+_$P_No_Set_Extra:                       ; ...
                 cmp     al, al          ; set ZF
                 jmp     short _$P_Chk_Delim_Exit
 _$P_Chk_Delim   endp
@@ -17123,7 +16438,7 @@ _$P_Chk_Delim   endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_Chk_Switch  proc near               ; CODE XREF: SysParse+6B↑p
+_$P_Chk_Switch  proc near               ; ...
                 lea     bp, _$P_STRING_BUF ; BP = Offset of _$P_String_Buf
                                         ; (mov bp, offset _$P_STRING_BUF)
                 cmp     bx, bp          ; IF not first char THEN
@@ -17134,19 +16449,19 @@ _$P_Chk_Switch  proc near               ; CODE XREF: SysParse+6B↑p
                 retn
 ; ---------------------------------------------------------------------------
 
-_$P_STRUC_L5:                           ; CODE XREF: _$P_Chk_Switch+A↑j
+_$P_STRUC_L5:                           ; ...
                 clc                     ; not a slash
                 retn
 ; ---------------------------------------------------------------------------
 
-_$P_STRUC_L2:                           ; CODE XREF: _$P_Chk_Switch+6↑j
+_$P_STRUC_L2:                           ; ...
                 cmp     al, 2Fh ; '/'   ; _$P_Switch
                 jnz     short _$P_STRUC_L12 ; not a slash
                 or      cs:_$P_Flags2, 40h ; _$P_SW
                                         ; could be valid switch,
                                         ; first char and is slash
 
-_$P_STRUC_L12:                          ; CODE XREF: _$P_Chk_Switch+12↑j
+_$P_STRUC_L12:                          ; ...
                 clc                     ; is first char in the buffer, ZF=0
                                         ; (CF=0 indicating first char)
                 retn
@@ -17156,8 +16471,7 @@ _$P_Chk_Switch  endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_$P_Chk_DBCS    proc near               ; CODE XREF: SysParse+A0↑p
-                                        ; _$P_Remove_Colon:_$P_RCOL00↑p ...
+_$P_Chk_DBCS    proc near               ; ...
                 push    ds
                 push    si
                 push    bx
@@ -17190,10 +16504,10 @@ _$P_Chk_DBCS    proc near               ; CODE XREF: SysParse+A0↑p
                 mov     cs:_$P_DBCSEV_OFF, si ; save EV offset
                 mov     cs:_$P_DBCSEV_SEG, bx ; save EV segment
 
-_$P_DBCS00:                             ; CODE XREF: _$P_Chk_DBCS+9↑j
+_$P_DBCS00:                             ; ...
                 lds     si, dword ptr cs:_$P_DBCSEV_OFF ; load EV offset and segment
 
-_$P_DBCS_LOOP:                          ; CODE XREF: _$P_Chk_DBCS+4A↓j
+_$P_DBCS_LOOP:                          ; ...
                 cmp     word ptr [si], 0 ; zero vector ?
                 jz      short _$P_NON_DBCS ; then exit
                 cmp     al, [si]        ; Check if AL is in range of the vector
@@ -17204,19 +16518,17 @@ _$P_DBCS_LOOP:                          ; CODE XREF: _$P_Chk_DBCS+4A↓j
                 jmp     short _$P_DBCS_EXIT
 ; ---------------------------------------------------------------------------
 
-_$P_DBCS01:                             ; CODE XREF: _$P_Chk_DBCS+3E↑j
-                                        ; _$P_Chk_DBCS+43↑j
+_$P_DBCS01:                             ; ...
                 inc     si              ; add 2 to si reg
                 inc     si              ; get next vector
                 jmp     short _$P_DBCS_LOOP ; loop until zero vector found
 ; ---------------------------------------------------------------------------
 
-_$P_NON_DBCS:                           ; CODE XREF: _$P_Chk_DBCS+26↑j
-                                        ; _$P_Chk_DBCS+3A↑j
+_$P_NON_DBCS:                           ; ...
                 clc                     ; indicate SBCS
                                         ; (note: cf is already 0 here)
 
-_$P_DBCS_EXIT:                          ; CODE XREF: _$P_Chk_DBCS+46↑j
+_$P_DBCS_EXIT:                          ; ...
                 pop     bx
                 pop     si
                 pop     ds
@@ -17224,12 +16536,12 @@ _$P_DBCS_EXIT:                          ; CODE XREF: _$P_Chk_DBCS+46↑j
 _$P_Chk_DBCS    endp
 
 ; ---------------------------------------------------------------------------
-buf_parms       dw offset buf_parmsx    ; DATA XREF: doconf+1DA↓o
+buf_parms       dw offset buf_parmsx    ; ...
                                         ; buffer = [n | n,m] {/e}
                 db 1                    ; an extra delimiter list
                 db 1                    ; length is 1
                 db ';'                  ; delimiter
-buf_parmsx      db 1                    ; DATA XREF: SYSINIT:buf_parms↑o
+buf_parmsx      db 1                    ; ...
                 db 2                    ; min 1, max 2 positionals
                 dw offset buf_pos1
                 dw offset buf_pos2
@@ -17239,13 +16551,13 @@ buf_parmsx      db 1                    ; DATA XREF: SYSINIT:buf_parms↑o
                                         ;
                                         ; buf_pos1 p_pos <8000h,0,result_val,buf_range_1>
                                         ; numeric
-buf_pos1        dw 8000h                ; DATA XREF: SYSINIT:2524↑o
+buf_pos1        dw 8000h                ; ...
                                         ; match_flags - numeric value
                 dw 0                    ; function flags
                 dw offset result_val    ; result value buffer
                 dw offset buf_range_1   ; value list
                 db 0                    ; no switches/keywords
-buf_range_1     db 1                    ; DATA XREF: SYSINIT:2532↑o
+buf_range_1     db 1                    ; ...
                                         ; range definition
                 db 1                    ; 1 definition of range
                 db 1                    ; item tag for this range
@@ -17254,66 +16566,58 @@ buf_range_1     db 1                    ; DATA XREF: SYSINIT:2532↑o
                                         ;
                                         ; buf_pos2 p_pos <8001h,0,result_val,buf_range_2>
                                         ; optional num.
-buf_pos2        dw 8001h                ; DATA XREF: SYSINIT:2526↑o
+buf_pos2        dw 8001h                ; ...
                 dw 0
                 dw offset result_val
                 dw offset buf_range_2
                 db 0                    ;
                                         ; buf_range_2 p_range <,,,0,8>
-buf_range_2     db 1                    ; DATA XREF: SYSINIT:2546↑o
+buf_range_2     db 1                    ; ...
                 db 1
                 db 1
                 dd 0
                 dd 8                    ;
                                         ; sw_x_ctrl p_pos <0,0,result_val,noval,1>
                                         ; followed by one switch
-sw_x_ctrl       dw 0                    ; DATA XREF: SYSINIT:2529↑o
+sw_x_ctrl       dw 0                    ; ...
                 dw 0
                 dw offset result_val
                 dw offset noval
                 db 1                    ; 1 switch
-switch_x        db '/X',0               ; DATA XREF: doconf+1F0↓o
-p_buffers       dw 0                    ; DATA XREF: doconf+202↓w
-                                        ; doconf:en7↓r ...
-p_h_buffers     dw 0                    ; DATA XREF: doconf:if13↓w
-                                        ; doconf+216↓w ...
-p_buffer_slash_x db 0                   ; DATA XREF: doconf+1D5↓w
+switch_x        db '/X',0               ; ...
+p_buffers       dw 0                    ; ...
+p_h_buffers     dw 0                    ; ...
+p_buffer_slash_x db 0                   ; ...
                                         ;
                                         ; common definitions
-noval           db 0                    ; DATA XREF: SYSINIT:255A↑o
-                                        ; SYSINIT:25C6↓o ...
-result_val      db 0                    ; DATA XREF: SYSINIT:2530↑o
-                                        ; SYSINIT:2544↑o ...
+noval           db 0                    ; ...
+result_val      db 0                    ; ...
                                         ; type returned
-result_val_itag db 0                    ; DATA XREF: doconf+253↓r
-                                        ; doconf+295↓r ...
+result_val_itag db 0                    ; ...
                                         ; item tag returned
-result_val_swoff dw 0                   ; DATA XREF: doconf+1F0↓r
-                                        ; doconf+9E6↓r ...
+result_val_swoff dw 0                   ; ...
                                         ; es:offset of the switch defined
-rv_dword        dd 0                    ; DATA XREF: doconf:if11↓r
-                                        ; doconf+6F2↓r ...
+rv_dword        dd 0                    ; ...
                                         ; rv_byte
                                         ; value if number, or seg:offset to string.
                                         ; ;;
-brk_parms       dw offset brk_parmsx    ; DATA XREF: doconf+23D↓o
+brk_parms       dw offset brk_parmsx    ; ...
                                         ; break = [ on | off ]
                 db 1                    ; an extra delimiter list
                 db 1                    ; length is 1
                 db ';'                  ; delimiter
-brk_parmsx      db 1                    ; DATA XREF: SYSINIT:brk_parms↑o
+brk_parmsx      db 1                    ; ...
                                         ; min,max = 1 positional
                 db 1
                 dw offset brk_pos
                 db 0                    ; no switches
                 db 0                    ; no keywords
-brk_pos         dw 2000h                ; DATA XREF: SYSINIT:2575↑o
+brk_pos         dw 2000h                ; ...
                 dw 0
                 dw offset result_val
                 dw offset on_off_string
                 db 0
-on_off_string   db 3                    ; DATA XREF: SYSINIT:257F↑o
-                                        ; SYSINIT:2683↓o
+on_off_string   db 3                    ; ...
                                         ; signals that there is a string choice
                 db 0                    ; no range definition
                 db 0                    ; no numeric values choice
@@ -17322,19 +16626,18 @@ on_off_string   db 3                    ; DATA XREF: SYSINIT:257F↑o
                 dw offset _on_string    ; "ON"
                 db 2                    ; the 2nd string tag
                 dw offset _off_string   ; "OFF"
-_on_string      db 'ON',0               ; DATA XREF: SYSINIT:2587↑o
-_off_string     db 'OFF',0              ; DATA XREF: SYSINIT:258A↑o
-p_ctrl_break    db 0                    ; DATA XREF: doconf+25A↓w
-                                        ; doconf:if26↓w ...
+_on_string      db 'ON',0               ; ...
+_off_string     db 'OFF',0              ; ...
+p_ctrl_break    db 0                    ; ...
                                         ; local variable
                                         ; ;;
-cntry_parms     dw offset cntry_parmsx  ; DATA XREF: doconf+6CD↓o
+cntry_parms     dw offset cntry_parmsx  ; ...
                                         ; country = n {m {path}}
                                         ; or country = n,,path
                 db 1
                 db 1
                 db ';'
-cntry_parmsx    db 1                    ; DATA XREF: SYSINIT:cntry_parms↑o
+cntry_parmsx    db 1                    ; ...
                                         ; min 1, max 3 pos.
                 db 3
                 dw offset cntry_pos1
@@ -17342,204 +16645,195 @@ cntry_parmsx    db 1                    ; DATA XREF: SYSINIT:cntry_parms↑o
                 dw offset cntry_pos3
                 db 0                    ; no switches
                 db 0                    ; no keywords
-cntry_pos1      dw 8000h                ; DATA XREF: SYSINIT:259B↑o
+cntry_pos1      dw 8000h                ; ...
                                         ; cntry_pos1 p_pos <8000h,0,result_val,cc_range>
                                         ; numeric value
                 dw 0
                 dw offset result_val
                 dw offset cc_range
                 db 0
-cc_range        db 1                    ; DATA XREF: SYSINIT:25A9↑o
-                                        ; SYSINIT:25BD↓o
+cc_range        db 1                    ; ...
                                         ; cc_range p_range <,,,1,999>
                 db 1
                 db 1
                 dd 1
                 dd 999
-cntry_pos2      dw 8001h                ; DATA XREF: SYSINIT:259D↑o
+cntry_pos2      dw 8001h                ; ...
                                         ; cntry_pos2 p_pos <8001h,0,result_val,cc_range>
                                         ; optional num.
                 dw 0
                 dw offset result_val
                 dw offset cc_range
                 db 0
-cntry_pos3      dw 201h                 ; DATA XREF: SYSINIT:259F↑o
+cntry_pos3      dw 201h                 ; ...
                                         ; cntry_pos3 p_pos <201h,0,result_val,noval>
                                         ; optional filespec
                 dw 0
                 dw offset result_val
                 dw offset noval
                 db 0
-p_cntry_code    dw 0                    ; DATA XREF: doconf+6DC↓w
-                                        ; doconf+6FB↓w ...
+p_cntry_code    dw 0                    ; ...
                                         ; local variable
-p_code_page     dw 0                    ; DATA XREF: doconf+6C6↓w
-                                        ; doconf:if57↓w ...
+p_code_page     dw 0                    ; ...
                                         ; local variable
                                         ; ;;
-files_parms     dw offset files_parmsx  ; DATA XREF: doconf+7ED↓o
+files_parms     dw offset files_parmsx  ; ...
                                         ; files = n
                 db 1
                 db 1
                 db ';'
-files_parmsx    db 1                    ; DATA XREF: SYSINIT:files_parms↑o
+files_parmsx    db 1                    ; ...
                 db 1                    ; min,max 1 positional
                 dw offset files_pos
                 db 0                    ; no switches
                 db 0                    ; no keywords
-files_pos       dw 8000h                ; DATA XREF: SYSINIT:25D4↑o
+files_pos       dw 8000h                ; ...
                                         ; files_pos p_pos <8000h,0,result_val,files_range,0>
                                         ; numeric value
                 dw 0
                 dw offset result_val
                 dw offset files_range
                 db 0
-files_range     db 1                    ; DATA XREF: SYSINIT:25DE↑o
+files_range     db 1                    ; ...
                                         ; files_range p_range <,,,8,255>
                 db 1
                 db 1
                 dd 8
                 dd 255
-p_files         db 0                    ; DATA XREF: doconf+807↓w
-                                        ; doconf:en67↓r
+p_files         db 0                    ; ...
                                         ; local variable
                                         ; ;;
-fcbs_parms      dw offset fcbs_parmsx   ; DATA XREF: doconf+986↓o
+fcbs_parms      dw offset fcbs_parmsx   ; ...
                                         ; fcbs = n,m
                 db 1
                 db 1
                 db ';'
-fcbs_parmsx     db 1                    ; DATA XREF: SYSINIT:fcbs_parms↑o
+fcbs_parmsx     db 1                    ; ...
                 db 2
                 dw offset fcbs_pos_1
                 dw offset fcbs_pos_2
                 db 0                    ; no switches
                 db 0                    ; no keywords
-fcbs_pos_1      dw 8000h                ; DATA XREF: SYSINIT:25F4↑o
+fcbs_pos_1      dw 8000h                ; ...
                                         ; fcbs_pos_1 p_pos <8000h,0,result_val,fcbs_range>
                                         ; numeric value
                 dw 0
                 dw offset result_val
                 dw offset fcbs_range
                 db 0
-fcbs_range      db 1                    ; DATA XREF: SYSINIT:2600↑o
+fcbs_range      db 1                    ; ...
                                         ; fcbs_range p_range <,,,1,255>
                 db 1
                 db 1
                 dd 1
                 dd 255
-fcbs_pos_2      dw 8000h                ; DATA XREF: SYSINIT:25F6↑o
+fcbs_pos_2      dw 8000h                ; ...
                                         ; fcbs_pos_2 p_pos <8000h,0,result_val,fcbs_keep_range>
                                         ; numeric value
                 dw 0
                 dw offset result_val
                 dw offset fcbs_keep_range
                 db 0
-fcbs_keep_range db 1                    ; DATA XREF: SYSINIT:2614↑o
+fcbs_keep_range db 1                    ; ...
                                         ; fcbs_keep_range p_range <,,,0,255>
                 db 1
                 db 1
                 dd 0
                 dd 255
-p_fcbs          db 0                    ; DATA XREF: doconf+9A5↓w
-                                        ; doconf:en98↓r
+p_fcbs          db 0                    ; ...
                                         ; local variable
-p_keep          db 0                    ; DATA XREF: doconf:if102↓w
+p_keep          db 0                    ; ...
                                         ; local variable
                                         ; ;;
-ldrv_parms      dw offset ldrv_parmsx   ; DATA XREF: doconf+822↓o
+ldrv_parms      dw offset ldrv_parmsx   ; ...
                                         ; lastdrive = x
                 db 1
                 db 1
                 db ';'
-ldrv_parmsx     db 1                    ; DATA XREF: SYSINIT:ldrv_parms↑o
+ldrv_parmsx     db 1                    ; ...
                 db 1                    ; min,max = 1 positional
                 dw offset ldrv_pos
                 db 0                    ; no switches
                 db 0                    ; no keywords
-ldrv_pos        dw 110h                 ; DATA XREF: SYSINIT:262B↑o
+ldrv_pos        dw 110h                 ; ...
                                         ; ldrv_pos p_pos <110h,10h,result_val,noval>
                                         ; drive only, ignore colon at end
                 dw 10h
                 dw offset result_val
                 dw offset noval
                 db 0
-p_ldrv          db 0                    ; DATA XREF: doconf+83C↓w
-                                        ; doconf:en73↓r
+p_ldrv          db 0                    ; ...
                                         ; local variable
                                         ; ;;
-stks_parms      dw offset stks_parmsx   ; DATA XREF: doconf+875↓o
+stks_parms      dw offset stks_parmsx   ; ...
                                         ; stacks = n,m
                 db 1
                 db 1
                 db ';'
-stks_parmsx     db 2                    ; DATA XREF: SYSINIT:stks_parms↑o
+stks_parmsx     db 2                    ; ...
                 db 2                    ; min,max = 2 positionals
                 dw offset stks_pos_1
                 dw offset stks_pos_2
                 db 0                    ; no switches
                 db 0                    ; no keywords
-stks_pos_1      dw 8000h                ; DATA XREF: SYSINIT:2640↑o
+stks_pos_1      dw 8000h                ; ...
                                         ; stks_pos_1 p_pos <8000h,0,result_val,stks_range>
                                         ; numeric value
                 dw 0
                 dw offset result_val
                 dw offset stks_range
                 db 0
-stks_range      db 1                    ; DATA XREF: SYSINIT:264C↑o
+stks_range      db 1                    ; ...
                                         ; stks_range p_range <,,,0,64>
                 db 1
                 db 1
                 dd 0
                 dd 64
-stks_pos_2      dw 8000h                ; DATA XREF: SYSINIT:2642↑o
+stks_pos_2      dw 8000h                ; ...
                                         ; stks_pos_2 p_pos <8000h,0,result_val,stk_size_range>
                                         ; numeric value
                 dw 0
                 dw offset result_val
                 dw offset stk_size_range
                 db 0
-stk_size_range  db 1                    ; DATA XREF: SYSINIT:2660↑o
+stk_size_range  db 1                    ; ...
                                         ; stk_size_range p_range <,,,0,512>
                 db 1
                 db 1
                 dd 0
                 dd 512
-p_stack_count   dw 0                    ; DATA XREF: doconf+89B↓w
-                                        ; doconf:en79↓r ...
+p_stack_count   dw 0                    ; ...
                                         ; local variable
-p_stack_size    dw 0                    ; DATA XREF: doconf:if83↓w
-                                        ; doconf+8B7↓r ...
+p_stack_size    dw 0                    ; ...
                                         ; local variable
                                         ; ;;
-mtrk_parms      dw offset mtrk_parmsx   ; DATA XREF: doconf+27F↓o
+mtrk_parms      dw offset mtrk_parmsx   ; ...
                                         ; multitrack = [ on | off ]
                 db 1
                 db 1
                 db ';'
-mtrk_parmsx     db 1                    ; DATA XREF: SYSINIT:mtrk_parms↑o
+mtrk_parmsx     db 1                    ; ...
                                         ; min,max = 1 positional
                 db 1
                 dw offset mtrk_pos
                 db 0                    ; no switches
                 db 0                    ; no keywords
-mtrk_pos        dw 2000h                ; DATA XREF: SYSINIT:2679↑o
+mtrk_pos        dw 2000h                ; ...
                                         ; mtrk_pos p_pos <2000h,0,result_val,on_off_string>
                                         ; simple string
                 dw 0
                 dw offset result_val
                 dw offset on_off_string
                 db 0
-p_mtrk          db 0                    ; DATA XREF: doconf+29C↓w
-                                        ; doconf:if35↓w ...
+p_mtrk          db 0                    ; ...
                                         ; local variable
                                         ; ;;
-swit_parms      dw offset swit_parmsx   ; DATA XREF: doconf+9CF↓o
+swit_parms      dw offset swit_parmsx   ; ...
                                         ; switches=/k
                 db 1
                 db 1
                 db ';'
-swit_parmsx     dw 0                    ; DATA XREF: SYSINIT:swit_parms↑o
+swit_parmsx     dw 0                    ; ...
                                         ; no positionals
                 db 6                    ; # of switches (6 for PCDOS 7.1 IBMBIO.COM)
                                         ;  (5 for MSDOS 6.21 IO.SYS)
@@ -17551,54 +16845,54 @@ swit_parmsx     dw 0                    ; DATA XREF: SYSINIT:swit_parms↑o
                 dw offset swit_i_ctrl   ; /i control
                                         ; (6th switch for PCDOS 7.1 IBMBIO.COM)
                 db 0                    ; no keywords
-swit_k_ctrl     dw 0                    ; DATA XREF: SYSINIT:268F↑o
+swit_k_ctrl     dw 0                    ; ...
                                         ; swit_k_ctrl p_pos <0,0,result_val,noval,1>
                                         ; switch string follows
                 dw 0
                 dw offset result_val
                 dw offset noval
                 db 1
-swit_k          db '/K',0               ; DATA XREF: doconf+9E6↓o
-swit_n_ctrl     dw 0                    ; DATA XREF: SYSINIT:2691↑o
+swit_k          db '/K',0               ; ...
+swit_n_ctrl     dw 0                    ; ...
                                         ; swit_n_ctrl p_pos <0,0,result_val,noval,1>
                                         ; switch string follows
                 dw 0
                 dw offset result_val
                 dw offset noval
                 db 1
-swit_n          db '/N',0               ; DATA XREF: menu_check+36↓r
-swit_f_ctrl     dw 0                    ; DATA XREF: SYSINIT:2693↑o
+swit_n          db '/N',0               ; ...
+swit_f_ctrl     dw 0                    ; ...
                                         ; swit_f_ctrl p_pos <0,0,result_val,noval,1>
                                         ; switch string follows
                 dw 0
                 dw offset result_val
                 dw offset noval
                 db 1
-swit_f          db '/F',0               ; DATA XREF: menu_check:swchk_scan2↓r
-swit_t_ctrl     dw 0                    ; DATA XREF: SYSINIT:2695↑o
+swit_f          db '/F',0               ; ...
+swit_t_ctrl     dw 0                    ; ...
                                         ; swit_t_ctrl p_pos <0,0,result_val,noval,1>
                                         ; switch string follows
                 dw 0
                 dw offset result_val
                 dw offset noval
                 db 1
-swit_t          db '/T',0               ; DATA XREF: doconf:if115↓o
-swit_w_ctrl     dw 0                    ; DATA XREF: SYSINIT:2697↑o
+swit_t          db '/T',0               ; ...
+swit_w_ctrl     dw 0                    ; ...
                                         ; swit_w_ctrl p_pos <0,0,result_val,noval,1>
                                         ; switch string follows
                 dw 0
                 dw offset result_val
                 dw offset noval
                 db 1
-swit_w          db '/W',0               ; DATA XREF: doconf:if116↓o
-swit_i_ctrl     dw 0                    ; DATA XREF: SYSINIT:2699↑o
+swit_w          db '/W',0               ; ...
+swit_i_ctrl     dw 0                    ; ...
                                         ; swit_i_ctrl p_pos <0,0,result_val,noval,1>
                                         ; switch string follows
                 dw 0
                 dw offset result_val
                 dw offset noval
                 db 1
-swit_i          db '/I',0               ; DATA XREF: doconf:if118↓o
+swit_i          db '/I',0               ; ...
 swit_c_ctrl     dw 0                    ; ! (/C, /D, /E switches are not used) !
                                         ; Erdogan Tan - 09/07/2023
                 dw 0
@@ -17621,34 +16915,29 @@ swit_e          db '/E',0
                 db 0
                 db 0
                 db 0
-p_swit_k        db 0                    ; DATA XREF: doconf+9EF↓w
-                                        ; doconf:en110↓r
+p_swit_k        db 0                    ; ...
                                         ; local variable
-p_swit_t        db 0                    ; DATA XREF: doconf+A00↓w
-                                        ; doconf:if117↓r
+p_swit_t        db 0                    ; ...
                                         ; local variable
-p_swit_w        db 0                    ; DATA XREF: doconf+A22↓w
-                                        ; doconf+A49↓r
+p_swit_w        db 0                    ; ...
                                         ; local variable
-p_swit_i        db 0                    ; DATA XREF: doconf+A11↓w
-                                        ; doconf:if119↓r
+p_swit_i        db 0                    ; ...
                                         ; local variable
                                         ; ;;
-dos_parms       dw offset dos_parmsx    ; DATA XREF: doconf+2D7↓o
+dos_parms       dw offset dos_parmsx    ; ...
                                         ; DOS = [ high | low ]
                                         ; DOS = HIGH|LOW[,UMB|,NOUMB]
                 db 1
                 db 1
                 db ';'
-dos_parmsx      db 1                    ; DATA XREF: SYSINIT:dos_parms↑o
+dos_parmsx      db 1                    ; ...
                                         ; min parameters
                 db 2                    ; max parameters
                 dw offset dos_pos
                 dw offset dos_pos
                 db 0                    ; no switches
                 db 0                    ; no keywords
-dos_pos         dw 2000h                ; DATA XREF: SYSINIT:2716↑o
-                                        ; SYSINIT:2718↑o
+dos_pos         dw 2000h                ; ...
                 dw 0
                 dw offset result_val
                 dw offset dos_strings
@@ -17660,8 +16949,7 @@ dos_pos2        dw 2000h                ; dos_pos p_pos <2000h,0,result_val,dos_
                 dw offset result_val
                 dw offset dos_strings
                 db 0
-dos_strings     db 3                    ; DATA XREF: SYSINIT:2722↑o
-                                        ; SYSINIT:272B↑o
+dos_strings     db 3                    ; ...
                                         ; signals that there is a string choice
                 db 0                    ; no range definition
                 db 0                    ; no numeric values choice
@@ -17674,25 +16962,24 @@ dos_strings     db 3                    ; DATA XREF: SYSINIT:2722↑o
                 dw offset umb_string    ; "UMB"
                 db 4
                 dw offset noumb_string  ; "NOUMB"
-dosdata_parms   dw offset dosdata_parmsx
-                                        ; DATA XREF: doconf+AA8↓o
+dosdata_parms   dw offset dosdata_parmsx ; ...
                                         ; DOSDATA = UMB|NOUMB
                 db 1
                 db 1
                 db ';'
-dosdata_parmsx  db 1                    ; DATA XREF: SYSINIT:dosdata_parms↑o
+dosdata_parmsx  db 1                    ; ...
                 db 1                    ; min,max = 1 positional
                 dw offset dosdata_pos
                 db 0                    ; no switches
                 db 0                    ; no keywords
-dosdata_pos     dw 2000h                ; DATA XREF: SYSINIT:2745↑o
+dosdata_pos     dw 2000h                ; ...
                                         ; dosdata_pos p_pos <2000h,0,result_val,dosdata_strings>
                                         ; simple string
                 dw 0
                 dw offset result_val
                 dw offset dosdata_strings
                 db 0
-dosdata_strings db 3                    ; DATA XREF: SYSINIT:274F↑o
+dosdata_strings db 3                    ; ...
                                         ; signals that there is a string choice
                 db 0                    ; no range definition
                 db 0                    ; no numeric values choice
@@ -17701,12 +16988,10 @@ dosdata_strings db 3                    ; DATA XREF: SYSINIT:274F↑o
                 dw offset umb_string    ; "UMB"
                 db 2                    ; the 2nd string tag
                 dw offset noumb_string  ; "NOUMB"
-hi_string       db 'HIGH',0             ; DATA XREF: SYSINIT:2733↑o
-lo_string       db 'LOW',0              ; DATA XREF: SYSINIT:2736↑o
-umb_string      db 'UMB',0              ; DATA XREF: SYSINIT:2739↑o
-                                        ; SYSINIT:2757↑o
-noumb_string    db 'NOUMB',0            ; DATA XREF: SYSINIT:273C↑o
-                                        ; SYSINIT:275A↑o
+hi_string       db 'HIGH',0             ; ...
+lo_string       db 'LOW',0              ; ...
+umb_string      db 'UMB',0              ; ...
+noumb_string    db 'NOUMB',0            ; ...
 p_dos_hi        db 0                    ; local variable (parser does not use this)
                 db 0                    ;
                                         ; for LoadHigh and DeviceHigh:
@@ -17721,13 +17006,10 @@ p_dos_hi        db 0                    ; local variable (parser does not use th
                                         ;    fm_umb   - Set to the old UMB link-state (0x80 or 0x00)
                                         ;    fm_strat - Set to the old memory-allocation strategy (0$00000???)
                                         ;    fm_argc  - Number of arguments received by ParseVar()
-fInHigh         db 0                    ; DATA XREF: InitVar+C↓w
-                                        ; HideUMBs+12↓w ...
-fUmbTiny        db 0                    ; DATA XREF: InitVar+8↓w
-                                        ; ParseVar+21↓w ...
-SegLoad         dw 0                    ; DATA XREF: InitVar+10↓w
-UmbLoad         db 0                    ; DATA XREF: InitVar+14↓w
-                                        ; unMarkUMB+10↓r ...
+fInHigh         db 0                    ; ...
+fUmbTiny        db 0                    ; ...
+SegLoad         dw 0                    ; ...
+UmbLoad         db 0                    ; ...
                                         ; UmbUsed - An array of characters, each of which is 1 if the UMB
                                         ;           matching its index number was specified on the
                                         ;           command line;
@@ -17737,89 +17019,64 @@ UmbLoad         db 0                    ; DATA XREF: InitVar+14↓w
                                         ;           size specified by the user for a UMB (in the above
                                         ;           example, all elements would be zero save UmbSize[3],
                                         ;           which would be 500.
-UmbUsed         db 16 dup(0)            ; DATA XREF: InitVar+22↓o
-                                        ; unMarkUMB+A↓w ...
+UmbUsed         db 16 dup(0)            ; ...
                                         ; times MAXUMB db 0
-UmbSize         dw 16 dup(0)            ; DATA XREF: InitVar+2A↓o
-                                        ; stowSiz+B↓w ...
+UmbSize         dw 16 dup(0)            ; ...
                                         ; times MAXUMB dw 0
-fm_umb          db 0                    ; DATA XREF: fm_link+8↓w
-                                        ; fm_unlink+5↓r ...
+fm_umb          db 0                    ; ...
 fm_strat        db 0
-fm_argc         db 0                    ; DATA XREF: InitVar+1A↓w
-                                        ; incArgc+4↓r ...
-DevSize         dw 0                    ; DATA XREF: MagicPreload+18↑r
-                                        ; MagicPostload+15↑w ...
+fm_argc         db 0                    ; ...
+DevSize         dw 0                    ; ...
                                         ; size of the device driver being loaded (paras)
-DevLoadAddr     dw 0                    ; DATA XREF: MagicPreload+14↑r
-                                        ; MagicPostload+31↑r ...
+DevLoadAddr     dw 0                    ; ...
                                         ; Mem addr where the device driver is 2 b loaded
-DevLoadEnd      dw 0                    ; DATA XREF: MagicPreload+1F↑r
-                                        ; MagicPreload+57↑r ...
+DevLoadEnd      dw 0                    ; ...
                                         ; MaxAddr to which device can be loaded
-DevEntry        dd 0                    ; DATA XREF: MagicPreload+32↑r
-                                        ; MagicPreload+EF↑r ...
+DevEntry        dd 0                    ; ...
                                         ; Entry point to the device driver
-DevBrkAddr      dd 0                    ; DATA XREF: MagicPreload+A7↑w
-                                        ; MagicPreload:_foundpb↑r ...
+DevBrkAddr      dd 0                    ; ...
                                         ; Break address of the device driver
-ConvLoad        db 0                    ; DATA XREF: doconf+3BE↓w
-                                        ; doconf+3D4↓w ...
+ConvLoad        db 0                    ; ...
                                         ; Use conventional (dos 5 style) InitDevLoad?
-DevUMB          db 0                    ; DATA XREF: doconf+36F↓r
-                                        ; doconf+4B5↓r ...
+DevUMB          db 0                    ; ...
                                         ; byte indicating whether to load DDs in UMBs
-DevUMBAddr      dw 0                    ; DATA XREF: InitDevLoad+36↓r
-                                        ; SpaceInUMB+4↓r ...
+DevUMBAddr      dw 0                    ; ...
                                         ; current UMB used for loading devices (paras)
-DevUMBSize      dw 0                    ; DATA XREF: InitDevLoad+3B↓r
-                                        ; SpaceInUMB↓r ...
+DevUMBSize      dw 0                    ; ...
                                         ; Size of the current UMB being used (paras)
-DevUMBFree      dw 0                    ; DATA XREF: InitDevLoad:InitForHi↓r
-                                        ; SpaceInUMB+9↓r ...
+DevUMBFree      dw 0                    ; ...
                                         ; Start of free mem blk in the current UMB (paras)
-DevXMSAddr      dd 0                    ; DATA XREF: InitAllocUMB+13↓w
-                                        ; umb_allocate+6↓r ...
-DevExecAddr     dw 0                    ; DATA XREF: ExecDev+5↓w
-                                        ; ExecDev+13↓o
+DevXMSAddr      dd 0                    ; ...
+DevExecAddr     dw 0                    ; ...
                                         ; Device load address parameter to Exec call
-DevExecReloc    dw 0                    ; DATA XREF: ExecDev+A↓w
+DevExecReloc    dw 0                    ; ...
                                         ; Device load relocation factor
-DeviceHi        db 0                    ; DATA XREF: MagicPreload+B↑w
-                                        ; MagicPostload+19↑w ...
+DeviceHi        db 0                    ; ...
                                         ; Flag indicating whether the current device
                                         ; is being loaded into UMB
-DevSizeOption   dw 0                    ; DATA XREF: doconf:tryu_1↓r
-                                        ; doconf+392↓w ...
+DevSizeOption   dw 0                    ; ...
                                         ; SIZE= option
-Int12Lied       db 0                    ; DATA XREF: SetInt12Mem+16↓w
-                                        ; TrueInt12Mem↓r ...
+Int12Lied       db 0                    ; ...
                                         ; did we trap int 12h ?
-OldInt12Mem     dw 0                    ; DATA XREF: SetInt12Mem+A↓w
-                                        ; TrueInt12Mem+14↓r
+OldInt12Mem     dw 0                    ; ...
                                         ; value in 40:13h (int 12h ram)
-ThreeComName    db 'PROTMAN$'           ; DATA XREF: IsIt3Com+D↓o
+ThreeComName    db 'PROTMAN$'           ; ...
                                         ; 3Com Device name
-FirstUMBLinked  db 0                    ; DATA XREF: InitAllocUMB+1D↓r
-                                        ; InitAllocUMB+2A↓w ...
-DevDOSData      dw 0                    ; DATA XREF: InitAllocUMB+9↓w
-                                        ; umb_insert+1↓r ...
+FirstUMBLinked  db 0                    ; ...
+DevDOSData      dw 0                    ; ...
                                         ; segment of DOS Data
-DevCmdLine      dw 2 dup(0)             ; DATA XREF: doconf+3A9↓w
-                                        ; ParseSize+A↓w ...
+DevCmdLine      dw 2 dup(0)             ; ...
                                         ; Current Command line
-DevSavedDelim   db 0                    ; DATA XREF: doconf:tryu_5↓w
-                                        ; doconf+399↓w ...
+DevSavedDelim   db 0                    ; ...
                                         ; The delimiter which was replaced with null
                                         ; to use the file name in the command line
-MagicHomeFlag   db 0                    ; DATA XREF: doconf:CheckDoubleSpace↓r
-                                        ; doconf:set_magichomeflag↓w
+MagicHomeFlag   db 0                    ; ...
                                         ; set non-zero when MagicDrv is final placed
 
 ; =============== S U B R O U T I N E =======================================
 
 
-doconf          proc near               ; CODE XREF: SYSINIT:ProcessConfig↑p
+doconf          proc near               ; ...
 
 ; FUNCTION CHUNK AT 28A1 SIZE 0000003A BYTES
 ; FUNCTION CHUNK AT 28EF SIZE 0000001D BYTES
@@ -17853,7 +17110,7 @@ doconf          proc near               ; CODE XREF: SYSINIT:ProcessConfig↑p
                 retn
 ; ---------------------------------------------------------------------------
 
-noprob:                                 ; CODE XREF: doconf+18↑j
+noprob:                                 ; ...
                 mov     bx, ax          ; get file size (note < 64k!!)
                                         ; File handle
                 xor     cx, cx
@@ -17899,8 +17156,7 @@ noprob:                                 ; CODE XREF: doconf+18↑j
                 jnz     short puteol    ; none found and count exhausted
                 dec     di              ; backup past 1Ah
 
-puteol:                                 ; CODE XREF: doconf+71↑j
-                                        ; doconf+75↑j
+puteol:                                 ; ...
                 mov     al, 0Dh         ; cr,lf
                 stosb
                 mov     al, 0Ah
@@ -17924,12 +17180,11 @@ puteol:                                 ; CODE XREF: doconf+71↑j
                 jz      short getcom    ; if ax <(>) cx
                                         ; couldn't read the file
 
-conferr:                                ; CODE XREF: doconf+91↑j
+conferr:                                ; ...
                 mov     dx, offset config ; "\\CONFIG.SYS"
                 call    badfil          ; print config error
 
-endconv:                                ; CODE XREF: multi_pass:jae_endconv↓j
-                                        ; doconf:conflp↓j
+endconv:                                ; ...
                 retn
 doconf          endp
 
@@ -17937,13 +17192,12 @@ doconf          endp
 ; =============== S U B R O U T I N E =======================================
 
 
-multi_pass      proc near               ; CODE XREF: SYSINIT:086A↑p
-                                        ; SYSINIT:0878↑p ...
+multi_pass      proc near               ; ...
                 push    cs
                 pop     ds
                 cmp     multi_pass_id, 10 ; do nothing. just return.
 
-jae_endconv:                            ; CODE XREF: doconf+11D↓j
+jae_endconv:                            ; ...
                 jnb     short endconv
                 push    CONFBOT
                 pop     es              ; es = [confbot] (CONFIG.SYS image seg)
@@ -17959,12 +17213,11 @@ multi_pass      endp
 ; ---------------------------------------------------------------------------
 ; START OF FUNCTION CHUNK FOR doconf
 
-getcom:                                 ; CODE XREF: doconf+95↑j
+getcom:                                 ; ...
                 call    organize        ; organize the file
                 call    getchr
 
-conflp:                                 ; CODE XREF: multi_pass+23↑j
-                                        ; doconf+127↓j ...
+conflp:                                 ; ...
                 jb      short endconv
                 inc     linecount       ; increase linecount
                 mov     multdeviceflag, 0 ; reset multdeviceflag.
@@ -17989,26 +17242,21 @@ conflp:                                 ; CODE XREF: multi_pass+23↑j
                 cmp     multi_pass_id, 2 ; final pass?
 ; END OF FUNCTION CHUNK FOR doconf
                 jb      short not_final ; no
-                test    install_flag, 1 ; DATA XREF: MSLOAD:00E7↑r
-                                        ; MSLOAD:not_fat32↑r ...
+                test    install_flag, 1 ; ...
                                         ; have_install_cmd
                                         ; are there install commands?
                 jz      short final     ; no install cmds, yes it is
-                cmp     multi_pass_id, 3
-                                        ; DATA XREF: MSLOAD:00C0↑r
-                                        ; MSLOAD:00AE↑r
+                cmp     multi_pass_id, 3 ; ...
                                         ; final pass?
                 jb      short not_final ; no
 
-final:                                  ; CODE XREF: SYSINIT:28E3↑j
-                                        ; DATA XREF: MSLOAD:00F0↑r ...
+final:                                  ; ...
                 mov     es:[si], al     ; save backward-compatible command code
 ; START OF FUNCTION CHUNK FOR doconf
 
-not_final:                              ; CODE XREF: doconf+E7↑j
-                                        ; SYSINIT:28DB↑j ...
+not_final:                              ; ...
                 mov     ah, al
-                call    getchr          ; DATA XREF: MSLOAD:011E↑r
+                call    getchr          ; ...
                 jnb     short tryi
                 cmp     multi_pass_id, 2
                 jnb     short jae_endconv ; it would be 'jnb short endconv'
@@ -18017,15 +17265,14 @@ not_final:                              ; CODE XREF: doconf+E7↑j
                 jmp     badop
 ; ---------------------------------------------------------------------------
 
-coff:                                   ; CODE XREF: doconf:multi_pass_coff2↓j
-                                        ; doconf+163↓j ...
+coff:                                   ; ...
                 push    cs
                 pop     ds
                 call    newline
                 jmp     short conflp
 ; ---------------------------------------------------------------------------
 
-blank_line:                             ; CODE XREF: doconf+DB↑j
+blank_line:                             ; ...
                 call    getchr
                 jmp     short conflp
 ; END OF FUNCTION CHUNK FOR doconf
@@ -18034,14 +17281,13 @@ blank_line:                             ; CODE XREF: doconf+DB↑j
                 pop     ds
 ; START OF FUNCTION CHUNK FOR doconf
 
-tryi:                                   ; CODE XREF: doconf+116↑j
-                                        ; DATA XREF: MSLOAD:00D1↑r
+tryi:                                   ; ...
                 cmp     multi_pass_id, 0 ; the initial pass for DOS=HI
                 jnz     short not_init_pass
                 jmp     multi_try_doshi
 ; ---------------------------------------------------------------------------
 
-not_init_pass:                          ; CODE XREF: doconf+135↑j
+not_init_pass:                          ; ...
                 cmp     multi_pass_id, 2 ; the second pass was for ifs=
                 jz      short multi_pass_coff2 ; now it is NOPs
                                         ;
@@ -18058,19 +17304,18 @@ not_init_pass:                          ; CODE XREF: doconf+135↑j
                                         ; the first pass is for normal operation.
                 or      install_flag, 1 ; have_install_cmd ; set the flag
 
-multi_pass_coff2:                       ; CODE XREF: doconf+13F↑j
-                                        ; doconf+14B↑j
+multi_pass_coff2:                       ; ...
                 jmp     short coff      ; and handles the next command
 ; ---------------------------------------------------------------------------
 
-precheck_installhigh:                   ; CODE XREF: doconf+150↑j
+precheck_installhigh:                   ; ...
                 cmp     ah, 57h ; 'W'   ; CONFIG_INSTALLHIGH ; signifier for INSTALLHIGH
                 jnz     short tryb      ; carry on with normal processing
                 or      install_flag, 1 ; have_install_cmd
                 jmp     short coff
 ; ---------------------------------------------------------------------------
 
-multi_try_i:                            ; CODE XREF: doconf+146↑j
+multi_try_i:                            ; ...
                 cmp     ah, 49h ; 'I'   ; CONFIG_INSTALL ; install= command?
                 jnz     short multi_try_n ; no, check for installhigh
                 call    query_user      ; query the user if config_cmd
@@ -18079,7 +17324,7 @@ multi_try_i:                            ; CODE XREF: doconf+146↑j
                 jmp     short coff      ; to handle next install= command.
 ; ---------------------------------------------------------------------------
 
-multi_try_n:                            ; CODE XREF: doconf+168↑j
+multi_try_n:                            ; ...
                 cmp     ah, 57h ; 'W'   ; CONFIG_INSTALLHIGH ; installhigh= command?
                 jnz     short multi_pass_filter
                 call    query_user      ; query the user if config_cmd
@@ -18114,8 +17359,7 @@ multi_try_n:                            ; CODE XREF: doconf+168↑j
                 jmp     coff            ; to handle next install= commands.
 ; ---------------------------------------------------------------------------
 
-multi_pass_filter:                      ; CODE XREF: doconf+16D↑j
-                                        ; doconf+177↑j ...
+multi_pass_filter:                      ; ...
                 cmp     ah, 59h ; 'Y'   ; CONFIG_COMMENT ; comment?
                 jz      short multi_pass_adjust
                 cmp     ah, 5Ah ; 'Z'   ; CONFIG_UNKNOWN ; bad command?
@@ -18123,17 +17367,16 @@ multi_pass_filter:                      ; CODE XREF: doconf+16D↑j
                 cmp     ah, 30h ; '0'   ; CONFIG_REM ; rem?
                 jnz     short multi_pass_coff ; ignore the rest of the commands.
 
-multi_pass_adjust:                      ; CODE XREF: doconf+1B4↑j
-                                        ; doconf+1B9↑j
+multi_pass_adjust:                      ; ...
                 dec     chrptr          ; these commands need to
                                         ; adjust chrptr,count
                 inc     count           ; for newline proc.
 
-multi_pass_coff:                        ; CODE XREF: doconf+1BE↑j
+multi_pass_coff:                        ; ...
                 jmp     coff            ; to handle next install= commands.
 ; ---------------------------------------------------------------------------
 
-tryb:                                   ; CODE XREF: doconf+15C↑j
+tryb:                                   ; ...
                 cmp     ah, 42h ; 'B'   ; CONFIG_BUFFERS
                 jnz     short tryc
                 call    query_user      ; query the user if config_cmd
@@ -18144,7 +17387,7 @@ tryb:                                   ; CODE XREF: doconf+15C↑j
                 xor     cx, cx
                 mov     dx, cx
 
-do7:                                    ; CODE XREF: doconf:en11↓j
+do7:                                    ; ...
                 call    sysinit_parse
                 jnb     short if7       ;
                                         ; parse error,
@@ -18153,7 +17396,7 @@ do7:                                    ; CODE XREF: doconf:en11↓j
                 jmp     short sr7
 ; ---------------------------------------------------------------------------
 
-if7:                                    ; CODE XREF: doconf+1E4↑j
+if7:                                    ; ...
                 cmp     ax, 0FFFFh      ; _$P_RC_EOL ; end of line?
                 jz      short en7       ; then jmp to $endloop for semantic check
                 cmp     result_val_swoff, offset switch_x ; (/X switch)
@@ -18162,7 +17405,7 @@ if7:                                    ; CODE XREF: doconf+1E4↑j
                 jmp     short en11
 ; ---------------------------------------------------------------------------
 
-if11:                                   ; CODE XREF: doconf+1F6↑j
+if11:                                   ; ...
                 mov     ax, word ptr rv_dword ; [result_val+_$P_Result_Blk.Picked_Val]
                 cmp     cx, 1
                 jnz     short if13
@@ -18170,15 +17413,14 @@ if11:                                   ; CODE XREF: doconf+1F6↑j
                 jmp     short en11
 ; ---------------------------------------------------------------------------
 
-if13:                                   ; CODE XREF: doconf+200↑j
+if13:                                   ; ...
                 mov     p_h_buffers, ax
 
-en11:                                   ; CODE XREF: doconf+1F8↑j
-                                        ; doconf+205↑j
+en11:                                   ; ...
                 jmp     short do7
 ; ---------------------------------------------------------------------------
 
-en7:                                    ; CODE XREF: doconf+1EE↑j
+en7:                                    ; ...
                 cmp     p_buffers, 99
                 jbe     short if18
                 call    badparm_p
@@ -18186,7 +17428,7 @@ en7:                                    ; CODE XREF: doconf+1EE↑j
                 jmp     short sr7
 ; ---------------------------------------------------------------------------
 
-if18:                                   ; CODE XREF: doconf+211↑j
+if18:                                   ; ...
                 mov     ax, p_buffers   ; we don't have any problem.
                 mov     buffers, ax     ; now,let's set it really.
                 mov     ax, p_h_buffers
@@ -18195,13 +17437,11 @@ if18:                                   ; CODE XREF: doconf+211↑j
                 mov     buffer_linenum, ax ; save the line number
                                         ; for the future use
 
-sr7:                                    ; CODE XREF: doconf+1E9↑j
-                                        ; doconf+21C↑j
+sr7:                                    ; ...
                 jmp     coff
 ; ---------------------------------------------------------------------------
 
-tryc:                                   ; CODE XREF: doconf+1CE↑j
-                                        ; doconf+1D3↑j
+tryc:                                   ; ...
                 cmp     ah, 43h ; 'C'   ; CONFIG_BREAK
                 jnz     short trym
                 call    query_user      ; query the user if config_cmd
@@ -18211,7 +17451,7 @@ tryc:                                   ; CODE XREF: doconf+1CE↑j
                 xor     cx, cx
                 mov     dx, cx
 
-do22:                                   ; CODE XREF: doconf:en26↓j
+do22:                                   ; ...
                 call    sysinit_parse
                 jnb     short if22      ;
                                         ; parse error
@@ -18219,7 +17459,7 @@ do22:                                   ; CODE XREF: doconf:en26↓j
                 jmp     short sr22
 ; ---------------------------------------------------------------------------
 
-if22:                                   ; CODE XREF: doconf+247↑j
+if22:                                   ; ...
                 cmp     ax, 0FFFFh      ; _$P_RC_EOL ; end of line?
                 jz      short en22      ; then end the $endloop
                 cmp     result_val_itag, 1 ; [result_val+_$P_Result_Blk.Item_Tag]
@@ -18228,14 +17468,14 @@ if22:                                   ; CODE XREF: doconf+247↑j
                 jmp     short en26
 ; ---------------------------------------------------------------------------
 
-if26:                                   ; CODE XREF: doconf+258↑j
+if26:                                   ; ...
                 mov     p_ctrl_break, 0 ; turn it off
 
-en26:                                   ; CODE XREF: doconf+25F↑j
+en26:                                   ; ...
                 jmp     short do22      ; we actually set the ctrl break
 ; ---------------------------------------------------------------------------
 
-en22:                                   ; CODE XREF: doconf+251↑j
+en22:                                   ; ...
                 mov     ah, 33h         ; SET_CTRL_C_TRAPPING
                                         ; if we don't have any parse error.
                 mov     al, 1
@@ -18244,12 +17484,11 @@ en22:                                   ; CODE XREF: doconf+251↑j
                                         ; AL = 00h get state / 01h set state / 02h set AND get
                                         ; DL = 00h for OFF or 01h for ON
 
-sr22:                                   ; CODE XREF: doconf+24C↑j
+sr22:                                   ; ...
                 jmp     coff
 ; ---------------------------------------------------------------------------
 
-trym:                                   ; CODE XREF: doconf+236↑j
-                                        ; doconf+23B↑j
+trym:                                   ; ...
                 cmp     ah, 4Dh ; 'M'   ; CONFIG_MULTITRACK
                 jnz     short tryu
                 call    query_user      ; query the user if config_cmd
@@ -18259,7 +17498,7 @@ trym:                                   ; CODE XREF: doconf+236↑j
                 xor     cx, cx
                 mov     dx, cx
 
-do31:                                   ; CODE XREF: doconf:en35↓j
+do31:                                   ; ...
                 call    sysinit_parse
                 jnb     short if31      ;
                                         ; parse_error
@@ -18267,7 +17506,7 @@ do31:                                   ; CODE XREF: doconf:en35↓j
                 jmp     short sr31
 ; ---------------------------------------------------------------------------
 
-if31:                                   ; CODE XREF: doconf+289↑j
+if31:                                   ; ...
                 cmp     ax, 0FFFFh      ; _$P_RC_EOL ; end of line?
                 jz      short en31
                 cmp     result_val_itag, 1 ; [result_val+_$P_Result_Blk.Item_Tag]
@@ -18276,14 +17515,14 @@ if31:                                   ; CODE XREF: doconf+289↑j
                 jmp     short en35
 ; ---------------------------------------------------------------------------
 
-if35:                                   ; CODE XREF: doconf+29A↑j
+if35:                                   ; ...
                 mov     p_mtrk, 0       ; turn it off temporarily.
 
-en35:                                   ; CODE XREF: doconf+2A1↑j
+en35:                                   ; ...
                 jmp     short do31      ; we actually set the multrk_flag here
 ; ---------------------------------------------------------------------------
 
-en31:                                   ; CODE XREF: doconf+293↑j
+en31:                                   ; ...
                 push    ds
                 mov     ax, 70h         ; DOSBIODATASEG ; BIOSDATA segment
                 mov     ds, ax
@@ -18294,26 +17533,26 @@ en31:                                   ; CODE XREF: doconf+293↑j
                 jmp     short en39
 ; ---------------------------------------------------------------------------
 
-if39:                                   ; CODE XREF: doconf+2B6↑j
+if39:                                   ; ...
                 mov     ds:multrk_flag, 80h ; multrk_on
 
-en39:                                   ; CODE XREF: doconf+2BE↑j
+en39:                                   ; ...
                 pop     ds
                 assume ds:nothing
 
-sr31:                                   ; CODE XREF: doconf+28E↑j
+sr31:                                   ; ...
                 jmp     coff
 ; ---------------------------------------------------------------------------
 
-multi_try_doshi:                        ; CODE XREF: doconf+137↑j
+multi_try_doshi:                        ; ...
                 cmp     ah, 48h ; 'H'   ; CONFIG_DOS
                 jz      short it_is_h
 
-skip_it:                                ; CODE XREF: doconf+2D5↓j
+skip_it:                                ; ...
                 jmp     multi_pass_filter
 ; ---------------------------------------------------------------------------
 
-it_is_h:                                ; CODE XREF: doconf+2CD↑j
+it_is_h:                                ; ...
                 call    query_user      ; query the user if config_cmd
                                         ; has the CONFIG_OPTION_QUERY bit set
                 jb      short skip_it
@@ -18321,7 +17560,7 @@ it_is_h:                                ; CODE XREF: doconf+2CD↑j
                 xor     cx, cx
                 mov     dx, cx
 
-h_do_parse:                             ; CODE XREF: doconf+2F0↓j
+h_do_parse:                             ; ...
                 call    sysinit_parse
                 jnb     short h_parse_ok
 
@@ -18330,26 +17569,24 @@ h_badparm:                              ; parse error
                 jmp     short h_end
 ; ---------------------------------------------------------------------------
 
-h_parse_ok:                             ; CODE XREF: doconf+2E1↑j
+h_parse_ok:                             ; ...
                 cmp     ax, 0FFFFh      ; _$P_RC_EOL ; end of line?
                 jz      short h_end     ; then end the $endloop
                 call    ProcDOS
                 jmp     short h_do_parse
 ; ---------------------------------------------------------------------------
 
-h_end:                                  ; CODE XREF: doconf+2E6↑j
-                                        ; doconf+2EB↑j
+h_end:                                  ; ...
                 jmp     coff
 ; ---------------------------------------------------------------------------
 
-tryu:                                   ; CODE XREF: doconf+278↑j
-                                        ; doconf+27D↑j
+tryu:                                   ; ...
                 cmp     ah, 'U'         ; CONFIG_DEVICEHIGH
                 jz      short tryu_0
                 jmp     tryd
 ; ---------------------------------------------------------------------------
 
-tryu_0:                                 ; CODE XREF: doconf+2F8↑j
+tryu_0:                                 ; ...
                 call    query_user      ; query the user if config_cmd
                                         ; has the CONFIG_OPTION_QUERY bit set
                 jb      short tryd
@@ -18363,7 +17600,7 @@ tryu_0:                                 ; CODE XREF: doconf+2F8↑j
                 jmp     coff
 ; ---------------------------------------------------------------------------
 
-tryu_1:                                 ; CODE XREF: doconf+308↑j
+tryu_1:                                 ; ...
                 mov     ax, cs:DevSizeOption
                 or      ax, ax
                 jnz     short tryu_2
@@ -18378,12 +17615,11 @@ tryu_1:                                 ; CODE XREF: doconf+308↑j
                 jmp     coff
 ; ---------------------------------------------------------------------------
 
-tryu_2:                                 ; CODE XREF: doconf+320↑j
-                                        ; doconf+325↑j
+tryu_2:                                 ; ...
                 push    si
                 push    es
 
-tryu_3:                                 ; CODE XREF: doconf+34A↓j
+tryu_3:                                 ; ...
                 mov     al, es:[si]
                 cmp     al, 0Dh         ; cr
                 jz      short tryu_4    ; (_tryu_4) (*)
@@ -18397,8 +17633,7 @@ tryu_3:                                 ; CODE XREF: doconf+34A↓j
                 jmp     short tryu_3
 ; ---------------------------------------------------------------------------
 
-tryu_4:                                 ; CODE XREF: doconf+33E↑j
-                                        ; doconf+342↑j ...
+tryu_4:                                 ; ...
                 cmp     al, 0Dh         ; (*) cr ? (this 2nd check woul not be
                                         ; needed because al value would be 0Dh here)
                 jnz     short tryu_5
@@ -18406,7 +17641,7 @@ tryu_4:                                 ; CODE XREF: doconf+33E↑j
 _tryu_4:                                ;
                 mov     al, 20h ; ' '   ; blank instead of cr
 
-tryu_5:                                 ; CODE XREF: doconf+34E↑j
+tryu_5:                                 ; ...
                 mov     cs:DevSavedDelim, al ; Save the delimiter
                                         ; before replacing it with null
                 mov     byte ptr es:[si], 0
@@ -18418,7 +17653,7 @@ tryu_5:                                 ; CODE XREF: doconf+34E↑j
                 jmp     short LoadDevice
 ; ---------------------------------------------------------------------------
 
-NrmTst:                                 ; CODE XREF: doconf+35F↑j
+NrmTst:                                 ; ...
                 mov     cs:DeviceHi, 0
                 cmp     cs:DevUMB, 0    ; do we support UMBs ?
                 jz      short LoadDevice ; no, we don't
@@ -18426,16 +17661,15 @@ NrmTst:                                 ; CODE XREF: doconf+35F↑j
                 jmp     short LoadDevice
 ; ---------------------------------------------------------------------------
 
-tryd:                                   ; CODE XREF: doconf+2FA↑j
-                                        ; doconf+300↑j
+tryd:                                   ; ...
                 cmp     ah, 44h ; 'D'   ; CONFIG_DEVICE
                 jz      short gotd
 
-skip_it2:                               ; CODE XREF: doconf+38A↓j
+skip_it2:                               ; ...
                 jmp     tryq
 ; ---------------------------------------------------------------------------
 
-gotd:                                   ; CODE XREF: doconf+382↑j
+gotd:                                   ; ...
                 call    query_user      ; query the user if config_cmd
                                         ; has the CONFIG_OPTION_QUERY bit set
                 jb      short skip_it2
@@ -18444,8 +17678,7 @@ gotd:                                   ; CODE XREF: doconf+382↑j
                 mov     cs:DevSavedDelim, 20h ; ' ' ; In case of DEVICE=
                                         ; the null has to be replaced with a ' '
 
-LoadDevice:                             ; CODE XREF: doconf+367↑j
-                                        ; doconf+375↑j ...
+LoadDevice:                             ; ...
                 push    cs
                 pop     ds
                 assume ds:SYSINIT
@@ -18477,12 +17710,11 @@ loc_7EDB:                               ; ('mov al, [UmbLoad]' would be better h
                 cmp     ax, DevSize     ; /L:...,Size < DevSize?
                 jge     short DevConvLoad
 
-tryd_1:                                 ; CODE XREF: doconf+3DD↑j
+tryd_1:                                 ; ...
                 mov     ax, DevSize     ; Size < DevSize, so write DevSize as
                 call    StoLoadSize     ; minsize for load UMB.
 
-DevConvLoad:                            ; CODE XREF: doconf+3CB↑j
-                                        ; doconf+3D2↑j ...
+DevConvLoad:                            ; ...
                 call    InitDevLoad
                 mov     ax, DevLoadAddr
                 add     ax, DevSize
@@ -18490,24 +17722,23 @@ DevConvLoad:                            ; CODE XREF: doconf+3CB↑j
                 cmp     DevLoadEnd, ax
                 jnb     short LoadDev
 
-NoMem:                                  ; CODE XREF: doconf+3F5↑j
+NoMem:                                  ; ...
                 jmp     mem_err
 ; ---------------------------------------------------------------------------
 
-BadFile:                                ; CODE XREF: doconf+3BC↑j
-                                        ; doconf+41D↓j ...
+BadFile:                                ; ...
                 call    RetFromUM       ; Does nothing if didn't call HideUMBs
                 cmp     byte ptr es:[si], 20h ; ' ' ; blank/space
                 jnb     short tryd_2
                 jmp     badop
 ; ---------------------------------------------------------------------------
 
-tryd_2:                                 ; CODE XREF: doconf+407↑j
+tryd_2:                                 ; ...
                 call    badload
                 jmp     coff
 ; ---------------------------------------------------------------------------
 
-LoadDev:                                ; CODE XREF: doconf+3FB↑j
+LoadDev:                                ; ...
                 push    es
                 pop     ds
                 assume ds:nothing
@@ -18520,7 +17751,7 @@ LoadDev:                                ; CODE XREF: doconf+3FB↑j
                 assume ds:SYSINIT
                 jb      short BadFile
 
-goodld:                                 ; CODE XREF: doconf+655↓j
+goodld:                                 ; ...
                 push    es
                 push    si
                 call    RemoveNull
@@ -18549,8 +17780,7 @@ goodld:                                 ; CODE XREF: doconf+655↓j
                 jmp     badnumblock
 ; ---------------------------------------------------------------------------
 
-got_device_com_cont:                    ; CODE XREF: doconf+434↑j
-                                        ; doconf+43F↑j
+got_device_com_cont:                    ; ...
                 pop     si
                 pop     ds
                 call    LieInt12Mem
@@ -18562,7 +17792,7 @@ got_device_com_cont:                    ; CODE XREF: doconf+434↑j
                 mov     bx, cs:DevLoadEnd
                 mov     cs:break_addr+2, bx
 
-skip_pass_limit:                        ; CODE XREF: doconf+459↑j
+skip_pass_limit:                        ; ...
                 push    ds
                 lds     bx, cs:DOSINFO  ; ds:bx -> sys_var
                 mov     al, cs:drivenumber ; temporarily use this next drv value
@@ -18595,12 +17825,12 @@ skip_pass_limit:                        ; CODE XREF: doconf+459↑j
                 jz      short tryd_3
                 call    AllocUMB
 
-tryd_3:                                 ; CODE XREF: doconf+4BB↑j
+tryd_3:                                 ; ...
                 cmp     cs:runhigh, 0FFh
                 jnz     short tryd_4
                 call    TryToMovDOSHi   ; move DOS into HMA if requsted
 
-tryd_4:                                 ; CODE XREF: doconf+4C6↑j
+tryd_4:                                 ; ...
                 pop     si
                 pop     ds
                 mov     byte ptr [si], 0 ; *p = 0;
@@ -18610,15 +17840,13 @@ tryd_4:                                 ; CODE XREF: doconf+4C6↑j
                 jmp     short was_device_com
 ; ---------------------------------------------------------------------------
 
-badnumblock:                            ; CODE XREF: doconf+448↑j
-                                        ; doconf+563↓j
+badnumblock:                            ; ...
                 push    cs
                 pop     ds
                 mov     dx, offset badblock ; "\r\nToo many block devices\r\n$"
                 call    print
 
-erase_dev_do:                           ; CODE XREF: doconf:jc_edd↓j
-                                        ; doconf+547↓j
+erase_dev_do:                           ; ...
                 pop     si
                 pop     es
                 push    cs
@@ -18628,11 +17856,11 @@ erase_dev_do:                           ; CODE XREF: doconf:jc_edd↓j
                 call    error_line      ; show "error in config.sys ..." message.
                 mov     word ptr cs:configmsgflag, 0 ; set the default value again.
 
-no_error_line_msg:                      ; CODE XREF: doconf+4E6↑j
+no_error_line_msg:                      ; ...
                 jmp     coff
 ; ---------------------------------------------------------------------------
 
-was_device_com:                         ; CODE XREF: doconf+4D2↑j
+was_device_com:                         ; ...
                 mov     ax, word ptr cs:DevBrkAddr+2
                 cmp     ax, cs:DevLoadEnd
                 jbe     short breakok
@@ -18641,7 +17869,7 @@ was_device_com:                         ; CODE XREF: doconf+4D2↑j
                 jmp     BadFile
 ; ---------------------------------------------------------------------------
 
-breakok:                                ; CODE XREF: doconf+4FE↑j
+breakok:                                ; ...
                 lds     dx, cs:DevEntry ; set ds:dx to header
                 assume ds:nothing
                 mov     si, dx
@@ -18652,24 +17880,24 @@ breakok:                                ; CODE XREF: doconf+4FE↑j
                 or      cs:setdevmarkflag, 2 ; for_devmark
                 call    DevSetBreak     ; go ahead and alloc mem for device
 
-jc_edd:                                 ; CODE XREF: doconf+56F↓j
+jc_edd:                                 ; ...
                 jb      short erase_dev_do ; device driver's init routine failed.
                 test    ax, 1           ; ISCIN ; is it a console in?
                 jz      short tryclk
                 mov     es:[di+0Ch], dx ; [es:di+SYSI_CON]
                 mov     word ptr es:[di+0Eh], ds ; [es:di+SYSI_CON+2]
 
-tryclk:                                 ; CODE XREF: doconf+527↑j
+tryclk:                                 ; ...
                 test    ax, 8           ; ISCLOCK ; is it a clock device?
                 jz      short golink
                 mov     es:[di+8], dx   ; [es:di+SYSI_CLOCK]
                 mov     word ptr es:[di+0Ah], ds ; [es:di+SYSI_CLOCK+2]
 
-golink:                                 ; CODE XREF: doconf+534↑j
+golink:                                 ; ...
                 jmp     linkit
 ; ---------------------------------------------------------------------------
 
-isblock:                                ; CODE XREF: doconf+517↑j
+isblock:                                ; ...
                 mov     al, cs:unitcount
                 or      al, al          ; if no units found, erase the device
                 jz      short erase_dev_do
@@ -18690,7 +17918,7 @@ perdrv:                                 ; warning no device > 127 units
                 jmp     badnumblock
 ; ---------------------------------------------------------------------------
 
-ok_block:                               ; CODE XREF: doconf+561↑j
+ok_block:                               ; ...
                 or      cs:setdevmarkflag, 2 ; for_devmark
                 call    DevSetBreak     ; alloc the device
                 jb      short jc_edd
@@ -18699,18 +17927,18 @@ ok_block:                               ; CODE XREF: doconf+561↑j
                 add     cs:drivenumber, al ; remember amount for next device
                 lds     bx, cs:bpb_addr ; point to bpb array
 
-perunit:                                ; CODE XREF: doconf+61B↓j
+perunit:                                ; ...
                 les     bp, cs:DOSINFO
                 les     bp, es:[bp+0]   ; [es:bp+SYSI_DPB] ; get first dpb
 
-scandpb:                                ; CODE XREF: doconf+593↓j
+scandpb:                                ; ...
                 cmp     word ptr es:[bp+19h], 0FFFFh ; [es:bp+DPB.NEXT_DPB],-1
                 jz      short foundpb
                 les     bp, es:[bp+19h] ; [es:bp+DPB.NEXT_DPB] ; [es:bp+25]
                 jmp     short scandpb
 ; ---------------------------------------------------------------------------
 
-foundpb:                                ; CODE XREF: doconf+58D↑j
+foundpb:                                ; ...
                 mov     ax, word ptr cs:DevBrkAddr
                 mov     es:[bp+19h], ax ; [es:bp+DPB.NEXT_DPB]
                 mov     ax, word ptr cs:DevBrkAddr+2
@@ -18740,7 +17968,7 @@ foundpb:                                ; CODE XREF: doconf+58D↑j
                 mov     es:[bp+21h], cx ; DPB.FREE_CNT+2 (-1 = unknown)
                 mov     cx, 4558h       ; 'EX' signature for FAT32 extended DPB
 
-setdpb:                                 ; CODE XREF: doconf+5D4↑j
+setdpb:                                 ; ...
                 mov     ah, 53h         ; SETDPB ; hidden system call
                 int     21h             ; DOS - 2+ internal - TRANSLATE BIOS PARAMETER BLOCK
                                         ; DS:SI -> BPB (BIOS Parameter Block)
@@ -18758,7 +17986,7 @@ setdpb:                                 ; CODE XREF: doconf+5D4↑j
                 jmp     bad_bpb_size_sector
 ; ---------------------------------------------------------------------------
 
-iblk_1:                                 ; CODE XREF: doconf+5FF↑j
+iblk_1:                                 ; ...
                 push    ds
                 push    dx
                 lds     dx, cs:DevEntry
@@ -18774,13 +18002,13 @@ iblk_1:                                 ; CODE XREF: doconf+5FF↑j
                 jmp     perunit         ; loop until cx is 0
 ; ---------------------------------------------------------------------------
 
-iblk_2:                                 ; CODE XREF: doconf+619↑j
+iblk_2:                                 ; ...
                 push    cs
                 pop     ds
                 assume ds:SYSINIT
                 call    TempCDS         ; set cds for new drives
 
-linkit:                                 ; CODE XREF: doconf:golink↑j
+linkit:                                 ; ...
                 les     di, cs:DOSINFO  ; es:di = dos table
                 mov     cx, es:[di+22h] ; [es:di+SYSI_DEV] ; dx:cx = head of list
                 mov     dx, es:[di+24h] ; [es:di+SYSI_DEV+2]
@@ -18802,7 +18030,7 @@ linkit:                                 ; CODE XREF: doconf:golink↑j
                 jmp     goodld          ; otherwise pretend we loaded it in
 ; ---------------------------------------------------------------------------
 
-coffj3:                                 ; CODE XREF: doconf+64B↑j
+coffj3:                                 ; ...
                 mov     cs:multdeviceflag, 0 ; reset the flag
                 call    DevBreak
                 call    CheckProtmanArena
@@ -18819,12 +18047,12 @@ CheckDoubleSpace:                       ; inquire of MagicDrv whether it is pres
                                         ; the drive number we'll pass to the
                                         ; next loadable block device.
 
-set_magichomeflag:                      ; CODE XREF: doconf+66F↑j
+set_magichomeflag:                      ; ...
                 mov     cs:MagicHomeFlag, 1 ; set the flag!
                 jmp     coff
 ; ---------------------------------------------------------------------------
 
-magic_not_yet_home:                     ; CODE XREF: doconf+675↑j
+magic_not_yet_home:                     ; ...
                 push    es
                 push    si
                 mov     ax, cs:memhi    ; pass it a work buffer
@@ -18841,11 +18069,11 @@ magic_not_yet_home:                     ; CODE XREF: doconf+675↑j
                 pop     si
                 pop     es
 
-no_more_magic_calls:                    ; CODE XREF: doconf+66A↑j
+no_more_magic_calls:                    ; ...
                 jmp     coff
 ; ---------------------------------------------------------------------------
 
-bad_bpb_size_sector:                    ; CODE XREF: doconf+601↑j
+bad_bpb_size_sector:                    ; ...
                 pop     si
                 pop     es
                 mov     dx, offset badsiz_pre ; "\r\nSector size too large in file $"
@@ -18854,15 +18082,15 @@ bad_bpb_size_sector:                    ; CODE XREF: doconf+601↑j
                 jmp     coff
 ; ---------------------------------------------------------------------------
 
-tryq:                                   ; CODE XREF: doconf:skip_it2↑j
+tryq:                                   ; ...
                 cmp     ah, 51h ; 'Q'   ; CONFIG_COUNTRY
                 jz      short tryq_cont
 
-skip_it3:                               ; CODE XREF: doconf+6BE↓j
+skip_it3:                               ; ...
                 jmp     tryf
 ; ---------------------------------------------------------------------------
 
-tryq_cont:                              ; CODE XREF: doconf+6B6↑j
+tryq_cont:                              ; ...
                 call    query_user      ; query the user if config_cmd
                                         ; has the CONFIG_OPTION_QUERY bit set
                 jb      short skip_it3
@@ -18873,7 +18101,7 @@ tryq_cont:                              ; CODE XREF: doconf+6B6↑j
                 xor     cx, cx
                 mov     dx, cx
 
-do52:                                   ; CODE XREF: doconf:en56↓j
+do52:                                   ; ...
                 call    sysinit_parse
                 jnb     short if52      ; parse error,check error code and
                 call    cntry_error     ; show message and end the search loop.
@@ -18881,7 +18109,7 @@ do52:                                   ; CODE XREF: doconf:en56↓j
                 jmp     short sr52
 ; ---------------------------------------------------------------------------
 
-if52:                                   ; CODE XREF: doconf+6D7↑j
+if52:                                   ; ...
                 cmp     ax, 0FFFFh      ; _$P_RC_EOL ; end of line?
                 jz      short sr52
                 cmp     cs:result_val, 1 ; _$P_Number
@@ -18894,14 +18122,14 @@ if52:                                   ; CODE XREF: doconf+6D7↑j
                 jmp     short en57
 ; ---------------------------------------------------------------------------
 
-if57:                                   ; CODE XREF: doconf+6F9↑j
+if57:                                   ; ...
                 mov     cs:p_code_page, ax
 
-en57:                                   ; CODE XREF: doconf+6FF↑j
+en57:                                   ; ...
                 jmp     short en56      ; path entered
 ; ---------------------------------------------------------------------------
 
-if56:                                   ; CODE XREF: doconf+6F0↑j
+if56:                                   ; ...
                 push    ds
                 push    es
                 push    si
@@ -18918,34 +18146,33 @@ if56:                                   ; CODE XREF: doconf+6F0↑j
                 assume es:nothing
                 pop     ds
 
-en56:                                   ; CODE XREF: doconf:en57↑j
+en56:                                   ; ...
                 jmp     short do52
 ; ---------------------------------------------------------------------------
 
-sr52:                                   ; CODE XREF: doconf+6E3↑j
-                                        ; doconf+6E8↑j
+sr52:                                   ; ...
                 cmp     cs:p_cntry_code, 0FFFFh ; -1 ; had a parse error?
                 jnz     short tryq_open
                 jmp     coff
 ; ---------------------------------------------------------------------------
 
-tryqbad:                                ; CODE XREF: doconf+78F↓j
+tryqbad:                                ; ...
                 stc
                 mov     dx, offset badcountry ; "\r\nInvalid country code or code page\r"...
                 jmp     tryqchkerr
 ; ---------------------------------------------------------------------------
 
-tryq_open:                              ; CODE XREF: doconf+724↑j
+tryq_open:                              ; ...
                 cmp     byte ptr cs:cntry_drv, 0 ; "A:"
                 jz      short tryq_def
                 mov     dx, offset cntry_drv ; "A:"
                 jmp     short tryq_openit
 ; ---------------------------------------------------------------------------
 
-tryq_def:                               ; CODE XREF: doconf+736↑j
+tryq_def:                               ; ...
                 mov     dx, offset cntry_root
 
-tryq_openit:                            ; CODE XREF: doconf+73B↑j
+tryq_openit:                            ; ...
                 mov     ax, 3D00h       ; open a file
                 stc
                 int     21h             ; DOS - 2+ - OPEN DISK FILE WITH HANDLE
@@ -18968,7 +18195,7 @@ tryq_openit:                            ; CODE XREF: doconf+73B↑j
                 inc     si
                 inc     si              ; ds:si -> cntry_root
 
-tryq_set_for_dos:                       ; CODE XREF: doconf+76D↑j
+tryq_set_for_dos:                       ; ...
                 les     di, cs:sysi_country ; es:di -> country info tab in dos
                 push    di              ; save di
                 add     di, 8           ; country_cdpg_info.ccPath_CountrySys
@@ -18984,7 +18211,7 @@ tryq_set_for_dos:                       ; CODE XREF: doconf+76D↑j
                                         ; could not find matching country_id, code page?
                 jz      short tryqbad   ; then "invalid country code or code page"
 
-tryqfilebad:                            ; CODE XREF: doconf+746↑j
+tryqfilebad:                            ; ...
                 push    cs
                 pop     es
                 assume es:SYSINIT
@@ -18994,11 +18221,11 @@ tryqfilebad:                            ; CODE XREF: doconf+746↑j
                 jmp     short tryqbadload
 ; ---------------------------------------------------------------------------
 
-tryqdefbad:                             ; CODE XREF: doconf+799↑j
+tryqdefbad:                             ; ...
                 mov     si, offset cntry_root ; default file has been used.
                                         ; es:si -> \country.sys in sysinit_seg
 
-tryqbadload:                            ; CODE XREF: doconf+79E↑j
+tryqbadload:                            ; ...
                 call    badload
                 mov     cx, cs:CONFBOT
                 mov     es, cx          ; restore es -> confbot.
@@ -19006,11 +18233,10 @@ tryqbadload:                            ; CODE XREF: doconf+79E↑j
                 jmp     short coffj4
 ; ---------------------------------------------------------------------------
 
-tryqmemory:                             ; CODE XREF: doconf+765↑j
+tryqmemory:                             ; ...
                 mov     dx, offset insufmemory ; "\r\nInsufficient memory for COUNTRY.SYS"...
 
-tryqchkerr:                             ; CODE XREF: doconf+72D↑j
-                                        ; doconf+78A↑j
+tryqchkerr:                             ; ...
                 mov     cx, cs:CONFBOT
                 mov     es, cx          ; restore es -> confbot seg
                 push    cs
@@ -19020,8 +18246,7 @@ tryqchkerr:                             ; CODE XREF: doconf+72D↑j
                 call    print           ; else show error message
                 call    error_line
 
-coffj4:                                 ; CODE XREF: doconf+7AD↑j
-                                        ; doconf+7BB↑j
+coffj4:                                 ; ...
                 mov     bx, cs:cntryfilehandle ; close a file.
                                         ; don't care even if it fails.
                 mov     ah, 3Eh
@@ -19033,17 +18258,17 @@ coffj4:                                 ; CODE XREF: doconf+7AD↑j
 ; =============== S U B R O U T I N E =======================================
 
 
-cntry_error     proc near               ; CODE XREF: doconf+6D9↑p
+cntry_error     proc near               ; ...
                 cmp     ax, 6           ; _$P_Out_Of_Range
                 jnz     short if64
                 mov     dx, offset badcountry ; "\r\nInvalid country code or code page\r"...
                 jmp     short en64
 ; ---------------------------------------------------------------------------
 
-if64:                                   ; CODE XREF: cntry_error+3↑j
+if64:                                   ; ...
                 mov     dx, offset badcountrycom ; "\r\nError in COUNTRY command\r\n$"
 
-en64:                                   ; CODE XREF: cntry_error+8↑j
+en64:                                   ; ...
                 call    print
                 call    error_line
                 retn
@@ -19052,7 +18277,7 @@ cntry_error     endp
 ; ---------------------------------------------------------------------------
 ; START OF FUNCTION CHUNK FOR doconf
 
-tryf:                                   ; CODE XREF: doconf:skip_it3↑j
+tryf:                                   ; ...
                 cmp     ah, 46h ; 'F'   ; CONFIG_FILES
                 jnz     short tryl
                 call    query_user      ; query the user if config_cmd
@@ -19062,7 +18287,7 @@ tryf:                                   ; CODE XREF: doconf:skip_it3↑j
                 xor     cx, cx
                 mov     dx, cx
 
-do67:                                   ; CODE XREF: doconf+80B↓j
+do67:                                   ; ...
                 call    sysinit_parse
                 jnb     short if67      ;
                                         ; parse error
@@ -19071,7 +18296,7 @@ do67:                                   ; CODE XREF: doconf+80B↓j
                 jmp     short sr67
 ; ---------------------------------------------------------------------------
 
-if67:                                   ; CODE XREF: doconf+7F7↑j
+if67:                                   ; ...
                 cmp     ax, 0FFFFh      ; _$P_RC_EOL ; end of line?
                 jz      short en67      ; then end the $endloop
                 mov     al, byte ptr cs:rv_dword ;
@@ -19080,16 +18305,15 @@ if67:                                   ; CODE XREF: doconf+7F7↑j
                 jmp     short do67
 ; ---------------------------------------------------------------------------
 
-en67:                                   ; CODE XREF: doconf+801↑j
+en67:                                   ; ...
                 mov     al, cs:p_files
                 mov     cs:FILES, al    ; no error. really set the value now.
 
-sr67:                                   ; CODE XREF: doconf+7FC↑j
+sr67:                                   ; ...
                 jmp     coff
 ; ---------------------------------------------------------------------------
 
-tryl:                                   ; CODE XREF: doconf+7E6↑j
-                                        ; doconf+7EB↑j
+tryl:                                   ; ...
                 cmp     ah, 4Ch ; 'L'   ; CONFIG_LASTDRIVE
                 jnz     short tryp
                 call    query_user      ; query the user if config_cmd
@@ -19099,7 +18323,7 @@ tryl:                                   ; CODE XREF: doconf+7E6↑j
                 xor     cx, cx
                 mov     dx, cx
 
-do73:                                   ; CODE XREF: doconf+840↓j
+do73:                                   ; ...
                 call    sysinit_parse
                 jnb     short if73      ;
                                         ; parse error
@@ -19108,7 +18332,7 @@ do73:                                   ; CODE XREF: doconf+840↓j
                 jmp     short badparm_p_coff
 ; ---------------------------------------------------------------------------
 
-if73:                                   ; CODE XREF: doconf+82C↑j
+if73:                                   ; ...
                 cmp     ax, 0FFFFh      ; _$P_RC_EOL ; end of line?
                 jz      short en73      ; then end the $endloop
                 mov     al, byte ptr cs:rv_dword ; [rv_byte]
@@ -19117,17 +18341,16 @@ if73:                                   ; CODE XREF: doconf+82C↑j
                 jmp     short do73
 ; ---------------------------------------------------------------------------
 
-en73:                                   ; CODE XREF: doconf+836↑j
+en73:                                   ; ...
                 mov     al, cs:p_ldrv
                 mov     cs:NUM_CDS, al  ; no error.
                                         ; really set the value now.
 
-badparm_p_coff:                         ; CODE XREF: doconf+831↑j
+badparm_p_coff:                         ; ...
                 jmp     coff
 ; ---------------------------------------------------------------------------
 
-tryp:                                   ; CODE XREF: doconf+81B↑j
-                                        ; doconf+820↑j
+tryp:                                   ; ...
                 cmp     ah, 50h ; 'P'   ; CONFIG_DRIVPARM
                 jnz     short tryk
                 call    query_user      ; query the user if config_cmd
@@ -19140,20 +18363,19 @@ tryp:                                   ; CODE XREF: doconf+81B↑j
                 jmp     coff
 ; ---------------------------------------------------------------------------
 
-trypbad:                                ; CODE XREF: doconf+85A↑j
+trypbad:                                ; ...
                 jmp     badop
 ; ---------------------------------------------------------------------------
 
-tryk:                                   ; CODE XREF: doconf+850↑j
-                                        ; doconf+855↑j
+tryk:                                   ; ...
                 cmp     ah, 4Bh ; 'K'   ; CONFIG_STACKS
                 jz      short do_tryk
 
-skip_it4:                               ; CODE XREF: doconf+873↓j
+skip_it4:                               ; ...
                 jmp     trys
 ; ---------------------------------------------------------------------------
 
-do_tryk:                                ; CODE XREF: doconf+86B↑j
+do_tryk:                                ; ...
                 call    query_user      ; query the user if config_cmd
                                         ; has the CONFIG_OPTION_QUERY bit set
                 jb      short skip_it4
@@ -19161,7 +18383,7 @@ do_tryk:                                ; CODE XREF: doconf+86B↑j
                 xor     cx, cx
                 mov     dx, cx
 
-do79:                                   ; CODE XREF: doconf:en83↓j
+do79:                                   ; ...
                 call    sysinit_parse
                 jnb     short if79      ; parse error
                 mov     dx, offset badstack ; "\r\nInvalid STACK parameters\r\n$"
@@ -19170,7 +18392,7 @@ do79:                                   ; CODE XREF: doconf:en83↓j
                 jmp     sr79            ; (jmp coff)
 ; ---------------------------------------------------------------------------
 
-if79:                                   ; CODE XREF: doconf+87F↑j
+if79:                                   ; ...
                 cmp     ax, 0FFFFh      ; _$P_RC_EOL ; end of line?
                 jz      short en79      ; then end the $endloop
                 mov     ax, word ptr cs:rv_dword ;
@@ -19181,14 +18403,14 @@ if79:                                   ; CODE XREF: doconf+87F↑j
                 jmp     short en83
 ; ---------------------------------------------------------------------------
 
-if83:                                   ; CODE XREF: doconf+899↑j
+if83:                                   ; ...
                 mov     cs:p_stack_size, ax
 
-en83:                                   ; CODE XREF: doconf+89F↑j
+en83:                                   ; ...
                 jmp     short do79
 ; ---------------------------------------------------------------------------
 
-en79:                                   ; CODE XREF: doconf+890↑j
+en79:                                   ; ...
                 cmp     cs:p_stack_count, 0
                 jz      short if87
                 cmp     cs:p_stack_count, 8 ; mincount
@@ -19196,20 +18418,19 @@ en79:                                   ; CODE XREF: doconf+890↑j
                 cmp     cs:p_stack_size, 32 ; minsize
                 jnb     short if88
 
-ll88:                                   ; CODE XREF: doconf+8B5↑j
+ll88:                                   ; ...
                 mov     cs:p_stack_count, 0FFFFh ; -1 ; invalid
 
-if88:                                   ; CODE XREF: doconf+8BD↑j
+if88:                                   ; ...
                 jmp     short en87
 ; ---------------------------------------------------------------------------
 
-if87:                                   ; CODE XREF: doconf+8AD↑j
+if87:                                   ; ...
                 cmp     cs:p_stack_size, 0
                 jz      short en87
                 mov     cs:p_stack_count, 0FFFFh ; -1 ; invalid
 
-en87:                                   ; CODE XREF: doconf:if88↑j
-                                        ; doconf+8CE↑j
+en87:                                   ; ...
                 cmp     cs:p_stack_count, 0FFFFh ; -1 ; invalid?
                 jnz     short if94
                 mov     cs:stack_count, 9 ; defaultcount
@@ -19222,19 +18443,18 @@ en87:                                   ; CODE XREF: doconf:if88↑j
                 jmp     short sr79
 ; ---------------------------------------------------------------------------
 
-if94:                                   ; CODE XREF: doconf+8DD↑j
+if94:                                   ; ...
                 mov     ax, cs:p_stack_count
                 mov     cs:stack_count, ax
                 mov     ax, cs:p_stack_size
                 mov     cs:stack_size, ax
                 mov     cs:stack_addr, 0FFFFh ; -1 ; stacks= been accepted.
 
-sr79:                                   ; CODE XREF: doconf+88A↑j
-                                        ; doconf+8FD↑j
+sr79:                                   ; ...
                 jmp     coff
 ; ---------------------------------------------------------------------------
 
-trys:                                   ; CODE XREF: doconf:skip_it4↑j
+trys:                                   ; ...
                 cmp     ah, 53h ; 'S'   ; CONFIG_SHELL
                 jnz     short tryx
                 call    query_user      ; query the user if config_cmd
@@ -19246,7 +18466,7 @@ trys:                                   ; CODE XREF: doconf:skip_it4↑j
                 mov     di, (offset commnd+1) ; we already have the first char
                 mov     [di-1], al      ; of the new shell in AL, save it now
 
-storeshell:                             ; CODE XREF: doconf+948↓j
+storeshell:                             ; ...
                 call    getchr
                 or      al, al          ; this is the normal case: "organize"
                 jz      short getshparms ; put a ZERO right after the filename
@@ -19261,12 +18481,12 @@ storeshell:                             ; CODE XREF: doconf+948↓j
                 jmp     short endofshell
 ; ---------------------------------------------------------------------------
 
-getshparms:                             ; CODE XREF: doconf+93B↑j
+getshparms:                             ; ...
                 mov     byte ptr [di], 0 ; zero-terminate the filename
                 mov     di, (offset command_line+1) ;
                                         ; prepare to process the command-line
 
-parmloop:                               ; CODE XREF: doconf+960↓j
+parmloop:                               ; ...
                 call    getchr
                 cmp     al, 20h ; ' '
                 jb      short endofparms
@@ -19275,28 +18495,26 @@ parmloop:                               ; CODE XREF: doconf+960↓j
                 cmp     di, offset command_line_126 ; command_line+126
                 jb      short parmloop
 
-endofparms:                             ; CODE XREF: doconf+957↑j
+endofparms:                             ; ...
                 mov     cx, di
                 sub     cx, (offset command_line+1) ; "/P"
                 mov     byte ptr cs:command_line, cl ; "\x02/P"
 
-endofshell:                             ; CODE XREF: doconf+93F↑j
-                                        ; doconf+94A↑j
+endofshell:                             ; ...
                 mov     byte ptr [di], 0 ; zero-terminate the filename
                                         ; (or the command-line as the case may be)
 
-skipline:                               ; CODE XREF: doconf+977↓j
+skipline:                               ; ...
                 cmp     al, 0Ah         ; lf ; the safest way to eat the rest of
                 jz      short endofline ; the line: watch for ever-present LF
                 call    getchr
                 jnb     short skipline
 
-endofline:                              ; CODE XREF: doconf+972↑j
+endofline:                              ; ...
                 jmp     conflp
 ; ---------------------------------------------------------------------------
 
-tryx:                                   ; CODE XREF: doconf+91C↑j
-                                        ; doconf+921↑j
+tryx:                                   ; ...
                 cmp     ah, 58h ; 'X'   ; CONFIG_FCBS
                 jnz     short try1
                 call    query_user      ; query the user if config_cmd
@@ -19306,7 +18524,7 @@ tryx:                                   ; CODE XREF: doconf+91C↑j
                 xor     cx, cx
                 mov     dx, cx
 
-do98:                                   ; CODE XREF: doconf:en102↓j
+do98:                                   ; ...
                 call    sysinit_parse
                 jnb     short if98
                 call    badparm_p       ; parse error
@@ -19314,7 +18532,7 @@ do98:                                   ; CODE XREF: doconf:en102↓j
                 jmp     short sr98
 ; ---------------------------------------------------------------------------
 
-if98:                                   ; CODE XREF: doconf+990↑j
+if98:                                   ; ...
                 cmp     ax, 0FFFFh      ; _$P_RC_EOL ; end of line?
                 jz      short en98      ; then end the $endloop
                 mov     al, byte ptr cs:rv_dword ;
@@ -19325,33 +18543,32 @@ if98:                                   ; CODE XREF: doconf+990↑j
                 jmp     short en102
 ; ---------------------------------------------------------------------------
 
-if102:                                  ; CODE XREF: doconf+9A3↑j
+if102:                                  ; ...
                 mov     cs:p_keep, al
 
-en102:                                  ; CODE XREF: doconf+9A9↑j
+en102:                                  ; ...
                 jmp     short do98
 ; ---------------------------------------------------------------------------
 
-en98:                                   ; CODE XREF: doconf+99A↑j
+en98:                                   ; ...
                 mov     al, cs:p_fcbs
                 mov     cs:FCBS, al
                 mov     cs:KEEP, 0
 
-sr98:                                   ; CODE XREF: doconf+995↑j
+sr98:                                   ; ...
                 jmp     coff
 ; ---------------------------------------------------------------------------
 
-try1:                                   ; CODE XREF: doconf+97F↑j
-                                        ; doconf+984↑j
+try1:                                   ; ...
                 cmp     ah, 31h ; '1'   ; CONFIG_SWITCHES
                                         ; switches= command entered?
                 jz      short do_try1   ; yes
 
-skip_it5:                               ; CODE XREF: doconf+9CD↓j
+skip_it5:                               ; ...
                 jmp     tryv
 ; ---------------------------------------------------------------------------
 
-do_try1:                                ; CODE XREF: doconf+9C5↑j
+do_try1:                                ; ...
                 call    query_user      ; query the user if config_cmd
                                         ; has the CONFIG_OPTION_QUERY bit set
                 jb      short skip_it5
@@ -19359,8 +18576,7 @@ do_try1:                                ; CODE XREF: doconf+9C5↑j
                 xor     cx, cx
                 mov     dx, cx
 
-do110:                                  ; CODE XREF: doconf+9F5↓j
-                                        ; doconf+A06↓j ...
+do110:                                  ; ...
                 call    sysinit_parse
                 jnb     short if110     ;
                                         ; parse error
@@ -19369,7 +18585,7 @@ do110:                                  ; CODE XREF: doconf+9F5↓j
                 jmp     sr110
 ; ---------------------------------------------------------------------------
 
-if110:                                  ; CODE XREF: doconf+9D9↑j
+if110:                                  ; ...
                 cmp     ax, 0FFFFh      ; _$P_RC_EOL ; end of line?
                 jz      short en110     ; then jmp to $endloop for semantic check
                 cmp     cs:result_val_swoff, offset swit_k ; offset "/K"
@@ -19379,7 +18595,7 @@ if110:                                  ; CODE XREF: doconf+9D9↑j
                 jmp     short do110
 ; ---------------------------------------------------------------------------
 
-if115:                                  ; CODE XREF: doconf+9ED↑j
+if115:                                  ; ...
                 cmp     cs:result_val_swoff, offset swit_t ; offset "/T"
                                         ; [cs:result_val+_$P_Result_Blk.SYNONYM_Ptr]
                 jnz     short if118
@@ -19387,7 +18603,7 @@ if115:                                  ; CODE XREF: doconf+9ED↑j
                 jmp     short do110
 ; ---------------------------------------------------------------------------
 
-if118:                                  ; CODE XREF: doconf+9FE↑j
+if118:                                  ; ...
                 cmp     cs:result_val_swoff, offset swit_i ; offset "/I"
                                         ; [cs:result_val+_$P_Result_Blk.SYNONYM_Ptr]
                 jnz     short if116
@@ -19395,7 +18611,7 @@ if118:                                  ; CODE XREF: doconf+9FE↑j
                 jmp     short do110
 ; ---------------------------------------------------------------------------
 
-if116:                                  ; CODE XREF: doconf+A0F↑j
+if116:                                  ; ...
                 cmp     cs:result_val_swoff, offset swit_w ; offset "/W"
                                         ; [cs:result_val+_$P_Result_Blk.SYNONYM_Ptr]
                 jnz     short do110
@@ -19403,7 +18619,7 @@ if116:                                  ; CODE XREF: doconf+A0F↑j
                 jmp     short do110
 ; ---------------------------------------------------------------------------
 
-en110:                                  ; CODE XREF: doconf+9E4↑j
+en110:                                  ; ...
                 cmp     cs:p_swit_k, 1  ; if /k entered,
                 push    ds
                 mov     ax, 70h         ; DOSBIODATASEG ; BIOSDATA segment
@@ -19414,7 +18630,7 @@ en110:                                  ; CODE XREF: doconf+9E4↑j
                                         ; use the conventional keyboard functions
                 mov     ds:keysts_func, 1 ; BIOSDATA:047Fh
 
-if117:                                  ; CODE XREF: doconf+A36↑j
+if117:                                  ; ...
                 mov     al, cs:p_swit_t
                 mov     ds:t_switch, al
                 cmp     cs:p_swit_w, 0
@@ -19428,7 +18644,7 @@ if117:                                  ; CODE XREF: doconf+A36↑j
                 pop     bx
                 pop     es
 
-if119:                                  ; CODE XREF: doconf+A4F↑j
+if119:                                  ; ...
                 cmp     cs:p_swit_i, 0  ; if /i entered ; new switch for PCDOS 7.1
                 jz      short skip_dos_flag
                 push    es
@@ -19440,16 +18656,15 @@ if119:                                  ; CODE XREF: doconf+A4F↑j
                 pop     bx
                 pop     es
 
-skip_dos_flag:                          ; CODE XREF: doconf+A65↑j
+skip_dos_flag:                          ; ...
                 pop     ds
                 assume ds:nothing
 
-sr110:                                  ; CODE XREF: doconf+9DE↑j
-                                        ; doconf+A86↓j ...
+sr110:                                  ; ...
                 jmp     coff
 ; ---------------------------------------------------------------------------
 
-tryv:                                   ; CODE XREF: doconf:skip_it5↑j
+tryv:                                   ; ...
                 cmp     ah, 56h ; 'V'   ; CONFIG_SET ; set var=value<cr/lf>
                 jnz     short tryn
                 call    query_user      ; query the user if config_cmd
@@ -19458,13 +18673,12 @@ tryv:                                   ; CODE XREF: doconf:skip_it5↑j
                 call    copy_envvar     ; copy var at ES:SI to "config_wrkseg"
                 jnb     short sr110     ; no error
 
-err:                                    ; CODE XREF: doconf+A9A↓j
+err:                                    ; ...
                 call    error_line      ; whoops, display error in line XXX
                 jmp     short sr110     ; jump to coff (to skip to next line)
 ; ---------------------------------------------------------------------------
 
-tryn:                                   ; CODE XREF: doconf+A7C↑j
-                                        ; doconf+A81↑j
+tryn:                                   ; ...
                 cmp     ah, 4Eh ; 'N'   ; CONFIG_NUMLOCK ; numlock=on|off
                 jnz     short tryt
                 call    query_user      ; query the user if config_cmd
@@ -19475,8 +18689,7 @@ tryn:                                   ; CODE XREF: doconf+A7C↑j
                 jmp     short sr110     ; all done
 ; ---------------------------------------------------------------------------
 
-tryt:                                   ; CODE XREF: doconf+A90↑j
-                                        ; doconf+A95↑j
+tryt:                                   ; ...
                 cmp     ah, 54h ; 'T'   ; CONFIG_DOSDATA ; PCDOS 7 new config cmd
                 jnz     short tryy
                 call    query_user
@@ -19485,14 +18698,14 @@ tryt:                                   ; CODE XREF: doconf+A90↑j
                 xor     cx, cx
                 mov     dx, cx
 
-do120:                                  ; CODE XREF: doconf:sr120↓j
+do120:                                  ; ...
                 call    sysinit_parse
                 jnb     short if120
                 call    badparm_p
                 jmp     short en120
 ; ---------------------------------------------------------------------------
 
-if120:                                  ; CODE XREF: doconf+AB2↑j
+if120:                                  ; ...
                 cmp     ax, 0FFFFh      ; _$P_RC_EOL ; end of line?
                 jz      short en120
                 cmp     ds:result_val_itag, 1 ; tag 1 (UMB)
@@ -19502,32 +18715,29 @@ if120:                                  ; CODE XREF: doconf+AB2↑j
                 jmp     short sr120
 ; ---------------------------------------------------------------------------
 
-if121:                                  ; CODE XREF: doconf+AC3↑j
+if121:                                  ; ...
                 mov     ds:dosdata_umb, 0 ; DOSDATA=UMB (1) NOUMB (0)
 
-sr120:                                  ; CODE XREF: doconf+ACA↑j
+sr120:                                  ; ...
                 jmp     short do120
 ; ---------------------------------------------------------------------------
 
-en120:                                  ; CODE XREF: doconf+AB7↑j
-                                        ; doconf+ABC↑j
+en120:                                  ; ...
                 jmp     coff
 ; ---------------------------------------------------------------------------
 
-tryy:                                   ; CODE XREF: doconf+AA1↑j
-                                        ; doconf+AA6↑j
+tryy:                                   ; ...
                 cmp     ah, 59h ; 'Y'   ; CONFIG_COMMENT
                                         ; (do nothing with this line.)
                 jnz     short try0
 
-donothing:                              ; CODE XREF: doconf+AE9↓j
-                                        ; doconf+AEE↓j
+donothing:                              ; ...
                 dec     ds:chrptr
                 inc     ds:count
                 jmp     coff
 ; ---------------------------------------------------------------------------
 
-try0:                                   ; CODE XREF: doconf+AD9↑j
+try0:                                   ; ...
                 cmp     ah, 30h ; '0'   ; CONFIG_REM
                                         ; (do nothing with this line.)
                 jz      short donothing
@@ -19541,7 +18751,7 @@ try0:                                   ; CODE XREF: doconf+AD9↑j
 ; =============== S U B R O U T I N E =======================================
 
 
-CheckProtmanArena proc near             ; CODE XREF: doconf+661↑p
+CheckProtmanArena proc near             ; ...
                 push    es              ; adjusts alloclim if Protman$
                                         ; reduced our arena through a manual hack
                 mov     ax, cs:area     ; get our arena header
@@ -19553,7 +18763,7 @@ CheckProtmanArena proc near             ; CODE XREF: doconf+661↑p
                 ja      short CheckProtmanDone
                 mov     cs:ALLOCLIM, ax
 
-CheckProtmanDone:                       ; CODE XREF: CheckProtmanArena+13↑j
+CheckProtmanDone:                       ; ...
                 pop     es
                 retn
 CheckProtmanArena endp
@@ -19562,8 +18772,7 @@ CheckProtmanArena endp
 ; =============== S U B R O U T I N E =======================================
 
 
-sysinit_parse   proc near               ; CODE XREF: doconf:do7↑p
-                                        ; doconf:do22↑p ...
+sysinit_parse   proc near               ; ...
                 push    es              ; set up registers for sysparse
                                         ; in:
                                         ;    es:si -> command line in confbot
@@ -19597,15 +18806,15 @@ sysinit_parse   proc near               ; CODE XREF: doconf:do7↑p
                 cmp     ax, 0FFFFh      ; _$P_RC_EOL ; end of line?
                 jnz     short if4       ; or the end of line?
 
-ll4:                                    ; CODE XREF: sysinit_parse+19↑j
+ll4:                                    ; ...
                 clc
                 jmp     short en4
 ; ---------------------------------------------------------------------------
 
-if4:                                    ; CODE XREF: sysinit_parse+1E↑j
+if4:                                    ; ...
                 stc
 
-en4:                                    ; CODE XREF: sysinit_parse+21↑j
+en4:                                    ; ...
                 pop     ds
                 pop     es
                 assume es:nothing
@@ -19627,8 +18836,7 @@ badop_p:                                ; 'badop_p' is not used in
 ; ---------------------------------------------------------------------------
 ; START OF FUNCTION CHUNK FOR doconf
 
-badop:                                  ; CODE XREF: doconf+11F↑j
-                                        ; doconf+409↑j ...
+badop:                                  ; ...
                 mov     dx, offset badopm ; "\r\nUnrecognized command in CONFIG.SYS"
                 call    print
                 call    error_line
@@ -19638,8 +18846,7 @@ badop:                                  ; CODE XREF: doconf+11F↑j
 ; =============== S U B R O U T I N E =======================================
 
 
-badparm_p       proc near               ; CODE XREF: doconf+1E6↑p
-                                        ; doconf+213↑p ...
+badparm_p       proc near               ; ...
                 push    ds
                 push    dx
                 push    si
@@ -19650,7 +18857,7 @@ badparm_p       proc near               ; CODE XREF: doconf+1E6↑p
                 lds     si, badparm_ptr
                 assume ds:nothing
 
-do1:                                    ; CODE XREF: badparm_p+1B↓j
+do1:                                    ; ...
                 mov     dl, [si]        ; print "xxxx" until cr.
                 cmp     dl, 0Dh         ; cr ?
                 jz      short en1       ; yes
@@ -19661,7 +18868,7 @@ do1:                                    ; CODE XREF: badparm_p+1B↓j
                 jmp     short do1
 ; ---------------------------------------------------------------------------
 
-en1:                                    ; CODE XREF: badparm_p+14↑j
+en1:                                    ; ...
                 push    cs
                 pop     ds
                 assume ds:SYSINIT
@@ -19679,8 +18886,7 @@ badparm_p       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-getchr          proc near               ; CODE XREF: multi_pass+20↑p
-                                        ; doconf+C6↑p ...
+getchr          proc near               ; ...
                 push    cx
                 mov     cx, ds:count
                 jcxz    short nochar
@@ -19690,12 +18896,12 @@ getchr          proc near               ; CODE XREF: multi_pass+20↑p
                 inc     ds:chrptr
                 clc
 
-get_ret:                                ; CODE XREF: getchr+1A↓j
+get_ret:                                ; ...
                 pop     cx
                 retn
 ; ---------------------------------------------------------------------------
 
-nochar:                                 ; CODE XREF: getchr+5↑j
+nochar:                                 ; ...
                 stc
                 jmp     short get_ret
 getchr          endp
@@ -19713,8 +18919,7 @@ incorrect_order:                        ; 'incorrect_order' is not used in
 ; =============== S U B R O U T I N E =======================================
 
 
-error_line      proc near               ; CODE XREF: doconf+4E8↑p
-                                        ; doconf+7C0↑p ...
+error_line      proc near               ; ...
                 push    cs
                 pop     ds
                 assume ds:SYSINIT
@@ -19728,8 +18933,7 @@ error_line      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-showlinenum     proc near               ; CODE XREF: SYSINIT:3380↑p
-                                        ; error_line+8↑p
+showlinenum     proc near               ; ...
                 push    es
                 push    ds
                 push    di
@@ -19743,7 +18947,7 @@ showlinenum     proc near               ; CODE XREF: SYSINIT:3380↑p
                 mov     cx, 10
                 mov     ax, cs:linecount ; (ds = cs !)
 
-sln_loop:                               ; CODE XREF: showlinenum+20↓j
+sln_loop:                               ; ...
                 cmp     ax, 10          ; < 10 ?
                 jb      short sln_last  ; yes
                 xor     dx, dx
@@ -19754,7 +18958,7 @@ sln_loop:                               ; CODE XREF: showlinenum+20↓j
                 jmp     short sln_loop
 ; ---------------------------------------------------------------------------
 
-sln_last:                               ; CODE XREF: showlinenum+14↑j
+sln_last:                               ; ...
                 or      al, 30h         ; convert to ascii numeric char ("0" to "9")
                 mov     [di], al
                 mov     dx, di
@@ -19771,7 +18975,7 @@ showlinenum     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-ProcDOS         proc near               ; CODE XREF: doconf+2ED↑p
+ProcDOS         proc near               ; ...
                 xor     ah, ah
                 mov     al, cs:result_val_itag ;
                                         ; [cs:result_val+_$P_Result_Blk.Item_Tag]
@@ -19791,17 +18995,17 @@ ProcDOS         proc near               ; CODE XREF: doconf+2ED↑p
                 retn
 ; ---------------------------------------------------------------------------
 
-pd_umb:                                 ; CODE XREF: ProcDOS+D↑j
+pd_umb:                                 ; ...
                 mov     cs:DevUMB, 0FFh
                 retn
 ; ---------------------------------------------------------------------------
 
-pd_lo:                                  ; CODE XREF: ProcDOS+A↑j
+pd_lo:                                  ; ...
                 mov     cs:runhigh, 0
                 retn
 ; ---------------------------------------------------------------------------
 
-pd_hi:                                  ; CODE XREF: ProcDOS+7↑j
+pd_hi:                                  ; ...
                 mov     cs:runhigh, 0FFh
                 retn
 ProcDOS         endp
@@ -19810,7 +19014,7 @@ ProcDOS         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-LieInt12Mem     proc near               ; CODE XREF: doconf+44D↑p
+LieInt12Mem     proc near               ; ...
                 mov     ax, cs:ALLOCLIM ; lie INT 12h as alloclim
                                         ; assuming that it is 3Com
                 call    IsIt3Com        ; Is it 3Com driver?
@@ -19819,10 +19023,10 @@ LieInt12Mem     proc near               ; CODE XREF: doconf+44D↑p
                 jz      short limx      ; no, don't lie
                 mov     ax, cs:DevLoadEnd ; lie INT 12h as end of UMB
 
-lim_set:                                ; CODE XREF: LieInt12Mem+7↑j
+lim_set:                                ; ...
                 call    SetInt12Mem
 
-limx:                                   ; CODE XREF: LieInt12Mem+F↑j
+limx:                                   ; ...
                 retn
 LieInt12Mem     endp
 
@@ -19830,7 +19034,7 @@ LieInt12Mem     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-SetInt12Mem     proc near               ; CODE XREF: LieInt12Mem:lim_set↑p
+SetInt12Mem     proc near               ; ...
                 push    ds
                 mov     bx, 40h         ; ROMBIOS data area segment
                 mov     ds, bx
@@ -19850,7 +19054,7 @@ SetInt12Mem     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-TrueInt12Mem    proc near               ; CODE XREF: doconf+49F↑p
+TrueInt12Mem    proc near               ; ...
                 cmp     cs:Int12Lied, 0 ; were we lying so far?
                 mov     cs:Int12Lied, 0
                 jz      short timx      ; yes
@@ -19864,7 +19068,7 @@ TrueInt12Mem    proc near               ; CODE XREF: doconf+49F↑p
                 pop     ds
                 assume ds:nothing
 
-timx:                                   ; CODE XREF: TrueInt12Mem+C↑j
+timx:                                   ; ...
                 retn
 TrueInt12Mem    endp
 
@@ -19872,7 +19076,7 @@ TrueInt12Mem    endp
 ; =============== S U B R O U T I N E =======================================
 
 
-IsIt3Com        proc near               ; CODE XREF: LieInt12Mem+4↑p
+IsIt3Com        proc near               ; ...
                 push    ds
                 push    es
                 push    si
@@ -19895,7 +19099,7 @@ IsIt3Com        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-UpdatePDB       proc near               ; CODE XREF: doconf+450↑p
+UpdatePDB       proc near               ; ...
                 push    ds
                 mov     ah, 62h
                 int     21h             ; DOS - 3+ - GET PSP ADDRESS
@@ -19910,7 +19114,7 @@ UpdatePDB       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-InitVar         proc near               ; CODE XREF: doconf+302↑p
+InitVar         proc near               ; ...
                 push    ax
                 push    cx
                 push    di
@@ -19946,7 +19150,7 @@ InitVar         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-FixMem          proc near               ; CODE XREF: HideUMBs+9↓p
+FixMem          proc near               ; ...
                 push    ax              ; scans the upper memory chain
                                         ; and concatenates adjacent free MCBs
                 push    bx
@@ -19961,7 +19165,7 @@ FixMem          proc near               ; CODE XREF: HideUMBs+9↓p
                 mov     cx, dx          ; in CX... and the last owner
                 inc     dx              ; in dx as we go through the loop
 
-fm10:                                   ; CODE XREF: FixMem+4C↓j
+fm10:                                   ; ...
                 mov     al, es:0        ; [es:ARENA.SIGNATURE]
                                         ; if 'Z', don't repeat loop
                 mov     bx, es:1        ; [es:ARENA.OWNER] ; if not zero, do nothing
@@ -19979,7 +19183,7 @@ fm20:                                   ; [es:ARENA.SIZE]
                 add     bx, 1           ; And add one for the header
                 mov     word ptr es:3, bx ; [es:ARENA.SIZE] ; Write the size
 
-fm30:                                   ; CODE XREF: FixMem+1F↑j
+fm30:                                   ; ...
                 mov     cx, es          ; Save MCB address
                 mov     dx, word ptr es:1 ; [es:ARENA.OWNER] ; And remember its owner
                 mov     bx, es          ; Move to the next MCB
@@ -19990,7 +19194,7 @@ fm30:                                   ; CODE XREF: FixMem+1F↑j
                 cmp     al, 5Ah ; 'Z'   ; arena_signature_end
                 jnz     short fm10      ; If signature != 'Z', there are more.
 
-fmX:                                    ; CODE XREF: FixMem+B↑j
+fmX:                                    ; ...
                 call    fm_unlink       ; Unlink UMBs
                 pop     es
                 pop     dx
@@ -20004,8 +19208,7 @@ FixMem          endp
 ; =============== S U B R O U T I N E =======================================
 
 
-fm_link         proc near               ; CODE XREF: FixMem+5↑p
-                                        ; SYSINIT:378C↓p ...
+fm_link         proc near               ; ...
                 mov     ax, 5802h       ; DOS_CHECK_UMBLINK
                 int     21h             ; DOS - 3+ - GET/SET MEMORY ALLOCATION STRATEGY
                                         ; AL = function code: (DOS 5beta) get UMB link state
@@ -20027,8 +19230,7 @@ fm_link         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-fm_unlink       proc near               ; CODE XREF: FixMem:fmX↑p
-                                        ; UmbTest+B↓p
+fm_unlink       proc near               ; ...
                 xor     bx, bx
                 push    ds
                 push    cs
@@ -20047,7 +19249,7 @@ fm_unlink       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-ParseVar        proc near               ; CODE XREF: doconf+322↑p
+ParseVar        proc near               ; ...
                 push    di              ; parses [/S][/L:umb[,size][;umb[,size]]*]
                                         ;   and builds the table laid out in highvar.inc
                                         ; ENTRY:
@@ -20061,8 +19263,7 @@ ParseVar        proc near               ; CODE XREF: doconf+322↑p
                 pop     ds              ; (regardless if we're in devhigh or loadhigh)
                 cld
 
-pv10:                                   ; CODE XREF: ParseVar+A↓j
-                                        ; ParseVar+28↓j ...
+pv10:                                   ; ...
                 lodsb                   ; here, ES:SI=="  /L..."--must eat whitespace
                 call    isWhite
                 jz      short pv10      ; ES:SI==" /L..."--keep eating.
@@ -20073,7 +19274,7 @@ pv10:                                   ; CODE XREF: ParseVar+A↓j
                 jmp     short pvX       ; Then return with carry clear == we're done.
 ; ---------------------------------------------------------------------------
 
-pv20:                                   ; CODE XREF: ParseVar+E↑j
+pv20:                                   ; ...
                 lodsb                   ; Just read 'S' or 'L', hopefully
                 and     al, 0DFh        ; So we make it upper-case, and...
                 cmp     al, 53h ; 'S'   ; just read 'S'?
@@ -20092,7 +19293,7 @@ pv20:                                   ; CODE XREF: ParseVar+E↑j
                 jmp     short pv10      ; possibly even "/L...".
 ; ---------------------------------------------------------------------------
 
-pv30:                                   ; CODE XREF: ParseVar+19↑j
+pv30:                                   ; ...
                 cmp     al, 4Ch ; 'L'   ; If it's not 'L' either, then it's a bad switch!
                 jnz     short pvE1
                 call    incArgc
@@ -20102,15 +19303,15 @@ pv30:                                   ; CODE XREF: ParseVar+19↑j
                 jmp     short pvErr
 ; ---------------------------------------------------------------------------
 
-pvE1:                                   ; CODE XREF: ParseVar+2C↑j
+pvE1:                                   ; ...
                 mov     ax, 3           ; PV_InvSwt ; Unrecognized switch passed
 
-pvErr:                                  ; CODE XREF: ParseVar+37↑j
+pvErr:                                  ; ...
                 dec     si
                 dec     si
                 stc
 
-pvX:                                    ; CODE XREF: ParseVar+12↑j
+pvX:                                    ; ...
                 pop     es
                 pop     ds
                 pop     di
@@ -20121,13 +19322,12 @@ ParseVar        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-parseL          proc near               ; CODE XREF: ParseVar+31↑p
+parseL          proc near               ; ...
                 lodsb
                 cmp     al, 3Ah ; ':'   ; Make sure they did /L:
                 jnz     short plE1      ; If they didn't, return with carry set.
 
-pl10:                                   ; CODE XREF: parseL+1A↓j
-                                        ; parseL+3F↓j
+pl10:                                   ; ...
                 call    GetXNum         ; After this, it's ",size" or ";umb" or " mod"
                 jb      short plE2      ; And error if it's a bad number.
                 call    convUMB         ; Convert any address to a UMB number
@@ -20164,28 +19364,24 @@ pl10:                                   ; CODE XREF: parseL+1A↓j
                 cmp     al, 2Fh ; '/'   ; SWTCH ; Did they do "umb,size/" ?
                 jz      short plSwX     ; If so, again, we're done here.
 
-plE1:                                   ; CODE XREF: parseL+3↑j
-                                        ; parseL+2C↑j ...
+plE1:                                   ; ...
                 mov     ax, 1           ; PV_InvArg ; If not, we don't know WHAT they did.
                 dec     si
                 stc
                 retn
 ; ---------------------------------------------------------------------------
 
-plE2:                                   ; CODE XREF: parseL+8↑j
-                                        ; parseL+12↑j
+plE2:                                   ; ...
                 mov     ax, 2           ; In this case, they've specified a UMB twice
                 stc
                 retn
 ; ---------------------------------------------------------------------------
 
-plSwX:                                  ; CODE XREF: parseL+24↑j
-                                        ; parseL+28↑j ...
+plSwX:                                  ; ...
                 dec     si              ; If we hit a '/' character, back up one char
                                         ; so the whitespace checker will see it too.
 
-plX:                                    ; CODE XREF: parseL+1F↑j
-                                        ; parseL+44↑j
+plX:                                    ; ...
                 clc                     ; Then just return with carry clear, so
                                         ; ParseVar will go about its business.
                 retn
@@ -20195,8 +19391,7 @@ parseL          endp
 ; =============== S U B R O U T I N E =======================================
 
 
-incArgc         proc near               ; CODE XREF: ParseVar+1B↑p
-                                        ; ParseVar+2E↑p ...
+incArgc         proc near               ; ...
                 push    ax              ; increments fm_argc,
                                         ; for use with LoadHigh command-line parsing
                                         ; ***
@@ -20225,16 +19420,14 @@ incArgc         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-isEOL           proc near               ; CODE XREF: parseL+21↑p
-                                        ; parseL+46↑p
+isEOL           proc near               ; ...
                 cmp     al, 0           ; Null-terminator
                 jz      short ieX
                 cmp     al, 0Dh         ; CR ; Carriage Return
                 jz      short ieX
                 cmp     al, 0Ah         ; LF ; LineFeed
 
-ieX:                                    ; CODE XREF: isEOL+2↑j
-                                        ; isEOL+6↑j
+ieX:                                    ; ...
                 retn                    ; zf=1 if AL contains EOL character
 isEOL           endp
 
@@ -20242,16 +19435,14 @@ isEOL           endp
 ; =============== S U B R O U T I N E =======================================
 
 
-isWhite         proc near               ; CODE XREF: ParseVar+7↑p
-                                        ; parseL+1C↑p ...
+isWhite         proc near               ; ...
                 cmp     al, 20h ; ' '   ; Space
                 jz      short iwX
                 cmp     al, 3Dh ; '='   ; Equals (treat as whitespace)
                 jz      short iwX
                 cmp     al, 9           ; Tab
 
-iwX:                                    ; CODE XREF: isWhite+2↑j
-                                        ; isWhite+6↑j
+iwX:                                    ; ...
                 retn                    ; zf=1 if AL contains space,
 isWhite         endp                    ;         tab or equals character
 
@@ -20259,7 +19450,7 @@ isWhite         endp                    ;         tab or equals character
 ; =============== S U B R O U T I N E =======================================
 
 
-unMarkUMB       proc near               ; CODE XREF: _hideUMB_+22↓p
+unMarkUMB       proc near               ; ...
                 push    ax              ; marks a given UMB as unused
                                         ; AL contains UMB number
                 push    bx
@@ -20276,7 +19467,7 @@ unMarkUMB       proc near               ; CODE XREF: _hideUMB_+22↓p
                                         ; load into convent.
                 mov     es:UmbLoad, 0
 
-umu10:                                  ; CODE XREF: unMarkUMB+15↑j
+umu10:                                  ; ...
                 pop     es
                 assume es:nothing
                 pop     di
@@ -20289,14 +19480,14 @@ unMarkUMB       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-stowUMB         proc near               ; CODE XREF: parseL+F↑p
+stowUMB         proc near               ; ...
                 cmp     al, 16          ; MAXUMB
                 jb      short su10
                 stc                     ; Ooops-- UMB # >= MAXUMB
                 retn
 ; ---------------------------------------------------------------------------
 
-su10:                                   ; CODE XREF: stowUMB+2↑j
+su10:                                   ; ...
                 push    bx
                 push    di
                 push    si
@@ -20313,7 +19504,7 @@ su10:                                   ; CODE XREF: stowUMB+2↑j
                 jnz     short su20
                 mov     UmbLoad, al     ; So remember this UMB as the load UMB slot.
 
-su20:                                   ; CODE XREF: stowUMB+14↑j
+su20:                                   ; ...
                 or      al, al          ; If they gave UMB 0, there's really nothing
                 jz      short su30      ; that we should do here.
                 mov     bl, al
@@ -20325,8 +19516,7 @@ su20:                                   ; CODE XREF: stowUMB+14↑j
                 jz      short su30
                 stc                     ; OOOPS! This one's been used before. :(
 
-su30:                                   ; CODE XREF: stowUMB+1B↑j
-                                        ; stowUMB+2B↑j
+su30:                                   ; ...
                 pop     es
                 assume es:nothing
                 pop     ds
@@ -20341,8 +19531,7 @@ stowUMB         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-stowSiz         proc near               ; CODE XREF: parseL+36↑p
-                                        ; StoLoadSize+E↓p
+stowSiz         proc near               ; ...
                 push    bx
                 push    di
                 push    es
@@ -20361,15 +19550,13 @@ stowSiz         proc near               ; CODE XREF: parseL+36↑p
 stowSiz         endp
 
 ; ---------------------------------------------------------------------------
-gnradix         dw 0                    ; DATA XREF: toDigit↓r
-                                        ; GetXNum+C↓w ...
+gnradix         dw 0                    ; ...
                                         ; Must be a word--16x16 multiplication
 
 ; =============== S U B R O U T I N E =======================================
 
 
-toDigit         proc near               ; CODE XREF: GetXNum+16↓p
-                                        ; GetXNum+3A↓p
+toDigit         proc near               ; ...
                 cmp     cs:gnradix, 10h
                 jnz     short td10      ; Don't check hex digits if radix isn't 16
                 cmp     cl, 61h ; 'a'
@@ -20380,7 +19567,7 @@ toDigit         proc near               ; CODE XREF: GetXNum+16↓p
                 retn
 ; ---------------------------------------------------------------------------
 
-td20:                                   ; CODE XREF: toDigit+B↑j
+td20:                                   ; ...
                 cmp     cl, 41h ; 'A'   ; Below 'A'? Not a letter...
                 jb      short td10
                 cmp     cl, 46h ; 'F'   ; Above 'F'? Not a digit.
@@ -20389,8 +19576,7 @@ td20:                                   ; CODE XREF: toDigit+B↑j
                 retn
 ; ---------------------------------------------------------------------------
 
-td10:                                   ; CODE XREF: toDigit+6↑j
-                                        ; toDigit+19↑j
+td10:                                   ; ...
                 cmp     cl, 30h ; '0'   ; If less than zero,
                 jb      short tdE       ; Done.
                 cmp     cl, 39h ; '9'   ; Or, if greater than nine,
@@ -20399,8 +19585,7 @@ td10:                                   ; CODE XREF: toDigit+6↑j
                 retn
 ; ---------------------------------------------------------------------------
 
-tdE:                                    ; CODE XREF: toDigit+10↑j
-                                        ; toDigit+1E↑j ...
+tdE:                                    ; ...
                 stc
                 retn
 toDigit         endp
@@ -20409,8 +19594,7 @@ toDigit         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-GetXNum         proc near               ; CODE XREF: parseL:pl10↑p
-                                        ; parseL+2E↑p
+GetXNum         proc near               ; ...
                 push    bx              ; reads a 32-bit ASCII number at ES:SI
                                         ; and returns it in DX:AX
                 push    cx
@@ -20432,13 +19616,12 @@ GetXNum         proc near               ; CODE XREF: parseL:pl10↑p
                 cmp     cl, 'X'
                 jnz     short gxn20
 
-gxn10:                                  ; CODE XREF: GetXNum+26↑j
+gxn10:                                  ; ...
                 mov     cs:gnradix, 16
                 inc     si              ; Since we read "0x", march over it.
                 inc     si
 
-gxn20:                                  ; CODE XREF: GetXNum+1D↑j
-                                        ; GetXNum+2B↑j ...
+gxn20:                                  ; ...
                 mov     cl, es:[si]     ; Now DX:AX=current total, CH=0/CL=char
                 inc     si
                 call    toDigit         ; Accepts only valid digits, A-F -> 10-16
@@ -20451,17 +19634,16 @@ gxn20:                                  ; CODE XREF: GetXNum+1D↑j
                 jmp     short gxn20
 ; ---------------------------------------------------------------------------
 
-gxnE:                                   ; CODE XREF: GetXNum+19↑j
+gxnE:                                   ; ...
                 stc
                 jmp     short gxnX
 ; ---------------------------------------------------------------------------
 
-gxnQ:                                   ; CODE XREF: GetXNum+3D↑j
+gxnQ:                                   ; ...
                 dec     si
                 clc
 
-gxnX:                                   ; CODE XREF: GetXNum+42↑j
-                                        ; GetXNum+48↑j ...
+gxnX:                                   ; ...
                 pop     ds
                 pop     cx
                 pop     bx
@@ -20472,7 +19654,7 @@ GetXNum         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-mul32           proc near               ; CODE XREF: GetXNum+3F↑p
+mul32           proc near               ; ...
                 push    ax              ; multiplies the number in DX:AX by gnradix
                                         ; DX=old:hi, AX=old:lo, TOS=old:lo, BX=0
                 mov     ax, dx
@@ -20488,7 +19670,7 @@ mul32           proc near               ; CODE XREF: GetXNum+3F↑p
                 retn
 ; ---------------------------------------------------------------------------
 
-m32E:                                   ; CODE XREF: mul32+8↑j
+m32E:                                   ; ...
                 pop     ax
                 retn
 mul32           endp
@@ -20497,7 +19679,7 @@ mul32           endp
 ; =============== S U B R O U T I N E =======================================
 
 
-toPara          proc near               ; CODE XREF: parseL+33↑p
+toPara          proc near               ; ...
                 push    cx              ; divides DX:AX by 16; result in AX only
                 mov     cl, 4           ; DX:AX=HHHH hhhh hhhh hhhh:LLLL llll llll llll
                 shr     ax, cl          ; DX:AX=HHHH hhhh hhhh hhhh:0000 LLLL llll llll
@@ -20513,8 +19695,7 @@ toPara          endp
 ; =============== S U B R O U T I N E =======================================
 
 
-UmbHead         proc near               ; CODE XREF: FixMem+8↑p
-                                        ; AddrToUmb+5↓p ...
+UmbHead         proc near               ; ...
                 push    si
                 push    ds
                 push    es
@@ -20528,10 +19709,10 @@ UmbHead         proc near               ; CODE XREF: FixMem+8↑p
                 jmp     short uhX
 ; ---------------------------------------------------------------------------
 
-uhE:                                    ; CODE XREF: UmbHead+E↑j
+uhE:                                    ; ...
                 stc
 
-uhX:                                    ; CODE XREF: UmbHead+11↑j
+uhX:                                    ; ...
                 pop     es
                 pop     ds
                 pop     si
@@ -20542,8 +19723,7 @@ UmbHead         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-isSysMCB        proc near               ; CODE XREF: AddrToUmb+14↓p
-                                        ; hideUMB:hu10↓p ...
+isSysMCB        proc near               ; ...
                 push    ax              ; sets ZF if ES points to an MCB owned by "SC"
                 mov     ax, es:1        ; [es:ARENA.OWNER]
                 cmp     ax, 8           ; SystemPSPOwner ; 8 (for US or Japan) is valid
@@ -20553,12 +19733,11 @@ isSysMCB        proc near               ; CODE XREF: AddrToUmb+14↓p
                 jmp     short ismX
 ; ---------------------------------------------------------------------------
 
-ism10:                                  ; CODE XREF: isSysMCB+8↑j
-                                        ; isSysMCB+D↑j
+ism10:                                  ; ...
                 mov     ax, es:8        ; [es:ARENA.NAME]
                 cmp     ax, 4353h       ; 'SC'
 
-ismX:                                   ; CODE XREF: isSysMCB+F↑j
+ismX:                                   ; ...
                 pop     ax
                 retn
 isSysMCB        endp
@@ -20567,7 +19746,7 @@ isSysMCB        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-AddrToUmb       proc near               ; CODE XREF: convUMB+8↓p
+AddrToUmb       proc near               ; ...
                 push    cx              ; converts a segment address in AX
                                         ; to its appropriate UMB number
                 push    dx
@@ -20578,7 +19757,7 @@ AddrToUmb       proc near               ; CODE XREF: convUMB+8↓p
                 mov     es, ax
                 xor     cx, cx          ; 0
 
-atu10:                                  ; CODE XREF: AddrToUmb+2C↓j
+atu10:                                  ; ...
                 mov     ax, es
                 cmp     ax, dx          ; Present segment >= given segment?
                 jnb     short atuX      ; yes, done.
@@ -20586,7 +19765,7 @@ atu10:                                  ; CODE XREF: AddrToUmb+2C↓j
                 jnz     short atu20
                 inc     cx              ; If it _was_ a system MCB, we're in a new UMB.
 
-atu20:                                  ; CODE XREF: AddrToUmb+17↑j
+atu20:                                  ; ...
                 mov     al, es:0        ; [es:ARENA.SIGNATURE]
                 cmp     al, 5Ah ; 'Z'
                 jz      short atu30     ; 'Z' means this was the last MCB... that's it.
@@ -20597,19 +19776,18 @@ atu20:                                  ; CODE XREF: AddrToUmb+17↑j
                 jmp     short atu10
 ; ---------------------------------------------------------------------------
 
-atu30:                                  ; CODE XREF: AddrToUmb+20↑j
+atu30:                                  ; ...
                 mov     ax, es
                 add     ax, es:3        ; [es:ARENA.SIZE]
                 cmp     ax, dx          ; Present >= given?
                 jnb     short atuX      ; Yep! It _was_ inside.
 
-atuE:                                   ; CODE XREF: AddrToUmb+8↑j
+atuE:                                   ; ...
                 xor     cx, cx
                 dec     cx              ; Address is above UM Range,
                                         ; AX will return as 0FFFFh.
 
-atuX:                                   ; CODE XREF: AddrToUmb+12↑j
-                                        ; AddrToUmb+37↑j
+atuX:                                   ; ...
                 mov     ax, cx          ; Return the UMB number in AX (0==conv)
                 pop     es
                 pop     dx
@@ -20621,7 +19799,7 @@ AddrToUmb       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-convUMB         proc near               ; CODE XREF: parseL+A↑p
+convUMB         proc near               ; ...
                 cmp     cs:gnradix, 10h ; convert address to UMB number after GetXNum
                                         ; (GetXNum has read a hex number)
                 jnz     short cu10      ; GetXNum didn't read in hex, it is not an addr
@@ -20630,14 +19808,13 @@ convUMB         proc near               ; CODE XREF: parseL+A↑p
                 jnz     short cu10
                 inc     ax              ; If too high, ignore it (make it conventional)
 
-cu10:                                   ; CODE XREF: convUMB+6↑j
-                                        ; convUMB+E↑j
+cu10:                                   ; ...
                 retn
 convUMB         endp
 
 ; ---------------------------------------------------------------------------
 
-setUMBs:                                ; CODE XREF: HideUMBs+C↓p
+setUMBs:                                ; ...
                 push    ax
                 push    bx
                 call    fm_link
@@ -20660,14 +19837,13 @@ loadLow:                                ; loadLow subroutine is not used anywher
                 jmp     short llx
 ; ---------------------------------------------------------------------------
 
-ll10:                                   ; CODE XREF: SYSINIT:379A↑j
+ll10:                                   ; ...
                 or      al, al
                 jz      short llx
                 mov     al, 1
                 clc
 
-llx:                                    ; CODE XREF: SYSINIT:379F↑j
-                                        ; SYSINIT:37A3↑j
+llx:                                    ; ...
                 pop     ds
                 assume ds:nothing
                 retn
@@ -20675,7 +19851,7 @@ llx:                                    ; CODE XREF: SYSINIT:379F↑j
 ; =============== S U B R O U T I N E =======================================
 
 
-HideUMBs        proc near               ; CODE XREF: InitDevLoad+13↓p
+HideUMBs        proc near               ; ...
                 push    ax              ; links UMBs and hides upper-memory as appropriate
                 push    cx
                 push    ds
@@ -20696,7 +19872,7 @@ HideUMBs        proc near               ; CODE XREF: InitDevLoad+13↓p
                 jz      short husX      ; then we shouldn't do this loop:
                 xor     cx, cx          ; 0
 
-hus10:                                  ; CODE XREF: HideUMBs+34↓j
+hus10:                                  ; ...
                 inc     cx              ; +1 for each UMB
                 cmp     cx, 16          ; MAXUMB
                 jnb     short hus20
@@ -20710,16 +19886,14 @@ hus10:                                  ; CODE XREF: HideUMBs+34↓j
                 jmp     short hus10
 ; ---------------------------------------------------------------------------
 
-hus20:                                  ; CODE XREF: HideUMBs+26↑j
-                                        ; HideUMBs+2F↑j
+hus20:                                  ; ...
                 call    GetLoadUMB      ; mov al,[cs:UmbLoad]
                 or      al, al          ; or byte [cs:UmbLoad],0
                                         ; Is the load UMB 0? (-1==unspecified)
                 jnz     short husX      ; no, done.
                 call    hl_unlink       ; fix UMBs and strategy.
 
-husX:                                   ; CODE XREF: HideUMBs+7↑j
-                                        ; HideUMBs+1E↑j ...
+husX:                                   ; ...
                 pop     es
                 pop     ds
                 pop     cx
@@ -20731,8 +19905,7 @@ HideUMBs        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-GetLoadUMB      proc near               ; CODE XREF: doconf:loc_7EDB↑p
-                                        ; HideUMBs+19↑p ...
+GetLoadUMB      proc near               ; ...
                 push    ds              ; Returns the load UMB number in AL
                                         ;  (-1 if not specified)
                                         ;
@@ -20752,7 +19925,7 @@ GetLoadUMB      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-GetLoadSize     proc near               ; CODE XREF: doconf+3D8↑p
+GetLoadSize     proc near               ; ...
                 push    bx              ; Returns the load UMB minimum size
                                         ;  (0 if not specified)
                 push    si
@@ -20778,7 +19951,7 @@ GetLoadSize     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-GetSize         proc near               ; CODE XREF: _hideUMB_+14↓p
+GetSize         proc near               ; ...
                 push    bx              ; Returns the UMB in AL's minimum size
                                         ;  (0 if not specified)
                 push    si
@@ -20815,7 +19988,7 @@ StoLoadUMB:                             ; StoLoadUMB subroutine is not used anyw
 ; =============== S U B R O U T I N E =======================================
 
 
-StoLoadSize     proc near               ; CODE XREF: doconf+3E8↑p
+StoLoadSize     proc near               ; ...
                 push    dx              ; Overrides the load UMB min. size with what's in AX
                 push    ds
                 push    cs
@@ -20836,7 +20009,7 @@ StoLoadSize     proc near               ; CODE XREF: doconf+3E8↑p
                                         ; (This BUG existing in MSDOS 6.21 IO.SYS also)
                                         ; Erdogan Tan - 18/07/2023
 
-sls10:                                  ; CODE XREF: StoLoadSize+C↑j
+sls10:                                  ; ...
                 pop     dx
                 retn
 StoLoadSize     endp
@@ -20845,20 +20018,20 @@ StoLoadSize     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-hideUMB         proc near               ; CODE XREF: _hideUMB_+40↓p
+hideUMB         proc near               ; ...
                 push    ax              ; marks as HIDDEN all FREE elements in UMB passed as AL
                 push    es
                 call    findUMB         ; Returns with carry if err, else ES == MCB
                 jb      short huX
 
-hu10:                                   ; CODE XREF: hideUMB+26↓j
+hu10:                                   ; ...
                 call    isSysMCB        ; Returns with ZF set if owner is SYSTEM
                 jz      short huX
                 call    isFreeMCB       ; or word [es:ARENA.OWNER],0
                 jnz     short hu20
                 call    hideMCB
 
-hu20:                                   ; CODE XREF: hideUMB+F↑j
+hu20:                                   ; ...
                 mov     al, es:0        ; [es:ARENA.SIGNATURE]
                 cmp     al, 5Ah ; 'Z'   ; cmp byte [es:ARENA.SIGNATURE],arena_signature_end
                 jz      short huX
@@ -20869,8 +20042,7 @@ hu20:                                   ; CODE XREF: hideUMB+F↑j
                 jmp     short hu10
 ; ---------------------------------------------------------------------------
 
-huX:                                    ; CODE XREF: hideUMB+5↑j
-                                        ; hideUMB+A↑j ...
+huX:                                    ; ...
                 pop     es
                 pop     ax
                 retn
@@ -20880,7 +20052,7 @@ hideUMB         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-isTiny          proc near               ; CODE XREF: _hideUMB_:hu_10↓p
+isTiny          proc near               ; ...
                 push    ax              ; returns with ZF set if user didn't specify /S
                 push    ds
                 push    cs
@@ -20898,8 +20070,7 @@ isTiny          endp
 ; =============== S U B R O U T I N E =======================================
 
 
-isFreeMCB       proc near               ; CODE XREF: hideUMB+C↑p
-                                        ; BigFree+10↓p ...
+isFreeMCB       proc near               ; ...
                 or      word ptr es:1, 0 ; or word [es:ARENA.OWNER],0
                 retn
 isFreeMCB       endp
@@ -20908,7 +20079,7 @@ isFreeMCB       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-hideMCB         proc near               ; CODE XREF: hideUMB+11↑p
+hideMCB         proc near               ; ...
                 mov     word ptr es:1, 8 ; marks as HIDDEN the MCB at ES:0
                 mov     word ptr es:8, 4948h ; 'HI'
                 mov     word ptr es:0Ah, 4444h ; 'DD'
@@ -20921,8 +20092,7 @@ hideMCB         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-unHideMCB       proc near               ; CODE XREF: _hideUMB_+49↓p
-                                        ; UnFreeze+E↓p
+unHideMCB       proc near               ; ...
                 push    ax              ; marks as FREE the MCB at ES:0
                 mov     word ptr es:1, 0 ; [es:ARENA.OWNER],FreePSPOwner
                 mov     ax, 2020h       ; '  '
@@ -20938,8 +20108,7 @@ unHideMCB       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-findUMB         proc near               ; CODE XREF: HideUMBs+2B↑p
-                                        ; hideUMB+2↑p ...
+findUMB         proc near               ; ...
                 push    ax              ; makes ES:0 point to the first MCB in UMB given as AL
                 push    cx
                 push    dx
@@ -20949,14 +20118,14 @@ findUMB         proc near               ; CODE XREF: HideUMBs+2B↑p
                 mov     es, ax
                 xor     cx, cx          ; Pretend we're on UMB 0 for now...
 
-fu10:                                   ; CODE XREF: findUMB+2A↓j
+fu10:                                   ; ...
                 cmp     cx, dx          ; If CX==DX, the UMB is found
                 jz      short fuX
                 call    isSysMCB        ; Returns with ZF set if owner is SYSTEM
                 jnz     short fu20
                 inc     cx
 
-fu20:                                   ; CODE XREF: findUMB+15↑j
+fu20:                                   ; ...
                 mov     al, es:0
                 cmp     al, 5Ah ; 'Z'   ; cmp byte [es:ARENA.SIGNATURE],arena_signature_end
                 jz      short fuE       ; 'Z' means this was the last MCB
@@ -20967,10 +20136,10 @@ fu20:                                   ; CODE XREF: findUMB+15↑j
                 jmp     short fu10
 ; ---------------------------------------------------------------------------
 
-fuE:                                    ; CODE XREF: findUMB+1E↑j
+fuE:                                    ; ...
                 stc
 
-fuX:                                    ; CODE XREF: findUMB+10↑j
+fuX:                                    ; ...
                 pop     dx
                 pop     cx
                 pop     ax              ; The address is already in ES.
@@ -20981,7 +20150,7 @@ findUMB         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-BigFree         proc near               ; CODE XREF: _hideUMB_+C↓p
+BigFree         proc near               ; ...
                 push    bx              ; makes ES:0 point to the largest free MCB
                                         ; in UMB given as AL
                 push    cx
@@ -20990,7 +20159,7 @@ BigFree         proc near               ; CODE XREF: _hideUMB_+C↓p
                 xor     bx, bx          ; Segment address of largest free MCB
                 xor     cx, cx          ; Size of largest free MCB
 
-bf10:                                   ; CODE XREF: BigFree+35↓j
+bf10:                                   ; ...
                 call    isSysMCB        ; If we've left the MCB, we're done.
                 jz      short bf30
                 call    isFreeMCB       ; or word [es:ARENA.OWNER],0
@@ -21000,8 +20169,7 @@ bf10:                                   ; CODE XREF: BigFree+35↓j
                 mov     bx, es          ; Unless we're bigger,
                 mov     cx, es:3        ; Store this new element's addr and size.
 
-bf20:                                   ; CODE XREF: BigFree+13↑j
-                                        ; BigFree+1A↑j
+bf20:                                   ; ...
                 mov     al, es:0
                 cmp     al, 5Ah ; 'Z'   ; [es:ARENA.SIGNATURE],arena_signature_end
                 jz      short bf30
@@ -21012,16 +20180,14 @@ bf20:                                   ; CODE XREF: BigFree+13↑j
                 jmp     short bf10
 ; ---------------------------------------------------------------------------
 
-bf30:                                   ; CODE XREF: BigFree+E↑j
-                                        ; BigFree+29↑j
+bf30:                                   ; ...
                 mov     es, bx          ; Return the address
                 mov     ax, cx          ; Return the size
                 or      bx, bx
                 jnz     short bfX
                 stc                     ; (if size==0, there's nothing free)
 
-bfX:                                    ; CODE XREF: BigFree+5↑j
-                                        ; BigFree+3D↑j
+bfX:                                    ; ...
                 pop     cx
                 pop     bx
                 retn
@@ -21031,8 +20197,7 @@ BigFree         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-isSpecified     proc near               ; CODE XREF: _hideUMB_+5↓p
-                                        ; _hideUMB_+37↓p
+isSpecified     proc near               ; ...
                 push    ax              ; sets ZF if UMB in AL wasn't specified in DH/LH line.
                 xor     bh, bh
                 mov     bl, al
@@ -21052,7 +20217,7 @@ isSpecified     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-shrinkMCB       proc near               ; CODE XREF: _hideUMB_+2C↓p
+shrinkMCB       proc near               ; ...
                 push    bx              ; breaks an MCB into two pieces, the lowest one's size==AX
                                         ; AX == new size, ES:0 == current MCB
                 push    cx
@@ -21085,10 +20250,10 @@ shrinkMCB       proc near               ; CODE XREF: _hideUMB_+2C↓p
                 jmp     short smX
 ; ---------------------------------------------------------------------------
 
-smE:                                    ; CODE XREF: shrinkMCB+11↑j
+smE:                                    ; ...
                 stc
 
-smX:                                    ; CODE XREF: shrinkMCB+56↑j
+smX:                                    ; ...
                 pop     es
                 pop     cx
                 pop     bx
@@ -21099,7 +20264,7 @@ shrinkMCB       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-_hideUMB_       proc near               ; CODE XREF: HideUMBs+31↑p
+_hideUMB_       proc near               ; ...
                 push    bx              ; hides as appropriate the UMB in CL
                 push    dx
                 push    es
@@ -21124,7 +20289,7 @@ _hideUMB_       proc near               ; CODE XREF: HideUMBs+31↑p
                 jmp     short hu_20
 ; ---------------------------------------------------------------------------
 
-hu_10:                                  ; CODE XREF: _hideUMB_+1E↑j
+hu_10:                                  ; ...
                 call    isTiny          ; or byte [cs:fUmbTiny],0
                 jz      short hu_20
                 call    shrinkMCB       ; They specified /S, so shrink the MCB to AX
@@ -21133,14 +20298,13 @@ hu_10:                                  ; CODE XREF: _hideUMB_+1E↑j
                 jmp     short hu_30     ; Skip the spec check.. we wanna hide this one.
 ; ---------------------------------------------------------------------------
 
-hu_20:                                  ; CODE XREF: _hideUMB_+8↑j
-                                        ; _hideUMB_+F↑j ...
+hu_20:                                  ; ...
                 mov     ax, cx
                 call    isSpecified     ; If they specified this UMB, we're done.
                 jnz     short hu_X      ; so leave.
                 xor     dx, dx          ; 0
 
-hu_30:                                  ; CODE XREF: _hideUMB_+33↑j
+hu_30:                                  ; ...
                 mov     al, cl
                 call    hideUMB         ; Hides everything in UMB #al
                 or      dx, dx          ; Did we shrink a UMB? If not, DX==0,
@@ -21148,8 +20312,7 @@ hu_30:                                  ; CODE XREF: _hideUMB_+33↑j
                 mov     es, dx          ; Ah, but if it isn't, DX==the MCB's address;
                 call    unHideMCB       ; Un-hides the lower portion of that MCB.
 
-hu_X:                                   ; CODE XREF: _hideUMB_+3A↑j
-                                        ; _hideUMB_+45↑j
+hu_X:                                   ; ...
                 pop     es
                 pop     dx
                 pop     bx
@@ -21160,19 +20323,19 @@ _hideUMB_       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-UnFreeze        proc near               ; CODE XREF: InitDevLoad+1D↓p
+UnFreeze        proc near               ; ...
                 push    ax              ; Marks FROZEN elements as FREE
                 push    es
                 call    UmbHead         ; Returns with carry if err, else ES == MCB
                 jb      short ufX
                 mov     es, ax
 
-uf10:                                   ; CODE XREF: UnFreeze+23↓j
+uf10:                                   ; ...
                 call    isFrozMCB       ; Returns with ZF set if MCB is FROZEN
                 jnz     short uf20
                 call    unHideMCB
 
-uf20:                                   ; CODE XREF: UnFreeze+C↑j
+uf20:                                   ; ...
                 mov     al, es:0
                 cmp     al, 5Ah ; 'Z'   ; cmp byte [es:ARENA.SIGNATURE],arena_signature_end
                 jz      short ufX
@@ -21183,8 +20346,7 @@ uf20:                                   ; CODE XREF: UnFreeze+C↑j
                 jmp     short uf10
 ; ---------------------------------------------------------------------------
 
-ufX:                                    ; CODE XREF: UnFreeze+5↑j
-                                        ; UnFreeze+17↑j
+ufX:                                    ; ...
                 pop     es
                 pop     ax
                 retn
@@ -21194,7 +20356,7 @@ UnFreeze        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-isFrozMCB       proc near               ; CODE XREF: UnFreeze:uf10↑p
+isFrozMCB       proc near               ; ...
                 push    ax
                 mov     ax, es:1        ; [es:ARENA.OWNER] ; Check the owner..
                 cmp     ax, 8           ; 8 (for US OR Japan) is valid
@@ -21211,8 +20373,7 @@ isFrozMCB       proc near               ; CODE XREF: UnFreeze:uf10↑p
                 mov     ax, es:0Eh      ; [es:ARENA.NAME+6]
                 cmp     ax, 2020h       ; '  '
 
-ifmX:                                   ; CODE XREF: isFrozMCB+8↑j
-                                        ; isFrozMCB+11↑j ...
+ifmX:                                   ; ...
                 pop     ax
                 retn
 isFrozMCB       endp
@@ -21221,7 +20382,7 @@ isFrozMCB       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-frezMCB         proc near               ; CODE XREF: FreezeUM+21↓p
+frezMCB         proc near               ; ...
                 mov     word ptr es:1, 8 ; marks as 8+FROZEN the MCB at ES:0
                                         ; mov word [es:ARENA.OWNER],SystemPSPOwner
                 mov     word ptr es:8, 5246h ; [es:ARENA.NAME+0],'FR'
@@ -21235,7 +20396,7 @@ frezMCB         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-FreezeUM        proc near               ; CODE XREF: InitDevLoad+16↓p
+FreezeUM        proc near               ; ...
                 push    ax              ; Marks FROZEN all UM elements now FREE,
                                         ; save those in load UMB
                 push    cx
@@ -21248,12 +20409,12 @@ FreezeUM        proc near               ; CODE XREF: InitDevLoad+16↓p
                 mov     es, ax
                 xor     cx, cx          ; Pretend we're on UMB 0 for now..
 
-fum10:                                  ; CODE XREF: FreezeUM+36↓j
+fum10:                                  ; ...
                 call    isSysMCB        ; Returns with ZF set if owner is SYSTEM
                 jnz     short fum20
                 inc     cx              ; If it _was_ SYSTEM, we're in a new UMB.
 
-fum20:                                  ; CODE XREF: FreezeUM+15↑j
+fum20:                                  ; ...
                 cmp     cx, dx          ; DX - UMB number to skip (load UMB)
                                         ;
                                         ; If this is the load UMB, we don't want to
@@ -21264,8 +20425,7 @@ fum20:                                  ; CODE XREF: FreezeUM+15↑j
                 jnz     short fum30
                 call    frezMCB
 
-fum30:                                  ; CODE XREF: FreezeUM+1A↑j
-                                        ; FreezeUM+1F↑j
+fum30:                                  ; ...
                 mov     al, es:0
                 cmp     al, 5Ah ; 'Z'   ; cmp byte [es:ARENA.SIGNATURE],arena_signature_end
                 jz      short fumX
@@ -21276,7 +20436,7 @@ fum30:                                  ; CODE XREF: FreezeUM+1A↑j
                 jmp     short fum10
 ; ---------------------------------------------------------------------------
 
-fumX:                                   ; CODE XREF: FreezeUM+2A↑j
+fumX:                                   ; ...
                 pop     es
                 pop     dx
                 pop     cx
@@ -21288,8 +20448,7 @@ FreezeUM        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-UmbTest         proc near               ; CODE XREF: doconf+35C↑p
-                                        ; HideUMBs+4↑p
+UmbTest         proc near               ; ...
                 push    ax              ; returns with carry set if UMBs are not available,
                                         ;  else CF==false
                 push    bx
@@ -21311,7 +20470,7 @@ UmbTest         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-WalkMem         proc near               ; CODE XREF: UmbTest+7↑p
+WalkMem         proc near               ; ...
                 push    ax              ; WalkMem - travels memory chain and
                                         ; returns carry clear if UMBs are linked
                 push    bx
@@ -21322,7 +20481,7 @@ WalkMem         proc near               ; CODE XREF: UmbTest+7↑p
                 mov     ax, es:[bx-2]
                 mov     es, ax          ; ES = Current MCB pointer
 
-um10:                                   ; CODE XREF: WalkMem+1F↓j
+um10:                                   ; ...
                 mov     al, es:0
                 cmp     al, 5Ah ; 'Z'   ; cmp byte [es:ARENA.SIGNATURE],arena_signature_end
                 jz      short um20
@@ -21333,7 +20492,7 @@ um10:                                   ; CODE XREF: WalkMem+1F↓j
                 jmp     short um10
 ; ---------------------------------------------------------------------------
 
-um20:                                   ; CODE XREF: WalkMem+13↑j
+um20:                                   ; ...
                 mov     ax, es
                 cmp     ax, 9FFFh       ; This sets CF if ax < 9FFFh.
                 pop     es
@@ -21346,7 +20505,7 @@ WalkMem         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-hl_unlink       proc near               ; CODE XREF: HideUMBs+3D↑p
+hl_unlink       proc near               ; ...
                 xor     bh, bh          ; unlinks UMBs if fm_umb is set to 0;
                                         ;  restores strategy too
                 push    ds
@@ -21366,7 +20525,7 @@ hl_unlink       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-UnHideUMBs      proc near               ; CODE XREF: RetFromUM+7↓p
+UnHideUMBs      proc near               ; ...
                 push    ax              ; Marks HIDDEN elements as FREE
                 push    ds
                 push    cs
@@ -21382,7 +20541,7 @@ UnHideUMBs      proc near               ; CODE XREF: RetFromUM+7↓p
                 retn
 ; ---------------------------------------------------------------------------
 
-uhu10:                                  ; CODE XREF: UnHideUMBs+A↑j
+uhu10:                                  ; ...
                 call    linkumb         ; Make sure UMBs are linked in.
                 call    FreeUMBs
                 push    es
@@ -21402,7 +20561,7 @@ UnHideUMBs      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-he_unlink       proc near               ; CODE XREF: UnHideUMBs+1F↑p
+he_unlink       proc near               ; ...
                 xor     bh, bh          ; unlinks UMBs if fm_umb is set to 0
                 push    ds
                 push    cs
@@ -21421,19 +20580,19 @@ he_unlink       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-FreeUMBs        proc near               ; CODE XREF: UnHideUMBs+12↑p
+FreeUMBs        proc near               ; ...
                 push    ax              ; frees all HIDDEN memory elements in upper-memory
                 push    es
                 call    HeadUmb         ; Returns with carry if err, else ES == MCB
                 jb      short fusX
 
-fus10:                                  ; CODE XREF: FreeUMBs+21↓j
+fus10:                                  ; ...
                 mov     es, ax          ; Prepare for the loop; ES = current MCB addr.
                 call    isHideMCB       ; Returns with ZF set if owner is 0
                 jnz     short fus20
                 call    freeMCB
 
-fus20:                                  ; CODE XREF: FreeUMBs+C↑j
+fus20:                                  ; ...
                 mov     al, es:0
                 cmp     al, 5Ah ; 'Z'   ; cmp byte [es:ARENA.SIGNATURE],arena_signature_end
                 jz      short fusX
@@ -21443,8 +20602,7 @@ fus20:                                  ; CODE XREF: FreeUMBs+C↑j
                 jmp     short fus10     ; Go on forward.
 ; ---------------------------------------------------------------------------
 
-fusX:                                   ; CODE XREF: FreeUMBs+5↑j
-                                        ; FreeUMBs+17↑j
+fusX:                                   ; ...
                 pop     es
                 pop     ax
                 retn
@@ -21454,7 +20612,7 @@ FreeUMBs        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-isHideMCB       proc near               ; CODE XREF: FreeUMBs+9↑p
+isHideMCB       proc near               ; ...
                 push    ax              ; returns with ZF set if current MCB (ES:0) is HIDDEN
                 cmp     word ptr es:1, 8 ; [es:ARENA.OWNER],SystemPSPOwner
                                         ; If the owner's SYSTEM then check for HIDDEN
@@ -21471,8 +20629,7 @@ isHideMCB       proc near               ; CODE XREF: FreeUMBs+9↑p
                 mov     ax, es:0Eh
                 cmp     ax, 2020h       ; [es:ARENA.NAME+6],'  '
 
-ihm_x:                                  ; CODE XREF: isHideMCB+7↑j
-                                        ; isHideMCB+10↑j ...
+ihm_x:                                  ; ...
                 pop     ax
                 retn
 isHideMCB       endp
@@ -21481,7 +20638,7 @@ isHideMCB       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-freeMCB         proc near               ; CODE XREF: FreeUMBs+E↑p
+freeMCB         proc near               ; ...
                 mov     word ptr es:1, 0 ; marks as free the MCB at ES:0
                 mov     ax, 2020h       ; '  '
                 mov     es:8, ax        ; mov word [es:ARENA.NAME+0],'  '
@@ -21495,7 +20652,7 @@ freeMCB         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-HeadUmb         proc near               ; CODE XREF: FreeUMBs+2↑p
+HeadUmb         proc near               ; ...
                 push    es              ; returns in AX the addr of the 1st UMB block (0x9FFF)
                 mov     ah, 52h
                 int     21h             ; DOS - 2+ internal - GET LIST OF LISTS
@@ -21507,10 +20664,10 @@ HeadUmb         proc near               ; CODE XREF: FreeUMBs+2↑p
                 jmp     short xhu_x
 ; ---------------------------------------------------------------------------
 
-xhu_e:                                  ; CODE XREF: HeadUmb+C↑j
+xhu_e:                                  ; ...
                 stc                     ; error
 
-xhu_x:                                  ; CODE XREF: HeadUmb+F↑j
+xhu_x:                                  ; ...
                 pop     es
                 retn
 HeadUmb         endp
@@ -21519,7 +20676,7 @@ HeadUmb         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-linkumb         proc near               ; CODE XREF: UnHideUMBs:uhu10↑p
+linkumb         proc near               ; ...
                 mov     ax, 5802h       ; DOS_GET_UMBLINK
                 int     21h             ; DOS - 3+ - GET/SET MEMORY ALLOCATION STRATEGY
                                         ; AL = function code: (DOS 5beta) get UMB link state
@@ -21531,7 +20688,7 @@ linkumb         proc near               ; CODE XREF: UnHideUMBs:uhu10↑p
                 int     21h             ; DOS - 3+ - GET/SET MEMORY ALLOCATION STRATEGY
                                         ; AL = function code: (DOS 5beta) set UMB link state
 
-lumbX:                                  ; CODE XREF: linkumb+7↑j
+lumbX:                                  ; ...
                 retn
 linkumb         endp
 
@@ -21539,8 +20696,7 @@ linkumb         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-InitDevLoad     proc near               ; CODE XREF: MagicPreload+11↑p
-                                        ; MagicPostload+2E↑p ...
+InitDevLoad     proc near               ; ...
                 cmp     cs:DeviceHi, 0  ; Are we loading in UMB ?
                 jz      short InitForLo ; no, init for lo mem
                 cmp     cs:ConvLoad, 1  ; Are we loading as per Dos 5?
@@ -21556,29 +20712,27 @@ InitDevLoad     proc near               ; CODE XREF: MagicPreload+11↑p
                 jmp     short InitForHi
 ; ---------------------------------------------------------------------------
 
-InitForConv:                            ; CODE XREF: InitDevLoad+E↑j
+InitForConv:                            ; ...
                 call    SpaceInUMB      ; Do we have space left in the current UMB ?
                 jnb     short InitForHi ; yes, we have
                 call    ShrinkUMB       ; shrink the current UMB in use
                 call    GetUMBForDev    ; else try to allocate new UMB
                 jb      short InitForLo ; we didn't succeed, so load in low memory
 
-InitForHi:                              ; CODE XREF: InitDevLoad+23↑j
-                                        ; InitDevLoad+28↑j
+InitForHi:                              ; ...
                 mov     ax, cs:DevUMBFree ; get Para addr of free mem
                 mov     dx, cs:DevUMBAddr ; UMB start addr
                 add     dx, cs:DevUMBSize ; dx = UMB End addr
                 jmp     short idl1
 ; ---------------------------------------------------------------------------
 
-InitForLo:                              ; CODE XREF: InitDevLoad+6↑j
-                                        ; InitDevLoad+21↑j ...
+InitForLo:                              ; ...
                 mov     cs:DeviceHi, 0  ; in case we failed to load into UMB
                                         ; indicate that we are loading low
                 mov     ax, cs:memhi    ; start of Low memory
                 mov     dx, cs:ALLOCLIM ; end of Low memory
 
-idl1:                                   ; CODE XREF: InitDevLoad+40↑j
+idl1:                                   ; ...
                 call    DevSetMark      ; setup a sub-arena for DD
                 mov     cs:DevLoadAddr, ax ; init the Device load address
                 mov     cs:DevLoadEnd, dx ; init the limit of the block
@@ -21591,7 +20745,7 @@ InitDevLoad     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-SpaceInUMB      proc near               ; CODE XREF: InitDevLoad:InitForConv↑p
+SpaceInUMB      proc near               ; ...
                 mov     ax, cs:DevUMBSize
                 add     ax, cs:DevUMBAddr ; End of UMB
                 sub     ax, cs:DevUMBFree ; - Free = Remaining space
@@ -21601,7 +20755,7 @@ SpaceInUMB      proc near               ; CODE XREF: InitDevLoad:InitForConv↑p
                 retn
 ; ---------------------------------------------------------------------------
 
-spcinumb1:                              ; CODE XREF: SpaceInUMB+10↑j
+spcinumb1:                              ; ...
                 dec     ax              ; space for sub-arena
                 cmp     ax, cs:DevSize  ; do we have space ?
                 retn
@@ -21611,7 +20765,7 @@ SpaceInUMB      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-PrepareMark     proc near               ; CODE XREF: GetUMBForDev+1D↓p
+PrepareMark     proc near               ; ...
                 push    ds
                 mov     ds, ax
                 mov     word ptr ds:1, 8 ; [ARENA.OWNER]
@@ -21628,8 +20782,7 @@ PrepareMark     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-GetUMBForDev    proc near               ; CODE XREF: InitDevLoad+19↑p
-                                        ; InitDevLoad+2D↑p
+GetUMBForDev    proc near               ; ...
                 mov     bx, 0FFFFh
                 mov     ax, 4800h
                 int     21h             ; DOS - 2+ - ALLOCATE MEMORY
@@ -21650,8 +20803,7 @@ GetUMBForDev    proc near               ; CODE XREF: InitDevLoad+19↑p
                 retn
 ; ---------------------------------------------------------------------------
 
-gufd_err:                               ; CODE XREF: GetUMBForDev+A↑j
-                                        ; GetUMBForDev+12↑j ...
+gufd_err:                               ; ...
                 xor     ax, ax          ; 0
                 mov     cs:DevUMBSize, ax ; erase the previous values
                 mov     cs:DevUMBAddr, ax
@@ -21664,7 +20816,7 @@ GetUMBForDev    endp
 ; =============== S U B R O U T I N E =======================================
 
 
-DevSetMark      proc near               ; CODE XREF: InitDevLoad:idl1↑p
+DevSetMark      proc near               ; ...
                 push    es              ; Input :
                                         ; AX - Free segment were device is going to be loaded
                                         ; Output :
@@ -21684,8 +20836,7 @@ DevSetMark      proc near               ; CODE XREF: InitDevLoad:idl1↑p
                 mov     di, si
                 cld
 
-dsm_again:                              ; CODE XREF: DevSetMark+21↓j
-                                        ; DevSetMark+29↓j ...
+dsm_again:                              ; ...
                 lodsb
                 cmp     al, 3Ah ; ':'
                 jnz     short isit_slash
@@ -21693,21 +20844,21 @@ dsm_again:                              ; CODE XREF: DevSetMark+21↓j
                 jmp     short dsm_again
 ; ---------------------------------------------------------------------------
 
-isit_slash:                             ; CODE XREF: DevSetMark+1D↑j
+isit_slash:                             ; ...
                 cmp     al, 5Ch ; '\'
                 jnz     short isit_null
                 mov     di, si
                 jmp     short dsm_again
 ; ---------------------------------------------------------------------------
 
-isit_null:                              ; CODE XREF: DevSetMark+25↑j
+isit_null:                              ; ...
                 or      al, al
                 jnz     short dsm_again
                 mov     si, di
                 mov     di, 8           ; devmark.filename ; 8
                 mov     cx, 8           ; maximum 8 characters
 
-dsm_next_char:                          ; CODE XREF: DevSetMark+41↓j
+dsm_next_char:                          ; ...
                 lodsb
                 or      al, al
                 jz      short blankout
@@ -21716,13 +20867,12 @@ dsm_next_char:                          ; CODE XREF: DevSetMark+41↓j
                 stosb
                 loop    dsm_next_char
 
-blankout:                               ; CODE XREF: DevSetMark+3A↑j
-                                        ; DevSetMark+3E↑j
+blankout:                               ; ...
                 jcxz    short dsm_exit
                 mov     al, 20h ; ' '
                 rep stosb               ; blank out the rest
 
-dsm_exit:                               ; CODE XREF: DevSetMark:blankout↑j
+dsm_exit:                               ; ...
                 pop     ax              ; restore load address
                 pop     si
                 pop     ds
@@ -21735,8 +20885,7 @@ DevSetMark      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-SizeDevice      proc near               ; CODE XREF: SYSINIT:set_dblspc_size↑p
-                                        ; doconf+3B9↑p
+SizeDevice      proc near               ; ...
                 push    ds              ; Calculates the size of the device file in paras
                                         ; and stores it in DevSize
                 push    es
@@ -21764,7 +20913,7 @@ SizeDevice      proc near               ; CODE XREF: SYSINIT:set_dblspc_size↑p
                 jmp     short sd_close
 ; ---------------------------------------------------------------------------
 
-sd_ctp:                                 ; CODE XREF: SizeDevice+23↑j
+sd_ctp:                                 ; ...
                 mov     cl, 4           ; convert it to paras
                 shr     ax, cl
                 mov     cl, 12
@@ -21774,8 +20923,7 @@ sd_ctp:                                 ; CODE XREF: SizeDevice+23↑j
                 clc                     ; CLC is not needed here
                                         ; (OR instruction clears CF) - E.TAN 22/07/2023
 
-sd_close:                               ; CODE XREF: SizeDevice+17↑j
-                                        ; SizeDevice+2C↑j
+sd_close:                               ; ...
                 pushf                   ; save carry flag
                 mov     ax, 3E00h
                 int     21h             ; DOS - 2+ - CLOSE A FILE WITH HANDLE
@@ -21783,7 +20931,7 @@ sd_close:                               ; CODE XREF: SizeDevice+17↑j
                 popf                    ; restore carry flag
                                         ; (we are not checking for 'close file' err)
 
-sd_err:                                 ; CODE XREF: SizeDevice+A↑j
+sd_err:                                 ; ...
                 pop     ds
                 retn
 SizeDevice      endp
@@ -21792,8 +20940,7 @@ SizeDevice      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-ExecDev         proc near               ; CODE XREF: MagicPreload+2D↑p
-                                        ; doconf+416↑p
+ExecDev         proc near               ; ...
                 mov     bx, cs:DevLoadAddr
                 mov     cs:DevExecAddr, bx ; Load the parameter block
                 mov     cs:DevExecReloc, bx ; block for exec with Load address
@@ -21814,15 +20961,14 @@ ExecDev         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-RetFromUM       proc near               ; CODE XREF: doconf:BadFile↑p
-                                        ; doconf+445↑p ...
+RetFromUM       proc near               ; ...
                 pushf
                 mov     cs:ConvLoad, 1  ; ConvLoad set if didn't previously call HideUMBs
                 call    UnHideUMBs
                 jb      short rfUM1
                 mov     cs:ConvLoad, 0  ; ConvLoad clear if did.
 
-rfUM1:                                  ; CODE XREF: RetFromUM+A↑j
+rfUM1:                                  ; ...
                 popf
                 retn
 RetFromUM       endp
@@ -21831,8 +20977,7 @@ RetFromUM       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-RemoveNull      proc near               ; CODE XREF: doconf+421↑p
-                                        ; RemoveNull+8↓j
+RemoveNull      proc near               ; ...
                 mov     bl, es:[si]
                 or      bl, bl          ; null ?
                 jz      short rn_gotnull
@@ -21840,7 +20985,7 @@ RemoveNull      proc near               ; CODE XREF: doconf+421↑p
                 jmp     short RemoveNull
 ; ---------------------------------------------------------------------------
 
-rn_gotnull:                             ; CODE XREF: RemoveNull+5↑j
+rn_gotnull:                             ; ...
                 mov     bl, cs:DevSavedDelim
                 mov     es:[si], bl     ; replace null with blank
                 retn
@@ -21850,8 +20995,7 @@ RemoveNull      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-RoundBreakAddr  proc near               ; CODE XREF: MagicPreload+160↑p
-                                        ; doconf+5B0↑p ...
+RoundBreakAddr  proc near               ; ...
                 mov     ax, word ptr cs:DevBrkAddr ; Rounds DevBrkAddr to a para addr
                                         ; so that it is of the form xxxx:0
                 call    ParaRound
@@ -21863,7 +21007,7 @@ RoundBreakAddr  proc near               ; CODE XREF: MagicPreload+160↑p
                 jmp     mem_err
 ; ---------------------------------------------------------------------------
 
-rba_ok:                                 ; CODE XREF: RoundBreakAddr+1C↑j
+rba_ok:                                 ; ...
                 retn
 RoundBreakAddr  endp
 
@@ -21871,8 +21015,7 @@ RoundBreakAddr  endp
 ; =============== S U B R O U T I N E =======================================
 
 
-DevSetBreak     proc near               ; CODE XREF: MagicPreload+111↑p
-                                        ; MagicPostload+62↑p ...
+DevSetBreak     proc near               ; ...
                 push    ax
                 mov     ax, word ptr cs:DevBrkAddr+2 ; remove the init code
                 cmp     cs:multdeviceflag, 0
@@ -21882,15 +21025,14 @@ DevSetBreak     proc near               ; CODE XREF: MagicPreload+111↑p
                 cmp     word ptr cs:DevBrkAddr, 0
                 jz      short break_failed ; [DevBrkAddr+2]=[memhi] & [DevBrkAddr]=0
 
-set_break_continue:                     ; CODE XREF: DevSetBreak+B↑j
-                                        ; DevSetBreak+12↑j
+set_break_continue:                     ; ...
                 call    RoundBreakAddr
                 pop     ax
                 clc
                 retn
 ; ---------------------------------------------------------------------------
 
-break_failed:                           ; CODE XREF: DevSetBreak+1A↑j
+break_failed:                           ; ...
                 pop     ax
                 stc
                 retn
@@ -21900,8 +21042,7 @@ DevSetBreak     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-DevBreak        proc near               ; CODE XREF: MagicPreload+1EB↑p
-                                        ; MagicPostload+65↑p ...
+DevBreak        proc near               ; ...
                 push    ds              ; Marks a succesful install of a device driver
                                         ; Sets device size field in sub-arena &
                                         ; Updates Free ptr in UMB or adjusts memhi
@@ -21920,11 +21061,11 @@ DevBreak        proc near               ; CODE XREF: MagicPreload+1EB↑p
                 jmp     short db_exit
 ; ---------------------------------------------------------------------------
 
-db_lo:                                  ; CODE XREF: DevBreak+1B↑j
+db_lo:                                  ; ...
                 mov     cs:memhi, bx
                 mov     cs:memlo, 0
 
-db_exit:                                ; CODE XREF: DevBreak+22↑j
+db_exit:                                ; ...
                 pop     ds
                 retn
 DevBreak        endp
@@ -21933,7 +21074,7 @@ DevBreak        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-ParseSize       proc near               ; CODE XREF: doconf+305↑p
+ParseSize       proc near               ; ...
                 push    bx              ; Parses the command line for SIZE= command
                 mov     bx, si
                 mov     cs:DevSizeOption, 0 ; init the value
@@ -21954,8 +21095,7 @@ ParseSize       proc near               ; CODE XREF: doconf+305↑p
                 call    SkipDelim
                 mov     bx, si          ; cf=0 here
 
-ps_no_size:                             ; CODE XREF: ParseSize+1C↑j
-                                        ; ParseSize+24↑j ...
+ps_no_size:                             ; ...
                 mov     si, bx
                 pop     bx
                 clc                     ; cf=0 here (clc is not needed)
@@ -21963,7 +21103,7 @@ ps_no_size:                             ; CODE XREF: ParseSize+1C↑j
                 retn
 ; ---------------------------------------------------------------------------
 
-ps_err:                                 ; CODE XREF: ParseSize+35↑j
+ps_err:                                 ; ...
                 pop     bx
                 stc
                 retn
@@ -21973,8 +21113,7 @@ ParseSize       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-SkipDelim       proc near               ; CODE XREF: ParseSize+14↑p
-                                        ; ParseSize+3B↑p ...
+SkipDelim       proc near               ; ...
                 mov     al, es:[si]     ; Skips delimiters in the string pointed to by ES:SI
                                         ; Returns ptr to first non-delimiter character in ES:SI
                 call    delim
@@ -21983,7 +21122,7 @@ SkipDelim       proc near               ; CODE XREF: ParseSize+14↑p
                 jmp     short SkipDelim
 ; ---------------------------------------------------------------------------
 
-sd_ret:                                 ; CODE XREF: SkipDelim+6↑j
+sd_ret:                                 ; ...
                 retn
 SkipDelim       endp
 
@@ -21991,14 +21130,14 @@ SkipDelim       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-GetHexNum       proc near               ; CODE XREF: ParseSize+32↑p
+GetHexNum       proc near               ; ...
                 xor     ax, ax          ; Converts an ascii string
                                         ; terminated by a delimiter into binary.
                                         ; Assumes that the ES:SI
                                         ; points to a Hexadecimal string
                 xor     dx, dx
 
-ghn_next:                               ; CODE XREF: GetHexNum+2B↓j
+ghn_next:                               ; ...
                 mov     bl, es:[si]
                 cmp     bl, 0Dh         ; cr
                 jz      short ghn_err
@@ -22013,7 +21152,7 @@ ghn_next:                               ; CODE XREF: GetHexNum+2B↓j
                 jb      short ghn_err
                 mov     cx, 4
 
-ghn_shift1:                             ; CODE XREF: GetHexNum+26↓j
+ghn_shift1:                             ; ...
                 shl     ax, 1
                 rcl     dx, 1
                 loop    ghn_shift1
@@ -22022,14 +21161,14 @@ ghn_shift1:                             ; CODE XREF: GetHexNum+26↓j
                 jmp     short ghn_next
 ; ---------------------------------------------------------------------------
 
-ghn_into_paras:                         ; CODE XREF: GetHexNum+18↑j
+ghn_into_paras:                         ; ...
                 add     ax, 15
                 adc     dx, 0
                 test    dx, 0FFF0h
                 jnz     short ghn_err
                 mov     cx, 4
 
-ghn_shift2:                             ; CODE XREF: GetHexNum+41↓j
+ghn_shift2:                             ; ...
                 clc
                 rcr     dx, 1
                 rcr     ax, 1
@@ -22040,8 +21179,7 @@ ghn_shift2:                             ; CODE XREF: GetHexNum+41↓j
                 retn
 ; ---------------------------------------------------------------------------
 
-ghn_err:                                ; CODE XREF: GetHexNum+A↑j
-                                        ; GetHexNum+F↑j ...
+ghn_err:                                ; ...
                 stc                     ; encountered a non-hex character or crlf
                 retn
 GetHexNum       endp
@@ -22050,7 +21188,7 @@ GetHexNum       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-GetNibble       proc near               ; CODE XREF: GetHexNum+1A↑p
+GetNibble       proc near               ; ...
                 cmp     bl, 30h ; '0'   ; Convert one nibble (hex digit) in BL into binary
                 jb      short gnib_err
                 cmp     bl, 39h ; '9'
@@ -22059,7 +21197,7 @@ GetNibble       proc near               ; CODE XREF: GetHexNum+1A↑p
                 retn
 ; ---------------------------------------------------------------------------
 
-is_it_hex:                              ; CODE XREF: GetNibble+8↑j
+is_it_hex:                              ; ...
                 cmp     bl, 41h ; 'A'
                 jb      short gnib_err
                 cmp     bl, 46h ; 'F'
@@ -22068,8 +21206,7 @@ is_it_hex:                              ; CODE XREF: GetNibble+8↑j
                 retn
 ; ---------------------------------------------------------------------------
 
-gnib_err:                               ; CODE XREF: GetNibble+3↑j
-                                        ; GetNibble+11↑j ...
+gnib_err:                               ; ...
                 stc
                 retn
 GetNibble       endp
@@ -22078,22 +21215,22 @@ GetNibble       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-AllocUMB        proc near               ; CODE XREF: doconf+4BD↑p
+AllocUMB        proc near               ; ...
                 call    InitAllocUMB    ; Allocate all UMBs and link it to DOS arena chain
                                         ; link in the first UMB
                 jb      short au_exit   ; quit on error
 
-au_next:                                ; CODE XREF: AllocUMB+D↓j
+au_next:                                ; ...
                 call    umb_allocate    ; allocate
                 jb      short au_coalesce
                 call    umb_insert      ; & insert till no UMBs
                 jmp     short au_next
 ; ---------------------------------------------------------------------------
 
-au_coalesce:                            ; CODE XREF: AllocUMB+8↑j
+au_coalesce:                            ; ...
                 call    umb_coalesce    ; coalesce all UMBs
 
-au_exit:                                ; CODE XREF: AllocUMB+3↑j
+au_exit:                                ; ...
                 retn
 AllocUMB        endp
 
@@ -22101,7 +21238,7 @@ AllocUMB        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-InitAllocUMB    proc near               ; CODE XREF: AllocUMB↑p
+InitAllocUMB    proc near               ; ...
                 call    IsXMSLoaded
                 jnz     short iau_err   ; quit on no XMS driver
                 mov     ah, 52h
@@ -22119,14 +21256,13 @@ InitAllocUMB    proc near               ; CODE XREF: AllocUMB↑p
                 jb      short iau_err
                 mov     cs:FirstUMBLinked, 0FFh ; mark that 1st UMB linked
 
-ia_1:                                   ; CODE XREF: InitAllocUMB+23↑j
+ia_1:                                   ; ...
                 clc                     ; (cf is already zero here)
                                         ; Erdogan tan - 27/07/2023
                 retn
 ; ---------------------------------------------------------------------------
 
-iau_err:                                ; CODE XREF: InitAllocUMB+3↑j
-                                        ; InitAllocUMB+28↑j
+iau_err:                                ; ...
                 stc
                 retn
 InitAllocUMB    endp
@@ -22135,8 +21271,7 @@ InitAllocUMB    endp
 ; =============== S U B R O U T I N E =======================================
 
 
-umb_allocate    proc near               ; CODE XREF: AllocUMB:au_next↑p
-                                        ; LinkFirstUMB↓p
+umb_allocate    proc near               ; ...
                 push    ax
                 mov     ah, 16          ; XMM_REQUEST_UMB
                 mov     dx, 0FFFFh      ; try to allocate largest possible
@@ -22149,13 +21284,12 @@ umb_allocate    proc near               ; CODE XREF: AllocUMB:au_next↑p
                 jnz     short ua_err    ; N: error
                 clc
 
-ua_done:                                ; CODE XREF: umb_allocate+1F↓j
+ua_done:                                ; ...
                 pop     ax
                 retn
 ; ---------------------------------------------------------------------------
 
-ua_err:                                 ; CODE XREF: umb_allocate+D↑j
-                                        ; umb_allocate+19↑j
+ua_err:                                 ; ...
                 stc
                 jmp     short ua_done
 umb_allocate    endp
@@ -22164,7 +21298,7 @@ umb_allocate    endp
 ; =============== S U B R O U T I N E =======================================
 
 
-umb_insert      proc near               ; CODE XREF: AllocUMB+A↑p
+umb_insert      proc near               ; ...
                 push    ds              ; links the UMB into the arena chain
                 mov     ds, cs:DevDOSData
                 mov     ds, word ptr ds:8Ch ; [UMB_ARENA]  ; ds = UMB_HEAD
@@ -22172,7 +21306,7 @@ umb_insert      proc near               ; CODE XREF: AllocUMB+A↑p
                 mov     es, ax
                 assume es:nothing
 
-ui_next:                                ; CODE XREF: umb_insert+1F↓j
+ui_next:                                ; ...
                 cmp     ax, bx          ; BX = seg address of UMB to be linked in
                 ja      short ui_insert ; current block above new block, insert it
                 cmp     byte ptr es:0, 5Ah ; 'Z' ; [es:ARENA.SIGNATURE],arena_signature_end
@@ -22183,7 +21317,7 @@ ui_next:                                ; CODE XREF: umb_insert+1F↓j
                 jmp     short ui_next   ; ax = es = next block
 ; ---------------------------------------------------------------------------
 
-ui_insert:                              ; CODE XREF: umb_insert+10↑j
+ui_insert:                              ; ...
                 mov     cx, ds          ; ds = previous arena
                 inc     cx              ; top of previous block
                 sub     cx, bx
@@ -22211,7 +21345,7 @@ ui_insert:                              ; CODE XREF: umb_insert+10↑j
                 jmp     short ui_done
 ; ---------------------------------------------------------------------------
 
-ui_append:                              ; CODE XREF: umb_insert+18↑j
+ui_append:                              ; ...
                 add     ax, es:3        ; es = arena of last block
                                         ; [es:ARENA.SIZE] ; ax=top of last block-1 para
                 sub     word ptr es:3, 1 ; reserve space on top of this
@@ -22233,7 +21367,7 @@ ui_append:                              ; CODE XREF: umb_insert+18↑j
                 dec     dx              ; make room for arena
                 mov     es:3, dx        ; mov [es:ARENA.SIZE],dx
 
-ui_done:                                ; CODE XREF: umb_insert+74↑j
+ui_done:                                ; ...
                 pop     ds
                 retn
 umb_insert      endp
@@ -22242,13 +21376,12 @@ umb_insert      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-umb_coalesce    proc near               ; CODE XREF: AllocUMB:au_coalesce↑p
+umb_coalesce    proc near               ; ...
                 xor     di, di          ; Combine free blocks ahead with current block
                 mov     es, cs:DevDOSData
                 mov     es, word ptr es:8Ch ; [es:UMB_ARENA] ; es = UMB_HEAD
 
-uc_nextfree:                            ; CODE XREF: umb_coalesce+1C↓j
-                                        ; umb_coalesce+28↓j
+uc_nextfree:                            ; ...
                 mov     ax, es
                 mov     ds, ax
                 cmp     es:1, di        ; [es:ARENA.OWNER],di
@@ -22260,8 +21393,7 @@ uc_nextfree:                            ; CODE XREF: umb_coalesce+1C↓j
                 jmp     short uc_nextfree
 ; ---------------------------------------------------------------------------
 
-uc_again:                               ; CODE XREF: umb_coalesce+15↑j
-                                        ; umb_coalesce+39↓j
+uc_again:                               ; ...
                 call    get_next        ; es, ax = next arena
                 jb      short uc_done
                 cmp     es:1, di        ; [es:ARENA.OWNER],di
@@ -22278,8 +21410,7 @@ uc_again:                               ; CODE XREF: umb_coalesce+15↑j
                 jmp     short uc_again  ; try again
 ; ---------------------------------------------------------------------------
 
-uc_done:                                ; CODE XREF: umb_coalesce+1A↑j
-                                        ; umb_coalesce+21↑j
+uc_done:                                ; ...
                 retn
 umb_coalesce    endp
 
@@ -22287,8 +21418,7 @@ umb_coalesce    endp
 ; =============== S U B R O U T I N E =======================================
 
 
-get_next        proc near               ; CODE XREF: umb_insert+1C↑p
-                                        ; umb_coalesce+17↑p ...
+get_next        proc near               ; ...
                 cmp     byte ptr ds:0, 5Ah ; 'Z' ; Find Next item in Arena
                                         ; cmp byte [ARENA.SIGNATURE],arena_signature_end
                 jz      short gn_err
@@ -22301,7 +21431,7 @@ get_next        proc near               ; CODE XREF: umb_insert+1C↑p
                 retn
 ; ---------------------------------------------------------------------------
 
-gn_err:                                 ; CODE XREF: get_next+5↑j
+gn_err:                                 ; ...
                 stc
                 retn
 get_next        endp
@@ -22310,7 +21440,7 @@ get_next        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-LinkFirstUMB    proc near               ; CODE XREF: InitAllocUMB+25↑p
+LinkFirstUMB    proc near               ; ...
                 call    umb_allocate
                 jb      short lfu_er
                 int     12h             ; MEMORY SIZE -
@@ -22346,7 +21476,7 @@ LinkFirstUMB    proc near               ; CODE XREF: InitAllocUMB+25↑p
                 mov     es, word ptr es:[di] ; es = start arena
                 xor     di, di
 
-scannext:                               ; CODE XREF: LinkFirstUMB+66↓j
+scannext:                               ; ...
                 cmp     byte ptr es:[di], 5Ah ; 'Z' ; arena_signature_end
                 jz      short got_last
                 mov     ax, es
@@ -22356,14 +21486,14 @@ scannext:                               ; CODE XREF: LinkFirstUMB+66↓j
                 jmp     short scannext
 ; ---------------------------------------------------------------------------
 
-got_last:                               ; CODE XREF: LinkFirstUMB+5A↑j
+got_last:                               ; ...
                 sub     word ptr es:3, 1 ; sub word [es:ARENA.SIZE],1
                 mov     byte ptr es:0, 4Dh ; 'M' ; [es:ARENA.SIGNATURE],arena_signature_normal
                 clc
                 retn
 ; ---------------------------------------------------------------------------
 
-lfu_er:                                 ; CODE XREF: LinkFirstUMB+3↑j
+lfu_er:                                 ; ...
                 stc
                 retn
 LinkFirstUMB    endp
@@ -22372,8 +21502,7 @@ LinkFirstUMB    endp
 ; =============== S U B R O U T I N E =======================================
 
 
-ShrinkUMB       proc near               ; CODE XREF: SYSINIT:086D↑p
-                                        ; InitDevLoad+10↑p ...
+ShrinkUMB       proc near               ; ...
                 cmp     cs:DevUMBAddr, 0 ; Shrinks the current UMB in use,
                                         ; so that the unused portions of the UMB
                                         ; is given back to the DOS free mem pool
@@ -22396,7 +21525,7 @@ ShrinkUMB       proc near               ; CODE XREF: SYSINIT:086D↑p
                 pop     es
                 assume es:nothing
 
-su_exit:                                ; CODE XREF: ShrinkUMB+6↑j
+su_exit:                                ; ...
                 retn
 ShrinkUMB       endp
 
@@ -22404,7 +21533,7 @@ ShrinkUMB       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-UnlinkUMB       proc near               ; CODE XREF: SYSINIT:0870↑p
+UnlinkUMB       proc near               ; ...
                 push    ds              ; Unlinks the UMBs from the DOS arena chain
                 push    es
                 cmp     cs:FirstUMBLinked, 0
@@ -22413,7 +21542,7 @@ UnlinkUMB       proc near               ; CODE XREF: SYSINIT:0870↑p
                 mov     ds, word ptr es:24h ; [es:DOS_ARENA]
                 mov     di, es:8Ch      ; [es:UMB_ARENA]
 
-ulu_next:                               ; CODE XREF: UnlinkUMB+24↓j
+ulu_next:                               ; ...
                 call    get_next
                 jb      short ulu_x
                 cmp     di, ax          ; is the next one UMB ?
@@ -22422,11 +21551,10 @@ ulu_next:                               ; CODE XREF: UnlinkUMB+24↓j
                 jmp     short ulu_next
 ; ---------------------------------------------------------------------------
 
-ulu_found:                              ; CODE XREF: UnlinkUMB+20↑j
+ulu_found:                              ; ...
                 mov     byte ptr ds:0, 5Ah ; 'Z' ; [ARENA.SIGNATURE],arena_signature_end
 
-ulu_x:                                  ; CODE XREF: UnlinkUMB+8↑j
-                                        ; UnlinkUMB+1C↑j
+ulu_x:                                  ; ...
                 pop     es
                 pop     ds
                 retn
@@ -22438,7 +21566,7 @@ UnlinkUMB       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-setparms        proc near               ; CODE XREF: doconf+85C↑p
+setparms        proc near               ; ...
                 push    ds
                 push    ax
                 push    bx
@@ -22467,7 +21595,7 @@ setparms        proc near               ; CODE XREF: doconf+85C↑p
                 shl     al, cl          ; set proper bit depending on drive
                 or      ds:ec35_flag, al ; set the bit in the permanent flags
 
-not_ec35:                               ; CODE XREF: setparms+28↑j
+not_ec35:                               ; ...
                 mov     al, byte ptr cs:devp_spt ; mov al,[cs:deviceparameters+20]
                                         ; [cs:deviceparameters+A_DEVICEPARAMETERS.DP_BPB
                                         ; +A_BPB.BPB_SECTORSPERTRACK]
@@ -22475,7 +21603,7 @@ not_ec35:                               ; CODE XREF: setparms+28↑j
                 jbe     short eot_ok
                 mov     ds:eot, al
 
-eot_ok:                                 ; CODE XREF: setparms+3F↑j
+eot_ok:                                 ; ...
                 pop     dx
                 pop     cx
                 pop     bx
@@ -22489,7 +21617,7 @@ setparms        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-diddleback      proc near               ; CODE XREF: doconf+85F↑p
+diddleback      proc near               ; ...
                 push    ds              ; replace default values for further drivparm commands
                 push    cs
                 pop     ds
@@ -22510,13 +21638,13 @@ diddleback      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-parseline       proc near               ; CODE XREF: doconf+857↑p
+parseline       proc near               ; ...
                 push    ds
                 push    cs
                 pop     ds
                 assume ds:SYSINIT
 
-nextswtch:                              ; CODE XREF: parseline+24↓j
+nextswtch:                              ; ...
                 cmp     al, 0Dh         ; al contains the first character in command line.
                 jz      short done_line ; cr
                 cmp     al, 0Ah
@@ -22529,30 +21657,29 @@ nextswtch:                              ; CODE XREF: parseline+24↓j
                 jmp     short exitpl
 ; ---------------------------------------------------------------------------
 
-getparm:                                ; CODE XREF: parseline+11↑j
+getparm:                                ; ...
                 call    check_switch
                 mov     switches, bx    ; save switches read so far
                 jb      short swterr
 
-getnext:                                ; CODE XREF: parseline+D↑j
+getnext:                                ; ...
                 call    getchr
                 jb      short done_line
                 jmp     short nextswtch
 ; ---------------------------------------------------------------------------
 
-swterr:                                 ; CODE XREF: parseline+1D↑j
+swterr:                                 ; ...
                 jmp     short exitpl    ; exit if error
 ; ---------------------------------------------------------------------------
 
-done_line:                              ; CODE XREF: parseline+5↑j
-                                        ; parseline+22↑j ...
+done_line:                              ; ...
                 test    switches, 8     ; flagdrive ; see if drive specified
                 jnz     short okay
                 stc                     ; mark error no-drive-specified
                 jmp     short exitpl
 ; ---------------------------------------------------------------------------
 
-okay:                                   ; CODE XREF: parseline+2E↑j
+okay:                                   ; ...
                 mov     ax, switches
                 and     ax, 3           ; get flag bits for changeline and non-rem
                 mov     devp_devattr, ax ; [deviceparameters+A_DEVICEPARAMETERS.DP_DEVICEATTRIBUTES]
@@ -22560,14 +21687,13 @@ okay:                                   ; CODE XREF: parseline+2E↑j
                 clc                     ; everything is fine
                 call    setdeviceparameters
 
-exitpl:                                 ; CODE XREF: parseline+14↑j
-                                        ; parseline:swterr↑j ...
+exitpl:                                 ; ...
                 pop     ds
                 assume ds:nothing
                 retn
 ; ---------------------------------------------------------------------------
 
-put_back:                               ; CODE XREF: parseline+9↑j
+put_back:                               ; ...
                 inc     ds:count        ; one more char to scan
                 dec     ds:chrptr       ; back up over linefeed
                 jmp     short done_line
@@ -22577,7 +21703,7 @@ parseline       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-check_switch    proc near               ; CODE XREF: parseline:getparm↑p
+check_switch    proc near               ; ...
                 call    getchr
                 jb      short err_chk
                 and     al, 0DFh        ; convert it to upper case
@@ -22616,17 +21742,15 @@ check_switch    proc near               ; CODE XREF: parseline:getparm↑p
                 pop     bx              ; restore switches
                 call    process_num
 
-done_swtch:                             ; CODE XREF: check_switch+30↑j
+done_swtch:                             ; ...
                 clc
                 retn
 ; ---------------------------------------------------------------------------
 
-err_swtch:                              ; CODE XREF: check_switch+35↑j
-                                        ; check_switch+39↑j
+err_swtch:                              ; ...
                 xor     bx, cx          ; remove this switch from the records
 
-err_chk:                                ; CODE XREF: check_switch+3↑j
-                                        ; check_switch+9↑j ...
+err_chk:                                ; ...
                 stc
                 retn
 check_switch    endp
@@ -22635,7 +21759,7 @@ check_switch    endp
 ; =============== S U B R O U T I N E =======================================
 
 
-process_num     proc near               ; CODE XREF: check_switch+4F↑p
+process_num     proc near               ; ...
                 test    ds:switches, cx ; if this switch has been done before,
                 jnz     short done_ret  ; ignore this one.
                 test    cx, 8           ; flagdrive
@@ -22644,14 +21768,14 @@ process_num     proc near               ; CODE XREF: check_switch+4F↑p
                 jmp     short done_ret
 ; ---------------------------------------------------------------------------
 
-try_f:                                  ; CODE XREF: process_num+A↑j
+try_f:                                  ; ...
                 test    cx, 80h         ; flagff
                 jz      short try_t
                 mov     ds:devp_devtype, al
                 jmp     short done_ret
 ; ---------------------------------------------------------------------------
 
-try_t:                                  ; CODE XREF: process_num+15↑j
+try_t:                                  ; ...
                 or      ax, ax          ; if number entered was 0, assume default value
                 jz      short done_ret
                 test    cx, 10h         ; flagcyln
@@ -22661,18 +21785,17 @@ try_t:                                  ; CODE XREF: process_num+15↑j
                 jmp     short done_ret
 ; ---------------------------------------------------------------------------
 
-try_s:                                  ; CODE XREF: process_num+24↑j
+try_s:                                  ; ...
                 test    cx, 20h         ; flagseclim
                 jz      short try_h     ; must be for number of heads
                 mov     ds:slim, ax
                 jmp     short done_ret
 ; ---------------------------------------------------------------------------
 
-try_h:                                  ; CODE XREF: process_num+2F↑j
+try_h:                                  ; ...
                 mov     ds:hlim, ax
 
-done_ret:                               ; CODE XREF: process_num+4↑j
-                                        ; process_num+F↑j ...
+done_ret:                               ; ...
                 clc                     ; (test instruction resets cf)
                 retn
 process_num     endp
@@ -22681,7 +21804,7 @@ process_num     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-setdeviceparameters proc near           ; CODE XREF: parseline+43↑p
+setdeviceparameters proc near           ; ...
                 push    es
                 push    cs
                 pop     es
@@ -22693,7 +21816,7 @@ setdeviceparameters proc near           ; CODE XREF: parseline+43↑p
                 mov     ds:devp_cylinders, 40 ; [deviceparameters+A_DEVICEPARAMETERS.DP_CYLINDERS]
                                         ; 48 tpi = 40 cyl
 
-got_80:                                 ; CODE XREF: setdeviceparameters+C↑j
+got_80:                                 ; ...
                 shl     bx, 1           ; get index into bpb table
                 mov     si, ds:_bpbtable[bx] ; get address of bpb
                 mov     di, offset devp_bps ; deviceparameters+7
@@ -22711,14 +21834,14 @@ got_80:                                 ; CODE XREF: setdeviceparameters+C↑j
                                         ; [deviceparameters+A_DEVICEPARAMETERS.DP_BPB
                                         ;  +A_BPB.BPB_SECTORSPERTRACK]
 
-see_heads:                              ; CODE XREF: setdeviceparameters+2A↑j
+see_heads:                              ; ...
                 test    ds:switches, 40h ; flagheads
                 jz      short heads_not_altered
                 mov     ax, ds:hlim
                 mov     ds:devp_heads, ax ; [deviceparameters+22]
                                         ; [deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.BPB_HEADS]
 
-heads_not_altered:                      ; CODE XREF: setdeviceparameters+38↑j
+heads_not_altered:                      ; ...
                 mov     ds:devp_secperclus, 2 ; [deviceparameters+9],2
                                         ; [deviceparameters+A_DEVICEPARAMETERS.DP_BPB
                                         ;  +A_BPB.BPB_SECTORSPERCLUSTER]
@@ -22738,8 +21861,7 @@ heads_not_altered:                      ; CODE XREF: setdeviceparameters+38↑j
                                         ;  Set cluster size to 1.
 ; ---------------------------------------------------------------------------
 
-not_144m:                               ; CODE XREF: setdeviceparameters+5B↑j
-                                        ; setdeviceparameters+62↑j
+not_144m:                               ; ...
                 cmp     ds:devp_cylinders, 40 ; check for 320K
                 jnz     short got_correct_mediaid
                 cmp     ds:devp_spt, 8
@@ -22748,7 +21870,7 @@ not_144m:                               ; CODE XREF: setdeviceparameters+5B↑j
                 jmp     short got_correct_mediaid
 ; ---------------------------------------------------------------------------
 
-only_one_head:                          ; CODE XREF: setdeviceparameters+52↑j
+only_one_head:                          ; ...
                 cmp     ds:devp_devtype, 0 ; [deviceparameters+A_DEVICEPARAMETERS.DP_DEVICETYPE],DEV_5INCH
                 jnz     short got_one_secperclus_drive
                 mov     bl, 0FCh        ; single sided 9 sector media id
@@ -22757,13 +21879,11 @@ only_one_head:                          ; CODE XREF: setdeviceparameters+52↑j
                 jnz     short got_one_secperclus_drive ; okay if anything besides 8
                 mov     bl, 0FEh        ; 160K mediaid
 
-got_one_secperclus_drive:               ; CODE XREF: setdeviceparameters+64↑j
-                                        ; setdeviceparameters+7D↑j ...
+got_one_secperclus_drive:               ; ...
                 mov     ds:devp_secperclus, 1 ; [deviceparameters+A_DEVICEPARAMETERS.DP_BPB
                                         ;  +A_BPB.BPB_SECTORSPERCLUSTER],1
 
-got_correct_mediaid:                    ; CODE XREF: setdeviceparameters+50↑j
-                                        ; setdeviceparameters+6B↑j ...
+got_correct_mediaid:                    ; ...
                 mov     ds:devp_mediaid, bl ; [deviceparameters+A_DEVICEPARAMETERS.DP_BPB
                                         ;  +A_BPB.BPB_MEDIADESCRIPTOR],bl
                 mov     ax, ds:devp_cylinders ; [deviceparameters+A_DEVICEPARAMETERS.DP_CYLINDERS]
@@ -22778,7 +21898,7 @@ setdeviceparameters endp
 ; =============== S U B R O U T I N E =======================================
 
 
-organize        proc near               ; CODE XREF: doconf:getcom↑p
+organize        proc near               ; ...
                 mov     cx, cs:count
                 jcxz    short nochar1
                 xor     si, si
@@ -22786,8 +21906,7 @@ organize        proc near               ; CODE XREF: doconf:getcom↑p
                 xor     ax, ax
                 mov     cs:com_level, 0
 
-org1:                                   ; CODE XREF: organize+21↓j
-                                        ; organize+2C↓j ...
+org1:                                   ; ...
                 call    skip_comment
                 jz      short end_commd_line ; found a comment string and skipped.
                 call    get2            ; not a comment string. then get a char.
@@ -22798,19 +21917,18 @@ org1:                                   ; CODE XREF: organize+21↓j
                 jmp     short findit
 ; ---------------------------------------------------------------------------
 
-end_commd_line:                         ; CODE XREF: organize+16↑j
-                                        ; organize+1D↑j ...
+end_commd_line:                         ; ...
                 stosb                   ; store line feed char in buffer for the linecount.
                 mov     cs:com_level, 0 ; reset the command level.
                 jmp     short org1
 ; ---------------------------------------------------------------------------
 
-nochar1:                                ; CODE XREF: organize+5↑j
+nochar1:                                ; ...
                 stc
                 retn
 ; ---------------------------------------------------------------------------
 
-findit:                                 ; CODE XREF: organize+23↑j
+findit:                                 ; ...
                 push    cx              ; prepare to search command table
                 push    si
                 push    di
@@ -22819,8 +21937,7 @@ findit:                                 ; CODE XREF: organize+23↑j
                 mov     si, offset comtab ; "\x01[["
                 mov     ch, 0
 
-findcom:                                ; CODE XREF: organize+59↓j
-                                        ; organize+80↓j
+findcom:                                ; ...
                 mov     di, bp
                 mov     cl, [si]
                 inc     si
@@ -22828,7 +21945,7 @@ findcom:                                ; CODE XREF: organize+59↓j
                 cmp     byte ptr es:[di], 3Bh ; ';' ; CONFIG_SEMICOLON
                 jz      short semicolon
 
-loopcom:                                ; CODE XREF: organize+52↓j
+loopcom:                                ; ...
                 mov     al, es:[di]
                 inc     di
                 and     al, 0DFh        ; ~20h ; force upper case
@@ -22855,39 +21972,38 @@ loopcom:                                ; CODE XREF: organize+52↓j
                 jmp     short gotcom0
 ; ---------------------------------------------------------------------------
 
-semicolon:                              ; CODE XREF: organize+46↑j
+semicolon:                              ; ...
                 mov     al, 30h ; '0'   ; CONFIG_REM
                 jmp     short gotcom0
 ; ---------------------------------------------------------------------------
 
-no_query:                               ; CODE XREF: organize+71↑j
+no_query:                               ; ...
                 call    delim
                 pop     ax
                 jnz     short findcom
 
-gotcom0:                                ; CODE XREF: organize+5F↑j
-                                        ; organize+65↑j ...
+gotcom0:                                ; ...
                 pop     di
                 pop     si
                 pop     cx
                 jmp     short gotcom
 ; ---------------------------------------------------------------------------
 
-nocom:                                  ; CODE XREF: organize+40↑j
+nocom:                                  ; ...
                 pop     di
                 pop     si
                 pop     cx
                 mov     al, 5Ah ; 'Z'   ; CONFIG_UNKNOWN
                 stosb                   ; save indicator char.
 
-_skipline:                              ; CODE XREF: organize+92↓j
+_skipline:                              ; ...
                 call    get2
                 cmp     al, 0Ah         ; lf ; skip this bad command line
                 jnz     short _skipline
                 jmp     short end_commd_line
 ; ---------------------------------------------------------------------------
 
-gotcom:                                 ; CODE XREF: organize+85↑j
+gotcom:                                 ; ...
                 stosb                   ; save indicator char in buffer
                 and     al, 7Fh         ; ~CONFIG_OPTION_QUERY
                 mov     cs:cmd_indicator, al ; save it for the future use.
@@ -22903,8 +22019,7 @@ gotcom:                                 ; CODE XREF: organize+85↑j
                 jz      short org2
                 call    mapcase         ; map case of rest of line to UPPER
 
-org2:                                   ; CODE XREF: organize+A3↑j
-                                        ; organize+A7↑j ...
+org2:                                   ; ...
                 call    get2            ; skip the command name until delimiter
                 cmp     al, 0Ah         ; lf
                 jz      short org21
@@ -22917,12 +22032,11 @@ org2:                                   ; CODE XREF: organize+A3↑j
                 jmp     short org3
 ; ---------------------------------------------------------------------------
 
-org21:                                  ; CODE XREF: organize+B9↑j
-                                        ; organize+BD↑j ...
+org21:                                  ; ...
                 dec     si              ; if cr or lf then
                 inc     cx              ; undo si, cx register and continue
 
-org3:                                   ; CODE XREF: organize+C8↑j
+org3:                                   ; ...
                 cmp     cs:cmd_indicator, 59h ; 'Y' ; CONFIG_COMMENT
                 jz      short get_cmt_token
                 cmp     cs:cmd_indicator, 44h ; 'D' ; CONFIG_DEVICE
@@ -22936,12 +22050,11 @@ org3:                                   ; CODE XREF: organize+C8↑j
                 cmp     cs:cmd_indicator, 31h ; '1' ; CONFIG_SWITCHES
                 jz      short org_switch
 
-org31:                                  ; CODE XREF: organize+9F↑j
+org31:                                  ; ...
                 jmp     org4
 ; ---------------------------------------------------------------------------
 
-org_switch:                             ; CODE XREF: organize+FA↑j
-                                        ; organize+10A↓j
+org_switch:                             ; ...
                 call    skip_comment
                 jz      short end_commd_line_brdg
                 call    get2
@@ -22951,8 +22064,7 @@ org_switch:                             ; CODE XREF: organize+FA↑j
                 jmp     org5
 ; ---------------------------------------------------------------------------
 
-org_file:                               ; CODE XREF: organize+DA↑j
-                                        ; organize+E2↑j ...
+org_file:                               ; ...
                 call    skip_comment    ; get the filename and put 0 at end
                 jz      short org_put_zero
                 call    get2            ; not a comment
@@ -22960,7 +22072,7 @@ org_file:                               ; CODE XREF: organize+DA↑j
                 jz      short org_file  ; skip the possible delimiters
                 stosb                   ; copy the first non delim char found in buffer
 
-org_copy_file:                          ; CODE XREF: organize+132↓j
+org_copy_file:                          ; ...
                 call    skip_comment    ; comment char in the filename?
                 jz      short org_put_zero ; then stop copying filename at that point
                 call    get2
@@ -22974,8 +22086,7 @@ org_copy_file:                          ; CODE XREF: organize+132↓j
                 jmp     short end_copy_file ; otherwise, assume end of the filename.
 ; ---------------------------------------------------------------------------
 
-get_cmt_token:                          ; CODE XREF: organize+D2↑j
-                                        ; organize+13B↓j ...
+get_cmt_token:                          ; ...
                 call    get2            ; get the token. just max. 2 char.
                 cmp     al, 20h ; ' '   ; skip white spaces or "=" char.
                 jz      short get_cmt_token ; (we are allowing the other special
@@ -23001,26 +22112,23 @@ get_cmt_token:                          ; CODE XREF: organize+D2↑j
                 mov     cs:cmmt2, al
                 inc     cs:cmmt
 
-get_cmt_end:                            ; CODE XREF: organize+147↑j
-                                        ; organize+14B↑j ...
+get_cmt_end:                            ; ...
                 call    get2
                 cmp     al, 0Ah         ; lf
                 jnz     short get_cmt_end ; skip it.
 
-end_commd_line_brdg:                    ; CODE XREF: organize+102↑j
-                                        ; organize+168↑j ...
+end_commd_line_brdg:                    ; ...
                 jmp     end_commd_line  ; else jmp to end_commd_line
 ; ---------------------------------------------------------------------------
 
-org_put_zero:                           ; CODE XREF: organize+113↑j
-                                        ; organize+121↑j
+org_put_zero:                           ; ...
                 mov     byte ptr es:[di], 0 ; make the filename in front of
                                         ; the comment string to be an asciiz.
                 inc     di
                 jmp     end_commd_line  ; (maybe null if device=/*)
 ; ---------------------------------------------------------------------------
 
-end_file_slash:                         ; CODE XREF: organize+128↑j
+end_file_slash:                         ; ...
                 mov     byte ptr es:[di], 0 ; al = "/" option char.
                                         ; make a filename an asciiz
                 inc     di              ; and
@@ -23028,16 +22136,14 @@ end_file_slash:                         ; CODE XREF: organize+128↑j
                 jmp     short org5      ; continue with the rest of the line
 ; ---------------------------------------------------------------------------
 
-end_copy_file:                          ; CODE XREF: organize+12E↑j
-                                        ; organize+134↑j
+end_copy_file:                          ; ...
                 mov     byte ptr es:[di-1], 0 ; make it an asciiz and handle the next char.
                 cmp     al, 0Ah         ; lf
                 jz      short end_commd_line_brdg
                 jmp     short org5
 ; ---------------------------------------------------------------------------
 
-org4:                                   ; CODE XREF: organize:org31↑j
-                                        ; organize+1A3↓j
+org4:                                   ; ...
                 call    skip_comment    ; org4 skips all delimiters
                                         ; after the command name except for '/'
                 jz      short end_commd_line_brdg
@@ -23047,13 +22153,12 @@ org4:                                   ; CODE XREF: organize:org31↑j
                 jmp     short org51
 ; ---------------------------------------------------------------------------
 
-org5:                                   ; CODE XREF: organize+10D↑j
-                                        ; organize+18B↑j ...
+org5:                                   ; ...
                 call    skip_comment    ; rest of the line is
                 jz      short end_commd_line_brdg ; comment.
                 call    get2            ; not a comment.
 
-org51:                                  ; CODE XREF: organize+1A5↑j
+org51:                                  ; ...
                 stosb                   ; copy the character
                 cmp     al, 22h ; '"'   ; a quote ?
                 jz      short at_quote
@@ -23066,34 +22171,32 @@ org51:                                  ; CODE XREF: organize+1A5↑j
                 jmp     short org5
 ; ---------------------------------------------------------------------------
 
-org1_brdg:                              ; CODE XREF: organize+1BA↑j
+org1_brdg:                              ; ...
                 jmp     org1
 ; ---------------------------------------------------------------------------
 
-at_quote:                               ; CODE XREF: organize+1B2↑j
+at_quote:                               ; ...
                 cmp     cs:com_level, 0
                 jz      short up_level
                 mov     cs:com_level, 0 ; reset it
                 jmp     short org5
 ; ---------------------------------------------------------------------------
 
-up_level:                               ; CODE XREF: organize+1C7↑j
+up_level:                               ; ...
                 inc     cs:com_level    ; set it
                 jmp     short org5
 organize        endp
 
 ; ---------------------------------------------------------------------------
 
-get2:                                   ; CODE XREF: organize+18↑p
-                                        ; organize:_skipline↑p ...
+get2:                                   ; ...
                 jcxz    short noget
                 lods    byte ptr es:[si]
                 dec     cx
                 retn
 ; ---------------------------------------------------------------------------
 
-noget:                                  ; CODE XREF: SYSINIT:get2↑j
-                                        ; skip_comment↓j ...
+noget:                                  ; ...
                 pop     cx              ; This was the rather kludgy way
                                         ; out of procedure "organize",
                                         ; but instead of returning to doconf,
@@ -23109,8 +22212,7 @@ noget:                                  ; CODE XREF: SYSINIT:get2↑j
 ; =============== S U B R O U T I N E =======================================
 
 
-skip_comment    proc near               ; CODE XREF: organize:org1↑p
-                                        ; organize:org_switch↑p ...
+skip_comment    proc near               ; ...
                 jcxz    short noget     ; get out of the organize routine.
                                         ; ...
                                         ; skip the commented string until lf,
@@ -23129,8 +22231,7 @@ skip_comment    proc near               ; CODE XREF: organize:org1↑p
                 cmp     cs:cmmt2, al
                 jnz     short no_commt
 
-skip_cmmt:                              ; CODE XREF: skip_comment+22↑j
-                                        ; skip_comment+38↓j
+skip_cmmt:                              ; ...
                 jcxz    short noget     ; get out of organize routine.
                 mov     al, es:[si]
                 inc     si
@@ -23138,8 +22239,7 @@ skip_cmmt:                              ; CODE XREF: skip_comment+22↑j
                 cmp     al, 0Ah         ; lf ; line feed ?
                 jnz     short skip_cmmt
 
-no_commt:                               ; CODE XREF: skip_comment+8↑j
-                                        ; skip_comment+10↑j ...
+no_commt:                               ; ...
                 retn
 skip_comment    endp
 
@@ -23147,8 +22247,7 @@ skip_comment    endp
 ; =============== S U B R O U T I N E =======================================
 
 
-kbd_read        proc near               ; CODE XREF: doconf+1A↑p
-                                        ; menu_check+5E↓p
+kbd_read        proc near               ; ...
                 test    ds:bDisableUI, 2 ; wait for keystroke
                 jnz     short kbd_nodelay ;
                                         ; the bios timer tick count is incremented
@@ -23160,7 +22259,7 @@ kbd_read        proc near               ; CODE XREF: doconf+1A↑p
                 mov     ds, ax
                 assume ds:nothing
 
-kbd_loop:                               ; CODE XREF: kbd_read+25↓j
+kbd_loop:                               ; ...
                 mov     ah, 1           ; peek the keyboard
                 int     16h             ; KEYBOARD - CHECK BUFFER, DO NOT CLEAR
                                         ; Return: ZF clear if character in buffer
@@ -23177,12 +22276,11 @@ kbd_loop:                               ; CODE XREF: kbd_read+25↓j
                 cmp     ax, 37          ; reached limit? ; (2 seconds)
                 jb      short kbd_loop
 
-kbd_loopdone:                           ; CODE XREF: kbd_read+10↑j
-                                        ; kbd_read+18↑j
+kbd_loopdone:                           ; ...
                 pop     ds              ; delay complete!
                 assume ds:nothing
 
-kbd_nodelay:                            ; CODE XREF: kbd_read+5↑j
+kbd_nodelay:                            ; ...
                 sub     bx, bx          ; assume clean boot
                 mov     ah, 2           ; peek the shift states
                 int     16h             ; KEYBOARD - GET SHIFT STATUS
@@ -23193,7 +22291,7 @@ kbd_nodelay:                            ; CODE XREF: kbd_read+5↑j
                 inc     bx
                 or      ds:bQueryOpt, 4
 
-kbd_notshift:                           ; CODE XREF: kbd_read+30↑j
+kbd_notshift:                           ; ...
                 mov     ah, 1           ; peek the keyboard
                 int     16h             ; KEYBOARD - CHECK BUFFER, DO NOT CLEAR
                                         ; Return: ZF clear if character in buffer
@@ -23207,26 +22305,26 @@ kbd_notshift:                           ; CODE XREF: kbd_read+30↑j
                 cmp     ah, 3Fh         ; F5 function key?
                 jnz     short kbd_notf5 ; no
 
-kbd_cfg_bypass:                         ; CODE XREF: kbd_read+46↑j
+kbd_cfg_bypass:                         ; ...
                 mov     dx, offset _$CleanMsg ; "PC DOS is bypassing your CONFIG.SYS and"...
                 call    print
                 or      ds:bQueryOpt, 4
                 jmp     short kbd_eat   ; yes, clean boot selected
 ; ---------------------------------------------------------------------------
 
-kbd_notf5:                              ; CODE XREF: kbd_read+4B↑j
+kbd_notf5:                              ; ...
                 cmp     ah, 65h         ; CTRL F8
                 jz      short kbd_cfg_confirm
                 cmp     ah, 42h         ; F8
                 jnz     short kbd_exit
 
-kbd_cfg_confirm:                        ; CODE XREF: kbd_read+5D↑j
+kbd_cfg_confirm:                        ; ...
                 mov     dx, offset _$InterMsg ; "PC DOS will prompt you to confirm each "...
                 call    print
                 mov     bl, 1           ; yes, interactive-boot option enabled
                 mov     ds:bQueryOpt, bl ; change default setting
 
-kbd_eat:                                ; CODE XREF: kbd_read+58↑j
+kbd_eat:                                ; ...
                 mov     ah, 0           ; eat the key we assumed was a signal
                 int     16h             ; KEYBOARD - READ CHAR FROM BUFFER, WAIT IF EMPTY
                                         ; Return: AH = scan code, AL = character
@@ -23234,19 +22332,17 @@ kbd_eat:                                ; CODE XREF: kbd_read+58↑j
                 or      bx, bx
                 jz      short kbd_clean
 
-kbd_test:                               ; CODE XREF: kbd_read+3D↑j
-                                        ; kbd_read+41↑j
+kbd_test:                               ; ...
                 cmp     bl, 2
                 jb      short kbd_exit
 
-kbd_clean:                              ; CODE XREF: kbd_read+7B↑j
+kbd_clean:                              ; ...
                 call    disable_autoexec ; yes, tell COMMAND to skip autoexec.bat
                 stc                     ; set carry to indicate abort
                 retn
 ; ---------------------------------------------------------------------------
 
-kbd_exit:                               ; CODE XREF: kbd_read+62↑j
-                                        ; kbd_read+80↑j
+kbd_exit:                               ; ...
                 clc                     ; clear carry to indicate success
                 retn
 kbd_read        endp
@@ -23255,8 +22351,7 @@ kbd_read        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-set_numlock     proc near               ; CODE XREF: doconf+A97↑p
-                                        ; menu_check+18↓p ...
+set_numlock     proc near               ; ...
                 push    ax              ; set numlock LED
                 push    ds
                 in      al, 64h         ; 8042 keyboard controller status register
@@ -23282,14 +22377,13 @@ set_numlock     proc near               ; CODE XREF: doconf+A97↑p
                 jmp     short set_done
 ; ---------------------------------------------------------------------------
 
-not_off:                                ; CODE XREF: set_numlock+14↑j
+not_off:                                ; ...
                 cmp     ax, word ptr cs:OnOff ; "ON"
                 stc
                 jnz     short set_done
                 or      byte ptr ds:0417h, 20h ; turn it on
 
-set_done:                               ; CODE XREF: set_numlock+6↑j
-                                        ; set_numlock+1B↑j ...
+set_done:                               ; ...
                 pop     ds
                 assume ds:nothing
                 pop     ax
@@ -23300,14 +22394,14 @@ set_numlock     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-menu_check      proc near               ; CODE XREF: SYSINIT:44CB↑j
+menu_check      proc near               ; ...
                 push    cx              ; Search for SWITCHES,
                                         ; determine if /N or /F are present;
                                         ; if so, then disable clean/interactive boot options
                 push    si
                 sub     bx, bx          ; remains ZERO until first block
 
-swchk_loop:                             ; CODE XREF: menu_check+53↓j
+swchk_loop:                             ; ...
                 call    get_char        ; get first char of current line
                 jb      short swchk_end ; hit eof
                 cmp     al, 5Bh ; '['   ; CONFIG_BEGIN
@@ -23316,7 +22410,7 @@ swchk_loop:                             ; CODE XREF: menu_check+53↓j
                 jmp     short swchk_nextline
 ; ---------------------------------------------------------------------------
 
-swchk_next1:                            ; CODE XREF: menu_check+B↑j
+swchk_next1:                            ; ...
                 cmp     al, 4Eh ; 'N'   ; CONFIG_NUMLOCK
                 jnz     short swchk_next2
                 or      bx, bx          ; only do NUMLOCK commands that exist
@@ -23326,15 +22420,14 @@ swchk_next1:                            ; CODE XREF: menu_check+B↑j
                 jmp     short swchk_nextline
 ; ---------------------------------------------------------------------------
 
-swchk_next2:                            ; CODE XREF: menu_check+12↑j
+swchk_next2:                            ; ...
                 cmp     al, 31h ; '1'   ; CONFIG_SWITCHES
                 jnz     short swchk_nextline ; this line ain't it
 
-swchk_scan:                             ; CODE XREF: menu_check+2F↓j
-                                        ; menu_check+41↓j ...
+swchk_scan:                             ; ...
                 call    get_char        ; look for /N or /F
 
-swchk_scan1:                            ; CODE XREF: menu_check+47↓j
+swchk_scan1:                            ; ...
                 cmp     al, 0Ah         ; LF ; end of line ?
                 jz      short swchk_nextline
                 cmp     al, 2Fh ; '/'   ; switch-char?
@@ -23347,20 +22440,19 @@ swchk_scan1:                            ; CODE XREF: menu_check+47↓j
                 jmp     short swchk_scan ; continue looking for switches of interest
 ; ---------------------------------------------------------------------------
 
-swchk_scan2:                            ; CODE XREF: menu_check+3A↑j
+swchk_scan2:                            ; ...
                 cmp     al, byte ptr ds:swit_f+1 ; "F"
                 jnz     short swchk_scan1 ; no
                 or      ds:bDisableUI, 2
                 jmp     short swchk_scan ; continue looking for switches of interest
 ; ---------------------------------------------------------------------------
 
-swchk_nextline:                         ; CODE XREF: menu_check+E↑j
-                                        ; menu_check+16↑j ...
+swchk_nextline:                         ; ...
                 call    skip_opt_line
                 jmp     short swchk_loop
 ; ---------------------------------------------------------------------------
 
-swchk_end:                              ; CODE XREF: menu_check+7↑j
+swchk_end:                              ; ...
                 pop     si
                 pop     cx              ;
                                         ; Do the keyboard tests for clean/interactive boot now,
@@ -23375,8 +22467,7 @@ swchk_end:                              ; CODE XREF: menu_check+7↑j
                 jmp     menu_abort
 ; ---------------------------------------------------------------------------
 
-menu_search:                            ; CODE XREF: menu_check+5C↑j
-                                        ; menu_check+61↑j ...
+menu_search:                            ; ...
                 sub     bx, bx          ; Search for MENU block;
                                         ; it is allowed to be anywhere in config.sys
                 mov     di, offset szMenu ; "MENU"
@@ -23387,7 +22478,7 @@ menu_search:                            ; CODE XREF: menu_check+5C↑j
                 jmp     no_selection    ; not found
 ; ---------------------------------------------------------------------------
 
-menu_color:                             ; CODE XREF: menu_check+E3↓j
+menu_color:                             ; ...
                 push    cx              ; Process the requested menu color(s)
                 push    dx
                 mov     dx, 7           ; default color setting
@@ -23406,20 +22497,19 @@ menu_color:                             ; CODE XREF: menu_check+E3↓j
                 shl     bl, cl
                 or      dl, bl
 
-check_color:                            ; CODE XREF: menu_check+8D↑j
+check_color:                            ; ...
                 cmp     ch, dh          ; are foreground/background the same?
                 jnz     short set_color ; no
                 xor     dl, 8           ; yes, so modify the fgnd intensity
 
-set_color:                              ; CODE XREF: menu_check+A2↑j
+set_color:                              ; ...
                 mov     ds:bMenuColor, dl
                 pop     dx
                 pop     cx
                 jmp     menu_nextitem
 ; ---------------------------------------------------------------------------
 
-menu_found:                             ; CODE XREF: menu_check+6E↑j
-                                        ; menu_check+286↓j
+menu_found:                             ; ...
                 mov     ds:bDefBlock, 1
                 mov     ds:offDefBlock, 0
                 mov     ds:secTimeOut, 0FFh ; -1
@@ -23427,7 +22517,7 @@ menu_found:                             ; CODE XREF: menu_check+6E↑j
                 call    skip_opt_line   ; skip to next line
                 sub     dx, dx          ; initialize total block count (0 => none yet)
 
-menu_process:                           ; CODE XREF: menu_check+15E↓j
+menu_process:                           ; ...
                 call    get_char        ; get first char of current line
                 jb      short to_menu_getdefault ; could happen if menu block at end (rare)
                 and     al, 7Fh         ; ~CONFIG_OPTION_QUERY
@@ -23452,17 +22542,16 @@ menu_process:                           ; CODE XREF: menu_check+15E↓j
                 jmp     short menu_nextitem
 ; ---------------------------------------------------------------------------
 
-menu_numlock:                           ; CODE XREF: menu_check+E7↑j
+menu_numlock:                           ; ...
                 call    set_numlock
                 jmp     short menu_nextitem
 ; ---------------------------------------------------------------------------
 
-to_menu_getdefault:                     ; CODE XREF: menu_check+CD↑j
-                                        ; menu_check+D3↑j
+to_menu_getdefault:                     ; ...
                 jmp     short menu_getdefault
 ; ---------------------------------------------------------------------------
 
-menu_default:                           ; CODE XREF: menu_check+DF↑j
+menu_default:                           ; ...
                 mov     ds:offDefBlock, si ; save address of default block name
                 cmp     ds:secElapsed, 0
                 jnz     short timeout_skip ; secElapsed is only zero for the FIRST menu,
@@ -23476,15 +22565,14 @@ menu_default:                           ; CODE XREF: menu_check+DF↑j
                 jb      short timeout_ok ; (besides, 99 is the largest # my simple
                 mov     bl, 90
 
-timeout_ok:                             ; CODE XREF: menu_check+11C↑j
+timeout_ok:                             ; ...
                 mov     ds:secTimeOut, bl
 
-timeout_skip:                           ; CODE XREF: menu_check+108↑j
+timeout_skip:                           ; ...
                 jmp     short menu_nextitem
 ; ---------------------------------------------------------------------------
 
-menu_item:                              ; CODE XREF: menu_check+D7↑j
-                                        ; menu_check+DB↑j
+menu_item:                              ; ...
                 cmp     dl, 9           ; MAX_MULTI_CONFIG
                                         ; have we reached the max # of items yet?
                 jnb     short menu_nextitem
@@ -23499,7 +22587,7 @@ menu_item:                              ; CODE XREF: menu_check+D7↑j
                 jmp     short menu_nextitem ; if not found, ignore this menu item
 ; ---------------------------------------------------------------------------
 
-menu_itemfound:                         ; CODE XREF: menu_check+130↑j
+menu_itemfound:                         ; ...
                 inc     dx              ; otherwise, increment total block count
                 mov     bx, dx          ; and use it to index the arrays of offsets
                 mov     ds:abBlockType[bx], al
@@ -23517,13 +22605,12 @@ menu_itemfound:                         ; CODE XREF: menu_check+130↑j
                 xchg    bx, di
                 mov     ds:aoffBlockDesc[bx], di
 
-menu_nextitem:                          ; CODE XREF: menu_check+AD↑j
-                                        ; menu_check+EB↑j ...
+menu_nextitem:                          ; ...
                 call    skip_opt_line
                 jmp     menu_process    ; go back for more lines
 ; ---------------------------------------------------------------------------
 
-menu_getdefault:                        ; CODE XREF: menu_check:to_menu_getdefault↑j
+menu_getdefault:                        ; ...
                 or      dl, dl          ; Display menu items now,
                                         ; after determining which one is default
                                         ;
@@ -23533,7 +22620,7 @@ menu_getdefault:                        ; CODE XREF: menu_check:to_menu_getdefau
                 jmp     menu_autoselect ; (meaning: process common blocks only)
 ; ---------------------------------------------------------------------------
 
-menu_valid:                             ; CODE XREF: menu_check+163↑j
+menu_valid:                             ; ...
                 sub     bx, bx
                 mov     ds:bMaxBlock, dl ; first, record how many blocks we found
                 mov     di, ds:offDefBlock
@@ -23541,7 +22628,7 @@ menu_valid:                             ; CODE XREF: menu_check+163↑j
                 jz      short menu_nodefault ; no
                 inc     bx              ; yes, walk name table, looking for default
 
-menu_chkdefault:                        ; CODE XREF: menu_check+192↓j
+menu_chkdefault:                        ; ...
                 push    bx
                 add     bx, bx
                 mov     si, ds:aoffBlockName[bx]
@@ -23557,10 +22644,10 @@ menu_chkdefault:                        ; CODE XREF: menu_check+192↓j
                 cmp     bl, ds:bMaxBlock ; all done searching?
                 jbe     short menu_chkdefault ; not yet
 
-menu_nodefault:                         ; CODE XREF: menu_check+176↑j
+menu_nodefault:                         ; ...
                 mov     bl, 1           ; if no default, force default to #1
 
-menu_setdefault:                        ; CODE XREF: menu_check+18B↑j
+menu_setdefault:                        ; ...
                 mov     ds:bDefBlock, bl ; yes, this will be the initial current block
                                         ;
                                         ; If the timeout was explicitly set to 0 (or technically,
@@ -23577,8 +22664,7 @@ menu_setdefault:                        ; CODE XREF: menu_check+18B↑j
                 jmp     not_topmenu
 ; ---------------------------------------------------------------------------
 
-menu_display:                           ; CODE XREF: menu_check+19F↑j
-                                        ; menu_check+1A6↑j
+menu_display:                           ; ...
                 mov     ah, 0Fh         ; Reset the mode,
                                         ; so that we know screen is clean and cursor is home
                                         ; ;
@@ -23609,7 +22695,7 @@ menu_display:                           ; CODE XREF: menu_check+19F↑j
                 jnz     short menu_clear ; hopefully
                 mov     dh, ds:bLastRow ; no, use a default
 
-menu_clear:                             ; CODE XREF: menu_check+1E3↑j
+menu_clear:                             ; ...
                 int     10h             ; clear the screen using the req. attribute
                                         ;
                                         ; - VIDEO - SCROLL PAGE UP
@@ -23640,10 +22726,10 @@ menu_clear:                             ; CODE XREF: menu_check+1E3↑j
                 sub     dl, 2
                 mov     ds:bLastCol, dl ; save column where status char will go
 
-menu_nostatus:                          ; CODE XREF: menu_check+1FB↑j
+menu_nostatus:                          ; ...
                 mov     bx, 1           ; now prepare to display all the menu items
 
-menu_disploop:                          ; CODE XREF: menu_check+227↓j
+menu_disploop:                          ; ...
                 call    print_item      ; print item #BL
                 inc     bx              ; why "inc bx"? because it's a 1-byte opcode
                 cmp     bl, ds:bMaxBlock ; all done?
@@ -23668,17 +22754,17 @@ menu_disploop:                          ; CODE XREF: menu_check+227↓j
                 pop     word ptr ds:bDisableUI ;
                                         ; Now begins the "re-organization" process...
 
-menu_autoselect:                        ; CODE XREF: menu_check+167↑j
+menu_autoselect:                        ; ...
                 cmp     bx, 0FFFFh      ; -1 ; clean boot requested?
                 jnz     short normal_boot
                 call    disable_autoexec
 
-menu_abort:                             ; CODE XREF: menu_check+63↑j
+menu_abort:                             ; ...
                 sub     cx, cx
                 jmp     menu_exit
 ; ---------------------------------------------------------------------------
 
-normal_boot:                            ; CODE XREF: menu_check+25A↑j
+normal_boot:                            ; ...
                 cmp     bx, 0FFFEh      ; -2 ; back to top-level menu?
                 jnz     short not_topmenu ; no
                 mov     cx, ds:count    ; yes, start all over
@@ -23686,8 +22772,7 @@ normal_boot:                            ; CODE XREF: menu_check+25A↑j
                 jmp     menu_search
 ; ---------------------------------------------------------------------------
 
-not_topmenu:                            ; CODE XREF: menu_check+1A8↑j
-                                        ; menu_check+267↑j
+not_topmenu:                            ; ...
                 cmp     ds:abBlockType[bx], 4Fh ; CONFIG_SUBMENU
                 jnz     short not_submenu
                 add     bx, bx
@@ -23698,7 +22783,7 @@ not_topmenu:                            ; CODE XREF: menu_check+1A8↑j
                 jmp     menu_found
 ; ---------------------------------------------------------------------------
 
-not_submenu:                            ; CODE XREF: menu_check+277↑j
+not_submenu:                            ; ...
                 add     bx, bx          ; get BX -> name of selected block
                 mov     bx, ds:aoffBlockName[bx] ;
                                         ; BX should now either be ZERO
@@ -23706,7 +22791,7 @@ not_submenu:                            ; CODE XREF: menu_check+277↑j
                                         ; relative to ES of the block name to be processed
                                         ; (along with all the "common" lines of course)
 
-no_selection:                           ; CODE XREF: menu_check+75↑j
+no_selection:                           ; ...
                 mov     ds:offDefBlock, bx ; save selection
                 mov     cx, ds:count    ; reset ES:SI and CX for reprocessing
                 sub     si, si
@@ -23723,13 +22808,13 @@ no_selection:                           ; CODE XREF: menu_check+75↑j
                                         ; REMed by copy_block as they are processed and by the number of unique
                                         ; INCLUDE stmts in config.sys...
 
-copyblock_loop:                         ; CODE XREF: menu_check+2D1↓j
+copyblock_loop:                         ; ...
                 push    bx              ; save selected block name
                 call    copy_block      ; process (named or common) block
                 pop     bx
                 jb      short move_config ; hit eof
 
-copyblock_begin:                        ; CODE XREF: menu_check+2DF↓j
+copyblock_begin:                        ; ...
                 push    ax              ; copy_block can only return for two reasons:
                                         ;  it hit eof or a new block
                 push    cx
@@ -23759,15 +22844,14 @@ copyblock_begin:                        ; CODE XREF: menu_check+2DF↓j
                 pop     ds
                 pop     di
 
-copyblock_check:                        ; CODE XREF: menu_check+2B9↑j
+copyblock_check:                        ; ...
                 jb      short move_config ; hit eof
                 jnz     short copyblock_skip
                 call    skip_opt_line
                 jmp     short copyblock_loop
 ; ---------------------------------------------------------------------------
 
-copyblock_skip:                         ; CODE XREF: menu_check+2BD↑j
-                                        ; menu_check+2CC↑j ...
+copyblock_skip:                         ; ...
                 call    skip_opt_line   ; this ain't the block we wanted, so skip it
                 call    get_char
                 jb      short move_config ; hit eof
@@ -23777,8 +22861,7 @@ copyblock_skip:                         ; CODE XREF: menu_check+2BD↑j
                 jmp     short copyblock_skip ; anything else is just skipped
 ; ---------------------------------------------------------------------------
 
-move_config:                            ; CODE XREF: menu_check+2A5↑j
-                                        ; menu_check:copyblock_check↑j ...
+move_config:                            ; ...
                 mov     cx, di          ; To create as little risk to the rest of SysInit
                                         ; as little as possible, and to free the workspace
                                         ; at "config_wrkseg" for creating an environment,
@@ -23797,7 +22880,7 @@ move_config:                            ; CODE XREF: menu_check+2A5↑j
                                         ; was copied to the workspace, because we always
                                         ; zero the first byte of the workspace (below)
 
-copy_boot:                              ; CODE XREF: menu_check+2F2↓j
+copy_boot:                              ; ...
                 lods    byte ptr cs:[si]
                 mov     [di], al
                 inc     di
@@ -23812,8 +22895,7 @@ copy_boot:                              ; CODE XREF: menu_check+2F2↓j
                 assume es:SYSINIT
                 mov     si, offset szCommon ; "COMMON"
 
-l1:                                     ; CODE XREF: menu_check+2FF↑j
-                                        ; menu_check+312↓j
+l1:                                     ; ...
                 mov     al, es:[si]
                 call    any_delim
                 jz      short l2
@@ -23822,7 +22904,7 @@ l1:                                     ; CODE XREF: menu_check+2FF↑j
                 inc     di
                 loop    l1
 
-l2:                                     ; CODE XREF: menu_check+30C↑j
+l2:                                     ; ...
                 mov     byte ptr [di], 0Ah ; terminate the configuration string
                 pop     es
                 assume es:nothing
@@ -23863,8 +22945,7 @@ l2:                                     ; CODE XREF: menu_check+30C↑j
                 pop     es
                 assume es:nothing
 
-menu_exit:                              ; CODE XREF: menu_check+261↑j
-                                        ; menu_check+33C↑j
+menu_exit:                              ; ...
                 mov     ds:count, cx
                 mov     ds:org_count, cx
                 retn
@@ -23874,8 +22955,7 @@ menu_check      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-copy_envvar     proc near               ; CODE XREF: doconf+A83↑p
-                                        ; menu_check+333↑p
+copy_envvar     proc near               ; ...
                 push    cx              ; copy the envvar at ES:SI to "config_wrkseg"
                                         ; ES:SI -> environment variable
                                         ;          (in the form "var=string<cr/lf>")
@@ -23887,7 +22967,7 @@ copy_envvar     proc near               ; CODE XREF: doconf+A83↑p
                 pop     ds              ; DS:SI to point to envvar
                 sub     cx, cx
 
-copy_varlen:                            ; CODE XREF: copy_envvar+1F↓j
+copy_varlen:                            ; ...
                 lodsb
                 or      al, al          ; NULL?
                 stc
@@ -23907,7 +22987,7 @@ copy_varlen:                            ; CODE XREF: copy_envvar+1F↓j
                 dec     cx              ; CX == # of bytes in varname
                 sub     di, di          ; start looking for DS:SI at ES:0
 
-copy_varsrch:                           ; CODE XREF: copy_envvar+67↓j
+copy_varsrch:                           ; ...
                 cmp     es:[di], al
                 jz      short copy_envprep ; search failed, just copy var
                 mov     bx, di          ; ES:BX -> start of this varname
@@ -23932,7 +23012,7 @@ copy_varsrch:                           ; CODE XREF: copy_envvar+67↓j
                 rep movs byte ptr es:[di], byte ptr es:[si]
                 pop     si
 
-copy_envprep:                           ; CODE XREF: copy_envvar+2D↑j
+copy_envprep:                           ; ...
                 cmp     ah, 0Dh         ; if there is nothing after the '='
                 jz      short copy_envdel
                 cmp     ah, 0Ah
@@ -23940,8 +23020,7 @@ copy_envprep:                           ; CODE XREF: copy_envvar+2D↑j
                 jmp     short copy_envloop
 ; ---------------------------------------------------------------------------
 
-copy_varnext:                           ; CODE XREF: copy_envvar+37↑j
-                                        ; copy_envvar+3D↑j
+copy_varnext:                           ; ...
                 push    cx
                 mov     cx, 0FFFFh      ; -1
                 repne scasb
@@ -23949,8 +23028,7 @@ copy_varnext:                           ; CODE XREF: copy_envvar+37↑j
                 jmp     short copy_varsrch
 ; ---------------------------------------------------------------------------
 
-copy_envloop:                           ; CODE XREF: copy_envvar+5E↑j
-                                        ; copy_envvar+73↓j
+copy_envloop:                           ; ...
                 lodsb
                 cmp     al, 0Dh         ; cr
                 jz      short copy_envdone
@@ -23960,18 +23038,15 @@ copy_envloop:                           ; CODE XREF: copy_envvar+5E↑j
                 jmp     short copy_envloop
 ; ---------------------------------------------------------------------------
 
-copy_envdone:                           ; CODE XREF: copy_envvar+6C↑j
-                                        ; copy_envvar+70↑j
+copy_envdone:                           ; ...
                 sub     al, al          ; do SUB to clear carry as well
                 stosb                   ; always null-terminate these puppies
 
-copy_envdel:                            ; CODE XREF: copy_envvar+57↑j
-                                        ; copy_envvar+5C↑j
+copy_envdel:                            ; ...
                 mov     es:[di], al     ; and stick another null to terminate the env.
                 mov     cs:config_envlen, di
 
-copy_envexit:                           ; CODE XREF: copy_envvar+10↑j
-                                        ; copy_envvar+15↑j ...
+copy_envexit:                           ; ...
                 pop     es
                 pop     ds
                 pop     si
@@ -23983,8 +23058,7 @@ copy_envvar     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-copy_block      proc near               ; CODE XREF: menu_check+2A1↑p
-                                        ; copy_block+3B↓p ...
+copy_block      proc near               ; ...
                 call    get_char        ; copy the current block to the new config.sys workspace
                                         ;
                                         ; CX == remaining bytes in "organized" config.sys memory image
@@ -24032,17 +23106,16 @@ copy_block      proc near               ; CODE XREF: menu_check+2A1↑p
                 jmp     short copy_nextline
 ; ---------------------------------------------------------------------------
 
-copy_skip:                              ; CODE XREF: copy_block+1D↑j
-                                        ; copy_block+25↑j
+copy_skip:                              ; ...
                 pop     di
 
-copy_error:                             ; CODE XREF: copy_block+2F↑j
+copy_error:                             ; ...
                 clc
                 call    print_error     ; note that carry is clear, no pause
                 jmp     short copy_nextline
 ; ---------------------------------------------------------------------------
 
-copy_line:                              ; CODE XREF: copy_block+F↑j
+copy_line:                              ; ...
                 mov     [di], al        ; Copy the line at ES:SI
                                         ;  to the current location at DS:DI
                 inc     di
@@ -24057,25 +23130,22 @@ copy_line:                              ; CODE XREF: copy_block+F↑j
                 jmp     short copy_next
 ; ---------------------------------------------------------------------------
 
-copy_loop:                              ; CODE XREF: copy_block+58↑j
-                                        ; copy_block+6D↓j
+copy_loop:                              ; ...
                 call    get_char
                 jb      short copy_done ; end of file
                 mov     [di], al
                 inc     di
 
-copy_next:                              ; CODE XREF: copy_block+61↑j
+copy_next:                              ; ...
                 cmp     al, 0Ah         ; lf ; done with line?
                 jnz     short copy_loop ; nope
 
-copy_nextline:                          ; CODE XREF: copy_block+42↑j
-                                        ; copy_block+49↑j ...
+copy_nextline:                          ; ...
                 call    skip_opt_line
                 jmp     short copy_block
 ; ---------------------------------------------------------------------------
 
-copy_done:                              ; CODE XREF: copy_block+3↑j
-                                        ; copy_block+9↑j ...
+copy_done:                              ; ...
                 retn
 copy_block      endp
 
@@ -24083,8 +23153,7 @@ copy_block      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-get_linenum     proc near               ; CODE XREF: copy_block+5A↑p
-                                        ; print_error+8↓p
+get_linenum     proc near               ; ...
                 push    ax              ; return line # (in BX) of current line (@ES:SI)
                 sub     bx, bx          ; BX == line # (to be returned)
                 push    cx
@@ -24093,14 +23162,14 @@ get_linenum     proc near               ; CODE XREF: copy_block+5A↑p
                 mov     cx, cs:count
                 sub     si, si          ; prepare to scan entire file
 
-get_linenum_loop:                       ; CODE XREF: get_linenum+16↓j
+get_linenum_loop:                       ; ...
                 call    skip_line
                 jb      short get_linenum_done
                 inc     bx
                 cmp     si, dx          ; have we exceeded the desired offset yet?
                 jb      short get_linenum_loop ; no
 
-get_linenum_done:                       ; CODE XREF: get_linenum+11↑j
+get_linenum_done:                       ; ...
                 pop     si
                 pop     cx
                 pop     ax
@@ -24111,8 +23180,7 @@ get_linenum     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-srch_block      proc near               ; CODE XREF: menu_check+12D↑p
-                                        ; menu_check+27F↑p ...
+srch_block      proc near               ; ...
                 push    ax              ; searches entire config.sys
                                         ; for block name @ES:DI
                 push    cx
@@ -24136,8 +23204,7 @@ srch_block      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-find_block      proc near               ; CODE XREF: menu_check+6B↑p
-                                        ; srch_block+D↑p ...
+find_block      proc near               ; ...
                 call    get_char        ; searches rest of config.sys for block name @DS:DI
                                         ; get line code
                 jb      short find_exit ; end of file
@@ -24150,19 +23217,17 @@ find_block      proc near               ; CODE XREF: menu_check+6B↑p
                 jmp     short next_line
 ; ---------------------------------------------------------------------------
 
-check_line:                             ; CODE XREF: find_block+9↑j
+check_line:                             ; ...
                 or      cs:config_multi, 1
                 call    comp_names      ; compare block names
                 jbe     short find_exit ; end of file, or names matched
 
-next_line:                              ; CODE XREF: find_block+D↑j
-                                        ; find_block+15↑j
+next_line:                              ; ...
                 call    skip_opt_line   ; no, so skip to next line
                 jmp     short find_block
 ; ---------------------------------------------------------------------------
 
-find_exit:                              ; CODE XREF: find_block+3↑j
-                                        ; find_block+20↑j
+find_exit:                              ; ...
                 retn
 find_block      endp
 
@@ -24170,12 +23235,11 @@ find_block      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-comp_names      proc near               ; CODE XREF: menu_check+186↑p
-                                        ; menu_check+2B1↑p ...
+comp_names      proc near               ; ...
                 push    di              ; compares keyword @DS:DI
                                         ;  to position in config.sys @ES:SI
 
-comp_loop:                              ; CODE XREF: comp_names+13↓j
+comp_loop:                              ; ...
                 call    get_char
                 jb      short comp_exit
                 call    any_delim       ; is next character a delimiter?
@@ -24187,13 +23251,12 @@ comp_loop:                              ; CODE XREF: comp_names+13↓j
                 jz      short comp_loop ; yes, keep looking at the characters
                 clc                     ; prevent erroneous eof indication: clear carry
 
-comp_exit:                              ; CODE XREF: comp_names+4↑j
-                                        ; comp_names+1F↓j
+comp_exit:                              ; ...
                 pop     di
                 retn
 ; ---------------------------------------------------------------------------
 
-comp_almost:                            ; CODE XREF: comp_names+B↑j
+comp_almost:                            ; ...
                 xchg    al, ah          ; we don't know for sure if it's a match
                 call    any_delim       ; until we verify that the second string
                 xchg    al, ah          ; has been exhausted also...
@@ -24204,8 +23267,7 @@ comp_names      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-comp_names_safe proc near               ; CODE XREF: copy_block+1A↑p
-                                        ; copy_block+22↑p
+comp_names_safe proc near               ; ...
                 push    ax
                 push    cx
                 push    si
@@ -24226,8 +23288,7 @@ comp_names_safe endp
 ; =============== S U B R O U T I N E =======================================
 
 
-print_item      proc near               ; CODE XREF: menu_check:menu_disploop↑p
-                                        ; select_item+BC↓p ...
+print_item      proc near               ; ...
                 push    ax              ; display menu item #BL
                 push    bx
                 push    cx
@@ -24259,8 +23320,7 @@ print_item      proc near               ; CODE XREF: menu_check:menu_disploop↑
                 jnz     short print_other ; no
                 xor     ah, 8           ; yes, so modify the fgnd intensity
 
-print_other:                            ; CODE XREF: print_item+25↑j
-                                        ; print_item+32↑j
+print_other:                            ; ...
                 mov     bh, 0
                 add     bx, bx
                 mov     di, ds:aoffBlockDesc[bx]
@@ -24299,14 +23359,14 @@ print_other:                            ; CODE XREF: print_item+25↑j
                                         ; BH = page number
                 push    es
 
-print_loop:                             ; CODE XREF: print_item+8A↓j
+print_loop:                             ; ...
                 mov     al, es:[di]     ; get a character of the description
                 inc     di
                 cmp     al, 9           ; TAB ; substitute spaces for tabs
                 jnz     short print_nontab
                 mov     al, 20h ; ' '
 
-print_nontab:                           ; CODE XREF: print_item+6F↑j
+print_nontab:                           ; ...
                 cmp     al, 20h ; ' '
                 jb      short print_done ; stop at the 1st character < space
                 cmp     al, 24h ; '$'
@@ -24326,8 +23386,7 @@ print_nontab:                           ; CODE XREF: print_item+6F↑j
                 jmp     short print_loop
 ; ---------------------------------------------------------------------------
 
-print_done:                             ; CODE XREF: print_item+75↑j
-                                        ; print_item+79↑j ...
+print_done:                             ; ...
                 pop     es
                 pop     dx
                 mov     ah, 2           ; restore previous row/col
@@ -24346,7 +23405,7 @@ print_item      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-select_item     proc near               ; CODE XREF: menu_check+23E↑p
+select_item     proc near               ; ...
                 mov     bl, ds:bDefBlock ; wait for user to select menu item, with time-out
                                         ;
                                         ; returns digit value in BX (trashes AX/CX/DX)
@@ -24362,7 +23421,7 @@ select_item     proc near               ; CODE XREF: menu_check+23E↑p
                                         ; ;
                 mov     bh, dh          ; BH = initial # of seconds
 
-check_time:                             ; CODE XREF: select_item+8A↓j
+check_time:                             ; ...
                 mov     al, ds:secTimeOut
                 sub     al, ds:secElapsed
                 jnb     short show_time
@@ -24371,7 +23430,7 @@ check_time:                             ; CODE XREF: select_item+8A↓j
                 jmp     select_done     ; time's up!
 ; ---------------------------------------------------------------------------
 
-show_time:                              ; CODE XREF: select_item+20↑j
+show_time:                              ; ...
                 push    bx
                 mov     bl, al          ; save # in BL
                 mov     bh, ds:bMenuPage
@@ -24410,8 +23469,7 @@ show_time:                              ; CODE XREF: select_item+20↑j
                                         ; BH = page number
                 pop     bx
 
-input_key:                              ; CODE XREF: select_item+11↑j
-                                        ; select_item+72↓j ...
+input_key:                              ; ...
                 mov     ah, 6           ; RAW_CON_IO
                 mov     dl, 0FFh        ; input request
                 int     21h             ; DOS - DIRECT CONSOLE I/O CHARACTER OUTPUT
@@ -24431,14 +23489,14 @@ input_key:                              ; CODE XREF: select_item+11↑j
                 jnb     short got_time
                 mov     dh, 1           ; it wrapped back to zero, so assume one
 
-got_time:                               ; CODE XREF: select_item+7E↑j
+got_time:                               ; ...
                 or      dh, dh          ; any change?
                 jz      short input_key ; no
                 add     ds:secElapsed, dh
                 jmp     short check_time
 ; ---------------------------------------------------------------------------
 
-got_key:                                ; CODE XREF: select_item+6B↑j
+got_key:                                ; ...
                 push    ax
                 mov     ax, 0FFFFh      ; -1 ; zap both secTimeOut and secElapsed
                 xchg    ax, word ptr ds:secTimeOut
@@ -24455,7 +23513,7 @@ got_key:                                ; CODE XREF: select_item+6B↑j
                                         ; CX = number of times to write character
                 pop     bx
 
-timeout_disabled:                       ; CODE XREF: select_item+96↑j
+timeout_disabled:                       ; ...
                 pop     ax
                 or      al, al          ; extended key pressed?
                 jnz     short normal_key ; no
@@ -24471,7 +23529,7 @@ timeout_disabled:                       ; CODE XREF: select_item+96↑j
                 jmp     short print1
 ; ---------------------------------------------------------------------------
 
-not_up:                                 ; CODE XREF: select_item+B1↑j
+not_up:                                 ; ...
                 cmp     al, 50h ; 'P'   ; down arrow?
                 jnz     short not_down  ; no
                 cmp     bl, ds:bMaxBlock ; are we as down as down can get?
@@ -24480,19 +23538,18 @@ not_up:                                 ; CODE XREF: select_item+B1↑j
                 call    print_item      ; re-print the current item
                 inc     bx              ; and then print the new current item
 
-print1:                                 ; CODE XREF: select_item+C1↑j
+print1:                                 ; ...
                 mov     al, bl
 
-print2:                                 ; CODE XREF: select_item+123↓j
+print2:                                 ; ...
                 call    print_item
                 call    disp_num
 
-to_input_key:                           ; CODE XREF: select_item+CB↑j
-                                        ; select_item+E4↓j ...
+to_input_key:                           ; ...
                 jmp     short input_key
 ; ---------------------------------------------------------------------------
 
-not_down:                               ; CODE XREF: select_item+C5↑j
+not_down:                               ; ...
                 test    ds:bDisableUI, 1
                 jnz     short to_input_key ; don't allow F8 or F5
                 cmp     al, 42h         ; F8 function key?
@@ -24502,7 +23559,7 @@ not_down:                               ; CODE XREF: select_item+C5↑j
                 jmp     input_key
 ; ---------------------------------------------------------------------------
 
-not_f8:                                 ; CODE XREF: select_item+E8↑j
+not_f8:                                 ; ...
                 cmp     al, 3Fh         ; F5 function key?
                 jnz     short to_input_key ; no
                 or      ds:bQueryOpt, 4 ; no more queries
@@ -24511,7 +23568,7 @@ not_f8:                                 ; CODE XREF: select_item+E8↑j
                 jmp     short disp_input
 ; ---------------------------------------------------------------------------
 
-normal_key:                             ; CODE XREF: select_item+A9↑j
+normal_key:                             ; ...
                 cmp     al, 0Dh         ; Enter?
                 jz      short select_done ; yes
                 cmp     al, 8           ; backspace?
@@ -24520,7 +23577,7 @@ normal_key:                             ; CODE XREF: select_item+A9↑j
                 retn
 ; ---------------------------------------------------------------------------
 
-not_backspace:                          ; CODE XREF: select_item+10B↑j
+not_backspace:                          ; ...
                 sub     al, 30h ; '0'   ; is greater than '0'?
                 jbe     short to_input_key ; no
                 cmp     al, ds:bMaxBlock ; is less than or equal to the maximum digit?
@@ -24531,8 +23588,7 @@ not_backspace:                          ; CODE XREF: select_item+10B↑j
                 jmp     short print2
 ; ---------------------------------------------------------------------------
 
-select_done:                            ; CODE XREF: select_item+2C↑j
-                                        ; select_item+107↑j
+select_done:                            ; ...
                 mov     bh, 0           ; return a full 16-bit value (for indexing)
                 mov     al, bl
                 add     al, 30h ; '0'   ; convert it into a digit, then display it
@@ -24542,14 +23598,13 @@ select_item     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-disp_input      proc near               ; CODE XREF: select_item+103↑j
-                                        ; query_user:legal_char↓p
+disp_input      proc near               ; ...
                 push    ax
                 cmp     al, 20h ; ' '
                 jnb     short disp_ok
                 mov     al, 20h ; ' '
 
-disp_ok:                                ; CODE XREF: disp_input+3↑j
+disp_ok:                                ; ...
                 mov     dl, al
                 mov     ah, 2           ; STD_CON_OUTPUT
                 int     21h             ; DOS - DISPLAY OUTPUT
@@ -24564,8 +23619,7 @@ disp_input      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-disp_num        proc near               ; CODE XREF: select_item+6↑p
-                                        ; select_item+DA↑p
+disp_num        proc near               ; ...
                 push    bx              ; display a single character + cr/lf
                 add     al, '0'
                 mov     ah, 0Ah
@@ -24583,8 +23637,7 @@ disp_num        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-show_status     proc near               ; CODE XREF: menu_check+250↑p
-                                        ; select_item+9↑p ...
+show_status     proc near               ; ...
                 push    bx              ; display current interactive mode setting (on/off/none)
                 mov     bx, word ptr ds:bMenuColor
                 mov     ah, 3
@@ -24609,20 +23662,20 @@ show_status     proc near               ; CODE XREF: menu_check+250↑p
                 jmp     short show_done
 ; ---------------------------------------------------------------------------
 
-show_onoff:                             ; CODE XREF: show_status+15↑j
+show_onoff:                             ; ...
                 int     10h             ; - VIDEO -
                 mov     al, byte ptr ds:_$NO ; "NO $"
                 cmp     ds:bQueryOpt, 1 ; is interactive mode on?
                 jnz     short show_noton ; no
                 mov     al, byte ptr ds:_$YES ; "YES$"
 
-show_noton:                             ; CODE XREF: show_status+2F↑j
+show_noton:                             ; ...
                 mov     ah, 0Eh
                 int     10h             ; - VIDEO - WRITE CHARACTER AND ADVANCE CURSOR (TTY WRITE)
                                         ; AL = character, BH = display page (alpha modes)
                                         ; BL = foreground color (graphics modes)
 
-show_done:                              ; CODE XREF: show_status+23↑j
+show_done:                              ; ...
                 pop     dx              ; restore original cursor position
                 mov     ah, 2
                 int     10h             ; - VIDEO - SET CURSOR POSITION
@@ -24636,14 +23689,13 @@ show_status     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-skip_token      proc near               ; CODE XREF: menu_check+10A↑p
-                                        ; menu_check+14B↑p ...
+skip_token      proc near               ; ...
                 call    get_char        ; advances ES:SI/CX past the current token
                 jb      short skip_token_done
                 call    any_delim
                 jnz     short skip_token
 
-skip_check_eol:                         ; CODE XREF: skip_delim+D↓j
+skip_check_eol:                         ; ...
                 cmp     al, 0Dh         ; CR
                 jz      short skip_token_eol
                 cmp     al, 0Ah         ; LF
@@ -24652,12 +23704,10 @@ skip_check_eol:                         ; CODE XREF: skip_delim+D↓j
                 jmp     short skip_token_done
 ; ---------------------------------------------------------------------------
 
-skip_token_eol:                         ; CODE XREF: skip_token+C↑j
-                                        ; skip_token+10↑j
+skip_token_eol:                         ; ...
                 stc
 
-skip_token_done:                        ; CODE XREF: skip_token+3↑j
-                                        ; skip_token+13↑j ...
+skip_token_done:                        ; ...
                 retn
 skip_token      endp
 
@@ -24665,8 +23715,7 @@ skip_token      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-skip_delim      proc near               ; CODE XREF: menu_check+10F↑p
-                                        ; menu_check+150↑p ...
+skip_delim      proc near               ; ...
                 call    get_char        ; advances ES:SI/CX past the current delimiter
                 lea     bx, [si-1]
                 jb      short skip_token_done
@@ -24679,8 +23728,7 @@ skip_delim      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-skip_opt_line   proc near               ; CODE XREF: menu_check:swchk_nextline↑p
-                                        ; menu_check+C5↑p ...
+skip_opt_line   proc near               ; ...
                 cmp     al, 0Ah         ; LF
                 jz      short skip_line_done
 skip_opt_line   endp
@@ -24689,8 +23737,7 @@ skip_opt_line   endp
 ; =============== S U B R O U T I N E =======================================
 
 
-skip_line       proc near               ; CODE XREF: copy_block+38↑p
-                                        ; get_linenum:get_linenum_loop↑p ...
+skip_line       proc near               ; ...
                 call    get_char
                 jb      short skip_line_done
 
@@ -24698,8 +23745,7 @@ _skip_opt_line_:                        ; skip_opt_line: (Erdogan Tan - 03/08/20
                 cmp     al, 0Ah         ; LF
                 jnz     short skip_line
 
-skip_line_done:                         ; CODE XREF: skip_opt_line+2↑j
-                                        ; skip_line+3↑j
+skip_line_done:                         ; ...
                 retn
 skip_line       endp
 
@@ -24707,12 +23753,11 @@ skip_line       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-get_number      proc near               ; CODE XREF: menu_check+7D↑p
-                                        ; menu_check+8F↑p ...
+get_number      proc near               ; ...
                 sub     bx, bx          ; return binary equivalent of numeric string
                                         ; BX = result
 
-num_loop:                               ; CODE XREF: get_number+1F↓j
+num_loop:                               ; ...
                 call    get_char
                 jb      short num_done
                 cmp     al, 30h ; '0'   ; convert to value
@@ -24732,8 +23777,7 @@ num_loop:                               ; CODE XREF: get_number+1F↓j
                 jmp     short num_loop
 ; ---------------------------------------------------------------------------
 
-num_done:                               ; CODE XREF: get_number+5↑j
-                                        ; get_number+9↑j ...
+num_done:                               ; ...
                 retn
 get_number      endp
 
@@ -24741,8 +23785,7 @@ get_number      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-get_char        proc near               ; CODE XREF: menu_check:swchk_loop↑p
-                                        ; menu_check:swchk_scan↑p ...
+get_char        proc near               ; ...
                 sub     cx, 1           ; return next character,
                                         ; advance ES:SI, and decrement CX
                                         ; (use SUB to set carry,zero)
@@ -24753,11 +23796,11 @@ get_char        proc near               ; CODE XREF: menu_check:swchk_loop↑p
                 retn
 ; ---------------------------------------------------------------------------
 
-get_fail:                               ; CODE XREF: get_char+3↑j
+get_fail:                               ; ...
                 mov     cx, 0           ; restore CX to zero
                                         ; leave carry set, zero not set
 
-nearby_ret:                             ; CODE XREF: query_user+F↓j
+nearby_ret:                             ; ...
                 retn
 get_char        endp
 
@@ -24765,15 +23808,14 @@ get_char        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-query_user      proc near               ; CODE XREF: SYSINIT:091A↑p
-                                        ; doconf+16A↑p ...
+query_user      proc near               ; ...
                 test    ds:bQueryOpt, 4 ; ask user whether to execute current config.sys command
                                         ; answer no to everything?
                 jz      short qu_1      ; no
                 jmp     skip_all        ; yes
 ; ---------------------------------------------------------------------------
 
-qu_1:                                   ; CODE XREF: query_user+5↑j
+qu_1:                                   ; ...
                 test    ds:bQueryOpt, 2 ; answer yes to everything?
                 jnz     short nearby_ret ; yes (and return carry clear!)
                 push    ax
@@ -24785,8 +23827,7 @@ qu_1:                                   ; CODE XREF: query_user+5↑j
                 jmp     do_cmd
 ; ---------------------------------------------------------------------------
 
-query_all:                              ; CODE XREF: query_user+1A↑j
-                                        ; query_user+1E↑j
+query_all:                              ; ...
                 push    si              ; save pointer to rest of CONFIG.SYS line
                 mov     dx, offset _$AutoPrmpt ; "Process AUTOEXEC.BAT [Y,N]?$"
                 and     al, 7Fh         ; ~CONFIG_OPTION_QUERY
@@ -24795,7 +23836,7 @@ query_all:                              ; CODE XREF: query_user+1A↑j
                 sub     bx, bx          ; 0
                 mov     di, offset comtab ; "\x01[["
 
-find_match:                             ; CODE XREF: query_user+40↓j
+find_match:                             ; ...
                 mov     bl, [di]        ; get size of current keyword
                 or      bl, bl
                 jz      short line_print ; end of table
@@ -24806,12 +23847,12 @@ find_match:                             ; CODE XREF: query_user+40↓j
                 jmp     short find_match ; loop
 ; ---------------------------------------------------------------------------
 
-cmd_match:                              ; CODE XREF: query_user+3B↑j
+cmd_match:                              ; ...
                 mov     cl, [di-1]
                 mov     ch, 0
                 mov     ah, 2           ; STD_CON_OUTPUT
 
-cmd_print:                              ; CODE XREF: query_user+50↓j
+cmd_print:                              ; ...
                 mov     al, [di]
                 inc     di
                 mov     dl, al
@@ -24823,25 +23864,24 @@ cmd_print:                              ; CODE XREF: query_user+50↓j
                 jnz     short cmd_notset
                 mov     dl, 20h ; ' '   ; for SET commands, don't display a '='
 
-cmd_notset:                             ; CODE XREF: query_user+57↑j
+cmd_notset:                             ; ...
                 int     21h             ; DOS - DISPLAY OUTPUT
                                         ; DL = character to send to standard output
 
-line_print:                             ; CODE XREF: query_user+36↑j
-                                        ; query_user+77↓j
+line_print:                             ; ...
                 lods    byte ptr es:[si]
                 or      al, al
                 jnz     short non_null
                 mov     al, 20h ; ' '
 
-non_null:                               ; CODE XREF: query_user+61↑j
+non_null:                               ; ...
                 cmp     al, 20h ; ' '   ; control code?
                 jb      short prompt_user ; yes, assume end of line
                 jnz     short non_space
                 cmp     byte ptr es:[si], 20h ; ' '
                 jb      short prompt_user
 
-non_space:                              ; CODE XREF: query_user+69↑j
+non_space:                              ; ...
                 mov     dl, al
                 mov     ah, 2
                 int     21h             ; DOS - DISPLAY OUTPUT
@@ -24849,15 +23889,13 @@ non_space:                              ; CODE XREF: query_user+69↑j
                 jmp     short line_print
 ; ---------------------------------------------------------------------------
 
-prompt_user:                            ; CODE XREF: query_user+67↑j
-                                        ; query_user+6F↑j
+prompt_user:                            ; ...
                 mov     dx, offset _$InterPrmpt ; " [Y,N,ESC]?$"
 
-generic_prompt:                         ; CODE XREF: query_user+29↑j
+generic_prompt:                         ; ...
                 call    print
 
-input_loop:                             ; CODE XREF: query_user+8A↓j
-                                        ; query_user+A9↓j ...
+input_loop:                             ; ...
                 mov     ah, 0
                 int     16h             ; KEYBOARD - READ CHAR FROM BUFFER, WAIT IF EMPTY
                                         ; Return: AH = scan code, AL = character
@@ -24870,7 +23908,7 @@ input_loop:                             ; CODE XREF: query_user+8A↓j
                 jmp     short legal_char
 ; ---------------------------------------------------------------------------
 
-not_func:                               ; CODE XREF: query_user+85↑j
+not_func:                               ; ...
                 and     al, 0DFh        ; ~20h ; converting to upper case
                                         ; converting to upper case
                                         ; verify character is legal
@@ -24885,24 +23923,23 @@ not_func:                               ; CODE XREF: query_user+85↑j
                 or      ds:bQueryOpt, 2 ; no more interactive boot prompts
                 mov     al, byte ptr ds:_$YES ; "YES$"
 
-legal_char:                             ; CODE XREF: query_user+94↑j
-                                        ; query_user+9C↑j ...
+legal_char:                             ; ...
                 call    disp_input
                 pop     si              ; restore pointer to rest of CONFIG.SYS line
                                         ; process line?
                 cmp     al, byte ptr ds:_$NO ; "NO $"
                 jz      short skip_cmd  ; no
 
-do_cmd:                                 ; CODE XREF: query_user+20↑j
+do_cmd:                                 ; ...
                 pop     ax
                 clc                     ; just do the command
                 retn
 ; ---------------------------------------------------------------------------
 
-skip_cmd:                               ; CODE XREF: query_user+BF↑j
+skip_cmd:                               ; ...
                 pop     ax
 
-skip_all:                               ; CODE XREF: query_user+7↑j
+skip_all:                               ; ...
                 mov     ah, 30h ; '0'   ; CONFIG_REM ; fake out the rest of sysinit's processing
                 stc
                 retn
@@ -24912,8 +23949,7 @@ query_user      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-print_error     proc near               ; CODE XREF: menu_check+F3↑p
-                                        ; menu_check+133↑p ...
+print_error     proc near               ; ...
                 push    ax              ; displays multi-config error conditions
                 push    bx
                 push    cx
@@ -24938,11 +23974,11 @@ print_error     proc near               ; CODE XREF: menu_check+F3↑p
                 mov     ah, 7           ; yes, eat it too
                 int     21h             ; DOS - DIRECT STDIN INPUT, NO ECHO
 
-pe_1:                                   ; CODE XREF: print_error+22↑j
+pe_1:                                   ; ...
                 mov     dx, offset crlfm ; "\r\n$"
                 call    print
 
-pe_ret:                                 ; CODE XREF: print_error+13↑j
+pe_ret:                                 ; ...
                 pop     ds
                 assume ds:nothing
                 pop     dx
@@ -24956,8 +23992,7 @@ print_error     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-disable_autoexec proc near              ; CODE XREF: SYSINIT:0937↑p
-                                        ; SYSINIT:0AAC↑p ...
+disable_autoexec proc near              ; ...
                 test    ds:bQueryOpt, 4 ; This function is very simple:
                                         ; it merely prepends a "/D" to the command-line for the shell;
                                         ; this (undocumented) switch disables AUTOEXEC.BAT processing
@@ -24970,7 +24005,7 @@ disable_autoexec proc near              ; CODE XREF: SYSINIT:0937↑p
                 or      word ptr ds:bQueryOpt, 102h ; [bDefBlock] = 1
                 mov     dx, ' D'        ; 2044h ; 'D ' (NASM syntax)
 
-dae_1:                                  ; CODE XREF: CheckQueryOpt+16↓j
+dae_1:                                  ; ...
                 mov     al, ds:def_swchr ; get default switchchar
                 or      al, al
                 jz      short disable_exit
@@ -24986,7 +24021,7 @@ dae_1:                                  ; CODE XREF: CheckQueryOpt+16↓j
                                         ; make sure we move the NULL too
                 inc     cx              ; (just for consistency sake)
 
-disable_loop:                           ; CODE XREF: disable_autoexec+42↓j
+disable_loop:                           ; ...
                 mov     ah, [bx-3]
                 mov     [bx], ah
                 dec     bx
@@ -24994,8 +24029,7 @@ disable_loop:                           ; CODE XREF: disable_autoexec+42↓j
                 mov     [bx-2], al
                 mov     [bx-1], dx      ; 'D ' ; /D is stuffed into place now
 
-disable_exit:                           ; CODE XREF: disable_autoexec+5↑j
-                                        ; disable_autoexec+C↑j ...
+disable_exit:                           ; ...
                 retn
 disable_autoexec endp
 
@@ -25003,8 +24037,7 @@ disable_autoexec endp
 ; =============== S U B R O U T I N E =======================================
 
 
-CheckQueryOpt   proc near               ; CODE XREF: SYSINIT:process_autoexec↑p
-                                        ; SYSINIT:0AAF↑p
+CheckQueryOpt   proc near               ; ...
                 cmp     ds:bQueryOpt, 1
                 jnz     short disable_exit
                 test    ds:dae_flag, 2
@@ -25018,8 +24051,7 @@ CheckQueryOpt   endp
 ; =============== S U B R O U T I N E =======================================
 
 
-any_delim       proc near               ; CODE XREF: menu_check+ED↑p
-                                        ; menu_check+309↑p ...
+any_delim       proc near               ; ...
                 cmp     al, 0Dh         ; cr
                 jz      short delim_ret
                 cmp     al, 0Ah         ; lf
@@ -25034,15 +24066,13 @@ any_delim       endp
 ; =============== S U B R O U T I N E =======================================
 
 
-delim           proc near               ; CODE XREF: doconf+344↑p
-                                        ; ParseSize+2A↑p ...
+delim           proc near               ; ...
                 cmp     al, '/'         ; ibm will assume "/" as an delimeter
                 jz      short delim_ret
                 cmp     al, 0           ; special case for sysinit!
                 jz      short delim_ret
 
-org_delim:                              ; CODE XREF: organize+107↑p
-                                        ; organize+1A0↑p
+org_delim:                              ; ...
                 cmp     al, 20h ; ' '   ; space
                 jz      short delim_ret
                 cmp     al, 9           ; tab
@@ -25054,8 +24084,7 @@ org_delim:                              ; CODE XREF: organize+107↑p
                 cmp     al, ';'
                 clc
 
-delim_ret:                              ; CODE XREF: any_delim+2↑j
-                                        ; any_delim+6↑j ...
+delim_ret:                              ; ...
                 retn
 delim           endp
 
@@ -25063,15 +24092,14 @@ delim           endp
 ; =============== S U B R O U T I N E =======================================
 
 
-newline         proc near               ; CODE XREF: doconf+124↑p
-                                        ; newline+7↓j
+newline         proc near               ; ...
                 call    getchr          ; skip non-control characters
                 jb      short nl_ret    ; no char
                 cmp     al, 0Ah         ; lf
                 jnz     short newline
                 call    getchr
 
-nl_ret:                                 ; CODE XREF: newline+3↑j
+nl_ret:                                 ; ...
                 retn                    ; al = first character of next line (if cf=0)
 newline         endp
 
@@ -25079,7 +24107,7 @@ newline         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-mapcase         proc near               ; CODE XREF: organize+B1↑p
+mapcase         proc near               ; ...
                 push    cx
                 push    si
                 push    ds
@@ -25087,7 +24115,7 @@ mapcase         proc near               ; CODE XREF: organize+B1↑p
                 pop     ds
                 mov     bl, al
 
-convloop:                               ; CODE XREF: mapcase+26↓j
+convloop:                               ; ...
                 lodsb
                 cmp     al, 'a'
                 jb      short noconv
@@ -25096,8 +24124,7 @@ convloop:                               ; CODE XREF: mapcase+26↓j
                 sub     al, 20h         ; convert to upper-case (and al,0DFh)
                 mov     [si-1], al
 
-noconv:                                 ; CODE XREF: mapcase+A↑j
-                                        ; mapcase+E↑j
+noconv:                                 ; ...
                 cmp     bl, 'V'         ; CONFIG_SET ; preserve case for part of the line?
                 jnz     short check_eol ; no, just check for end-of-line
                 cmp     al, '='         ; separator between SET var and value?
@@ -25105,15 +24132,14 @@ noconv:                                 ; CODE XREF: mapcase+A↑j
                                         ; (we don't want to upper-case
                                         ; anything after the "=" in a SET)
 
-check_eol:                              ; CODE XREF: mapcase+18↑j
+check_eol:                              ; ...
                 cmp     al, 0Dh         ; cr
                 jz      short convdone
                 cmp     al, 0Ah         ; lf
                 jz      short convdone
                 loop    convloop
 
-convdone:                               ; CODE XREF: mapcase+1C↑j
-                                        ; mapcase+20↑j ...
+convdone:                               ; ...
                 pop     ds
                 pop     si
                 pop     cx
@@ -25124,8 +24150,7 @@ mapcase         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-round           proc near               ; CODE XREF: endfile:dosfts↑p
-                                        ; endfile+82↑p ...
+round           proc near               ; ...
 
 ; FUNCTION CHUNK AT 1468 SIZE 00000001 BYTES
 
@@ -25153,14 +24178,13 @@ round           proc near               ; CODE XREF: endfile:dosfts↑p
                 pop     si
                 pop     es
 
-skip_set_devmarksize:                   ; CODE XREF: round+25↑j
+skip_set_devmarksize:                   ; ...
                 pop     ax
                 clc
                 retn
 ; ---------------------------------------------------------------------------
 
-mem_err:                                ; CODE XREF: doconf:NoMem↑j
-                                        ; RoundBreakAddr+1E↑j ...
+mem_err:                                ; ...
                 mov     dx, offset badmem ; "\r\nConfiguration too large for memory"...
                 push    cs
                 pop     ds
@@ -25173,8 +24197,7 @@ round           endp
 ; =============== S U B R O U T I N E =======================================
 
 
-calldev         proc near               ; CODE XREF: doconf+48B↑p
-                                        ; doconf+491↑p
+calldev         proc near               ; ...
                 mov     ds, word ptr cs:DevEntry+2
                 assume ds:nothing
                 add     bx, word ptr cs:DevEntry ; do a little relocation
@@ -25191,7 +24214,7 @@ calldev         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-todigit         proc near               ; CODE XREF: getnum:b2↓p
+todigit         proc near               ; ...
                 sub     al, '0'
                 jb      short notdig
                 cmp     al, 9
@@ -25200,8 +24223,7 @@ todigit         proc near               ; CODE XREF: getnum:b2↓p
                 retn
 ; ---------------------------------------------------------------------------
 
-notdig:                                 ; CODE XREF: todigit+2↑j
-                                        ; todigit+6↑j
+notdig:                                 ; ...
                 stc
                 retn
 todigit         endp
@@ -25210,7 +24232,7 @@ todigit         endp
 ; =============== S U B R O U T I N E =======================================
 
 
-getnum          proc near               ; CODE XREF: check_switch+45↑p
+getnum          proc near               ; ...
                 push    bx              ; getnum parses a decimal number.
                                         ; returns it in ax, sets zero flag if ax = 0
                                         ; (may be considered an error),
@@ -25218,7 +24240,7 @@ getnum          proc near               ; CODE XREF: check_switch+45↑p
                                         ; ;;
                 xor     bx, bx          ; running count is zero
 
-b2:                                     ; CODE XREF: getnum+40↓j
+b2:                                     ; ...
                 call    todigit         ; do we have a digit ?
                 jb      short badnum    ; no, bomb
                 xchg    ax, bx          ; put total in ax
@@ -25251,20 +24273,18 @@ b2:                                     ; CODE XREF: getnum+40↓j
                 or      al, al          ; end of line separator?
                 jnz     short b2        ; no, try as a valid char...
 
-b15:                                    ; CODE XREF: getnum+1F↑j
-                                        ; getnum+23↑j ...
+b15:                                    ; ...
                 inc     cs:count        ; one more character to s...
                 dec     cs:chrptr       ; clears carry, sets zero accordingly
 
-b1:                                     ; CODE XREF: getnum+1B↑j
+b1:                                     ; ...
                 mov     ax, bx
                 or      ax, ax
                 pop     bx
                 retn
 ; ---------------------------------------------------------------------------
 
-badnum:                                 ; CODE XREF: getnum+6↑j
-                                        ; getnum+15↑j
+badnum:                                 ; ...
                 mov     cs:sepchr, 0
                 xor     ax, ax          ; set zero flag, and ax = 0
                 pop     bx
@@ -25276,7 +24296,7 @@ getnum          endp
 ; =============== S U B R O U T I N E =======================================
 
 
-setdoscountryinfo proc near             ; CODE XREF: doconf+787↑p
+setdoscountryinfo proc near             ; ...
                 push    di              ; input:
                                         ;   es:di -> pointer to dos_country_cdpg_info
                                         ;   ds:0  -> buffer.
@@ -25328,7 +24348,7 @@ setdoscountryinfo proc near             ; CODE XREF: doconf+787↑p
                 pop     ax              ; restore country id
                 pop     di              ; search for desired country_id,codepage_id.
 
-setdoscntry_find:                       ; CODE XREF: setdoscountryinfo+55↓j
+setdoscntry_find:                       ; ...
                 cmp     ax, [si+2]      ; compare country_id
                 jnz     short setdoscntry_next
                 cmp     dx, 0           ; no user specified code page ?
@@ -25336,31 +24356,29 @@ setdoscntry_find:                       ; CODE XREF: setdoscountryinfo+55↓j
                 cmp     dx, [si+4]      ; compare code page id
                 jz      short setdoscntry_got_it
 
-setdoscntry_next:                       ; CODE XREF: setdoscountryinfo+45↑j
+setdoscntry_next:                       ; ...
                 add     si, [si]        ; next entry
                 inc     si
                 inc     si              ; take a word for size of entry itself
                 loop    setdoscntry_find
                 mov     cx, 0FFFFh      ; -1 ; signals that bad country id entered.
 
-setdoscntry_fail:                       ; CODE XREF: setdoscountryinfo+5F↓j
-                                        ; setdoscountryinfo+75↓j
+setdoscntry_fail:                       ; ...
                 stc
                 retn
 ; ---------------------------------------------------------------------------
 
-setdosdata_fail:                        ; CODE XREF: setdoscountryinfo+D↑j
-                                        ; setdoscountryinfo+1D↑j ...
+setdosdata_fail:                        ; ...
                 pop     si
                 pop     cx
                 pop     di
                 jmp     short setdoscntry_fail
 ; ---------------------------------------------------------------------------
 
-setdoscntry_any_codepage:               ; CODE XREF: setdoscountryinfo+4A↑j
+setdoscntry_any_codepage:               ; ...
                 mov     dx, [si+4]      ; use the code_page_id of the country_id found.
 
-setdoscntry_got_it:                     ; CODE XREF: setdoscountryinfo+4F↑j
+setdoscntry_got_it:                     ; ...
                 mov     cs:cntrycodepage_id, dx ; save code page id for this country.
                 mov     dx, [si+10]     ; get the file offset of country data
                 mov     cx, [si+12]
@@ -25371,7 +24389,7 @@ setdoscntry_got_it:                     ; CODE XREF: setdoscountryinfo+4F↑j
                 inc     si
                 inc     si              ; si -> first entry
 
-setdoscntry_data:                       ; CODE XREF: setdoscountryinfo+110↓j
+setdoscntry_data:                       ; ...
                 push    di              ; es:di -> dos_country_cdpg_info
                 push    cx              ; save # of entry left
                 push    si              ; si -> current entry in control buffer
@@ -25441,7 +24459,7 @@ setdoscntry_data:                       ; CODE XREF: setdoscountryinfo+110↓j
                 mov     [si+4], ax      ; use the saved one for this !!!
                 pop     ax
 
-setdoscntry_mov:                        ; CODE XREF: setdoscountryinfo+E0↑j
+setdoscntry_mov:                        ; ...
                 rep movsb               ; copy the table into dos
                 cmp     al, 1           ; SetCountryInfo ; was the ccmono_ptr saved?
                 jnz     short setdoscntry_data_next
@@ -25453,8 +24471,7 @@ setdoscntry_mov:                        ; CODE XREF: setdoscountryinfo+E0↑j
                                         ; [es:di+country_cdpg_info.ccMono_Ptr
                                         ;  -country_cdpg_info.ccCountryInfoLen]
 
-setdoscntry_data_next:                  ; CODE XREF: setdoscountryinfo+84↑j
-                                        ; setdoscountryinfo+F8↑j
+setdoscntry_data_next:                  ; ...
                 pop     si              ; restore control buffer pointer
                 pop     cx              ; restore # of entries left
                 pop     di              ; restore pointer to dso_country_cdpg
@@ -25467,7 +24484,7 @@ setdoscntry_data_next:                  ; CODE XREF: setdoscountryinfo+84↑j
                 jmp     setdoscntry_data
 ; ---------------------------------------------------------------------------
 
-setdoscntry_ok:                         ; CODE XREF: setdoscountryinfo+10E↑j
+setdoscntry_ok:                         ; ...
                 retn
 setdoscountryinfo endp ; sp-analysis failed
 
@@ -25475,7 +24492,7 @@ setdoscountryinfo endp ; sp-analysis failed
 ; =============== S U B R O U T I N E =======================================
 
 
-setdbcs_before_copy proc near           ; CODE XREF: setdoscountryinfo+DB↑p
+setdbcs_before_copy proc near           ; ...
                 cmp     al, 7           ; SetDBCS ; dbcs vector set?
                 jnz     short sdbcsbc   ; jump if not
                 cmp     word ptr es:[di], 0 ; zero byte data block?
@@ -25491,8 +24508,7 @@ setdbcs_before_copy proc near           ; CODE XREF: setdoscountryinfo+DB↑p
                 pop     ax
                 pop     di
 
-sdbcsbc:                                ; CODE XREF: setdbcs_before_copy+2↑j
-                                        ; setdbcs_before_copy+8↑j
+sdbcsbc:                                ; ...
                 retn
 setdbcs_before_copy endp
 
@@ -25500,7 +24516,7 @@ setdbcs_before_copy endp
 ; =============== S U B R O U T I N E =======================================
 
 
-getcountrydestination proc near         ; CODE XREF: setdoscountryinfo+81↑p
+getcountrydestination proc near         ; ...
                 push    cx              ; get the destination address
                                         ;  in the dos country info table.
                 add     di, 74          ; country_cdpg_info.ccNumber_of_entries
@@ -25509,7 +24525,7 @@ getcountrydestination proc near         ; CODE XREF: setdoscountryinfo+81↑p
                 inc     di
                 inc     di              ; si -> the first start entry id
 
-getcntrydest:                           ; CODE XREF: getcountrydestination:getcntrydest_loop↓j
+getcntrydest:                           ; ...
                 cmp     es:[di], al
                 jz      short getcntrydest_ok
                 cmp     byte ptr es:[di], 1 ; SetCountryInfo ; was it setcountryinfo entry?
@@ -25518,27 +24534,26 @@ getcntrydest:                           ; CODE XREF: getcountrydestination:getcn
                 jmp     short getcntrydest_loop
 ; ---------------------------------------------------------------------------
 
-getcntrydest_1:                         ; CODE XREF: getcountrydestination+12↑j
+getcntrydest_1:                         ; ...
                 add     di, 41          ; NEW_COUNTRY_SIZE+3 ; next data id
 
-getcntrydest_loop:                      ; CODE XREF: getcountrydestination+17↑j
+getcntrydest_loop:                      ; ...
                 loop    getcntrydest
                 stc
                 jmp     short getcntrydest_exit
 ; ---------------------------------------------------------------------------
 
-getcntrydest_ok:                        ; CODE XREF: getcountrydestination+C↑j
+getcntrydest_ok:                        ; ...
                 cmp     al, 1           ; SetCountryInfo ; select country info?
                 jnz     short getcntrydest_ok1
                 inc     di              ; now di -> cccountryinfolen
                 jmp     short getcntrydest_exit
 ; ---------------------------------------------------------------------------
 
-getcntrydest_ok1:                       ; CODE XREF: getcountrydestination+23↑j
+getcntrydest_ok1:                       ; ...
                 les     di, es:[di+1]   ; get the destination in es:di
 
-getcntrydest_exit:                      ; CODE XREF: getcountrydestination+1F↑j
-                                        ; getcountrydestination+26↑j
+getcntrydest_exit:                      ; ...
                 pop     cx
                 retn
 getcountrydestination endp
@@ -25547,8 +24562,7 @@ getcountrydestination endp
 ; =============== S U B R O U T I N E =======================================
 
 
-readincontrolbuffer proc near           ; CODE XREF: setdoscountryinfo+A↑p
-                                        ; setdoscountryinfo+30↑p ...
+readincontrolbuffer proc near           ; ...
                 push    ax              ; # of bytes to read
                 mov     ax, 4200h
                 stc
@@ -25565,7 +24579,7 @@ readincontrolbuffer proc near           ; CODE XREF: setdoscountryinfo+A↑p
                                         ; BX = file handle, CX = number of bytes to read
                                         ; DS:DX -> buffer
 
-ricb_exit:                              ; CODE XREF: readincontrolbuffer+8↑j
+ricb_exit:                              ; ...
                 retn
 readincontrolbuffer endp
 
@@ -25585,12 +24599,12 @@ set_country_path:                       ; ! this procedure is not called from an
                 jmp     short scp_setdrv
 ; ---------------------------------------------------------------------------
 
-scp_default_drv:                        ; CODE XREF: SYSINIT:5143↑j
+scp_default_drv:                        ; ...
                 mov     ah, 19h
                 int     21h             ; DOS - GET DEFAULT DISK NUMBER
                 add     al, 'A'
 
-scp_setdrv:                             ; CODE XREF: SYSINIT:5149↑j
+scp_setdrv:                             ; ...
                 mov     byte ptr cs:cntry_drv, al ; "A:"
                 mov     di, offset cntry_path ; "COUNTRY.SYS"
                 mov     al, [si]
@@ -25601,11 +24615,10 @@ scp_setdrv:                             ; CODE XREF: SYSINIT:5149↑j
                 jmp     short scp_path
 ; ---------------------------------------------------------------------------
 
-scp_root_dir:                           ; CODE XREF: SYSINIT:515C↑j
-                                        ; SYSINIT:5160↑j
+scp_root_dir:                           ; ...
                 dec     di
 
-scp_path:                               ; CODE XREF: SYSINIT:5162↑j
+scp_path:                               ; ...
                 call    move_asciiz
                 mov     di, offset cntry_drv ; "A:"
                 push    ds
@@ -25618,7 +24631,7 @@ scp_path:                               ; CODE XREF: SYSINIT:5162↑j
 ; =============== S U B R O U T I N E =======================================
 
 
-chk_drive_letter proc near              ; CODE XREF: SYSINIT:5140↑p
+chk_drive_letter proc near              ; ...
                 push    ax
                 cmp     byte ptr [si], 'A'
                 jb      short cdletter_no
@@ -25629,11 +24642,10 @@ chk_drive_letter proc near              ; CODE XREF: SYSINIT:5140↑p
                 jmp     short cdletter_exit
 ; ---------------------------------------------------------------------------
 
-cdletter_no:                            ; CODE XREF: chk_drive_letter+4↑j
-                                        ; chk_drive_letter+9↑j ...
+cdletter_no:                            ; ...
                 stc
 
-cdletter_exit:                          ; CODE XREF: chk_drive_letter+11↑j
+cdletter_exit:                          ; ...
                 pop     ax
                 retn
 chk_drive_letter endp
@@ -25642,8 +24654,7 @@ chk_drive_letter endp
 ; =============== S U B R O U T I N E =======================================
 
 
-move_asciiz     proc near               ; CODE XREF: doconf+715↑p
-                                        ; doconf+77A↑p ...
+move_asciiz     proc near               ; ...
                 movsb
                 cmp     byte ptr [si-1], 0 ; was it 0?
                 jnz     short move_asciiz
@@ -25654,25 +24665,23 @@ move_asciiz     endp
 ; =============== S U B R O U T I N E =======================================
 
 
-badfil          proc near               ; CODE XREF: SYSINIT:0A09↑p
-                                        ; endfile+388↑p ...
+badfil          proc near               ; ...
                 push    cs
                 pop     es
                 assume es:SYSINIT
                 mov     si, dx
 
-badload:                                ; CODE XREF: SYSINIT:142A↑p
-                                        ; doconf:tryd_2↑p ...
+badload:                                ; ...
                 mov     dx, offset badld_pre ; "\r\nBad or missing $"
                 mov     bx, offset crlfm ; "\r\n$"
 
-prnerr:                                 ; CODE XREF: doconf+6AD↑p
+prnerr:                                 ; ...
                 push    cs
                 pop     ds
                 assume ds:SYSINIT
                 call    print
 
-prn1:                                   ; CODE XREF: badfil+1B↓j
+prn1:                                   ; ...
                 mov     dl, es:[si]
                 or      dl, dl
                 jz      short prn2
@@ -25683,14 +24692,14 @@ prn1:                                   ; CODE XREF: badfil+1B↓j
                 jmp     short prn1
 ; ---------------------------------------------------------------------------
 
-prn2:                                   ; CODE XREF: badfil+14↑j
+prn2:                                   ; ...
                 mov     dx, bx
                 call    print
                 cmp     cs:donotshownum, 1 ; suppress line number when handling command.com
                 jz      short prnexit
                 call    error_line
 
-prnexit:                                ; CODE XREF: badfil+28↑j
+prnexit:                                ; ...
                 retn
 badfil          endp
 
@@ -25698,8 +24707,7 @@ badfil          endp
 ; =============== S U B R O U T I N E =======================================
 
 
-print           proc near               ; CODE XREF: SYSINIT:0720↑p
-                                        ; SYSINIT:09CB↑p ...
+print           proc near               ; ...
                 mov     ah, 9
                 int     21h             ; DOS - PRINT STRING
                                         ; DS:DX -> string terminated by "$"
@@ -25710,20 +24718,19 @@ print           endp
 ; =============== S U B R O U T I N E =======================================
 
 
-open_dev        proc near               ; CODE XREF: endfile+3A5↑p
-                                        ; endfile+3AD↑p
+open_dev        proc near               ; ...
                 call    open_file
                 jnb     short open_dev3
 
-open_dev1:                              ; CODE XREF: open_dev+1D↓j
+open_dev1:                              ; ...
                 mov     dx, offset nuldev ; "NUL"
                 call    open_file
 
-of_retn:                                ; CODE XREF: open_dev+17↓j
+of_retn:                                ; ...
                 retn
 ; ---------------------------------------------------------------------------
 
-open_dev3:                              ; CODE XREF: open_dev+3↑j
+open_dev3:                              ; ...
                 mov     bx, ax          ; handle from open to bx
                 xor     ax, ax
                 mov     ah, 44h
@@ -25741,8 +24748,7 @@ open_dev        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-open_file       proc near               ; CODE XREF: open_dev↑p
-                                        ; open_dev+8↑p
+open_file       proc near               ; ...
                 mov     ah, 3Dh         ; OPEN
                 stc
                 int     21h             ; DOS - 2+ - OPEN DISK FILE WITH HANDLE
@@ -25754,122 +24760,89 @@ open_file       endp
 
 ; ---------------------------------------------------------------------------
 
-int24:                                  ; DATA XREF: SYSINIT:070E↑o
+int24:                                  ; ...
                 mov     al, 3           ; fail the system call
                 iret                    ; return back to dos.
 ; ---------------------------------------------------------------------------
 IBMDOSV71COPYR  db 'IBM DOS Version 7.1 (C)Copyright 1981-2002 IBM Corporation Licens'
                 db 'ed Material - Property of IBM All rights reserved '
-nuldev          db 'NUL',0              ; DATA XREF: open_dev:open_dev1↑o
-condev          db 'CON',0              ; DATA XREF: endfile+37C↑o
-auxdev          db 'AUX',0              ; DATA XREF: endfile:goaux2↑o
-prndev          db 'PRN',0              ; DATA XREF: endfile+3A8↑o
-config          db '\CONFIG.SYS',0      ; DATA XREF: doconf+F↑o
-                                        ; doconf:conferr↑o
-cntry_drv       db 'A:'                 ; DATA XREF: doconf+6C0↑w
-                                        ; doconf+712↑o ...
-cntry_root      db '\'                  ; DATA XREF: doconf:tryq_def↑o
-                                        ; doconf:tryqdefbad↑o
-cntry_path      db 'COUNTRY.SYS',0      ; DATA XREF: SYSINIT:5155↑o
+nuldev          db 'NUL',0              ; ...
+condev          db 'CON',0              ; ...
+auxdev          db 'AUX',0              ; ...
+prndev          db 'PRN',0              ; ...
+config          db '\CONFIG.SYS',0      ; ...
+cntry_drv       db 'A:'                 ; ...
+cntry_root      db '\'                  ; ...
+cntry_path      db 'COUNTRY.SYS',0      ; ...
                 db 52 dup(0)
-country_file_signature db 0FFh,'COUNTRY'
-                                        ; DATA XREF: setdoscountryinfo+13↑o
-cntrycodepage_id dw 0                   ; DATA XREF: setdoscountryinfo:setdoscntry_got_it↑w
-                                        ; setdoscountryinfo+EC↑r
-newcmd          db 0                    ; DATA XREF: SYSINIT:0987↑r
-                                        ; SYSINIT:09FF↑r ...
+country_file_signature db 0FFh,'COUNTRY' ; ...
+cntrycodepage_id dw 0                   ; ...
+newcmd          db 0                    ; ...
                                         ; non-zero if non-std shell specified
-tmplate         db 64, 12               ; DATA XREF: SYSINIT:0A55↑o
-                                        ; SYSINIT:0A4A↑r ...
+tmplate         db 64, 12               ; ...
                                         ; must precede commnd
                                         ; size of commnd line (excl. null)
                                         ; 5309h-52C9h = 40h = 64
-commnd          db '\COMMAND.COM',0     ; DATA XREF: SYSINIT:retry↑o
-                                        ; SYSINIT:0A50↑w ...
+commnd          db '\COMMAND.COM',0     ; ...
                 db 50 dup(0)
-commnd_63       db 0                    ; DATA XREF: doconf+944↑o
-commnd2         db '\COMMAND.COM',0     ; DATA XREF: SYSINIT:0A15↑o
+commnd_63       db 0                    ; ...
+commnd2         db '\COMMAND.COM',0     ; ...
                                         ; alternate commands to exec
                 db 2,'/P',0             ; followed by their respective alternate command lines
-commnd3         db '\MSDOS\COMMAND.COM',0
-                                        ; DATA XREF: SYSINIT:do_def3↑o
+commnd3         db '\MSDOS\COMMAND.COM',0 ; ...
                 db 11
                 db 'A:\MSDOS /P',0
-commnd4         db '\DOS\COMMAND.COM',0 ; DATA XREF: SYSINIT:comerr↑r
-                                        ; SYSINIT:0A31↑o
+commnd4         db '\DOS\COMMAND.COM',0 ; ...
                 db 9
                 db 'A:\DOS /P',0
-def_swchr       db 0                    ; DATA XREF: doconf+B↑w
-                                        ; disable_autoexec:dae_1↑r
-command_line    db 2,'/P'               ; DATA XREF: SYSINIT:EXEC0_COM_LINE↑o
-                                        ; SYSINIT:093D↑r ...
+def_swchr       db 0                    ; ...
+command_line    db 2,'/P'               ; ...
                 db 123 dup(0)
-command_line_126 db 0                   ; DATA XREF: doconf+95C↑o
+command_line_126 db 0                   ; ...
                 db 0
 pathstring      db 64 dup(0)
-dae_flag        db 0                    ; DATA XREF: SYSINIT:0AA7↑w
-                                        ; disable_autoexec+7↑r ...
-bMenuColor      db 7                    ; DATA XREF: menu_check:set_color↑w
-                                        ; menu_check+1CF↑r ...
+dae_flag        db 0                    ; ...
+bMenuColor      db 7                    ; ...
                                         ; default fgnd/bgnd color
-bMenuPage       db 0                    ; DATA XREF: menu_check+1C7↑r
-                                        ; menu_check+1FD↑r ...
+bMenuPage       db 0                    ; ...
                                         ; menu video page (KEEP AFTER bMenuColor)
                 db 5                    ; video page function # (KEEP AFTER bMenuPage)
-bLastCol        db 0                    ; DATA XREF: menu_check+218↑w
-                                        ; show_status+C↑r
+bLastCol        db 0                    ; ...
                                         ; ending column on status line
-bLastRow        db 24                   ; DATA XREF: menu_check+1E5↑r
-                                        ; menu_check+1EC↑w ...
+bLastRow        db 24                   ; ...
                                         ; row # of status line (KEEP AFTER bLastCol)
-bDisableUI      db 0                    ; DATA XREF: SYSINIT:091E↑r
-                                        ; kbd_read↑r ...
+bDisableUI      db 0                    ; ...
                                         ; 1=disable clean/interactive
                                         ; 2=disable default 2-second delay
-bCRTPage        db 0                    ; DATA XREF: menu_check+1C4↑w
-                                        ; menu_check+34B↑r
+bCRTPage        db 0                    ; ...
                                         ; value saved from BIOS data area
-wCRTStart       dw 0                    ; DATA XREF: menu_check+1BD↑w
-                                        ; menu_check+344↑r
+wCRTStart       dw 0                    ; ...
                                         ; value saved from BIOS data area
-bQueryOpt       db 0                    ; DATA XREF: SYSINIT:bypass_autoexec↑w
-                                        ; kbd_read+34↑w ...
+bQueryOpt       db 0                    ; ...
                                         ; 0=off, 1=prompt all, 2=prompt none, 4=skip all
-bDefBlock       db 1                    ; DATA XREF: menu_check:menu_found↑w
-                                        ; menu_check:menu_setdefault↑w ...
+bDefBlock       db 1                    ; ...
                                         ; default block #
-bMaxBlock       db 0                    ; DATA XREF: menu_check+16C↑w
-                                        ; menu_check+18E↑r ...
+bMaxBlock       db 0                    ; ...
                                         ; maximum block #
-offDefBlock     dw 0                    ; DATA XREF: menu_check+B5↑w
-                                        ; menu_check:menu_default↑w ...
+offDefBlock     dw 0                    ; ...
                                         ; offset of name of default block (if any)
-secTimeOut      db 0FFh                 ; DATA XREF: menu_check+BB↑w
-                                        ; menu_check:timeout_ok↑w ...
+secTimeOut      db 0FFh                 ; ...
                                         ; # of seconds for timeout (-1 == indefinite)
-secElapsed      db 0                    ; DATA XREF: kbd_read+74↑w
-                                        ; menu_check+103↑r ...
+secElapsed      db 0                    ; ...
                                         ; # of seconds elapsed so far (KEEP AFTER secTimeOut)
-abBlockType     db 10 dup(0)            ; DATA XREF: menu_check+13B↑w
-                                        ; menu_check:not_topmenu↑r
+abBlockType     db 10 dup(0)            ; ...
                                         ; times MAX_MULTI_CONFIG+1 db 0
                                         ; array of block types
-aoffBlockName   dw 10 dup(0)            ; DATA XREF: menu_check+141↑w
-                                        ; menu_check+17C↑r ...
+aoffBlockName   dw 10 dup(0)            ; ...
                                         ; times MAX_MULTI_CONFIG+1 dw 0
                                         ; array of offsets of block names
-aoffBlockDesc   dw 10 dup(0)            ; DATA XREF: menu_check+145↑w
-                                        ; menu_check+157↑w ...
+aoffBlockDesc   dw 10 dup(0)            ; ...
                                         ; times MAX_MULTI_CONFIG+1 dw 0
                                         ; array of offsets of block descriptions
-szBoot          db 'CONFIG=',0          ; DATA XREF: menu_check+70↑w
-                                        ; menu_check+2E9↑o
-szMenu          db 'MENU',0             ; DATA XREF: menu_check+68↑o
-                                        ; copy_block+17↑o
-szCommon        db 'COMMON',0           ; DATA XREF: menu_check+2AB↑o
-                                        ; menu_check+303↑o ...
-comtab          db 1,'[['               ; DATA XREF: organize+36↑o
-                                        ; query_user+2F↑o
+szBoot          db 'CONFIG=',0          ; ...
+szMenu          db 'MENU',0             ; ...
+szCommon        db 'COMMON',0           ; ...
+comtab          db 1,'[['               ; ...
                                         ; CONFIG.SYS Command Table
                                         ; CONFIG_BEGIN
 aBreak          db 5,'BREAKC'           ; CONFIG_BREAK
@@ -25901,47 +24874,33 @@ aStacks         db 6,'STACKSK'          ; CONFIG_STACKS
 aSwitches       db 8,'SWITCHES1'        ; CONFIG_SWITCHES
 aDosdata        db 7,'DOSDATAT'         ; CONFIG_DOSDATA
                 db 0                    ; end of command table
-devp_specialfunc db 0                   ; DATA XREF: endfile+13C↑o
-                                        ; setparms+F↑o
+devp_specialfunc db 0                   ; ...
                                         ; deviceparameters
-devp_devtype    db 2                    ; DATA XREF: diddleback+9↑w
-                                        ; process_num+17↑w ...
-devp_devattr    dw 0                    ; DATA XREF: diddleback+E↑w
-                                        ; parseline+39↑w
-devp_cylinders  dw 80                   ; DATA XREF: diddleback+3↑w
-                                        ; process_num+26↑w ...
+devp_devtype    db 2                    ; ...
+devp_devattr    dw 0                    ; ...
+devp_cylinders  dw 80                   ; ...
                 db 0
-devp_bps        dw 0                    ; DATA XREF: endfile+14D↑r
-                                        ; setdeviceparameters+1A↑o
+devp_bps        dw 0                    ; ...
                                         ; A_DEVICEPARAMETERS.DP_BPB
                                         ; bytes per sectors
-devp_secperclus db 0                    ; DATA XREF: setdeviceparameters:heads_not_altered↑w
-                                        ; setdeviceparameters:got_one_secperclus_drive↑w
+devp_secperclus db 0                    ; ...
                 dw 0
                 db 0
                 dw 0
-devp_totalsecs  dw 0                    ; DATA XREF: endfile+149↑r
-                                        ; setdeviceparameters+9E↑w
+devp_totalsecs  dw 0                    ; ...
                                         ; total sectors
-devp_mediaid    db 0                    ; DATA XREF: setdeviceparameters+47↑r
-                                        ; setdeviceparameters:got_correct_mediaid↑w
+devp_mediaid    db 0                    ; ...
                 dw 0
-devp_spt        dw 0                    ; DATA XREF: setparms:not_ec35↑r
-                                        ; setdeviceparameters+2F↑w ...
-devp_heads      dw 0                    ; DATA XREF: setdeviceparameters+3D↑w
-                                        ; setdeviceparameters+4B↑r ...
+devp_spt        dw 0                    ; ...
+devp_heads      dw 0                    ; ...
                 db 68 dup(0)
-devp_trktblents dw 0                    ; DATA XREF: parseline+3C↑w
+devp_trktblents dw 0                    ; ...
                 db 252 dup(0)
-hlim            dw 2                    ; DATA XREF: process_num:try_h↑w
-                                        ; setdeviceparameters+3A↑r
-slim            dw 9                    ; DATA XREF: process_num+31↑w
-                                        ; setdeviceparameters+2C↑r
-drive           db 0                    ; DATA XREF: setparms+9↑r
-                                        ; setparms+2A↑r ...
-switches        dw 0                    ; DATA XREF: setparms+21↑r
-                                        ; diddleback+14↑w ...
-_bpb48t         dw 512                  ; DATA XREF: SYSINIT:_bpbtable↓o
+hlim            dw 2                    ; ...
+slim            dw 9                    ; ...
+drive           db 0                    ; ...
+switches        dw 0                    ; ...
+_bpb48t         dw 512                  ; ...
                                         ; 48 tpi diskettes
                 db 2
                 dw 1
@@ -25954,7 +24913,7 @@ _bpb48t         dw 512                  ; DATA XREF: SYSINIT:_bpbtable↓o
                 dw 2
                 dd 0
                 dd 0
-_bpb96t         dw 512                  ; DATA XREF: SYSINIT:573A↓o
+_bpb96t         dw 512                  ; ...
                                         ; 96tpi diskettes
                 db 1
                 dw 1
@@ -25967,8 +24926,7 @@ _bpb96t         dw 512                  ; DATA XREF: SYSINIT:573A↓o
                 dw 2
                 dd 0
                 dd 0
-_bpb35          dw 200h                 ; DATA XREF: SYSINIT:573C↓o
-                                        ; SYSINIT:573E↓o ...
+_bpb35          dw 200h                 ; ...
                                         ; 3 1/2 inch diskette bpb
                 db 2
                 dw 1
@@ -25981,7 +24939,7 @@ _bpb35          dw 200h                 ; DATA XREF: SYSINIT:573C↓o
                 dw 2
                 dd 0
                 dd 0
-_bpb35h         dw 512                  ; DATA XREF: SYSINIT:5746↓o
+_bpb35h         dw 512                  ; ...
                 db 1
                 dw 1
                 db 2
@@ -25993,7 +24951,7 @@ _bpb35h         dw 512                  ; DATA XREF: SYSINIT:5746↓o
                 dw 2
                 dd 0
                 dd 0
-_bpb288         dw 512                  ; DATA XREF: SYSINIT:574A↓o
+_bpb288         dw 512                  ; ...
                 db 2
                 dw 1
                 db 2
@@ -26005,7 +24963,7 @@ _bpb288         dw 512                  ; DATA XREF: SYSINIT:574A↓o
                 dw 2
                 dd 0
                 dd 0
-_bpbtable       dw offset _bpb48t       ; DATA XREF: setdeviceparameters+16↑r
+_bpbtable       dw offset _bpb48t       ; ...
                                         ; 48tpi drives
                 dw offset _bpb96t       ; 96tpi drives
                 dw offset _bpb35        ; 3.5" drives
@@ -26016,56 +24974,44 @@ _bpbtable       dw offset _bpb48t       ; DATA XREF: setdeviceparameters+16↑r
                 dw offset _bpb35h       ; 3-1/2" 1.44mb drive
                 dw offset _bpb35        ; ERIMO
                 dw offset _bpb288       ; 2.88 MB diskette drives
-switchlist      db 8,'FHSTDICN'         ; DATA XREF: check_switch+12↑r
-                                        ; check_switch+18↑o
+switchlist      db 8,'FHSTDICN'         ; ...
                                         ; preserve the positions of n and c
                 db 0
-badopm          db 0Dh,0Ah              ; DATA XREF: SYSINIT:331C↑o
-                                        ; doconf:badop↑o
+badopm          db 0Dh,0Ah              ; ...
                 db 'Unrecognized command in CONFIG.SYS'
-crlfm           db 0Dh,0Ah,'$'          ; DATA XREF: SYSINIT:0A5C↑o
-                                        ; doconf+6AA↑o ...
-badparm         db 0Dh,0Ah              ; DATA XREF: badparm_p+5↑o
+crlfm           db 0Dh,0Ah,'$'          ; ...
+badparm         db 0Dh,0Ah              ; ...
                 db 'Bad command or parameters - $'
-badsiz_pre      db 0Dh,0Ah              ; DATA XREF: doconf+6A7↑o
+badsiz_pre      db 0Dh,0Ah              ; ...
                 db 'Sector size too large in file $'
-badld_pre       db 0Dh,0Ah              ; DATA XREF: badfil:badload↑o
+badld_pre       db 0Dh,0Ah              ; ...
                 db 'Bad or missing $'
-badcom          db 'Command Interpreter',0
-                                        ; DATA XREF: SYSINIT:comerr2↑o
-badcountry      db 0Dh,0Ah              ; DATA XREF: doconf+72A↑o
-                                        ; cntry_error+5↑o
+badcom          db 'Command Interpreter',0 ; ...
+badcountry      db 0Dh,0Ah              ; ...
                 db 'Invalid country code or code page',0Dh,0Ah,'$'
-badcountrycom   db 0Dh,0Ah              ; DATA XREF: cntry_error:if64↑o
+badcountrycom   db 0Dh,0Ah              ; ...
                 db 'Error in COUNTRY command',0Dh,0Ah,'$'
-insufmemory     db 0Dh,0Ah              ; DATA XREF: doconf:tryqmemory↑o
+insufmemory     db 0Dh,0Ah              ; ...
                 db 'Insufficient memory for COUNTRY.SYS file',0Dh,0Ah,'$'
-badmem          db 0Dh,0Ah              ; DATA XREF: SYSINIT:memerrjx↑o
-                                        ; round:mem_err↑o
+badmem          db 0Dh,0Ah              ; ...
                 db 'Configuration too large for memory',0Dh,0Ah,'$'
-badblock        db 0Dh,0Ah              ; DATA XREF: doconf+4D6↑o
+badblock        db 0Dh,0Ah              ; ...
                 db 'Too many block devices',0Dh,0Ah,'$'
-badstack        db 0Dh,0Ah              ; DATA XREF: doconf+881↑o
-                                        ; doconf+8F4↑o
+badstack        db 0Dh,0Ah              ; ...
                 db 'Invalid STACK parameters',0Dh,0Ah,'$'
-badorder        db 0Dh,0Ah              ; DATA XREF: SYSINIT:incorrect_order↑o
+badorder        db 0Dh,0Ah              ; ...
                 db 'Incorrect order in CONFIG.SYS line $'
-errorcmd        db 'Error in CONFIG.SYS line $'
-                                        ; DATA XREF: error_line+2↑o
-OnOff           db 'ON'                 ; DATA XREF: set_numlock:not_off↑r
-OnOff2          db 'OFF'                ; DATA XREF: set_numlock+F↑r
-StartMsg        db 'Starting PC DOS...',0Dh,0Ah
-                                        ; DATA XREF: BIOSDATA:1D7F↑o
+errorcmd        db 'Error in CONFIG.SYS line $' ; ...
+OnOff           db 'ON'                 ; ...
+OnOff2          db 'OFF'                ; ...
+StartMsg        db 'Starting PC DOS...',0Dh,0Ah ; ...
                 db 0Ah,0
-_$PauseMsg      db 'Press any key to continue...',0Dh,0Ah,'$'
-                                        ; DATA XREF: print_error+15↑o
-_$CleanMsg      db 'PC DOS is bypassing your CONFIG.SYS and AUTOEXEC.BAT files.',0Dh,0Ah
-                                        ; DATA XREF: kbd_read:kbd_cfg_bypass↑o
+_$PauseMsg      db 'Press any key to continue...',0Dh,0Ah,'$' ; ...
+_$CleanMsg      db 'PC DOS is bypassing your CONFIG.SYS and AUTOEXEC.BAT files.',0Dh,0Ah ; ...
                 db '$'
-_$InterMsg      db 'PC DOS will prompt you to confirm each CONFIG.SYS command.',0Dh,0Ah
-                                        ; DATA XREF: kbd_read:kbd_cfg_confirm↑o
+_$InterMsg      db 'PC DOS will prompt you to confirm each CONFIG.SYS command.',0Dh,0Ah ; ...
                 db '$'
-_$MenuHeader    db 0Dh,0Ah              ; DATA XREF: menu_check+1F0↑o
+_$MenuHeader    db 0Dh,0Ah              ; ...
                 db '  PC DOS 7.1 Startup Menu',0Dh,0Ah
                 db '  '
                 db 0CDh, 0CDh, 0CDh, 0CDh, 0CDh, 0CDh, 0CDh, 0CDh, 0CDh ; '═' ; ASCII code 205
@@ -26073,27 +25019,19 @@ _$MenuHeader    db 0Dh,0Ah              ; DATA XREF: menu_check+1F0↑o
                 db 0CDh, 0CDh, 0CDh, 0CDh, 0CDh, 0CDh
                 db 0Dh,0Ah
                 db  24h ; $
-_$MenuPrmpt     db '  Enter a choice: $'
-                                        ; DATA XREF: menu_check+238↑o
-_$StatusLine    db 'F5=Bypass startup files F8=Confirm each line of CONFIG.SYS and AU'
-                                        ; DATA XREF: menu_check+20B↑o
+_$MenuPrmpt     db '  Enter a choice: $' ; ...
+_$StatusLine    db 'F5=Bypass startup files F8=Confirm each line of CONFIG.SYS and AU' ; ...
                 db 'TOEXEC.BAT [ ]$'
-_$InterPrmpt    db ' [Y,N,ESC]?$'       ; DATA XREF: query_user:prompt_user↑o
-_$YES           db 'YES$'               ; DATA XREF: show_status+31↑r
-                                        ; query_user+9E↑r ...
-_$NO            db 'NO $'               ; DATA XREF: show_status+27↑r
-                                        ; query_user+8C↑r ...
-_$TimeOut       db 'Time remaining: $'  ; DATA XREF: select_item+42↑o
-badcomprmpt     db 'Enter correct name of Command Interpreter (for example, C:\COMMAN'
-                                        ; DATA XREF: SYSINIT:0A3A↑o
+_$InterPrmpt    db ' [Y,N,ESC]?$'       ; ...
+_$YES           db 'YES$'               ; ...
+_$NO            db 'NO $'               ; ...
+_$TimeOut       db 'Time remaining: $'  ; ...
+badcomprmpt     db 'Enter correct name of Command Interpreter (for example, C:\COMMAN' ; ...
                 db 'D.COM)',0Dh,0Ah,'$'
-_$AutoPrmpt     db 'Process AUTOEXEC.BAT [Y,N]?$'
-                                        ; DATA XREF: query_user+24↑o
-TooManyDrivesMsg db 'WARNING! Logical drives past Z: exist and will be ignored',0Dh,0Ah
-                                        ; DATA XREF: SYSINIT:071D↑o
+_$AutoPrmpt     db 'Process AUTOEXEC.BAT [Y,N]?$' ; ...
+TooManyDrivesMsg db 'WARNING! Logical drives past Z: exist and will be ignored',0Dh,0Ah ; ...
                 db '$'
-baddblspace     db 'Required system component is not installed',0Dh,0Ah
-                                        ; DATA XREF: MagicPreload+7D↑o
+baddblspace     db 'Required system component is not installed',0Dh,0Ah ; ...
                 db '$',0
                 db 7 dup(0)
 SYSINIT         ends
