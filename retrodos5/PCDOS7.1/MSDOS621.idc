@@ -2906,6 +2906,7 @@ static Bytes_0(void) {
 	OpDecimal	(x,	1);
 	MakeCode	(x=0X4F4B);
 	OpHex		(x,	1);
+	MakeCode	(x=0X4F84);
 	MakeCode	(x=0X4F9A);
 	OpHex		(x,	1);
 	MakeCode	(x=0X4FA4);
@@ -6231,12 +6232,14 @@ static Bytes_1(void) {
 	MakeCode	(x=0XA4A2);
 	OpHex		(x,	1);
 	MakeName	(0XA4A2,	"UnlinkUmbs");
+	MakeCode	(x=0XA4AF);
 	MakeCode	(x=0XA4B4);
 	OpHex		(x,	1);
 	MakeName	(0XA4BA,	"unlinked");
 	MakeCode	(x=0XA4BC);
 	OpHex		(x,	1);
 	MakeName	(0XA4BC,	"LinkUmbs");
+	MakeCode	(x=0XA4C9);
 	MakeCode	(x=0XA4CE);
 	OpHex		(x,	1);
 	MakeName	(0XA4D4,	"linked");
@@ -7137,7 +7140,7 @@ static Bytes_1(void) {
 	MakeWord	(0XB4EE);
 	MakeWord	(0XB4F0);
 	MakeCode	(x=0XB4F2);
-	OpDecimal	(x,	1);
+	OpHex		(x,	1);
 	MakeName	(0XB4F2,	"Rational386Patch");
 	MakeName	(0XB51C,	"rp3QO_ax");
 	MakeName	(0XB51D,	"rp3QuickOut");
@@ -7145,6 +7148,7 @@ static Bytes_1(void) {
 	MakeName	(0XB51E,	"rp3Maybe");
 	MakeCode	(x=0XB527);
 	OpHex		(x,	1);
+	MakeCode	(x=0XB52E);
 	MakeCode	(x=0XB545);
 	OpOff		(x,	1,	0);
 	OpOff		(x,	129,	0);

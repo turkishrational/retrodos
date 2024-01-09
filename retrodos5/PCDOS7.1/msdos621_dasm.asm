@@ -19,7 +19,7 @@
 ; Segment type:	Pure data
 DOSDATA		segment	para private 'DATA' use16
 		assume cs:DOSDATA
-byte_0		db 4 dup(0)		; ...
+		db 4 dup(0)		; ...
 DataVersion	dw 1			; ...
 WinoldPatch1	db 8 dup(0)		; ...
 MYNUM		dw 0			; ...
@@ -3575,7 +3575,7 @@ HAVDIF:					; ...
 		mov	word ptr WinoldPatch1+2, 0
 
 addr_ok:				; ...
-		mov	word ptr byte_0, 20CDh
+		mov	word ptr 0, 20CDh
 		mov	byte ptr DataVersion+1,	9Ah ; 'š'
 		mov	off_50,	21CDh
 		mov	byte ptr asc_52, 0CBh ;	'Ë' ; "NUL     "
@@ -16923,7 +16923,7 @@ UnlinkUmbs:				; ...
 		jz	short unlinked
 		call	GetLastArena
 		jb	short AllocArenaError
-		mov	byte_0,	5Ah ; 'Z'
+		mov	byte ptr 0, 5Ah	; 'Z'
 		and	ss:UMBFLAG, 0FEh
 
 unlinked:				; ...
@@ -16935,7 +16935,7 @@ LinkUmbs:				; ...
 		jnz	short linked
 		call	GetLastArena
 		jb	short AllocArenaError
-		mov	byte_0,	4Dh ; 'M'
+		mov	byte ptr 0, 4Dh	; 'M'
 		or	ss:UMBFLAG, 1
 
 linked:					; ...
@@ -19652,7 +19652,7 @@ rpBug4Strs	dw offset rpFind8	; ...
 ; ---------------------------------------------------------------------------
 
 Rational386Patch:			; ...
-		cmp	word ptr es:byte_0, 395
+		cmp	word ptr es:0, 18Bh
 		jnb	short rp3QuickOut
 		cmp	word ptr es:WinoldPatch1+6, 20h	; ' '
 		jnz	short rp3QuickOut
@@ -19686,7 +19686,7 @@ rp3Maybe:				; ...
 		mov	bp, sp
 		push	cs
 		pop	ds
-		mov	ax, word ptr es:byte_0
+		mov	ax, word ptr es:0
 		mov	[bp+0],	ax
 		call	VerifyVersion
 		jnz	short rp3Exit_j

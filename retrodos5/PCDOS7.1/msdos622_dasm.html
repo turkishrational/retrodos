@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>IDA - C:\Users\Erdoðan\Desktop\MSDOS622.idb (MSDOS.SYS)</title>
+<title>IDA - C:\pcdos_7_1\MSDOS622.idb (MSDOS.SYS)</title>
 </head>
 <body bgcolor="white">
 <span style="white-space: pre; font-family: Fixedsys; color: blue; background: white">
@@ -1029,7 +1029,7 @@ DOSCODE:4531 </span>Win386_vxd<span style="color:navy">:                        
 </span><span style="color:maroon">DOSCODE:4534                 </span><span style="color:navy">push    dx
 </span><span style="color:maroon">DOSCODE:4535                 </span><span style="color:navy">push    si
 </span><span style="color:maroon">DOSCODE:4536                 </span><span style="color:navy">push    di
-</span><span style="color:maroon">DOSCODE:4537                 </span><span style="color:navy">mov     bx, ds:</span><span style="color:green">8Ch      </span>; UMB_HEAD
+</span><span style="color:maroon">DOSCODE:4537                 </span><span style="color:navy">mov     bx, ds:</span>UMB_HEAD
 <span style="color:maroon">DOSCODE:453B                 </span><span style="color:navy">cmp     bx, </span><span style="color:green">0FFFFh
 </span><span style="color:maroon">DOSCODE:453E                 </span><span style="color:navy">jz      short </span>Vxd31
 <span style="color:maroon">DOSCODE:4540                 </span><span style="color:navy">mov     ds:</span>UmbSaveFlag<span style="color:navy">, </span><span style="color:#ff8000">1
@@ -1145,7 +1145,7 @@ DOSCODE:45EA </span>Win386_Leaving_c<span style="color:navy">:                  
 </span><span style="color:maroon">DOSCODE:45F8                 </span><span style="color:navy">push    cx
 </span><span style="color:maroon">DOSCODE:45F9                 </span><span style="color:navy">push    si
 </span><span style="color:maroon">DOSCODE:45FA                 </span><span style="color:navy">push    di
-</span><span style="color:maroon">DOSCODE:45FB                 </span><span style="color:navy">mov     ax, ds:</span><span style="color:green">8Ch      </span>; UMB_HEAD
+</span><span style="color:maroon">DOSCODE:45FB                 </span><span style="color:navy">mov     ax, ds:</span>UMB_HEAD
 <span style="color:maroon">DOSCODE:45FE                 </span><span style="color:navy">mov     es, ax
 </span><span style="color:maroon">DOSCODE:4600                 </span><span style="color:navy">xor     di, di
 </span><span style="color:maroon">DOSCODE:4602                 </span><span style="color:navy">cld
@@ -1168,8 +1168,8 @@ DOSCODE:4618 </span>noumb<span style="color:navy">:                             
 <span style="color:maroon">DOSCODE:4624 </span><span style="color:gray">; ---------------------------------------------------------------------------
 </span><span style="color:maroon">DOSCODE:4624
 DOSCODE:4624 </span>Win386_Query<span style="color:navy">:                           </span><span style="color:green">; ...
-</span><span style="color:maroon">DOSCODE:4624                 </span><span style="color:navy">cmp     bx, </span><span style="color:#ff8000">15h
-</span><span style="color:maroon">DOSCODE:4627                 </span><span style="color:navy">jnz     short </span>win_nexti2f
+</span><span style="color:maroon">DOSCODE:4624                 </span><span style="color:navy">cmp     bx, </span><span style="color:#ff8000">15h         </span>; Win386_DOSMGR
+<span style="color:maroon">DOSCODE:4627                 </span><span style="color:navy">jnz     short </span>win_nexti2f
 <span style="color:maroon">DOSCODE:4629                 </span><span style="color:navy">or      cx, cx
 </span><span style="color:maroon">DOSCODE:462B                 </span><span style="color:navy">jnz     short </span>dosmgr_func
 <span style="color:maroon">DOSCODE:462D                 </span><span style="color:navy">inc     cx
@@ -3926,7 +3926,7 @@ DOSCODE:556F </span><span style="color:gray">ZERPOS</span><span style="color:nav
 <span style="color:black">DOSCODE:5575 </span><span style="color:gray">; END OF FUNCTION CHUNK FOR OUTT
 </span><span style="color:maroon">DOSCODE:5577 </span><span style="color:gray">; ---------------------------------------------------------------------------
 </span><span style="color:maroon">DOSCODE:5577
-DOSCODE:5577 </span>j_OUTT<span style="color:navy">:                                 </span><span style="color:green">; ...
+DOSCODE:5577 </span>OUTJ<span style="color:navy">:                                   </span><span style="color:green">; ...
 </span><span style="color:maroon">DOSCODE:5577                 </span><span style="color:navy">jmp     </span>OUTT
 <span style="color:black">DOSCODE:557A </span><span style="color:gray">; ---------------------------------------------------------------------------
 </span><span style="color:black">DOSCODE:557A </span><span style="color:gray">; START OF FUNCTION CHUNK FOR OUTT
@@ -3941,9 +3941,9 @@ DOSCODE:5582 </span><span style="color:gray">; =============== S U B R O U T I N
 DOSCODE:5582
 DOSCODE:5582 </span>BUFOUT          proc near               <span style="color:green">; ...
 </span><span style="color:black">DOSCODE:5582                 </span><span style="color:navy">cmp     al, &#039; &#039;
-</span><span style="color:black">DOSCODE:5584                 </span><span style="color:navy">jnb     short </span>j_OUTT
+</span><span style="color:black">DOSCODE:5584                 </span><span style="color:navy">jnb     short </span>OUTJ
 <span style="color:black">DOSCODE:5586                 </span><span style="color:navy">cmp     al, </span><span style="color:green">9
-</span><span style="color:black">DOSCODE:5588                 </span><span style="color:navy">jz      short </span>j_OUTT
+</span><span style="color:black">DOSCODE:5588                 </span><span style="color:navy">jz      short </span>OUTJ
 <span style="color:black">DOSCODE:558A                 </span><span style="color:navy">cmp     al, </span><span style="color:green">15h
 </span><span style="color:black">DOSCODE:558C                 </span><span style="color:navy">jz      short </span><span style="color:gray">CTRLU
 </span><span style="color:black">DOSCODE:558E                 </span><span style="color:navy">cmp     al, </span><span style="color:green">14h
@@ -4674,21 +4674,23 @@ DOSCODE:5A5C </span><span style="color:gray">CheckNet</span><span style="color:n
 </span><span style="color:black">DOSCODE:5A5F                 </span><span style="color:navy">cmp     ax, es:[di+</span><span style="color:#ff8000">0Bh</span><span style="color:navy">]
 </span><span style="color:black">DOSCODE:5A63                 </span><span style="color:navy">jnz     short </span>BadSFT
 <span style="color:black">DOSCODE:5A65                 </span><span style="color:navy">retn
-</span><span style="color:black">DOSCODE:5A65 </span>CheckFCB        endp
-<span style="color:black">DOSCODE:5A65
-</span><span style="color:maroon">DOSCODE:5A66 </span><span style="color:gray">; ---------------------------------------------------------------------------
-</span><span style="color:maroon">DOSCODE:5A66
+</span><span style="color:black">DOSCODE:5A66 </span><span style="color:gray">; ---------------------------------------------------------------------------
+</span><span style="color:black">DOSCODE:5A66
 DOSCODE:5A66 </span>CheckNoShare<span style="color:navy">:                           </span><span style="color:green">; ...
-</span><span style="color:maroon">DOSCODE:5A66                 </span><span style="color:navy">test    al, </span><span style="color:green">40h
-</span><span style="color:maroon">DOSCODE:5A68                 </span><span style="color:navy">jnz     short </span>$+2
-<span style="color:maroon">DOSCODE:5A6A                 </span><span style="color:navy">mov     bx, [si+</span><span style="color:#ff8000">1Ah</span><span style="color:navy">]
-</span><span style="color:maroon">DOSCODE:5A6D                 </span><span style="color:navy">cmp     bx, es:[di+</span><span style="color:#ff8000">7</span><span style="color:navy">]
-</span><span style="color:maroon">DOSCODE:5A71                 </span><span style="color:navy">jnz     short </span>BadSFT
-<span style="color:maroon">DOSCODE:5A73                 </span><span style="color:navy">mov     bx, [si+</span><span style="color:#ff8000">1Ch</span><span style="color:navy">]
-</span><span style="color:maroon">DOSCODE:5A76                 </span><span style="color:navy">cmp     bx, es:[di+</span><span style="color:#ff8000">9</span><span style="color:navy">]
-</span><span style="color:maroon">DOSCODE:5A7A                 </span><span style="color:navy">jnz     short </span>BadSFT
-<span style="color:maroon">DOSCODE:5A7C                 </span><span style="color:navy">jmp     short </span>CheckD
-<span style="color:black">DOSCODE:5A7E
+</span><span style="color:black">DOSCODE:5A66                 </span><span style="color:navy">test    al, </span><span style="color:green">40h
+</span><span style="color:black">DOSCODE:5A68                 </span><span style="color:navy">jnz     short $+</span><span style="color:green">2
+</span><span style="color:black">DOSCODE:5A6A
+DOSCODE:5A6A </span><span style="color:gray">CheckNoShareDev</span><span style="color:navy">:                        </span><span style="color:green">; ...
+</span><span style="color:black">DOSCODE:5A6A                 </span><span style="color:navy">mov     bx, [si+</span><span style="color:#ff8000">1Ah</span><span style="color:navy">]
+</span><span style="color:black">DOSCODE:5A6D                 </span><span style="color:navy">cmp     bx, es:[di+</span><span style="color:#ff8000">7</span><span style="color:navy">]
+</span><span style="color:black">DOSCODE:5A71                 </span><span style="color:navy">jnz     short </span>BadSFT
+<span style="color:black">DOSCODE:5A73                 </span><span style="color:navy">mov     bx, [si+</span><span style="color:#ff8000">1Ch</span><span style="color:navy">]
+</span><span style="color:black">DOSCODE:5A76                 </span><span style="color:navy">cmp     bx, es:[di+</span><span style="color:#ff8000">9</span><span style="color:navy">]
+</span><span style="color:black">DOSCODE:5A7A                 </span><span style="color:navy">jnz     short </span>BadSFT
+<span style="color:black">DOSCODE:5A7C                 </span><span style="color:navy">jmp     short </span>CheckD
+<span style="color:black">DOSCODE:5A7C </span>CheckFCB        endp
+<span style="color:black">DOSCODE:5A7C
+DOSCODE:5A7E
 DOSCODE:5A7E </span><span style="color:gray">; =============== S U B R O U T I N E =======================================
 </span><span style="color:black">DOSCODE:5A7E
 DOSCODE:5A7E
@@ -5462,8 +5464,10 @@ DOSCODE:5FCA </span>CurrentValidate<span style="color:navy">:                   
 </span><span style="color:maroon">DOSCODE:5FCC                 </span><span style="color:navy">mov     ds, cs:</span>DosDSeg
 <span style="color:maroon">DOSCODE:5FD1                 </span><span style="color:navy">lds     si, ds:</span>THISCDS
 <span style="color:maroon">DOSCODE:5FD5                 </span><span style="color:navy">test    word ptr [si+</span><span style="color:#ff8000">43h</span><span style="color:navy">], </span><span style="color:green">8000h
-</span><span style="color:maroon">DOSCODE:5FDA                 </span><span style="color:navy">jnz     short </span>$+2
-<span style="color:maroon">DOSCODE:5FDC                 </span><span style="color:navy">push    ds
+</span><span style="color:maroon">DOSCODE:5FDA                 </span><span style="color:navy">jnz     short $+</span><span style="color:green">2
+</span><span style="color:maroon">DOSCODE:5FDC
+DOSCODE:5FDC </span>DoCheck<span style="color:navy">:                                </span><span style="color:green">; ...
+</span><span style="color:maroon">DOSCODE:5FDC                 </span><span style="color:navy">push    ds
 </span><span style="color:maroon">DOSCODE:5FDD                 </span><span style="color:navy">mov     ds, cs:</span>DosDSeg
 <span style="color:maroon">DOSCODE:5FE2                 </span><span style="color:navy">mov     ds:</span>NoSetDir<span style="color:navy">, </span><span style="color:#ff8000">0
 </span><span style="color:maroon">DOSCODE:5FE7                 </span><span style="color:navy">pop     ds
@@ -5562,11 +5566,8 @@ DOSCODE:605D </span>rmcont<span style="color:navy">:                            
 </span><span style="color:maroon">DOSCODE:605D                 </span><span style="color:navy">pop     ds
 </span><span style="color:maroon">DOSCODE:605E                 </span><span style="color:navy">pop     dx
 </span><span style="color:maroon">DOSCODE:605F                 </span><span style="color:navy">mov     si, offset </span>DOS_RMDIR
-<span style="color:maroon">DOSCODE:605F </span><span style="color:gray">; ---------------------------------------------------------------------------
-</span><span style="color:olive">DOSCODE:6062                 </span><span style="color:navy">db </span><span style="color:#008040">0E9h </span><span style="color:gray">; Ú
-</span><span style="color:olive">DOSCODE:6063                 </span><span style="color:navy">db  </span><span style="color:#008040">7Fh </span><span style="color:gray">; 
-</span><span style="color:olive">DOSCODE:6064                 </span><span style="color:navy">db    </span><span style="color:#008040">0
-</span><span style="color:maroon">DOSCODE:6065 </span><span style="color:gray">; ---------------------------------------------------------------------------
+<span style="color:maroon">DOSCODE:6062                 </span><span style="color:navy">jmp     </span>DoDirCall
+<span style="color:maroon">DOSCODE:6065 </span><span style="color:gray">; ---------------------------------------------------------------------------
 </span><span style="color:maroon">DOSCODE:6065
 DOSCODE:6065 </span>$CHDIR<span style="color:navy">:                                 </span><span style="color:#8080ff">; ...
 </span><span style="color:maroon">DOSCODE:6065                 </span><span style="color:navy">mov     di, offset </span>OPENBUF
@@ -5634,7 +5635,7 @@ DOSCODE:60DE </span>mkdir_ok<span style="color:navy">:                          
 DOSCODE:60E1 </span>$MKDIR<span style="color:navy">:                                 </span><span style="color:#8080ff">; ...
 </span><span style="color:maroon">DOSCODE:60E1                 </span><span style="color:navy">mov     si, offset </span>DOS_MKDIR
 <span style="color:maroon">DOSCODE:60E4
-DOSCODE:60E4 </span>DoDirCall<span style="color:navy">:
+DOSCODE:60E4 </span>DoDirCall<span style="color:navy">:                              </span><span style="color:green">; ...
 </span><span style="color:maroon">DOSCODE:60E4                 </span><span style="color:navy">mov     di, offset </span>OPENBUF
 <span style="color:maroon">DOSCODE:60E7                 </span><span style="color:navy">push    si
 </span><span style="color:maroon">DOSCODE:60E8                 </span><span style="color:navy">mov     si, dx
@@ -9578,14 +9579,14 @@ DOSCODE:7A17 </span><span style="color:gray">yesgrow</span><span style="color:na
 </span><span style="color:black">DOSCODE:7A3E                 </span><span style="color:navy">jmp     short </span><span style="color:gray">SETGRW
 </span><span style="color:black">DOSCODE:7A40 </span><span style="color:gray">; ---------------------------------------------------------------------------
 </span><span style="color:black">DOSCODE:7A40
-DOSCODE:7A40 </span><span style="color:gray">HAVSTART</span><span style="color:navy">:                               </span><span style="color:green">; ...
+DOSCODE:7A40 </span>HAVSTART<span style="color:navy">:                               </span><span style="color:green">; ...
 </span><span style="color:black">DOSCODE:7A40                 </span><span style="color:navy">mov     cx, ax
 </span><span style="color:black">DOSCODE:7A42                 </span><span style="color:navy">call    </span>SKPCLP
-<span style="color:black">DOSCODE:7A45                 </span><span style="color:navy">jcxz    short </span><span style="color:gray">DOWRTJ
-</span><span style="color:black">DOSCODE:7A47                 </span><span style="color:navy">call    </span>ALLOCATE
-<span style="color:black">DOSCODE:7A4A                 </span><span style="color:navy">jnb     short </span><span style="color:gray">DOWRTJ
-</span><span style="color:black">DOSCODE:7A4C
-DOSCODE:7A4C </span><span style="color:gray">WRTERR</span><span style="color:navy">:                                 </span><span style="color:green">; ...
+<span style="color:black">DOSCODE:7A45                 </span><span style="color:navy">jcxz    short </span>DOWRTJ
+<span style="color:black">DOSCODE:7A47                 </span><span style="color:navy">call    </span>ALLOCATE
+<span style="color:black">DOSCODE:7A4A                 </span><span style="color:navy">jnb     short </span>DOWRTJ
+<span style="color:black">DOSCODE:7A4C
+DOSCODE:7A4C </span>WRTERR<span style="color:navy">:                                 </span><span style="color:green">; ...
 </span><span style="color:black">DOSCODE:7A4C                 </span><span style="color:navy">mov     ah, </span><span style="color:#ff8000">0Fh
 </span><span style="color:black">DOSCODE:7A4C </span><span style="background:blue"><span style="color:#ff8000">DISKWRITE       endp</span></span><span style="background:blue"> <span style="color:#ff8000">; sp-analysis failed</span></span>
 <span style="color:black">DOSCODE:7A4C
@@ -9601,7 +9602,7 @@ DOSCODE:7A4E </span><span style="color:gray">WRTERR22</span><span style="color:n
 </span><span style="color:black">DOSCODE:7A59 </span><span style="color:gray">; ---------------------------------------------------------------------------
 </span><span style="color:black">DOSCODE:7A59 </span><span style="color:gray">; START OF FUNCTION CHUNK FOR DISKWRITE
 </span><span style="color:black">DOSCODE:7A59
-DOSCODE:7A59 </span><span style="color:gray">DOWRTJ</span><span style="color:navy">:                                 </span><span style="color:green">; ...
+DOSCODE:7A59 </span>DOWRTJ<span style="color:navy">:                                 </span><span style="color:green">; ...
 </span><span style="color:black">DOSCODE:7A59                 </span><span style="color:navy">jmp     short </span><span style="color:gray">DOWRT
 </span><span style="color:black">DOSCODE:7A5B </span><span style="color:gray">; ---------------------------------------------------------------------------
 </span><span style="color:black">DOSCODE:7A5B
@@ -9627,13 +9628,13 @@ DOSCODE:7A6B </span><span style="color:gray">NOGROW</span><span style="color:nav
 </span><span style="color:black">DOSCODE:7A79                 </span><span style="color:navy">mov     ds:</span>LASTPOS<span style="color:navy">, dx
 </span><span style="color:black">DOSCODE:7A7D                 </span><span style="color:navy">sub     ax, dx
 </span><span style="color:black">DOSCODE:7A7F                 </span><span style="color:navy">jz      short </span><span style="color:gray">DOWRT
-</span><span style="color:black">DOSCODE:7A81                 </span><span style="color:navy">jcxz    short </span><span style="color:gray">HAVSTART
-</span><span style="color:black">DOSCODE:7A83                 </span><span style="color:navy">push    cx
+</span><span style="color:black">DOSCODE:7A81                 </span><span style="color:navy">jcxz    short </span>HAVSTART
+<span style="color:black">DOSCODE:7A83                 </span><span style="color:navy">push    cx
 </span><span style="color:black">DOSCODE:7A84                 </span><span style="color:navy">mov     cx, ax
 </span><span style="color:black">DOSCODE:7A86                 </span><span style="color:navy">call    </span>ALLOCATE
 <span style="color:black">DOSCODE:7A89                 </span><span style="color:navy">pop     cx
-</span><span style="color:black">DOSCODE:7A8A                 </span><span style="color:navy">jb      short </span><span style="color:gray">WRTERR
-</span><span style="color:black">DOSCODE:7A8C                 </span><span style="color:navy">mov     dx, ds:</span>LASTPOS
+</span><span style="color:black">DOSCODE:7A8A                 </span><span style="color:navy">jb      short </span>WRTERR
+<span style="color:black">DOSCODE:7A8C                 </span><span style="color:navy">mov     dx, ds:</span>LASTPOS
 <span style="color:black">DOSCODE:7A90                 </span><span style="color:navy">inc     dx
 </span><span style="color:black">DOSCODE:7A91                 </span><span style="color:navy">dec     cx
 </span><span style="color:black">DOSCODE:7A92                 </span><span style="color:navy">jz      short </span><span style="color:gray">NOSKIP
@@ -9706,8 +9707,8 @@ DOSCODE:7B18 </span><span style="color:gray">DWRITE_DISK_FULL</span><span style=
 </span><span style="color:black">DOSCODE:7B1B                 </span><span style="color:navy">pop     bx
 </span><span style="color:black">DOSCODE:7B1C                 </span><span style="color:navy">mov     ds:</span>DISK_FULL<span style="color:navy">, </span><span style="color:#ff8000">1
 </span><span style="color:black">DOSCODE:7B21                 </span><span style="color:navy">stc
-</span><span style="color:black">DOSCODE:7B22                 </span><span style="color:navy">jmp     </span><span style="color:gray">WRTERR
-</span><span style="color:black">DOSCODE:7B25 </span><span style="color:gray">; ---------------------------------------------------------------------------
+</span><span style="color:black">DOSCODE:7B22                 </span><span style="color:navy">jmp     </span>WRTERR
+<span style="color:black">DOSCODE:7B25 </span><span style="color:gray">; ---------------------------------------------------------------------------
 </span><span style="color:black">DOSCODE:7B25
 DOSCODE:7B25 </span><span style="color:gray">SET_ACC_ERRW</span><span style="color:navy">:                           </span><span style="color:green">; ...
 </span><span style="color:black">DOSCODE:7B25                 </span><span style="color:navy">jmp     </span>SET_ACC_ERR_DS
@@ -9777,8 +9778,8 @@ DOSCODE:7B91 </span><span style="color:gray">UPDATE</span><span style="color:nav
 <span style="color:black">DOSCODE:7BAF </span><span style="color:gray">; ---------------------------------------------------------------------------
 </span><span style="color:black">DOSCODE:7BAF
 DOSCODE:7BAF </span><span style="color:gray">WRTERRJ</span><span style="color:navy">:                                </span><span style="color:green">; ...
-</span><span style="color:black">DOSCODE:7BAF                 </span><span style="color:navy">jmp     </span><span style="color:gray">WRTERR
-</span><span style="color:black">DOSCODE:7BB2 </span><span style="color:gray">; ---------------------------------------------------------------------------
+</span><span style="color:black">DOSCODE:7BAF                 </span><span style="color:navy">jmp     </span>WRTERR
+<span style="color:black">DOSCODE:7BB2 </span><span style="color:gray">; ---------------------------------------------------------------------------
 </span><span style="color:black">DOSCODE:7BB2
 DOSCODE:7BB2 </span><span style="color:gray">RELFILE</span><span style="color:navy">:                                </span><span style="color:green">; ...
 </span><span style="color:black">DOSCODE:7BB2                 </span><span style="color:navy">push    es
@@ -9794,7 +9795,7 @@ DOSCODE:7BCB </span><span style="color:gray">SKIPRESET</span><span style="color:
 </span><span style="color:black">DOSCODE:7BCC                 </span><span style="color:navy">mov     dx, </span><span style="color:green">0FFFFh
 </span><span style="color:black">DOSCODE:7BCF                 </span><span style="color:navy">call    </span>RELBLKS
 <span style="color:black">DOSCODE:7BD2
-DOSCODE:7BD2 </span><span style="color:gray">SET_ACC_ERRWJ</span><span style="color:navy">:                          </span><span style="color:green">; ...
+DOSCODE:7BD2 </span><span style="color:gray">SET_ACC_ERRWJJ</span><span style="color:navy">:                         </span><span style="color:green">; ...
 </span><span style="color:black">DOSCODE:7BD2                 </span><span style="color:navy">jb      short </span><span style="color:gray">SET_ACC_ERRWJ2
 </span><span style="color:black">DOSCODE:7BD4                 </span><span style="color:navy">jmp     short </span><span style="color:gray">UPDATE
 </span><span style="color:black">DOSCODE:7BD6 </span><span style="color:gray">; ---------------------------------------------------------------------------
@@ -9825,7 +9826,7 @@ DOSCODE:7BD6 </span><span style="color:gray">KILLFIL</span><span style="color:na
 </span><span style="color:black">DOSCODE:7C05                 </span><span style="color:navy">pop     bp
 </span><span style="color:black">DOSCODE:7C06                 </span><span style="color:navy">pop     es
 </span><span style="color:black">DOSCODE:7C07                 </span><span style="color:navy">call    </span>RELEASE
-<span style="color:black">DOSCODE:7C0A                 </span><span style="color:navy">jb      short </span><span style="color:gray">SET_ACC_ERRWJ
+<span style="color:black">DOSCODE:7C0A                 </span><span style="color:navy">jb      short </span><span style="color:gray">SET_ACC_ERRWJJ
 </span><span style="color:black">DOSCODE:7C0C
 DOSCODE:7C0C </span><span style="color:gray">UPDATEJ</span><span style="color:navy">:                                </span><span style="color:green">; ...
 </span><span style="color:black">DOSCODE:7C0C                 </span><span style="color:navy">jmp     short </span><span style="color:gray">UPDATE
@@ -12943,14 +12944,9 @@ DOSCODE:8FA5 </span>NAMETRANS       proc near               <span style="color:g
 </span><span style="color:black">DOSCODE:8FD1 </span>NAMETRANS       endp
 <span style="color:black">DOSCODE:8FD1
 DOSCODE:8FD1 </span><span style="color:gray">; ---------------------------------------------------------------------------
-DOSCODE:8FD2 </span>CharType        <span style="color:navy">db  </span><span style="color:#008040">66h</span><span style="color:navy">, </span><span style="color:#008040">66h</span><span style="color:navy">, </span><span style="color:#008040">66h</span><span style="color:navy">, </span><span style="color:#008040">66h</span><span style="color:navy">, </span><span style="color:#008040">06h</span><span style="color:navy">, </span><span style="color:#008040">66h</span><span style="color:navy">, </span><span style="color:#008040">66h</span><span style="color:navy">, </span><span style="color:#008040">66h</span><span style="color:gray">; 0 </span><span style="color:#8080ff">; ...
-</span><span style="color:gray">DOSCODE:8FD2                 </span><span style="color:navy">db  </span><span style="color:#008040">66h</span><span style="color:navy">, </span><span style="color:#008040">66h</span><span style="color:navy">, </span><span style="color:#008040">66h</span><span style="color:navy">, </span><span style="color:#008040">66h</span><span style="color:navy">, </span><span style="color:#008040">66h</span><span style="color:navy">, </span><span style="color:#008040">66h</span><span style="color:navy">, </span><span style="color:#008040">66h</span><span style="color:navy">, </span><span style="color:#008040">66h</span><span style="color:gray">; 8
-DOSCODE:8FD2                 </span><span style="color:navy">db </span><span style="color:#008040">0F8h</span><span style="color:navy">,</span><span style="color:#008040">0F6h</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">, </span><span style="color:#008040">4Fh</span><span style="color:navy">,</span><span style="color:#008040">0F4h</span><span style="color:navy">, </span><span style="color:#008040">6Eh</span><span style="color:gray">; 16
-DOSCODE:8FD2                 </span><span style="color:navy">db </span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">, </span><span style="color:#008040">44h</span><span style="color:navy">, </span><span style="color:#008040">44h</span><span style="color:navy">,</span><span style="color:#008040">0F4h</span><span style="color:gray">; 24
-DOSCODE:8FD2                 </span><span style="color:navy">db </span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:gray">; 32
-DOSCODE:8FD2                 </span><span style="color:navy">db </span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">, </span><span style="color:#008040">6Fh</span><span style="color:navy">, </span><span style="color:#008040">66h</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:gray">; 40
-DOSCODE:8FD2                 </span><span style="color:navy">db </span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:gray">; 48
-DOSCODE:8FD2                 </span><span style="color:navy">db </span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0FFh</span><span style="color:navy">,</span><span style="color:#008040">0F4h</span><span style="color:gray">; 56
+DOSCODE:8FD2 </span>CharType        <span style="color:navy">db </span><span style="color:#008040">4 </span><span style="color:navy">dup(</span><span style="color:#008040">66h</span><span style="color:navy">), </span><span style="color:#008040">6</span><span style="color:navy">, </span><span style="color:#008040">0Bh </span><span style="color:navy">dup(</span><span style="color:#008040">66h</span><span style="color:navy">), </span><span style="color:#008040">0F8h</span><span style="color:navy">, </span><span style="color:#008040">0F6h</span><span style="color:navy">, </span><span style="color:#008040">3 </span><span style="color:navy">dup(</span><span style="color:#008040">0FFh</span><span style="color:navy">) </span><span style="color:#8080ff">; ...
+</span><span style="color:gray">DOSCODE:8FD2                 </span><span style="color:navy">db </span><span style="color:#008040">4Fh</span><span style="color:navy">, </span><span style="color:#008040">0F4h</span><span style="color:navy">, </span><span style="color:#008040">6Eh</span><span style="color:navy">, </span><span style="color:#008040">5 </span><span style="color:navy">dup(</span><span style="color:#008040">0FFh</span><span style="color:navy">), </span><span style="color:#008040">2 </span><span style="color:navy">dup(</span><span style="color:#008040">44h</span><span style="color:navy">), </span><span style="color:#008040">0F4h</span><span style="color:navy">, </span><span style="color:#008040">0Dh </span><span style="color:navy">dup(</span><span style="color:#008040">0FFh</span><span style="color:navy">)
+</span><span style="color:gray">DOSCODE:8FD2                 </span><span style="color:navy">db </span><span style="color:#008040">6Fh</span><span style="color:navy">, </span><span style="color:#008040">66h</span><span style="color:navy">, </span><span style="color:#008040">0Fh </span><span style="color:navy">dup(</span><span style="color:#008040">0FFh</span><span style="color:navy">), </span><span style="color:#008040">0F4h
 </span><span style="color:black">DOSCODE:9011
 DOSCODE:9011 </span><span style="color:gray">; =============== S U B R O U T I N E =======================================
 </span><span style="color:black">DOSCODE:9011
@@ -13642,38 +13638,38 @@ DOSCODE:9471 </span><span style="color:gray">reset_return</span><span style="col
 <span style="color:black">DOSCODE:947B                 </span><span style="color:navy">call    </span>LCritDisk
 <span style="color:black">DOSCODE:947E                 </span><span style="color:navy">call    </span>CHECK_VIRT_OPEN
 <span style="color:black">DOSCODE:9481                 </span><span style="color:navy">cli
-</span><span style="color:black">DOSCODE:9481 </span><span style="background:blue"><span style="color:navy">FATALC          endp</span></span><span style="background:blue"> <span style="color:navy">; sp-analysis failed</span></span>
-<span style="color:black">DOSCODE:9481
-</span><span style="color:maroon">DOSCODE:9482                 </span><span style="color:navy">mov     ds:</span>INDOS<span style="color:navy">, </span><span style="color:#ff8000">0
-</span><span style="color:maroon">DOSCODE:9487                 </span><span style="color:navy">mov     ds:</span>WPERR<span style="color:navy">, </span><span style="color:#ff8000">0FFh
-</span><span style="color:maroon">DOSCODE:948C                 </span><span style="color:navy">mov     ds:</span>fAborting<span style="color:navy">, </span><span style="color:#ff8000">0
-</span><span style="color:maroon">DOSCODE:9491                 </span><span style="color:navy">pop     word ptr ds:</span>EXITHOLD
-<span style="color:maroon">DOSCODE:9495                 </span><span style="color:navy">pop     word ptr ds:</span>EXITHOLD<span style="color:navy">+</span><span style="color:green">2
-</span><span style="color:maroon">DOSCODE:9499                 </span><span style="color:navy">mov     ds, ds:</span>CurrentPDB
-<span style="color:maroon">DOSCODE:949D                 </span><span style="color:navy">mov     ss, word ptr ds:</span><span style="color:green">30h
-</span><span style="color:maroon">DOSCODE:94A1                 </span><span style="color:navy">mov     sp, ds:</span><span style="color:green">2Eh      </span>; [PDB.USER_STACK]
-<span style="color:maroon">DOSCODE:94A5                 </span><span style="color:navy">call    </span>restore_world
-<span style="color:maroon">DOSCODE:94A8                 </span><span style="color:navy">pop     es
-</span><span style="color:maroon">DOSCODE:94A9                 </span><span style="color:navy">push    ax
-</span><span style="color:maroon">DOSCODE:94AA                 </span><span style="color:navy">mov     ax, ds
-</span><span style="color:maroon">DOSCODE:94AC                 </span><span style="color:navy">mov     ds, cs:</span>DosDSeg
-<span style="color:maroon">DOSCODE:94B1                 </span><span style="color:navy">mov     ds:</span>TEMPSEG<span style="color:navy">, ax
-</span><span style="color:maroon">DOSCODE:94B4                 </span><span style="color:navy">pop     ax
-</span><span style="color:maroon">DOSCODE:94B5                 </span><span style="color:navy">mov     ds:</span>USER_SP<span style="color:navy">, ax
-</span><span style="color:maroon">DOSCODE:94B8                 </span><span style="color:navy">pop     ax
-</span><span style="color:maroon">DOSCODE:94B9                 </span><span style="color:navy">pop     ax
-</span><span style="color:maroon">DOSCODE:94BA                 </span><span style="color:navy">pop     ax
-</span><span style="color:maroon">DOSCODE:94BB                 </span><span style="color:navy">lahf
-</span><span style="color:maroon">DOSCODE:94BC                 </span><span style="color:navy">xchg    ah, al
-</span><span style="color:maroon">DOSCODE:94BE                 </span><span style="color:navy">and     al, </span><span style="color:green">2
-</span><span style="color:maroon">DOSCODE:94C0                 </span><span style="color:navy">mov     ah, </span><span style="color:green">0F2h
-</span><span style="color:maroon">DOSCODE:94C2                 </span><span style="color:navy">push    ax
-</span><span style="color:maroon">DOSCODE:94C3                 </span><span style="color:navy">push    word ptr ds:</span>EXITHOLD<span style="color:navy">+</span><span style="color:green">2
-</span><span style="color:maroon">DOSCODE:94C7                 </span><span style="color:navy">push    word ptr ds:</span>EXITHOLD
-<span style="color:maroon">DOSCODE:94CB                 </span><span style="color:navy">mov     ax, ds:</span>USER_SP
-<span style="color:maroon">DOSCODE:94CE                 </span><span style="color:navy">mov     ds, ds:</span>TEMPSEG
-<span style="color:maroon">DOSCODE:94D2                 </span><span style="color:navy">iret
-</span><span style="color:black">DOSCODE:94D3
+</span><span style="color:black">DOSCODE:9482                 </span><span style="color:navy">mov     ds:</span>INDOS<span style="color:navy">, </span><span style="color:#ff8000">0
+</span><span style="color:black">DOSCODE:9487                 </span><span style="color:navy">mov     ds:</span>WPERR<span style="color:navy">, </span><span style="color:#ff8000">0FFh
+</span><span style="color:black">DOSCODE:948C                 </span><span style="color:navy">mov     ds:</span>fAborting<span style="color:navy">, </span><span style="color:#ff8000">0
+</span><span style="color:black">DOSCODE:9491                 </span><span style="color:navy">pop     word ptr ds:</span>EXITHOLD
+<span style="color:black">DOSCODE:9495                 </span><span style="color:navy">pop     word ptr ds:</span>EXITHOLD<span style="color:navy">+</span><span style="color:green">2
+</span><span style="color:black">DOSCODE:9499                 </span><span style="color:navy">mov     ds, ds:</span>CurrentPDB
+<span style="color:black">DOSCODE:949D                 </span><span style="color:navy">mov     ss, word ptr ds:</span><span style="color:green">30h
+</span><span style="color:black">DOSCODE:94A1                 </span><span style="color:navy">mov     sp, ds:</span><span style="color:green">2Eh      </span>; [PDB.USER_STACK]
+<span style="color:black">DOSCODE:94A5                 </span><span style="color:navy">call    </span>restore_world
+<span style="color:black">DOSCODE:94A8                 </span><span style="color:navy">pop     es
+</span><span style="color:black">DOSCODE:94A9                 </span><span style="color:navy">push    ax
+</span><span style="color:black">DOSCODE:94AA                 </span><span style="color:navy">mov     ax, ds
+</span><span style="color:black">DOSCODE:94AC                 </span><span style="color:navy">mov     ds, cs:</span>DosDSeg
+<span style="color:black">DOSCODE:94B1                 </span><span style="color:navy">mov     ds:</span>TEMPSEG<span style="color:navy">, ax
+</span><span style="color:black">DOSCODE:94B4                 </span><span style="color:navy">pop     ax
+</span><span style="color:black">DOSCODE:94B5                 </span><span style="color:navy">mov     ds:</span>USER_SP<span style="color:navy">, ax
+</span><span style="color:black">DOSCODE:94B8                 </span><span style="color:navy">pop     ax
+</span><span style="color:black">DOSCODE:94B9                 </span><span style="color:navy">pop     ax
+</span><span style="color:black">DOSCODE:94BA                 </span><span style="color:navy">pop     ax
+</span><span style="color:black">DOSCODE:94BB                 </span><span style="color:navy">lahf
+</span><span style="color:black">DOSCODE:94BC                 </span><span style="color:navy">xchg    ah, al
+</span><span style="color:black">DOSCODE:94BE                 </span><span style="color:navy">and     al, </span><span style="color:green">2
+</span><span style="color:black">DOSCODE:94C0                 </span><span style="color:navy">mov     ah, </span><span style="color:green">0F2h
+</span><span style="color:black">DOSCODE:94C2                 </span><span style="color:navy">push    ax
+</span><span style="color:black">DOSCODE:94C3                 </span><span style="color:navy">push    word ptr ds:</span>EXITHOLD<span style="color:navy">+</span><span style="color:green">2
+</span><span style="color:black">DOSCODE:94C7                 </span><span style="color:navy">push    word ptr ds:</span>EXITHOLD
+<span style="color:black">DOSCODE:94CB                 </span><span style="color:navy">mov     ax, ds:</span>USER_SP
+<span style="color:black">DOSCODE:94CE                 </span><span style="color:navy">mov     ds, ds:</span>TEMPSEG
+<span style="color:black">DOSCODE:94D2                 </span><span style="color:navy">iret
+</span><span style="color:black">DOSCODE:94D2 </span><span style="background:blue"><span style="color:navy">FATALC          endp</span></span><span style="background:blue"> <span style="color:navy">; sp-analysis failed</span></span>
+<span style="color:black">DOSCODE:94D2
+DOSCODE:94D3
 DOSCODE:94D3 </span><span style="color:gray">; =============== S U B R O U T I N E =======================================
 </span><span style="color:black">DOSCODE:94D3
 DOSCODE:94D3
@@ -14033,7 +14029,7 @@ DOSCODE:9716 </span><span style="color:gray">NO_CHANGE</span><span style="color:
 DOSCODE:971C </span><span style="color:gray">; ---------------------------------------------------------------------------
 </span><span style="color:black">DOSCODE:971C </span><span style="color:gray">; START OF FUNCTION CHUNK FOR FAT_GOT_DPB
 </span><span style="color:black">DOSCODE:971C
-DOSCODE:971C </span><span style="color:gray">FATERR</span><span style="color:navy">:                                 </span><span style="color:green">; ...
+DOSCODE:971C </span><span style="color:gray">FAT_operation</span><span style="color:navy">:                          </span><span style="color:green">; ...
 </span><span style="color:black">DOSCODE:971C                 </span><span style="color:navy">mov     word ptr es:[bp+</span><span style="color:#ff8000">1Fh</span><span style="color:navy">], </span><span style="color:green">0FFFFh </span>; -1
 <span style="color:black">DOSCODE:9722                 </span><span style="color:navy">and     di, </span><span style="color:green">0FFh
 </span><span style="color:black">DOSCODE:9726                 </span><span style="color:navy">mov     ds:</span>ALLOWED<span style="color:navy">, </span><span style="color:#ff8000">18h
@@ -14074,7 +14070,7 @@ DOSCODE:973D                 </span><span style="color:navy">push    ss
 </span><span style="color:black">DOSCODE:9769                 </span><span style="color:navy">pop     es
 </span><span style="color:black">DOSCODE:976A                 </span><span style="color:navy">mov     di, ds:</span>DEVCALL_REQSTAT
 <span style="color:black">DOSCODE:976E                 </span><span style="color:navy">or      di, di
-</span><span style="color:black">DOSCODE:9770                 </span><span style="color:navy">js      short </span><span style="color:gray">FATERR
+</span><span style="color:black">DOSCODE:9770                 </span><span style="color:navy">js      short </span><span style="color:gray">FAT_operation
 </span><span style="color:black">DOSCODE:9772                 </span><span style="color:navy">xor     ah, ah
 </span><span style="color:black">DOSCODE:9774                 </span><span style="color:navy">xchg    ah, es:[bp+</span><span style="color:#ff8000">18h</span><span style="color:navy">] </span>; [ES:BP+DPB.FIRST_ACCESS]
 <span style="color:black">DOSCODE:9778                 </span><span style="color:navy">mov     al, ds:</span>THISDRV
@@ -14250,7 +14246,7 @@ DOSCODE:985F </span><span style="color:gray">GOTGETBUF</span><span style="color:
 </span><span style="color:black">DOSCODE:98CF </span><span style="color:gray">; ---------------------------------------------------------------------------
 </span><span style="color:black">DOSCODE:98CF
 DOSCODE:98CF </span><span style="color:gray">FATERRJ</span><span style="color:navy">:                                </span><span style="color:green">; ...
-</span><span style="color:black">DOSCODE:98CF                 </span><span style="color:navy">jmp     </span><span style="color:gray">FATERR
+</span><span style="color:black">DOSCODE:98CF                 </span><span style="color:navy">jmp     </span><span style="color:gray">FAT_operation
 </span><span style="color:black">DOSCODE:98CF </span>FAT_GOT_DPB     endp
 <span style="color:black">DOSCODE:98CF
 DOSCODE:98D2
@@ -16468,7 +16464,7 @@ DOSCODE:A75E </span>$COMMIT<span style="color:navy">:                           
 <span style="color:maroon">DOSCODE:A772                 </span><span style="color:navy">mov     ah, </span><span style="color:green">68h
 </span><span style="color:black">DOSCODE:A774 </span><span style="color:gray">; START OF FUNCTION CHUNK FOR $READ
 </span><span style="color:black">DOSCODE:A774
-DOSCODE:A774 </span><span style="color:gray">CommitOk</span><span style="color:navy">:                               </span><span style="color:green">; ...
+DOSCODE:A774 </span><span style="color:gray">Commit_OK</span><span style="color:navy">:                              </span><span style="color:green">; ...
 </span><span style="color:black">DOSCODE:A774                 </span><span style="color:navy">jmp     short </span>Close_OK
 <span style="color:black">DOSCODE:A776 </span><span style="color:gray">; ---------------------------------------------------------------------------
 </span><span style="color:black">DOSCODE:A776
@@ -16534,7 +16530,7 @@ DOSCODE:A7D1 </span>movhandl<span style="color:navy">:                          
 </span><span style="color:black">DOSCODE:A7E0 </span><span style="color:gray">; START OF FUNCTION CHUNK FOR $READ
 </span><span style="color:black">DOSCODE:A7E0
 DOSCODE:A7E0 </span>ok_done<span style="color:navy">:                                </span><span style="color:green">; ...
-</span><span style="color:black">DOSCODE:A7E0                 </span><span style="color:navy">jmp     short </span><span style="color:gray">CommitOk
+</span><span style="color:black">DOSCODE:A7E0                 </span><span style="color:navy">jmp     short </span><span style="color:gray">Commit_OK
 </span><span style="color:black">DOSCODE:A7E0 </span><span style="color:gray">; END OF FUNCTION CHUNK FOR $READ
 </span><span style="color:maroon">DOSCODE:A7E2 </span><span style="color:gray">; ---------------------------------------------------------------------------
 </span><span style="color:maroon">DOSCODE:A7E2
@@ -16596,7 +16592,7 @@ DOSCODE:A831 </span>no_memory<span style="color:navy">:                         
 </span><span style="color:maroon">DOSCODE:A832                 </span><span style="color:navy">mov     al, </span><span style="color:#ff8000">8
 </span><span style="color:black">DOSCODE:A834 </span><span style="color:gray">; START OF FUNCTION CHUNK FOR $READ
 </span><span style="color:black">DOSCODE:A834
-DOSCODE:A834 </span><span style="color:gray">CommitErrorj2</span><span style="color:navy">:                          </span><span style="color:green">; ...
+DOSCODE:A834 </span><span style="color:gray">jmp_to_jmp_CommitError</span><span style="color:navy">:                 </span><span style="color:green">; ...
 </span><span style="color:black">DOSCODE:A834                 </span><span style="color:navy">jmp     short </span><span style="color:gray">CommitErrorj
 </span><span style="color:black">DOSCODE:A834 </span><span style="color:gray">; END OF FUNCTION CHUNK FOR $READ
 </span><span style="color:maroon">DOSCODE:A836 </span><span style="color:gray">; ---------------------------------------------------------------------------
@@ -16605,8 +16601,8 @@ DOSCODE:A836 </span>invalid_func<span style="color:navy">:                      
 </span><span style="color:maroon">DOSCODE:A836                 </span><span style="color:navy">mov     al, </span><span style="color:#ff8000">1
 </span><span style="color:black">DOSCODE:A838 </span><span style="color:gray">; START OF FUNCTION CHUNK FOR $READ
 </span><span style="color:black">DOSCODE:A838
-DOSCODE:A838 </span><span style="color:gray">CommitErrorj3</span><span style="color:navy">:                          </span><span style="color:green">; ...
-</span><span style="color:black">DOSCODE:A838                 </span><span style="color:navy">jmp     short </span><span style="color:gray">CommitErrorj2
+DOSCODE:A838 </span><span style="color:gray">ExtHandle_err</span><span style="color:navy">:                          </span><span style="color:green">; ...
+</span><span style="color:black">DOSCODE:A838                 </span><span style="color:navy">jmp     short </span><span style="color:gray">jmp_to_jmp_CommitError
 </span><span style="color:black">DOSCODE:A838 </span><span style="color:gray">; END OF FUNCTION CHUNK FOR $READ
 </span><span style="color:black">DOSCODE:A83A
 DOSCODE:A83A </span><span style="color:gray">; =============== S U B R O U T I N E =======================================
@@ -16631,7 +16627,7 @@ DOSCODE:A83D </span>ReadDo<span style="color:navy">:                            
 <span style="color:black">DOSCODE:A848                 </span><span style="color:navy">jnb     short </span><span style="color:gray">ReadSetup
 </span><span style="color:black">DOSCODE:A84A
 DOSCODE:A84A </span>ReadError<span style="color:navy">:                              </span><span style="color:green">; ...
-</span><span style="color:black">DOSCODE:A84A                 </span><span style="color:navy">jmp     short </span><span style="color:gray">CommitErrorj3
+</span><span style="color:black">DOSCODE:A84A                 </span><span style="color:navy">jmp     short </span><span style="color:gray">ExtHandle_err
 </span><span style="color:black">DOSCODE:A84C </span><span style="color:gray">; ---------------------------------------------------------------------------
 </span><span style="color:black">DOSCODE:A84C
 DOSCODE:A84C </span><span style="color:gray">ReadSetup</span><span style="color:navy">:                              </span><span style="color:green">; ...
@@ -18002,7 +17998,7 @@ DOSCODE:B01F </span>ChModGet<span style="color:navy">:                          
 <span style="color:maroon">DOSCODE:B027                 </span><span style="color:navy">mov     [si+</span><span style="color:#ff8000">4</span><span style="color:navy">], ax
 </span><span style="color:black">DOSCODE:B02A </span><span style="color:gray">; START OF FUNCTION CHUNK FOR $UNLINK
 </span><span style="color:black">DOSCODE:B02A
-DOSCODE:B02A </span><span style="color:gray">OpenOkj2</span><span style="color:navy">:                               </span><span style="color:green">; ...
+DOSCODE:B02A </span><span style="color:gray">ChModOKj</span><span style="color:navy">:                               </span><span style="color:green">; ...
 </span><span style="color:black">DOSCODE:B02A                 </span><span style="color:navy">jmp     short </span>OpenOKJ
 <span style="color:black">DOSCODE:B02A </span><span style="color:gray">; END OF FUNCTION CHUNK FOR $UNLINK
 </span><span style="color:maroon">DOSCODE:B02C </span><span style="color:gray">; ---------------------------------------------------------------------------
@@ -18013,8 +18009,8 @@ DOSCODE:B02C </span>ChModSet<span style="color:navy">:                          
 <span style="color:maroon">DOSCODE:B031                 </span><span style="color:navy">jb      short </span>ChModE
 <span style="color:black">DOSCODE:B033 </span><span style="color:gray">; START OF FUNCTION CHUNK FOR $UNLINK
 </span><span style="color:black">DOSCODE:B033
-DOSCODE:B033 </span><span style="color:gray">OpenOkj3</span><span style="color:navy">:                               </span><span style="color:green">; ...
-</span><span style="color:black">DOSCODE:B033                 </span><span style="color:navy">jmp     short </span><span style="color:gray">OpenOkj2
+DOSCODE:B033 </span><span style="color:gray">ChModOK</span><span style="color:navy">:                                </span><span style="color:green">; ...
+</span><span style="color:black">DOSCODE:B033                 </span><span style="color:navy">jmp     short </span><span style="color:gray">ChModOKj
 </span><span style="color:black">DOSCODE:B035 </span><span style="color:gray">; ---------------------------------------------------------------------------
 </span><span style="color:black">DOSCODE:B035
 DOSCODE:B035 </span>ChModErr<span style="color:navy">:                               </span><span style="color:green">; ...
@@ -18049,7 +18045,7 @@ DOSCODE:B039                 </span><span style="color:navy">push    cx
 <span style="color:black">DOSCODE:B057                 </span><span style="color:navy">jb      short </span>UnlinkE
 <span style="color:black">DOSCODE:B059
 DOSCODE:B059 </span>UnLinkOK<span style="color:navy">:                               </span><span style="color:green">; ...
-</span><span style="color:black">DOSCODE:B059                 </span><span style="color:navy">jmp     short </span><span style="color:gray">OpenOkj3
+</span><span style="color:black">DOSCODE:B059                 </span><span style="color:navy">jmp     short </span><span style="color:gray">ChModOK
 </span><span style="color:black">DOSCODE:B05B </span><span style="color:gray">; ---------------------------------------------------------------------------
 </span><span style="color:black">DOSCODE:B05B
 DOSCODE:B05B </span>NotFound<span style="color:navy">:                               </span><span style="color:green">; ...
@@ -19070,7 +19066,7 @@ DOSCODE:B707 </span>first<span style="color:navy">:
 DOSCODE:B71D </span>second<span style="color:navy">:
 </span><span style="color:maroon">DOSCODE:B71D                 </span><span style="color:navy">mov     es, ax
 </span><span style="color:maroon">DOSCODE:B71F
-DOSCODE:B71F </span>_NextRec<span style="color:navy">:
+DOSCODE:B71F </span>_NextRec<span style="color:navy">:                               </span><span style="color:green">; ...
 </span><span style="color:maroon">DOSCODE:B71F                 </span><span style="color:navy">mov     cx, </span><span style="color:#ff8000">204h
 </span><span style="color:maroon">DOSCODE:B722
 DOSCODE:B722 </span>_norm_agn<span style="color:navy">:                              </span><span style="color:green">; ...
@@ -19115,13 +19111,13 @@ DOSCODE:B73D </span>_SI_ok<span style="color:navy">:                            
 </span><span style="color:maroon">DOSCODE:B75B
 DOSCODE:B75B </span>TryEnum<span style="color:navy">:                                </span><span style="color:green">; ...
 </span><span style="color:maroon">DOSCODE:B75B                 </span><span style="color:navy">cmp     al, </span><span style="color:green">0B2h        </span>; ENMREC
-<span style="color:maroon">DOSCODE:B75D                 </span><span style="color:navy">jnz     short </span>CorruptExe ; db 75h,6Bh
+<span style="color:maroon">DOSCODE:B75D                 </span><span style="color:navy">jnz     short near ptr </span>NextRec_2<span style="color:navy">+</span><span style="color:green">1 </span>; db 75h,6Bh
 <span style="color:maroon">DOSCODE:B75F                 </span><span style="color:navy">rep movsb
 </span><span style="color:maroon">DOSCODE:B761
 DOSCODE:B761 </span>TryNext<span style="color:navy">:                                </span><span style="color:green">; ...
 </span><span style="color:maroon">DOSCODE:B761                 </span><span style="color:navy">xchg    ax, dx
 </span><span style="color:maroon">DOSCODE:B762                 </span><span style="color:navy">test    al, </span><span style="color:green">1
-</span><span style="color:maroon">DOSCODE:B764                 </span><span style="color:navy">jz      short </span>NextRec   ; db 74h,0BAh
+</span><span style="color:maroon">DOSCODE:B764                 </span><span style="color:navy">jz      short </span>_NextRec  ; db 74h,0BAh
 <span style="color:maroon">DOSCODE:B766                 </span><span style="color:navy">nop
 </span><span style="color:maroon">DOSCODE:B767                 </span><span style="color:navy">nop
 </span><span style="color:maroon">DOSCODE:B768
@@ -19151,24 +19147,27 @@ DOSCODE:B788 </span>NextRec_1<span style="color:navy">:
 <span style="color:maroon">DOSCODE:B792                 </span><span style="color:navy">mov     dx, ds
 </span><span style="color:maroon">DOSCODE:B794                 </span><span style="color:navy">sub     dx, ax
 </span><span style="color:maroon">DOSCODE:B796                 </span><span style="color:navy">mov     ds, dx
-</span><span style="color:maroon">DOSCODE:B798                 </span><span style="color:navy">or      si, </span><span style="color:green">0FFF0h
+</span><span style="color:maroon">DOSCODE:B798                 </span>assume ds:nothing
+<span style="color:maroon">DOSCODE:B798                 </span><span style="color:navy">or      si, </span><span style="color:green">0FFF0h
 </span><span style="color:maroon">DOSCODE:B79B
 DOSCODE:B79B </span>SI_ok_1<span style="color:navy">:                                </span><span style="color:green">; ...
 </span><span style="color:maroon">DOSCODE:B79B                 </span><span style="color:navy">mov     ax, di
 </span><span style="color:maroon">DOSCODE:B79D                 </span><span style="color:navy">not     ax
 </span><span style="color:maroon">DOSCODE:B79F                 </span><span style="color:navy">shr     ax, cl
-</span><span style="color:maroon">DOSCODE:B7A1                 </span><span style="color:navy">jz      short </span>DI_ok_1
+</span><span style="color:maroon">DOSCODE:B7A1                 </span><span style="color:navy">jz      short </span>scan_patch2
 <span style="color:maroon">DOSCODE:B7A3                 </span><span style="color:navy">mov     dx, es
 </span><span style="color:maroon">DOSCODE:B7A5                 </span><span style="color:navy">sub     dx, ax
 </span><span style="color:maroon">DOSCODE:B7A7                 </span><span style="color:navy">mov     es, dx
-</span><span style="color:maroon">DOSCODE:B7A9                 </span><span style="color:navy">or      di, </span><span style="color:green">0FFF0h
+</span><span style="color:maroon">DOSCODE:B7A9                 </span>assume es:nothing
+<span style="color:maroon">DOSCODE:B7A9                 </span><span style="color:navy">or      di, </span><span style="color:green">0FFF0h
 </span><span style="color:maroon">DOSCODE:B7AC
-DOSCODE:B7AC </span>scan_patch2<span style="color:navy">:                            </span><span style="color:#8080ff">; ...
+DOSCODE:B7AC </span>scan_patch2<span style="color:navy">:                            </span><span style="color:green">; ...
 </span><span style="color:maroon">DOSCODE:B7AC                 </span><span style="color:navy">mov     bx, es
 </span><span style="color:maroon">DOSCODE:B7AE                 </span><span style="color:navy">mov     ax, ds
 </span><span style="color:maroon">DOSCODE:B7B0                 </span><span style="color:navy">dec     ax
 </span><span style="color:maroon">DOSCODE:B7B1                 </span><span style="color:navy">mov     ds, ax
-</span><span style="color:maroon">DOSCODE:B7B3                 </span><span style="color:navy">mov     es, ax
+</span><span style="color:maroon">DOSCODE:B7B3                 </span>assume ds:nothing
+<span style="color:maroon">DOSCODE:B7B3                 </span><span style="color:navy">mov     es, ax
 </span><span style="color:maroon">DOSCODE:B7B5                 </span><span style="color:navy">mov     di, </span><span style="color:#ff8000">0Fh
 </span><span style="color:maroon">DOSCODE:B7B8                 </span><span style="color:navy">mov     cx, </span><span style="color:#ff8000">10h
 </span><span style="color:maroon">DOSCODE:B7BB                 </span><span style="color:navy">mov     al, </span><span style="color:#ff8000">0FFh
@@ -19178,9 +19177,10 @@ DOSCODE:B7AC </span>scan_patch2<span style="color:navy">:                       
 </span><span style="color:maroon">DOSCODE:B7C2                 </span><span style="color:navy">mov     ax, bx
 </span><span style="color:maroon">DOSCODE:B7C4                 </span><span style="color:navy">dec     ax
 </span><span style="color:maroon">DOSCODE:B7C5                 </span><span style="color:navy">mov     es, ax
-</span><span style="color:maroon">DOSCODE:B7C7                 </span><span style="color:navy">mov     di, </span><span style="color:#ff8000">0Fh
+</span><span style="color:maroon">DOSCODE:B7C7                 </span>assume es:nothing
+<span style="color:maroon">DOSCODE:B7C7                 </span><span style="color:navy">mov     di, </span><span style="color:#ff8000">0Fh
 </span><span style="color:maroon">DOSCODE:B7CA
-DOSCODE:B7CA </span>NextRec_2<span style="color:navy">:
+DOSCODE:B7CA </span>NextRec_2<span style="color:navy">:                              </span><span style="color:red">; ...
 </span><span style="color:maroon">DOSCODE:B7CA                 </span><span style="color:navy">mov     cl, </span><span style="color:#ff8000">4
 </span><span style="color:maroon">DOSCODE:B7CC                 </span><span style="color:navy">mov     ax, si
 </span><span style="color:maroon">DOSCODE:B7CE                 </span><span style="color:navy">not     ax
@@ -19196,21 +19196,22 @@ DOSCODE:B7DE </span>SI_ok_2<span style="color:navy">:                           
 </span><span style="color:maroon">DOSCODE:B7DE                 </span><span style="color:navy">mov     ax, di
 </span><span style="color:maroon">DOSCODE:B7E0                 </span><span style="color:navy">not     ax
 </span><span style="color:maroon">DOSCODE:B7E2                 </span><span style="color:navy">shr     ax, cl
-</span><span style="color:maroon">DOSCODE:B7E4                 </span><span style="color:navy">jz      short </span>DI_ok_2
+</span><span style="color:maroon">DOSCODE:B7E4                 </span><span style="color:navy">jz      short </span>scan_patch3
 <span style="color:maroon">DOSCODE:B7E6                 </span><span style="color:navy">mov     dx, es
 </span><span style="color:maroon">DOSCODE:B7E8                 </span><span style="color:navy">sub     dx, ax
 </span><span style="color:maroon">DOSCODE:B7EA                 </span><span style="color:navy">mov     es, dx
 </span><span style="color:maroon">DOSCODE:B7EC                 </span>assume es:nothing
 <span style="color:maroon">DOSCODE:B7EC                 </span><span style="color:navy">or      di, </span><span style="color:green">0FFF0h
 </span><span style="color:maroon">DOSCODE:B7F0
-DOSCODE:B7F0 </span>scan_patch3<span style="color:navy">:                            </span><span style="color:#8080ff">; ...
+DOSCODE:B7F0 </span>scan_patch3<span style="color:navy">:                            </span><span style="color:green">; ...
 </span><span style="color:maroon">DOSCODE:B7F0                 </span><span style="color:navy">mov     bx, es
 </span><span style="color:maroon">DOSCODE:B7F2                 </span><span style="color:navy">mov     ax, ds
 </span><span style="color:maroon">DOSCODE:B7F4                 </span><span style="color:navy">dec     ax
 </span><span style="color:maroon">DOSCODE:B7F5                 </span><span style="color:navy">mov     ds, ax
 </span><span style="color:maroon">DOSCODE:B7F7                 </span>assume ds:nothing
 <span style="color:maroon">DOSCODE:B7F7                 </span><span style="color:navy">mov     es, ax
-</span><span style="color:maroon">DOSCODE:B7F9                 </span><span style="color:navy">mov     di, </span><span style="color:#ff8000">0Fh
+</span><span style="color:maroon">DOSCODE:B7F9                 </span>assume es:nothing
+<span style="color:maroon">DOSCODE:B7F9                 </span><span style="color:navy">mov     di, </span><span style="color:#ff8000">0Fh
 </span><span style="color:maroon">DOSCODE:B7FC                 </span><span style="color:navy">mov     cx, </span><span style="color:#ff8000">10h
 </span><span style="color:maroon">DOSCODE:B7FF                 </span><span style="color:navy">mov     al, </span><span style="color:#ff8000">0FFh
 </span><span style="color:maroon">DOSCODE:B801                 </span><span style="color:navy">repe scasb
@@ -19238,14 +19239,14 @@ DOSCODE:B821 </span>SI_ok_3<span style="color:navy">:                           
 </span><span style="color:maroon">DOSCODE:B821                 </span><span style="color:navy">mov     ax, di
 </span><span style="color:maroon">DOSCODE:B823                 </span><span style="color:navy">not     ax
 </span><span style="color:maroon">DOSCODE:B825                 </span><span style="color:navy">shr     ax, cl
-</span><span style="color:maroon">DOSCODE:B827                 </span><span style="color:navy">jz      short </span>DI_ok_3
+</span><span style="color:maroon">DOSCODE:B827                 </span><span style="color:navy">jz      short </span>scan_com
 <span style="color:maroon">DOSCODE:B829                 </span><span style="color:navy">mov     dx, es
 </span><span style="color:maroon">DOSCODE:B82B                 </span><span style="color:navy">sub     dx, ax
 </span><span style="color:maroon">DOSCODE:B82D                 </span><span style="color:navy">mov     es, dx
 </span><span style="color:maroon">DOSCODE:B82F                 </span>assume es:nothing
 <span style="color:maroon">DOSCODE:B82F                 </span><span style="color:navy">or      di, </span><span style="color:green">0FFF0h
 </span><span style="color:maroon">DOSCODE:B832
-DOSCODE:B832 </span>scan_com<span style="color:navy">:                               </span><span style="color:#8080ff">; ...
+DOSCODE:B832 </span>scan_com<span style="color:navy">:                               </span><span style="color:green">; ...
 </span><span style="color:maroon">DOSCODE:B832                 </span><span style="color:navy">lodsb
 </span><span style="color:maroon">DOSCODE:B833                 </span><span style="color:navy">mov     dl, al
 </span><span style="color:maroon">DOSCODE:B835                 </span><span style="color:navy">dec     si
@@ -19264,8 +19265,8 @@ DOSCODE:B832 </span>scan_com<span style="color:navy">:                          
 </span><span style="color:maroon">DOSCODE:B848
 DOSCODE:B848 </span>_TryEnum<span style="color:navy">:                               </span><span style="color:green">; ...
 </span><span style="color:maroon">DOSCODE:B848                 </span><span style="color:navy">cmp     al, </span><span style="color:green">0B2h
-</span><span style="color:maroon">DOSCODE:B84A                 </span><span style="color:navy">jnz     short </span>CorruptExe
-<span style="color:maroon">DOSCODE:B84C                 </span><span style="color:navy">rep movsb
+</span><span style="color:maroon">DOSCODE:B84A                 </span><span style="color:navy">jnz     short near ptr </span>ep_chkpatch2<span style="color:navy">+</span><span style="color:green">2
+</span><span style="color:maroon">DOSCODE:B84C                 </span><span style="color:navy">rep movsb
 </span><span style="color:maroon">DOSCODE:B84E
 DOSCODE:B84E </span>_TryNext<span style="color:navy">:                               </span><span style="color:green">; ...
 </span><span style="color:maroon">DOSCODE:B84E                 </span><span style="color:navy">mov     al, dl
@@ -19513,12 +19514,8 @@ DOSCODE:B9F1 </span>rpexit<span style="color:navy">:                            
 </span><span style="color:maroon">DOSCODE:B9F8                 </span><span style="color:navy">pop     ax
 </span><span style="color:maroon">DOSCODE:B9F9                 </span><span style="color:navy">retn
 </span><span style="color:maroon">DOSCODE:B9F9 </span><span style="color:gray">; ---------------------------------------------------------------------------
-DOSCODE:B9FA </span>CPScanPattern   <span style="color:navy">db  </span><span style="color:#008040">89h</span><span style="color:navy">, </span><span style="color:#008040">26h</span><span style="color:navy">, </span><span style="color:#008040">48h</span><span style="color:navy">, </span><span style="color:#008040">01h  </span><span style="color:gray">; 0 </span><span style="color:#8080ff">; ...
-</span><span style="color:gray">DOSCODE:B9FA                 </span><span style="color:navy">db  </span><span style="color:#008040">8Ch</span><span style="color:navy">, </span><span style="color:#008040">0Eh</span><span style="color:navy">, </span><span style="color:#008040">4Ch</span><span style="color:navy">, </span><span style="color:#008040">01h  </span><span style="color:gray">; 4
-DOSCODE:B9FA                 </span><span style="color:navy">db </span><span style="color:#008040">0C7h</span><span style="color:navy">, </span><span style="color:#008040">06h</span><span style="color:navy">, </span><span style="color:#008040">4Ah</span><span style="color:navy">, </span><span style="color:#008040">01h  </span><span style="color:gray">; 8
-DOSCODE:B9FA                 </span><span style="color:navy">db  </span><span style="color:#008040">00h</span><span style="color:navy">, </span><span style="color:#008040">01h</span><span style="color:navy">, </span><span style="color:#008040">8Ch</span><span style="color:navy">, </span><span style="color:#008040">0Eh  </span><span style="color:gray">; 12
-DOSCODE:B9FA                 </span><span style="color:navy">db  </span><span style="color:#008040">13h</span><span style="color:navy">, </span><span style="color:#008040">01h</span><span style="color:navy">,</span><span style="color:#008040">0B8h</span><span style="color:navy">, </span><span style="color:#008040">20h  </span><span style="color:gray">; 16
-DOSCODE:B9FA                 </span><span style="color:navy">db  </span><span style="color:#008040">01h</span><span style="color:navy">,</span><span style="color:#008040">0BEh</span><span style="color:navy">, </span><span style="color:#008040">00h</span><span style="color:navy">, </span><span style="color:#008040">01h  </span><span style="color:gray">; 20
+DOSCODE:B9FA </span>CPScanPattern   <span style="color:navy">db </span><span style="color:#008040">89h</span><span style="color:navy">, </span><span style="color:#008040">26h</span><span style="color:navy">, </span><span style="color:#008040">48h</span><span style="color:navy">, </span><span style="color:#008040">1</span><span style="color:navy">, </span><span style="color:#008040">8Ch</span><span style="color:navy">, </span><span style="color:#008040">0Eh</span><span style="color:navy">, </span><span style="color:#008040">4Ch</span><span style="color:navy">, </span><span style="color:#008040">1</span><span style="color:navy">, </span><span style="color:#008040">0C7h</span><span style="color:navy">, </span><span style="color:#008040">6</span><span style="color:navy">, </span><span style="color:#008040">4Ah</span><span style="color:navy">, </span><span style="color:#008040">1 </span><span style="color:#8080ff">; ...
+</span><span style="color:gray">DOSCODE:B9FA                 </span><span style="color:navy">db </span><span style="color:#008040">0</span><span style="color:navy">, </span><span style="color:#008040">1</span><span style="color:navy">, </span><span style="color:#008040">8Ch</span><span style="color:navy">, </span><span style="color:#008040">0Eh</span><span style="color:navy">, </span><span style="color:#008040">13h</span><span style="color:navy">, </span><span style="color:#008040">1</span><span style="color:navy">, </span><span style="color:#008040">0B8h</span><span style="color:navy">, </span><span style="color:#008040">20h</span><span style="color:navy">, </span><span style="color:#008040">1</span><span style="color:navy">, </span><span style="color:#008040">0BEh</span><span style="color:navy">, </span><span style="color:#008040">0</span><span style="color:navy">, </span><span style="color:#008040">1
 </span><span style="color:black">DOSCODE:BA12
 DOSCODE:BA12 </span><span style="color:gray">; =============== S U B R O U T I N E =======================================
 </span><span style="color:black">DOSCODE:BA12
@@ -20237,7 +20234,7 @@ DOSDATA:0000 </span>DOSDATA         segment byte public &#039;DATA&#039; use16
 </span><span style="color:gray">DOSDATA:004C                 </span><span style="color:navy">dw </span><span style="color:#008040">8004h                </span>; DEVTYP|ISNULL
 <span style="color:gray">DOSDATA:004E                 </span><span style="color:navy">dw offset </span>SNULDEV
 <span style="color:gray">DOSDATA:0050 </span><span style="color:navy">off_BFC0        dw offset </span>INULDEV       <span style="color:#8080ff">; ...
-</span><span style="color:gray">DOSDATA:0052 </span><span style="color:navy">asc_BFC2        db &#039;NUL     &#039;           </span><span style="color:#8080ff">; ...
+</span><span style="color:gray">DOSDATA:0052 </span><span style="color:navy">aNul            db &#039;NUL     &#039;           </span><span style="color:#8080ff">; ...
 </span><span style="color:gray">DOSDATA:005A </span>SPLICES         <span style="color:navy">db </span><span style="color:#008040">0                    </span><span style="color:#8080ff">; ...
 </span><span style="color:gray">DOSDATA:005B </span>Special_Entries <span style="color:navy">dw </span><span style="color:#008040">0
 </span><span style="color:gray">DOSDATA:005D </span>UU_IFS_DOS_CALL <span style="color:navy">dd </span><span style="color:#008040">0                    </span><span style="color:#8080ff">; ...
@@ -20511,16 +20508,16 @@ DOSDATA:0000 </span>DOSDATA         segment byte public &#039;DATA&#039; use16
 </span><span style="color:gray">DOSDATA:0B31                 </span><span style="color:navy">db </span><span style="color:#008040">254</span><span style="color:navy">, </span><span style="color:#008040">255
 </span><span style="color:gray">DOSDATA:0BB1 </span>FILE_CHAR_TAB   <span style="color:navy">dw </span><span style="color:#008040">22                   </span><span style="color:#8080ff">; ...
 </span><span style="color:gray">DOSDATA:0BB3                 </span><span style="color:navy">db </span><span style="color:#008040">1</span><span style="color:navy">, </span><span style="color:#008040">0</span><span style="color:navy">, </span><span style="color:#008040">255</span><span style="color:navy">, </span><span style="color:#008040">2 </span><span style="color:navy">dup(</span><span style="color:#008040">0</span><span style="color:navy">), </span><span style="color:#008040">32</span><span style="color:navy">, </span><span style="color:#008040">2</span><span style="color:navy">, </span><span style="color:#008040">14
-</span><span style="color:gray">DOSDATA:0BBB                 </span><span style="color:navy">db &#039;.&quot;/\[]:|&lt;&gt;+=;,&#039;
+</span><span style="color:gray">DOSDATA:0BBB </span><span style="color:navy">a_              db &#039;.&quot;/\[]:|&lt;&gt;+=;,&#039;
 </span><span style="color:gray">DOSDATA:0BC9                 </span><span style="color:navy">db </span><span style="color:#008040">24 </span><span style="color:navy">dup(</span><span style="color:#008040">0</span><span style="color:navy">)
 </span><span style="color:gray">DOSDATA:0BE1 </span>COLLATE_TAB     <span style="color:navy">dw </span><span style="color:#008040">256                  </span><span style="color:#8080ff">; ...
 </span><span style="color:gray">DOSDATA:0BE3                 </span><span style="color:navy">db </span><span style="color:#008040">0</span><span style="color:navy">, </span><span style="color:#008040">1</span><span style="color:navy">, </span><span style="color:#008040">2</span><span style="color:navy">, </span><span style="color:#008040">3</span><span style="color:navy">, </span><span style="color:#008040">4</span><span style="color:navy">, </span><span style="color:#008040">5</span><span style="color:navy">, </span><span style="color:#008040">6</span><span style="color:navy">, </span><span style="color:#008040">7</span><span style="color:navy">, </span><span style="color:#008040">8</span><span style="color:navy">, </span><span style="color:#008040">9</span><span style="color:navy">, </span><span style="color:#008040">10</span><span style="color:navy">, </span><span style="color:#008040">11</span><span style="color:navy">, </span><span style="color:#008040">12</span><span style="color:navy">, </span><span style="color:#008040">13</span><span style="color:navy">, </span><span style="color:#008040">14</span><span style="color:navy">, </span><span style="color:#008040">15
 </span><span style="color:gray">DOSDATA:0BE3                 </span><span style="color:navy">db </span><span style="color:#008040">16</span><span style="color:navy">, </span><span style="color:#008040">17</span><span style="color:navy">, </span><span style="color:#008040">18</span><span style="color:navy">, </span><span style="color:#008040">19</span><span style="color:navy">, </span><span style="color:#008040">20</span><span style="color:navy">, </span><span style="color:#008040">21</span><span style="color:navy">, </span><span style="color:#008040">22</span><span style="color:navy">, </span><span style="color:#008040">23</span><span style="color:navy">, </span><span style="color:#008040">24</span><span style="color:navy">, </span><span style="color:#008040">25</span><span style="color:navy">, </span><span style="color:#008040">26</span><span style="color:navy">, </span><span style="color:#008040">27</span><span style="color:navy">, </span><span style="color:#008040">28
 </span><span style="color:gray">DOSDATA:0BE3                 </span><span style="color:navy">db </span><span style="color:#008040">29</span><span style="color:navy">, </span><span style="color:#008040">30</span><span style="color:navy">, </span><span style="color:#008040">31
-</span><span style="color:gray">DOSDATA:0C03                 </span><span style="color:navy">db &#039; !&quot;#$%&amp;&#039;,27h,&#039;()*+,-./0123456789:;&lt;=&gt;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]&#039;
+</span><span style="color:gray">DOSDATA:0C03 </span><span style="color:navy">a_0123456789?@abcd db &#039; !&quot;#$%&amp;&#039;,27h,&#039;()*+,-./0123456789:;&lt;=&gt;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]&#039;
 </span><span style="color:gray">DOSDATA:0C03                 </span><span style="color:navy">db &#039;^_`ABCDEFGHIJKLMNOPQRSTUVWXYZ{|}~&#039;
 </span><span style="color:gray">DOSDATA:0C62                 </span><span style="color:navy">db </span><span style="color:#008040">127
-</span><span style="color:gray">DOSDATA:0C63                 </span><span style="color:navy">db &#039;CUEAAAACEEEIIIAAEAAOOOUUYOU$$$$$AIOUNN&#039;
+</span><span style="color:gray">DOSDATA:0C63 </span><span style="color:navy">aCueaaaaceeeiiiaae db &#039;CUEAAAACEEEIIIAAEAAOOOUUYOU$$$$$AIOUNN&#039;
 </span><span style="color:gray">DOSDATA:0C89                 </span><span style="color:navy">db </span><span style="color:#008040">166</span><span style="color:navy">, </span><span style="color:#008040">167
 </span><span style="color:gray">DOSDATA:0C8B                 </span><span style="color:navy">db &#039;</span><span style="color:green">?&#039;
 </span><span style="color:gray">DOSDATA:0C8C                 </span><span style="color:navy">db </span><span style="color:#008040">169</span><span style="color:navy">, </span><span style="color:#008040">170</span><span style="color:navy">, </span><span style="color:#008040">171</span><span style="color:navy">, </span><span style="color:#008040">172
@@ -21003,7 +21000,7 @@ DOSDATA:121B </span>rbc_loop<span style="color:navy">:                          
 </span><span style="color:maroon">DOSDATA:121E </span><span style="color:gray">; ---------------------------------------------------------------------------
 DOSDATA:121F </span>UmbSave1        <span style="color:navy">db </span><span style="color:#008040">11 </span><span style="color:navy">dup(</span><span style="color:#008040">0</span><span style="color:navy">)            </span><span style="color:#8080ff">; ...
 </span><span style="color:gray">DOSDATA:122A </span>COUNTRY_CDPG    <span style="color:navy">db </span><span style="color:#008040">8 </span><span style="color:navy">dup(</span><span style="color:#008040">0</span><span style="color:navy">)             </span><span style="color:#8080ff">; ...
-</span><span style="color:gray">DOSDATA:1232                 </span><span style="color:navy">db &#039;\COUNTRY.SYS&#039;,0
+</span><span style="color:gray">DOSDATA:1232 </span><span style="color:navy">aCountry_sys    db &#039;\COUNTRY.SYS&#039;,0
 </span><span style="color:gray">DOSDATA:123F                 </span><span style="color:navy">db </span><span style="color:#008040">51 </span><span style="color:navy">dup(</span><span style="color:#008040">0</span><span style="color:navy">)
 </span><span style="color:gray">DOSDATA:1272                 </span><span style="color:navy">dw </span><span style="color:#008040">437
 </span><span style="color:gray">DOSDATA:1274                 </span><span style="color:navy">dw </span><span style="color:#008040">6
@@ -21029,7 +21026,7 @@ DOSDATA:121F </span>UmbSave1        <span style="color:navy">db </span><span sty
 </span><span style="color:gray">DOSDATA:1296 </span>COUNTRY_CDPG_108 <span style="color:navy">dw </span><span style="color:#008040">0                   </span><span style="color:#8080ff">; ...
 </span><span style="color:gray">DOSDATA:1298                 </span><span style="color:navy">db &#039;$&#039;,0,0,0,0
 </span><span style="color:gray">DOSDATA:129D                 </span><span style="color:navy">db &#039;,&#039;,0
-</span><span style="color:gray">DOSDATA:129F                 </span><span style="color:navy">db &#039;.&#039;,0
+</span><span style="color:gray">DOSDATA:129F </span><span style="color:navy">a__0            db &#039;.&#039;,0
 </span><span style="color:gray">DOSDATA:12A1                 </span><span style="color:navy">db &#039;-&#039;,0
 </span><span style="color:gray">DOSDATA:12A3                 </span><span style="color:navy">db &#039;:&#039;,0
 </span><span style="color:gray">DOSDATA:12A5                 </span><span style="color:navy">db </span><span style="color:#008040">0

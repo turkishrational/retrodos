@@ -26,7 +26,7 @@ DOSDATA:0000
 DOSDATA:0000 ; Segment type: Pure data
 DOSDATA:0000 </span>DOSDATA         segment para private &#039;DATA&#039; use16
 <span style="color:gray">DOSDATA:0000                 </span>assume cs:DOSDATA
-<span style="color:gray">DOSDATA:0000 </span><span style="color:navy">byte_0          db </span><span style="color:#008040">4 </span><span style="color:navy">dup(</span><span style="color:#008040">0</span><span style="color:navy">)             </span><span style="color:#8080ff">; ...
+<span style="color:gray">DOSDATA:0000 </span><span style="color:navy">byte_0          db </span><span style="color:#008040">4 </span><span style="color:navy">dup(</span><span style="color:#008040">0</span><span style="color:navy">)             </span><span style="color:olive">; ...
 </span><span style="color:gray">DOSDATA:0004 </span>DataVersion     <span style="color:navy">dw </span><span style="color:#008040">1                    </span><span style="color:olive">; ...
 </span><span style="color:gray">DOSDATA:0006 </span>WinoldPatch1    <span style="color:navy">db </span><span style="color:#008040">8 </span><span style="color:navy">dup(</span><span style="color:#008040">0</span><span style="color:navy">)             </span><span style="color:#8080ff">; ...
 </span><span style="color:gray">DOSDATA:000E </span>MYNUM           <span style="color:navy">dw </span><span style="color:#008040">0                    </span><span style="color:#8080ff">; ...
@@ -3582,7 +3582,7 @@ DOSCODE:4F5E </span><span style="color:gray">HAVDIF</span><span style="color:nav
 </span><span style="color:black">DOSCODE:4F7E                 </span><span style="color:navy">mov     word ptr </span>WinoldPatch1<span style="color:navy">+</span><span style="color:green">2</span><span style="color:navy">, </span><span style="color:#ff8000">0
 </span><span style="color:black">DOSCODE:4F84
 DOSCODE:4F84 </span><span style="color:gray">addr_ok</span><span style="color:navy">:                                </span><span style="color:green">; ...
-</span><span style="color:black">DOSCODE:4F84                 </span><span style="color:navy">mov     word ptr byte_0, </span><span style="color:#ff8000">20CDh
+</span><span style="color:black">DOSCODE:4F84                 </span><span style="color:navy">mov     </span>word ptr 0<span style="color:navy">, </span><span style="color:#ff8000">20CDh
 </span><span style="color:black">DOSCODE:4F8A                 </span><span style="color:navy">mov     byte ptr </span>DataVersion<span style="color:navy">+</span><span style="color:green">1</span><span style="color:navy">, </span><span style="color:#ff8000">9Ah </span><span style="color:gray">; &#039;Ü&#039;
 </span><span style="color:black">DOSCODE:4F8F                 </span><span style="color:navy">mov     off_50, </span><span style="color:#ff8000">21CDh
 </span><span style="color:black">DOSCODE:4F95                 </span><span style="color:navy">mov     byte ptr asc_52, </span><span style="color:#ff8000">0CBh </span><span style="color:gray">; &#039;T&#039; ; &quot;NUL     &quot;
@@ -16930,7 +16930,7 @@ DOSCODE:A4A2 </span>UnlinkUmbs<span style="color:navy">:                        
 </span><span style="color:maroon">DOSCODE:A4A8                 </span><span style="color:navy">jz      short </span>unlinked
 <span style="color:maroon">DOSCODE:A4AA                 </span><span style="color:navy">call    </span>GetLastArena
 <span style="color:maroon">DOSCODE:A4AD                 </span><span style="color:navy">jb      short </span>AllocArenaError
-<span style="color:maroon">DOSCODE:A4AF                 </span><span style="color:navy">mov     byte_0, </span><span style="color:#ff8000">5Ah </span><span style="color:gray">; &#039;Z&#039;
+<span style="color:maroon">DOSCODE:A4AF                 </span><span style="color:navy">mov     </span>byte ptr 0<span style="color:navy">, </span><span style="color:#ff8000">5Ah </span><span style="color:gray">; &#039;Z&#039;
 </span><span style="color:maroon">DOSCODE:A4B4                 </span><span style="color:navy">and     ss:</span>UMBFLAG<span style="color:navy">, </span><span style="color:green">0FEh
 </span><span style="color:maroon">DOSCODE:A4BA
 DOSCODE:A4BA </span>unlinked<span style="color:navy">:                               </span><span style="color:green">; ...
@@ -16942,7 +16942,7 @@ DOSCODE:A4BC </span>LinkUmbs<span style="color:navy">:                          
 </span><span style="color:maroon">DOSCODE:A4C2                 </span><span style="color:navy">jnz     short </span>linked
 <span style="color:maroon">DOSCODE:A4C4                 </span><span style="color:navy">call    </span>GetLastArena
 <span style="color:maroon">DOSCODE:A4C7                 </span><span style="color:navy">jb      short </span>AllocArenaError
-<span style="color:maroon">DOSCODE:A4C9                 </span><span style="color:navy">mov     byte_0, </span><span style="color:#ff8000">4Dh </span><span style="color:gray">; &#039;M&#039;
+<span style="color:maroon">DOSCODE:A4C9                 </span><span style="color:navy">mov     </span>byte ptr 0<span style="color:navy">, </span><span style="color:#ff8000">4Dh </span><span style="color:gray">; &#039;M&#039;
 </span><span style="color:maroon">DOSCODE:A4CE                 </span><span style="color:navy">or      ss:</span>UMBFLAG<span style="color:navy">, </span><span style="color:green">1
 </span><span style="color:maroon">DOSCODE:A4D4
 DOSCODE:A4D4 </span>linked<span style="color:navy">:                                 </span><span style="color:green">; ...
@@ -19659,7 +19659,7 @@ DOSCODE:B448 </span>rpFind1         <span style="color:navy">db </span><span sty
 </span><span style="color:maroon">DOSCODE:B4F2 </span><span style="color:gray">; ---------------------------------------------------------------------------
 </span><span style="color:maroon">DOSCODE:B4F2
 DOSCODE:B4F2 </span>Rational386Patch<span style="color:navy">:                       </span><span style="color:#8080ff">; ...
-</span><span style="color:maroon">DOSCODE:B4F2                 </span><span style="color:navy">cmp     word ptr es:byte_0, </span><span style="color:green">395
+</span><span style="color:maroon">DOSCODE:B4F2                 </span><span style="color:navy">cmp     </span>word ptr es:0<span style="color:navy">, </span><span style="color:green">18Bh
 </span><span style="color:maroon">DOSCODE:B4F9                 </span><span style="color:navy">jnb     short </span>rp3QuickOut
 <span style="color:maroon">DOSCODE:B4FB                 </span><span style="color:navy">cmp     word ptr es:</span>WinoldPatch1<span style="color:navy">+</span><span style="color:green">6</span><span style="color:navy">, </span><span style="color:#ff8000">20h </span><span style="color:gray">; &#039; &#039;
 </span><span style="color:maroon">DOSCODE:B501                 </span><span style="color:navy">jnz     short </span>rp3QuickOut
@@ -19693,8 +19693,8 @@ DOSCODE:B51E </span>rp3Maybe<span style="color:navy">:                          
 </span><span style="color:maroon">DOSCODE:B52A                 </span><span style="color:navy">mov     bp, sp
 </span><span style="color:maroon">DOSCODE:B52C                 </span><span style="color:navy">push    cs
 </span><span style="color:maroon">DOSCODE:B52D                 </span><span style="color:navy">pop     ds
-</span><span style="color:maroon">DOSCODE:B52E                 </span><span style="color:navy">mov     ax, word ptr es:byte_0
-</span><span style="color:maroon">DOSCODE:B532                 </span><span style="color:navy">mov     [bp+</span><span style="color:#ff8000">0</span><span style="color:navy">], ax
+</span><span style="color:maroon">DOSCODE:B52E                 </span><span style="color:navy">mov     ax, </span>word ptr es:0
+<span style="color:maroon">DOSCODE:B532                 </span><span style="color:navy">mov     [bp+</span><span style="color:#ff8000">0</span><span style="color:navy">], ax
 </span><span style="color:maroon">DOSCODE:B535                 </span><span style="color:navy">call    </span>VerifyVersion
 <span style="color:maroon">DOSCODE:B538                 </span><span style="color:navy">jnz     short </span>rp3Exit_j
 <span style="color:maroon">DOSCODE:B53A                 </span><span style="color:navy">mov     cx, </span><span style="color:#ff8000">4500h

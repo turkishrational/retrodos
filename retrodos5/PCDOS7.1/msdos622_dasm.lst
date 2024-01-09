@@ -1020,7 +1020,7 @@ DOSCODE:4533		     push    cx
 DOSCODE:4534		     push    dx
 DOSCODE:4535		     push    si
 DOSCODE:4536		     push    di
-DOSCODE:4537		     mov     bx, ds:8Ch	     ; UMB_HEAD
+DOSCODE:4537		     mov     bx, ds:UMB_HEAD
 DOSCODE:453B		     cmp     bx, 0FFFFh
 DOSCODE:453E		     jz	     short Vxd31
 DOSCODE:4540		     mov     ds:UmbSaveFlag, 1
@@ -1136,7 +1136,7 @@ DOSCODE:45F7		     push    es
 DOSCODE:45F8		     push    cx
 DOSCODE:45F9		     push    si
 DOSCODE:45FA		     push    di
-DOSCODE:45FB		     mov     ax, ds:8Ch	     ; UMB_HEAD
+DOSCODE:45FB		     mov     ax, ds:UMB_HEAD
 DOSCODE:45FE		     mov     es, ax
 DOSCODE:4600		     xor     di, di
 DOSCODE:4602		     cld
@@ -1159,7 +1159,7 @@ DOSCODE:4622		     jmp     short win_nexti2f
 DOSCODE:4624 ; ---------------------------------------------------------------------------
 DOSCODE:4624
 DOSCODE:4624 Win386_Query:			     ; ...
-DOSCODE:4624		     cmp     bx, 15h
+DOSCODE:4624		     cmp     bx, 15h	     ; Win386_DOSMGR
 DOSCODE:4627		     jnz     short win_nexti2f
 DOSCODE:4629		     or	     cx, cx
 DOSCODE:462B		     jnz     short dosmgr_func
@@ -3917,7 +3917,7 @@ DOSCODE:5575		     jmp     short OUTCH
 DOSCODE:5575 ; END OF FUNCTION CHUNK FOR OUTT
 DOSCODE:5577 ; ---------------------------------------------------------------------------
 DOSCODE:5577
-DOSCODE:5577 j_OUTT:				     ; ...
+DOSCODE:5577 OUTJ:				     ; ...
 DOSCODE:5577		     jmp     OUTT
 DOSCODE:557A ; ---------------------------------------------------------------------------
 DOSCODE:557A ; START OF	FUNCTION CHUNK FOR OUTT
@@ -3932,9 +3932,9 @@ DOSCODE:5582
 DOSCODE:5582
 DOSCODE:5582 BUFOUT	     proc near		     ; ...
 DOSCODE:5582		     cmp     al, ' '
-DOSCODE:5584		     jnb     short j_OUTT
+DOSCODE:5584		     jnb     short OUTJ
 DOSCODE:5586		     cmp     al, 9
-DOSCODE:5588		     jz	     short j_OUTT
+DOSCODE:5588		     jz	     short OUTJ
 DOSCODE:558A		     cmp     al, 15h
 DOSCODE:558C		     jz	     short CTRLU
 DOSCODE:558E		     cmp     al, 14h
@@ -4665,13 +4665,13 @@ DOSCODE:5A5C		     mov     ax, [si+1Ch]
 DOSCODE:5A5F		     cmp     ax, es:[di+0Bh]
 DOSCODE:5A63		     jnz     short BadSFT
 DOSCODE:5A65		     retn
-DOSCODE:5A65 CheckFCB	     endp
-DOSCODE:5A65
 DOSCODE:5A66 ; ---------------------------------------------------------------------------
 DOSCODE:5A66
 DOSCODE:5A66 CheckNoShare:			     ; ...
 DOSCODE:5A66		     test    al, 40h
 DOSCODE:5A68		     jnz     short $+2
+DOSCODE:5A6A
+DOSCODE:5A6A CheckNoShareDev:			     ; ...
 DOSCODE:5A6A		     mov     bx, [si+1Ah]
 DOSCODE:5A6D		     cmp     bx, es:[di+7]
 DOSCODE:5A71		     jnz     short BadSFT
@@ -4679,6 +4679,8 @@ DOSCODE:5A73		     mov     bx, [si+1Ch]
 DOSCODE:5A76		     cmp     bx, es:[di+9]
 DOSCODE:5A7A		     jnz     short BadSFT
 DOSCODE:5A7C		     jmp     short CheckD
+DOSCODE:5A7C CheckFCB	     endp
+DOSCODE:5A7C
 DOSCODE:5A7E
 DOSCODE:5A7E ; =============== S U B R O U T I N E =======================================
 DOSCODE:5A7E
@@ -5454,6 +5456,8 @@ DOSCODE:5FCC		     mov     ds, cs:DosDSeg
 DOSCODE:5FD1		     lds     si, ds:THISCDS
 DOSCODE:5FD5		     test    word ptr [si+43h],	8000h
 DOSCODE:5FDA		     jnz     short $+2
+DOSCODE:5FDC
+DOSCODE:5FDC DoCheck:				     ; ...
 DOSCODE:5FDC		     push    ds
 DOSCODE:5FDD		     mov     ds, cs:DosDSeg
 DOSCODE:5FE2		     mov     ds:NoSetDir, 0
@@ -5553,10 +5557,7 @@ DOSCODE:605D rmcont:				     ; ...
 DOSCODE:605D		     pop     ds
 DOSCODE:605E		     pop     dx
 DOSCODE:605F		     mov     si, offset	DOS_RMDIR
-DOSCODE:605F ; ---------------------------------------------------------------------------
-DOSCODE:6062		     db	0E9h ; é
-DOSCODE:6063		     db	 7Fh ; 
-DOSCODE:6064		     db	   0
+DOSCODE:6062		     jmp     DoDirCall
 DOSCODE:6065 ; ---------------------------------------------------------------------------
 DOSCODE:6065
 DOSCODE:6065 $CHDIR:				     ; ...
@@ -5625,7 +5626,7 @@ DOSCODE:60E1
 DOSCODE:60E1 $MKDIR:				     ; ...
 DOSCODE:60E1		     mov     si, offset	DOS_MKDIR
 DOSCODE:60E4
-DOSCODE:60E4 DoDirCall:
+DOSCODE:60E4 DoDirCall:				     ; ...
 DOSCODE:60E4		     mov     di, offset	OPENBUF
 DOSCODE:60E7		     push    si
 DOSCODE:60E8		     mov     si, dx
@@ -9785,7 +9786,7 @@ DOSCODE:7BCB		     pop     es
 DOSCODE:7BCC		     mov     dx, 0FFFFh
 DOSCODE:7BCF		     call    RELBLKS
 DOSCODE:7BD2
-DOSCODE:7BD2 SET_ACC_ERRWJ:			     ; ...
+DOSCODE:7BD2 SET_ACC_ERRWJJ:			     ; ...
 DOSCODE:7BD2		     jb	     short SET_ACC_ERRWJ2
 DOSCODE:7BD4		     jmp     short UPDATE
 DOSCODE:7BD6 ; ---------------------------------------------------------------------------
@@ -9816,7 +9817,7 @@ DOSCODE:7C04		     pop     ax
 DOSCODE:7C05		     pop     bp
 DOSCODE:7C06		     pop     es
 DOSCODE:7C07		     call    RELEASE
-DOSCODE:7C0A		     jb	     short SET_ACC_ERRWJ
+DOSCODE:7C0A		     jb	     short SET_ACC_ERRWJJ
 DOSCODE:7C0C
 DOSCODE:7C0C UPDATEJ:				     ; ...
 DOSCODE:7C0C		     jmp     short UPDATE
@@ -12934,14 +12935,9 @@ DOSCODE:8FD1		     retn
 DOSCODE:8FD1 NAMETRANS	     endp
 DOSCODE:8FD1
 DOSCODE:8FD1 ; ---------------------------------------------------------------------------
-DOSCODE:8FD2 CharType	     db	 66h, 66h, 66h,	66h, 06h, 66h, 66h, 66h; 0 ; ...
-DOSCODE:8FD2		     db	 66h, 66h, 66h,	66h, 66h, 66h, 66h, 66h; 8
-DOSCODE:8FD2		     db	0F8h,0F6h,0FFh,0FFh,0FFh, 4Fh,0F4h, 6Eh; 16
-DOSCODE:8FD2		     db	0FFh,0FFh,0FFh,0FFh,0FFh, 44h, 44h,0F4h; 24
-DOSCODE:8FD2		     db	0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0FFh; 32
-DOSCODE:8FD2		     db	0FFh,0FFh,0FFh,0FFh,0FFh, 6Fh, 66h,0FFh; 40
-DOSCODE:8FD2		     db	0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0FFh; 48
-DOSCODE:8FD2		     db	0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0F4h; 56
+DOSCODE:8FD2 CharType	     db	4 dup(66h), 6, 0Bh dup(66h), 0F8h, 0F6h, 3 dup(0FFh) ; ...
+DOSCODE:8FD2		     db	4Fh, 0F4h, 6Eh,	5 dup(0FFh), 2 dup(44h), 0F4h, 0Dh dup(0FFh)
+DOSCODE:8FD2		     db	6Fh, 66h, 0Fh dup(0FFh), 0F4h
 DOSCODE:9011
 DOSCODE:9011 ; =============== S U B R O U T I N E =======================================
 DOSCODE:9011
@@ -13633,8 +13629,6 @@ DOSCODE:9478		     call    FLUSHBUF
 DOSCODE:947B		     call    LCritDisk
 DOSCODE:947E		     call    CHECK_VIRT_OPEN
 DOSCODE:9481		     cli
-DOSCODE:9481 FATALC	     endp ; sp-analysis	failed
-DOSCODE:9481
 DOSCODE:9482		     mov     ds:INDOS, 0
 DOSCODE:9487		     mov     ds:WPERR, 0FFh
 DOSCODE:948C		     mov     ds:fAborting, 0
@@ -13664,6 +13658,8 @@ DOSCODE:94C7		     push    word ptr ds:EXITHOLD
 DOSCODE:94CB		     mov     ax, ds:USER_SP
 DOSCODE:94CE		     mov     ds, ds:TEMPSEG
 DOSCODE:94D2		     iret
+DOSCODE:94D2 FATALC	     endp ; sp-analysis	failed
+DOSCODE:94D2
 DOSCODE:94D3
 DOSCODE:94D3 ; =============== S U B R O U T I N E =======================================
 DOSCODE:94D3
@@ -14024,7 +14020,7 @@ DOSCODE:971B
 DOSCODE:971C ; ---------------------------------------------------------------------------
 DOSCODE:971C ; START OF	FUNCTION CHUNK FOR FAT_GOT_DPB
 DOSCODE:971C
-DOSCODE:971C FATERR:				     ; ...
+DOSCODE:971C FAT_operation:			     ; ...
 DOSCODE:971C		     mov     word ptr es:[bp+1Fh], 0FFFFh ; -1
 DOSCODE:9722		     and     di, 0FFh
 DOSCODE:9726		     mov     ds:ALLOWED, 18h
@@ -14065,7 +14061,7 @@ DOSCODE:9768		     pop     ds
 DOSCODE:9769		     pop     es
 DOSCODE:976A		     mov     di, ds:DEVCALL_REQSTAT
 DOSCODE:976E		     or	     di, di
-DOSCODE:9770		     js	     short FATERR
+DOSCODE:9770		     js	     short FAT_operation
 DOSCODE:9772		     xor     ah, ah
 DOSCODE:9774		     xchg    ah, es:[bp+18h] ; [ES:BP+DPB.FIRST_ACCESS]
 DOSCODE:9778		     mov     al, ds:THISDRV
@@ -14241,7 +14237,7 @@ DOSCODE:98CE		     retn
 DOSCODE:98CF ; ---------------------------------------------------------------------------
 DOSCODE:98CF
 DOSCODE:98CF FATERRJ:				     ; ...
-DOSCODE:98CF		     jmp     FATERR
+DOSCODE:98CF		     jmp     FAT_operation
 DOSCODE:98CF FAT_GOT_DPB     endp
 DOSCODE:98CF
 DOSCODE:98D2
@@ -16459,7 +16455,7 @@ DOSCODE:A770		     jb	     short CommitError
 DOSCODE:A772		     mov     ah, 68h
 DOSCODE:A774 ; START OF	FUNCTION CHUNK FOR $READ
 DOSCODE:A774
-DOSCODE:A774 CommitOk:				     ; ...
+DOSCODE:A774 Commit_OK:				     ; ...
 DOSCODE:A774		     jmp     short Close_OK
 DOSCODE:A776 ; ---------------------------------------------------------------------------
 DOSCODE:A776
@@ -16525,7 +16521,7 @@ DOSCODE:A7E0 ; -----------------------------------------------------------------
 DOSCODE:A7E0 ; START OF	FUNCTION CHUNK FOR $READ
 DOSCODE:A7E0
 DOSCODE:A7E0 ok_done:				     ; ...
-DOSCODE:A7E0		     jmp     short CommitOk
+DOSCODE:A7E0		     jmp     short Commit_OK
 DOSCODE:A7E0 ; END OF FUNCTION CHUNK FOR $READ
 DOSCODE:A7E2 ; ---------------------------------------------------------------------------
 DOSCODE:A7E2
@@ -16587,7 +16583,7 @@ DOSCODE:A831		     pop     bx
 DOSCODE:A832		     mov     al, 8
 DOSCODE:A834 ; START OF	FUNCTION CHUNK FOR $READ
 DOSCODE:A834
-DOSCODE:A834 CommitErrorj2:			     ; ...
+DOSCODE:A834 jmp_to_jmp_CommitError:		     ; ...
 DOSCODE:A834		     jmp     short CommitErrorj
 DOSCODE:A834 ; END OF FUNCTION CHUNK FOR $READ
 DOSCODE:A836 ; ---------------------------------------------------------------------------
@@ -16596,8 +16592,8 @@ DOSCODE:A836 invalid_func:			     ; ...
 DOSCODE:A836		     mov     al, 1
 DOSCODE:A838 ; START OF	FUNCTION CHUNK FOR $READ
 DOSCODE:A838
-DOSCODE:A838 CommitErrorj3:			     ; ...
-DOSCODE:A838		     jmp     short CommitErrorj2
+DOSCODE:A838 ExtHandle_err:			     ; ...
+DOSCODE:A838		     jmp     short jmp_to_jmp_CommitError
 DOSCODE:A838 ; END OF FUNCTION CHUNK FOR $READ
 DOSCODE:A83A
 DOSCODE:A83A ; =============== S U B R O U T I N E =======================================
@@ -16622,7 +16618,7 @@ DOSCODE:A845		     call    CheckOwner
 DOSCODE:A848		     jnb     short ReadSetup
 DOSCODE:A84A
 DOSCODE:A84A ReadError:				     ; ...
-DOSCODE:A84A		     jmp     short CommitErrorj3
+DOSCODE:A84A		     jmp     short ExtHandle_err
 DOSCODE:A84C ; ---------------------------------------------------------------------------
 DOSCODE:A84C
 DOSCODE:A84C ReadSetup:				     ; ...
@@ -17993,7 +17989,7 @@ DOSCODE:B024		     call    Get_User_Stack
 DOSCODE:B027		     mov     [si+4], ax
 DOSCODE:B02A ; START OF	FUNCTION CHUNK FOR $UNLINK
 DOSCODE:B02A
-DOSCODE:B02A OpenOkj2:				     ; ...
+DOSCODE:B02A ChModOKj:				     ; ...
 DOSCODE:B02A		     jmp     short OpenOKJ
 DOSCODE:B02A ; END OF FUNCTION CHUNK FOR $UNLINK
 DOSCODE:B02C ; ---------------------------------------------------------------------------
@@ -18004,8 +18000,8 @@ DOSCODE:B02E		     call    SET_FILE_ATTRIBUTE
 DOSCODE:B031		     jb	     short ChModE
 DOSCODE:B033 ; START OF	FUNCTION CHUNK FOR $UNLINK
 DOSCODE:B033
-DOSCODE:B033 OpenOkj3:				     ; ...
-DOSCODE:B033		     jmp     short OpenOkj2
+DOSCODE:B033 ChModOK:				     ; ...
+DOSCODE:B033		     jmp     short ChModOKj
 DOSCODE:B035 ; ---------------------------------------------------------------------------
 DOSCODE:B035
 DOSCODE:B035 ChModErr:				     ; ...
@@ -18040,7 +18036,7 @@ DOSCODE:B054		     call    DOS_DELETE
 DOSCODE:B057		     jb	     short UnlinkE
 DOSCODE:B059
 DOSCODE:B059 UnLinkOK:				     ; ...
-DOSCODE:B059		     jmp     short OpenOkj3
+DOSCODE:B059		     jmp     short ChModOK
 DOSCODE:B05B ; ---------------------------------------------------------------------------
 DOSCODE:B05B
 DOSCODE:B05B NotFound:				     ; ...
@@ -19061,7 +19057,7 @@ DOSCODE:B71D
 DOSCODE:B71D second:
 DOSCODE:B71D		     mov     es, ax
 DOSCODE:B71F
-DOSCODE:B71F _NextRec:
+DOSCODE:B71F _NextRec:				     ; ...
 DOSCODE:B71F		     mov     cx, 204h
 DOSCODE:B722
 DOSCODE:B722 _norm_agn:				     ; ...
@@ -19106,13 +19102,13 @@ DOSCODE:B75B ; -----------------------------------------------------------------
 DOSCODE:B75B
 DOSCODE:B75B TryEnum:				     ; ...
 DOSCODE:B75B		     cmp     al, 0B2h	     ; ENMREC
-DOSCODE:B75D		     jnz     short CorruptExe ;	db 75h,6Bh
+DOSCODE:B75D		     jnz     short near	ptr NextRec_2+1	; db 75h,6Bh
 DOSCODE:B75F		     rep movsb
 DOSCODE:B761
 DOSCODE:B761 TryNext:				     ; ...
 DOSCODE:B761		     xchg    ax, dx
 DOSCODE:B762		     test    al, 1
-DOSCODE:B764		     jz	     short NextRec   ; db 74h,0BAh
+DOSCODE:B764		     jz	     short _NextRec  ; db 74h,0BAh
 DOSCODE:B766		     nop
 DOSCODE:B767		     nop
 DOSCODE:B768
@@ -19142,16 +19138,18 @@ DOSCODE:B790		     jz	     short SI_ok_1
 DOSCODE:B792		     mov     dx, ds
 DOSCODE:B794		     sub     dx, ax
 DOSCODE:B796		     mov     ds, dx
+DOSCODE:B798		     assume ds:nothing
 DOSCODE:B798		     or	     si, 0FFF0h
 DOSCODE:B79B
 DOSCODE:B79B SI_ok_1:				     ; ...
 DOSCODE:B79B		     mov     ax, di
 DOSCODE:B79D		     not     ax
 DOSCODE:B79F		     shr     ax, cl
-DOSCODE:B7A1		     jz	     short DI_ok_1
+DOSCODE:B7A1		     jz	     short scan_patch2
 DOSCODE:B7A3		     mov     dx, es
 DOSCODE:B7A5		     sub     dx, ax
 DOSCODE:B7A7		     mov     es, dx
+DOSCODE:B7A9		     assume es:nothing
 DOSCODE:B7A9		     or	     di, 0FFF0h
 DOSCODE:B7AC
 DOSCODE:B7AC scan_patch2:			     ; ...
@@ -19159,6 +19157,7 @@ DOSCODE:B7AC		     mov     bx, es
 DOSCODE:B7AE		     mov     ax, ds
 DOSCODE:B7B0		     dec     ax
 DOSCODE:B7B1		     mov     ds, ax
+DOSCODE:B7B3		     assume ds:nothing
 DOSCODE:B7B3		     mov     es, ax
 DOSCODE:B7B5		     mov     di, 0Fh
 DOSCODE:B7B8		     mov     cx, 10h
@@ -19169,9 +19168,10 @@ DOSCODE:B7C0		     mov     si, di
 DOSCODE:B7C2		     mov     ax, bx
 DOSCODE:B7C4		     dec     ax
 DOSCODE:B7C5		     mov     es, ax
+DOSCODE:B7C7		     assume es:nothing
 DOSCODE:B7C7		     mov     di, 0Fh
 DOSCODE:B7CA
-DOSCODE:B7CA NextRec_2:
+DOSCODE:B7CA NextRec_2:				     ; ...
 DOSCODE:B7CA		     mov     cl, 4
 DOSCODE:B7CC		     mov     ax, si
 DOSCODE:B7CE		     not     ax
@@ -19187,7 +19187,7 @@ DOSCODE:B7DE SI_ok_2:				     ; ...
 DOSCODE:B7DE		     mov     ax, di
 DOSCODE:B7E0		     not     ax
 DOSCODE:B7E2		     shr     ax, cl
-DOSCODE:B7E4		     jz	     short DI_ok_2
+DOSCODE:B7E4		     jz	     short scan_patch3
 DOSCODE:B7E6		     mov     dx, es
 DOSCODE:B7E8		     sub     dx, ax
 DOSCODE:B7EA		     mov     es, dx
@@ -19201,6 +19201,7 @@ DOSCODE:B7F4		     dec     ax
 DOSCODE:B7F5		     mov     ds, ax
 DOSCODE:B7F7		     assume ds:nothing
 DOSCODE:B7F7		     mov     es, ax
+DOSCODE:B7F9		     assume es:nothing
 DOSCODE:B7F9		     mov     di, 0Fh
 DOSCODE:B7FC		     mov     cx, 10h
 DOSCODE:B7FF		     mov     al, 0FFh
@@ -19229,7 +19230,7 @@ DOSCODE:B821 SI_ok_3:				     ; ...
 DOSCODE:B821		     mov     ax, di
 DOSCODE:B823		     not     ax
 DOSCODE:B825		     shr     ax, cl
-DOSCODE:B827		     jz	     short DI_ok_3
+DOSCODE:B827		     jz	     short scan_com
 DOSCODE:B829		     mov     dx, es
 DOSCODE:B82B		     sub     dx, ax
 DOSCODE:B82D		     mov     es, dx
@@ -19255,7 +19256,7 @@ DOSCODE:B847		     nop
 DOSCODE:B848
 DOSCODE:B848 _TryEnum:				     ; ...
 DOSCODE:B848		     cmp     al, 0B2h
-DOSCODE:B84A		     jnz     short CorruptExe
+DOSCODE:B84A		     jnz     short near	ptr ep_chkpatch2+2
 DOSCODE:B84C		     rep movsb
 DOSCODE:B84E
 DOSCODE:B84E _TryNext:				     ; ...
@@ -19504,12 +19505,8 @@ DOSCODE:B9F7		     pop     bx
 DOSCODE:B9F8		     pop     ax
 DOSCODE:B9F9		     retn
 DOSCODE:B9F9 ; ---------------------------------------------------------------------------
-DOSCODE:B9FA CPScanPattern   db	 89h, 26h, 48h,	01h  ; 0 ; ...
-DOSCODE:B9FA		     db	 8Ch, 0Eh, 4Ch,	01h  ; 4
-DOSCODE:B9FA		     db	0C7h, 06h, 4Ah,	01h  ; 8
-DOSCODE:B9FA		     db	 00h, 01h, 8Ch,	0Eh  ; 12
-DOSCODE:B9FA		     db	 13h, 01h,0B8h,	20h  ; 16
-DOSCODE:B9FA		     db	 01h,0BEh, 00h,	01h  ; 20
+DOSCODE:B9FA CPScanPattern   db	89h, 26h, 48h, 1, 8Ch, 0Eh, 4Ch, 1, 0C7h, 6, 4Ah, 1 ; ...
+DOSCODE:B9FA		     db	0, 1, 8Ch, 0Eh,	13h, 1,	0B8h, 20h, 1, 0BEh, 0, 1
 DOSCODE:BA12
 DOSCODE:BA12 ; =============== S U B R O U T I N E =======================================
 DOSCODE:BA12
@@ -20228,7 +20225,7 @@ DOSDATA:0048 NULDEV	     dd	0		     ; ...
 DOSDATA:004C		     dw	8004h		     ; DEVTYP|ISNULL
 DOSDATA:004E		     dw	offset SNULDEV
 DOSDATA:0050 off_BFC0	     dw	offset INULDEV	     ; ...
-DOSDATA:0052 asc_BFC2	     db	'NUL     '           ; ...
+DOSDATA:0052 aNul	     db	'NUL     '           ; ...
 DOSDATA:005A SPLICES	     db	0		     ; ...
 DOSDATA:005B Special_Entries dw	0
 DOSDATA:005D UU_IFS_DOS_CALL dd	0		     ; ...
@@ -20502,16 +20499,16 @@ DOSDATA:0B31		     db	243, 244, 245, 246, 247, 248, 249, 250,	251, 252, 253
 DOSDATA:0B31		     db	254, 255
 DOSDATA:0BB1 FILE_CHAR_TAB   dw	22		     ; ...
 DOSDATA:0BB3		     db	1, 0, 255, 2 dup(0), 32, 2, 14
-DOSDATA:0BBB		     db	'."/\[]:|<>+=;,'
+DOSDATA:0BBB a_		     db	'."/\[]:|<>+=;,'
 DOSDATA:0BC9		     db	24 dup(0)
 DOSDATA:0BE1 COLLATE_TAB     dw	256		     ; ...
 DOSDATA:0BE3		     db	0, 1, 2, 3, 4, 5, 6, 7,	8, 9, 10, 11, 12, 13, 14, 15
 DOSDATA:0BE3		     db	16, 17,	18, 19,	20, 21,	22, 23,	24, 25,	26, 27,	28
 DOSDATA:0BE3		     db	29, 30,	31
-DOSDATA:0C03		     db	' !"#$%&',27h,'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]'
+DOSDATA:0C03 a_0123456789?@abcd	db ' !"#$%&',27h,'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]'
 DOSDATA:0C03		     db	'^_`ABCDEFGHIJKLMNOPQRSTUVWXYZ{|}~'
 DOSDATA:0C62		     db	127
-DOSDATA:0C63		     db	'CUEAAAACEEEIIIAAEAAOOOUUYOU$$$$$AIOUNN'
+DOSDATA:0C63 aCueaaaaceeeiiiaae	db 'CUEAAAACEEEIIIAAEAAOOOUUYOU$$$$$AIOUNN'
 DOSDATA:0C89		     db	166, 167
 DOSDATA:0C8B		     db	'?'
 DOSDATA:0C8C		     db	169, 170, 171, 172
@@ -20994,7 +20991,7 @@ DOSDATA:121E		     retf
 DOSDATA:121E ; ---------------------------------------------------------------------------
 DOSDATA:121F UmbSave1	     db	11 dup(0)	     ; ...
 DOSDATA:122A COUNTRY_CDPG    db	8 dup(0)	     ; ...
-DOSDATA:1232		     db	'\COUNTRY.SYS',0
+DOSDATA:1232 aCountry_sys    db	'\COUNTRY.SYS',0
 DOSDATA:123F		     db	51 dup(0)
 DOSDATA:1272		     dw	437
 DOSDATA:1274		     dw	6
@@ -21020,7 +21017,7 @@ DOSDATA:1294		     dw	437
 DOSDATA:1296 COUNTRY_CDPG_108 dw 0		     ; ...
 DOSDATA:1298		     db	'$',0,0,0,0
 DOSDATA:129D		     db	',',0
-DOSDATA:129F		     db	'.',0
+DOSDATA:129F a__0	     db	'.',0
 DOSDATA:12A1		     db	'-',0
 DOSDATA:12A3		     db	':',0
 DOSDATA:12A5		     db	0

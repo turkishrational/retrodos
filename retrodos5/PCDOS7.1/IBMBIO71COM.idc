@@ -2094,10 +2094,8 @@ static Bytes_0(void) {
 	create_word	(0X2081);
 	create_word	(0X2083);
 	create_word	(0X2085);
-	create_word	(0X2087);
-	create_word	(0X2089);
-	create_word	(0X208B);
-	create_word	(0X208D);
+	create_dword	(0X2087);
+	create_dword	(0X208B);
 	set_cmt	(0X208F,	"FAT32 extensions (to BDS)",	0);
 	create_byte	(x=0X208F);
 	make_array	(x,	0X1C);
@@ -2118,12 +2116,8 @@ static Bytes_0(void) {
 	create_word	(x=0X20B9);
 	op_dec		(x,	0);
 	create_word	(0X20BB);
-	create_word	(0X20BD);
-	create_word	(0X20BF);
-	create_byte	(0X20C1);
-	create_byte	(0X20C2);
-	create_byte	(0X20C3);
-	create_byte	(0X20C4);
+	create_dword	(0X20BD);
+	create_dword	(0X20C1);
 	create_byte	(x=0X20C5);
 	make_array	(x,	0X1C);
 	op_dec		(x,	0);
@@ -2142,8 +2136,7 @@ static Bytes_0(void) {
 	create_word	(0X20ED);
 	create_word	(0X20EF);
 	create_word	(0X20F1);
-	create_word	(0X20F3);
-	create_word	(0X20F5);
+	create_dword	(0X20F3);
 	create_dword	(0X20F7);
 	create_byte	(x=0X20FB);
 	make_array	(x,	0X1C);
@@ -2164,8 +2157,7 @@ static Bytes_0(void) {
 	create_word	(x=0X2125);
 	op_dec		(x,	0);
 	create_word	(0X2127);
-	create_word	(0X2129);
-	create_word	(0X212B);
+	create_dword	(0X2129);
 	create_dword	(0X212D);
 	create_byte	(x=0X2131);
 	make_array	(x,	0X1C);
@@ -3021,6 +3013,8 @@ static Bytes_0(void) {
 	op_hex		(x,	1);
 	set_name	(0X2A0F,	"set_fbig_flag_ok");
 	set_name	(0X2A12,	"boot_drv_fixed");
+	set_cmt	(0X2A14,	"Load DOS kernel (IBMDOS.COM)\nSYSINIT segment = 544h",	0);
+	set_name	(0X2A14,	"loadit");
 }
 
 //------------------------------------------------------------------------
@@ -3030,8 +3024,6 @@ static Bytes_1(void) {
         auto x;
 #define id x
 
-	set_cmt	(0X2A14,	"Load DOS kernel (IBMDOS.COM)\nSYSINIT segment = 544h",	0);
-	set_name	(0X2A14,	"loadit");
 	create_insn	(x=0X2A19);
 	op_plain_offset	(x,	1,	0X5330);
 	op_plain_offset	(x,	129,	0X5330);
@@ -5335,7 +5327,7 @@ static Bytes_1(void) {
 	create_insn	(x=0X3DAF);
 	op_plain_offset	(x,	0,	0X5F0);
 	op_plain_offset	(x,	128,	0X5F0);
-	set_cmt	(0X3DB6,	"FAT32 system\nBS_FAT32_VolID",	0);
+	set_cmt	(0X3DB6,	"FAT32 file system\nBS_FAT32_VolID",	0);
 	create_insn	(x=0X3DB6);
 	op_plain_offset	(x,	1,	0X5F0);
 	op_plain_offset	(x,	129,	0X5F0);
@@ -5519,6 +5511,10 @@ static Bytes_1(void) {
 	set_cmt	(0X3F2E,	"issue swap_dsk_msg",	0);
 	create_insn	(0X3F35);
 	set_cmt	(0X3F38,	"-1  ; end of list?",	0);
+	set_cmt	(0X3F3B,	"continue until hit end of list",	0);
+	set_cmt	(0X3F3E,	"restore current bds",	0);
+	set_cmt	(0X3F43,	"sector not found",	0);
+	create_insn	(0X3F43);
 }
 
 //------------------------------------------------------------------------
@@ -5528,10 +5524,6 @@ static Bytes_2(void) {
         auto x;
 #define id x
 
-	set_cmt	(0X3F3B,	"continue until hit end of list",	0);
-	set_cmt	(0X3F3E,	"restore current bds",	0);
-	set_cmt	(0X3F43,	"sector not found",	0);
-	create_insn	(0X3F43);
 	set_cmt	(0X3F47,	"unknown media",	0);
 	create_insn	(0X3F47);
 	set_name	(0X3F4A,	"ioret");
@@ -5566,7 +5558,7 @@ static Bytes_2(void) {
 	create_insn	(x=0X3F6D);
 	op_plain_offset	(x,	0,	0X5F0);
 	op_plain_offset	(x,	128,	0X5F0);
-	set_cmt	(0X3F72,	"[es:di+BDS.flags+1]\n unformatted_media",	0);
+	set_cmt	(0X3F72,	"[es:di+BDS.flags+1]\nunformatted_media",	0);
 	create_insn	(x=0X3F72);
 	op_hex		(x,	1);
 	set_cmt	(0X3F79,	"save sector count",	0);
@@ -5612,6 +5604,8 @@ static Bytes_2(void) {
 	op_plain_offset	(x,	0,	0X5F0);
 	op_plain_offset	(x,	128,	0X5F0);
 	set_cmt	(0X3FDF,	"brif not",	0);
+	set_cmt	(0X3FE1,	"will do a sneaky pop stack return\nif a disk error occurs",	0);
+	set_cmt	(0X3FE4,	"set up tables and variables for i/o",	0);
 	set_cmt	(0X3FE7,	"[es:di+BDS.flags+1], fLBArw \nLBA read/write flag",	0);
 	create_insn	(x=0X3FE7);
 	op_hex		(x,	1);
@@ -5697,7 +5691,7 @@ static Bytes_2(void) {
 	set_cmt	(0X40BB,	"[es:di+BDS.heads]\nget number of heads",	0);
 	set_cmt	(0X40C2,	"divide tracks by heads per cylinder",	0);
 	set_cmt	(0X40C7,	"now, bp:ax = cylinder #, dx = head",	0);
-	set_cmt	(0X40CE,	"2^10 currently maxium for track #.",	0);
+	set_cmt	(0X40CE,	"2^10 currently maximum for track #.",	0);
 	create_insn	(x=0X40CE);
 	op_dec		(x,	1);
 	set_cmt	(0X40D3,	"save current head",	0);
@@ -5746,7 +5740,7 @@ static Bytes_2(void) {
 	op_plain_offset	(x,	129,	0X5F0);
 	set_cmt	(0X4113,	"[es:di+BDS.formfactor], ffSmall",	0);
 	create_insn	(x=0X4113);
-	op_dec		(x,	0);
+	op_hex		(x,	0);
 	set_cmt	(0X411C,	"[si+DISK_PARMS.DISK_MOTOR_STRT]",	0);
 	create_insn	(x=0X411C);
 	op_dec		(x,	1);
@@ -5808,7 +5802,7 @@ static Bytes_2(void) {
 	create_insn	(0X41A1);
 	set_cmt	(0X41A4,	"al = number of sectors (1-8, all on one track)\nes:di point to drive parameters\nxfer_seg:bx = transfer address \n     (must not cross a 64k physical boundary)\n[rflag] = 2 if read, 3 if write\n[verify] = 0 for normal, 1 for verify after write\n\nbp = MAXERR \n     retry_count",	0);
 	create_insn	(0X41A4);
-	set_name	(0X41A4,	"disk");
+	set_name	(0X41A4,	"Disk");
 	set_cmt	(0X41A7,	"[es:di+BDS.flags], fnon_removable",	0);
 	create_insn	(x=0X41A7);
 	op_hex		(x,	1);
@@ -6022,7 +6016,7 @@ static Bytes_2(void) {
 	create_insn	(0X435D);
 	create_byte	(0X4360);
 	set_name	(0X4360,	"ioctl_drvnum");
-	set_cmt	(0X4361,	"get physcial drive number\nINPUT: al = logical drive number (BDS.drivelet)\nOUTPUT: physical drive number (BDS.drivenum",	0);
+	set_cmt	(0X4361,	"get physical drive number\nINPUT: al = logical drive number (BDS.drivelet)\nOUTPUT: physical drive number (BDS.drivenum)",	0);
 	create_insn	(0X4361);
 	set_name	(0X4361,	"get_phy_drv_num");
 	set_cmt	(0X4364,	"[es:di+BDS.drivenum]",	0);
@@ -6050,7 +6044,7 @@ static Bytes_2(void) {
 	set_cmt	(0X43A8,	"DISK - IBM/MS Extension - LOCK/UNLOCK DRIVE (DL - drive, DS:SI - disk address packet)",	0);
 	create_insn	(x=0X43A8);
 	op_hex		(x,	0);
-	set_name	(0X43AC,	"ioctl_lock_err");
+	set_name	(0X43AC,	"ioctl_output_ret");
 	create_insn	(0X43AE);
 	set_name	(0X43AE,	"ioctl_output_2");
 	set_cmt	(0X43B0,	"volume not locked in drive",	0);
@@ -6607,6 +6601,8 @@ static Bytes_2(void) {
 	op_plain_offset	(x,	128,	0X5F0);
 	set_cmt	(0X47B0,	"Advance buffer pointer by adding\nsector size",	0);
 	set_cmt	(0X47B2,	"SectorSizeIndexToSectorSize",	0);
+	create_insn	(x=0X47B4);
+	op_dec		(x,	1);
 	create_insn	(x=0X47BF);
 	op_plain_offset	(x,	0,	0X5F0);
 	op_plain_offset	(x,	128,	0X5F0);
@@ -7330,7 +7326,7 @@ static Bytes_2(void) {
 	set_cmt	(0X4DAE,	"call BIOSDATA:call_orig13\ncall DOSBIOSSEG:call_orig13",	0);
 	create_insn	(x=0X4DAE);
 	set_cmt	(0X4DB4,	"[bp+INT13FRAME.oldf]",	0);
-	set_cmt	(0X4DB9,	"40h:90h is drive type array",	0);
+	set_cmt	(0X4DB9,	"40h:90h is drive type array addr",	0);
 	create_dword	(0X4DB9);
 	set_name	(0X4DB9,	"dtype_array");
 	set_cmt	(0X4DBD,	"do we have changeline support?",	0);
@@ -7685,7 +7681,7 @@ static Bytes_2(void) {
 	set_cmt	(0X5113,	"build a new bpb in current bds",	0);
 	create_insn	(0X5113);
 	set_cmt	(0X511D,	"fix up al for return to dos",	0);
-	set_cmt	(0X5120,	"[di+BDS.opcnt]",	0);
+	set_cmt	(0X5120,	"[es:di+BDS.opcnt]",	0);
 	create_insn	(0X5120);
 	set_name	(0X5120,	"checklatchio");
 	set_cmt	(0X5125,	"done if zero",	0);
@@ -7727,6 +7723,7 @@ static Bytes_2(void) {
 	op_plain_offset	(x,	128,	0X5F0);
 	set_cmt	(0X516E,	"don't read vol id if not fat system",	0);
 	set_cmt	(0X5178,	"-1\ndefinitely changed",	0);
+	set_cmt	(0X517D,	"not changed",	0);
 	set_name	(0X5182,	"checkfatret");
 	set_cmt	(0X5183,	"cas -- return no error",	0);
 	create_insn	(0X5183);
@@ -7760,6 +7757,7 @@ static Bytes_2(void) {
 	set_name	(0X51A9,	"ext_changed");
 	create_insn	(0X51AF);
 	set_name	(0X51AF,	"checkio");
+	set_cmt	(0X51B4,	"[es:di+BDS.opcnt]",	0);
 	set_cmt	(0X51C3,	"disk error trying to read in.",	0);
 	set_cmt	(0X51C5,	"is changed for sure?",	0);
 	set_cmt	(0X51C7,	"yes changed",	0);
@@ -7811,7 +7809,7 @@ static Bytes_2(void) {
 	create_insn	(0X5223);
 	set_cmt	(0X5224,	"return to 720K code",	0);
 	create_insn	(0X5227);
-	set_name	(0X5227,	"Set_Changed_DL");
+	set_name	(0X5227,	"set_changed_dl");
 	create_insn	(x=0X5229);
 	op_plain_offset	(x,	1,	0X5F0);
 	op_plain_offset	(x,	129,	0X5F0);
@@ -8091,12 +8089,6 @@ static Bytes_2(void) {
 	set_name	(0X5417,	"int73");
 	create_dword	(0X5419);
 	set_name	(0X5419,	"old73");
-	create_word	(0X541D);
-	create_byte	(0X541F);
-	set_name	(0X541F,	"firstflag73");
-	create_insn	(0X5420);
-	create_byte	(0X5422);
-	make_array	(0X5422,	0X7);
 }
 
 //------------------------------------------------------------------------
@@ -8106,6 +8098,12 @@ static Bytes_3(void) {
         auto x;
 #define id x
 
+	create_word	(0X541D);
+	create_byte	(0X541F);
+	set_name	(0X541F,	"firstflag73");
+	create_insn	(0X5420);
+	create_byte	(0X5422);
+	make_array	(0X5422,	0X7);
 	create_insn	(0X5429);
 	set_name	(0X5429,	"entry_int73_stk");
 	create_word	(x=0X542C);
@@ -8652,7 +8650,7 @@ static Bytes_3(void) {
 	create_insn	(x=0X589D);
 	op_plain_offset	(x,	0,	0X5330);
 	op_plain_offset	(x,	128,	0X5330);
-	set_cmt	(0X58B6,	"set stack\nmov sp, 586h ; mov sp, locstack\n%define locstack ($ - SYSINIT$) & 0FFFEh\nlocstack = $ & 0FFFEh (SYSINIT:SYSINITŞ=544h:0)",	0);
+	set_cmt	(0X58B6,	"set stack\nmov sp, 586h ; mov sp, locstack\n%define locstack ($ - SYSINIT$) & 0FFFEh\nlocstack = $ & 0FFFEh (SYSINIT:SYSINIT$=544h:0)",	0);
 	create_insn	(x=0X58B6);
 	op_plain_offset	(x,	1,	0X5330);
 	op_plain_offset	(x,	129,	0X5330);
@@ -8716,7 +8714,7 @@ static Bytes_3(void) {
 	set_cmt	(0X5961,	"[es:di+SYSI_EXT_MEM]",	0);
 	set_cmt	(0X596C,	"[es:di+SYSI_MAXSEC]",	0);
 	set_name	(0X596C,	"no_ext_memory");
-	set_cmt	(0X5970,	"bufinsiz\nsize of buffer header = 24 (PCDOS v7.1 IBMBIO.COM)\n(it was 20 in MSDOS 6.21 IO:SYS)",	0);
+	set_cmt	(0X5970,	"bufinsiz\nsize of buffer header = 24 (PCDOS v7.1 IBMBIO.COM)\n(it was 20 in MSDOS 6.22 IO.SYS)",	0);
 	create_insn	(x=0X5970);
 	op_dec		(x,	1);
 	set_cmt	(0X5973,	"total size for a buffer",	0);
@@ -10513,7 +10511,6 @@ static Bytes_3(void) {
 	op_plain_offset	(x,	1,	0X5330);
 	op_plain_offset	(x,	129,	0X5330);
 	set_cmt	(0X6D26,	"pass drive number to DBLSPACE as if",	0);
-	set_cmt	(0X6D2A,	"it is a normal block device driver",	0);
 }
 
 //------------------------------------------------------------------------
@@ -10523,6 +10520,7 @@ static Bytes_4(void) {
         auto x;
 #define id x
 
+	set_cmt	(0X6D2A,	"it is a normal block device driver",	0);
 	set_cmt	(0X6D2E,	"DS_INTERNAL_REVISION\ntell it what revision we expect",	0);
 	create_insn	(x=0X6D2E);
 	op_dec		(x,	1);
@@ -12795,7 +12793,6 @@ static Bytes_4(void) {
 	set_cmt	(0X7FA2,	"get real sysi_numio value",	0);
 	set_cmt	(0X7FA4,	"ds:bx -> sys_var",	0);
 	set_cmt	(0X7FA9,	"[bx+SYSI_NUMIO]\nrestore previous/real value",	0);
-	set_cmt	(0X7FB0,	"move break addr from the req packet",	0);
 }
 
 //------------------------------------------------------------------------
@@ -12805,6 +12802,7 @@ static Bytes_5(void) {
         auto x;
 #define id x
 
+	set_cmt	(0X7FB0,	"move break addr from the req packet",	0);
 	set_cmt	(0X7FC0,	"There we go... all done.",	0);
 	set_cmt	(0X7FD6,	"move DOS into HMA if requsted",	0);
 	set_cmt	(0X7FDB,	"*p = 0;",	0);
@@ -14830,9 +14828,6 @@ static Bytes_5(void) {
 	set_cmt	(0X9860,	"delay complete!",	0);
 	set_cmt	(0X9861,	"assume clean boot",	0);
 	set_cmt	(0X9863,	"peek the shift states",	0);
-	set_cmt	(0X9865,	"KEYBOARD - GET SHIFT STATUS\nAL = shift status bits",	0);
-	create_insn	(x=0X9865);
-	op_hex		(x,	0);
 }
 
 //------------------------------------------------------------------------
@@ -14842,6 +14837,9 @@ static Bytes_6(void) {
         auto x;
 #define id x
 
+	set_cmt	(0X9865,	"KEYBOARD - GET SHIFT STATUS\nAL = shift status bits",	0);
+	create_insn	(x=0X9865);
+	op_hex		(x,	0);
 	set_cmt	(0X9867,	"either right or left shift key bits set?",	0);
 	create_insn	(x=0X9867);
 	op_hex		(x,	1);

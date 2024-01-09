@@ -1022,7 +1022,7 @@ Win386_vxd:				; ...
 		push	dx
 		push	si
 		push	di
-		mov	bx, ds:8Ch	; UMB_HEAD
+		mov	bx, ds:UMB_HEAD
 		cmp	bx, 0FFFFh
 		jz	short Vxd31
 		mov	ds:UmbSaveFlag,	1
@@ -1138,7 +1138,7 @@ Win386_Leaving_c:			; ...
 		push	cx
 		push	si
 		push	di
-		mov	ax, ds:8Ch	; UMB_HEAD
+		mov	ax, ds:UMB_HEAD
 		mov	es, ax
 		xor	di, di
 		cld
@@ -1161,7 +1161,7 @@ noumb:					; ...
 ; ---------------------------------------------------------------------------
 
 Win386_Query:				; ...
-		cmp	bx, 15h
+		cmp	bx, 15h		; Win386_DOSMGR
 		jnz	short win_nexti2f
 		or	cx, cx
 		jnz	short dosmgr_func
@@ -3919,7 +3919,7 @@ ZERPOS:					; ...
 ; END OF FUNCTION CHUNK	FOR OUTT
 ; ---------------------------------------------------------------------------
 
-j_OUTT:					; ...
+OUTJ:					; ...
 		jmp	OUTT
 ; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR OUTT
@@ -3934,9 +3934,9 @@ BACKPOS:				; ...
 
 BUFOUT		proc near		; ...
 		cmp	al, ' '
-		jnb	short j_OUTT
+		jnb	short OUTJ
 		cmp	al, 9
-		jz	short j_OUTT
+		jz	short OUTJ
 		cmp	al, 15h
 		jz	short CTRLU
 		cmp	al, 14h
@@ -4667,13 +4667,13 @@ CheckNet:				; ...
 		cmp	ax, es:[di+0Bh]
 		jnz	short BadSFT
 		retn
-CheckFCB	endp
-
 ; ---------------------------------------------------------------------------
 
 CheckNoShare:				; ...
 		test	al, 40h
 		jnz	short $+2
+
+CheckNoShareDev:			; ...
 		mov	bx, [si+1Ah]
 		cmp	bx, es:[di+7]
 		jnz	short BadSFT
@@ -4681,6 +4681,8 @@ CheckNoShare:				; ...
 		cmp	bx, es:[di+9]
 		jnz	short BadSFT
 		jmp	short CheckD
+CheckFCB	endp
+
 
 ; =============== S U B	R O U T	I N E =======================================
 
@@ -5456,6 +5458,8 @@ CurrentValidate:			; ...
 		lds	si, ds:THISCDS
 		test	word ptr [si+43h], 8000h
 		jnz	short $+2
+
+DoCheck:				; ...
 		push	ds
 		mov	ds, cs:DosDSeg
 		mov	ds:NoSetDir, 0
@@ -5555,10 +5559,7 @@ rmcont:					; ...
 		pop	ds
 		pop	dx
 		mov	si, offset DOS_RMDIR
-; ---------------------------------------------------------------------------
-		db 0E9h	; é
-		db  7Fh	; 
-		db    0
+		jmp	DoDirCall
 ; ---------------------------------------------------------------------------
 
 $CHDIR:					; ...
@@ -5627,7 +5628,7 @@ mkdir_ok:				; ...
 $MKDIR:					; ...
 		mov	si, offset DOS_MKDIR
 
-DoDirCall:
+DoDirCall:				; ...
 		mov	di, offset OPENBUF
 		push	si
 		mov	si, dx
@@ -9787,7 +9788,7 @@ SKIPRESET:				; ...
 		mov	dx, 0FFFFh
 		call	RELBLKS
 
-SET_ACC_ERRWJ:				; ...
+SET_ACC_ERRWJJ:				; ...
 		jb	short SET_ACC_ERRWJ2
 		jmp	short UPDATE
 ; ---------------------------------------------------------------------------
@@ -9818,7 +9819,7 @@ KILLFIL:				; ...
 		pop	bp
 		pop	es
 		call	RELEASE
-		jb	short SET_ACC_ERRWJ
+		jb	short SET_ACC_ERRWJJ
 
 UPDATEJ:				; ...
 		jmp	short UPDATE
@@ -12936,14 +12937,9 @@ NAMETRANS	proc near		; ...
 NAMETRANS	endp
 
 ; ---------------------------------------------------------------------------
-CharType	db  66h, 66h, 66h, 66h,	06h, 66h, 66h, 66h; 0 ;	...
-		db  66h, 66h, 66h, 66h,	66h, 66h, 66h, 66h; 8
-		db 0F8h,0F6h,0FFh,0FFh,0FFh, 4Fh,0F4h, 6Eh; 16
-		db 0FFh,0FFh,0FFh,0FFh,0FFh, 44h, 44h,0F4h; 24
-		db 0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0FFh; 32
-		db 0FFh,0FFh,0FFh,0FFh,0FFh, 6Fh, 66h,0FFh; 40
-		db 0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0FFh; 48
-		db 0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0F4h; 56
+CharType	db 4 dup(66h), 6, 0Bh dup(66h),	0F8h, 0F6h, 3 dup(0FFh)	; ...
+		db 4Fh,	0F4h, 6Eh, 5 dup(0FFh),	2 dup(44h), 0F4h, 0Dh dup(0FFh)
+		db 6Fh,	66h, 0Fh dup(0FFh), 0F4h
 
 ; =============== S U B	R O U T	I N E =======================================
 
@@ -13635,8 +13631,6 @@ reset_return:				; ...
 		call	LCritDisk
 		call	CHECK_VIRT_OPEN
 		cli
-FATALC		endp ; sp-analysis failed
-
 		mov	ds:INDOS, 0
 		mov	ds:WPERR, 0FFh
 		mov	ds:fAborting, 0
@@ -13666,6 +13660,8 @@ FATALC		endp ; sp-analysis failed
 		mov	ax, ds:USER_SP
 		mov	ds, ds:TEMPSEG
 		iret
+FATALC		endp ; sp-analysis failed
+
 
 ; =============== S U B	R O U T	I N E =======================================
 
@@ -14026,7 +14022,7 @@ FATREAD_CDS	endp
 ; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR FAT_GOT_DPB
 
-FATERR:					; ...
+FAT_operation:				; ...
 		mov	word ptr es:[bp+1Fh], 0FFFFh ; -1
 		and	di, 0FFh
 		mov	ds:ALLOWED, 18h
@@ -14067,7 +14063,7 @@ FAT_GOT_DPB	proc near		; ...
 		pop	es
 		mov	di, ds:DEVCALL_REQSTAT
 		or	di, di
-		js	short FATERR
+		js	short FAT_operation
 		xor	ah, ah
 		xchg	ah, es:[bp+18h]	; [ES:BP+DPB.FIRST_ACCESS]
 		mov	al, ds:THISDRV
@@ -14243,7 +14239,7 @@ GOTGETBUF:				; ...
 ; ---------------------------------------------------------------------------
 
 FATERRJ:				; ...
-		jmp	FATERR
+		jmp	FAT_operation
 FAT_GOT_DPB	endp
 
 
@@ -16461,7 +16457,7 @@ $COMMIT:				; ...
 		mov	ah, 68h
 ; START	OF FUNCTION CHUNK FOR $READ
 
-CommitOk:				; ...
+Commit_OK:				; ...
 		jmp	short Close_OK
 ; ---------------------------------------------------------------------------
 
@@ -16527,7 +16523,7 @@ movhandl:				; ...
 ; START	OF FUNCTION CHUNK FOR $READ
 
 ok_done:				; ...
-		jmp	short CommitOk
+		jmp	short Commit_OK
 ; END OF FUNCTION CHUNK	FOR $READ
 ; ---------------------------------------------------------------------------
 
@@ -16589,7 +16585,7 @@ no_memory:				; ...
 		mov	al, 8
 ; START	OF FUNCTION CHUNK FOR $READ
 
-CommitErrorj2:				; ...
+jmp_to_jmp_CommitError:			; ...
 		jmp	short CommitErrorj
 ; END OF FUNCTION CHUNK	FOR $READ
 ; ---------------------------------------------------------------------------
@@ -16598,8 +16594,8 @@ invalid_func:				; ...
 		mov	al, 1
 ; START	OF FUNCTION CHUNK FOR $READ
 
-CommitErrorj3:				; ...
-		jmp	short CommitErrorj2
+ExtHandle_err:				; ...
+		jmp	short jmp_to_jmp_CommitError
 ; END OF FUNCTION CHUNK	FOR $READ
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -16624,7 +16620,7 @@ ReadDo:					; ...
 		jnb	short ReadSetup
 
 ReadError:				; ...
-		jmp	short CommitErrorj3
+		jmp	short ExtHandle_err
 ; ---------------------------------------------------------------------------
 
 ReadSetup:				; ...
@@ -17995,7 +17991,7 @@ ChModGet:				; ...
 		mov	[si+4],	ax
 ; START	OF FUNCTION CHUNK FOR $UNLINK
 
-OpenOkj2:				; ...
+ChModOKj:				; ...
 		jmp	short OpenOKJ
 ; END OF FUNCTION CHUNK	FOR $UNLINK
 ; ---------------------------------------------------------------------------
@@ -18006,8 +18002,8 @@ ChModSet:				; ...
 		jb	short ChModE
 ; START	OF FUNCTION CHUNK FOR $UNLINK
 
-OpenOkj3:				; ...
-		jmp	short OpenOkj2
+ChModOK:				; ...
+		jmp	short ChModOKj
 ; ---------------------------------------------------------------------------
 
 ChModErr:				; ...
@@ -18042,7 +18038,7 @@ $UNLINK		proc near		; ...
 		jb	short UnlinkE
 
 UnLinkOK:				; ...
-		jmp	short OpenOkj3
+		jmp	short ChModOK
 ; ---------------------------------------------------------------------------
 
 NotFound:				; ...
@@ -19063,7 +19059,7 @@ first:
 second:
 		mov	es, ax
 
-_NextRec:
+_NextRec:				; ...
 		mov	cx, 204h
 
 _norm_agn:				; ...
@@ -19108,13 +19104,13 @@ _SI_ok:					; ...
 
 TryEnum:				; ...
 		cmp	al, 0B2h	; ENMREC
-		jnz	short CorruptExe ; db 75h,6Bh
+		jnz	short near ptr NextRec_2+1 ; db	75h,6Bh
 		rep movsb
 
 TryNext:				; ...
 		xchg	ax, dx
 		test	al, 1
-		jz	short NextRec	; db 74h,0BAh
+		jz	short _NextRec	; db 74h,0BAh
 		nop
 		nop
 
@@ -19144,16 +19140,18 @@ NextRec_1:
 		mov	dx, ds
 		sub	dx, ax
 		mov	ds, dx
+		assume ds:nothing
 		or	si, 0FFF0h
 
 SI_ok_1:				; ...
 		mov	ax, di
 		not	ax
 		shr	ax, cl
-		jz	short DI_ok_1
+		jz	short scan_patch2
 		mov	dx, es
 		sub	dx, ax
 		mov	es, dx
+		assume es:nothing
 		or	di, 0FFF0h
 
 scan_patch2:				; ...
@@ -19161,6 +19159,7 @@ scan_patch2:				; ...
 		mov	ax, ds
 		dec	ax
 		mov	ds, ax
+		assume ds:nothing
 		mov	es, ax
 		mov	di, 0Fh
 		mov	cx, 10h
@@ -19171,9 +19170,10 @@ scan_patch2:				; ...
 		mov	ax, bx
 		dec	ax
 		mov	es, ax
+		assume es:nothing
 		mov	di, 0Fh
 
-NextRec_2:
+NextRec_2:				; ...
 		mov	cl, 4
 		mov	ax, si
 		not	ax
@@ -19189,7 +19189,7 @@ SI_ok_2:				; ...
 		mov	ax, di
 		not	ax
 		shr	ax, cl
-		jz	short DI_ok_2
+		jz	short scan_patch3
 		mov	dx, es
 		sub	dx, ax
 		mov	es, dx
@@ -19203,6 +19203,7 @@ scan_patch3:				; ...
 		mov	ds, ax
 		assume ds:nothing
 		mov	es, ax
+		assume es:nothing
 		mov	di, 0Fh
 		mov	cx, 10h
 		mov	al, 0FFh
@@ -19231,7 +19232,7 @@ SI_ok_3:				; ...
 		mov	ax, di
 		not	ax
 		shr	ax, cl
-		jz	short DI_ok_3
+		jz	short scan_com
 		mov	dx, es
 		sub	dx, ax
 		mov	es, dx
@@ -19257,7 +19258,7 @@ scan_com:				; ...
 
 _TryEnum:				; ...
 		cmp	al, 0B2h
-		jnz	short CorruptExe
+		jnz	short near ptr ep_chkpatch2+2
 		rep movsb
 
 _TryNext:				; ...
@@ -19506,12 +19507,8 @@ rpexit:					; ...
 		pop	ax
 		retn
 ; ---------------------------------------------------------------------------
-CPScanPattern	db  89h, 26h, 48h, 01h	; 0 ; ...
-		db  8Ch, 0Eh, 4Ch, 01h	; 4
-		db 0C7h, 06h, 4Ah, 01h	; 8
-		db  00h, 01h, 8Ch, 0Eh	; 12
-		db  13h, 01h,0B8h, 20h	; 16
-		db  01h,0BEh, 00h, 01h	; 20
+CPScanPattern	db 89h,	26h, 48h, 1, 8Ch, 0Eh, 4Ch, 1, 0C7h, 6,	4Ah, 1 ; ...
+		db 0, 1, 8Ch, 0Eh, 13h,	1, 0B8h, 20h, 1, 0BEh, 0, 1
 
 ; =============== S U B	R O U T	I N E =======================================
 
@@ -20230,7 +20227,7 @@ NULDEV		dd 0			; ...
 		dw 8004h		; DEVTYP|ISNULL
 		dw offset SNULDEV
 off_BFC0	dw offset INULDEV	; ...
-asc_BFC2	db 'NUL     '           ; ...
+aNul		db 'NUL     '           ; ...
 SPLICES		db 0			; ...
 Special_Entries	dw 0
 UU_IFS_DOS_CALL	dd 0			; ...
@@ -20504,16 +20501,16 @@ FILE_UCASE_TAB_2 db 128, 154, 69, 65, 142, 65, 143, 128, 3 dup(69), 3 dup(73) ;	
 		db 254,	255
 FILE_CHAR_TAB	dw 22			; ...
 		db 1, 0, 255, 2	dup(0),	32, 2, 14
-		db '."/\[]:|<>+=;,'
+a_		db '."/\[]:|<>+=;,'
 		db 24 dup(0)
 COLLATE_TAB	dw 256			; ...
 		db 0, 1, 2, 3, 4, 5, 6,	7, 8, 9, 10, 11, 12, 13, 14, 15
 		db 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28
 		db 29, 30, 31
-		db ' !"#$%&',27h,'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]'
+a_0123456789?@abcd db ' !"#$%&',27h,'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]'
 		db '^_`ABCDEFGHIJKLMNOPQRSTUVWXYZ{|}~'
 		db 127
-		db 'CUEAAAACEEEIIIAAEAAOOOUUYOU$$$$$AIOUNN'
+aCueaaaaceeeiiiaae db 'CUEAAAACEEEIIIAAEAAOOOUUYOU$$$$$AIOUNN'
 		db 166,	167
 		db '?'
 		db 169,	170, 171, 172
@@ -20996,7 +20993,7 @@ rbc_loop:				; ...
 ; ---------------------------------------------------------------------------
 UmbSave1	db 11 dup(0)		; ...
 COUNTRY_CDPG	db 8 dup(0)		; ...
-		db '\COUNTRY.SYS',0
+aCountry_sys	db '\COUNTRY.SYS',0
 		db 51 dup(0)
 		dw 437
 		dw 6
@@ -21022,7 +21019,7 @@ COUNTRY_CDPG_76	db 2			; ...
 COUNTRY_CDPG_108 dw 0			; ...
 		db '$',0,0,0,0
 		db ',',0
-		db '.',0
+a__0		db '.',0
 		db '-',0
 		db ':',0
 		db 0

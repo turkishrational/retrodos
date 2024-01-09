@@ -17,7 +17,7 @@ DOSDATA:0000
 DOSDATA:0000 ; Segment type: Pure data
 DOSDATA:0000 DOSDATA	     segment para private 'DATA' use16
 DOSDATA:0000		     assume cs:DOSDATA
-DOSDATA:0000 byte_0	     db	4 dup(0)	     ; ...
+DOSDATA:0000		     db	4 dup(0)	     ; ...
 DOSDATA:0004 DataVersion     dw	1		     ; ...
 DOSDATA:0006 WinoldPatch1    db	8 dup(0)	     ; ...
 DOSDATA:000E MYNUM	     dw	0		     ; ...
@@ -3573,7 +3573,7 @@ DOSCODE:4F78		     mov     word ptr WinoldPatch1, 0C0h ; 'À'
 DOSCODE:4F7E		     mov     word ptr WinoldPatch1+2, 0
 DOSCODE:4F84
 DOSCODE:4F84 addr_ok:				     ; ...
-DOSCODE:4F84		     mov     word ptr byte_0, 20CDh
+DOSCODE:4F84		     mov     word ptr 0, 20CDh
 DOSCODE:4F8A		     mov     byte ptr DataVersion+1, 9Ah ; 'š'
 DOSCODE:4F8F		     mov     off_50, 21CDh
 DOSCODE:4F95		     mov     byte ptr asc_52, 0CBh ; 'Ë' ; "NUL     "
@@ -16921,7 +16921,7 @@ DOSCODE:A4A2		     test    ss:UMBFLAG, 1
 DOSCODE:A4A8		     jz	     short unlinked
 DOSCODE:A4AA		     call    GetLastArena
 DOSCODE:A4AD		     jb	     short AllocArenaError
-DOSCODE:A4AF		     mov     byte_0, 5Ah ; 'Z'
+DOSCODE:A4AF		     mov     byte ptr 0, 5Ah ; 'Z'
 DOSCODE:A4B4		     and     ss:UMBFLAG, 0FEh
 DOSCODE:A4BA
 DOSCODE:A4BA unlinked:				     ; ...
@@ -16933,7 +16933,7 @@ DOSCODE:A4BC		     test    ss:UMBFLAG, 1
 DOSCODE:A4C2		     jnz     short linked
 DOSCODE:A4C4		     call    GetLastArena
 DOSCODE:A4C7		     jb	     short AllocArenaError
-DOSCODE:A4C9		     mov     byte_0, 4Dh ; 'M'
+DOSCODE:A4C9		     mov     byte ptr 0, 4Dh ; 'M'
 DOSCODE:A4CE		     or	     ss:UMBFLAG, 1
 DOSCODE:A4D4
 DOSCODE:A4D4 linked:				     ; ...
@@ -19650,7 +19650,7 @@ DOSCODE:B4F0		     dw	80h
 DOSCODE:B4F2 ; ---------------------------------------------------------------------------
 DOSCODE:B4F2
 DOSCODE:B4F2 Rational386Patch:			     ; ...
-DOSCODE:B4F2		     cmp     word ptr es:byte_0, 395
+DOSCODE:B4F2		     cmp     word ptr es:0, 18Bh
 DOSCODE:B4F9		     jnb     short rp3QuickOut
 DOSCODE:B4FB		     cmp     word ptr es:WinoldPatch1+6, 20h ; ' '
 DOSCODE:B501		     jnz     short rp3QuickOut
@@ -19684,7 +19684,7 @@ DOSCODE:B527		     sub     sp, 6
 DOSCODE:B52A		     mov     bp, sp
 DOSCODE:B52C		     push    cs
 DOSCODE:B52D		     pop     ds
-DOSCODE:B52E		     mov     ax, word ptr es:byte_0
+DOSCODE:B52E		     mov     ax, word ptr es:0
 DOSCODE:B532		     mov     [bp+0], ax
 DOSCODE:B535		     call    VerifyVersion
 DOSCODE:B538		     jnz     short rp3Exit_j

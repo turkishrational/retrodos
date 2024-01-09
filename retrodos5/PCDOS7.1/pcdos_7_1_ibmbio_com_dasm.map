@@ -628,7 +628,7 @@
  00000353:00000C0A       diddle_back
  00000353:00000C36       ddbx
  00000353:00000C37       block
- 00000353:00000C74       disk
+ 00000353:00000C74       Disk
  00000353:00000DA6       harderr
  00000353:00000DA9       harderr2
  00000353:00000DB9       normspeed
@@ -641,7 +641,7 @@
  00000353:00000E39       ioctl_output
  00000353:00000E4A       ioctl_input_1
  00000353:00000E73       ioctl_output_1
- 00000353:00000E7C       ioctl_lock_err
+ 00000353:00000E7C       ioctl_output_ret
  00000353:00000E7E       ioctl_output_2
  00000353:00000E80       int13h_exts_err
  00000353:00000E8D       ioctl_input
@@ -825,7 +825,7 @@
  00000353:00001CB2       vid_into_packet
  00000353:00001CC3       dofloppy
  00000353:00001CC4       hidensity
- 00000353:00001CF7       Set_Changed_DL
+ 00000353:00001CF7       set_changed_dl
  00000353:00001CFD       scan_bds
  00000353:00001D12       resetchanged
  00000353:00001D18       haschange

@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; IOSYS6.S (MSDOS 6.0 IO.SYS) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 27/12/2023 - Retro DOS v4.2 (Modified MSDOS 6.22)
+; Last Update: 30/12/2023 - Retro DOS v4.2 (Modified MSDOS 6.22)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -10961,7 +10961,9 @@ getret_exit:		; 21/12/2023
 ;	   now es:di has the bds, ds: has Bios_Data
 ; ---------------------------------------------------------------------------
 
-GetBp:		; if returning fake bpb then return bpb as is.
+		; 29/12/2023
+GetBp:		
+		; if returning fake bpb then return bpb as is.
 		;test	byte [es:di+BDS.flags], return_fake_bpb|fnon_removable
 		test	byte [es:di+23h], 5
 		;jz	short getbp1	; getbp1
@@ -11061,8 +11063,13 @@ is_floppy:			; must be a 5.25" floppy if we come here
 
 		test	ah, 2		; test for 8 or	9 sector
 		jnz	short has8	; nz = has 8 sectors
-		inc	al	; 2 	; inc number of	fat sectors
-		inc	bl	; 9	; inc sector max
+		
+		; 29/12/2023
+		;inc	al	; 2 	; inc number of	fat sectors
+		;inc	bl	; 9	; inc sector max
+		inc	ax
+		inc	bx
+
 		;add	cx, 40		; increase size	(to 360)
 		; 18/12/2022
 		add	cl, 40	; 28h	; 180K (360 sectors)
@@ -11072,7 +11079,9 @@ has8:
 		add	cx, cx		; double size of disk
 		mov	bh, 112		; increase number of directory entries
 		inc	dh		; inc sec/all unit
-		inc	dl		; inc head limit
+		;inc	dl		; inc head limit
+		; 29/12/2023
+		inc	dx
 Has1:
 		; 02/09/2023 (PCDOS 7.1, IBMBIO.COM - BIOSCODE:0754h)
 		push	ds
@@ -19546,8 +19555,9 @@ not_386_system:
 ;	for 26 temporary CDSs, which makes it easier to use alloclim
 ;	for allocating memory for MagicDrv.
 
-	push	es			; preserve pointer to dosinfo
-	push	di
+	; 30/12/2023
+	;push	es ; not necessary (!*)	; preserve pointer to dosinfo
+	;push	di
 
 	; 22/10/2022
 ;	mov	cx,ax			; save pointer for buffer
@@ -19618,8 +19628,9 @@ not_386_system:
 	;mov	[es:di+buffinfo.buf_sector+2],bx ; 0
 	mov	[es:di+8],bx ; 0
 
-	pop	di			; restore pointer to DOSINFO data
-	pop	es
+	; 30/12/2023 (!*)
+	;pop	di			; restore pointer to DOSINFO data
+	;pop	es
 
 	; 11/12/2022
 	; ds = cs
@@ -19674,7 +19685,8 @@ not_386_system:
 			; BX = segment address of new PSP
 	; 22/10/2022
 	; 27/03/2019
-	push	ds ; */			; preserve DS returned by DOSINIT
+	; 30/12/2023
+	;push	ds ; */			; preserve DS returned by DOSINIT
 
 	push	cs	
 	pop	ds
@@ -19713,11 +19725,13 @@ p_dosinit_msg:
 	; 11/12/2022
 	; 27/03/2019
 	mov	dl,[DEFAULT_DRIVE]	
-	pop	ds ; */
+	; 30/12/2023
+	;pop	ds ; */
 
 	or	dl,dl
-	;jz	short nodrvset		; bios didn't say
-	jz	short ProcessConfig  ; (Retro DOS v4.0 does not contain DBLSPACE code)
+	; 30/12/2023
+	jz	short nodrvset		; bios didn't say
+	;jz	short ProcessConfig  ; (Retro DOS v4.0 does not contain DBLSPACE code)
 	;dec	dl			; A = 0
 	; 18/12/2022
 	dec	dx
@@ -21647,6 +21661,7 @@ off_to_para:
 ;	USES	?? BUGBUG
 ; ----------------------------------------------------------------------
 
+	; 30/12/2023
 	; 23/10/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
 	; 30/12/2022 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
 TempCDS:
@@ -21658,10 +21673,15 @@ TempCDS:
 	mov	[es:di+SYSI_NCDS],cl	; one CDS per device
 	;mov	[es:di+21h],cl	
 
-	mov	al,cl
-	mov	ah,curdirlen ; curdir_list.size ; 88
-	;mov	ah,88
-	mul	ah			; (ax) = byte size for those CDSs
+	;mov	al,cl
+	;mov	ah,curdirlen ; curdir_list.size ; 88
+	;;mov	ah,88
+	;mul	ah			; (ax) = byte size for those CDSs
+	; 30/12/2023
+	mov	al,curdirlen ; curdir_list.size ; 88
+	;mov	al,88
+	mul	cl			; (ax) = byte size for those CDSs
+
 	call	ParaRound		; (ax) = paragraph size for CDSs
 	mov	si,[top_of_cdss] ; 31/12/2022
 
@@ -21758,19 +21778,25 @@ fooset:
 	;cmp	byte [si],1
 	cmp	[si],cl ; 1 ; 03/09/2023
 	ja	short normcds
+
+	; 30/12/2023
+	; ax = 0
+fooset_zero:
 	mov	cl,3			; the next dbp pointer
 					; AX should be zero here
 	rep	stosw
-	pop	cx
-	jmp	short get_next_dpb
+	; 30/12/2023
+	;pop	cx
+	jmp	short get_next_dpb ; findcds
 
 ;	(ax) = 0
 
-fooset_zero:
-	mov	cl,3
-	rep	stosw
-	pop	cx
-	jmp	short fincds
+	; 30/12/2023
+;fooset_zero:
+	;mov	cl,3
+	;rep	stosw
+	;pop	cx
+	;jmp	short fincds
 
 ;*	We have a "normal" DPB and thus a normal CDS.
 ;
@@ -21779,7 +21805,8 @@ fooset_zero:
 ;	(ds:si) = Next DPB (-1 if none)
 
 normcds:
-	pop	cx
+	; 30/12/2023
+	;pop	cx
 
 ;	if a non-fat based media is detected (by dpb.numberoffat == 0), then
 ;	set curdir_flags to 0. this is for signaling ibmdos and ifsfunc that
@@ -21807,6 +21834,8 @@ get_next_dpb:				; entry point for fake_fooset_zero
 	;lds	si,[si+19h] ; (MSDOS 5.0 SYSINIT)
 	;;lds	si,[si+DPB.NEXT_DPB] ; [si+19h]
 fincds:	; get_next_dpb
+	; 30/12/2023
+	pop	cx
 	; 30/12/2022
 	; (MSDOS 6.21 SYSINIT:0DD1h)
 	mov	ax,-1	; mov ax,0FFFFh
