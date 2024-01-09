@@ -90,7 +90,7 @@
 		[ORG 0]			; segment 0x0070h
 
 ;=============================================================================
-; IBMDOS.COM (IO.SYS) LOADER SECTION 
+; IBMBIO.COM (IO.SYS) LOADER SECTION 
 ;=============================================================================
 ; 12/09/2023 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMBIO.COM)
 ; 09/12/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)

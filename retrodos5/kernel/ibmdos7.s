@@ -51,12 +51,18 @@
 ; Modified from 'msdos6.s' (29/09/2023, Retro DOS v4.2 kernel: MSDOS.SYS) file
 ; as below:
 ;
-;    1) Retro DOS v4.2 MSDOS.SYS is based on disassembled source code
+;    1) Retro DOS v5.0 IBMDOS.COM is based on disassembled source code
+;	of PCDOS 7.1 IBMDOS.COM (2003) and it is derived using Retro DOS v4.2
+;	MSDOS.SYS source code. Retro DOS v5.0 (IBMDOS.COM) kernel source code
+;	is modified (and optimized) and so, it is not same with the original
+;	PCDOS 7.1 IBMDOS.COM.
+;
+;    2) Retro DOS v4.2 MSDOS.SYS is based on disassembled source code
 ;	of MSDOS 6.21 MSDOS.SYS, derived using MSDOS 6.0 source code.
 ;	(And then it has been verified and updated by comparing it with
 ;	the disassembled source code of MSDOS 6.22 kernel file MSDOS.SYS.)
 ;
-;    2) Labels, names, comments, explanations and structure definitions
+;    3) Labels, names, comments, explanations and structure definitions
 ;	about procedures and code details are almost entirely taken from
 ;	the original MSDOS 6.0 source code, except for the details that
 ;	Erdogan Tan personally experienced. Some of them are incompatible
@@ -3254,6 +3260,10 @@ BIODATASTART	EQU	00700h
 ; ----------------------------------------------------------------------------
 ; 01/01/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
 ; ----------------------------------------------------------------------------
+
+;-----------------------------------------------------------------------------
+; Start of (PCDOS 7.1) IBMDOS.COM
+;-----------------------------------------------------------------------------
 
 ;segment .code vstart=3DD0h ; 06/12/2022
 ; 29/09/2023
