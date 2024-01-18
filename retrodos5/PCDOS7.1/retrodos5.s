@@ -43566,7 +43566,7 @@ SYSINITSIZE	equ SI_end - SYSINIT$
 DOSLOADSEG	equ SYSINITSEG+((SYSINITSIZE+15)/16)
 
 ;----------------------------------------------------------------------------
-; End of Retro DOS v5.0 IBMDOS.COM (IO.SYS) source by Erdogan Tan (2023)
+; End of Retro DOS v5.0 IBMBIO.COM (IO.SYS) source by Erdogan Tan (2023)
 ;----------------------------------------------------------------------------
 
 ; 21/12/2022 - Retro DOS v4.0 (Modified MSDOS 5.0)
