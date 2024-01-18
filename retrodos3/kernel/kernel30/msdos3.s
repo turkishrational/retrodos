@@ -1,7 +1,8 @@
 ; ****************************************************************************
 ; MSDOS3.BIN (MSDOS 3.3 Kernel) - RETRO DOS v3.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 22/11/2022 (BugFix)
+; Last Update: 16/01/2024 (BugFix)
+;	BugFix: 22/11/2022
 ;	BugFix: 20/05/2019
 ;	Optimization: 06-22/07/2019
 ;	Completion: 10/09/2018
@@ -3593,12 +3594,12 @@ VIRTUAL_OPEN:	db 0
 
 ; MSDOS 6.0
 ;; Following 4 variables moved to MSDATA.asm from MSTABLE.asm (P4986)
-;      I_am     FSeek_drive,BYTE         ;AN000; fastseek drive #
-;      I_am     FSeek_firclus,WORD       ;AN000; fastseek first cluster #
-;      I_am     FSeek_logclus,WORD       ;AN000; fastseek logical cluster #
-;      I_am     FSeek_logsave,WORD       ;AN000; fastseek returned log clus #
-;      I_am     UU_ACT_PAGE,WORD,<-1>    ;;;;;;; ;BL ; active EMS page ;AN000;
-;      I_am     TEMP_DOSLOC,WORD,<-1>    ;stores the temporary location of dos
+;      I_am     FSeek_drive,BYTE        ;AN000; fastseek drive #
+;      I_am     FSeek_firclus,WORD      ;AN000; fastseek first cluster #
+;      I_am     FSeek_logclus,WORD      ;AN000; fastseek logical cluster #
+;      I_am     FSeek_logsave,WORD      ;AN000; fastseek returned log clus #
+;      I_am     UU_ACT_PAGE,WORD,<-1>   ;;;;;;; ;BL ; active EMS page ;AN000;
+;      I_am     TEMP_DOSLOC,WORD,<-1>   ;stores the temporary location of dos
 					;at SYSINIT time.
 ;SWAP_END LABEL   BYTE
 ;PUBLIC  SWAP_END
@@ -3627,9 +3628,11 @@ SWAP_END:
 	db 	0
 RETRODOSMSG:
 	db	13,10
-	;db	"Retro DOS v3.0 by Erdogan Tan [2018]"
+	;;db	"Retro DOS v3.0 by Erdogan Tan [2018]"
 	; 22/11/2022
-	db	"Retro DOS v3.0 by Erdogan Tan [2018-2022]"
+	;db	"Retro DOS v3.0 by Erdogan Tan [2018-2022]"
+	; 16/01/2024
+	db	"Retro DOS v3.0 by Erdogan Tan [2018-2024]"
 	db	13,10,"$", 0 
 
 ;============================================================================
@@ -10798,7 +10801,9 @@ _$FCB_RENAME:		; System call 23
 	MOV	DI,RENBUF		; point to destination buffer
 	push	word [SI]
 	push	ds
-	push	di			; save source pointer for TransFCB
+	;push	di			; save source pointer for TransFCB
+	; 16/01/2024 - BugFix !
+	push	si
 	MOV	[SI],AL			; drop in real drive
 	MOV	DX,SI			; let TransFCB know where the FCB is
 	call	TransFCB		; munch this pathname

@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; MSDOS3.BIN (MSDOS 3.3 Kernel) - RETRO DOS v3.2 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 16/12/2022 (BugFix) - (Previous: 22/11/2022)
+; Last Update: 16/01/2024 (BugFix) - (Previous: 16/12/2022)
 ; ----------------------------------------------------------------------------
 ; Beginning: 07/07/2019 (Retro DOS 3.0), 29/06/2019 (Retro DOS 3.1)
 ; ----------------------------------------------------------------------------
@@ -3675,7 +3675,7 @@ VIRTUAL_OPEN:	db 0
 ;      I_am     FSeek_logsave,WORD       ;AN000; fastseek returned log clus #
 ;      I_am     UU_ACT_PAGE,WORD,<-1>    ;;;;;;; ;BL ; active EMS page ;AN000;
 ;      I_am     TEMP_DOSLOC,WORD,<-1>    ;stores the temporary location of dos
-					;at SYSINIT time.
+					 ;at SYSINIT time.
 ;SWAP_END LABEL   BYTE
 ;PUBLIC  SWAP_END
 
@@ -3703,10 +3703,11 @@ SWAP_END:
 	db 	0
 RETRODOSMSG:
 	db	13,10
-	;;;db	"Retro DOS v3.0 by Erdogan Tan [2018]"
-	;;db	"Retro DOS v3.1 by Erdogan Tan [2019]" ; 29/06/2019
-	;db	"Retro DOS v3.2 by Erdogan Tan [2019]" ; 17/07/2019
-	db	"Retro DOS v3.2 by Erdogan Tan [2019-2022]" ; 22/11/2022
+	;;;;db	"Retro DOS v3.0 by Erdogan Tan [2018]"
+	;;;db	"Retro DOS v3.1 by Erdogan Tan [2019]" ; 29/06/2019
+	;;db	"Retro DOS v3.2 by Erdogan Tan [2019]" ; 17/07/2019
+	;db	"Retro DOS v3.2 by Erdogan Tan [2019-2022]" ; 22/11/2022
+	db	"Retro DOS v3.2 by Erdogan Tan [2019-2024]" ; 16/01/2024
 	db	13,10,"$", 0 
 
 ;============================================================================
@@ -7265,7 +7266,7 @@ _$GetExtCntry:
 	CMP	AL,CAP_ONE_CHAR 	; < 20H ?
 	JB	short notcap
 capcap: 				;
-	TEST	AL,UPPER_TABLE		; which upper case table
+	TEST	AL,UPPER_TABLE  ; 80h	; which upper case table
 	JNZ	short fileupper		; file upper case
 
 ;hkn; UCASE_TAB in DOSDATA
@@ -7273,6 +7274,12 @@ capcap: 				;
 	JMP	SHORT capit
 
 fileupper:
+	; 16/01/2024 (MSDOS 3.3-6.22 MSDOS.SYS has a bug here)
+	; (PCDOS 7.1 IBMDOS.COM - DOSCODE:4C57h)
+	; ((Note: This must be a bugfix, because bit 7 of AX is 1 here!))
+	; AL >= 80h
+	and	al,7Fh
+
 ;hkn; FILE_UCASE_TAB in DOSDATA
 	MOV	BX,FILE_UCASE_TAB+2 ; get file upper case
 capit:					;
@@ -10992,7 +10999,9 @@ _$FCB_RENAME:		; System call 23
 	MOV	DI,RENBUF		; point to destination buffer
 	push	word [SI]
 	push	ds
-	push	di			; save source pointer for TransFCB
+	;push	di			; save source pointer for TransFCB
+	; 16/01/2024 - BugFix !
+	push	si
 	MOV	[SI],AL			; drop in real drive
 	MOV	DX,SI			; let TransFCB know where the FCB is
 	call	TransFCB		; munch this pathname
