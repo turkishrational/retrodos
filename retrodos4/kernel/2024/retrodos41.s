@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RETRODOS.SYS (MSDOS 5.0 Kernel) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 09/01/2024 - Retro DOS v4.1 (Previous: 27/12/2023)
+; Last Update: 16/01/2024 - Retro DOS v4.1 (Previous: 27/12/2023)
 ; ----------------------------------------------------------------------------
 ; Beginning: 25/05/2018 (Retro DOS 3.0), 26/12/2018 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -18,7 +18,7 @@
 ;
 ;	       ((RETRODOS.SYS/MSDOS.SYS can be loaded by a fake IO.SYS for
 ;		using it with MSDOS 5.0 boot sector & as bootable MSDOS disk.
-;		For that, fake IO.SYS must load 'MSDOS.SYS' at 1000h:0000h.))		-	
+;		For that, fake IO.SYS must load 'MSDOS.SYS' at 1000h:0000h.))
 ; 		
 ; 18/12/2022 - Modified MSDOS 5.0 IO.SYS (for using with MSDOS 5 boot sector)
 ; 09/12/2022 - Multisection binary file format (BIOSDATA & BIOSCODE sections)
@@ -38009,7 +38009,9 @@ MSDOS_BIN_OFFSET: ; this offset must be paragraph aligned
 		;; 28/06/2019 ('msdos6.s') 
 		;incbin	'MSDOS6.BIN' ; Retro DOS 4.0 - MSDOS 6.21 KERNEL
 		
-		; 09/01/2024
+		; 16/01/2024
+		; 16/01/2024 (BugFix)
+		; 15/01/2024
 		; 27/09/2023 (BugFix)
 		; 25/09/2023
 		; 29/12/2022

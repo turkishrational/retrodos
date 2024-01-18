@@ -1,7 +1,7 @@
      1                                  ; ****************************************************************************
      2                                  ; RETRODOS.SYS (MSDOS 6.0 Kernel) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
      3                                  ; ----------------------------------------------------------------------------
-     4                                  ; Last Update: 09/01/2024 - Retro DOS v4.2 (Modified MSDOS 6.22)
+     4                                  ; Last Update: 16/01/2024 - Retro DOS v4.2 (Modified MSDOS 6.22)
      5                                  ; ----------------------------------------------------------------------------
      6                                  ; Beginning: 26/12/2018 (Retro DOS 4.0), 28/12/2022 (Retro DOS 4.1, MSDOS 5.0)
      7                                  ; ----------------------------------------------------------------------------
@@ -4049,7 +4049,7 @@
   3868                                  
   3869                                  		;mov	cx, KERNEL_SIZE - 32768
   3870                                  		; 28/09/2023 (BugFix)
-  3871 00001636 B9730B                  		mov	cx, NXWORDCOUNT
+  3871 00001636 B9630B                  		mov	cx, NXWORDCOUNT
   3872                                  		;mov	cx, NXBYTECOUNT
   3873                                  		;shr	cx, 1 ; 28/09/2023
   3874                                  		;xor	si, si
@@ -40181,33 +40181,35 @@
  39874                                  		; 29/12/2022
  39875                                  		;incbin	'MSDOS51.BIN' ; Retro DOS 4.1 - MSDOS 5.0+ KERNEL
  39876                                  
- 39877                                  		; 09/01/2024
- 39878                                  		; 29/09/2023 (PARASTART=3DE0h)
- 39879                                  		; 27/09/2023 (BugFix) ((PARASTART=3DD0h))
- 39880                                  		; 04/01/2023
- 39881 00004D60 <bin 8E15h>             		incbin	'MSDOS6.BIN' ; Retro DOS 4.2 - MSDOS 6.21+ KERNEL		
- 39882                                  		
- 39883                                  		;; 28/12/2022 (BugFix)
- 39884                                  		;; 22/12/2022
- 39885                                  		;; 21/12/2022 ('msdos5.s')
- 39886                                  		;incbin 'MSDOS5.BIN' ; Retro DOS 4.0 - MSDOS 5.0+ KERNEL
- 39887                                  
- 39888                                  ; 28/09/2023	
- 39889                                  ;msdos_bin_size equ $ - MSDOS_BIN_OFFSET
- 39890                                  
- 39891 0000DB75 90                      align 2
+ 39877                                  		; 16/01/2024
+ 39878                                  		; 16/01/2024 (BugFix)
+ 39879                                  		; 15/01/2024
+ 39880                                  		; 29/09/2023 (PARASTART=3DE0h)
+ 39881                                  		; 27/09/2023 (BugFix) ((PARASTART=3DD0h))
+ 39882                                  		; 04/01/2023
+ 39883 00004D60 <bin 8DF5h>             		incbin	'MSDOS6.BIN' ; Retro DOS 4.2 - MSDOS 6.21+ KERNEL		
+ 39884                                  		
+ 39885                                  		;; 28/12/2022 (BugFix)
+ 39886                                  		;; 22/12/2022
+ 39887                                  		;; 21/12/2022 ('msdos5.s')
+ 39888                                  		;incbin 'MSDOS5.BIN' ; Retro DOS 4.0 - MSDOS 5.0+ KERNEL
+ 39889                                  
+ 39890                                  ; 28/09/2023	
+ 39891                                  ;msdos_bin_size equ $ - MSDOS_BIN_OFFSET
  39892                                  
- 39893                                  ; 21/12/2022
- 39894                                  ;;END_OF_KERNEL:
- 39895                                  ;END_OF_KERNEL equ $
- 39896                                  
- 39897                                  ; 28/09/2023
- 39898                                  S3SIZE equ $-$$
- 39899                                  KERNEL_SIZE equ S1SIZE+S2SIZE+S3SIZE
- 39900                                  
- 39901                                  ;=============================================================================
- 39902                                  ;	END
+ 39893 0000DB55 90                      align 2
+ 39894                                  
+ 39895                                  ; 21/12/2022
+ 39896                                  ;;END_OF_KERNEL:
+ 39897                                  ;END_OF_KERNEL equ $
+ 39898                                  
+ 39899                                  ; 28/09/2023
+ 39900                                  S3SIZE equ $-$$
+ 39901                                  KERNEL_SIZE equ S1SIZE+S2SIZE+S3SIZE
+ 39902                                  
  39903                                  ;=============================================================================
- 39904                                  ; Retro DOS v4.0 by Erdogan Tan (Redevelopment of MSDOS 5.0 KERNEL via NASM)
- 39905                                  ; ------------------------------
- 39906                                  ; DECEMBER 2022, ISTANBUL - TURKIYE.
+ 39904                                  ;	END
+ 39905                                  ;=============================================================================
+ 39906                                  ; Retro DOS v4.0 by Erdogan Tan (Redevelopment of MSDOS 5.0 KERNEL via NASM)
+ 39907                                  ; ------------------------------
+ 39908                                  ; DECEMBER 2022, ISTANBUL - TURKIYE.

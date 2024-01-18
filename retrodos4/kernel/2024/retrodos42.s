@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RETRODOS.SYS (MSDOS 6.0 Kernel) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 09/01/2024 - Retro DOS v4.2 (Modified MSDOS 6.22)
+; Last Update: 16/01/2024 - Retro DOS v4.2 (Modified MSDOS 6.22)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0), 28/12/2022 (Retro DOS 4.1, MSDOS 5.0)
 ; ----------------------------------------------------------------------------
@@ -39874,7 +39874,9 @@ MSDOS_BIN_OFFSET: ; this offset must be paragraph aligned
 		; 29/12/2022
 		;incbin	'MSDOS51.BIN' ; Retro DOS 4.1 - MSDOS 5.0+ KERNEL
 
-		; 09/01/2024
+		; 16/01/2024
+		; 16/01/2024 (BugFix)
+		; 15/01/2024
 		; 29/09/2023 (PARASTART=3DE0h)
 		; 27/09/2023 (BugFix) ((PARASTART=3DD0h))
 		; 04/01/2023

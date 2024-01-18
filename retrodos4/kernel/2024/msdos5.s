@@ -1,7 +1,7 @@
 ;*****************************************************************************
 ; MSDOS5.BIN (MSDOS 5.0 Kernel) - RETRO DOS v4.0 by ERDOGAN TAN - 03/11/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 09/01/2024	((Previous: 27/09/2023))
+; Last Update: 16/01/2024	((Previous: 27/09/2023))
 ; ----------------------------------------------------------------------------
 ; Beginning: 07/07/2018 (Retro DOS 3.0), 22/04/2019 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -7120,6 +7120,12 @@ capcap: 				;
 	JMP	SHORT capit
 
 fileupper:
+	; 16/01/2024 (MSDOS 3.3-6.22 MSDOS.SYS has a bug here)
+	; (PCDOS 7.1 IBMDOS.COM - DOSCODE:4C57h)
+	; ((Note: This must be a bugfix, because bit 7 of AX is 1 here!))
+	; AL >= 80h
+	and	al,7Fh
+
 ;hkn; FILE_UCASE_TAB in DOSDATA
 	MOV	BX,FILE_UCASE_TAB+2 ; get file upper case
 capit:					;
@@ -8199,6 +8205,7 @@ _$DISK_RESET:
 ; MSDOS 6.0
 word3:	dw	3			; M008 -- word value for divides
 
+; 13/01/2024
 ; 06/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 ; DOSCODE:4DC9h (MSDOS 5.0, MSDOS.SYS)
 
@@ -8206,7 +8213,10 @@ word3:	dw	3			; M008 -- word value for divides
 
 _$SETDPB:
 	MOV	DI,BP
-	ADD	DI,2			; Skip over dpb_drive and dpb_UNIT
+	;ADD	DI,2			; Skip over dpb_drive and dpb_UNIT
+	; 13/01/2024
+	inc	di
+	inc	di
 	LODSW
 	STOSW				; dpb_sector_size
 	; MSDOS 6.0
@@ -8215,6 +8225,8 @@ _$SETDPB:
 	JNZ	short yesfat			     ; yes		;AN000;
 	;mov	byte [es:di+4],0
 	MOV	BYTE [ES:DI+DPB.FAT_COUNT-4],0
+	; 13/01/2024
+	mov	bx,ax
 	JMP	short setend			     ; NO		;AN000;
 
 yesfat: ; 10/08/2018
@@ -8856,7 +8868,6 @@ StrCmp:
 	push	si
 	push	di
 	push	ax
-
 Cmplp:
 	LODSB
 	call	UCase			; convert to upper case
@@ -9070,7 +9081,6 @@ TableError:
 	POP	BP			; restore BP
 	RETN	6			; clean off Index, Table and RetAddr
 
-
 ;Break	<TestNet - determine if a CDS is for the network>
 ;----------------------------------------------------------------------------
 ;
@@ -9173,7 +9183,7 @@ FastInit:
 	MOV	DI,FastTable+2		;AN000;FO. points to fastxxx entry
 	DEC	BX			;AN000;FO.;; decrement index
 	MOV	DX,BX			;AN000;FO.;; save bx
-	SHL	BX,1			;AN000;FO.;; times 4 , each entry is DWORD
+	SHL	BX,1			;AN000;FO.;; times 4, each entry is DWORD
 	SHL	BX,1			;AN000;FO.
 	ADD	DI,BX			;AN000;FO. index to the entry
 	MOV	AX,[ES:DI+2]		;AN000;FO. get entry segment
@@ -9303,7 +9313,7 @@ GetDevList:
 	MOV	BX,[SI+SYSI.DEV+2]
 	RETN
 
-;Break	<NLS_IOCTL - do $IOCTL for NLSFUNC   >
+;Break	<NLS_IOCTL - do $IOCTL for NLSFUNC>
 ;----------------------------------------------------------------------------
 ;   DOS 3.3   7/25/86
 ;   NLS_IOCTL	- call $IOCTL for NLSFUNC
@@ -9318,7 +9328,7 @@ NLS_IOCTL:
 	PUSH	word [SS:USER_SP] ; save user stack
 	PUSH	word [SS:USER_SS]
 	CALL	Fake_User_Stack
-	MOV	AX,BP	     ; set up correct interface for $LSEEK
+	MOV	AX,BP		; set up correct interface for $IOCTL
 	call	_$IOCTL
 	POP	word [SS:USER_SS] ; restore user stack
 	POP	word [SS:USER_SP]
@@ -9475,7 +9485,7 @@ MSG_RETRIEVAL:
 ; ---------------------------------------------------------------------------
 ; Each handler must leave everything untouched; including flags!
 ;
-; Sleaze for time savings:  first instruction is a return. This is patched
+; Sleaze for time savings: first instruction is a return. This is patched
 ; by the sharer to be a PUSH AX to complete the correct routines.
 ; ---------------------------------------------------------------------------
 
@@ -10050,6 +10060,8 @@ NEXT_STR1:
 ;
 ;----------------------------------------------------------------------------
 
+	; 15/01/2024
+
 _$STD_CON_STRING_INPUT:		;System call 10
 
 	mov	ax,ss
@@ -10130,9 +10142,13 @@ GOTCH:
 ;	Rubout and ^H are both destructive backspaces.
 
         cmp	al,c_DEL ; 7FH
-        jz	short BACKSPJ
-        cmp	al,c_BS  ; 8
-        jz	short BACKSPJ
+        ;jz	short BACKSPJ
+        ; 15/01/2024
+	je	short BACKSP
+	cmp	al,c_BS  ; 8
+        ;jz	short BACKSPJ
+        ; 15/01/2024
+	je	short BACKSP
 
 	; 04/05/2019 -	MSDOS 6.0, also MSDOS 6.21 has bug (bullshit) here. 
 	;		Two NOPs -instead of a JMP short, as two bytes-
@@ -10235,8 +10251,9 @@ SAVCH:
         inc	bh                      ; remember position in template
         jmp	short GETCH
 
-BACKSPJ: 
-	jmp	short BACKSP
+	; 15/01/2024
+;BACKSPJ: 
+	;jmp	short BACKSP
 
 BUFFUL: 
 	mov	al, 7			; Bell to signal full buffer
@@ -10381,7 +10398,13 @@ PUTNEW:
 BACKSP:
 	; 09/09/2018
 	Call    BackSpace
-	JMP     GETCH
+	JMP     short GETCH	; 15/01/2024
+
+	; 15/01/2024
+;User really wants an ESC character in his line
+TWOESC:	
+	mov	al,[cs:ESCCHAR] ; 10/06/2019
+	jmp	short SAVCH
 
 BackSpace:
 	or	dh,dh
@@ -10451,10 +10474,11 @@ BACKMES:
         mov	al,c_BS ; 8	;Backspace
 	jmp	OUTT		;Done
 
+	; 15/01/2024
 ;User really wants an ESC character in his line
-TWOESC:	
-	mov	al,[cs:ESCCHAR] ; 10/06/2019
-	jmp	SAVCH
+;TWOESC:	
+;	mov	al,[cs:ESCCHAR] ; 10/06/2019
+;	jmp	SAVCH
 
 ;Copy the rest of the template
 COPYLIN:
@@ -10489,7 +10513,7 @@ GETCH2:
 SKIPONE:
 	cmp	bh,bl
 	jz	short GETCH2		;At end of template
-	inc	bh			;Ahead in templat
+	inc	bh			;Ahead in template
 	inc	si
 	jmp	GETCH
 
@@ -10511,24 +10535,24 @@ FINDOLD:
 
 	; STRIN.ASM (MSDOS 2.11, 19/07/2018) 
 
-	;CMP     AL,[SS:ESCCHAR]	
-	;JNZ     SHORT FINDSETUP
+	;CMP	AL,[SS:ESCCHAR]	
+	;JNZ	SHORT FINDSETUP
 
 	; CPMIO.ASM (MSDOS 6.0, 04/05/2019 - Retro DOS v4.0)
 
 ;hkn; ESCCHAR is in TABLE seg (DOSCODE), so CS override
 
 	CMP	AL,[CS:ESCCHAR]		; did he type a function key?
-	JNZ     SHORT FINDSETUP		; no, set up for scan
+	JNZ	SHORT FINDSETUP		; no, set up for scan
 
 	CALL	_$STD_CON_INPUT_NO_ECHO	; eat next char
-        JMP     SHORT NOTFND		; go try again
+        JMP	SHORT NOTFND		; go try again
 FINDSETUP:
 	mov	cl,bl
         sub	cl,bh		;CX is number of chars to end of template
 	jz	short NOTFND	;At end of template
         dec	cx		;Cannot point past end, limit search
-        jz	short NOTFND	 ;If only one char in template, forget it
+        jz	short NOTFND	;If only one char in template, forget it
 	push	es
 	push	ds
 	pop	es
@@ -10602,9 +10626,8 @@ CRLF:
 ; DOSCODE:5408h (MSDOS 5.0, MSDOS.SYS)
 
 _$RAW_CON_IO:			; System call 6
-
-        MOV     AL,DL
-        CMP     AL,-1
+	MOV	AL,DL
+	CMP	AL,-1
 	JNZ	SHORT RAWOUT ; 16/12/2022
 	; 08/11/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
 	;jz	short rci1
@@ -10612,23 +10635,23 @@ _$RAW_CON_IO:			; System call 6
 	; 16/12/202
 	; 07/12/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
 	;nop
-rci1:	        
+rci1:
 			; Get pointer to register save area
-        LES     DI,[SS:USER_SP] ; 12/03/2018
-	XOR     BX,BX
+	LES	DI,[SS:USER_SP] ; 12/03/2018
+	XOR	BX,BX
     	;CALL	GET_IO_FCB	; MSDOS 2.11 (Retro DOS v2.0)
 	CALL	GET_IO_SFT	; MSDOS 3.3 & MSDOS 6.0
         ;JC	SHORT RET17
         jc	short FINDOLD_RETN
-	MOV     AH,1
-        CALL	IOFUNC
-        JNZ     SHORT RESFLG
-        CALL	SPOOLINT
-        ;OR	BYTE [ES:DI+16H],40H
+	MOV	AH,1
+	CALL	IOFUNC
+	JNZ	SHORT RESFLG
+	CALL	SPOOLINT
+	;OR	BYTE [ES:DI+16H],40H
 	OR	BYTE [ES:DI+user_env.user_F],40H ; Set user's zero flag
-        XOR     AL,AL
+	XOR	AL,AL
 RET17:
-        RETN
+	RETN
 
 RESFLG:
 	;AND	BYTE [ES:DI+16H],0FFH-40H  ; 0BFh
@@ -10636,7 +10659,7 @@ RESFLG:
 				; Reset user's zero flag
 ;RILP:
 rci0:
-     	CALL	SPOOLINT
+	CALL	SPOOLINT
 ;
 ;----------------------------------------------------------------------------
 ;
@@ -10661,13 +10684,13 @@ rci0:
 
 _$RAW_CON_INPUT:		; System call 7
 	push	bx
-        XOR     BX,BX
-        ;CALL	GET_IO_FCB	; MSDOS 2.11 (Retro DOS v2.0)
+	XOR	BX,BX
+	;CALL	GET_IO_FCB	; MSDOS 2.11 (Retro DOS v2.0)
 	CALL	GET_IO_SFT	; MSDOS 3.3 & MSDOS 6.0
-        pop	bx
+	pop	bx
 	JC	SHORT RET17
-        MOV     AH,1
-        CALL	IOFUNC
+	MOV	AH,1
+	CALL	IOFUNC
 	;JZ	SHORT RILP	; MSDOS 2.11
 	;XOR	AH,AH
         ;CALL	IOFUNC
@@ -10677,22 +10700,22 @@ _$RAW_CON_INPUT:		; System call 7
 	INT	int_IBM  ; int 2Ah
 	JMP	short rci0
 rci5:	
-        XOR     AH,AH
-        ;CALL	IOFUNC
-        ;RETN
+	XOR	AH,AH
+	;CALL	IOFUNC
+	;RETN
 	; 18/12/2022
 	jmp	IOFUNC
 
 ;       Output the character in AL to stdout
 ;
-	;entry   RAWOUT
+	;entry	RAWOUT
 RAWOUT:
-        PUSH    BX
-        MOV     BX,1
+	PUSH    BX
+	MOV     BX,1
 
-        ;CALL	GET_IO_FCB	; MSDOS 2.11 (Retro DOS v2.0)
+	;CALL	GET_IO_FCB	; MSDOS 2.11 (Retro DOS v2.0)
 	CALL	GET_IO_SFT	; MSDOS 3.3 & MSDOS 6.0
-        JC      SHORT RAWRET1
+	JC	SHORT RAWRET1
 
 	;
 	; MSDOS 2.11
@@ -10724,27 +10747,27 @@ RAWOUT:
 	TEST	BYTE [BX+SYSDEV.ATT],ISSPEC
 	;
 
-        POP     DS
-        JZ      SHORT RAWNORM		; if not, do normally
+	POP	DS
+	JZ	SHORT RAWNORM		; if not, do normally
 
-        INT	int_fastcon  ; int 29h	; quickly output the char
+	INT	int_fastcon  ; int 29h	; quickly output the char
 
-        ;JMP	SHORT RAWRET
+	;JMP	SHORT RAWRET
 ;RAWNORM:
 ;	CALL    RAWOUT3
 RAWRET: 
 	CLC
 RAWRET1:
-        POP     BX
+	POP     BX
 RAWRET2:
 	RETN
 RAWNORM:
 	CALL    RAWOUT3
 	jmp	short RAWRET
 
-;       Output the character in AL to handle in BX
+;	Output the character in AL to handle in BX
 ;
-;	entry   RAWOUT2
+;	entry	RAWOUT2
 
 RAWOUT2:
 	;CALL	GET_IO_FCB	; MSDOS 2.11 (Retro DOS v2.0)
@@ -10752,30 +10775,30 @@ RAWOUT2:
 	CALL	GET_IO_SFT	; MSDOS 3.3 & MSDOS 6.0
 	JC	SHORT RAWRET2
 RAWOUT3:
-        PUSH    AX
-        JMP     SHORT RAWOSTRT
+	PUSH	AX
+	JMP	SHORT RAWOSTRT
 ROLP:
-        CALL	SPOOLINT
+	CALL	SPOOLINT
 
 	; 01/05/2019 - Retro DOS v4.0
 
 	; MSDOS 6.0
 	;OR	word [ss:DOS34_FLAG],CTRL_BREAK_FLAG ; 001000000000b
 	; 17/12/2022
-	or	byte [ss:DOS34_FLAG+1],(CTRL_BREAK_FLAG>>8) ; 02h	
+	or	byte [ss:DOS34_FLAG+1],(CTRL_BREAK_FLAG>>8) ; 02h
 	;or	word [ss:DOS34_FLAG],200h
 				;AN002; set control break
 	;invoke DSKSTATCHK
 	call	DSKSTATCHK	;AN002; check control break
 RAWOSTRT:
-        MOV     AH,3
-        CALL    IOFUNC
-        JZ      SHORT ROLP
+	MOV	AH,3
+	CALL	IOFUNC
+	JZ	SHORT ROLP
 
 	; MSDOS 6.0
 ;SR;
 ; IOFUNC now returns ax = 0ffffh if there was an I24 on a status call and
-;the user failed. We do not send a char if this happens. We however return 
+;the user failed. We do not send a char if this happens. We however return
 ;to the caller with carry clear because this DOS call does not return any
 ;status. 
 ;
@@ -10980,7 +11003,7 @@ OUTCHA:
 OUTCH:
 	PUSH	DS
 	PUSH	SI
-	;INC	BYTE PTR [CHARCO]		;invoke  statchk...
+	;INC	BYTE PTR [CHARCO]		;invoke statchk...
 	;AND	BYTE PTR [CHARCO],00111111B	;AN000; every 64th char
 	INC	BYTE [SS:CHARCO]	
 	;AND	BYTE [SS:CHARCO],00111111B
@@ -11009,7 +11032,7 @@ OUTSKIP:
 	; 20/07/2018 - Retro DOS v3.0
 	; MSDOS 3.3
 	; MSDOS 6.0 (CPMIO2.ASM)
-	CALL	GET_IO_SFT		;hkn; GET_IO_SFT will set up DS:SI 
+	CALL	GET_IO_SFT		;hkn; GET_IO_SFT will set up DS:SI
 					;hkn; to sft entry
 	JC	SHORT TRIPOPJ
 
@@ -11047,7 +11070,7 @@ OUTSKIP:
 	; 08/11/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
 	;jz	short LISSTRT2J
 outch1:
-	;MOV	BYTE [PFLAG],0			
+	;MOV	BYTE [PFLAG],0
 	MOV	BYTE [SS:PFLAG],0		; If a spool, NEVER echo
 	; MSDOS 2.11
 	;mov	bx,4
@@ -11412,6 +11435,7 @@ BadPath:
 ;
 ;----------------------------------------------------------------------------
 ;
+	; 15/01/2024
 
 _$GET_FCB_FILE_LENGTH:
 
@@ -11435,20 +11459,28 @@ _$GET_FCB_FILE_LENGTH:
 	pop	si			; get pointer back
 	pop	ds
 	JC	short BadPath 		; invalid something
-	MOV	DX,BX			; get high order size
-	MOV	AX,DI			; get low order size
+	; 15/01/2024
+	;MOV	DX,BX (*)		; get high order size
+	;MOV	AX,DI (**)		; get low order size
+	mov	ax,bx ; hw of file size
+	;
 	;mov	bx,[si+0Eh]
 	MOV	BX,[SI+SYS_FCB.RECSIZ]	; get his record size
 	OR	BX,BX			; empty record => 0 size for file
 	JNZ	short GetSize 		; not empty
-	MOV	BX,128
+	;MOV	BX,128
+	mov	bl,128	; 15/01/2024
 GetSize:
-	MOV	DI,AX			; save low order word
-	MOV	AX,DX			; move high order for divide
+	; 15/01/2024
+	;MOV	DI,AX			; save low order word
+	;MOV	AX,DX			; move high order for divide
+	;xchg	ax,dx ; (*)
+	; ax = hw of file size
+
 	XOR	DX,DX			; clear out high
 	DIV	BX			; wham
 	PUSH	AX			; save dividend
-	MOV	AX,DI			; get low order piece
+	MOV	AX,DI ; (**)		; get low order piece
 	DIV	BX			; wham
 	MOV	CX,DX			; save remainder
 	POP	DX			; get high order dividend
@@ -11472,7 +11504,7 @@ GoodRet:
 ;Break <$FCB_Close - close a file>
 ;----------------------------------------------------------------------------
 ;
-;   $FCB_Close - given an FCB, look up the SFN and close it.  Do not free it
+;   $FCB_Close - given an FCB, look up the SFN and close it. Do not free it
 ;	as the FCB may be used for further I/O
 ;
 ;   Inputs:	DS:DX point to FCB
@@ -11599,7 +11631,9 @@ _$FCB_RENAME:		; System call 23
 	MOV	DI,RENBUF		; point to destination buffer
 	push	word [SI]
 	push	ds
-	push	di			; save source pointer for TransFCB
+	;push	di			; save source pointer for TransFCB
+	; 16/01/2024 - BugFix !
+	push	si
 	MOV	[SI],AL			; drop in real drive
 	MOV	DX,SI			; let TransFCB know where the FCB is
 	call	TransFCB		; munch this pathname
@@ -15087,12 +15121,13 @@ _$IOCTL:
 	cmp	al,11h			; al must be between 0 & 11h
 	ja	short ioctl_bad_funj2	; if not bad function #
 
+	; 14/01/2024
 	; 28/05/2019
-	push	AX			; Need to save AL for generic IOCTL
+	;push	AX	; 14/01/2024	; Need to save AL for generic IOCTL
 	mov	di,ax			; di NOT a PARM
 	and	di,0FFh			; di = al
 	shl	di,1			; di = index into jmp table
-	pop	AX			; Restore AL for generic IOCTL
+	;pop	AX			; Restore AL for generic IOCTL
 
 	jmp	word [CS:DI+IOCTLJMPTABLE]
 
@@ -29978,7 +30013,7 @@ hurtfat_retn:
 ;	Carry set means error (currently user FAILed to I 24)
 ;	No other registers affected
 ;
-; NOTE: if BX = 0 then data in DX is atored in CL0FATENTRY.
+; NOTE: if BX = 0 then data in DX is stored in CL0FATENTRY.
 ;
 ;---------------------------------------------------------------------------
 
