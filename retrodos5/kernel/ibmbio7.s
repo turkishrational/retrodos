@@ -20910,38 +20910,45 @@ endstruc
 
 ; 22/03/2019 - Retro DOS v4.0 (MSDOS 6.0, BUFFER.INC, 1991)
 
-struc buffinfo
-.buf_next:	resw 1	; Pointer to next buffer in list
-.buf_prev:	resw 1	; Pointer to previous buffer in list
-.buf_ID:	resb 1	; Drive of buffer (bit 7 = 0)
-			; SFT table index (bit 7 = 1)
-			; = FFh if buffer free
-.buf_flags:	resb 1	; Bit 7 = 1 if Remote file buffer
-			;	= 0 if Local device buffer
-			; Bit 6 = 1 if buffer dirty
-			; Bit 5 = Reserved
-			; Bit 4 = Search bit (bit 7 = 1)
-			; Bit 3 = 1 if buffer is DATA
-			; Bit 2 = 1 if buffer is DIR
-			; Bit 1 = 1 if buffer is FAT
-			; Bit 0 = Reserved
-.buf_sector:	resd 1	; Sector number of buffer (bit 7 = 0)
-; The next two items are often refed as a word (bit 7 = 0)
-.buf_wrtcnt:	resb 1	; For FAT sectors, # times sector written out
-.buf_wrtcntinc:	resw 1	; "   "     "   , # sectors between each write
-.buf_DPB :	resd 1	; Pointer to drive parameters
-.buf_fill:	resw 1	; How full buffer is (bit 7 = 1)
-.buf_reserved:	resb 1	; make DWORD boundary for 386
-.size:
+	; 03/01/2024 - Retro DOS v5.0 (PCDOS 7.1 IBMDOS.COM)
+
+struc BUFFINFO
+.buf_next:	resw 1		; Pointer to next buffer in list
+.buf_prev:	resw 1		; Pointer to prev buffer in list
+.buf_ID:	resb 1		; Drive of buffer (bit 7 = 0)
+				; SFT table index (bit 7 = 1)
+				; = FFH if buffer free
+.buf_flags:	resb 1		; Bit 7 = 1 if Remote file buffer
+				;	= 0 if Local device buffer
+				; Bit 6 = 1 if buffer dirty
+				; Bit 5 = Reserved
+				; Bit 4 = Search bit (bit 7 = 1)
+				; Bit 3 = 1 if buffer is DATA
+				; Bit 2 = 1 if buffer is DIR
+				; Bit 1 = 1 if buffer is FAT
+				; Bit 0 = Reserved
+.buf_sector:	resd 1		; Sector number of buffer (flags bit 7 = 0)
+; The next two items are often refed as a word (flags bit 7 = 0)
+.buf_wrtcnt:	resb 1		; For FAT sectors, # times sector written out
+.buf_wrtcntinc:	resw 1		; "   "     "   , # sectors between each write
+		resw 1 ; * ; 03/01/2024 ; PCDOS 7.1
+			   ; hw of sectors per FAT
+.buf_DPB:	resd 1		; Pointer to drive parameters
+.buf_fill:	resw 1		; How full buffer is (flags bit 7 = 1)
+.buf_reserved:	resb 1		; make DWORD boundary for 386
+		resw 1 ; * ; 03/01/2024 ; PCDOS 7.1
+			   ; reserved word for dword boundary
+.size:	; 20 bytes ; MSDOS 5.0 to 6.22
+	; 24 bytes ; PCDOS 7.1 ; 03/01/2024
 endstruc
 
-%define buf_offset	dword [buf_sector]
-			;For bit 7 = 1, this is the byte
-			;offset of the start of the buffer in
-			;the file pointed to by buf_ID.  Thus
-			;the buffer starts at location
-			;buf_offset in the file and contains
-			;buf_fill bytes.
+%define buf_offset	BUFFINFO.buf_sector ; 22/07/2019
+				;For buf_flags bit 7 = 1, this is the byte
+				;offset of the start of the buffer in
+				;the file pointed to by buf_ID. Thus
+				;the buffer starts at location
+				;buf_offset in the file and contains
+				;buf_fill bytes.
 
 bufinsiz	equ	buffinfo.size ; ; Size of structure in bytes
 
@@ -20986,6 +20993,9 @@ buf_NetID	EQU	bufinsiz
 
 ; 12/05/2019 - Retro DOS v4.0
 
+; 01/01/2024
+%if 0
+
 struc	DPB
 .DRIVE:		resb 1		; Logical drive # assoc with DPB (A=0,B=1,...)
 .UNIT:		resb 1		; Driver unit number of DPB
@@ -20997,7 +21007,9 @@ struc	DPB
 .ROOT_ENTRIES:	resw 1		; Number of directory entries
 .FIRST_SECTOR:	resw 1		; First sector of first cluster
 .MAX_CLUSTER:	resw 1		; Number of clusters on drive + 1
-;.FAT_SIZE:	resb 1  ; MSDOS 3.3
+; MSDOS 3.3
+;.FAT_SIZE:	resb 1		; Number of records occupied by FAT
+; MSDOS 6.0
 .FAT_SIZE:	resw 1		; Number of records occupied by FAT
 .DIR_SECTOR:	resw 1		; Starting record of directory
 .DRIVER_ADDR:	resd 1		; Pointer to driver
@@ -21009,6 +21021,49 @@ struc	DPB
 .FREE_CNT:	resw 1		; Count of free clusters, -1 if unknown
 .size:
 endstruc
+
+%else
+
+; 01/01/2024 - Retro DOS v5.0 (PCDOS 7.1)
+
+struc	DPB
+.DRIVE:		resb 1	; 0	; Logical drive # assoc with DPB (A=0,B=1,...)
+.UNIT:		resb 1	; 1	; Driver unit number of DPB
+.SECTOR_SIZE:	resw 1	; 2	; Size of physical sector in bytes
+.CLUSTER_MASK:	resb 1	; 4	; Sectors/cluster - 1
+.CLUSTER_SHIFT:	resb 1	; 5	; Log2 of sectors/cluster
+.FIRST_FAT:	resw 1	; 6	; Starting record of FATs
+.FAT_COUNT:	resb 1	; 8	; Number of FATs for this drive
+.ROOT_ENTRIES:	resw 1	; 9	; Number of directory entries
+.FIRST_SECTOR:	resw 1	; 11	; First sector of first cluster
+.MAX_CLUSTER:	resw 1	; 13	; Number of clusters on drive + 1
+.FAT_SIZE:	resw 1	; 15	; Number of records occupied by FAT
+.DIR_SECTOR:	resw 1	; 17	; Starting record of directory
+.DRIVER_ADDR:	resd 1  ; 19	; Pointer to driver
+.MEDIA:		resb 1	; 23	; Media byte
+.FIRST_ACCESS:	resb 1	; 24	; This is initialized to -1 to force a media
+				; check the first time this DPB is used
+.NEXT_DPB:	resd 1	; 25	; Pointer to next Drive parameter block
+.NEXT_FREE:	resw 1	; 29	; Cluster # of last allocated cluster
+.FREE_CNT:	resw 1	; 31	; Count of free clusters, -1 if unknown
+; FAT32 fs ; 01/01/2024
+; ref: https://en.wikibooks.org/wiki/
+;      First_steps_towards_system_programming_under_MS-DOS_7/Appendix
+;   -- A.03-1. Structure of Drive Parameters Blocks (DPB) ---
+.FREE_CNT_HW:	resw 1	; 33	; High word of free cluster count
+.EXT_FLAGS:	resw 1	; 35	; FAT32 extended flags (active FAT number)
+.FSINFO_SECTOR:	resw 1	; 37	; (FAT32 fs) FSINFO structure sector address
+.BKBOOT_SECTOR:	resw 1	; 39	; (FAT32 fs) Backup Boot Sector address
+.FCLUS_FSECTOR: resd 1	; 41	; The first cluster's first sector address
+.LAST_CLUSTER:	resd 1	; 45	; The last cluster number
+.FAT32_SIZE:	resd 1	; 49	; Number of FAT sectors (for FAT32 fs)	 
+.ROOT_CLUSTER:	resd 1	; 53	; Root directory's cluster number (FAT32 fs)
+; 01/01/2024 - Retro DOS v5.0
+.FAT32_NXTFREE:	resd 1  ; 57	; The next free cluster (for FAT32 fs)
+.size:		; 61 bytes ; 01/01/2024 (PCDOS 7.1)
+endstruc
+
+%endif
 
 DPBSIZ  EQU     DPB.size	; Size of the structure in bytes
 
@@ -21083,6 +21138,9 @@ endstruc
 ;
 ;	The BDS structure contains a BPB within it.
 
+; 01/01/2024
+%if 0
+
 struc A_BPB
 .BPB_BYTESPERSECTOR:	resw	1
 .BPB_SECTORSPERCLUSTER:	resb	1
@@ -21104,6 +21162,36 @@ struc A_BPB
 ;					;	 are performed!
 .size:
 endstruc
+
+%else
+
+; 01/01/2024 - Retro DOS v5.0	
+
+struc A_BPB
+.BYTESPERSECTOR:    resw 1
+.SECTORSPERCLUSTER: resb 1
+.RESERVEDSECTORS:   resw 1
+.NUMBEROFFATS:	    resb 1
+.ROOTENTRIES:	    resw 1
+.TOTALSECTORS:	    resw 1
+.MEDIADESCRIPTOR:   resb 1
+.SECTORSPERFAT:	    resw 1
+.SECTORSPERTRACK:   resw 1
+.HEADS:		    resw 1
+.HIDDENSECTORS:	    resd 1
+.BIGTOTALSECTORS:   resd 1
+;............ FAT32 ......  + 28
+.FATSIZE32:	    resd 1
+.EXTFLAGS:	    resw 1
+.FSVER:		    resw 1
+.ROOTDIRCLUSTER:    resd 1
+.FSINFOSECTOR:	    resw 1  ; (offset from FAT32 bs)
+.BACKUPBOOTSECTOR:  resw 1  ; (offset from FAT32 bs)
+.RESERVEDBYTES:	    resb 12 ; (zero bytes)
+.size:
+endstruc
+
+%endif
 
 struc A_DEVICEPARAMETERS
 .DP_SPECIALFUNCTIONS:	resb	1
