@@ -1,7 +1,7 @@
 ;*****************************************************************************
 ; IBMDOS7.S (PCDOS 7.1 Kernel) - RETRO DOS v5.0 by ERDOGAN TAN - 01/01/2024
 ; ----------------------------------------------------------------------------
-; Last Update: 17/01/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
+; Last Update: 22/01/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
 ; ----------------------------------------------------------------------------
 ; Beginning: 22/04/2019 (Retro DOS 4.0), 03/11/2022 (Retro DOS 4.2)
 ; ----------------------------------------------------------------------------
@@ -14052,9 +14052,8 @@ _$FCB_RENAME:		; System call 23
 ;----------------------------------------------------------------------------
 ;
 
-	; 08/11/2022 Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
-	; 17/01/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
-	; burada kaldým... 17/01/2024
+	; 08/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
+	; 20/01/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
 	
 SaveFCBInfo:
 
@@ -14148,8 +14147,17 @@ SaveNoShare:
 	MOV	AL,[ES:DI+SF_ENTRY.sf_dirpos] ; location in sector
 	;mov	[si+1Fh],al
 	MOV	[SI+fcb_nsl_dirpos],AL
-	;mov	ax,[es:di+0Bh]
-	MOV	AX,[ES:DI+SF_ENTRY.sf_firclus] ; first cluster
+
+	; 20/01/2024 - Retro DOS v5.0 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	;;mov	ax,[es:di+0Bh]	; .sf_firclus:
+	;MOV	AX,[ES:DI+SF_ENTRY.sf_firclus] ; first cluster
+	; 20/01/2024
+	; (PCDOS 7.1 IBMDOS.COM - DOSCODE:5DF5h)
+	; (Windows ME IO.SYS - BIOSCODE:5D60h)
+	mov	ax,[es:di+2Bh]  ; .sf_chain !!! (MSDOS 6.22)
+	;mov	ax,[es:di+SF_ENTRY.sf_chain] ; first cluster (32 bit) !?
+	;;;
 	;mov	[si+1Bh],ax
 	MOV	[SI+fcb_nsl_firclus],AX
 	MOV	BL,0
@@ -14180,13 +14188,21 @@ SetFCBBits:
 	; Save no sharing local device information
 
 SaveNoShareDev:
-	;mov	ax,[es:di+7]
-	MOV	AX,[ES:DI+SF_ENTRY.sf_devptr]
-	;mov	[si+1Ah],ax
-	MOV	[SI+fcb_nsld_drvptr],AX
-	;mov	ax,[es:di+9]
-	MOV	AX,[ES:DI+SF_ENTRY.sf_devptr+2]
-	MOV	[SI+fcb_nsld_drvptr+2],AX
+	; 20/01/2024
+	;;mov	ax,[es:di+7]
+	;MOV	AX,[ES:DI+SF_ENTRY.sf_devptr]
+	;;mov	[si+1Ah],ax
+	;MOV	[SI+fcb_nsld_drvptr],AX
+	;;mov	ax,[es:di+9]
+	;MOV	AX,[ES:DI+SF_ENTRY.sf_devptr+2]
+	;MOV	[SI+fcb_nsld_drvptr+2],AX
+	; 20/01/2024 (PCDOS 7.1 IBMDOS.COM)
+	push	es
+	les	ax,[es:di+SF_ENTRY.sf_devptr]
+	mov	[si+fcb_nsld_drvptr],ax
+	mov	[si+fcb_nsld_drvptr+2],es
+	pop	es
+	
 	;mov	bl,40h
 	MOV	BL,FCBDEVICE
 	; 28/12/2022
@@ -14395,7 +14411,7 @@ ovLoop:
 ;	;cmp	word [es:di+SF_ENTRY.sf_ref_count],0
 ;	jz	short lru25
 ;	;cmp	word [es:di],-1
-;	;cmp	word [es:di+SFT_ENTRY.sf_ref_count],sf_busy
+;	;cmp	word [es:di+SF_ENTRY.sf_ref_count],sf_busy
 ;	cmp	word [es:di],sf_busy
 ;	jnz	short lru3
 ;
@@ -14594,6 +14610,9 @@ LRUFCB:
 	; 08/11/2022 Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 	; DOSCODE:57F1h (MSDOS 5.0, MSDOS.SYS)
 
+	; 20/01/2024 Retro DOS v5.0 (Modified PCDOS 7.1 IBMMDOS.COM)
+	; DOSCODE:5E7Ch (PCDOS 7.1, IBMDOS.COM)
+
 	push	es	; * (MSDOS 6.21)
 	
 	call	save_world
@@ -14607,13 +14626,19 @@ LRUFCB:
 	; This is a regen call. If LocalSFT contains the address of a valid 
 	; local SFT, just return that SFT to reuse
 
-	mov	di,[LocalSFT]
-	or	di,[LocalSFT+2]	;is address == 0?
-	jz	short lru1	;invalid local SFT, find one
+	; 20/01/2024
+	;mov	di,[LocalSFT]
+	;or	di,[LocalSFT+2]	;is address == 0?
+	;jz	short lru1	;invalid local SFT, find one
 
 	; We have found a valid local SFT. Recycle this SFT
 
 	les	di,[LocalSFT]
+
+	; 20/01/2024 (PCDOS 7.1 IBMDOS.COM)
+	mov	cx,es
+	or	cx,di		; is address == 0?
+	jz	short lru1	; invalid local SFT, find one
 
 gotlocalSFT:
 	mov	[THISSFT],di
@@ -14696,22 +14721,28 @@ lru4:
 	;add	di,59
 	add	di,SF_ENTRY.size ;go to next SFT
 	loop	findSFT
+	
+	; 20/01/2024
+	dec	cx ; -1
 
-	; Check whether we got a net/Share or local SFT. If local SFT 
+	; Check whether we got a net/Share or local SFT. If local SFT
 	; available, we will reuse it instead of net/Share LRU
 
 	mov	di,si
-	cmp	si,-1		;local SFT available?
+	;cmp	si,-1		;local SFT available?
+	cmp	si,cx ; 20/01/2024
 	jnz	short gotSFT	;yes, return it
 
 	;No local SFT, see if we got a net/Share SFT
 
 	mov	di,bp
-	cmp	bp,-1		;net/Share SFT available?
+
+	cmp	bp,cx ; -1 ; 20/01/2024
+	;cmp	bp,-1		;net/Share SFT available?
 	jnz	short gotnetSFT	;yes, return it
 noSFT:
-	; NB: This error should never occur. We always must have an LRU SFT. 
-	; This error can occur only if the SFT has been corrupted or the LRU 
+	; NB: This error should never occur. We always must have an LRU SFT.
+	; This error can occur only if the SFT has been corrupted or the LRU
 	; count is not maintained properly.
 
 	jmp	short errorbadSFT ;error, no FCB available.
@@ -14720,7 +14751,7 @@ noSFT:
 lru5:
 	;cmp	[es:di+15h],dx
 	cmp	[es:di+sf_LRU],dx ;SFT.LRU < min?
-	jae	short lru4	;no, skip 
+	jae	short lru4	;no, skip
 
 	;mov	dx,[es:di+15h]
 	mov	dx,[es:di+sf_LRU] ;yes, store new minimum
@@ -14734,8 +14765,8 @@ gotSFT:
 
 	; HACK!!!
 	; The code here differs from the code at 'hackpoint' only in the 
-	; order of the check for al. If al = 0, we can jump to 'hackpoint' 
-	; and then from there jump out to 'gotlocalSFT'. The original code 
+	; order of the check for al. If al = 0, we can jump to 'hackpoint'
+	; and then from there jump out to 'gotlocalSFT'. The original code
 	; has been commented out below and replaced by the code just above.
 
 ;If regen, then this SFT can be registered as a local one ( even if free ).
@@ -14751,33 +14782,40 @@ gotSFT:
 ;
 ;notlocaluse:
 
-	; The caller is probably going to use this SFT for a net/Share file. 
-	; We will come here only on a Open/Create when the caller($FCB_OPEN) 
-	; does not really know whether it is a local file or not. We 
-	; invalidate LocalSFT if the SFT we are going to use was previously 
+	; The caller is probably going to use this SFT for a net/Share file.
+	; We will come here only on a Open/Create when the caller($FCB_OPEN)
+	; does not really know whether it is a local file or not. We
+	; invalidate LocalSFT if the SFT we are going to use was previously
 	; registered as a local SFT that can be recycled.
 
 	mov	ax,es
 	cmp	[LocalSFT],di		;Offset same?
 	jne	short notinvalid
 	cmp	[LocalSFT+2],ax		;Segments same?
-	je	short zerolocalSFT	;no, no need to invalidate
-notinvalid:
-	jmp	gotlocalSFT
-
-	; The SFT we are going to use was registered in the LocalSFT variable. 
-	; Invalidate this variable i.e LocalSFT = NULL
-
-zerolocalSFT:
+	;je	short zerolocalSFT	;no, no need to invalidate
+	; 20/01/2024 (PCDOS 7.1 IBMDOS.COM)
+	jne	short notinvalid
+zerolocalSFT:	
 	xor	ax,ax ; 0
 	mov	[LocalSFT],ax
 	mov	[LocalSFT+2],ax
-
+	
+notinvalid:
 	jmp	gotlocalSFT
 
+	; The SFT we are going to use was registered in the LocalSFT variable.
+	; Invalidate this variable i.e LocalSFT = NULL
+
+;zerolocalSFT:
+	;xor	ax,ax ; 0
+	;mov	[LocalSFT],ax
+	;mov	[LocalSFT+2],ax
+	;
+	;jmp	gotlocalSFT
+
 gotnetSFT:
-	; We have an SFT that is currently net/Share. If it is going to be 
-	; used for a regen, we know it has to be a local SFT. Update the 
+	; We have an SFT that is currently net/Share. If it is going to be
+	; used for a regen, we know it has to be a local SFT. Update the
 	; LocalSFT variable
 
 	or	al,al
@@ -14789,9 +14827,9 @@ closenet:
 	mov	[THISSFT],di	; set thissft
 	mov	[THISSFT+2],es	
 
-	; If we have sharing or thisSFT is a net sft, then close it until ref 
+	; If we have sharing or thisSFT is a net sft, then close it until ref
 	; count is 0.
-	; NB: We come here only if it is a net/Share SFT that is going to be 
+	; NB: We come here only if it is a net/Share SFT that is going to be
 	; recycled -- no need to check for this.
 
 LRUClose:
@@ -14802,8 +14840,8 @@ LRUClose:
 	call	DOS_CLOSE
 	jnc	short LRUClose	; no error => clean up
 
-	; Bugbug: I dont know why we are trying to close after we get an 
-	; error closing. Seems like we could have a potential infinite loop  
+	; Bugbug: I dont know why we are trying to close after we get an
+	; error closing. Seems like we could have a potential infinite loop
 	; here. This has to be verified.
 
 	cmp	al,error_invalid_handle ; 6
@@ -14872,6 +14910,8 @@ DoneName:
 ; --------------------------------------------------------------------------
 
 	; 09/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
+	; 21/01/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+
 FCBRegen:
 	; called from SFTFromFCB. SS already DOSDATA
 
@@ -15072,14 +15112,33 @@ RegenFileNoSharing:
 	;mov	[es:di+1Dh],ax
 	mov	[es:di+SF_ENTRY.sf_dirsec+2],ax ;update high word
 
+	; 21/01/2024
 	; MSDOS 6.0 (& MSDOS 3.3)
 	;mov	ax,[si+1Bh]
 	MOV	AX,[SI+fcb_nsl_firclus]
-	;mov	[es:di+0Bh],ax
-	MOV	[ES:DI+SF_ENTRY.sf_firclus],AX
+	;;mov	[es:di+0Bh],ax
+	;MOV	[ES:DI+SF_ENTRY.sf_firclus],AX
+	;;;
+	; 21/01/2024 (PCDOS 7.1 IBMDOS.COM)
+	mov	[es:di+2Bh],ax	; .sf_chain !!! (MSDOS 6.22)
+	;mov	[es:di+SF_ENTRY.sf_chain],ax ; first cluster (32 bit) !?
+	;;;	
+
 	;;mov	[es:di+1Bh],ax ; MSDOS 3.3
 	;mov	[es:di+35h],ax ; MSDOS 6.0
 	MOV	[ES:DI+SF_ENTRY.sf_lstclus],AX
+
+	;;;
+	; 21/01/2024 (PCDOS 7.1 IBMDOS.COM)
+	xor     ax, ax	; 0
+	mov     es:[di+2Dh], ax ; 0
+	mov	[es:di+SF_ENTRY.sf_chain+2],ax
+				; .sf_chain ! (MSDOS 6.22)
+				; high word of first cluster (32 bit) !?
+	mov	[es:di+37h],ax ; 0
+	;mov	[es:di+SF_ENTRY.sf_lstclus+2],ax ; hw of last cluster
+	;;;
+
 	;mov	al,[si+1Fh]
 	MOV	AL,[SI+fcb_nsl_dirpos]
 	;mov  	[es:di+1Fh],al
@@ -15090,6 +15149,12 @@ RegenFileNoSharing:
 					; flushed unnecessarily because of
 					; check in CheckFCB of the ref_count.
 					; July 22/85 - BAS
+	;;;
+	; 21/01/2024 (PCDOS 7.1 IBMDOS.COM)
+	call	set_sftfcb_entry ; put SFT entry number in the SFTFCB table
+				 ; as FCB index number
+	;;;
+
 	;lea	si,[si+1]
 	LEA	SI,[SI+SYS_FCB.name]
 	;lea	di,[di+20h]
@@ -15111,6 +15176,7 @@ RegenFileNoSharing:
 	retn
 
 ; 17/05/2019 - Retro DOS v4.0
+; 21/01/2024 - Retro DOS v5.0
 
 ;**	BlastSFT - FIll SFT with Garbage
 ; --------------------------------------------------------------------------
@@ -15126,6 +15192,10 @@ RegenFileNoSharing:
 ;	USES	AX, CX, Flags
 
 BlastSFT:
+	; 21/01/2024 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	call	SFT_FREE
+	;;;
 	push	di
 	;mov	cx,53 ; MSDOS 3.3
 	;mov	cx,59 ; MSDOS 6.0
@@ -15134,7 +15204,7 @@ BlastSFT:
 	pop	di
 	sub	ax,ax	; 0		; clear 'C'-----------------;
 	mov	[es:di],ax
-	;mov	[es:di+SFT_ENTRY.sf_ref_count],ax ; set ref count   ;
+	;mov	[es:di+SF_ENTRY.sf_ref_count],ax ; set ref count    ;
 	;mov	[es:di+15h],ax
 	mov	[es:di+sf_LRU],ax	; set lru		    ;
 	dec	ax	; -1					    ;
@@ -15159,6 +15229,9 @@ BlastSFT_retn:
 
 	; 09/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 	; DOSCODE:59F0h (MSDOS 5.0, MSDOS.SYS)
+
+	; 21/01/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+	; DOSCODE:607Eh (PCDOS 7.1 IBMDOS.COM)
 CheckFCB:
 		
 	; called from $fcb_open and sftfromfcb. SS already set up to DOSDATA
@@ -15212,13 +15285,17 @@ CheckFCB:
 	;cmp	al,0C0h
 	CMP	AL,FCBSHARE		; net FCB?
 	POP	AX
-	JNZ	short CheckNet		; yes
+	JNZ	short CheckNet		; no
+					; yes
 ;
 ;----- In share support -----
 ;
 	;call	far [cs:JShare+(11*4)]
 	Call    far [ss:JShare+(11*4)] ; 11 = ShChk ; SS Override
 	JC	short BadSFT
+
+; 21/01/2024
+%if 0
 	JMP	SHORT CheckD
 ;
 ;----- End in share support -----
@@ -15233,6 +15310,8 @@ CheckFirClus:
 	CMP	BX,[ES:DI+SF_ENTRY.sf_firclus]
 	JNZ	short BadSFT
 	;;;
+%endif
+
 CheckD: 
 	AND	AL,3Fh
 	;mov	ah,[es:di+5]
@@ -15417,6 +15496,7 @@ Set_SFT:
 ;
 ;----------------------------------------------------------------------------
 
+	; 21/01/2024 - Retro DOS v5.0
 FCBHardErr:
 	; 17/05/2019 - Retro DOS v4.0
 	mov	es,[cs:DosDSeg]
@@ -15432,8 +15512,28 @@ FCBHardErr:
 	
 	MOV	DI,1			; Fake some registers
 	MOV	CX,DI
+	;;;
+	; 21/01/2024 (PCDOS 7.1 IBMDOS.COM) 
+	xor	dx,dx ; 0
+	;cmp	[es:bp+0Fh],dx
+	cmp	[es:bp+DPB.FAT_SIZE],dx ; 0
+	jz	short fcbharderr_fat32 ; FAT32
+	mov	[es:HIGH_SECTOR],dx ; 0
 	;mov	dx,[es:bp+0Bh]
-	MOV	DX,[ES:BP+DPB.FIRST_SECTOR]
+	mov	dx,[es:bp+DPB.FIRST_SECTOR]
+	jmp	short fcbharderr_fat
+fcbharderr_fat32:
+	;mov	dx,[es:bp+2Bh]
+	mov	dx,[es:bp+DPB.FCLUS_FSECTOR+2]
+	mov	[es:HIGH_SECTOR],dx
+	;mov	dx,[es:bp+29h]
+	mov	dx,[es:bp+DPB.FCLUS_FSECTOR]
+fcbharderr_fat: 
+	;;;
+	; 21/01/2024
+	;;mov	dx,[es:bp+0Bh]
+	;MOV	DX,[ES:BP+DPB.FIRST_SECTOR]
+	
 	call	HARDERR
 	STC
 	retn
@@ -15499,6 +15599,7 @@ GetRR:
 	MOV	DX,[SI+SYS_FCB.RR+2]	; get high order part
 	CMP	BX,64			; ignore MSB of RR if recsiz > 64
 	JB	short GetRRBye
+GetExtent_bye:	; 21/01/2024
 	XOR	DH,DH
 GetRRBye:
 	retn
@@ -15524,8 +15625,10 @@ GetExtent:
 	RCR	AL,1	; move low order bit of DL to high order of AH
 	MOV	AH,DL
 	MOV	DL,DH
-	XOR	DH,DH
-	retn
+	; 21/01/2024 (PCDOS 7.1 IBMDOS.COM)
+	;XOR	DH,DH
+	;retn
+	jmp	short GetExtent_bye
 
 ;Break <SetExtent - update the extent/NR field>
 ;---------------------------------------------------------------------------
@@ -15588,13 +15691,17 @@ getextd_retn:
 ;   Registers modified: None
 ;---------------------------------------------------------------------------
 
+	; 22/01/2024
 	; 07/12/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 GetRecSize:
 	;mov	bx,[si+0Eh]
 	MOV	BX,[SI+SYS_FCB.RECSIZ]	; get his record size
 	OR	BX,BX			; is it nul?
-	jz	short getextd_retn
-	MOV	BX,128			; use default size
+	;jz	short getextd_retn
+	; 22/01/2024 (BugFix)
+	jnz	short getextd_retn
+	;MOV	BX,128			; use default size
+	mov	bl,128	; (PCDOS 7.1 IBMDOS.COM)
 	;mov	[si+0Eh],bx
 	MOV	[SI+SYS_FCB.RECSIZ],BX	; stuff it back
 	retn
@@ -15613,6 +15720,9 @@ GetRecSize:
 
 	; 09/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 	; DOSCODE:5B17h (MSDOS 5.0 MSDOS.SYS)
+
+; burada kaldým 22/01/2024
+
 FCBIO:
 
 FEOF	EQU	1
