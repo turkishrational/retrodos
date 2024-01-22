@@ -1,7 +1,7 @@
      1                                  ; ****************************************************************************
      2                                  ; RETRODOS.SYS (MSDOS 3.3 Kernel) - RETRO DOS v3.2 by ERDOGAN TAN
      3                                  ; ----------------------------------------------------------------------------
-     4                                  ; Last Update: 16/01/2024 (BugFix) - (Previous: 28/08/2023)
+     4                                  ; Last Update: 22/01/2024 (BugFix) - (Previous: 28/08/2023)
      5                                  ; ----------------------------------------------------------------------------
      6                                  ; Beginning: 25/05/2018 (Retro DOS 3.0), 29/06/2019 (Retro DOS 3.1)
      7                                  ; ----------------------------------------------------------------------------
@@ -10642,7 +10642,7 @@
   9675 00002C0F 1F                      		pop	ds
   9676                                  
   9677                                  		; 27/03/2018
-  9678 00002C10 B97864                  		mov	cx,KERNEL_SIZE	; words !
+  9678 00002C10 B97064                  		mov	cx,KERNEL_SIZE	; words !
   9679                                  		; 07/04/2018
   9680                                  		;mov	bx,KERNEL_SEGMENT ; 0070h
   9681 00002C13 B370                    		mov	bl,KERNEL_SEGMENT
@@ -11964,7 +11964,7 @@
  10997                                  
  10998                                  		; 03/06/2018
  10999                                  		; 19/03/2018
- 11000 00003045 B9F079                  		mov	cx,msdos_bin_size+1
+ 11000 00003045 B9E079                  		mov	cx,msdos_bin_size+1
  11001 00003048 D1E9                    		shr	cx,1
  11002                                  		;mov	[SYSINIT_START+DOSSIZE],cx ; DOS size in words
  11003                                  		; 05/07/2018
@@ -13892,14 +13892,15 @@
  12925                                  ; 11/06/2018 - Retro DOS v3.0 
  12926                                  
  12927                                  MSDOS_BIN_OFFSET:  ; this offset must be paragraph aligned
- 12928                                  		; 16/01/2024 (BugFix)
- 12929                                  		; 16/12/2022 (BugFix)
- 12930                                  		; 22/11/2022 (BugFix)
- 12931                                  		; 01/08/2019 ('msdos33.asm' last modification)
- 12932                                  		; 29/06/2019 - Retro DOS 3.1 (msdos3.asm)
- 12933 00004F00 <bin 79EFh>             		incbin	'MSDOS33.BIN'
- 12934                                  msdos_bin_size	equ $ - MSDOS_BIN_OFFSET
- 12935                                  
- 12936                                  		;db 90h
- 12937 0000C8EF 90                      align 2
- 12938                                  END_OF_KERNEL equ $
+ 12928                                  		; 22/01/2024 (BugFix)
+ 12929                                  		; 16/01/2024 (BugFix)
+ 12930                                  		; 16/12/2022 (BugFix)
+ 12931                                  		; 22/11/2022 (BugFix)
+ 12932                                  		; 01/08/2019 ('msdos33.asm' last modification)
+ 12933                                  		; 29/06/2019 - Retro DOS 3.1 (msdos3.asm)
+ 12934 00004F00 <bin 79DFh>             		incbin	'MSDOS33.BIN'
+ 12935                                  msdos_bin_size	equ $ - MSDOS_BIN_OFFSET
+ 12936                                  
+ 12937                                  		;db 90h
+ 12938 0000C8DF 90                      align 2
+ 12939                                  END_OF_KERNEL equ $

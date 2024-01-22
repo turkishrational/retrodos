@@ -1,11 +1,11 @@
 ; ****************************************************************************
 ; MSDOS3.BIN (MSDOS 3.3 Kernel) - RETRO DOS v3.1 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 16/01/2024 (BugFix) - (Previous: 16/12/2022)
+; Last Update: 22/01/2024 (BugFix) - (Previous: 16/12/2022)
 ; ----------------------------------------------------------------------------
 ; Beginning: 07/07/2019 (Retro DOS 3.0), 29/06/2019 (Retro DOS 3.1)
 ; ----------------------------------------------------------------------------
-; Assembler: NASM version 2.14  
+; Assembler: NASM version 2.14 (2.15)  
 ; ----------------------------------------------------------------------------
 ;	    ((nasm msdos3.asm -l msdos3.txt -o MSDOS3.BIN)) 	
 ; ----------------------------------------------------------------------------
@@ -12104,12 +12104,16 @@ getextd_retn:
 ;   Registers modified: None
 ;---------------------------------------------------------------------------
 
+	; 22/01/2024
 GetRecSize:
-	mov	bx,[si+0Eh]
+	;mov	bx,[si+0Eh]
 	MOV	BX,[SI+SYS_FCB.RECSIZ]	; get his record size
 	OR	BX,BX			; is it nul?
-	jz	short getextd_retn
-	MOV	BX,128			; use default size
+	;jz	short getextd_retn
+	; 22/01/2024 (BugFix)
+	jnz	short getextd_retn
+	;MOV	BX,128			; use default size
+	mov	bl,128
 	;mov	[si+0Eh],bx
 	MOV	[SI+SYS_FCB.RECSIZ],BX	; stuff it back
 	retn

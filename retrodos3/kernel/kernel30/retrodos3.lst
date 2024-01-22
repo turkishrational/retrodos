@@ -1,7 +1,7 @@
      1                                  ; ****************************************************************************
      2                                  ; RETRODOS.SYS (MSDOS 3.3 Kernel) - RETRO DOS v3.0 by ERDOGAN TAN
      3                                  ; ----------------------------------------------------------------------------
-     4                                  ; Last Update: 16/01/2024 (BugFix) - (Previous: 28/08/2023)
+     4                                  ; Last Update: 22/01/2024 (BugFix) - (Previous: 28/08/2023)
      5                                  ; ----------------------------------------------------------------------------
      6                                  ; Beginning: 24/02/2018 (Retro DOS 2.0), 25/05/2018 (Retro DOS 3.0)
      7                                  ; ----------------------------------------------------------------------------
@@ -11576,13 +11576,14 @@
  10709                                  ; 11/06/2018 - Retro DOS v3.0 
  10710                                  
  10711                                  MSDOS_BIN_OFFSET:  ; this offset must be paragraph aligned
- 10712                                  		; 16/01/2024 (BugFix)
- 10713                                  		; 22/11/2022 (BugFix)
- 10714                                  		; 22/07/2019 ('msdos3.s' last modification)
- 10715                                  		; 20/05/2019 (BugFixed MSDOS3.BIN)
- 10716                                  		; 10/09/2018 ('msdos3.s') 
- 10717 00005270 <bin 76AFh>             		incbin	'MSDOS3.BIN' ; 05/07/2019
- 10718                                  msdos_bin_size	equ $ - MSDOS_BIN_OFFSET
- 10719                                  
- 10720 0000C91F 90                      align 2
- 10721                                  END_OF_KERNEL equ $
+ 10712                                  		; 22/01/2024 (BugFix)
+ 10713                                  		; 16/01/2024 (BugFix)
+ 10714                                  		; 22/11/2022 (BugFix)
+ 10715                                  		; 22/07/2019 ('msdos3.s' last modification)
+ 10716                                  		; 20/05/2019 (BugFixed MSDOS3.BIN)
+ 10717                                  		; 10/09/2018 ('msdos3.s') 
+ 10718 00005270 <bin 76AFh>             		incbin	'MSDOS3.BIN' ; 05/07/2019
+ 10719                                  msdos_bin_size	equ $ - MSDOS_BIN_OFFSET
+ 10720                                  
+ 10721 0000C91F 90                      align 2
+ 10722                                  END_OF_KERNEL equ $
