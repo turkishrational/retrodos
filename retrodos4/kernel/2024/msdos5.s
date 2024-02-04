@@ -1,7 +1,7 @@
 ;*****************************************************************************
 ; MSDOS5.BIN (MSDOS 5.0 Kernel) - RETRO DOS v4.0 by ERDOGAN TAN - 03/11/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 22/01/2024	((Previous: 27/09/2023))
+; Last Update: 04/02/2024	((Previous: 27/09/2023))
 ; ----------------------------------------------------------------------------
 ; Beginning: 07/07/2018 (Retro DOS 3.0), 22/04/2019 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -966,7 +966,7 @@ devid_device_special    EQU     10h     ; true if special device
 devid_device_clock      EQU     08h     ; true if clock device
 devid_device_null       EQU     04h     ; true if null device
 devid_device_con_out    EQU     02h     ; true if console output
-devid_device_con_in     EQU     01h     ; true if consle input
+devid_device_con_in     EQU     01h     ; true if console input
 
 ; ---------------------------------------------------------------------------
 ; structure of devid field as returned by IOCTL is:
@@ -994,7 +994,7 @@ devid_device_con_in     EQU     01h     ; true if consle input
 ;
 ;       If ISDEV = 0
 ;             EOF = 0 if channel has been written
-;             Bits 0-5  are  the  block  device  number  for
+;             Bits 0-5 are the block device number for
 ;                 the channel (0 = A, 1 = B, ...)
 ; ---------------------------------------------------------------------------
 
@@ -1570,7 +1570,7 @@ struc SYSI
 .NAME:	    resb 8		; null device name
 .SPLICE:    resb 1		; TRUE -> splicees being done
 .IBMDOS_SIZE: resw 1		; DOS size in paragraphs
-.IFS_DOSCALL@: resd 1		; IFS DOS service rountine entry
+.IFS_DOSCALL@: resd 1		; IFS DOS service routine entry
 .IFS:	    resd 1		; IFS header chain
 .BUFFERS:   resw 2		; BUFFERS= values (m,n)
 .BOOT_DRIVE: resb 1		; boot drive A=1 B=2,..
@@ -14345,6 +14345,9 @@ _$FIND_NEXT:
 ;	USES	al, CX, SI, DI, Flags  (BUGBUG - not verified - jgl)
 ;---------------------------------------------------------------------------
 
+	; 25/01/2024 - Retro DOS v4.0
+	; MSDOS 5.0 MSDOS.SYS - DOSCODE:5F5Ch
+
 PackName:
 ;	Move over 8 characters to cover the name component, then trim it's
 ;	trailing blanks.
@@ -14368,11 +14371,14 @@ got_ext:
 	MOV	AL,"."	; 2Eh
 	STOSB
 	;MOV	CX,3
-	; 18/12/2022
-	;mov	cl,3
-	;REP	MOVSB
-	movsb
-	movsb
+	;; 18/12/2022
+	;;mov	cl,3
+	;;REP	MOVSB
+	;movsb
+	;movsb
+	;movsb
+	; 25/01/2024
+	movsw
 	movsb
 ext_kill_tail:
 	CMP	BYTE [ES:DI-1]," "
@@ -14452,9 +14458,15 @@ GET_FAST_SEARCH:
 ;
 ;----------------------------------------------------------------------------
 
+	; 06/08/2018 - Retro DOS v3.0
+	; IBMDOS.COM (MSDOS 3.3, 1987) - Offset 2D4Eh
+
+	; 25/01/2024 - Retro DOS v4.0
+	; MSDOS 5.0 MSDOS.SYS - DOSCODE:5F9Ch
+	; MSDOS 6.22 MSDOS.SYS - DOSCODE:5FB0h
+	; PCDOS 7.1 IBMDOS.COM - DOSCODE:6664h
+
 _$CURRENT_DIR:
-	;06/08/2018 - Retro DOS v3.0
-	;IBMDOS.COM (MSDOS 3.3, 1987) - Offset 2D4Eh
 	call	ECritDisk
 	MOV	AL,DL			; get drive number (0=def, 1=A)
 	call	GetVisDrv		; grab it
@@ -14482,8 +14494,12 @@ CurrentValidate:
 	
 	; MSDOS 6.0
 	mov     ds,[cs:DosDSeg]
-	lds     si,[THISCDS]
-
+	; 25/01/2024 (PCDOS 7.1 IBMDOS.COM)
+	mov	byte [NoSetDir],0 ; *
+	
+	; 25/01/2024
+	;lds     si,[THISCDS]
+	
 ; 16/12/2022
 %if 0
 	; 09/11/2022 (following test instruction is nonsense!)
@@ -14502,11 +14518,12 @@ CurrentValidate:
 DoCheck:
 	;MOV	byte [cs:NoSetDir],0	; interested only in contents
 
+	; 25/01/2024
 	; MSDOS 6.0
-	push	ds
-	mov     ds,[cs:DosDSeg]
-	mov	byte [NoSetDir],0
-	pop	ds
+	;push	ds
+	;mov	ds,[cs:DosDSeg]
+	;mov	byte [NoSetDir],0 ; *
+	;pop	ds
 
 	MOV	DI,OPENBUF
 	call	ValidateCDS		; output is ES:DI -> CDS
@@ -15721,6 +15738,12 @@ Check_If_Net:
 	; MSDOS 3.3 (& MSDOS 6.0)
 	CALL	Get_Driver_BL
 	JC	short ioctl_drv_err_pop	; invalid drive letter
+
+; 30/01/2024 ('Get_Driver_BL' returns with
+;	      'curdir_isnet' condition/ZF, no need to a second test)
+%if 0
+	;;;
+	; (PCDOS 7.1 IBMDOS.COM, Windows ME IO.SYS)
 	PUSH	ES
 	PUSH	DI
 	LES	DI,[THISCDS]
@@ -15730,6 +15753,8 @@ Check_If_Net:
 	TEST	byte [ES:DI+curdir.flags+1],(curdir_isnet>>8)
 	POP	DI
 	POP	ES
+	;;;
+%endif
 	retn
 
 ioctl_drv_err_pop:
@@ -15893,9 +15918,10 @@ GetOwner:
 FILEFOUND   equ 01h
 FILEDELETED equ 10h
 
-
 	; 12/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 	; DOSCODE:63E9h (MSDOS 5.0, MSDOS.SYS)
+
+	; 30/01/2021
 
 DOS_DELETE:
 
@@ -16021,14 +16047,18 @@ DELFILE:
 	TEST	byte [BX+dir_entry.dir_attr],attr_read_only
 	JZ	short DoDelete		; not read only
 
+	; 30/01/2024 (PCDOS 7.1 IBMDOS.COM)
+Skip_it:
 	POP	DS
 	JMP	SHORT DELNXT		; Skip it (Note ES:BP not set)
 
 DoDelete:
 	call	REN_DEL_Check		; Sets ES:BP = [THISDPB]
-	JNC	short DEL_SHARE_OK
-	POP	DS
-	JMP	SHORT DELNXT		; Skip it
+	;JNC	short DEL_SHARE_OK
+	;POP	DS
+	;JMP	SHORT DELNXT		; Skip it
+	; 30/01/2024
+	jc	short Skip_it
 
 DEL_SHARE_OK:
 	; 17/05/2019 - Retro DOS v4.0
@@ -16100,7 +16130,7 @@ DELNXT:
 	
 	; MSDOS 6.0
 	XOR	BH,BH			;>32mb delete volume id from boot record ;AN000;
-	call	Set_Media_ID		;>32mb set volumme id to boot record	 ;AN000;
+	call	Set_Media_ID		;>32mb set volume id to boot record	 ;AN000;
 	 
 	call	FATREAD_CDS		; force media check
 	POP	DI
@@ -16407,6 +16437,8 @@ Fast_Dispatch:
 
 	; 14/11/2022 Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 
+	; 31/01/2024
+
 DOS_RENAME:
 
 ;hkn; DOS_RENAME is called from file.asm and fcbio.asm. DS has been set up
@@ -16476,7 +16508,7 @@ Check_Dev:
 	
 	; MSDOS 6.0
 	PUSH	DS			      ;PTM.			    ;AN000;
-	LDS	SI,[DMAADD]		      ;PTM.  chek if source a dir   ;AN000;
+	LDS	SI,[DMAADD]		      ;PTM.  check if source a dir  ;AN000;
 	;add	si,21
 	ADD	SI,find_buf.attr	      ;PTM.			    ;AN000;
 	;test	byte [si+11],10h
@@ -16515,19 +16547,21 @@ notdir:
 
 REN_OK1:				;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	; MSDOS 6.0
-	PUSH	SI
+	; 31/01/2024 (PCDOS 7.1 IBMDOS.COM)
+	;PUSH	SI
 	LDS	SI,[DMAADD]		;BN00X; PTM. check if source a dir ;AN000;
 	;add	si,21
 	ADD	SI,find_buf.attr	;;BN00XPTM.P5520		;AN000;
 	;test	byte [si+11],10h
 	TEST	byte [SI+dir_entry.dir_attr],attr_directory ;;BN00XPTM. ;AN000;
-	JZ	short NOT_DIR1		;;BN00XPTM.			;AN000;
-	POP	SI			;BN00X
-	JMP	SHORT SWAP_SOURCE	;BN00X
-NOT_DIR1:				;;BN00X it is a file, delete the entry
-	POP	SI
+	;JZ	short NOT_DIR1		;;BN00XPTM.			;AN000;
+	jnz	short SWAP_SOURCE ; 31/01/2024
+	;POP	SI			;BN00X
+	;JMP	SHORT SWAP_SOURCE	;BN00X
+;NOT_DIR1:				;;BN00X it is a file, delete the entry
+	;POP	SI
 
-	; MSDOS 3.3 (& MSDOS 6.0)	
+	; MSDOS 3.3 (& MSDOS 6.0)
 	call	FastOpen_Delete 	; delete dir info in fastopen DOS 3.3
 SWAP_SOURCE:
 	; MSDOS 3.3
@@ -16701,7 +16735,7 @@ BUILDDEST:
 	MOV	[THISSFT+2],DS
 
 ;hkn; AUXSTACK is in DOSDATA
-	;mov	si,[RENAMEDMA+145h]
+	;mov	si,RENAMEDMA+145h
 	MOV	SI,AUXSTACK-SF_ENTRY.size  ; RENAMEDMA+325
 	MOV	[THISSFT],SI
 	;mov	word [SI+2],2
@@ -16785,8 +16819,9 @@ yesdirty2:
 	TEST	byte [SI+dir_entry.dir_attr],attr_directory ;;BN00XPTM.	;AN000;
 	JZ	short NOT_DIR2		;;BN00XPTM.			;AN000;
 	call	FastOpen_Rename		;;BN00X rename dir entry in fastopen
-	POP	SI
-	JMP	SHORT NOT_DIRTY1
+	; 31/01/2024
+	;POP	SI
+	;JMP	SHORT NOT_DIRTY1
 NOT_DIR2:				;;BN00X it is a file, delete the entry
 	POP	SI
 NOT_DIRTY1:				;;BN00X
@@ -17369,7 +17404,7 @@ Create_inter:
 	
 	MOV	AL,attr_volume_id ; 8
 NoReset:
-	OR	AL,attr_archive ; File changed  ; 20 h
+	OR	AL,attr_archive ; File changed  ; 20h
 	TEST	AL,attr_directory+attr_device ; 50h
 	JZ	short ATT_OK
 AttErr:
@@ -17412,8 +17447,8 @@ NOEXTOP:				    ;AN000;
 	;MOV	AX,(MultNET SHL 8) OR 24
 	;INT	2FH
 
-	mov     ax,1118h
-	int     2Fh	; Multiplex - NETWORK REDIRECTOR - CREATE/TRUNCATE FILE
+	mov	ax,1118h
+	int	2Fh	; Multiplex - NETWORK REDIRECTOR - CREATE/TRUNCATE FILE
 			; ES:DI -> uninitialized SFT, SS = DOS CS
 			; SDA first filename pointer -> fully-qualified name of file
 			; STACK: WORD file creation mode???
@@ -17456,8 +17491,8 @@ dochk:
 	;MOV	AX,(MultNET SHL 8) OR 23
 	;INT	2FH
 	
-	mov     ax,1117h
-	int     2Fh	; Multiplex - NETWORK REDIRECTOR - CREATE/TRUNCATE REMOTE FILE
+	mov	ax,1117h
+	int	2Fh	; Multiplex - NETWORK REDIRECTOR - CREATE/TRUNCATE REMOTE FILE
 			; ES:DI -> uninitialized SFT, SS = DOS CS
 			; SDA first filename pointer -> fully-qualified name of file to open
 			; SDA CDS pointer -> current directory
@@ -18721,7 +18756,7 @@ LOCAL_SEARCH_NEXT:
 	LES	BP,[ES:DI+curdir.devptr] ; Get DPB pointer
 	call	GOTDPB			; [THISDPB] = ES:BP
 
-	 ;16/12/2022
+	; 16/12/2022
 	mov	al,[ES:BP]
 	; 14/11/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
 	;mov	AL,[ES:BP+DPB.DRIVE] ; mov al,[ES:BP+0]
@@ -18877,7 +18912,7 @@ reset_free_jfn:
 	pop	ds  ; 09/09/2018
 
 	;CallInstall Net_Abort, MultNET, 29
-	mov	ax, 111Dh
+	mov	ax,111Dh
 	int     2Fh 	; Multiplex - NETWORK REDIRECTOR 
 			;	    - CLOSE ALL REMOTE FILES FOR PROCESS
 			; DS???, SS = DOS CS
@@ -19107,6 +19142,10 @@ Bye:
 
 	; 18/05/2019 - Retro DOS v4.0
 CLOSE_GO:
+	; 03/02/2024
+	;mov	al,[si+4]
+	mov	al,[si+SF_ENTRY.sf_attr]
+	
 	; MSDOS 6.0
 	;test	word [si+2],8000h
 	;TEST	word [SI+SF_ENTRY.sf_mode],sf_isFCB ; FCB ?
@@ -19117,8 +19156,10 @@ CLOSE_GO:
 	; MSDOS 3.3 & MSDOS 6.0
 	;mov	ch,[es:di+0Bh]
 	MOV	CH,[ES:DI+dir_entry.dir_attr]
-	;mov	al,[si+4]
-	MOV	AL,[SI+SF_ENTRY.sf_attr]
+
+	; 03/02/2024
+	;;mov	al,[si+4]
+	;MOV	AL,[SI+SF_ENTRY.sf_attr]
 
 ;hkn; SS override
 	MOV	[SS:ATTRIB],AL
@@ -19128,9 +19169,11 @@ CLOSE_GO:
 	; 18/05/2019
 	JMP	SHORT setattr		;FT.
 nofcb:
+	; 03/02/2024
 	; MSDOS 6.0
-	;mov	al,[si+4]
-	MOV	AL,[SI+SF_ENTRY.sf_attr] ;FT.		;AN000;
+	;;mov	al,[si+4]
+	;MOV	AL,[SI+SF_ENTRY.sf_attr] ;FT.		;AN000;
+
 	MOV	[ES:DI+dir_entry.dir_attr],AL ;FT.	;AN000;
 setattr:
 	; MSDOS 3.3 (& MSDOS 6.0)
@@ -19166,7 +19209,7 @@ setattr:
 
 	; MSDOS 6.0
 ;; File Tagging
-	TEST	byte [ES:BX+BUFFINFO.buf_flags],buf_dirty  
+	TEST	byte [ES:BX+BUFFINFO.buf_flags],buf_dirty
 				  ;LB. if already dirty		    ;AN000;
 	JNZ	short yesdirty4	  ;LB.  don't increment dirty count ;AN000;
 	; 02/06/2019
@@ -19214,7 +19257,7 @@ do_update:				;AN005;
 ;hkn; SS is DOSDATA
 	;Context DS
 	push	ss
-	pop	ds	
+	pop	ds
 	; MSDOS 3.3 & MSDOS 6.0
 	call	FastOpen_Update 	; invoke fastopen
 	POP	DX
@@ -19311,10 +19354,13 @@ DirFromSFT:
 	;mov	dx,[es:[di+1Dh]
 	MOV	DX,[ES:DI+SF_ENTRY.sf_dirsec+2]  ;F.C. >32mb
 	MOV	[HIGH_SECTOR],DX		 ;F.C. >32mb
+	; 04/02/2024
+	push	dx
 	;mov	dx,[es:di+1Bh]
 	MOV	DX,[ES:DI+SF_ENTRY.sf_dirsec]
+	; 04/02/2024
 	; 19/05/2019
-	PUSH	word [HIGH_SECTOR]	;F.C. >32mb
+	;PUSH	word [HIGH_SECTOR]	;F.C. >32mb
 	; MSDOS 3.3 & MSDOS 6.0
 	PUSH	DX
 	call	FATREAD_SFT		; ES:BP points to DPB, [THISDRV] set

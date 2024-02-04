@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RETRODOS.SYS (MSDOS 6.0 Kernel) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 22/01/2024 - Retro DOS v4.2 (Modified MSDOS 6.22)
+; Last Update: 04/02/2024 - Retro DOS v4.2 (Modified MSDOS 6.22)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0), 28/12/2022 (Retro DOS 4.1, MSDOS 5.0)
 ; ----------------------------------------------------------------------------
@@ -18005,7 +18005,7 @@ top_of_cdss: dw 0
 
 ; 02/11/2022 (MSDOS 5.0 SYSINIT)
 ; 30/12/2022 (MSDOS 6.21 SYSINIT)
-;ALLOCLIM: dw	0	; (SYSINIT:02A3h)	
+;ALLOCLIM: dw	0	; (SYSINIT:02A3h)
 
 DirStrng: db	"A:\",0	; string for the root directory of a drive
 
@@ -39874,6 +39874,10 @@ MSDOS_BIN_OFFSET: ; this offset must be paragraph aligned
 		; 29/12/2022
 		;incbin	'MSDOS51.BIN' ; Retro DOS 4.1 - MSDOS 5.0+ KERNEL
 
+		; 04/02/2024
+		; 31/01/2024
+		; 25/01/2024
+		; 23/01/2024
 		; 22/01/2024 (BugFix)
 		; 21/01/2024
 		; 16/01/2024 (BugFix)
