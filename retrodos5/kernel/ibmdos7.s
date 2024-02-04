@@ -23256,7 +23256,8 @@ SetSFTTimes:
 ; 17/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 ; DOSCODE:6FC6h (MSDOS 5.0, MSDOS.SYS)
 
-; burada kaldým.. 04/02/2024
+; 04/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+; DOSCODE:78FFh (PCDOS 7.1, IBMDOS.COM)
 
 DOS_MKDIR:
 	call	TestNet
@@ -23316,23 +23317,63 @@ LOCAL_MKDIR:
 	LDS	DI,[CURBUF]
 	SUB	SI,DI
 	PUSH	SI		; Pointer to dir_first
+
+; 04/02/2024
+%if 0
 	; MSDOS 6.0
 	;push	word [DI+8]
 	PUSH	WORD [DI+BUFFINFO.buf_sector+2]	;F.C. >32mb
 	; MSDOS 3.3 & MSDOS 6.0
 	;push	word [di+6]
 	PUSH	WORD [DI+BUFFINFO.buf_sector] ; Sector of new node
+%else
+	; 04/02/2024
+	; (PCDOS 7.1 IBMDOS.COM)
+	lds	ax,[di+BUFFINFO.buf_sector] ; Sector of new node
+	push	ds
+	push	ax
+%endif
+
 	push	ss
 	pop	ds
-	PUSH	word [DIRSTART]	; Parent for .. entry
+
+	; 04/02/2024
+	;PUSH	word [DIRSTART]	; Parent for .. entry
 	XOR	AX,AX
-	MOV	[DIRSTART],AX	; Null directory
+	;MOV	[DIRSTART],AX	; Null directory
+	;;;
+	; Retro DOS v5.0
+	; PCDOS 7.1 IBMDOS.COM
+	mov	dx,ax ; 0
+	xchg	dx,[DIRSTART_HW] ; Null directory
+	xchg	ax,[DIRSTART]
+	;
+	;cmp	word [es:bp+0Fh],0
+	cmp	word [es:bp+DPB.FAT_SIZE],0
+	jnz	short LOCAL_MKDIR_cont ; not FAT32
+	;cmp	[es:bp+35h],ax
+	cmp	[es:bp+DPB.ROOT_CLUSTER],ax
+	jne     short LOCAL_MKDIR_cont
+	;cmp	[es:bp+37h],dx
+	cmp	[es:bp+DPB.ROOT_CLUSTER+2],dx
+	jne	short LOCAL_MKDIR_cont
+	;
+	xor	dx,dx
+	xor	ax,ax
+		; dx:ax = 0 for root directory
+LOCAL_MKDIR_cont:
+	push	dx
+	;;;
+	push	ax
+
 	call	NEWDIR
 	JC	short NODEEXISTSPOPDEL ; No room
 	call	GETENT		; First entry
 	JC	short NODEEXISTSPOPDEL ; Screw up
 	LES	DI,[CURBUF]
 
+; 04/02/2024
+%if 0
 	; MSDOS 6.0
 	TEST	byte [ES:DI+BUFFINFO.buf_flags],buf_dirty  
 				 ;LB. if already dirty		    ;AN000;
@@ -23342,15 +23383,32 @@ LOCAL_MKDIR:
 	; MSDOS 3.3 & MSDOS 6.0
 	;or	byte [es:di+5],40h  ; 07/12/2022
 	OR	byte [ES:DI+BUFFINFO.buf_flags],buf_dirty
+%else
+	; 04/02/2024
+	; (PCDOS 7.1 IBMDOS.COM)
+	call    SET_BUF_DIRTY
+%endif
+
 yesdirty5:
-	;;add	di,16 ; MSDOS 3.3
-	;add	di,20 ; MSDOS 6.0
+	;;;add	di,16 ; MSDOS 3.3
+	;;add	di,20 ; MSDOS 6.0
+	; 04/02/2024
+	;add	di,24 ; PCDOS 7.1	
 	ADD	DI,BUFINSIZ	; Point at buffer
 	MOV	AX,202EH	; ". "
+	;;;
+	; 04/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	mov	dx,[DIRSTART_HW]
+	mov	[CLUSTERS_HW],dx
+	;;;
 	MOV	DX,[DIRSTART]	; Point at itself
 	call	SETDOTENT
 	MOV	AX,2E2EH	; ".."
 	POP	DX		; Parent
+	;;;
+	; 04/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	pop	word [CLUSTERS_HW]
+	;;;
 	call	SETDOTENT
 	LES	BP,[THISDPB]
 	; 22/09/2023
@@ -23365,13 +23423,22 @@ yesdirty5:
 	; 22/09/2023
 	call	GETBUFFER ; *	; Pre read
 	JC	short NODEEXISTSP
+	;;;
+	; 04/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	mov	ax,[DIRSTART_HW]
+	;;;
 	MOV	DX,[DIRSTART]
 	LDS	DI,[CURBUF]
 	;or	byte [di+5],4
 	OR	byte [DI+BUFFINFO.buf_flags],buf_isDIR
 	POP	SI		; dir_first pointer
 	ADD	SI,DI
-	MOV	[SI],DX
+	MOV	[SI],DX		; dir_entry.dir_first
+	;;;
+	; 04/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	mov	[si-6],ax	; dir_entry.dir_fclus_hi
+	;;;
+
 	XOR	DX,DX
 	MOV	[SI+2],DX	; Zero size
 	MOV	[SI+4],DX
@@ -23388,6 +23455,10 @@ DIRUP:
 yesdirty6:
 	push	ss
 	pop	ds
+	;;;
+	; 04/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	call	update_fat32_fsinfo
+	;;;
 	mov	al,[es:bp]
 	;MOV	AL,[ES:BP+DPB.DRIVE]  ; mov al,[es:bp+0]
 	call	FLUSHBUF
@@ -23399,6 +23470,10 @@ yesdirty6:
 	jmp	LCritDisk
 
 NODEEXISTSPOPDEL:
+	;;;
+	; 04/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	pop	dx		; Parent
+	;;;
 	POP	DX		; Parent
 	POP	DX		; Entry sector
 	; MSDOS 6.0 
@@ -23467,6 +23542,12 @@ NODEEXISTSP:
 ; 17/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 ; DOSCODE:70C6h (MSDOS 5.0, MSDOS.SYS)
 
+; 04/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+; PCDOS 7.1 IBMDOS.COM - DOSCODE:7A23h
+
+; (Windows ME IO.SYS - BIOSCODE:7839h)
+; (MSDOS 6.22 MSDOS.SYS - DOSCODE:70DAh)
+
 DOS_CHDIR:
 	call	TestNet
 	JNC	short LOCAL_CHDIR
@@ -23496,6 +23577,11 @@ LOCAL_CHDIR:
 	JZ	short nojoin		   ;PTM.
 	;mov	word [es:di+49h], 0FFFFh
 	MOV	word [ES:DI+curdir.ID],0FFFFH ;PTM.
+	;;;
+	; 04/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	;mov	word [es:di+4Bh], 0FFFFh
+	mov	word [es:di+curdir.ID+2],0FFFFh
+	;;;
 nojoin:
 	; MSDOS 3.3 & MSDOS 6.0
 	MOV	byte [NoSetDir],0 ; FALSE
@@ -23505,9 +23591,14 @@ nojoin:
 ; DOS 3.3  6/24/86 FastOpen
 	OR	byte [FastOpenFlg],FastOpen_Set	; set fastopen flag
 	call	GETPATH
-	PUSHF						;AN000;
+
+	; 04/02/2024
+	;PUSHF						;AN000;
+	lahf						
 	AND	byte [FastOpenFlg],Fast_yes ; clear it all ;AC000;
-	POPF						;AN000;
+	;POPF						;AN000;
+	sahf
+
 ; DOS 3.3  6/24/86 FastOpen
 
 	; MSDOS 3.3
