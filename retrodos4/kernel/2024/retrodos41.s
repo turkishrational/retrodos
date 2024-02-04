@@ -38010,9 +38010,7 @@ MSDOS_BIN_OFFSET: ; this offset must be paragraph aligned
 		;incbin	'MSDOS6.BIN' ; Retro DOS 4.0 - MSDOS 6.21 KERNEL
 		
 		; 04/02/2024
-		; 31/01/2024
-		; 25/01/2024
-		; 23/01/2024
+		; 30/01/2024
 		; 22/01/2024 (BugFix)
 		; 21/01/2024
 		; 16/01/2024 (BugFix)

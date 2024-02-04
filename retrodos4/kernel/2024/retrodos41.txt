@@ -38266,39 +38266,37 @@
  38010                                  		;incbin	'MSDOS6.BIN' ; Retro DOS 4.0 - MSDOS 6.21 KERNEL
  38011                                  		
  38012                                  		; 04/02/2024
- 38013                                  		; 31/01/2024
- 38014                                  		; 25/01/2024
- 38015                                  		; 23/01/2024
- 38016                                  		; 22/01/2024 (BugFix)
- 38017                                  		; 21/01/2024
- 38018                                  		; 16/01/2024 (BugFix)
- 38019                                  		; 15/01/2024
- 38020                                  		; 27/09/2023 (BugFix)
- 38021                                  		; 25/09/2023
- 38022                                  		; 29/12/2022
- 38023 000037F0 <bin 8D7Ah>             		incbin	'MSDOS51.BIN' ; Retro DOS 4.1 - MSDOS 5.0+ KERNEL
- 38024                                  		
- 38025                                  		;; 28/12/2022 (BugFix)
- 38026                                  		;; 22/12/2022
- 38027                                  		;; 21/12/2022 ('msdos5.s')
- 38028                                  		;incbin 'MSDOS5.BIN'  ; Retro DOS 4.0 - MSDOS 5.0+ KERNEL
- 38029                                  	
- 38030                                  ; 28/09/2023	
- 38031                                  ;msdos_bin_size equ $ - MSDOS_BIN_OFFSET
+ 38013                                  		; 30/01/2024
+ 38014                                  		; 22/01/2024 (BugFix)
+ 38015                                  		; 21/01/2024
+ 38016                                  		; 16/01/2024 (BugFix)
+ 38017                                  		; 15/01/2024
+ 38018                                  		; 27/09/2023 (BugFix)
+ 38019                                  		; 25/09/2023
+ 38020                                  		; 29/12/2022
+ 38021 000037F0 <bin 8D7Ah>             		incbin	'MSDOS51.BIN' ; Retro DOS 4.1 - MSDOS 5.0+ KERNEL
+ 38022                                  		
+ 38023                                  		;; 28/12/2022 (BugFix)
+ 38024                                  		;; 22/12/2022
+ 38025                                  		;; 21/12/2022 ('msdos5.s')
+ 38026                                  		;incbin 'MSDOS5.BIN'  ; Retro DOS 4.0 - MSDOS 5.0+ KERNEL
+ 38027                                  	
+ 38028                                  ; 28/09/2023	
+ 38029                                  ;msdos_bin_size equ $ - MSDOS_BIN_OFFSET
+ 38030                                  
+ 38031                                  align 2
  38032                                  
- 38033                                  align 2
- 38034                                  
- 38035                                  ; 21/12/2022
- 38036                                  ;;END_OF_KERNEL:
- 38037                                  ;END_OF_KERNEL equ $
- 38038                                  
- 38039                                  ; 28/09/2023
- 38040                                  S3SIZE equ $-$$
- 38041                                  KERNEL_SIZE equ S1SIZE+S2SIZE+S3SIZE
- 38042                                  
+ 38033                                  ; 21/12/2022
+ 38034                                  ;;END_OF_KERNEL:
+ 38035                                  ;END_OF_KERNEL equ $
+ 38036                                  
+ 38037                                  ; 28/09/2023
+ 38038                                  S3SIZE equ $-$$
+ 38039                                  KERNEL_SIZE equ S1SIZE+S2SIZE+S3SIZE
+ 38040                                  
+ 38041                                  ;=============================================================================
+ 38042                                  ;	END
  38043                                  ;=============================================================================
- 38044                                  ;	END
- 38045                                  ;=============================================================================
- 38046                                  ; Retro DOS v4.0 by Erdogan Tan (Redevelopment of MSDOS 5.0 KERNEL via NASM)
- 38047                                  ; ------------------------------
- 38048                                  ; DECEMBER 2022, ISTANBUL - TURKIYE.
+ 38044                                  ; Retro DOS v4.0 by Erdogan Tan (Redevelopment of MSDOS 5.0 KERNEL via NASM)
+ 38045                                  ; ------------------------------
+ 38046                                  ; DECEMBER 2022, ISTANBUL - TURKIYE.

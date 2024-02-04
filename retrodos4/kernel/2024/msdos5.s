@@ -18348,7 +18348,7 @@ Make_Bad_Access:
 
 DISK_INFO:
 	; 08/08/2018 - Retro DOS v3.0
-	; IBM DOS.COM (MSDOS 3.3, 1987) - Offset 37C5h
+	; IBMDOS.COM (MSDOS 3.3, 1987) - Offset 37C5h
 
 	call	TestNet
 	JNC	short LOCAL_DSK_INFO

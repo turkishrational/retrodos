@@ -20067,6 +20067,8 @@ SetSFTTimes:
 ; 17/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 ; DOSCODE:6FC6h (MSDOS 5.0, MSDOS.SYS)
 
+; 04/02/2024 - Retro DOS v4.1
+
 DOS_MKDIR:
 	call	TestNet
 	JNC	short LOCAL_MKDIR
@@ -20125,17 +20127,33 @@ LOCAL_MKDIR:
 	LDS	DI,[CURBUF]
 	SUB	SI,DI
 	PUSH	SI		; Pointer to dir_first
+
+; 04/02/2024
+%if 0
 	; MSDOS 6.0
 	;push	word [DI+8]
 	PUSH	WORD [DI+BUFFINFO.buf_sector+2]	;F.C. >32mb
 	; MSDOS 3.3 & MSDOS 6.0
 	;push	word [di+6]
 	PUSH	WORD [DI+BUFFINFO.buf_sector] ; Sector of new node
+%else
+	; 04/02/2024
+	; (PCDOS 7.1 IBMDOS.COM)
+	lds	ax,[di+BUFFINFO.buf_sector] ; Sector of new node
+	push	ds
+	push	ax
+%endif
+
 	push	ss
 	pop	ds
-	PUSH	word [DIRSTART]	; Parent for .. entry
+
+	; 04/02/2024
+	;PUSH	word [DIRSTART]	; Parent for .. entry
 	XOR	AX,AX
-	MOV	[DIRSTART],AX	; Null directory
+	;MOV	[DIRSTART],AX	; Null directory
+	xchg	ax,[DIRSTART]
+	push	ax
+
 	call	NEWDIR
 	JC	short NODEEXISTSPOPDEL ; No room
 	call	GETENT		; First entry

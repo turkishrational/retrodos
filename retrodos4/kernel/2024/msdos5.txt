@@ -18375,7 +18375,7 @@
  18348                                  
  18349                                  DISK_INFO:
  18350                                  	; 08/08/2018 - Retro DOS v3.0
- 18351                                  	; IBM DOS.COM (MSDOS 3.3, 1987) - Offset 37C5h
+ 18351                                  	; IBMDOS.COM (MSDOS 3.3, 1987) - Offset 37C5h
  18352                                  
  18353 00002D45 E87BE5                  	call	TestNet
  18354 00002D48 7306                    	JNC	short LOCAL_DSK_INFO
