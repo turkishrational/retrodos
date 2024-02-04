@@ -1,20 +1,16 @@
 
 
-; ---------------------------------------------------------------------------
 ; File Name   :	C:\retrodos4\MSDOS622.SYS
 ; Format      :	Binary file
 ; Base Address:	0000h Range: 0000h - 94FAh Loaded length: 94FAh
 ; ===========================================================================
-
 ; Segment type:	Pure code
 DOSCODE		segment	byte public 'CODE' use16
 		assume cs:DOSCODE
 		;org 3DE0h
 		assume es:nothing, ss:nothing, ds:nothing, fs:nothing, gs:nothing
-
 $STARTCODE:				; ...
 		jmp	DOSINIT
-; ---------------------------------------------------------------------------
 		dw offset $STARTCODE
 BioDataSeg	dw 70h
 DosDSeg		dw 0			; ...
@@ -217,16 +213,12 @@ DOSTable	db 48			; ...
 		dw offset NO_OP
 ms_copyright	db 'MS DOS Version 6 (C)Copyright 1981-1994 Microsoft Corp Licensed M'
 		db 'aterial - Property of Microsoft All rights reserved '
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR STATCHK
-
 $SET_CTRL_C_TRAPPING:			; ...
 		cmp	al, 6
 		jbe	short scct_1
 		mov	al, 0FFh
 		iret
-; ---------------------------------------------------------------------------
-
 scct_1:					; ...
 		push	ds
 		mov	ds, cs:DosDSeg
@@ -238,31 +230,23 @@ scct_1:					; ...
 		jnz	short scct_2
 		mov	dl, [si]
 		jmp	short scct_9s
-; ---------------------------------------------------------------------------
-
 scct_2:					; ...
 		dec	ax
 		jnz	short scct_3
 		and	dl, 1
 		mov	[si], dl
 		jmp	short scct_9s
-; ---------------------------------------------------------------------------
-
 scct_3:					; ...
 		dec	ax
 		jnz	short scct_4
 		and	dl, 1
 		xchg	dl, [si]
 		jmp	short scct_9s
-; ---------------------------------------------------------------------------
-
 scct_4:					; ...
 		cmp	ax, 3
 		jnz	short scct_5
 		mov	dl, ds:BOOTDRIVE
 		jmp	short scct_9s
-; ---------------------------------------------------------------------------
-
 scct_5:					; ...
 		cmp	ax, 4
 		jnz	short scct_9s
@@ -272,34 +256,25 @@ scct_5:					; ...
 		cmp	ds:DosHasHMA, 0
 		jz	short scct_9s
 		or	dh, 10h
-
 scct_9s:				; ...
 		pop	si
 		pop	ax
 		pop	ds
 		iret
-; ---------------------------------------------------------------------------
-
 SetCtrlShortEntry:			; ...
 		jmp	short $SET_CTRL_C_TRAPPING
-; ---------------------------------------------------------------------------
-
 $SET_CURRENT_PDB:			; ...
 		push	ds
 		mov	ds, cs:DosDSeg
 		mov	ds:CurrentPDB, bx
 		pop	ds
 		iret
-; ---------------------------------------------------------------------------
-
 $GET_CURRENT_PDB:			; ...
 		push	ds
 		mov	ds, cs:DosDSeg
 		mov	bx, ds:CurrentPDB
 		pop	ds
 		iret
-; ---------------------------------------------------------------------------
-
 $SET_PRINTER_FLAG:			; ...
 		push	ds
 		mov	ds, cs:DosDSeg
@@ -307,22 +282,15 @@ $SET_PRINTER_FLAG:			; ...
 		pop	ds
 		iret
 ; END OF FUNCTION CHUNK	FOR STATCHK
-; ---------------------------------------------------------------------------
-
 quit:					; ...
 		xor	ah, ah
 		jmp	short SAVREGS
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR STATCHK
-
 BADCALL:				; ...
 		xor	al, al
-
 irett:					; ...
 		iret
 ; END OF FUNCTION CHUNK	FOR STATCHK
-; ---------------------------------------------------------------------------
-
 call_entry:				; ...
 		push	ds
 		mov	ds, cs:DosDSeg
@@ -340,14 +308,11 @@ call_entry:				; ...
 		ja	short BADCALL
 		mov	ah, cl
 		jmp	short SAVREGS
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR STATCHK
-
 command:				; ...
 		cli
 		cmp	ah, 6Ch
 		ja	short BADCALL
-
 SAVREGS:				; ...
 		cmp	ah, 33h
 		jb	short SaveAllRegs
@@ -361,7 +326,6 @@ SAVREGS:				; ...
 		jz	short $GET_CURRENT_PDB
 		cmp	ah, 50h
 		jz	short $SET_CURRENT_PDB
-
 SaveAllRegs:				; ...
 		push	es
 		push	ds
@@ -385,7 +349,6 @@ SaveAllRegs:				; ...
 		test	ds:IsWin386, 1
 		jnz	short set_indos_flag
 		mov	ds:USER_ID, ax
-
 set_indos_flag:				; ...
 		inc	ds:INDOS
 		mov	ds:USER_SP, sp
@@ -398,7 +361,6 @@ set_indos_flag:				; ...
 		mov	ds:2Eh,	sp
 		mov	word ptr ds:30h, ss
 		mov	ss, cs:DosDSeg
-
 REDISP:					; ...
 		mov	sp, offset AUXSTACK
 		sti
@@ -423,14 +385,11 @@ REDISP:					; ...
 		jz	short DISPCALL
 		cmp	ah, 0Ch
 		ja	short DSKROUT
-
 IOROUT:
 		cmp	ss:ERRORMODE, 0
 		jnz	short DISPCALL
 		mov	sp, offset PRINTER_FLAG
 		jmp	short DISPCALL
-; ---------------------------------------------------------------------------
-
 DSKROUT:				; ...
 		mov	ss:USER_IN_AX, ax
 		mov	ss:EXTERR_LOCUS, 1
@@ -447,20 +406,17 @@ DSKROUT:				; ...
 		push	ax
 		call	near ptr DSKSTATCHK
 		pop	ax
-
 DISPCALL:				; ...
 		mov	bx, cs:DISPATCH[bx]
 		xchg	bx, ss:SAVEBX
 		mov	ds, ss:SAVEDS
 		call	ss:SAVEBX
 		and	ss:DOS_FLAG, 0FBh
-
 LeaveDOS:				; ...
 		cli
 		mov	ds, cs:DosDSeg
 		cmp	ds:A20OFF_COUNT, 0
 		jnz	short disa20
-
 LeaveA20On:				; ...
 		dec	ds:INDOS
 		mov	ss, ds:USER_SS
@@ -481,8 +437,6 @@ LeaveA20On:				; ...
 		pop	ds
 		pop	es
 		iret
-; ---------------------------------------------------------------------------
-
 disa20:					; ...
 		mov	bx, ds:A20OFF_PSP
 		cmp	bx, ds:CurrentPDB
@@ -493,10 +447,7 @@ disa20:					; ...
 		push	bx
 		retf
 ; END OF FUNCTION CHUNK	FOR STATCHK
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 restore_world	proc near		; ...
 		mov	es, cs:DosDSeg
 		pop	es:RESTORE_TMP
@@ -510,12 +461,8 @@ restore_world	proc near		; ...
 		pop	ds
 		jmp	es:RESTORE_TMP
 restore_world	endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
 ; Attributes: bp-based frame
-
 save_world	proc near		; ...
 		mov	es, cs:DosDSeg
 		pop	es:RESTORE_TMP
@@ -534,18 +481,12 @@ save_world	proc near		; ...
 		pop	bp
 		retn
 save_world	endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Get_User_Stack	proc near		; ...
 		mov	ds, cs:DosDSeg
 		lds	si, dword ptr ds:USER_SP
 		retn
 Get_User_Stack	endp
-
-; ---------------------------------------------------------------------------
 ERRIN		db 2			; ...
 		db 6
 		db 12
@@ -558,10 +499,7 @@ ERROUT		db 80h
 		db 10h
 		db 4
 		db 3
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 AbsSetup	proc near		; ...
 		inc	ss:INDOS
 		sti
@@ -572,15 +510,11 @@ AbsSetup	proc near		; ...
 		call	GETBP
 		jb	short errdriv
 		mov	word ptr es:[bp+1Fh], 0FFFFh
-
 errdriv:				; ...
 		pop	ds
 		jnb	short AbsSetup2
-
 AbsSetup_retn:				; ...
 		retn
-; ---------------------------------------------------------------------------
-
 AbsSetup2:				; ...
 		mov	ss:HIGH_SECTOR,	0
 		call	RW32_CONVERT
@@ -608,9 +542,6 @@ AbsSetup2:				; ...
 		mov	ss:EXTERR, 32h ; '2'
 		retn
 AbsSetup	endp
-
-; ---------------------------------------------------------------------------
-
 ABSDRD:					; ...
 		cli
 		push	ax
@@ -639,11 +570,8 @@ ABSDRD:					; ...
 		mov	ss:TEMP_VAR, bx
 		call	DskRdBufScan
 		jmp	short ILEAVE
-; ---------------------------------------------------------------------------
-
 TLEAVE:					; ...
 		jz	short ILEAVE
-
 ERR_LEAVE:				; ...
 		push	es
 		push	cs
@@ -654,12 +582,10 @@ ERR_LEAVE:				; ...
 		repne scasb
 		jnz	short LEAVECODE
 		mov	ah, es:[di+5]
-
 LEAVECODE:				; ...
 		pop	es
 		mov	ss:AbsDskErr, ax
 		stc
-
 ILEAVE:					; ...
 		pop	es
 		call	restore_world
@@ -674,8 +600,6 @@ ILEAVE:					; ...
 		pop	es
 		sti
 		retf
-; ---------------------------------------------------------------------------
-
 ABSDWRT:				; ...
 		cli
 		push	ax
@@ -703,10 +627,7 @@ ABSDWRT:				; ...
 		pop	ds
 		call	DSKWRITE
 		jmp	short TLEAVE
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GETBP		proc near		; ...
 		push	ax
 		add	al, 1
@@ -719,13 +640,10 @@ GETBP		proc near		; ...
 		stc
 		mov	ds:EXTERR, ax
 		mov	ds:AbsDskErr, 201h
-
 SKIPGET:				; ...
 		pop	ax
 		jnb	short GETBP_@f
 		retn
-; ---------------------------------------------------------------------------
-
 GETBP_@f:				; ...
 		les	bp, ds:THISCDS
 		test	word ptr es:[bp+43h], 8000h
@@ -733,54 +651,36 @@ GETBP_@f:				; ...
 		mov	ds:EXTERR, 32h ; '2'
 		stc
 		retn
-; ---------------------------------------------------------------------------
-
 GETBP_CDS:				; ...
 		les	bp, es:[bp+45h]
 GETBP		endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GOTDPB		proc near		; ...
 		mov	word ptr ds:THISDPB, bp
 		mov	word ptr ds:THISDPB+2, es
 		retn
 GOTDPB		endp
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR $IOCTL
-
 SYS_RET_OK:				; ...
 		call	Get_User_Stack
 		and	word ptr [si+16h], 0FFFEh
 		jmp	short DO_RET
-; ---------------------------------------------------------------------------
-
 SYS_RET_ERR:				; ...
 		xor	ah, ah
 		call	ETAB_LK
 		call	ErrorMap
-
 From_GetSet:				; ...
 		call	Get_User_Stack
 		or	word ptr [si+16h], 1
 		stc
-
 DO_RET:					; ...
 		mov	[si], ax
 		retn
 ; END OF FUNCTION CHUNK	FOR $IOCTL
-; ---------------------------------------------------------------------------
-
 NO_OP:					; ...
 		xor	al, al
 		retn
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 FCB_RET_ERR	proc near		; ...
 		xor	ah, ah
 		mov	ss:EXTERR, ax
@@ -788,35 +688,25 @@ FCB_RET_ERR	proc near		; ...
 		mov	al, 0FFh
 		retn
 FCB_RET_ERR	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ErrorMap	proc near		; ...
 		push	si
 		mov	si, offset ERR_TABLE_21
 		cmp	ss:FAILERR, 0
 		jz	short EXTENDED_NORMAL
 		mov	ss:EXTERR, 53h
-
 EXTENDED_NORMAL:			; ...
 		call	CAL_LK
 		pop	si
 		retn
 ErrorMap	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 CAL_LK		proc near		; ...
 		push	ds
 		push	ax
 		push	bx
 		mov	ds, cs:DosDSeg
 		mov	bx, ds:EXTERR
-
 TABLK1:					; ...
 		lodsb
 		cmp	al, 0FFh
@@ -825,36 +715,27 @@ TABLK1:					; ...
 		jz	short GOT_VALS
 		add	si, 3
 		jmp	short TABLK1
-; ---------------------------------------------------------------------------
-
 GOT_VALS:				; ...
 		lodsw
 		cmp	ah, 0FFh
 		jz	short NO_SET_ACT
 		mov	byte ptr ds:EXTERR_ACT_CLASS, ah
-
 NO_SET_ACT:				; ...
 		cmp	al, 0FFh
 		jz	short NO_SET_CLS
 		mov	byte ptr ds:EXTERR_ACT_CLASS+1,	al
-
 NO_SET_CLS:				; ...
 		lodsb
 		cmp	al, 0FFh
 		jz	short NO_SET_LOC
 		mov	ds:EXTERR_LOCUS, al
-
 NO_SET_LOC:				; ...
 		pop	bx
 		pop	ax
 		pop	ds
 		retn
 CAL_LK		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ETAB_LK		proc near		; ...
 		push	ds
 		push	si
@@ -866,7 +747,6 @@ ETAB_LK		proc near		; ...
 		mov	si, offset I21_MAP_E_TAB
 		mov	bh, al
 		mov	bl, byte ptr ds:USER_IN_AX+1
-
 TABLK2:					; ...
 		lods	word ptr cs:[si]
 		cmp	al, 0FFh
@@ -877,23 +757,17 @@ TABLK2:					; ...
 		xor	ah, ah
 		add	si, ax
 		jmp	short TABLK2
-; ---------------------------------------------------------------------------
-
 NOT_IN_TABLE:				; ...
 		mov	al, bh
 		jmp	short NO_MAP
-; ---------------------------------------------------------------------------
-
 GOT_CALL:				; ...
 		mov	cl, ah
 		xor	ch, ch
-
 CHECK_CODE:				; ...
 		lods	byte ptr cs:[si]
 		cmp	al, bh
 		jz	short NO_MAP
 		loop	CHECK_CODE
-
 NO_MAP:					; ...
 		xor	ah, ah
 		pop	bx
@@ -902,11 +776,7 @@ NO_MAP:					; ...
 		pop	ds
 		retn
 ETAB_LK		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SetBad		proc near		; ...
 		mov	ax, 1
 		push	ds
@@ -916,43 +786,27 @@ SetBad		proc near		; ...
 		stc
 		retn
 SetBad		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 BadCall		proc far		; ...
 		call	SetBad
 		retf
 BadCall		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 OKCall		proc far		; ...
 		clc
 		retf
 OKCall		endp
-
-; ---------------------------------------------------------------------------
-
 INT2F:					; ...
 		sti
 		cmp	ah, 11h		; MultNET
 		jnz	short INT2FSHR
-
 TestInstall:				; ...
 		or	al, al
 		jz	short Leave2F
-
 BadFunc:				; ...
 		call	SetBad
-
 Leave2F:				; ...
 		retf	2
-; ---------------------------------------------------------------------------
-
 INT2FSHR:				; ...
 		cmp	ah, 10h		; MultSHARE
 		jz	short TestInstall
@@ -961,60 +815,42 @@ INT2FSHR:				; ...
 		cmp	ah, 12h		; MultDOS
 		jnz	short check_win
 		jmp	DispatchDOS
-; ---------------------------------------------------------------------------
-
 check_win:				; ...
 		cmp	ah, 16h
 		jz	short Win386_Msg
 		cmp	ah, 46h	; 'F'
 		jnz	short next_i2f
 		jmp	Winold_swap
-; ---------------------------------------------------------------------------
-
 next_i2f:				; ...
 		jmp	far ptr	70h:5
-; ---------------------------------------------------------------------------
-
 Win386_Msg:				; ...
 		push	ds
 		mov	ds, cs:DosDSeg
 		cmp	al, 3
 		jnz	short Win386_Msg_exit
 		jmp	OldWin386Init
-; ---------------------------------------------------------------------------
-
 Win386_Msg_exit:			; ...
 		cmp	al, 6
 		jnz	short Win386_Msg_devcall
 		jmp	Win386_Leaving
-; ---------------------------------------------------------------------------
-
 Win386_Msg_devcall:			; ...
 		cmp	al, 7
 		jnz	short Win386_Msg_init
 		jmp	Win386_Query
-; ---------------------------------------------------------------------------
-
 Win386_Msg_init:			; ...
 		cmp	al, 5
 		jz	short Win386_Starting
 		jmp	win_nexti2f
-; ---------------------------------------------------------------------------
-
 Win386_Starting:			; ...
 		test	dx, 1
 		jz	short Win386_vchk
 		jmp	win_nexti2f
-; ---------------------------------------------------------------------------
-
 Win386_vchk:				; ...
 		mov	word ptr ds:Win386_Info_6, 0
 		mov	word ptr ds:Win386_Info_6+2, 0
 		cmp	di, 30Ah
 		jb	short Win386_vxd
 		jmp	noVxD31
-; ---------------------------------------------------------------------------
-
 Win386_vxd:				; ...
 		push	ax
 		push	bx
@@ -1041,7 +877,6 @@ Win386_vxd:				; ...
 		rep movsb
 		pop	es
 		pop	ds
-
 Vxd31:					; ...
 		test	ds:DOS_FLAG, 2
 		jz	short Dont_Supress
@@ -1052,8 +887,6 @@ Vxd31:					; ...
 		pop	bx
 		pop	ax
 		jmp	short noVxD31
-; ---------------------------------------------------------------------------
-
 Dont_Supress:				; ...
 		mov	al, ds:BOOTDRIVE
 		add	al, 40h		; 'A'-1
@@ -1083,7 +916,6 @@ Dont_Supress:				; ...
 		mov	cx, 99
 		mov	ah, 2
 		cld
-
 vxdlp:					; ...
 		lodsb
 		xchg	dl, al
@@ -1096,8 +928,6 @@ vxdlp:					; ...
 		pop	ax
 		inc	cx
 		jmp	win_nexti2f
-; ---------------------------------------------------------------------------
-
 VxDthere:				; ...
 		mov	bx, ax
 		mov	ah, 3Eh
@@ -1108,7 +938,6 @@ VxDthere:				; ...
 		mov	word ptr [bx+8], ds
 		pop	bx
 		pop	ax
-
 noVxD31:				; ...
 		or	ds:IsWin386, 1
 		or	ds:redir_patch,	1
@@ -1121,14 +950,10 @@ noVxD31:				; ...
 		push	ds
 		pop	es
 		jmp	win_nexti2f
-; ---------------------------------------------------------------------------
-
 Win386_Leaving:				; ...
 		test	dx, 1
 		jz	short Win386_Leaving_c
 		jmp	win_nexti2f
-; ---------------------------------------------------------------------------
-
 Win386_Leaving_c:			; ...
 		cmp	ds:UmbSaveFlag,	1
 		jnz	short noumb
@@ -1153,13 +978,10 @@ Win386_Leaving_c:			; ...
 		pop	cx
 		pop	es
 		pop	ax
-
 noumb:					; ...
 		and	ds:IsWin386, 0
 		and	ds:redir_patch,	0
 		jmp	short win_nexti2f
-; ---------------------------------------------------------------------------
-
 Win386_Query:				; ...
 		cmp	bx, 15h		; Win386_DOSMGR
 		jnz	short win_nexti2f
@@ -1170,15 +992,11 @@ Win386_Query:				; ...
 		push	ds
 		pop	es
 		jmp	short PopIret
-; ---------------------------------------------------------------------------
-
 OldWin386Init:				; ...
 		pop	ax
 		mov	si, offset OldInstanceJunk
 		mov	ax, 5248h
 		jmp	next_i2f
-; ---------------------------------------------------------------------------
-
 dosmgr_func:				; ...
 		dec	cx
 		jz	short win386_patch
@@ -1206,48 +1024,32 @@ dosmgr_func:				; ...
 		mov	cx, ax
 		mov	bx, dx
 		jmp	short win386_done
-; ---------------------------------------------------------------------------
-
 cantsize:				; ...
 		pop	es
 		xor	ax, ax
 		xor	dx, dx
 		jmp	short PopIret
-; ---------------------------------------------------------------------------
-
 win386_patch:				; ...
 		mov	bx, dx
 		jmp	short win386_done
-; ---------------------------------------------------------------------------
-
 win386_size:				; ...
 		test	dx, 1
 		jz	short PopIret
 		mov	cx, 88
 		jmp	short win386_done
-; ---------------------------------------------------------------------------
-
 win386_inst:				; ...
 		xor	dx, dx
 		jmp	short PopIret
-; ---------------------------------------------------------------------------
-
 win386_done:				; ...
 		mov	ax, 0B97Ch	; WIN_OP_DONE
 		mov	dx, 0A2ABh	; DOSMGR_OP_DONE
-
 PopIret:				; ...
 		pop	ds
 		iret
-; ---------------------------------------------------------------------------
-
 win_nexti2f:				; ...
 		pop	ds
 		jmp	next_i2f
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 getwinlast	proc near		; ...
 		mov	si, ds:CurrentPDB
 		dec	si
@@ -1255,9 +1057,6 @@ getwinlast	proc near		; ...
 		add	si, es:3
 		retn
 getwinlast	endp
-
-; ---------------------------------------------------------------------------
-
 Winold_swap:				; ...
 		push	ds
 		push	es
@@ -1281,8 +1080,6 @@ Winold_swap:				; ...
 		mov	di, offset WinoldPatch2
 		rep movsb
 		jmp	short winold_done
-; ---------------------------------------------------------------------------
-
 swapin:					; ...
 		cmp	al, 2
 		jnz	short winold_done
@@ -1297,7 +1094,6 @@ swapin:					; ...
 		pop	cx
 		mov	si, offset WinoldPatch2
 		rep movsb
-
 winold_done:				; ...
 		pop	cx
 		pop	di
@@ -1305,8 +1101,6 @@ winold_done:				; ...
 		pop	es
 		pop	ds
 		jmp	next_i2f
-; ---------------------------------------------------------------------------
-
 DispatchDOS:				; ...
 		push	cs:FOO
 		push	cs:DTab
@@ -1317,20 +1111,13 @@ DispatchDOS:				; ...
 		pop	bp
 		call	TableDispatch
 		jmp	BadFunc
-; ---------------------------------------------------------------------------
-
 DOSGetGroup:				; ...
 		mov	ds, cs:DosDSeg
 		retn
-; ---------------------------------------------------------------------------
-
 DOSInstall:				; ...
 		mov	al, 0FFh
 		retn
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 RW32_CONVERT	proc near		; ...
 		cmp	cx, 0FFFFh
 		jz	short new32format
@@ -1344,7 +1131,6 @@ RW32_CONVERT	proc near		; ...
 		xor	dh, dh
 		mul	dx
 		or	dx, dx
-
 letold:					; ...
 		pop	dx
 		pop	ax
@@ -1355,8 +1141,6 @@ letold:					; ...
 		pop	ds
 		stc
 		retn
-; ---------------------------------------------------------------------------
-
 new32format:				; ...
 		mov	dx, [bx+2]
 		push	ds
@@ -1366,16 +1150,11 @@ new32format:				; ...
 		mov	dx, [bx]
 		mov	cx, [bx+4]
 		lds	bx, [bx+6]
-
 old_style:				; ...
 		clc
 		retn
 RW32_CONVERT	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Fastxxx_Purge	proc near		; ...
 		push	ax
 		push	si
@@ -1389,15 +1168,12 @@ Fastxxx_Purge	proc near		; ...
 		mov	al, 5
 		mov	dl, es:[bp+0]
 		call	Fast_Dispatch
-
 nofast:					; ...
 		pop	dx
 		pop	si
 		pop	ax
 		retn
 Fastxxx_Purge	endp
-
-; ---------------------------------------------------------------------------
 DIVMES		db 0Dh,0Ah		; ...
 		db 'Divide overflow',0Dh,0Ah
 DivMesLen	dw 19			; ...
@@ -1426,9 +1202,7 @@ ESCFUNC		dw offset GETCH		; ...
 		dw offset COPYONE
 		dw offset COPYONE
 		dw offset CTRLZ
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR $STD_CON_STRING_INPUT
-
 OEMFunctionKey:				; ...
 		call	$STD_CON_INPUT_NO_ECHO
 		mov	cl, 14
@@ -1444,8 +1218,6 @@ OEMFunctionKey:				; ...
 		mov	bp, cx
 		jmp	cs:ESCFUNC[bp]
 ; END OF FUNCTION CHUNK	FOR $STD_CON_STRING_INPUT
-; ---------------------------------------------------------------------------
-
 $GET_DATE:				; ...
 		push	ss
 		pop	ds
@@ -1457,11 +1229,8 @@ $GET_DATE:				; ...
 		add	ax, 1980
 		mov	[si+4],	ax
 		mov	al, ss:WEEKDAY
-
 _RET24:					; ...
 		retn
-; ---------------------------------------------------------------------------
-
 $SET_DATE:				; ...
 		mov	al, -1
 		sub	cx, 1980
@@ -1477,11 +1246,8 @@ $SET_DATE:				; ...
 		push	ss
 		pop	ds
 		call	DODATE
-
 RET24:					; ...
 		retn
-; ---------------------------------------------------------------------------
-
 $GET_TIME:				; ...
 		push	ss
 		pop	ds
@@ -1490,11 +1256,8 @@ $GET_TIME:				; ...
 		mov	[si+6],	dx
 		mov	[si+4],	cx
 		xor	al, al
-
 RET26:					; ...
 		retn
-; ---------------------------------------------------------------------------
-
 $SET_TIME:				; ...
 		mov	al, -1
 		cmp	ch, 24
@@ -1527,10 +1290,7 @@ $SET_TIME:				; ...
 		call	DEVIOCALL2
 		xor	al, al
 		retn
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DATE16		proc near		; ...
 		mov	ds, cs:DosDSeg
 		push	cx
@@ -1551,15 +1311,10 @@ DATE16		proc near		; ...
 		shl	ax, 1
 		pop	cx
 		or	al, ds:DAY
-
 RET21:					; ...
 		retn
 DATE16		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 READTIME	proc near		; ...
 		mov	ds:DATE_FLAG, 0
 		push	si
@@ -1598,7 +1353,6 @@ READTIME	proc near		; ...
 		shr	cx, 1
 		jnb	short SK
 		add	dx, 200
-
 SK:					; ...
 		call	SETYEAR
 		mov	cl, 1
@@ -1611,18 +1365,12 @@ SK:					; ...
 		pop	dx
 		pop	cx
 		pop	si
-
 RET22:					; ...
 		retn
 READTIME	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DSLIDE		proc near		; ...
 		mov	ah, 0
-
 DSLIDE1:				; ...
 		lodsb
 		cmp	dx, ax
@@ -1631,32 +1379,21 @@ DSLIDE1:				; ...
 		inc	cx
 		jmp	short DSLIDE1
 DSLIDE		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SETYEAR		proc near		; ...
 		mov	ds, cs:DosDSeg
 		mov	byte ptr ds:YEAR, cl
-
 CHKYR:					; ...
 		test	cl, 3
 		mov	al, 28
 		jnz	short SAVFEB
 		inc	al
-
 SAVFEB:					; ...
 		mov	ds:february, al
-
 RET23:					; ...
 		retn
 SETYEAR		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DODATE		proc near		; ...
 		call	CHKYR
 		mov	al, dh
@@ -1709,7 +1446,6 @@ DODATE		proc near		; ...
 		pop	ds
 		pop	bx
 		pop	si
-
 WKDAY:					; ...
 		mov	ax, ds:DAYCNT
 		xor	dx, dx
@@ -1721,26 +1457,17 @@ WKDAY:					; ...
 		xor	al, al
 		retn
 DODATE		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DSUM		proc near		; ...
 		mov	ah, 0
 		jcxz	short DSUM9
-
 DSUM1:					; ...
 		lodsb
 		add	dx, ax
 		loop	DSUM1
-
 DSUM9:					; ...
 		retn
 DSUM		endp
-
-; ---------------------------------------------------------------------------
-
 $GET_VERSION:				; ...
 		push	ss
 		pop	ds
@@ -1749,7 +1476,6 @@ $GET_VERSION:				; ...
 		cmp	al, 1
 		jnz	short norm_vers
 		xor	bh, bh
-
 norm_vers:				; ...
 		push	ds
 		mov	ds, ds:CurrentPDB
@@ -1760,32 +1486,21 @@ norm_vers:				; ...
 		mov	[si+2],	bx
 		mov	[si+4],	cx
 		retn
-; ---------------------------------------------------------------------------
-
 $GET_VERIFY_ON_WRITE:			; ...
 		mov	al, ss:VERFLG
 		retn
-; ---------------------------------------------------------------------------
-
 $SET_VERIFY_ON_WRITE:			; ...
 		and	al, 1
 		mov	ss:VERFLG, al
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 RET27		proc near		; ...
 		retn
 RET27		endp
-
-; ---------------------------------------------------------------------------
-
 $INTERNATIONAL:				; ...
 		cmp	al, 0FFh
 		jz	short BX_HAS_CODE
 		mov	bl, al
 		xor	bh, bh
-
 BX_HAS_CODE:				; ...
 		push	ds
 		pop	es
@@ -1799,8 +1514,6 @@ BX_HAS_CODE:				; ...
 		jnz	short international_find
 		mov	si, offset COUNTRY_CDPG
 		jmp	short international_copy
-; ---------------------------------------------------------------------------
-
 international_find:			; ...
 		mov	bp, 0
 		call	international_get
@@ -1809,10 +1522,7 @@ international_find:			; ...
 		jnz	short international_copy
 		mov	bx, dx
 		jmp	short international_ok3
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 international_get proc near		; ...
 		mov	si, offset COUNTRY_CDPG
 		cmp	bx, ss:[si+68h]
@@ -1834,31 +1544,22 @@ international_get proc near		; ...
 					; ES:DI	-> user	buffer
 					; Return: AL = status
 		jmp	short chkok
-; ---------------------------------------------------------------------------
-
 stcdpg:					; ...
 		mov	ax, 1403h
 		int	2Fh		; - Multiplex -	NLSFUNC.COM - SET COUNTRY INFO
 					; DS:SI	-> internal code page structure
 					; BX = code page, DX = country code
 					; Return: AL = status
-
 chkok:					; ...
 		or	al, al
 		jz	short RET27
-
 setcarry:				; ...
 		stc
 		retn
-; ---------------------------------------------------------------------------
-
 interr:					; ...
 		mov	al, 0FFh
 		jmp	short setcarry
 international_get endp
-
-; ---------------------------------------------------------------------------
-
 international_copy:			; ...
 		mov	bx, ss:[si+68h]
 		mov	si, offset COUNTRY_CDPG_108
@@ -1868,36 +1569,25 @@ international_copy:			; ...
 		pop	ds
 		rep movsb
 		pop	ds
-
 international_ok3:			; ...
 		call	Get_User_Stack
 		mov	[si+2],	bx
-
 international_ok:			; ...
 		mov	ax, bx
-
 SYS_RET_OK_jmp:				; ...
 		jmp	SYS_RET_OK
-; ---------------------------------------------------------------------------
-
 international_set:			; ...
 		mov	bp, 1
 		call	international_get
 		jnb	short international_ok
-
 errtn:					; ...
 		cmp	al, 0FFh
 		jz	short errtn2
-
 errtn1:					; ...
 		jmp	SYS_RET_ERR
-; ---------------------------------------------------------------------------
-
 errtn2:					; ...
 		mov	al, 1
 		jmp	short errtn1
-; ---------------------------------------------------------------------------
-
 $GetExtCntry:				; ...
 		cmp	al, 20h	; ' '
 		jb	short notcap
@@ -1905,11 +1595,8 @@ $GetExtCntry:				; ...
 		jnz	short fileupper
 		mov	bx, offset UCASE_TAB_2
 		jmp	short capit
-; ---------------------------------------------------------------------------
-
 fileupper:				; ...
 		mov	bx, offset FILE_UCASE_TAB_2
-
 capit:					; ...
 		cmp	al, 20h	; ' '
 		jnz	short chkyes
@@ -1918,8 +1605,6 @@ capit:					; ...
 		call	Get_User_Stack
 		mov	[si+6],	al
 		jmp	short nono
-; ---------------------------------------------------------------------------
-
 chkyes:					; ...
 		cmp	al, 23h
 		jnz	short capstring
@@ -1933,33 +1618,25 @@ chkyes:					; ...
 		cmp	dl, cs:NLS_no2
 		jz	short nono
 		inc	ax
-
 yesyes:					; ...
 		inc	ax
-
 nono:					; ...
 		jmp	short SYS_RET_OK_jmp
-; ---------------------------------------------------------------------------
-
 capstring:				; ...
 		mov	si, dx
 		cmp	al, 21h
 		jnz	short capascii
 		or	cx, cx
 		jz	short nono
-
 concap:					; ...
 		lodsb
 		call	GETLET3
 		mov	[si-1],	al
 		loop	concap
 		jmp	short nono
-; ---------------------------------------------------------------------------
-
 capascii:				; ...
 		cmp	al, 22h
 		jnz	short capinval
-
 concap2:				; ...
 		lodsb
 		or	al, al
@@ -1967,8 +1644,6 @@ concap2:				; ...
 		call	GETLET3
 		mov	[si-1],	al
 		jmp	short concap2
-; ---------------------------------------------------------------------------
-
 notcap:					; ...
 		cmp	cx, 5
 		jb	short sizeerror
@@ -1978,12 +1653,10 @@ notcap:					; ...
 		cmp	dx, 0FFFFh
 		jnz	short GETCDPG
 		mov	dx, [si+68h]
-
 GETCDPG:				; ...
 		cmp	bx, 0FFFFh
 		jnz	short CHKAGAIN
 		mov	bx, [si+6Ah]
-
 CHKAGAIN:				; ...
 		cmp	dx, [si+68h]
 		jnz	short CHKNLS
@@ -1993,21 +1666,16 @@ CHKAGAIN:				; ...
 		push	cx
 		mov	cx, [si+4Ah]
 		mov	si, offset COUNTRY_CDPG_76
-
 NXTENTRY:				; ...
 		cmp	al, [si]
 		jz	short FOUNDIT
 		add	si, 5
 		loop	NXTENTRY
 		pop	cx
-
 capinval:				; ...
 		mov	al, 1
-
 SYS_RET_ERR_jmp:			; ...
 		jmp	SYS_RET_ERR
-; ---------------------------------------------------------------------------
-
 FOUNDIT:				; ...
 		movsb
 		pop	cx
@@ -2015,26 +1683,20 @@ FOUNDIT:				; ...
 		jz	short setsize
 		mov	cx, 4
 		mov	ax, 5
-
 OK_RETN:				; ...
 		rep movsb
 		mov	cx, ax
 		mov	ax, bx
-
 GETDONE:				; ...
 		call	Get_User_Stack
 		mov	[si+4],	cx
-
 jmp_to_nono:				; ...
 		jmp	short nono
-; ---------------------------------------------------------------------------
-
 setsize:				; ...
 		sub	cx, 3
 		cmp	[si], cx
 		jnb	short setsize2
 		mov	cx, [si]
-
 setsize2:				; ...
 		mov	es:[di], cx
 		add	di, 2
@@ -2042,8 +1704,6 @@ setsize2:				; ...
 		mov	ax, cx
 		add	ax, 3
 		jmp	short OK_RETN
-; ---------------------------------------------------------------------------
-
 CHKNLS:					; ...
 		xor	ah, ah
 		push	ax
@@ -2055,14 +1715,10 @@ CHKNLS:					; ...
 					; FFh installed
 		cmp	al, 0FFh
 		jz	short NLSNXT
-
 sizeerror:				; ...
 		mov	al, 1
-
 sizeerror_jmp:				; ...
 		jmp	short SYS_RET_ERR_jmp
-; ---------------------------------------------------------------------------
-
 NLSNXT:					; ...
 		mov	ax, 1402h
 		int	2Fh		; - Multiplex -	NLSFUNC.COM - GET COUNTRY INFO
@@ -2076,12 +1732,8 @@ NLSNXT:					; ...
 		jnz	short NLSERROR
 		mov	ax, [si+48h]
 		jmp	short GETDONE
-; ---------------------------------------------------------------------------
-
 NLSERROR:				; ...
 		jmp	short sizeerror_jmp
-; ---------------------------------------------------------------------------
-
 $GetSetCdPg:				; ...
 		push	ss
 		pop	ds
@@ -2093,11 +1745,8 @@ $GetSetCdPg:				; ...
 		call	Get_User_Stack
 		mov	[si+2],	bx
 		mov	[si+6],	dx
-
 OK_RETURN:				; ...
 		jmp	short jmp_to_nono
-; ---------------------------------------------------------------------------
-
 setglpg:				; ...
 		cmp	al, 2
 		jnz	short nomem
@@ -2126,30 +1775,22 @@ setglpg:				; ...
 		mov	byte ptr ds:EXTERR_ACT_CLASS+1,	5
 		mov	ds:EXTERR_LOCUS, 4
 		jmp	From_GetSet
-; ---------------------------------------------------------------------------
-
 seterr:					; ...
 		jmp	short NLSERROR
-; ---------------------------------------------------------------------------
-
 nomem:					; ...
 		mov	al, 1
 		jmp	short seterr
-; ---------------------------------------------------------------------------
-
 $GET_DRIVE_FREESPACE:			; ...
 		push	ss
 		pop	ds
 		mov	al, dl
 		call	GETTHISDRV
-
 SET_AX_RET:				; ...
 		jb	short BADFDRV
 		call	DISK_INFO
 		xchg	dx, bx
 		jb	short SET_AX_RET
 		xor	ah, ah
-
 DoSt:					; ...
 		call	Get_User_Stack
 		mov	[si+6],	dx
@@ -2157,14 +1798,10 @@ DoSt:					; ...
 		mov	[si+2],	bx
 		mov	[si], ax
 		retn
-; ---------------------------------------------------------------------------
-
 BADFDRV:				; ...
 		call	FCB_RET_ERR
 		mov	ax, -1
 		jmp	short DoSt
-; ---------------------------------------------------------------------------
-
 $GET_DMA:				; ...
 		mov	bx, word ptr ss:DMAADD
 		mov	cx, word ptr ss:DMAADD+2
@@ -2172,33 +1809,23 @@ $GET_DMA:				; ...
 		mov	[si+2],	bx
 		mov	[si+10h], cx
 		retn
-; ---------------------------------------------------------------------------
-
 $SET_DMA:				; ...
 		mov	word ptr ss:DMAADD, dx
 		mov	word ptr ss:DMAADD+2, ds
 		retn
-; ---------------------------------------------------------------------------
-
 $GET_DEFAULT_DRIVE:			; ...
 		mov	al, ss:CURDRV
 		retn
-; ---------------------------------------------------------------------------
-
 $SET_DEFAULT_DRIVE:			; ...
 		mov	al, dl
 		inc	al
 		call	GetVisDrv
 		jb	short SETRET
 		mov	ss:CURDRV, al
-
 SETRET:					; ...
 		mov	al, ss:CDSCOUNT
 		retn
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 $GET_INTERRUPT_VECTOR proc near		; ...
 		call	RECSET
 		les	bx, es:[bx]
@@ -2207,9 +1834,6 @@ $GET_INTERRUPT_VECTOR proc near		; ...
 		mov	word ptr [si+10h], es
 		retn
 $GET_INTERRUPT_VECTOR endp
-
-; ---------------------------------------------------------------------------
-
 $SET_INTERRUPT_VECTOR:			; ...
 		call	RECSET
 		cli
@@ -2219,19 +1843,13 @@ $SET_INTERRUPT_VECTOR:			; ...
 		test	ss:DOS_FLAG, 4
 		jnz	short siv_1
 		retn
-; ---------------------------------------------------------------------------
-
 siv_1:					; ...
 		cmp	ss:A20OFF_COUNT, 0
 		jnz	short siv_2
 		mov	ss:A20OFF_COUNT, 1
-
 siv_2:					; ...
 		retn
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 RECSET		proc near		; ...
 		xor	bx, bx
 		mov	es, bx
@@ -2240,9 +1858,6 @@ RECSET		proc near		; ...
 		shl	bx, 1
 		retn
 RECSET		endp
-
-; ---------------------------------------------------------------------------
-
 $CHAR_OPER:				; ...
 		or	al, al
 		mov	dl, '/'
@@ -2251,14 +1866,10 @@ $CHAR_OPER:				; ...
 		mov	dl, 0FFh
 		jz	short chop_1
 		retn
-; ---------------------------------------------------------------------------
-
 chop_1:					; ...
 		call	Get_User_Stack
 		mov	[si+6],	dx
 		retn
-; ---------------------------------------------------------------------------
-
 $GetExtendedError:			; ...
 		push	ss
 		pop	ds
@@ -2271,17 +1882,13 @@ $GetExtendedError:			; ...
 		mov	word ptr [si+10h], es
 		mov	[si+2],	bx
 		mov	[si+4],	cx
-
 jmp_SYS_RET_OK:				; ...
 		jmp	SYS_RET_OK
-; ---------------------------------------------------------------------------
 		push	si
 		mov	si, offset COUNTRY_CDPG
 		mov	ax, ss:[si+6Ah]
 		pop	si
 		retn
-; ---------------------------------------------------------------------------
-
 $ECS_Call:				; ...
 		or	al, al
 		jnz	short _okok
@@ -2291,28 +1898,21 @@ $ECS_Call:				; ...
 		mov	es, cs:DosDSeg
 		mov	word ptr [si+14], es
 		pop	es
-
 _okok:					; ...
 		jmp	short jmp_SYS_RET_OK
-; ---------------------------------------------------------------------------
-
 $PARSE_FILE_DESCRIPTOR:			; ...
 		call	MAKEFCB
 		push	si
 		call	Get_User_Stack
 		pop	word ptr [si+8]
 		retn
-; ---------------------------------------------------------------------------
-
 $SLEAZEFUNC:				; ...
 		mov	dl, 0
-
 $SLEAZEFUNCDL:				; ...
 		push	ss
 		pop	ds
 		mov	al, dl
 		call	GETTHISDRV
-
 SET_AL_RET:				; ...
 		jb	short BADSLDRIVE
 		call	DISK_INFO
@@ -2326,29 +1926,20 @@ SET_AL_RET:				; ...
 		mov	[si+2],	di
 		mov	word ptr [si+0Eh], ss
 		retn
-; ---------------------------------------------------------------------------
-
 BADSLDRIVE:				; ...
 		jmp	FCB_RET_ERR
-; ---------------------------------------------------------------------------
-
 $GET_INDOS_FLAG:			; ...
 		call	Get_User_Stack
 		mov	word ptr [si+2], offset	INDOS
 		mov	word ptr [si+10h], ss
 		retn
-; ---------------------------------------------------------------------------
-
 $GET_IN_VARS:				; ...
 		call	Get_User_Stack
 		mov	word ptr [si+2], offset	DPBHEAD	; SYSINITVARS
 		mov	word ptr [si+10h], ss
 		retn
-; ---------------------------------------------------------------------------
-
 $GET_DEFAULT_DPB:			; ...
 		mov	dl, 0
-
 $GET_DPB:				; ...
 		push	ss
 		pop	ds
@@ -2367,13 +1958,9 @@ $GET_DPB:				; ...
 		mov	word ptr [si+0Eh], es
 		xor	al, al
 		retn
-; ---------------------------------------------------------------------------
-
 ISNODRV:				; ...
 		mov	al, 0FFh
 		retn
-; ---------------------------------------------------------------------------
-
 $DISK_RESET:				; ...
 		mov	al, 0FFh
 		push	ss
@@ -2395,12 +1982,8 @@ $DISK_RESET:				; ...
 					; Return: CF clear (successful)
 		pop	ax
 		retn
-; ---------------------------------------------------------------------------
 word3		dw 3			; ...
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 $SETDPB		proc near		; ...
 		mov	di, bp
 		add	di, 2
@@ -2410,8 +1993,6 @@ $SETDPB		proc near		; ...
 		jnz	short yesfat
 		mov	byte ptr es:[di+4], 0
 		jmp	short setend
-; ---------------------------------------------------------------------------
-
 yesfat:					; ...
 		mov	dx, ax
 		lodsb
@@ -2419,15 +2000,12 @@ yesfat:					; ...
 		stosb
 		inc	al
 		xor	ah, ah
-
 LOG2LOOP:				; ...
 		test	al, 1
 		jnz	short SAVLOG
 		inc	ah
 		shr	al, 1
 		jmp	short LOG2LOOP
-; ---------------------------------------------------------------------------
-
 SAVLOG:					; ...
 		mov	al, ah
 		stosb
@@ -2470,23 +2048,18 @@ SAVLOG:					; ...
 		sbb	dx, 0
 		or	cx, cx
 		jz	short norot
-
 rott:					; ...
 		clc
 		rcr	dx, 1
 		rcr	bx, 1
 		loop	rott
-
 norot:					; ...
 		mov	ax, bx
 		jmp	short setend
-; ---------------------------------------------------------------------------
-
 normal_dpb:				; ...
 		sub	ax, es:[bp+0Dh]
 		neg	ax
 		shr	ax, cl
-
 setend:					; ...
 		inc	ax
 		mov	bx, ax
@@ -2500,34 +2073,25 @@ setend:					; ...
 		cmp	ax, 0FF7h
 		jb	short setend_faterr
 		jmp	short setend_fat16
-; ---------------------------------------------------------------------------
-
 setend_fat12:				; ...
 		add	ax, ax
 		adc	dx, dx
 		cmp	dx, 3
 		jnb	short setend_faterr
 		div	cs:word3
-
 setend_fat16:				; ...
 		dec	ax
 		cmp	ax, bx
 		jbe	short setend_fat
-
 setend_faterr:				; ...
 		mov	ax, bx
-
 setend_fat:				; ...
 		mov	es:[bp+0Dh], ax
 		mov	word ptr es:[bp+1Dh], 0
 		mov	word ptr es:[bp+1Fh], 0FFFFh
 		retn
 $SETDPB		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 $DUP_PDB	proc near		; ...
 		mov	ds, cs:DosDSeg
 		mov	ds:CreatePDB, 0FFh
@@ -2535,16 +2099,11 @@ $DUP_PDB	proc near		; ...
 		push	si
 		jmp	short CreateCopy
 $DUP_PDB	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 $CREATE_PROCESS_DATA_BLOCK proc	near	; ...
 		call	Get_User_Stack
 		mov	ds, word ptr [si+14h]
 		push	word ptr ds:2	; PDB.BLOCK_LEN
-
 CreateCopy:				; ...
 		mov	es, dx
 		xor	si, si
@@ -2563,7 +2122,6 @@ CreateCopy:				; ...
 		mov	ds, cs:DosDSeg
 		xor	bx, bx
 		mov	cx, 20
-
 Create_dup_jfn:				; ...
 		push	es
 		call	SFFromHandle
@@ -2580,7 +2138,6 @@ Create_dup_jfn:				; ...
 		call	DOS_DUP
 		call	pJFNFromHandle
 		mov	al, es:[di]
-
 CreateStash:				; ...
 		pop	es
 		mov	es:[bx+18h], al
@@ -2590,14 +2147,12 @@ CreateStash:				; ...
 		mov	es:16h,	bx	; PDB.PARENT_PID
 		mov	ds:CurrentPDB, es
 		mov	ds, bx
-
 Create_PDB_cont:			; ...
 		push	ds
 		mov	ds, cs:DosDSeg
 		mov	ds:CreatePDB, 0
 		pop	ds
 		pop	ax
-
 SETMEM:					; ...
 		xor	cx, cx
 		mov	ds, cx
@@ -2611,7 +2166,6 @@ SETMEM:					; ...
 		cmp	ax, 0FFFh
 		jbe	short HAVDIF
 		mov	ax, 0FFFh
-
 HAVDIF:					; ...
 		sub	ax, 10h
 		mov	bx, 0Ch
@@ -2625,7 +2179,6 @@ HAVDIF:					; ...
 		jz	short addr_ok
 		mov	word ptr ds:6, 0C0h
 		mov	word ptr ds:8, 0
-
 addr_ok:				; ...
 		mov	word ptr ds:0, 20CDh
 		mov	byte ptr ds:5, 9Ah
@@ -2639,9 +2192,6 @@ addr_ok:				; ...
 		mov	word ptr es:40h, 1606h ; 6.22
 		retn
 $CREATE_PROCESS_DATA_BLOCK endp
-
-; ---------------------------------------------------------------------------
-
 $GSetMediaID:				; ...
 		mov	cx, 866h
 		cmp	al, 0
@@ -2649,25 +2199,18 @@ $GSetMediaID:				; ...
 		cmp	al, 1
 		jnz	short errorfunc
 		mov	cx, 846h
-
 doioctl:				; ...
 		mov	al, 0Dh
 		call	$IOCTL
 		retn
-; ---------------------------------------------------------------------------
-
 errorfunc:				; ...
 		mov	al, 1
 		jmp	SYS_RET_ERR
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 StrCmp		proc near		; ...
 		push	si
 		push	di
 		push	ax
-
 Cmplp:					; ...
 		lodsb
 		call	UCase
@@ -2681,21 +2224,15 @@ Cmplp:					; ...
 		jnz	short PopRet
 		or	al, al
 		jnz	short Cmplp
-
 PopRet:					; ...
 		pop	ax
 		pop	di
 		pop	si
 		retn
 StrCmp		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 StrCpy		proc near		; ...
 		push	ax
-
 CPYLoop:				; ...
 		lodsb
 		call	UCase
@@ -2706,14 +2243,9 @@ CPYLoop:				; ...
 		pop	ax
 		retn
 StrCpy		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 FStrCpy		proc near		; ...
 		push	ax
-
 FCPYLoop:				; ...
 		lodsb
 		stosb
@@ -2722,11 +2254,7 @@ FCPYLoop:				; ...
 		pop	ax
 		retn
 FStrCpy		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 StrLen		proc near		; ...
 		push	di
 		push	ax
@@ -2738,68 +2266,46 @@ StrLen		proc near		; ...
 		pop	di
 		retn
 StrLen		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DStrLen		proc near		; ...
 		call	XCHGP
 		call	StrLen
 		call	XCHGP
 		retn
 DStrLen		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 XCHGP		proc near		; ...
 		push	ds
 		push	es
 		pop	ds
 		pop	es
 		xchg	si, di
-
 xchgp_retn:				; ...
 		retn
 XCHGP		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Idle		proc near		; ...
 		cmp	ss:FSHARING, 0
 		jnz	short xchgp_retn
 		push	cx
 		mov	cx, ss:RetryLoop
 		jcxz	short Idle3
-
 Idle1:					; ...
 		push	cx
 		xor	cx, cx
-
 Idle2:					; ...
 		loop	Idle2
 		pop	cx
 		loop	Idle1
-
 Idle3:					; ...
 		pop	cx
 		retn
 Idle		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
 ; Attributes: bp-based frame
-
 TableDispatch	proc near		; ...
-
 TFrame.Index	= byte ptr  4
 TFrame.Tab	= word ptr  6
-
 		push	bp
 		mov	bp, sp
 		push	bx
@@ -2818,18 +2324,12 @@ TFrame.Tab	= word ptr  6
 		pop	bp
 		add	sp, 4
 		retn
-; ---------------------------------------------------------------------------
-
 TableError:				; ...
 		pop	bx
 		pop	bp
 		retn	6
 TableDispatch	endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 TestNet		proc near		; ...
 		mov	es, cs:DosDSeg
 		les	di, es:THISCDS
@@ -2838,24 +2338,15 @@ TestNet		proc near		; ...
 		test	byte ptr es:[di+44h], 80h
 		jnz	short CMCRet
 		retn
-; ---------------------------------------------------------------------------
-
 CMCRet:					; ...
 		cmc
 		retn
 TestNet		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 IsSFTNet	proc near		; ...
 		test	byte ptr es:[di+6], 80h
 		retn
 IsSFTNet	endp
-
-; ---------------------------------------------------------------------------
-
 FastInit:				; ...
 		push	es
 		mov	es, cs:DosDSeg
@@ -2873,8 +2364,6 @@ FastInit:				; ...
 		jz	short ok_install
 		stc
 		jmp	short FSret
-; ---------------------------------------------------------------------------
-
 ok_install:				; ...
 		cmp	si, 0FFFFh
 		jz	short FSret
@@ -2884,24 +2373,17 @@ ok_install:				; ...
 		mov	di, offset FastOpenFlg
 		add	di, dx
 		or	byte ptr es:[di], 80h
-
 FSret:					; ...
 		pop	es
 		retn
-; ---------------------------------------------------------------------------
-
 FastRet:				; ...
 		stc
 		sbb	ax, ax
 		retf
-; ---------------------------------------------------------------------------
-
 NLS_OPEN:				; ...
 		mov	al, cl
 		call	$OPEN
 		retn
-; ---------------------------------------------------------------------------
-
 NLS_LSEEK:				; ...
 		push	ss:USER_SP
 		push	ss:USER_SS
@@ -2911,10 +2393,7 @@ NLS_LSEEK:				; ...
 		pop	ss:USER_SS
 		pop	ss:USER_SP
 		retn
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Fake_User_Stack	proc near		; ...
 		mov	ax, ss:USER_SP_2F
 		mov	ss:USER_SP, ax
@@ -2922,9 +2401,6 @@ Fake_User_Stack	proc near		; ...
 		mov	ss:USER_SS, ax
 		retn
 Fake_User_Stack	endp
-
-; ---------------------------------------------------------------------------
-
 GetDevList:				; ...
 		mov	si, offset SysInitTable
 		mov	ds, cs:DosDSeg
@@ -2932,8 +2408,6 @@ GetDevList:				; ...
 		mov	ax, [si+22h]
 		mov	bx, [si+24h]
 		retn
-; ---------------------------------------------------------------------------
-
 NLS_IOCTL:				; ...
 		push	ss:USER_SP
 		push	ss:USER_SS
@@ -2943,41 +2417,25 @@ NLS_IOCTL:				; ...
 		pop	ss:USER_SS
 		pop	ss:USER_SP
 		retn
-; ---------------------------------------------------------------------------
-
 NLS_GETEXT:				; ...
 		mov	ax, ss:EXTERR
 		retn
-; ---------------------------------------------------------------------------
-
 MSG_RETRIEVAL:				; ...
 		retn
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ECritDisk	proc near		; ...
-
 ; FUNCTION CHUNK AT 5146 SIZE 0000000E BYTES
 ; FUNCTION CHUNK AT 5155 SIZE 00000005 BYTES
-
 		pushf
 		cmp	ss:redir_patch,	0
 		jz	short ECritDisk_2
 		jmp	short ECritDisk_1
 ECritDisk	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ECritDisk_iret	proc far		; ...
 		iret
 ECritDisk_iret	endp
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR ECritDisk
-
 ECritDisk_1:				; ...
 		push	cs
 		call	near ptr ECritDisk_iret
@@ -2987,53 +2445,33 @@ ECritDisk_1:				; ...
 					; AL = critical	section	number (00h-0Fh)
 		pop	ax
 		retn
-; ---------------------------------------------------------------------------
-
 ECritDisk_2:				; ...
 		jmp	short ECritDisk_3
 ; END OF FUNCTION CHUNK	FOR ECritDisk
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ECritDisk_iret2	proc far		; ...
 		iret
 ECritDisk_iret2	endp
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR ECritDisk
-
 ECritDisk_3:				; ...
 		push	cs
 		call	near ptr ECritDisk_iret2
 		retn
 ; END OF FUNCTION CHUNK	FOR ECritDisk
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 LCritDisk	proc near		; ...
-
 ; FUNCTION CHUNK AT 5166 SIZE 0000000E BYTES
 ; FUNCTION CHUNK AT 5175 SIZE 00000005 BYTES
-
 		pushf
 		cmp	ss:redir_patch,	0
 		jz	short LCritDisk_2
 		jmp	short LCritDisk_1
 LCritDisk	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 LCritDisk_iret	proc far		; ...
 		iret
 LCritDisk_iret	endp
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR LCritDisk
-
 LCritDisk_1:				; ...
 		push	cs
 		call	near ptr LCritDisk_iret
@@ -3043,53 +2481,33 @@ LCritDisk_1:				; ...
 					; AL = critical	section	number (00h-0Fh)
 		pop	ax
 		retn
-; ---------------------------------------------------------------------------
-
 LCritDisk_2:				; ...
 		jmp	short LCritDisk_3
 ; END OF FUNCTION CHUNK	FOR LCritDisk
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 LCritDisk_iret2	proc far		; ...
 		iret
 LCritDisk_iret2	endp
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR LCritDisk
-
 LCritDisk_3:				; ...
 		push	cs
 		call	near ptr LCritDisk_iret2
 		retn
 ; END OF FUNCTION CHUNK	FOR LCritDisk
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ECritDevice	proc near		; ...
-
 ; FUNCTION CHUNK AT 5186 SIZE 0000000E BYTES
 ; FUNCTION CHUNK AT 5195 SIZE 00000005 BYTES
-
 		pushf
 		cmp	ss:redir_patch,	0
 		jz	short ECritDevice_2
 		jmp	short ECritDevice_1
 ECritDevice	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ECritDevice_iret proc far		; ...
 		iret
 ECritDevice_iret endp
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR ECritDevice
-
 ECritDevice_1:				; ...
 		push	cs
 		call	near ptr ECritDevice_iret
@@ -3099,53 +2517,33 @@ ECritDevice_1:				; ...
 					; AL = critical	section	number (00h-0Fh)
 		pop	ax
 		retn
-; ---------------------------------------------------------------------------
-
 ECritDevice_2:				; ...
 		jmp	short ECritDevice_3
 ; END OF FUNCTION CHUNK	FOR ECritDevice
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ECritDevice_iret2 proc far		; ...
 		iret
 ECritDevice_iret2 endp
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR ECritDevice
-
 ECritDevice_3:				; ...
 		push	cs
 		call	near ptr ECritDevice_iret2
 		retn
 ; END OF FUNCTION CHUNK	FOR ECritDevice
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 LCritDevice	proc near		; ...
-
 ; FUNCTION CHUNK AT 51A6 SIZE 0000000E BYTES
 ; FUNCTION CHUNK AT 51B5 SIZE 00000005 BYTES
-
 		pushf
 		cmp	ss:redir_patch,	0
 		jz	short LCritDevice_2
 		jmp	short LCritDevice_1
 LCritDevice	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 LCritDevice_iret proc far		; ...
 		iret
 LCritDevice_iret endp
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR LCritDevice
-
 LCritDevice_1:				; ...
 		push	cs
 		call	near ptr LCritDevice_iret
@@ -3155,35 +2553,23 @@ LCritDevice_1:				; ...
 					; AL = critical	section	number (00h-0Fh)
 		pop	ax
 		retn
-; ---------------------------------------------------------------------------
-
 LCritDevice_2:				; ...
 		jmp	short LCritDevice_3
 ; END OF FUNCTION CHUNK	FOR LCritDevice
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 LCritDevice_iret2 proc far		; ...
 		iret
 LCritDevice_iret2 endp
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR LCritDevice
-
 LCritDevice_3:				; ...
 		push	cs
 		call	near ptr LCritDevice_iret2
 		retn
 ; END OF FUNCTION CHUNK	FOR LCritDevice
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 $STD_CON_INPUT_NO_ECHO proc near	; ...
 		push	ds
 		push	si
-
 INTEST:					; ...
 		call	near ptr STATCHK
 		jnz	short GET
@@ -3191,7 +2577,6 @@ INTEST:					; ...
 		jnz	short no_sys_wait
 		mov	ah, 5
 		call	IOFUNC
-
 no_sys_wait:				; ...
 		mov	ah, 84h
 		int	2Ah		; Microsoft Networks - KEYBOARD	BUSY LOOP
@@ -3214,12 +2599,9 @@ no_sys_wait:				; ...
 		pop	cx
 		pop	bx
 		pop	ax
-
 NoUpdate:				; ...
 		inc	ss:DATE_FLAG
 		jmp	short INTEST
-; ---------------------------------------------------------------------------
-
 GET:					; ...
 		xor	ah, ah
 		call	IOFUNC
@@ -3229,34 +2611,24 @@ GET:					; ...
 		cmp	al, 0
 		jnz	short noscan
 		mov	ss:SCAN_FLAG, 1
-
 noscan:					; ...
 		retn
 $STD_CON_INPUT_NO_ECHO endp ; sp-analysis failed
-
-; ---------------------------------------------------------------------------
-
 $STD_CON_STRING_OUTPUT:			; ...
 		mov	si, dx
-
 STRING_OUT1:				; ...
 		lodsb
 		cmp	al, '$'
 		jz	short noscan
 		call	OUTT
 		jmp	short STRING_OUT1
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 $STD_CON_STRING_INPUT proc near		; ...
-
 ; FUNCTION CHUNK AT 4820 SIZE 00000019 BYTES
 ; FUNCTION CHUNK AT 52C5 SIZE 00000005 BYTES
 ; FUNCTION CHUNK AT 52F3 SIZE 00000019 BYTES
 ; FUNCTION CHUNK AT 537D SIZE 00000044 BYTES
 ; FUNCTION CHUNK AT 53F1 SIZE 00000021 BYTES
-
 		mov	ax, ss
 		mov	es, ax
 		mov	si, dx
@@ -3270,14 +2642,11 @@ $STD_CON_STRING_INPUT proc near		; ...
 		jbe	short NOEDIT
 		cmp	byte ptr [bx+si], 0Dh
 		jz	short EDITON
-
 NOEDIT:					; ...
 		mov	bl, ch
-
 EDITON:					; ...
 		mov	dl, al
 		dec	dx
-
 NEWLIN:					; ...
 		mov	al, ss:CARPOS
 		mov	ss:STARTPOS, al
@@ -3289,10 +2658,8 @@ NEWLIN:					; ...
 		call	$STD_CON_INPUT_NO_ECHO
 		cmp	al, 0Ah
 		jnz	short GOTCH
-
 GETCH:					; ...
 		call	$STD_CON_INPUT_NO_ECHO
-
 GOTCH:					; ...
 		cmp	al, 6
 		jz	short GETCH
@@ -3314,7 +2681,6 @@ GOTCH:					; ...
 		jz	short PHYCRLF
 		cmp	al, cs:CANCHAR
 		jz	short KILNEW
-
 SAVCH:					; ...
 		cmp	dh, dl
 		jnb	short BUFFUL
@@ -3328,22 +2694,14 @@ SAVCH:					; ...
 		inc	si
 		inc	bh
 		jmp	short GETCH
-; ---------------------------------------------------------------------------
-
 BACKSPJ:				; ...
 		jmp	short BACKSP
-; ---------------------------------------------------------------------------
-
 BUFFUL:					; ...
 		mov	al, 7
 		call	OUTT
 		jmp	short GETCH
-; ---------------------------------------------------------------------------
-
 ESCAPE:					; ...
 		jmp	OEMFunctionKey
-; ---------------------------------------------------------------------------
-
 ENDLIN:					; ...
 		stosb
 		call	OUTT
@@ -3351,11 +2709,7 @@ ENDLIN:					; ...
 		mov	[di-1],	dh
 		inc	dh
 $STD_CON_STRING_INPUT endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 COPYNEW		proc near		; ...
 		push	ds
 		push	es
@@ -3364,27 +2718,19 @@ COPYNEW		proc near		; ...
 		mov	si, offset INBUF
 		mov	cl, dh
 		rep movsb
-
 OLDBAK_RETN:				; ...
 		retn
 COPYNEW		endp
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR $STD_CON_STRING_INPUT
-
 PHYCRLF:				; ...
 		call	CRLF
 		jmp	short GETCH
 ; END OF FUNCTION CHUNK	FOR $STD_CON_STRING_INPUT
-; ---------------------------------------------------------------------------
-
 LineDel:				; ...
 		or	dh, dh
 		jz	short GETCH
 		call	BackSpace
 		jmp	short LineDel
-; ---------------------------------------------------------------------------
-
 WordDel:				; ...
 		call	BackSpace
 		or	dh, dh
@@ -3399,32 +2745,23 @@ WordDel:				; ...
 		jb	short getchj
 		cmp	al, 'z'
 		jbe	short WordDel
-
 getchj:					; ...
 		jmp	GETCH
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR $STD_CON_STRING_INPUT
-
 KILNEW:					; ...
 		mov	al, '\'
 		call	OUTT
 		pop	si
-
 PUTNEW:					; ...
 		call	CRLF
 		mov	al, ss:STARTPOS
 		call	TAB
 		jmp	NEWLIN
-; ---------------------------------------------------------------------------
-
 BACKSP:					; ...
 		call	BackSpace
 		jmp	GETCH
 ; END OF FUNCTION CHUNK	FOR $STD_CON_STRING_INPUT
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 BackSpace	proc near		; ...
 		or	dh, dh
 		jz	short OLDBAK
@@ -3439,7 +2776,6 @@ BackSpace	proc near		; ...
 		cmp	al, 14h
 		jz	short OLDBAK
 		call	BACKMES
-
 OLDBAK:					; ...
 		cmp	ss:INSMODE, 0
 		jnz	short OLDBAK_RETN
@@ -3448,8 +2784,6 @@ OLDBAK:					; ...
 		dec	bh
 		dec	si
 		retn
-; ---------------------------------------------------------------------------
-
 BAKTAB:					; ...
 		push	di
 		dec	di
@@ -3459,20 +2793,16 @@ BAKTAB:					; ...
 		push	bx
 		mov	bl, 7
 		jcxz	short FIGTAB
-
 FNDPOS:					; ...
 		scasb
 		jbe	short CHKCNT
 		cmp	byte ptr es:[di+1], 9
 		jz	short HAVTAB
 		dec	bl
-
 CHKCNT:					; ...
 		loop	FNDPOS
-
 FIGTAB:					; ...
 		sub	bl, ss:STARTPOS
-
 HAVTAB:					; ...
 		sub	bl, dh
 		add	cl, bl
@@ -3481,26 +2811,17 @@ HAVTAB:					; ...
 		pop	bx
 		pop	di
 		jz	short OLDBAK
-
 TABBAK:					; ...
 		call	BACKMES
 		loop	TABBAK
 		jmp	short OLDBAK
 BackSpace	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 BACKUP		proc near		; ...
 		dec	dh
 		dec	di
 BACKUP		endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 BACKMES		proc near		; ...
 		mov	al, 8
 		call	OUTT
@@ -3509,29 +2830,19 @@ BACKMES		proc near		; ...
 		mov	al, 8
 		jmp	OUTT
 BACKMES		endp
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR $STD_CON_STRING_INPUT
-
 TWOESC:					; ...
 		mov	al, cs:ESCCHAR
 		jmp	SAVCH
-; ---------------------------------------------------------------------------
-
 COPYLIN:				; ...
 		mov	cl, bl
 		sub	cl, bh
 		jmp	short COPYEACH
-; ---------------------------------------------------------------------------
-
 COPYSTR:				; ...
 		call	FINDOLD
 		jmp	short COPYEACH
-; ---------------------------------------------------------------------------
-
 COPYONE:				; ...
 		mov	cl, 1
-
 COPYEACH:				; ...
 		mov	ss:INSMODE, 0
 		cmp	dh, dl
@@ -3544,37 +2855,27 @@ COPYEACH:				; ...
 		inc	bh
 		inc	dh
 		loop	COPYEACH
-
 GETCH2:					; ...
 		jmp	GETCH
-; ---------------------------------------------------------------------------
-
 SKIPONE:				; ...
 		cmp	bh, bl
 		jz	short GETCH2
 		inc	bh
 		inc	si
 		jmp	GETCH
-; ---------------------------------------------------------------------------
-
 SKIPSTR:				; ...
 		call	FINDOLD
 		add	si, cx
 		add	bh, cl
 		jmp	GETCH
 ; END OF FUNCTION CHUNK	FOR $STD_CON_STRING_INPUT
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 FINDOLD		proc near		; ...
 		call	$STD_CON_INPUT_NO_ECHO
 		cmp	al, cs:ESCCHAR
 		jnz	short FINDSETUP
 		call	$STD_CON_INPUT_NO_ECHO
 		jmp	short NOTFND
-; ---------------------------------------------------------------------------
-
 FINDSETUP:				; ...
 		mov	cl, bl
 		sub	cl, bh
@@ -3594,19 +2895,13 @@ FINDSETUP:				; ...
 		not	cl
 		add	cl, bl
 		sub	cl, bh
-
 FINDOLD_RETN:				; ...
 		retn
-; ---------------------------------------------------------------------------
-
 NOTFND:					; ...
 		pop	bp
 		jmp	GETCH
 FINDOLD		endp ; sp-analysis failed
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR $STD_CON_STRING_INPUT
-
 REEDIT:					; ...
 		mov	al, '@'
 		call	OUTT
@@ -3620,38 +2915,26 @@ REEDIT:					; ...
 		pop	si
 		mov	bl, dh
 		jmp	PUTNEW
-; ---------------------------------------------------------------------------
-
 EXITINS_ENTERINS:			; ...
 		not	ss:INSMODE
 		jmp	GETCH
-; ---------------------------------------------------------------------------
-
 CTRLZ:					; ...
 		mov	al, 1Ah
 		jmp	SAVCH
 ; END OF FUNCTION CHUNK	FOR $STD_CON_STRING_INPUT
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 CRLF		proc near		; ...
 		mov	al, 0Dh
 		call	OUTT
 		mov	al, 0Ah
 		jmp	OUTT
 CRLF		endp
-
-; ---------------------------------------------------------------------------
-
 $RAW_CON_IO:				; ...
 		mov	al, dl
 		cmp	al, 0FFh
 		jz	short rcio1
 		jmp	short RAWOUT
-; ---------------------------------------------------------------------------
 		nop
-
 rcio1:					; ...
 		les	di, dword ptr ss:USER_SP
 		xor	bx, bx
@@ -3663,17 +2946,12 @@ rcio1:					; ...
 		call	SPOOLINT
 		or	byte ptr es:[di+16h], 40h
 		xor	al, al
-
 RET17:					; ...
 		retn
-; ---------------------------------------------------------------------------
-
 RESFLG:					; ...
 		and	byte ptr es:[di+16h], 0BFh
-
 rci0:					; ...
 		call	SPOOLINT
-
 $RAW_CON_INPUT:				; ...
 		push	bx
 		xor	bx, bx
@@ -3686,16 +2964,11 @@ $RAW_CON_INPUT:				; ...
 		mov	ah, 84h
 		int	2Ah		; Microsoft Networks - KEYBOARD	BUSY LOOP
 		jmp	short rci0
-; ---------------------------------------------------------------------------
-
 rci5:					; ...
 		xor	ah, ah
 		call	IOFUNC
 		retn
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 RAWOUT		proc near		; ...
 		push	bx
 		mov	bx, 1
@@ -3712,45 +2985,29 @@ RAWOUT		proc near		; ...
 		jz	short RAWNORM
 		int	29h		; DOS 2+ internal - FAST PUTCHAR
 					; AL = character to display
-
 RAWRET:					; ...
 		clc
-
 RAWRET1:				; ...
 		pop	bx
-
 RAWRET2:				; ...
 		retn
-; ---------------------------------------------------------------------------
-
 RAWNORM:				; ...
 		call	RAWOUT3
 		jmp	short RAWRET
 RAWOUT		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 RAWOUT2		proc near		; ...
 		call	GET_IO_SFT
 		jb	short RAWRET2
 RAWOUT2		endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 RAWOUT3		proc near		; ...
 		push	ax
 		jmp	short RAWOSTRT
-; ---------------------------------------------------------------------------
-
 ROLP:					; ...
 		call	SPOOLINT
 		or	ss:DOS34_FLAG, 200h
 		call	near ptr DSKSTATCHK
-
 RAWOSTRT:				; ...
 		mov	ah, 3
 		call	IOFUNC
@@ -3760,16 +3017,11 @@ RAWOSTRT:				; ...
 		jz	short nosend
 		mov	ah, 2
 		call	IOFUNC
-
 nosend:					; ...
 		clc
 		retn
 RAWOUT3		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Save_Restore_Packet proc near		; ...
 		push	ds
 		push	es
@@ -3777,17 +3029,13 @@ Save_Restore_Packet proc near		; ...
 		push	di
 		cmp	ax, 0
 		jz	short save_packet
-
 restore_packet:
 		mov	si, offset FAKE_STACK_2F
 		mov	di, offset DEVCALL
 		jmp	short set_seg
-; ---------------------------------------------------------------------------
-
 save_packet:				; ...
 		mov	di, offset FAKE_STACK_2F
 		mov	si, offset DEVCALL
-
 set_seg:				; ...
 		mov	ax, ss
 		mov	ds, ax
@@ -3800,42 +3048,27 @@ set_seg:				; ...
 		pop	ds
 		retn
 Save_Restore_Packet endp
-
-; ---------------------------------------------------------------------------
-
 $STD_CON_INPUT:				; ...
 		call	$STD_CON_INPUT_NO_ECHO
 		push	ax
 		call	OUTT
 		pop	ax
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 CON_INPUT_RETN	proc near		; ...
 		retn
 CON_INPUT_RETN	endp
-
-; ---------------------------------------------------------------------------
-
 $STD_CON_OUTPUT:			; ...
 		mov	al, dl
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 OUTT		proc near		; ...
-
 ; FUNCTION CHUNK AT 556F SIZE 00000008 BYTES
 ; FUNCTION CHUNK AT 557A SIZE 00000008 BYTES
 ; FUNCTION CHUNK AT 55CF SIZE 00000007 BYTES
-
 		cmp	al, 20h
 		jb	short CTRLOUT
 		cmp	al, 7Fh
 		jz	short OUTCH
 		inc	ss:CARPOS
-
 OUTCH:					; ...
 		push	ds
 		push	si
@@ -3845,7 +3078,6 @@ OUTCH:					; ...
 		push	ax
 		call	near ptr STATCHK
 		pop	ax
-
 OUTSKIP:				; ...
 		call	RAWOUT
 		pop	si
@@ -3869,15 +3101,10 @@ OUTSKIP:				; ...
 		test	byte ptr [si+6], 8
 		jz	short LISSTRT2J
 		mov	ss:PFLAG, 0
-
 TRIPOPJ:				; ...
 		jmp	TRIPOP
-; ---------------------------------------------------------------------------
-
 LISSTRT2J:				; ...
 		jmp	LISSTRT2
-; ---------------------------------------------------------------------------
-
 CTRLOUT:				; ...
 		cmp	al, 0Dh
 		jz	short ZERPOS
@@ -3889,49 +3116,33 @@ CTRLOUT:				; ...
 		or	al, 0F8h
 		neg	al
 OUTT		endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 TAB		proc near		; ...
 		push	cx
 		mov	cl, al
 		mov	ch, 0
 		jcxz	short POPTAB
-
 TABLP:					; ...
 		mov	al, ' '
 		call	OUTT
 		loop	TABLP
-
 POPTAB:					; ...
 		pop	cx
 		retn
 TAB		endp
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR OUTT
-
 ZERPOS:					; ...
 		mov	ss:CARPOS, 0
 		jmp	short OUTCH
 ; END OF FUNCTION CHUNK	FOR OUTT
-; ---------------------------------------------------------------------------
-
 OUTJ:					; ...
 		jmp	OUTT
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR OUTT
-
 BACKPOS:				; ...
 		dec	ss:CARPOS
 		jmp	OUTCH
 ; END OF FUNCTION CHUNK	FOR OUTT
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 BUFOUT		proc near		; ...
 		cmp	al, ' '
 		jnb	short OUTJ
@@ -3941,34 +3152,25 @@ BUFOUT		proc near		; ...
 		jz	short CTRLU
 		cmp	al, 14h
 		jz	short CTRLU
-
 NOT_CTRLU:
 		push	ax
 		mov	al, '^'
 		call	OUTT
 		pop	ax
 		or	al, 40h
-
 CTRLU:					; ...
 		call	OUTT
-
 BUFOUT_RETN:				; ...
 		retn
 BUFOUT		endp
-
-; ---------------------------------------------------------------------------
-
 $STD_AUX_INPUT:				; ...
 		call	near ptr STATCHK
 		mov	bx, 3
 		call	GET_IO_SFT
 		jb	short BUFOUT_RETN
 		jmp	short TAISTRT
-; ---------------------------------------------------------------------------
-
 AUXILP:					; ...
 		call	SPOOLINT
-
 TAISTRT:				; ...
 		mov	ah, 1
 		call	IOFUNC
@@ -3976,18 +3178,13 @@ TAISTRT:				; ...
 		xor	ah, ah
 		call	IOFUNC
 		retn
-; ---------------------------------------------------------------------------
-
 $STD_AUX_OUTPUT:			; ...
 		push	bx
 		mov	bx, 3
 		jmp	short SENDOUT
-; ---------------------------------------------------------------------------
-
 $STD_PRINTER_OUTPUT:			; ...
 		push	bx
 		mov	bx, 4
-
 SENDOUT:				; ...
 		mov	al, dl
 		push	ax
@@ -3996,28 +3193,21 @@ SENDOUT:				; ...
 		push	ds
 		push	si
 ; START	OF FUNCTION CHUNK FOR OUTT
-
 LISSTRT2:				; ...
 		call	RAWOUT2
-
 TRIPOP:					; ...
 		pop	si
 		pop	ds
 		pop	bx
-
 SCIS_RETN:				; ...
 		retn
 ; END OF FUNCTION CHUNK	FOR OUTT
-; ---------------------------------------------------------------------------
-
 $STD_CON_INPUT_STATUS:			; ...
 		call	near ptr STATCHK
 		mov	al, 0
 		jz	short SCIS_RETN
 		or	al, 0FFh
 		retn
-; ---------------------------------------------------------------------------
-
 $STD_CON_INPUT_FLUSH:			; ...
 		push	ax
 		push	dx
@@ -4026,7 +3216,6 @@ $STD_CON_INPUT_FLUSH:			; ...
 		jb	short BADJFNCON
 		mov	ah, 4
 		call	IOFUNC
-
 BADJFNCON:				; ...
 		pop	dx
 		pop	ax
@@ -4043,13 +3232,9 @@ BADJFNCON:				; ...
 		jz	short REDISPJ
 		mov	al, 0
 		retn
-; ---------------------------------------------------------------------------
-
 REDISPJ:				; ...
 		cli
 		jmp	REDISP
-; ---------------------------------------------------------------------------
-
 $GET_FCB_POSITION:			; ...
 		call	GetExtended
 		call	GetExtent
@@ -4058,11 +3243,8 @@ $GET_FCB_POSITION:			; ...
 		cmp	word ptr [si+0Eh], 64
 		jnb	short GetFCBBye
 		mov	[si+24h], dh
-
 GetFCBBye:				; ...
 		jmp	NO_OP
-; ---------------------------------------------------------------------------
-
 $FCB_DELETE:				; ...
 		mov	di, offset OPENBUF
 		call	TransFCB
@@ -4071,15 +3253,10 @@ $FCB_DELETE:				; ...
 		pop	ds
 		call	DOS_DELETE
 		jb	short BadPath
-
 GoodPath:				; ...
 		jmp	short GetFCBBye
-; ---------------------------------------------------------------------------
-
 BadPath:				; ...
 		jmp	FCB_RET_ERR
-; ---------------------------------------------------------------------------
-
 $GET_FCB_FILE_LENGTH:			; ...
 		call	GetExtended
 		mov	di, offset OPENBUF
@@ -4103,7 +3280,6 @@ $GET_FCB_FILE_LENGTH:			; ...
 		or	bx, bx
 		jnz	short GetSize
 		mov	bx, 128
-
 GetSize:				; ...
 		mov	di, ax
 		mov	ax, dx
@@ -4117,24 +3293,19 @@ GetSize:				; ...
 		jcxz	short LengthStore
 		add	ax, 1
 		adc	dx, 0
-
 LengthStore:				; ...
 		mov	[si+21h], ax
 		mov	[si+23h], dl
 		or	dh, dh
 		jz	short GoodPath
 		mov	[si+24h], dh
-
 GoodRet:				; ...
 		jmp	short GoodPath
-; ---------------------------------------------------------------------------
-
 $FCB_CLOSE:				; ...
 		xor	al, al
 		call	GetExtended
 		jz	short NoAttr
 		mov	al, [si-1]
-
 NoAttr:					; ...
 		mov	ss:ATTRIB, al
 		call	SFTFromFCB
@@ -4146,7 +3317,6 @@ NoAttr:					; ...
 		jnz	short NoStash
 		mov	al, ss:ATTRIB
 		mov	es:[di+4], al
-
 NoStash:				; ...
 		mov	ax, [si+14h]
 		mov	es:[di+0Fh], ax
@@ -4170,18 +3340,14 @@ NoStash:				; ...
 		mov	al, 'M'
 		call	BlastSFT
 		pop	ax
-
 CloseOK:				; ...
 		popf
 		jnb	short GoodRet
 		cmp	al, 6
 		jz	short GoodRet
 		mov	al, 2
-
 jmp_to_FCB_RET_ERR:			; ...
 		jmp	FCB_RET_ERR
-; ---------------------------------------------------------------------------
-
 $FCB_RENAME:				; ...
 		call	GetExtended
 		push	dx
@@ -4207,14 +3373,9 @@ $FCB_RENAME:				; ...
 		call	DOS_RENAME
 		jb	short fren90
 		jmp	NO_OP
-; ---------------------------------------------------------------------------
-
 fren90:					; ...
 		jmp	short jmp_to_FCB_RET_ERR
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SaveFCBInfo	proc near		; ...
 		les	di, ss:THISSFT
 		call	IsSFTNet
@@ -4223,14 +3384,10 @@ SaveFCBInfo	proc near		; ...
 		mov	[si+1Ch], ax
 		mov	bl, 80h	; '€'
 		jmp	short SaveSFN
-; ---------------------------------------------------------------------------
-
 SaveLocal:				; ...
 		call	CheckShare
 		jz	short SaveNoShare
 		jmp	short SaveShare
-; ---------------------------------------------------------------------------
-
 SaveNoShare:				; ...
 		test	byte ptr es:[di+5], 80h
 		jnz	short SaveNoShareDev
@@ -4250,7 +3407,6 @@ SaveNoShare:				; ...
 		mov	ax, es:[di+0Bh]
 		mov	[si+1Bh], ax
 		mov	bl, 0
-
 SetFCBBits:				; ...
 		mov	ax, es:[di+5]
 		and	al, 0C0h
@@ -4259,8 +3415,6 @@ SetFCBBits:				; ...
 		or	bl, bl
 		jz	short SaveNoSFN
 		jmp	short SaveSFN
-; ---------------------------------------------------------------------------
-
 SaveNoShareDev:				; ...
 		mov	ax, es:[di+7]
 		mov	[si+1Ah], ax
@@ -4268,11 +3422,8 @@ SaveNoShareDev:				; ...
 		mov	[si+1Ch], ax
 		mov	bl, 40h	; '@'
 		jmp	short SetFCBBits
-; ---------------------------------------------------------------------------
-
 SaveShare:				; ...
 		call	ss:ShSave
-
 SaveSFN:				; ...
 		lea	ax, [di-6]
 		sub	ax, word ptr ss:SFTFCB
@@ -4281,7 +3432,6 @@ SaveSFN:				; ...
 		div	bl
 		mov	[si+18h], al
 		pop	bx
-
 SaveNoSFN:				; ...
 		mov	ax, es:[di+5]
 		and	al, 3Fh
@@ -4293,16 +3443,11 @@ SaveNoSFN:				; ...
 		jnz	short SimpleStuff
 		mov	bx, 15h
 		call	ResetLRU
-
 SimpleStuff:				; ...
 		mov	ss:FCBLRU, ax
 		retn
 SaveFCBInfo	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ResetLRU	proc near		; ...
 		mov	ax, 8000h
 		push	es
@@ -4310,12 +3455,10 @@ ResetLRU	proc near		; ...
 		les	di, ss:SFTFCB
 		mov	cx, es:[di+4]
 		lea	di, [di+6]
-
 ovScan:					; ...
 		sub	es:[bx+di], ax
 		ja	short ovLoop
 		mov	es:[bx+di], ax
-
 ovLoop:					; ...
 		add	di, 59
 		loop	ovScan
@@ -4324,11 +3467,7 @@ ovLoop:					; ...
 		mov	es:[bx+di], ax
 		retn
 ResetLRU	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 LRUFCB		proc near		; ...
 		push	es
 		call	save_world
@@ -4339,14 +3478,11 @@ LRUFCB		proc near		; ...
 		or	di, word ptr ds:LocalSFT+2
 		jz	short lru1
 		les	di, ds:LocalSFT
-
 gotlocalSFT:				; ...
 		mov	word ptr ds:THISSFT, di
 		mov	word ptr ds:THISSFT+2, es
 		clc
 		jmp	LRUDone
-; ---------------------------------------------------------------------------
-
 lru1:					; ...
 		les	di, ds:SFTFCB
 		mov	cx, es:[di+4]
@@ -4355,7 +3491,6 @@ lru1:					; ...
 		mov	si, bx
 		mov	dx, bx
 		mov	bp, bx
-
 findSFT:				; ...
 		or	word ptr es:[di], 0
 		jz	short gotSFT
@@ -4365,7 +3500,6 @@ findSFT:				; ...
 		jnz	short lru5
 		call	CheckShare
 		jnz	short lru5
-
 hackpoint:				; ...
 		mov	word ptr ds:LocalSFT, di
 		mov	word ptr ds:LocalSFT+2,	es
@@ -4375,7 +3509,6 @@ hackpoint:				; ...
 		jnb	short lru4
 		mov	bx, es:[di+15h]
 		mov	si, di
-
 lru4:					; ...
 		add	di, 59
 		loop	findSFT
@@ -4386,48 +3519,36 @@ lru4:					; ...
 		cmp	bp, 0FFFFh
 		jnz	short gotnetSFT
 		jmp	short errorbadSFT
-; ---------------------------------------------------------------------------
-
 lru5:					; ...
 		cmp	es:[di+15h], dx
 		jnb	short lru4
 		mov	dx, es:[di+15h]
 		mov	bp, di
 		jmp	short lru4
-; ---------------------------------------------------------------------------
-
 gotSFT:					; ...
 		or	al, al
 		jz	short hackpoint
-
 notlocaluse:
 		mov	ax, es
 		cmp	word ptr ds:LocalSFT, di
 		jnz	short notinvalid
 		cmp	word ptr ds:LocalSFT+2,	ax
 		jz	short zerolocalSFT
-
 notinvalid:				; ...
 		jmp	gotlocalSFT
-; ---------------------------------------------------------------------------
-
 zerolocalSFT:				; ...
 		xor	ax, ax
 		mov	word ptr ds:LocalSFT, ax
 		mov	word ptr ds:LocalSFT+2,	ax
 		jmp	gotlocalSFT
-; ---------------------------------------------------------------------------
-
 gotnetSFT:				; ...
 		or	al, al
 		jnz	short closenet
 		mov	word ptr ds:LocalSFT, di
 		mov	word ptr ds:LocalSFT+2,	es
-
 closenet:				; ...
 		mov	word ptr ds:THISSFT, di
 		mov	word ptr ds:THISSFT+2, es
-
 LRUClose:				; ...
 		cmp	word ptr es:[di], 0
 		jz	short LRUDone
@@ -4435,16 +3556,12 @@ LRUClose:				; ...
 		jnb	short LRUClose
 		cmp	al, 6
 		jz	short LRUClose
-
 errorbadSFT:				; ...
 		stc
 		jmp	short LRUDead
-; ---------------------------------------------------------------------------
-
 LRUDone:				; ...
 		xor	al, al
 		call	BlastSFT
-
 LRUDead:				; ...
 		call	restore_world
 		pop	es
@@ -4452,17 +3569,11 @@ LRUDead:				; ...
 		les	di, es:THISSFT
 		jb	short LruFCB_err
 		retn
-; ---------------------------------------------------------------------------
-
 LruFCB_err:				; ...
 		mov	al, 23h	; '#'
 		retn
 LRUFCB		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 RegenCopyName	proc near		; ...
 		lodsb
 		call	UCase
@@ -4470,11 +3581,7 @@ RegenCopyName	proc near		; ...
 		loop	RegenCopyName
 		retn
 RegenCopyName	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 FCBRegen	proc near		; ...
 		mov	al, [si+19h]
 		test	al, 80h
@@ -4488,20 +3595,15 @@ FCBRegen	proc near		; ...
 					; FFh  installed
 		or	al, al
 		jz	short RegenDead
-
 RegenFail:				; ...
 		mov	ax, ss:USER_IN_AX
 		cmp	ah, 10h
 		jz	short RegenDead
 		call	FCBHardErr
-
 RegenDead:				; ...
 		stc
-
 FCBRegen_retn:				; ...
 		retn
-; ---------------------------------------------------------------------------
-
 RegenNoSharing:				; ...
 		call	CheckShare
 		jnz	short RegenFail
@@ -4548,12 +3650,8 @@ RegenNoSharing:				; ...
 		mov	es:[di+7], si
 		mov	word ptr es:[di+9], ds
 		retn
-; ---------------------------------------------------------------------------
-
 RegenDeadJ:				; ...
 		jmp	short RegenDead
-; ---------------------------------------------------------------------------
-
 RegenFileNoSharing:			; ...
 		mov	ax, es:[di+5]
 		and	ax, 3Fh
@@ -4592,11 +3690,7 @@ RegenFileNoSharing:			; ...
 		clc
 		retn
 FCBRegen	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 BlastSFT	proc near		; ...
 		push	di
 		mov	cx, 59
@@ -4609,11 +3703,7 @@ BlastSFT	proc near		; ...
 		mov	es:[di+17h], ax
 		retn
 BlastSFT	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 CheckFCB	proc near		; ...
 		test	byte ptr [si+19h], 0C0h
 		jz	short BadSFT
@@ -4640,39 +3730,28 @@ CheckFCB	proc near		; ...
 		call	ss:ShChk
 		jb	short BadSFT
 		jmp	short CheckD
-; ---------------------------------------------------------------------------
-
 CheckFirClus:
 		cmp	bx, es:[di+0Bh]
 		jnz	short BadSFT
-
 CheckD:					; ...
 		and	al, 3Fh
 		mov	ah, es:[di+5]
 		and	ah, 3Fh
 		cmp	ah, al
 		jnz	short BadSFT
-
 BlastSFT_retn:				; ...
 		retn
-; ---------------------------------------------------------------------------
-
 BadSFT:					; ...
 		stc
 		retn
-; ---------------------------------------------------------------------------
-
 CheckNet:				; ...
 		mov	ax, [si+1Ch]
 		cmp	ax, es:[di+0Bh]
 		jnz	short BadSFT
 		retn
-; ---------------------------------------------------------------------------
-
 CheckNoShare:				; ...
 		test	al, 40h
 		jnz	short $+2
-
 CheckNoShareDev:			; ...
 		mov	bx, [si+1Ah]
 		cmp	bx, es:[di+7]
@@ -4682,11 +3761,7 @@ CheckNoShareDev:			; ...
 		jnz	short BadSFT
 		jmp	short CheckD
 CheckFCB	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SFTFromFCB	proc near		; ...
 		push	ax
 		push	bx
@@ -4704,18 +3779,13 @@ SFTFromFCB	proc near		; ...
 		pop	es
 		mov	ax, ss:EXTERR
 		jb	short BlastSFT_retn
-
 Set_SFT:				; ...
 		les	di, ss:THISSFT
 		push	ss:PROC_ID
 		pop	word ptr es:[di+31h]
 		retn
 SFTFromFCB	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 FCBHardErr	proc near		; ...
 		mov	es, cs:DosDSeg
 		mov	ax, 23h	; '#'
@@ -4728,26 +3798,17 @@ FCBHardErr	proc near		; ...
 		stc
 		retn
 FCBHardErr	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GetRR		proc near		; ...
 		mov	ax, [si+21h]
 		mov	dx, [si+23h]
 		cmp	bx, 64
 		jb	short GetRRBye
 		xor	dh, dh
-
 GetRRBye:				; ...
 		retn
 GetRR		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GetExtent	proc near		; ...
 		mov	al, [si+20h]
 		mov	dx, [si+0Ch]
@@ -4759,11 +3820,7 @@ GetExtent	proc near		; ...
 		xor	dh, dh
 		retn
 GetExtent	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SetExtent	proc near		; ...
 		push	ax
 		push	dx
@@ -4780,28 +3837,18 @@ SetExtent	proc near		; ...
 		pop	ax
 		retn
 SetExtent	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GetExtended	proc near		; ...
 		mov	si, dx
 		cmp	byte ptr [si], 0FFh
 		jnz	short GetBye
 		add	si, 7
-
 GetBye:					; ...
 		cmp	si, dx
-
 getextd_retn:				; ...
 		retn
 GetExtended	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GetRecSize	proc near		; ...
 		mov	bx, [si+0Eh]
 		or	bx, bx
@@ -4810,14 +3857,9 @@ GetRecSize	proc near		; ...
 		mov	[si+0Eh], bx
 		retn
 GetRecSize	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
 ; Attributes: bp-based frame
-
 FCBIO		proc near		; ...
-
 FCBOp		= byte ptr -14h
 cRecRes		= word ptr -13h
 cResult		= word ptr -11h
@@ -4829,7 +3871,6 @@ RecPosL		= word ptr -7
 RecPosH		= word ptr -5
 cRec		= word ptr -3
 FCBErr		= byte ptr -1
-
 		push	bp
 		mov	bp, sp
 		sub	sp, 20
@@ -4839,7 +3880,6 @@ FCBErr		= byte ptr -1
 		test	[bp+FCBOp], 8
 		jnz	short GetPos
 		mov	cx, 1
-
 GetPos:					; ...
 		mov	[bp+cRec], cx
 		call	GetExtent
@@ -4848,7 +3888,6 @@ GetPos:					; ...
 		test	[bp+FCBOp], 2
 		jz	short GetRec
 		call	GetRR
-
 GetRec:					; ...
 		mov	[bp+RecPosL], ax
 		mov	[bp+RecPosH], dx
@@ -4872,14 +3911,12 @@ GetRec:					; ...
 		neg	ax
 		jnz	short DoDiv
 		dec	ax
-
 DoDiv:					; ...
 		xor	dx, dx
 		div	bx
 		mov	[bp+cRec], ax
 		mul	bx
 		mov	[bp+cByte], ax
-
 DoOper:					; ...
 		xor	bx, bx
 		mov	[bp+cResult], bx
@@ -4888,19 +3925,14 @@ DoOper:					; ...
 		test	[bp+FCBErr], 2
 		jz	short DoGetExt
 		jmp	short SkipOp
-; ---------------------------------------------------------------------------
-
 DoGetExt:				; ...
 		call	SFTFromFCB
 		jnb	short ContinueOp
-
 FCBDeath:				; ...
 		call	FCB_RET_ERR
 		mov	[bp+cRecRes], 0
 		mov	[bp+FCBErr], 1
 		jmp	FCBSave
-; ---------------------------------------------------------------------------
-
 ContinueOp:				; ...
 		mov	ax, [si+10h]
 		mov	es:[di+11h], ax
@@ -4916,7 +3948,6 @@ ContinueOp:				; ...
 		test	[bp+FCBOp], 4
 		jnz	short DoContext
 		mov	di, offset DOS_WRITE
-
 DoContext:				; ...
 		push	bp
 		push	ds
@@ -4932,7 +3963,6 @@ DoContext:				; ...
 		jz	short NODSKFULL
 		mov	ss:DISK_FULL, 0
 		mov	[bp+FCBErr], 1
-
 NODSKFULL:				; ...
 		mov	[bp+cResult], cx
 		call	SaveFCBInfo
@@ -4941,7 +3971,6 @@ NODSKFULL:				; ...
 		mov	[si+10h], ax
 		mov	ax, es:[di+13h]
 		mov	[si+12h], ax
-
 SkipOp:					; ...
 		mov	ax, [bp+cResult]
 		xor	dx, dx
@@ -4955,10 +3984,8 @@ SkipOp:					; ...
 		jnz	short SetEOF
 		test	byte ptr es:[di+5], 80h
 		jnz	short TryBlank
-
 SetEOF:					; ...
 		mov	[bp+FCBErr], 1
-
 TryBlank:				; ...
 		or	dx, dx
 		jz	short SetExt
@@ -4974,7 +4001,6 @@ TryBlank:				; ...
 		les	di, ss:DMAADD
 		add	di, [bp+cResult]
 		rep stosb
-
 SetExt:					; ...
 		mov	dx, [bp+RecPosH]
 		mov	ax, [bp+RecPosL]
@@ -4982,10 +4008,8 @@ SetExt:					; ...
 		jz	short DoSetExt
 		test	[bp+FCBOp], 8
 		jz	short TrySetRR
-
 DoSetExt:				; ...
 		call	SetExtent
-
 TrySetRR:				; ...
 		test	[bp+FCBOp], 8
 		jz	short TryReturn
@@ -4994,7 +4018,6 @@ TrySetRR:				; ...
 		cmp	word ptr [si+0Eh], 64
 		jnb	short TryReturn
 		mov	[si+24h], dh
-
 TryReturn:				; ...
 		test	[bp+FCBOp], 4
 		jnz	short FCBSave
@@ -5003,29 +4026,22 @@ TryReturn:				; ...
 		pop	ds
 		mov	[si+14h], ax
 		mov	[si+16h], dx
-
 FCBSave:				; ...
 		test	[bp+FCBOp], 8
 		jz	short DoReturn
 		mov	cx, [bp+cRecRes]
 		call	Get_User_Stack
 		mov	[si+4],	cx
-
 DoReturn:				; ...
 		mov	al, [bp+FCBErr]
 		mov	sp, bp
 		pop	bp
 		retn
 FCBIO		endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 $FCB_OPEN	proc near		; ...
 		mov	ax, 2
 		mov	cx, offset DOS_OPEN
-
 DoAccess:				; ...
 		push	ds
 		push	dx
@@ -5038,11 +4054,8 @@ DoAccess:				; ...
 		pop	dx
 		pop	ds
 		jnb	short FindFCB
-
 FCBOpenErr:				; ...
 		jmp	FCB_RET_ERR
-; ---------------------------------------------------------------------------
-
 FindFCB:				; ...
 		call	GetExtended
 		push	ax
@@ -5071,16 +4084,12 @@ FindFCB:				; ...
 		jz	short HardMessage
 		cmp	ax, 24h	; '$'
 		jnz	short DeadFCB
-
 HardMessage:				; ...
 		push	ax
 		call	FCBHardErr
 		pop	ax
-
 DeadFCB:				; ...
 		jmp	short FCBOpenErr
-; ---------------------------------------------------------------------------
-
 FCBOK:					; ...
 		call	IsSFTNet
 		jnz	short FCBOK2
@@ -5088,7 +4097,6 @@ FCBOK:					; ...
 		jnz	short FCBOK2
 		mov	word ptr ss:LocalSFT, di
 		mov	word ptr ss:LocalSFT+2,	es
-
 FCBOK2:					; ...
 		inc	word ptr es:[di]
 		call	SaveFCBInfo
@@ -5098,7 +4106,6 @@ FCBOK2:					; ...
 		call	GETTHISDRV
 		inc	al
 		mov	[si], al
-
 FCBNoDrive:				; ...
 		mov	word ptr [si+0Eh], 80h
 		mov	ax, es:[di+0Dh]
@@ -5113,7 +4120,6 @@ FCBNoDrive:				; ...
 		mov	[si+0Ch], ax
 		les	di, ss:SFTFCB
 		mov	ah, es:[di+4]
-
 OpenScan:				; ...
 		cmp	al, [si+18h]
 		jz	short SkipCheck
@@ -5121,17 +4127,13 @@ OpenScan:				; ...
 		call	CheckFCB
 		pop	ax
 		jnb	short OpenFound
-
 SkipCheck:				; ...
 		inc	al
 		cmp	al, ah
 		jnz	short OpenScan
-
 OpenDone:				; ...
 		xor	al, al
 		retn
-; ---------------------------------------------------------------------------
-
 OpenFound:				; ...
 		mov	[si+18h], al
 		inc	word ptr es:[di]
@@ -5146,50 +4148,32 @@ OpenFound:				; ...
 		call	BlastSFT
 		jmp	short OpenDone
 $FCB_OPEN	endp
-
-; ---------------------------------------------------------------------------
-
 $FCB_CREATE:				; ...
 		mov	cx, offset DOS_CREATE
 		xor	ax, ax
 		call	GetExtended
 		jz	short DoAccessJ
 		mov	al, [si-1]
-
 DoAccessJ:				; ...
 		jmp	DoAccess
-; ---------------------------------------------------------------------------
-
 $FCB_RANDOM_WRITE_BLOCK:		; ...
 		mov	al, 0Ah
 		jmp	FCBIO
-; ---------------------------------------------------------------------------
-
 $FCB_RANDOM_READ_BLOCK:			; ...
 		mov	al, 0Eh
 		jmp	FCBIO
-; ---------------------------------------------------------------------------
-
 $FCB_SEQ_READ:				; ...
 		mov	al, 4
 		jmp	FCBIO
-; ---------------------------------------------------------------------------
-
 $FCB_SEQ_WRITE:				; ...
 		mov	al, 0
 		jmp	FCBIO
-; ---------------------------------------------------------------------------
-
 $FCB_RANDOM_READ:			; ...
 		mov	al, 6
 		jmp	FCBIO
-; ---------------------------------------------------------------------------
-
 $FCB_RANDOM_WRITE:			; ...
 		mov	al, 2
 		jmp	FCBIO
-; ---------------------------------------------------------------------------
-
 $DIR_SEARCH_FIRST:			; ...
 		mov	word ptr ss:THISFCB, dx
 		mov	word ptr ss:THISFCB+2, ds
@@ -5197,7 +4181,6 @@ $DIR_SEARCH_FIRST:			; ...
 		cmp	byte ptr [si], 0FFh
 		jnz	short NORMFCB4
 		add	si, 7
-
 NORMFCB4:				; ...
 		push	word ptr [si]
 		push	ss
@@ -5206,11 +4189,8 @@ NORMFCB4:				; ...
 		call	TransFCB
 		jnb	short SearchIt
 		pop	bx
-
 dsf_err:				; ...
 		jmp	FCB_RET_ERR
-; ---------------------------------------------------------------------------
-
 SearchIt:				; ...
 		push	ss
 		pop	ds
@@ -5224,22 +4204,18 @@ SearchIt:				; ...
 		jnb	short SearchSet
 		pop	bx
 		jmp	short dsf_err
-; ---------------------------------------------------------------------------
-
 SearchSet:				; ...
 		mov	si, offset SEARCHBUF
 		les	di, ds:THISFCB
 		test	ds:EXTFCB, 0FFh
 		jz	short NORMFCB1
 		add	di, 7
-
 NORMFCB1:				; ...
 		pop	bx
 		or	bl, bl
 		jnz	short SearchDrv
 		mov	bl, ds:CURDRV
 		inc	bl
-
 SearchDrv:				; ...
 		lodsb
 		xchg	al, bl
@@ -5258,15 +4234,12 @@ SearchDrv:				; ...
 		rep stosb
 		mov	al, ds:SATTRIB
 		stosb
-
 NORMFCB2:				; ...
 		mov	al, bl
 		stosb
 		mov	cx, 16
 		rep movsw
 		jmp	NO_OP
-; ---------------------------------------------------------------------------
-
 $DIR_SEARCH_NEXT:			; ...
 		mov	word ptr ss:THISFCB, dx
 		mov	word ptr ss:THISFCB+2, ds
@@ -5282,7 +4255,6 @@ $DIR_SEARCH_NEXT:			; ...
 		lodsb
 		mov	ss:SATTRIB, al
 		dec	ss:EXTFCB
-
 NORMFCB6:				; ...
 		lodsb
 		push	ax
@@ -5301,20 +4273,15 @@ NORMFCB6:				; ...
 		pop	word ptr ds:DMAADD
 		jb	short SearchNoMore
 		jmp	SearchSet
-; ---------------------------------------------------------------------------
-
 SearchNoMore:				; ...
 		les	di, ds:THISFCB
 		test	ds:EXTFCB, 0FFh
 		jz	short NORMFCB8
 		add	di, 7
-
 NORMFCB8:				; ...
 		pop	bx
 		mov	es:[di], bl
 		jmp	FCB_RET_ERR
-; ---------------------------------------------------------------------------
-
 $FIND_FIRST:				; ...
 		mov	si, dx
 		mov	ss:SATTRIB, cl
@@ -5322,11 +4289,8 @@ $FIND_FIRST:				; ...
 		call	TransPathSet
 		jnb	short Find_it
 		mov	al, 3
-
 FindError:				; ...
 		jmp	SYS_RET_ERR
-; ---------------------------------------------------------------------------
-
 Find_it:				; ...
 		push	ss
 		pop	ds
@@ -5338,11 +4302,8 @@ Find_it:				; ...
 		pop	word ptr ds:DMAADD+2
 		pop	word ptr ds:DMAADD
 		jnb	short FindSet
-
 FindItError:				; ...
 		jmp	short FindError
-; ---------------------------------------------------------------------------
-
 FindSet:				; ...
 		mov	si, offset SEARCHBUF
 		les	di, ds:DMAADD
@@ -5361,8 +4322,6 @@ FindSet:				; ...
 		pop	si
 		call	PackName
 		jmp	SYS_RET_OK
-; ---------------------------------------------------------------------------
-
 $FIND_NEXT:				; ...
 		push	ss
 		pop	es
@@ -5381,14 +4340,10 @@ $FIND_NEXT:				; ...
 		pop	word ptr ds:DMAADD
 		jnb	short FindSet
 		jmp	short FindItError
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 PackName	proc near		; ...
 		mov	cx, 8
 		rep movsb
-
 main_kill_tail:				; ...
 		cmp	byte ptr es:[di-1], ' '
 		jnz	short find_check_dot
@@ -5396,61 +4351,45 @@ main_kill_tail:				; ...
 		inc	cx
 		cmp	cx, 8
 		jb	short main_kill_tail
-
 find_check_dot:				; ...
 		cmp	word ptr [si], '  '
 		jnz	short got_ext
 		cmp	byte ptr [si+2], ' '
 		jz	short find_done
-
 got_ext:				; ...
 		mov	al, '.'
 		stosb
 		mov	cx, 3
 		rep movsb
-
 ext_kill_tail:				; ...
 		cmp	byte ptr es:[di-1], ' '
 		jnz	short find_done
 		dec	di
 		jmp	short ext_kill_tail
-; ---------------------------------------------------------------------------
-
 find_done:				; ...
 		xor	ax, ax
 		stosb
 		retn
 PackName	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GET_FAST_SEARCH	proc near		; ...
-		or	ss:DOS34_FLAG, 400h
+		or	ss:DOS34_FLAG, 400h ; SEARCH_FASTOPEN
 		call	DOS_SEARCH_FIRST
 		retn
 GET_FAST_SEARCH	endp
-
-; ---------------------------------------------------------------------------
-
 $CURRENT_DIR:				; ...
 		call	ECritDisk
 		mov	al, dl
 		call	GetVisDrv
 		jnb	short CurrentValidate
-
 CurdirErr:				; ...
 		call	LCritDisk
 		push	ds
 		mov	ds, cs:DosDSeg
 		mov	al, ds:DrvErr
 		pop	ds
-
 curdir_errj:				; ...
 		jmp	SYS_RET_ERR
-; ---------------------------------------------------------------------------
-
 CurrentValidate:			; ...
 		push	ds
 		push	si
@@ -5458,7 +4397,6 @@ CurrentValidate:			; ...
 		lds	si, ds:THISCDS
 		test	word ptr [si+43h], 8000h
 		jnz	short $+2
-
 DoCheck:				; ...
 		push	ds
 		mov	ds, cs:DosDSeg
@@ -5478,7 +4416,6 @@ DoCheck:				; ...
 		cmp	byte ptr [si], '\'
 		jnz	short CurrentCopy
 		inc	si
-
 CurrentCopy:				; ...
 		push	ax
 		lodsb
@@ -5487,11 +4424,8 @@ CurrentCopy:				; ...
 		cmp	al, 5
 		jz	short FCHANGE
 		jmp	short FFF
-; ---------------------------------------------------------------------------
-
 FCPYNEXT:				; ...
 		lodsb
-
 FFF:					; ...
 		cmp	al, '\'
 		jnz	short FOK
@@ -5499,10 +4433,8 @@ FFF:					; ...
 		lodsb
 		cmp	al, 5
 		jnz	short FOK
-
 FCHANGE:				; ...
 		mov	al, 0E5h ; 'å'
-
 FOK:					; ...
 		stosb
 		or	al, al
@@ -5511,8 +4443,6 @@ FOK:					; ...
 		xor	al, al
 		call	LCritDisk
 		jmp	SYS_RET_OK
-; ---------------------------------------------------------------------------
-
 $RMDIR:					; ...
 		push	dx
 		push	ds
@@ -5525,18 +4455,14 @@ $RMDIR:					; ...
 		pop	ds
 		pop	dx
 		mov	al, 3
-
 rmdir_errj:				; ...
 		jmp	short curdir_errj
-; ---------------------------------------------------------------------------
-
 rmlset:					; ...
 		cmp	ss:CMETA, 0FFh
 		jnz	short rmerr
 		push	ss
 		pop	es
 		xor	al, al
-
 rmloop:					; ...
 		call	GetCDSFromDrv
 		jb	short rmcont
@@ -5544,37 +4470,26 @@ rmloop:					; ...
 		jz	short rmerr
 		inc	al
 		jmp	short rmloop
-; ---------------------------------------------------------------------------
-
 rmerr:					; ...
 		pop	ds
 		pop	dx
 		mov	al, 10h
-
 rmerrj:					; ...
 		jmp	short rmdir_errj
-; ---------------------------------------------------------------------------
-
 rmcont:					; ...
 		pop	ds
 		pop	dx
 		mov	si, offset DOS_RMDIR
 		jmp	DoDirCall
-; ---------------------------------------------------------------------------
-
 $CHDIR:					; ...
 		mov	di, offset OPENBUF
 		mov	si, dx
 		call	TransPath
 		jnb	short ChDirCrack
-
 ChDirErrP:				; ...
 		mov	al, 3
-
 ChDirErr:				; ...
 		jmp	short rmerrj
-; ---------------------------------------------------------------------------
-
 ChDirCrack:				; ...
 		cmp	ds:CMETA, 0FFh
 		jnz	short ChDirErrP
@@ -5603,7 +4518,6 @@ ChDirCrack:				; ...
 		pop	cx
 		pop	di
 		pop	es
-
 GotCDS:					; ...
 		call	Check_PathLen
 		ja	short ChDirErrP
@@ -5612,22 +4526,16 @@ GotCDS:					; ...
 		test	word ptr es:[di+43h], 2000h
 		jz	short setdirclus
 		mov	cx, 0FFFFh
-
 setdirclus:				; ...
 		mov	es:[di+49h], cx
 		les	di, ds:THISCDS
-
 SkipRecency:				; ...
 		call	FStrCpy
 		xor	al, al
-
 mkdir_ok:				; ...
 		jmp	SYS_RET_OK
-; ---------------------------------------------------------------------------
-
 $MKDIR:					; ...
 		mov	si, offset DOS_MKDIR
-
 DoDirCall:				; ...
 		mov	di, offset OPENBUF
 		push	si
@@ -5635,14 +4543,10 @@ DoDirCall:				; ...
 		call	TransPath
 		pop	si
 		jnb	short MkDirCrack
-
 MkErrP:					; ...
 		mov	al, 3
-
 MkErr:					; ...
 		jmp	SYS_RET_ERR
-; ---------------------------------------------------------------------------
-
 MkDirCrack:				; ...
 		cmp	ss:CMETA, 0FFh
 		jnz	short MkErrP
@@ -5652,24 +4556,15 @@ MkDirCrack:				; ...
 		jbe	short pathok
 		mov	al, 5
 		jmp	short MkErr
-; ---------------------------------------------------------------------------
-
 pathok:					; ...
 		call	si
 		jb	short MkErr
 		jmp	short mkdir_ok
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Check_PathLen	proc near		; ...
 		mov	si, ss:WFP_START
 Check_PathLen	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 check_PathLen2	proc near		; ...
 		push	ss
 		pop	ds
@@ -5679,8 +4574,6 @@ check_PathLen2	proc near		; ...
 		pop	cx
 		retn
 check_PathLen2	endp
-
-; ---------------------------------------------------------------------------
 IOCTLJMPTABLE	dw offset ioctl_getset_data ; ...
 		dw offset ioctl_getset_data
 		dw offset ioctl_control_string
@@ -5699,15 +4592,10 @@ IOCTLJMPTABLE	dw offset ioctl_getset_data ; ...
 		dw offset ioctl_drive_owner
 		dw offset GENERICIOCTLHANDLE ; query_handle_support
 		dw offset GENERICIOCTL	; query_device_support
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 $IOCTL		proc near		; ...
-
 ; FUNCTION CHUNK AT 43F1 SIZE 0000001C BYTES
 ; FUNCTION CHUNK AT 63B3 SIZE 0000004A BYTES
-
 		mov	si, ds
 		push	ss
 		pop	ds
@@ -5719,23 +4607,15 @@ $IOCTL		proc near		; ...
 		shl	di, 1
 		pop	ax
 		jmp	cs:IOCTLJMPTABLE[di]
-; ---------------------------------------------------------------------------
-
 ioctl_bad_funj2:			; ...
 		jmp	ioctl_bad_fun
-; ---------------------------------------------------------------------------
-
 ioctl_getset_data:			; ...
 		call	SFFromHandle
 		jnb	short ioctl_check_permissions
-
 ioctl_bad_handle:			; ...
 		mov	al, 6
-
 ioctl_error:				; ...
 		jmp	SYS_RET_ERR
-; ---------------------------------------------------------------------------
-
 ioctl_check_permissions:		; ...
 		cmp	al, 0
 		mov	al, es:[di+5]
@@ -5744,19 +4624,14 @@ ioctl_check_permissions:		; ...
 		jz	short ioctl_check_device
 		mov	al, 0Dh
 		jmp	short ioctl_error
-; ---------------------------------------------------------------------------
-
 ioctl_check_device:			; ...
 		test	al, 80h
 		jz	short ioctl_bad_funj2
 		or	dl, 80h
 		mov	ds:EXTERR_LOCUS, 4
 		mov	es:[di+5], dl
-
 ioctl_ok:				; ...
 		jmp	SYS_RET_OK
-; ---------------------------------------------------------------------------
-
 ioctl_read:				; ...
 		mov	ds:EXTERR_LOCUS, 2
 		xor	ah, ah
@@ -5765,16 +4640,12 @@ ioctl_read:				; ...
 		mov	ds:EXTERR_LOCUS, 4
 		les	di, es:[di+7]
 		mov	ah, es:[di+5]
-
 ioctl_no_high:				; ...
 		mov	dx, ax
 		call	Get_User_Stack
 		mov	[si+6],	dx
-
 jmp_to_ioctl_ok:			; ...
 		jmp	short ioctl_ok
-; ---------------------------------------------------------------------------
-
 ioctl_control_string:			; ...
 		call	SFFromHandle
 		jb	short ioctl_bad_handle
@@ -5784,41 +4655,31 @@ ioctl_control_string:			; ...
 		les	di, es:[di+7]
 		xor	bl, bl
 		jmp	ioctl_do_string
-; ---------------------------------------------------------------------------
-
 ioctl_status:				; ...
 		mov	ah, 1
 		sub	al, 6
 		jz	short ioctl_get_status
 		mov	ah, 3
-
 ioctl_get_status:			; ...
 		push	ax
 		call	GET_IO_SFT
 		pop	ax
 		jnb	short DO_IOFUNC
 		jmp	short ioctl_bad_handle
-; ---------------------------------------------------------------------------
-
 DO_IOFUNC:				; ...
 		call	IOFUNC
 		mov	ah, al
 		mov	al, 0FFh
 		jnz	short ioctl_status_ret
 		inc	al
-
 ioctl_status_ret:			; ...
 		jmp	short jmp_to_ioctl_ok
-; ---------------------------------------------------------------------------
-
 Set_Retry_Parameters:			; ...
 		mov	ds:RetryLoop, cx
 		or	dx, dx
 		jz	short ioctl_bad_fun
 		mov	ds:RetryCount, dx
 		jmp	short ioctl_status_ret
-; ---------------------------------------------------------------------------
-
 GENERICIOCTLHANDLE:			; ...
 		call	SFFromHandle
 		jb	short ioctl_bad_handlej
@@ -5827,15 +4688,12 @@ GENERICIOCTLHANDLE:			; ...
 		mov	ds:EXTERR_LOCUS, 4
 		les	di, es:[di+7]
 		jmp	short Do_GenIOCTL
-; ---------------------------------------------------------------------------
-
 GENERICIOCTL:				; ...
 		mov	ds:EXTERR_LOCUS, 2
 		cmp	ch, 8
 		jnz	short ioctl_bad_fun
 		call	Check_If_Net
 		jnz	short ioctl_bad_fun
-
 Do_GenIOCTL:				; ...
 		test	byte ptr es:[di+4], 40h
 		jz	short ioctl_bad_fun
@@ -5845,7 +4703,6 @@ Do_GenIOCTL:				; ...
 		test	byte ptr es:[di+4], 80h
 		jz	short ioctl_bad_fun
 		mov	ds:IOCALL_REQFUNC, 19h
-
 SetIOCtlBlock:				; ...
 		push	es
 		push	di
@@ -5863,17 +4720,11 @@ SetIOCtlBlock:				; ...
 		pop	si
 		pop	ds
 		jmp	ioctl_do_IO
-; ---------------------------------------------------------------------------
-
 ioctl_bad_fun:				; ...
 		mov	al, 1
 		jmp	SYS_RET_ERR
-; ---------------------------------------------------------------------------
-
 ioctl_bad_handlej:			; ...
 		jmp	ioctl_bad_handle
-; ---------------------------------------------------------------------------
-
 ioctl_rem_media:			; ...
 		call	Check_If_Net
 		jnz	short ioctl_bad_fun
@@ -5900,11 +4751,8 @@ ioctl_rem_media:			; ...
 		and	ax, 200h
 		mov	cl, 9
 		shr	ax, cl
-
 ioctlt_rmed_ok:				; ...
 		jmp	SYS_RET_OK
-; ---------------------------------------------------------------------------
-
 ioctl_drive_attr:			; ...
 		mov	al, bl
 		call	GETTHISDRV
@@ -5917,7 +4765,6 @@ ioctl_drive_attr:			; ...
 		test	byte ptr es:[di+44h], 80h
 		jz	short IOCTLShare
 		mov	dx, 1000h
-
 IOCTLShare:				; ...
 		push	ss
 		pop	ds
@@ -5933,46 +4780,31 @@ IOCTLShare:				; ...
 					; Return: CF clear if absolute disk access allowed
 		jnb	short IOCTLLocal
 		or	dx, 200h
-
 IOCTLLocal:				; ...
 		test	byte ptr es:[di+44h], 10h
 		jz	short ioctl_set_DX
 		or	dx, 8000h
-
 ioctl_set_DX:				; ...
 		call	Get_User_Stack
 		mov	[si+6],	dx
-
 ioctl_dattr_ok:				; ...
 		jmp	short ioctlt_rmed_ok
-; ---------------------------------------------------------------------------
-
 ioctl_drv_err:				; ...
 		mov	al, 0Fh
-
 ioctl_dattr_errj:			; ...
 		jmp	SYS_RET_ERR
-; ---------------------------------------------------------------------------
-
 ioctl_handle_redir:			; ...
 		call	SFFromHandle
 		jnb	short ioctl_got_sft
 		jmp	ioctl_bad_handle
-; ---------------------------------------------------------------------------
-
 ioctl_got_sft:				; ...
 		mov	dx, es:[di+5]
 		jmp	short ioctl_set_DX
-; ---------------------------------------------------------------------------
-
 ioctl_bad_funj:				; ...
 		jmp	ioctl_bad_fun
-; ---------------------------------------------------------------------------
-
 ioctl_get_dev:				; ...
 		call	Check_If_Net
 		jnz	short ioctl_bad_funj
-
 ioctl_do_string:			; ...
 		test	byte ptr es:[di+5], 40h
 		jz	short ioctl_bad_funj
@@ -5980,7 +4812,6 @@ ioctl_do_string:			; ...
 		test	al, 1
 		jz	short ioctl_control_call
 		mov	ds:IOCALL_REQFUNC, 12
-
 ioctl_control_call:			; ...
 		mov	al, 22
 		mov	ah, bl
@@ -5997,15 +4828,12 @@ ioctl_control_call:			; ...
 		push	ss
 		pop	es
 		mov	bx, offset IOCALL
-
 ioctl_do_IO:				; ...
 		call	DEVIOCALL2
 		test	byte ptr ss:IOCALL_REQSTAT+1, 80h
 		jnz	short ioctl_string_err
 		mov	ax, ss:IOSCNT
 		jmp	short ioctl_dattr_ok
-; ---------------------------------------------------------------------------
-
 ioctl_string_err:			; ...
 		mov	di, ss:IOCALL_REQSTAT
 		and	di, 0FFh
@@ -6014,11 +4842,7 @@ ioctl_string_err:			; ...
 		mov	ax, ss:EXTERR
 		jmp	short ioctl_dattr_errj
 $IOCTL		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Get_Driver_BL	proc near		; ...
 		push	ax
 		mov	al, bl
@@ -6033,19 +4857,13 @@ Get_Driver_BL	proc near		; ...
 		mov	ds:EXTERR_LOCUS, 2
 		mov	bl, es:[di+1]
 		les	di, es:[di+13h]
-
 got_dev_ptr:				; ...
 		clc
-
 ioctl_bad_drv:				; ...
 		pop	ax
 		retn
 Get_Driver_BL	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Check_If_Net	proc near		; ...
 		call	Get_Driver_BL
 		jb	short ioctl_drv_err_pop
@@ -6056,24 +4874,15 @@ Check_If_Net	proc near		; ...
 		pop	di
 		pop	es
 		retn
-; ---------------------------------------------------------------------------
-
 ioctl_drv_err_pop:			; ...
 		pop	ax
 		jmp	ioctl_drv_err
 Check_If_Net	endp ; sp-analysis failed
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR $IOCTL
-
 ioctl_bad_funj3:			; ...
 		jmp	ioctl_bad_fun
-; ---------------------------------------------------------------------------
-
 ioctl_string_errj:			; ...
 		jmp	short ioctl_string_err
-; ---------------------------------------------------------------------------
-
 ioctl_drive_owner:			; ...
 		call	Check_If_Net
 		jnz	short ioctl_bad_funj3
@@ -6083,7 +4892,6 @@ ioctl_drive_owner:			; ...
 		cmp	al, 0Eh
 		jz	short GetOwner
 		mov	ds:IOCALL_REQFUNC, 24
-
 GetOwner:				; ...
 		mov	al, 13
 		mov	ah, bl
@@ -6106,10 +4914,7 @@ GetOwner:				; ...
 		mov	al, ss:IOCALL_REQUNIT
 		jmp	SYS_RET_OK
 ; END OF FUNCTION CHUNK	FOR $IOCTL
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DOS_DELETE	proc near		; ...
 		call	TestNet
 		jnb	short LOCAL_DELETE
@@ -6119,14 +4924,11 @@ DOS_DELETE	proc near		; ...
 					; SDA CDS pointer -> current directory structure for drive with	file
 					; Return: CF set on error
 		retn
-; ---------------------------------------------------------------------------
-
 LOCAL_DELETE:				; ...
 		mov	ds:FOUNDDEL, 0
 		call	ECritDisk
 		mov	word ptr ds:CREATING, 0E500h
 		mov	si, ds:WFP_START
-
 SKPNUL:					; ...
 		lodsb
 		or	al, al
@@ -6136,7 +4938,6 @@ SKPNUL:					; ...
 		jnz	short TEST_QUEST
 		cmp	byte ptr [si+2], '*'
 		jz	short CHECK_ATTS
-
 TEST_QUEST:				; ...
 		sub	si, 9
 		xchg	di, si
@@ -6153,14 +4954,12 @@ TEST_QUEST:				; ...
 		lodsw
 		cmp	ax, '??'
 		jnz	short NOT_ALL
-
 CHECK_ATTS:				; ...
 		mov	al, ds:SATTRIB
 		and	al, 1Fh
 		cmp	al, 1Fh
 		jnz	short NOT_ALL
 		mov	ds:DELALL, 0
-
 NOT_ALL:				; ...
 		mov	ds:NoSetDir, 1
 		call	GetPathNoSet
@@ -6168,35 +4967,25 @@ NOT_ALL:				; ...
 		jnz	short _bad_path
 		or	cl, cl
 		jz	short _bad_path
-
 No_file:				; ...
 		mov	ax, 2
-
 ErrorReturn:				; ...
 		stc
 		call	LCritDisk
 		retn
-; ---------------------------------------------------------------------------
-
 _bad_path:				; ...
 		mov	ax, 3
 		jmp	short ErrorReturn
-; ---------------------------------------------------------------------------
-
 Del_found:				; ...
 		jnz	short NOT_DIR
 		cmp	ds:DELALL, 0
 		jz	short NOT_DIR
-
 Del_access_err:				; ...
 		mov	ax, 5
 		jmp	short ErrorReturn
-; ---------------------------------------------------------------------------
-
 NOT_DIR:				; ...
 		or	ah, ah
 		js	short Del_access_err
-
 DELFILE:				; ...
 		or	ds:FOUNDDEL, 1
 		push	ds
@@ -6208,21 +4997,16 @@ DELFILE:				; ...
 		jz	short DoDelete
 		pop	ds
 		jmp	short DELNXT
-; ---------------------------------------------------------------------------
-
 DoDelete:				; ...
 		call	REN_DEL_Check
 		jnb	short DEL_SHARE_OK
 		pop	ds
 		jmp	short DELNXT
-; ---------------------------------------------------------------------------
-
 DEL_SHARE_OK:				; ...
 		test	byte ptr [di+5], 40h
 		jnz	short yesdirty
 		call	INC_DIRTY_COUNT
 		or	byte ptr [di+5], 40h
-
 yesdirty:				; ...
 		mov	[bx], ah
 		mov	bx, [si]
@@ -6235,7 +5019,6 @@ yesdirty:				; ...
 		call	RELEASE
 		jb	short No_fileJ
 		call	FastOpen_Delete
-
 DELNXT:					; ...
 		les	bp, ds:THISDPB
 		call	GETENTRY
@@ -6263,28 +5046,18 @@ DELNXT:					; ...
 		pop	di
 		pop	es
 		pop	ax
-
 No_Set_Flag:				; ...
 		call	LCritDisk
 		retn
-; ---------------------------------------------------------------------------
-
 DelError:				; ...
 		test	ds:FOUNDDEL, 1
 		jnz	short Del_access_errJ
-
 No_fileJ:				; ...
 		jmp	No_file
-; ---------------------------------------------------------------------------
-
 Del_access_errJ:			; ...
 		jmp	Del_access_err
 DOS_DELETE	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 REN_DEL_Check	proc near		; ...
 		push	ds
 		push	di
@@ -6326,7 +5099,6 @@ REN_DEL_Check	proc near		; ...
 		mov	word ptr es:[di], 0
 		call	ShareEnd
 		clc
-
 CheckDone:				; ...
 		les	bp, ds:THISDPB
 		pop	si
@@ -6336,11 +5108,7 @@ CheckDone:				; ...
 		pop	ds
 		retn
 REN_DEL_Check	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 FastOpen_Delete	proc near		; ...
 		pushf
 		push	si
@@ -6348,7 +5116,6 @@ FastOpen_Delete	proc near		; ...
 		push	ax
 		mov	si, ss:WFP_START
 		mov	al, 3
-
 fastinvoke:				; ...
 		mov	bx, offset FastTable_2
 		call	dword ptr [bx]
@@ -6358,11 +5125,7 @@ fastinvoke:				; ...
 		popf
 		retn
 FastOpen_Delete	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 FastOpen_Rename	proc near		; ...
 		pushf
 		push	si
@@ -6381,11 +5144,7 @@ FastOpen_Rename	proc near		; ...
 		popf
 		retn
 FastOpen_Rename	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 FastOpen_Update	proc near		; ...
 		pushf
 		push	si
@@ -6394,21 +5153,13 @@ FastOpen_Update	proc near		; ...
 		mov	al, 4
 		jmp	short fastinvoke
 FastOpen_Update	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Fast_Dispatch	proc near		; ...
 		mov	si, offset FastTable_2
 		call	dword ptr ss:[si]
 		retn
 Fast_Dispatch	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DOS_RENAME	proc near		; ...
 		call	TestNet
 		jnb	short LOCAL_RENAME
@@ -6418,8 +5169,6 @@ DOS_RENAME	proc near		; ...
 					; SDA CDS pointer -> current directory
 					; Return: CF set on error
 		retn
-; ---------------------------------------------------------------------------
-
 LOCAL_RENAME:				; ...
 		mov	ds:EXTERR_LOCUS, 2
 		mov	si, ds:WFP_START
@@ -6432,8 +5181,6 @@ LOCAL_RENAME:				; ...
 		mov	ax, 11h
 		stc
 		retn
-; ---------------------------------------------------------------------------
-
 SAMEDRV:				; ...
 		push	word ptr ds:DMAADD+2
 		push	word ptr ds:DMAADD
@@ -6446,17 +5193,13 @@ SAMEDRV:				; ...
 		cmp	ax, 12h
 		jnz	short GOTERR
 		mov	ax, 2
-
 GOTERR:					; ...
 		stc
-
 RENAME_POP:				; ...
 		pop	word ptr ds:DMAADD
 		pop	word ptr ds:DMAADD+2
 		call	LCritDisk
 		retn
-; ---------------------------------------------------------------------------
-
 Check_Dev:				; ...
 		mov	ax, 5
 		push	ds
@@ -6466,7 +5209,6 @@ Check_Dev:				; ...
 		jz	short notdir
 		mov	si, ds:REN_WFP
 		call	check_PathLen2
-
 notdir:					; ...
 		pop	ds
 		ja	short GOTERR
@@ -6478,8 +5220,6 @@ notdir:					; ...
 		jnb	short REN_OK1
 		mov	ax, 20h
 		jmp	short RENAME_POP
-; ---------------------------------------------------------------------------
-
 REN_OK1:				; ...
 		push	si
 		lds	si, ds:DMAADD
@@ -6488,12 +5228,9 @@ REN_OK1:				; ...
 		jz	short NOT_DIR1
 		pop	si
 		jmp	short SWAP_SOURCE
-; ---------------------------------------------------------------------------
-
 NOT_DIR1:				; ...
 		pop	si
 		call	FastOpen_Delete
-
 SWAP_SOURCE:				; ...
 		mov	ax, ds:WFP_START
 		mov	si, ds:REN_WFP
@@ -6505,11 +5242,9 @@ SWAP_SOURCE:				; ...
 		jb	short NODEST
 		or	ah, ah
 		jns	short SAVEDEST
-
 BAD_ACC:				; ...
 		mov	ax, 5
 		stc
-
 RENAME_CLEAN:				; ...
 		pushf
 		push	ax
@@ -6520,27 +5255,20 @@ RENAME_CLEAN:				; ...
 		jnz	short BAD_ERR
 		popf
 		jmp	RENAME_POP
-; ---------------------------------------------------------------------------
-
 BAD_ERR:				; ...
 		pop	ax
 		mov	ax, 3
 		jmp	GOTERR
-; ---------------------------------------------------------------------------
-
 NODEST:					; ...
 		jnz	short BAD_PATH
 		cmp	ds:FAILERR, 0
 		jnz	short BAD_PATH
 		or	cl, cl
 		jnz	short SAVEDEST
-
 BAD_PATH:				; ...
 		mov	ax, 3
 		stc
 		jmp	RENAME_POP
-; ---------------------------------------------------------------------------
-
 SAVEDEST:				; ...
 		push	ss
 		pop	es
@@ -6550,7 +5278,6 @@ SAVEDEST:				; ...
 		rep movsb
 		mov	ax, ds:DIRSTART
 		mov	ds:DESTSTART, ax
-
 BUILDDEST:				; ...
 		push	ss
 		pop	es
@@ -6585,11 +5312,8 @@ BUILDDEST:				; ...
 		xor	cx, cx
 		call	RENAME_MAKE
 		jnb	short GOT_DEST
-
 BAD_ACCJ:				; ...
 		jmp	BAD_ACC
-; ---------------------------------------------------------------------------
-
 GOT_DEST:				; ...
 		push	bx
 		les	di, ds:THISSFT
@@ -6600,7 +5324,6 @@ GOT_DEST:				; ...
 		jnz	short yesdirty1
 		call	INC_DIRTY_COUNT
 		or	byte ptr es:[di+5], 40h
-
 yesdirty1:				; ...
 		mov	di, bx
 		add	di, 11
@@ -6614,8 +5337,6 @@ yesdirty1:				; ...
 		mov	al, 0E5h
 		stosb
 		jmp	short DIRTY_IT
-; ---------------------------------------------------------------------------
-
 SIMPLE_RENAME:				; ...
 		call	GET_SOURCE
 		jb	short RENAME_OVER
@@ -6624,14 +5345,12 @@ SIMPLE_RENAME:				; ...
 		mov	si, offset NAME1
 		mov	cx, 11
 		rep movsb
-
 DIRTY_IT:				; ...
 		mov	di, word ptr ds:CURBUF
 		test	byte ptr es:[di+5], 40h
 		jnz	short yesdirty2
 		call	INC_DIRTY_COUNT
 		or	byte ptr es:[di+5], 40h
-
 yesdirty2:				; ...
 		push	si
 		lds	si, ds:DMAADD
@@ -6641,11 +5360,8 @@ yesdirty2:				; ...
 		call	FastOpen_Rename
 		pop	si
 		jmp	short NOT_DIRTY1
-; ---------------------------------------------------------------------------
-
 NOT_DIR2:				; ...
 		pop	si
-
 NOT_DIRTY1:				; ...
 		mov	si, (offset RENAMEDMA+1)
 		call	ECritDisk
@@ -6657,30 +5373,20 @@ NOT_DIRTY1:				; ...
 		jnb	short REN_OK2
 		mov	ax, 20h
 		jmp	RENAME_CLEAN
-; ---------------------------------------------------------------------------
-
 REN_OK2:				; ...
 		mov	al, ds:RENAMEDMA+20h
 		test	al, 10h
 		jz	short Ren_Directory
 		call	FastOpen_Delete
 		jmp	BUILDDEST
-; ---------------------------------------------------------------------------
-
 Ren_Directory:				; ...
 		call	FastOpen_Rename
 		jmp	BUILDDEST
-; ---------------------------------------------------------------------------
-
 RENAME_OVER:				; ...
 		clc
 		jmp	RENAME_CLEAN
 DOS_RENAME	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GET_SOURCE	proc near		; ...
 		mov	bx, word ptr ds:RENAMEDMA+0Fh
 		les	bp, ds:THISDPB
@@ -6689,32 +5395,22 @@ GET_SOURCE	proc near		; ...
 		call	STARTSRCH
 		mov	ax, word ptr ds:RENAMEDMA+0Dh
 		call	GETENT
-
 gs_ret_label:				; ...
 		retn
 GET_SOURCE	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 NEW_RENAME	proc near		; ...
 		lodsb
 		cmp	al, '?'
 		jnz	short NOCHG
 		mov	al, [bx]
-
 NOCHG:					; ...
 		stosb
 		inc	bx
 		loop	NEW_RENAME
 		retn
 NEW_RENAME	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GET_FILE_INFO	proc near		; ...
 		call	TestNet
 		jnb	short LOCAL_INFO
@@ -6724,35 +5420,25 @@ GET_FILE_INFO	proc near		; ...
 					; SDA CDS pointer -> current directory
 					; Return: CF set on error, AX =	file attributes
 		retn
-; ---------------------------------------------------------------------------
-
 LOCAL_INFO:				; ...
 		call	ECritDisk
 		mov	ds:NoSetDir, 1
 		call	Get_FAST_PATH
 		jnb	short info_check_dev
-
 NO_PATH:				; ...
 		jnz	short bad_path1
 		or	cl, cl
 		jz	short bad_path1
-
 info_no_file:				; ...
 		mov	ax, 2
-
 BadRet:					; ...
 		stc
-
 JustRet:				; ...
 		call	LCritDisk
 		retn
-; ---------------------------------------------------------------------------
-
 bad_path1:				; ...
 		mov	ax, 3
 		jmp	short BadRet
-; ---------------------------------------------------------------------------
-
 info_check_dev:				; ...
 		or	ah, ah
 		js	short info_no_file
@@ -6762,8 +5448,6 @@ info_check_dev:				; ...
 		mov	al, 10h
 		clc
 		jmp	short JustRet
-; ---------------------------------------------------------------------------
-
 not_root:				; ...
 		push	ds
 		mov	ds, word ptr ds:CURBUF+2
@@ -6778,21 +5462,15 @@ not_root:				; ...
 		jnz	short NO_SIZE
 		mov	di, [si+1Ch]
 		mov	bx, [si+1Eh]
-
 NO_SIZE:				; ...
 		pop	ds
 		clc
 		jmp	short JustRet
 GET_FILE_INFO	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SET_FILE_ATTRIBUTE proc	near		; ...
 		test	ax, 0FFD8h
 		jz	short set_look
-
 _BAD_ACC:				; ...
 		mov	ds:EXTERR_LOCUS, 1
 		mov	byte ptr ds:EXTERR_ACT_CLASS+1,	7
@@ -6800,8 +5478,6 @@ _BAD_ACC:				; ...
 		mov	ax, 5
 		stc
 		retn
-; ---------------------------------------------------------------------------
-
 set_look:				; ...
 		call	TestNet
 		jnb	short LOCAL_SET
@@ -6814,8 +5490,6 @@ set_look:				; ...
 					; Return: CF set on error
 		pop	bx
 		retn
-; ---------------------------------------------------------------------------
-
 LOCAL_SET:				; ...
 		call	ECritDisk
 		push	ax
@@ -6824,16 +5498,12 @@ LOCAL_SET:				; ...
 		jnb	short set_check_device
 		pop	bx
 		jmp	short NO_PATH
-; ---------------------------------------------------------------------------
-
 set_check_device:			; ...
 		or	ah, ah
 		jns	short set_check_share
 		pop	ax
 		call	LCritDisk
 		jmp	short _BAD_ACC
-; ---------------------------------------------------------------------------
-
 set_check_share:			; ...
 		pop	ax
 		cmp	word ptr ds:CURBUF, 0FFFFh
@@ -6842,14 +5512,10 @@ set_check_share:			; ...
 		jnb	short set_do
 		mov	ax, 32
 		jmp	short OK_BYE
-; ---------------------------------------------------------------------------
-
 cannot_set_root:			; ...
 		mov	ax, 5
 		stc
 		jmp	short OK_BYE
-; ---------------------------------------------------------------------------
-
 set_do:					; ...
 		les	di, ds:CURBUF
 		and	byte ptr es:[bx+0Bh], 0D8h
@@ -6858,7 +5524,6 @@ set_do:					; ...
 		jnz	short yesdirty3
 		call	INC_DIRTY_COUNT
 		or	byte ptr es:[di+5], 40h
-
 yesdirty3:				; ...
 		mov	al, ds:THISDRV
 		push	dx
@@ -6872,16 +5537,11 @@ yesdirty3:				; ...
 		call	FLUSHBUF
 		jnb	short OK_BYE
 		mov	ax, 2
-
 OK_BYE:					; ...
 		call	LCritDisk
 		retn
 SET_FILE_ATTRIBUTE endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Get_FAST_PATH	proc near		; ...
 		or	ss:FastOpenFlg,	1
 		call	GETPATH
@@ -6890,30 +5550,20 @@ Get_FAST_PATH	proc near		; ...
 		popf
 		retn
 Get_FAST_PATH	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DOS_DUP		proc near		; ...
 		mov	es, cs:DosDSeg
 		les	di, es:THISSFT
-
 DOS_Dup_Direct:				; ...
 		call	IsSFTNet
 		jnz	short DO_INC
 		call	DEV_OPEN_SFT
-
 DO_INC:					; ...
 		inc	word ptr es:[di]
 		retn
 DOS_DUP		endp
-
-; ---------------------------------------------------------------------------
-
 DOS_CREATE:				; ...
 		xor	ah, ah
-
 Create_inter:				; ...
 		test	al, 80h
 		jnz	short AttErr
@@ -6921,18 +5571,14 @@ Create_inter:				; ...
 		jz	short NoReset
 		or	ds:DOS34_FLAG, 80h
 		mov	al, 8
-
 NoReset:				; ...
 		or	al, 20h
 		test	al, 50h
 		jz	short ATT_OK
-
 AttErr:					; ...
 		mov	ax, 5
 		mov	ds:EXTERR_LOCUS, 1
 		jmp	short SET_MKND_ERR
-; ---------------------------------------------------------------------------
-
 ATT_OK:					; ...
 		les	di, ds:THISSFT
 		push	es
@@ -6942,7 +5588,6 @@ ATT_OK:					; ...
 		pop	es
 		test	ds:EXTOPEN_ON, 1
 		jz	short NOEXTOP
-
 IFS_extopen:				; ...
 		push	ax
 		mov	ax, 112Eh
@@ -6953,8 +5598,6 @@ IFS_extopen:				; ...
 		pop	bx
 		mov	ds:EXTOPEN_ON, 0
 		retn
-; ---------------------------------------------------------------------------
-
 NOEXTOP:				; ...
 		push	ax
 		mov	ax, 1118h
@@ -6964,8 +5607,6 @@ NOEXTOP:				; ...
 					; STACK: WORD file creation mode???
 		pop	bx
 		retn
-; ---------------------------------------------------------------------------
-
 TEST_RE_NET:				; ...
 		test	word ptr es:[si+43h], 8000h
 		pop	es
@@ -6973,7 +5614,6 @@ TEST_RE_NET:				; ...
 		call	Set_EXT_mode
 		jb	short dochk
 		or	word ptr es:[di+2], 2
-
 dochk:					; ...
 		test	ds:EXTOPEN_ON, 1
 		jnz	short IFS_extopen
@@ -6986,29 +5626,22 @@ dochk:					; ...
 					; Return: CF set on error
 		pop	bx
 		retn
-; ---------------------------------------------------------------------------
-
 LOCAL_CREATE:				; ...
 		call	Set_EXT_mode
 		jb	short setdone
 		or	word ptr es:[di+2], 2
-
 setdone:				; ...
 		call	ECritDisk
 		call	MakeNode
 		jnb	short Create_ok
 		mov	ds:VOLCHNG_FLAG, 0FFh
 		call	LCritDisk
-
 SET_MKND_ERR:				; ...
 		mov	bx, offset CRTERRTAB
 		xlat	byte ptr cs:[bx]
 		stc
 		retn
-; ---------------------------------------------------------------------------
 CRTERRTAB	db 0, 5, 52h, 50h, 3, 5, 20h, 2	; ...
-; ---------------------------------------------------------------------------
-
 Create_ok:				; ...
 		call	FastOpen_Delete
 		mov	al, ds:SATTRIB
@@ -7023,22 +5656,16 @@ Create_ok:				; ...
 		call	ECritDisk
 		call	FATREAD_CDS
 		call	LCritDisk
-
 NoVolLabel:				; ...
 		mov	ax, 2
 		les	di, ds:THISSFT
 		call	ds:ShSU
 		call	LCritDisk
 		jmp	SET_SFT_MODE
-; ---------------------------------------------------------------------------
-
 DOS_Create_New:				; ...
 		mov	ah, 1
 		jmp	Create_inter
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Set_Media_ID	proc near		; ...
 		push	ax
 		push	es
@@ -7059,11 +5686,8 @@ Set_Media_ID	proc near		; ...
 		jz	short NoName
 		mov	si, offset NAME1
 		jmp	short doset
-; ---------------------------------------------------------------------------
-
 NoName:					; ...
 		mov	si, offset NO_NAME_ID ;	"NO NAME    "
-
 doset:					; ...
 		mov	di, dx
 		add	di, 6
@@ -7077,7 +5701,6 @@ doset:					; ...
 		mov	al, 0Dh
 		xor	bh, bh
 		call	$IOCTL
-
 geterr:					; ...
 		push	ss
 		pop	ds
@@ -7086,11 +5709,7 @@ geterr:					; ...
 		pop	ax
 		retn
 Set_Media_ID	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Set_EXT_mode	proc near		; ...
 		test	ss:EXTOPEN_ON, 1
 		jz	short NOTEX
@@ -7099,15 +5718,10 @@ Set_EXT_mode	proc near		; ...
 		or	es:[di+2], ax
 		pop	ax
 		stc
-
 NOTEX:					; ...
 		retn
 Set_EXT_mode	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DOS_OPEN	proc near		; ...
 		mov	ds:NoSetDir, 0
 		call	Check_Access_AX
@@ -7122,7 +5736,6 @@ DOS_OPEN	proc near		; ...
 		pop	es
 		test	ds:EXTOPEN_ON, 1
 		jz	short _NOEXTOP
-
 _IFS_extopen:				; ...
 		mov	al, byte ptr ds:SAVE_BX
 		push	ax
@@ -7133,18 +5746,14 @@ _IFS_extopen:				; ...
 					; CF clear if successful
 		pop	bx
 		mov	ds:EXTOPEN_ON, 0
-
 do_ret_label:				; ...
 		retn
-; ---------------------------------------------------------------------------
-
 _NOEXTOP:				; ...
 		test	ds:DOS_FLAG, 1
 		jz	short not_exec_open
 		test	byte ptr ds:DOS34_FLAG+1, 8
 		jz	short not_exec_open
 		mov	al, 23h
-
 not_exec_open:				; ...
 		push	ax
 		mov	ax, 1116h
@@ -7155,8 +5764,6 @@ not_exec_open:				; ...
 					; Return: CF set on error
 		pop	bx
 		retn
-; ---------------------------------------------------------------------------
-
 TEST_RE_NET1:				; ...
 		test	word ptr es:[si+43h], 8000h
 		pop	es
@@ -7164,8 +5771,6 @@ TEST_RE_NET1:				; ...
 		test	ds:EXTOPEN_ON, 1
 		jnz	short _IFS_extopen
 		jmp	short _NOEXTOP
-; ---------------------------------------------------------------------------
-
 LOCAL_OPEN:				; ...
 		call	ECritDisk
 		or	ds:FastOpenFlg,	5
@@ -7174,27 +5779,19 @@ LOCAL_OPEN:				; ...
 		jnz	short bad_path2
 		or	cl, cl
 		jz	short bad_path2
-
 OpenFNF:
 		mov	ax, 2
-
 OpenBadRet:				; ...
 		and	ss:FastOpenFlg,	80h
 		stc
 		call	LCritDisk
 		jmp	Clear_FastOpen
-; ---------------------------------------------------------------------------
-
 bad_path2:				; ...
 		mov	ax, 3
 		jmp	short OpenBadRet
-; ---------------------------------------------------------------------------
-
 Open_Bad_Access:			; ...
 		mov	ax, 5
 		jmp	short OpenBadRet
-; ---------------------------------------------------------------------------
-
 Open_found:				; ...
 		jz	short Open_Bad_Access
 		or	ah, ah
@@ -7215,13 +5812,10 @@ Open_found:				; ...
 		and	dl, 0F0h
 		cmp	dl, 70h	; 'p'
 		jnz	short NormalOpen
-
 ResetAccess:				; ...
 		and	cx, 0FFF0h
 		mov	[si+2],	cx
 		jmp	short FillSFT
-; ---------------------------------------------------------------------------
-
 NormalOpen:				; ...
 		and	cl, 0Fh
 		cmp	cl, 0
@@ -7229,12 +5823,9 @@ NormalOpen:				; ...
 		pop	si
 		pop	ds
 		jmp	short Open_Bad_Access
-; ---------------------------------------------------------------------------
-
 FillSFT:				; ...
 		pop	si
 		pop	ds
-
 open_ok:				; ...
 		call	DOOPEN
 		and	ss:FastOpenFlg,	80h
@@ -7242,14 +5833,11 @@ open_ok:				; ...
 		jnb	short SHARE_OK
 		call	LCritDisk
 		jmp	short Clear_FastOpen
-; ---------------------------------------------------------------------------
-
 SHARE_OK:				; ...
 		mov	ax, 3
 		les	di, ds:THISSFT
 		call	ds:ShSU
 		call	LCritDisk
-
 SET_SFT_MODE:				; ...
 		les	di, ds:THISSFT
 		call	DEV_OPEN_SFT
@@ -7257,15 +5845,10 @@ SET_SFT_MODE:				; ...
 		jz	short Clear_FastOpen
 		mov	ax, ds:CurrentPDB
 		mov	es:[di+31h], ax
-
 Clear_FastOpen:				; ...
 		retn
 DOS_OPEN	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SHARE_ERROR	proc near		; ...
 		test	word ptr es:[di+2], 8000h
 		jnz	short _HARD_ERR
@@ -7273,27 +5856,19 @@ SHARE_ERROR	proc near		; ...
 		and	cl, 0F0h
 		cmp	cl, 0
 		jnz	short _NO_HARD_ERR
-
 _HARD_ERR:				; ...
 		call	SHARE_VIOLATION
 		jnb	short Clear_FastOpen
-
 _NO_HARD_ERR:				; ...
 		mov	ax, 20h	; ' '
 		stc
 		retn
 SHARE_ERROR	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DO_SHARE_CHECK	proc near		; ...
 		call	ECritDisk
-
 OPN_RETRY:				; ...
 		mov	cx, ds:RetryCount
-
 OpenShareRetry:				; ...
 		push	cx
 		call	SHARE_CHECK
@@ -7304,16 +5879,11 @@ OpenShareRetry:				; ...
 		les	di, ds:THISSFT
 		call	SHARE_ERROR
 		jnb	short OPN_RETRY
-
 Share_Ok2:				; ...
 		call	LCritDisk
 		retn
 DO_SHARE_CHECK	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Check_Access_AX	proc near		; ...
 		mov	ds:OPEN_ACCESS,	al
 		push	bx
@@ -7323,11 +5893,9 @@ Check_Access_AX	proc near		; ...
 		jnz	short CheckShareMode
 		cmp	bl, 70h
 		jz	short CheckAccessMode
-
 CheckShareMode:				; ...
 		cmp	bl, 40h
 		ja	short Make_Bad_Access
-
 CheckAccessMode:			; ...
 		mov	bl, al
 		and	bl, 0Fh
@@ -7336,19 +5904,13 @@ CheckAccessMode:			; ...
 		pop	bx
 		clc
 		retn
-; ---------------------------------------------------------------------------
-
 Make_Bad_Access:			; ...
 		mov	ax, 0Ch
 		pop	bx
 		stc
 		retn
 Check_Access_AX	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DISK_INFO	proc near		; ...
 		call	TestNet
 		jnb	short LOCAL_DSK_INFO
@@ -7358,8 +5920,6 @@ DISK_INFO	proc near		; ...
 					; Return: AL = sectors per cluster, BX = total clusters
 					; CX = bytes per sector, DX = number of	available clusters
 		retn
-; ---------------------------------------------------------------------------
-
 LOCAL_DSK_INFO:				; ...
 		mov	ds:EXTERR_LOCUS, 2
 		call	ECritDisk
@@ -7378,22 +5938,18 @@ LOCAL_DSK_INFO:				; ...
 		jz	short DoScan
 		cmp	dx, cx
 		jb	short GotVal
-
 DoScan:					; ...
 		xor	dx, dx
 		dec	cx
-
 SCANFREE:				; ...
 		call	UNPACK
 		jb	short CRIT_LEAVE
 		jnz	short NOTFREECLUS
 		inc	dx
-
 NOTFREECLUS:				; ...
 		inc	bx
 		loop	SCANFREE
 		dec	bx
-
 ReturnVals:				; ...
 		dec	bx
 		mov	al, es:[bp+4]
@@ -7401,33 +5957,22 @@ ReturnVals:				; ...
 		mov	cx, es:[bp+2]
 		mov	es:[bp+1Fh], dx
 		clc
-
 CRIT_LEAVE:				; ...
 		call	LCritDisk
 		retn
-; ---------------------------------------------------------------------------
-
 GotVal:					; ...
 		mov	bx, cx
 		jmp	short ReturnVals
 DISK_INFO	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DOS_SEARCH_FIRST proc near		; ...
-
 ; FUNCTION CHUNK AT 6C8B SIZE 0000009C BYTES
-
 		les	di, ds:THISCDS
 		cmp	di, 0FFFFh
 		jnz	short TEST_RE_NET2
 		mov	ax, 1119h
 		int	2Fh		; Multiplex - NETWORK REDIRECTOR - ???
 		retn
-; ---------------------------------------------------------------------------
-
 TEST_RE_NET2:				; ...
 		test	word ptr es:[di+43h], 8000h
 		jz	short LOCAL_SEARCH_FIRST
@@ -7438,20 +5983,16 @@ TEST_RE_NET2:				; ...
 					; SDA CDS pointer -> current directory
 					; Return: CF set on error
 		retn
-; ---------------------------------------------------------------------------
-
 LOCAL_SEARCH_FIRST:			; ...
 		call	ECritDisk
 		test	ds:DOS34_FLAG, 400h
 		jz	short NOFN
 		or	ds:FastOpenFlg,	1
-
 NOFN:					; ...
 		mov	ds:NoSetDir, 1
 		call	CHECK_QUESTION
 		jnb	short norm_GETPATH
 		and	ds:FastOpenFlg,	80h
-
 norm_GETPATH:				; ...
 		call	GETPATH
 		jnb	short find_check_dev
@@ -7459,39 +6000,30 @@ norm_GETPATH:				; ...
 		or	cl, cl
 		jz	short bad_path3
 DOS_SEARCH_FIRST endp
-
 ; START	OF FUNCTION CHUNK FOR DOS_SEARCH_NEXT
-
 find_no_more:				; ...
 		mov	ax, 12h
-
 BadBye:					; ...
 		and	ss:FastOpenFlg,	80h
 		stc
 		call	LCritDisk
 		retn
 ; END OF FUNCTION CHUNK	FOR DOS_SEARCH_NEXT
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR DOS_SEARCH_FIRST
-
 bad_path3:				; ...
 		mov	ax, 3
 		jmp	short BadBye
-; ---------------------------------------------------------------------------
-
 find_check_dev:				; ...
 		or	ah, ah
 		jns	short found_entry
 		mov	ds:LASTENT, 0FFFFh
 		inc	ds:FOUND_DEV
-
 found_entry:				; ...
 		les	di, ds:DMAADD
 		mov	si, ds:WFP_START
 		lodsb
 		sub	al, 40h	; '@'
 		stosb
-
 found_it:				; ...
 		les	di, ds:DMAADD
 		inc	di
@@ -7501,17 +6033,13 @@ found_it:				; ...
 		mov	si, bx
 		mov	ds, word ptr ds:CURBUF+2
 		jmp	short movmov
-; ---------------------------------------------------------------------------
-
 notfast:				; ...
 		mov	si, offset NAME1
-
 movmov:					; ...
 		movsb
 		cmp	byte ptr es:[di-1], 5
 		jnz	short NOTKANJB
 		mov	byte ptr es:[di-1], 0E5h ; 'å'
-
 NOTKANJB:				; ...
 		mov	cx, 10
 		rep movsb
@@ -7533,11 +6061,8 @@ NOTKANJB:				; ...
 		jnz	short OKSTORE
 		mov	word ptr es:[di-8], 0FFFFh
 		jmp	find_no_more
-; ---------------------------------------------------------------------------
-
 OKSTORE:				; ...
 		mov	ds, word ptr ds:CURBUF+2
-
 DOSREL:					; ...
 		mov	si, bx
 		mov	cx, 32
@@ -7547,7 +6072,6 @@ DOSREL:					; ...
 		cmp	byte ptr es:[di], 5
 		jnz	short NO05
 		mov	byte ptr es:[di], 0E5h
-
 NO05:					; ...
 		and	ss:FastOpenFlg,	80h
 		push	ss
@@ -7556,14 +6080,9 @@ NO05:					; ...
 		call	LCritDisk
 		retn
 ; END OF FUNCTION CHUNK	FOR DOS_SEARCH_FIRST
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DOS_SEARCH_NEXT	proc near		; ...
-
 ; FUNCTION CHUNK AT 6C7D SIZE 0000000E BYTES
-
 		les	di, ds:DMAADD
 		mov	al, es:[di]
 		test	al, 80h
@@ -7574,8 +6093,6 @@ DOS_SEARCH_NEXT	proc near		; ...
 					; Return: CF set on error, AX =	DOS error code
 					; CF clear if successful
 		retn
-; ---------------------------------------------------------------------------
-
 LOCAL_SEARCH_NEXT:			; ...
 		mov	ds:EXTERR_LOCUS, 2
 		call	ECritDisk
@@ -7593,7 +6110,6 @@ LOCAL_SEARCH_NEXT:			; ...
 		mov	ds:NoSetDir, 1
 		lds	si, ds:DMAADD
 		lodsb
-
 RENAME_NEXT:				; ...
 		push	ss
 		pop	es
@@ -7605,11 +6121,8 @@ RENAME_NEXT:				; ...
 		lodsw
 		or	ax, ax
 		jns	short cont_load
-
 No_files:				; ...
 		jmp	find_no_more
-; ---------------------------------------------------------------------------
-
 cont_load:				; ...
 		push	ax
 		lodsw
@@ -7621,8 +6134,6 @@ cont_load:				; ...
 		jnb	short SEARCH_GOON
 		pop	ax
 		jmp	short No_files
-; ---------------------------------------------------------------------------
-
 SEARCH_GOON:				; ...
 		call	STARTSRCH
 		pop	ax
@@ -7633,16 +6144,11 @@ SEARCH_GOON:				; ...
 		xor	ah, ah
 		jmp	found_it
 DOS_SEARCH_NEXT	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 CHECK_QUESTION	proc near		; ...
 		push	ss
 		pop	ds
 		mov	si, ss:WFP_START
-
 getnext:				; ...
 		lodsb
 		or	al, al
@@ -7650,19 +6156,13 @@ getnext:				; ...
 		cmp	al, '?'
 		jnz	short getnext
 		stc
-
 NO_Question:				; ...
 		retn
 CHECK_QUESTION	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DOS_ABORT	proc near		; ...
 		mov	es, ss:CurrentPDB
 		mov	cx, es:32h	; [ES:PDB.JFN_Length]
-
 reset_free_jfn:				; ...
 		mov	bx, cx
 		push	cx
@@ -7681,27 +6181,21 @@ reset_free_jfn:				; ...
 		jcxz	short FCBScanDone
 		lea	di, [di+6]
 		mov	ax, ss:PROC_ID
-
 FCBTest:				; ...
 		cmp	es:[di+31h], ax
 		jnz	short FCBNext
 		mov	word ptr es:[di], 0
-
 FCBNext:				; ...
 		add	di, 59
 		loop	FCBTest
-
 FCBScanDone:				; ...
 		xor	bx, bx
-
 Scan:					; ...
 		push	bx
 		call	SFFromSFN
 		pop	bx
 		jnb	short Scan1
 		retn
-; ---------------------------------------------------------------------------
-
 Scan1:					; ...
 		cmp	word ptr es:[di], 0FFFFh
 		jnz	short scan_next
@@ -7712,16 +6206,11 @@ Scan1:					; ...
 		cmp	es:[di+2Fh], ax
 		jnz	short scan_next
 		mov	word ptr es:[di], 0
-
 scan_next:				; ...
 		inc	bx
 		jmp	short Scan
 DOS_ABORT	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DOS_CLOSE	proc near		; ...
 		les	di, ds:THISSFT
 		mov	bx, es:[di+5]
@@ -7734,8 +6223,6 @@ DOS_CLOSE	proc near		; ...
 					; Return: CF set on error, AX =	DOS error code
 					; CF clear if successful
 		retn
-; ---------------------------------------------------------------------------
-
 LocalClose:				; ...
 		call	ECritDisk
 		call	SetSFTTimes
@@ -7747,21 +6234,16 @@ LocalClose:				; ...
 		call	ShareEnd
 		pop	bx
 		pop	ax
-
 CloseEntry:				; ...
 		push	ax
 		test	bx, 0C0h
 		jz	short rdir
 		jmp	FREE_SFT_OK
-; ---------------------------------------------------------------------------
-
 rdir:					; ...
 		call	DirFromSFT
 		mov	al, 5
 		jnb	short clook
 		jmp	CloseFinish
-; ---------------------------------------------------------------------------
-
 clook:					; ...
 		push	di
 		push	si
@@ -7780,8 +6262,6 @@ clook:					; ...
 		stc
 		mov	al, 2
 		jmp	CloseFinish
-; ---------------------------------------------------------------------------
-
 CLOSE_GO:				; ...
 		test	word ptr [si+2], 8000h
 		jz	short nofcb
@@ -7789,12 +6269,9 @@ CLOSE_GO:				; ...
 		mov	al, [si+4]
 		mov	ss:ATTRIB, al
 		jmp	short setattr
-; ---------------------------------------------------------------------------
-
 nofcb:					; ...
 		mov	al, [si+4]
 		mov	es:[di+0Bh], al
-
 setattr:				; ...
 		or	byte ptr es:[di+0Bh], 20h
 		mov	ax, es:[di+1Ah]
@@ -7813,7 +6290,6 @@ setattr:				; ...
 		jnz	short yesdirty4
 		call	INC_DIRTY_COUNT
 		or	byte ptr es:[bx+5], 40h
-
 yesdirty4:				; ...
 		push	ds
 		push	si
@@ -7829,14 +6305,11 @@ yesdirty4:				; ...
 		mov	cx, [si+1Dh]
 		mov	dh, [si+1Fh]
 		jmp	short do_update
-; ---------------------------------------------------------------------------
-
 do_update2:				; ...
 		cmp	cx, ss:OLD_FIRSTCLUS
 		jz	short do_update
 		mov	ah, 2
 		mov	cx, ss:OLD_FIRSTCLUS
-
 do_update:				; ...
 		push	ss
 		pop	ds
@@ -7847,10 +6320,8 @@ do_update:				; ...
 		pop	es
 		mov	al, 5
 		jb	short CloseFinish
-
 FREE_SFT_OK:				; ...
 		clc
-
 CloseFinish:				; ...
 		pushf
 		call	DEV_CLOSE_SFT
@@ -7860,34 +6331,24 @@ CloseFinish:				; ...
 		dec	cx
 		jnz	short NoFree
 		mov	es:[di], cx
-
 NoFree:					; ...
 		call	LCritDisk
 		popf
 		retn
 DOS_CLOSE	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 FREE_SFT	proc near		; ...
 		pushf
 		mov	ax, es:[di]
 		dec	ax
 		jnz	short SetCount
 		dec	ax
-
 SetCount:				; ...
 		xchg	ax, es:[di]
 		popf
 		retn
 FREE_SFT	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DirFromSFT	proc near		; ...
 		mov	ds:EXTERR_LOCUS, 2
 		push	es
@@ -7915,20 +6376,13 @@ DirFromSFT	proc near		; ...
 		mul	byte ptr [si+1Fh]
 		add	di, ax
 		retn
-; ---------------------------------------------------------------------------
-
 PopDone:				; ...
 		pop	di
 		pop	es
-
 PopDone_retn:				; ...
 		retn
 DirFromSFT	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DOS_COMMIT	proc near		; ...
 		les	di, ds:THISSFT
 		mov	bx, es:[di+5]
@@ -7943,8 +6397,6 @@ DOS_COMMIT	proc near		; ...
 					; Return: CF set on error, AX =	DOS error code
 					; CF clear if successful
 		retn
-; ---------------------------------------------------------------------------
-
 LOCAL_COMMIT:				; ...
 		call	ECritDisk
 		call	ECritDisk
@@ -7955,15 +6407,10 @@ LOCAL_COMMIT:				; ...
 		call	DEV_OPEN_SFT
 		popf
 		call	LCritDisk
-
 localcommit_retn:			; ...
 		retn
 DOS_COMMIT	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SetSFTTimes	proc near		; ...
 		test	bx, 0C0h
 		jnz	short localcommit_retn
@@ -7980,9 +6427,6 @@ SetSFTTimes	proc near		; ...
 		pop	ax
 		retn
 SetSFTTimes	endp
-
-; ---------------------------------------------------------------------------
-
 DOS_MKDIR:				; ...
 		call	TestNet
 		jnb	short LOCAL_MKDIR
@@ -7994,24 +6438,17 @@ DOS_MKDIR:				; ...
 					; Return: CF set on error, AX =	DOS error code
 					; CF clear if successful
 		retn
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR DOS_RMDIR
-
 NODEACCERRJ:				; ...
 		mov	ax, 5
-
 _BadRet:				; ...
 		stc
 		call	LCritDisk
 		retn
 ; END OF FUNCTION CHUNK	FOR DOS_RMDIR
-; ---------------------------------------------------------------------------
-
 PATHNFJ:				; ...
 		call	LCritDisk
 		jmp	SET_MKND_ERR
-; ---------------------------------------------------------------------------
-
 LOCAL_MKDIR:				; ...
 		call	ECritDisk
 		mov	word ptr ds:THISSFT+2, ss
@@ -8042,7 +6479,6 @@ LOCAL_MKDIR:				; ...
 		jnz	short yesdirty5
 		call	INC_DIRTY_COUNT
 		or	byte ptr es:[di+5], 40h
-
 yesdirty5:				; ...
 		add	di, 20
 		mov	ax, 202Eh
@@ -8067,16 +6503,12 @@ yesdirty5:				; ...
 		xor	dx, dx
 		mov	[si+2],	dx
 		mov	[si+4],	dx
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DIRUP		proc near		; ...
 		test	byte ptr [di+5], 40h
 		jnz	short yesdirty6
 		call	INC_DIRTY_COUNT
 		or	byte ptr [di+5], 40h
-
 yesdirty6:				; ...
 		push	ss
 		pop	ds
@@ -8086,9 +6518,6 @@ yesdirty6:				; ...
 		call	LCritDisk
 		retn
 DIRUP		endp
-
-; ---------------------------------------------------------------------------
-
 NODEEXISTSPOPDEL:			; ...
 		pop	dx
 		pop	dx
@@ -8105,18 +6534,12 @@ NODEEXISTSPOPDEL:			; ...
 		sub	si, 1Ah
 		mov	byte ptr [si], 0E5h ; 'å'
 		call	DIRUP
-
 NODEEXISTS:				; ...
 		jmp	NODEACCERRJ
-; ---------------------------------------------------------------------------
-
 NODEEXISTSP:				; ...
 		pop	si
 		jmp	short NODEEXISTS
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DOS_CHDIR	proc near		; ...
 		call	TestNet
 		jnb	short LOCAL_CHDIR
@@ -8128,14 +6551,11 @@ DOS_CHDIR	proc near		; ...
 					; Return: CF set on error, AX =	DOS error code
 					; CF clear if successful
 		retn
-; ---------------------------------------------------------------------------
-
 LOCAL_CHDIR:				; ...
 		call	ECritDisk
 		test	word ptr es:[di+43h], 2000h
 		jz	short nojoin
 		mov	word ptr es:[di+49h], 0FFFFh
-
 nojoin:					; ...
 		mov	ds:NoSetDir, 0
 		mov	ds:SATTRIB, 16h
@@ -8149,20 +6569,13 @@ nojoin:					; ...
 		jnz	short NOTDIRPATH
 		mov	cx, ds:DIRSTART
 		clc
-
 ChDirDone:				; ...
 		call	LCritDisk
 		retn
 DOS_CHDIR	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DOS_RMDIR	proc near		; ...
-
 ; FUNCTION CHUNK AT 6FE5 SIZE 00000008 BYTES
-
 		call	TestNet
 		jnb	short LOCAL_RMDIR
 		mov	ax, 1101h
@@ -8173,8 +6586,6 @@ DOS_RMDIR	proc near		; ...
 					; Return: CF set on error, AX =	DOS error code
 					; CF clear if successful
 		retn
-; ---------------------------------------------------------------------------
-
 LOCAL_RMDIR:				; ...
 		call	ECritDisk
 		mov	ds:NoSetDir, 0
@@ -8186,24 +6597,16 @@ LOCAL_RMDIR:				; ...
 		or	di, di
 		jnz	short rmdir_get_buf
 		jmp	short NOTDIRPATH
-; ---------------------------------------------------------------------------
-
 NOPATH:					; ...
 		mov	ax, 3
 		jmp	_BadRet
-; ---------------------------------------------------------------------------
-
 NOTDIRPATHPOP:				; ...
 		pop	ax
 		pop	ax
-
 NOTDIRPATHPOP2:				; ...
 		pop	ax
-
 NOTDIRPATH:				; ...
 		jmp	NODEACCERRJ
-; ---------------------------------------------------------------------------
-
 rmdir_get_buf:				; ...
 		lds	di, ds:CURBUF
 		sub	bx, di
@@ -8264,20 +6667,12 @@ rmdir_get_buf:				; ...
 		pop	ds
 		jmp	DIRUP
 DOS_RMDIR	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SWAPBACK	proc near		; ...
 		mov	ds:CONSWAP, 0
 		retn
 SWAPBACK	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SWAPCON		proc near		; ...
 		mov	ds:CONSWAP, 1
 		push	ax
@@ -8288,11 +6683,7 @@ SWAPCON		proc near		; ...
 		pop	ax
 		retn
 SWAPCON		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DOS_READ	proc near		; ...
 		les	di, ds:THISSFT
 		mov	al, es:[di+2]
@@ -8300,8 +6691,6 @@ DOS_READ	proc near		; ...
 		cmp	al, 1
 		jnz	short READ_NO_MODE
 		jmp	SET_ACC_ERR
-; ---------------------------------------------------------------------------
-
 READ_NO_MODE:				; ...
 		call	SETUP
 		jcxz	short NoIORet
@@ -8314,25 +6703,18 @@ READ_NO_MODE:				; ...
 					; CX = number of bytes,	SS = DOS CS, SDA DTA field -> user buffer
 					; Return: CF set on error, CX =	bytes read
 		retn
-; ---------------------------------------------------------------------------
-
 NoIORet:				; ...
 		clc
 		retn
-; ---------------------------------------------------------------------------
-
 LOCAL_READ:				; ...
 		test	byte ptr es:[di+5], 80h
 		jnz	short READDEV
 		mov	ds:EXTERR_LOCUS, 2
 		call	ECritDisk
 		call	DISKREAD
-
 critexit:
 		call	LCritDisk
 		retn
-; ---------------------------------------------------------------------------
-
 READDEV:				; ...
 		mov	ds:EXTERR_LOCUS, 4
 		mov	bl, es:[di+5]
@@ -8342,19 +6724,14 @@ READDEV:				; ...
 		test	bl, 4
 		jz	short TESTRAW
 		xor	al, al
-
 ENDRDDEVJ3:				; ...
 		jmp	ENDRDDEVJ2
-; ---------------------------------------------------------------------------
-
 TESTRAW:				; ...
 		test	bl, 20h
 		jnz	short DVRDRAW
 		test	bl, 1
 		jz	short NOTRDCON
 		jmp	READCON
-; ---------------------------------------------------------------------------
-
 DVRDRAW:				; ...
 		push	es
 		pop	ds
@@ -8363,8 +6740,6 @@ DVRDRAW:				; ...
 		test	bl, 1
 		jz	short ReadRawRetry
 		jmp	do_polling
-; ---------------------------------------------------------------------------
-
 ReadRawRetry:				; ...
 		mov	bx, di
 		xor	ax, ax
@@ -8388,23 +6763,16 @@ ReadRawRetry:				; ...
 		jz	short CRDFERR
 		pop	ds
 		jmp	short ReadRawRetry
-; ---------------------------------------------------------------------------
-
 CRDFERR:				; ...
 		pop	di
-
 DEVIOFERR:				; ...
 		les	di, ss:THISSFT
 		jmp	SET_ACC_ERR_DS
-; ---------------------------------------------------------------------------
-
 CRDROK:					; ...
 		pop	di
 		mov	di, dx
 		add	di, word ptr ss:CALLBPB
 		jmp	short ENDRDDEVJ3
-; ---------------------------------------------------------------------------
-
 NOTRDCON:				; ...
 		mov	ax, es
 		mov	ds, ax
@@ -8417,7 +6785,6 @@ NOTRDCON:				; ...
 		pop	cx
 		lds	si, ss:THISSFT
 		lds	si, [si+7]
-
 DVRDLP:					; ...
 		call	near ptr DSKSTATCHK
 		call	DEVIOCALL2
@@ -8435,8 +6802,6 @@ DVRDLP:					; ...
 		jz	short DEVIOFERR
 		xor	al, al
 		jmp	short DVRDIGN
-; ---------------------------------------------------------------------------
-
 CRDOK:					; ...
 		pop	di
 		cmp	word ptr ss:CALLBPB, 1 ; [SS:CALLSCNT]
@@ -8445,7 +6810,6 @@ CRDOK:					; ...
 		mov	ds, word ptr ss:CALLBR+2 ; [SS:CALLXAD+2]
 		mov	al, [di]
 		pop	ds
-
 DVRDIGN:				; ...
 		inc	word ptr ss:CALLBR ; [SS:CALLXAD]
 		mov	ss:DEVCALL_REQSTAT, 0
@@ -8455,17 +6819,13 @@ DVRDIGN:				; ...
 		cmp	al, 0Dh
 		loopne	DVRDLP
 		inc	ax
-
 ENDRDDEVJ2:				; ...
 		jmp	ENDRDDEV
-; ---------------------------------------------------------------------------
-
 do_polling:				; ...
 		mov	bx, di
 		xor	ax, ax
 		mov	dx, ax
 		call	SETREAD
-
 do_io:					; ...
 		mov	byte ptr es:[bx+2], 5
 		push	ds
@@ -8484,8 +6844,6 @@ do_io:					; ...
 		jz	short devrderr
 		pop	ds
 		jmp	short do_io
-; ---------------------------------------------------------------------------
-
 check_busy:				; ...
 		test	word ptr es:[bx+3], 200h
 		jnz	short no_char
@@ -8507,8 +6865,6 @@ check_busy:				; ...
 		jz	short devrderr
 		pop	ds
 		jmp	short do_io
-; ---------------------------------------------------------------------------
-
 next_char:				; ...
 		pop	ds
 		mov	di, dx
@@ -8516,37 +6872,27 @@ next_char:				; ...
 		jcxz	short done_read
 		inc	word ptr es:[bx+14]
 		jmp	short do_io
-; ---------------------------------------------------------------------------
-
 devrderr:				; ...
 		pop	di
 		les	di, ss:THISSFT
 		jmp	SET_ACC_ERR_DS
-; ---------------------------------------------------------------------------
-
 no_char:				; ...
 		push	ax
 		mov	ah, 84h
 		int	2Ah		; Microsoft Networks - KEYBOARD	BUSY LOOP
 		pop	ax
 		jmp	do_io
-; ---------------------------------------------------------------------------
-
 pop_done_read:				; ...
 		pop	ds
-
 done_read:				; ...
 		add	di, word ptr ss:CALLBPB
 		jmp	ENDRDDEVJ3
-; ---------------------------------------------------------------------------
-
 TRANBUF:				; ...
 		lodsb
 		stosb
 		cmp	al, 0Dh
 		jnz	short NORMCH
 		mov	byte ptr [si], 0Ah
-
 NORMCH:					; ...
 		cmp	al, 0Ah
 		loopne	TRANBUF
@@ -8554,13 +6900,11 @@ NORMCH:					; ...
 		xor	si, si
 		call	OUTT
 		or	al, 1
-
 ENDRDCON:				; ...
 		push	ss
 		pop	ds
 		call	SWAPBACK
 		mov	ds:CONTPOS, si
-
 ENDRDDEV:				; ...
 		push	ss
 		pop	ds
@@ -8568,12 +6912,9 @@ ENDRDDEV:				; ...
 		jnz	short SETSFTC
 		les	di, ds:THISSFT
 		and	byte ptr es:[di+5], 0BFh
-
 SETSFTC:				; ...
 		call	SETSFT
 		retn
-; ---------------------------------------------------------------------------
-
 READCON:				; ...
 		call	SWAPCON
 		mov	si, ds:CONTPOS
@@ -8582,7 +6923,6 @@ READCON:				; ...
 		cmp	ds:CONBUF, 128
 		jz	short GETBUF
 		mov	word ptr ds:CONBUF, 0FF80h
-
 GETBUF:					; ...
 		push	cx
 		push	es
@@ -8603,28 +6943,20 @@ GETBUF:					; ...
 		xor	si, si
 		jmp	short ENDRDCON
 DOS_READ	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DOS_WRITE	proc near		; ...
 		les	di, ds:THISSFT
 		mov	al, es:[di+2]
 		and	al, 0Fh
 		cmp	al, 0
 		jnz	short Check_FCB_RO
-
 BadMode:				; ...
 		jmp	SET_ACC_ERR
-; ---------------------------------------------------------------------------
-
 Check_FCB_RO:				; ...
 		test	byte ptr es:[di+3], 80h
 		jz	short WRITE_NO_MODE
 		test	byte ptr es:[di+4], 1
 		jnz	short BadMode
-
 WRITE_NO_MODE:				; ...
 		call	SETUP
 		call	IsSFTNet
@@ -8636,8 +6968,6 @@ WRITE_NO_MODE:				; ...
 					; CX = number of bytes,	SS = DOS CS, SDA DTA field -> user buffer
 					; Return: CF set on error, CX =	bytes written
 		retn
-; ---------------------------------------------------------------------------
-
 LOCAL_WRITE:				; ...
 		test	byte ptr es:[di+5], 80h
 		jnz	short WRTDEV
@@ -8651,12 +6981,9 @@ LOCAL_WRITE:				; ...
 		push	cx
 		call	DOS_COMMIT
 		pop	cx
-
 nocommit:				; ...
 		call	LCritDisk
 		retn
-; ---------------------------------------------------------------------------
-
 DVWRTRAW:				; ...
 		xor	ax, ax
 		call	SETWRITE
@@ -8679,32 +7006,22 @@ DVWRTRAW:				; ...
 		jz	short CWRFERR
 		pop	ds
 		jmp	short DVWRTRAW
-; ---------------------------------------------------------------------------
-
 CWRFERR:				; ...
 		pop	ax
 		jmp	CRDFERR
-; ---------------------------------------------------------------------------
-
 CWRTROK:				; ...
 		pop	ax
 		pop	ds
 		mov	ax, word ptr ds:CALLBPB
-
 ENDWRDEV:				; ...
 		les	di, ds:THISSFT
 		mov	cx, ax
 		call	ADDREC
 		retn
-; ---------------------------------------------------------------------------
-
 WRTNUL:					; ...
 		mov	dx, cx
-
 WRTCOOKJ:				; ...
 		jmp	WRTCOOKDONE
-; ---------------------------------------------------------------------------
-
 WRTDEV:					; ...
 		mov	ds:EXTERR_LOCUS, 4
 		or	byte ptr es:[di+5], 40h
@@ -8719,8 +7036,6 @@ WRTDEV:					; ...
 		test	al, 20h
 		jz	short TEST_DEV_CON
 		jmp	short DVWRTRAW
-; ---------------------------------------------------------------------------
-
 TEST_DEV_CON:				; ...
 		test	al, 2
 		jnz	short WRITECON
@@ -8735,7 +7050,6 @@ TEST_DEV_CON:				; ...
 		pop	cx
 		lds	si, ss:THISSFT
 		lds	si, [si+7]
-
 DVWRTLP:				; ...
 		call	near ptr DSKSTATCHK
 		call	DEVIOCALL2
@@ -8752,13 +7066,10 @@ DVWRTLP:				; ...
 		or	al, al
 		jz	short DVWRTIGN
 		jmp	CRDFERR
-; ---------------------------------------------------------------------------
-
 CWROK:					; ...
 		pop	di
 		cmp	word ptr ss:CALLBPB, 0
 		jz	short WRTCOOKDONE
-
 DVWRTIGN:				; ...
 		inc	dx
 		inc	word ptr ss:CALLBR
@@ -8770,13 +7081,10 @@ DVWRTIGN:				; ...
 		jz	short WRTCOOKDONE
 		mov	ss:DEVCALL_REQSTAT, 0
 		loop	DVWRTLP
-
 WRTCOOKDONE:				; ...
 		mov	ax, dx
 		pop	ds
 		jmp	ENDWRDEV
-; ---------------------------------------------------------------------------
-
 WRITECON:				; ...
 		push	ds
 		push	ss
@@ -8785,14 +7093,12 @@ WRITECON:				; ...
 		pop	ds
 		mov	si, bx
 		push	cx
-
 WRCONLP:				; ...
 		lodsb
 		cmp	al, 1Ah
 		jz	short CONEOF
 		call	OUTT
 		loop	WRCONLP
-
 CONEOF:					; ...
 		pop	ax
 		sub	ax, cx
@@ -8800,15 +7106,10 @@ CONEOF:					; ...
 		call	SWAPBACK
 		jmp	ENDWRDEV
 DOS_WRITE	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GET_IO_SFT	proc near		; ...
 		cmp	ss:CONSWAP, 0
 		jnz	short GetRedir
-
 GetNormal:				; ...
 		push	ss
 		pop	ds
@@ -8819,41 +7120,30 @@ GetNormal:				; ...
 		mov	si, es
 		mov	ds, si
 		mov	si, di
-
 RET44P:					; ...
 		pop	di
 		pop	es
 		retn
-; ---------------------------------------------------------------------------
-
 GetRedir:				; ...
 		cmp	bx, 1
 		ja	short GetNormal
 		lds	si, ss:CONSFT
 		clc
-
 get_io_sft_retn:			; ...
 		retn
 GET_IO_SFT	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DIRREAD		proc near		; ...
 		xor	dx, dx
 		cmp	ds:DIRSTART, 0
 		jnz	short SubDir
 		xchg	ax, dx
 		jmp	short DoRead
-; ---------------------------------------------------------------------------
-
 SubDir:					; ...
 		mov	dl, al
 		and	dl, es:[bp+4]
 		mov	cl, es:[bp+5]
 		shr	ax, cl
-
 DoRead:					; ...
 		mov	ds:SECCLUSPOS, dl
 		mov	cx, ax
@@ -8867,7 +7157,6 @@ DoRead:					; ...
 		mov	bx, ds:CLUSNUM
 		mov	ds:NXTCLUSNUM, bx
 		jcxz	short FIRSTCLUSTER
-
 SKPCLLP:				; ...
 		call	UNPACK
 		jb	short get_io_sft_retn
@@ -8875,19 +7164,16 @@ SKPCLLP:				; ...
 		call	IsEOF
 		jnb	short HAVESKIPPED
 		loop	SKPCLLP
-
 HAVESKIPPED:				; ...
 		mov	ds:NXTCLUSNUM, bx
 		mov	dx, di
 		mov	bl, ah
 		call	FIGREC
-
 FIRSTCLUSTER:				; ...
 		mov	ds:ALLOWED, 18h
 		xor	al, al
 		call	GETBUFFR
 		jb	short get_io_sft_retn
-
 SET_BUF_AS_DIR:				; ...
 		push	ds
 		push	si
@@ -8895,26 +7181,18 @@ SET_BUF_AS_DIR:				; ...
 		or	byte ptr [si+5], 4
 		pop	si
 		pop	ds
-
 dirread_retn:				; ...
 		retn
 DIRREAD		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 FATSECRD	proc near		; ...
-
 ; FUNCTION CHUNK AT 7660 SIZE 00000002 BYTES
-
 		mov	ss:ALLOWED, 18h
 		mov	di, cx
 		mov	cl, es:[bp+8]
 		mov	ax, es:[bp+0Fh]
 		xor	ch, ch
 		push	dx
-
 NXTFAT:					; ...
 		mov	ss:HIGH_SECTOR,	0
 		push	cx
@@ -8929,11 +7207,7 @@ NXTFAT:					; ...
 		pop	dx
 		mov	cx, di
 FATSECRD	endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DREAD		proc near		; ...
 		call	DSKREAD
 		jz	short dirread_retn
@@ -8945,35 +7219,25 @@ DREAD		proc near		; ...
 		clc
 		jnz	short NO_CAR
 		stc
-
 NO_CAR:					; ...
 		retn
 DREAD		endp
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR FATSECRD
-
 RET41P:					; ...
 		pop	dx
 		retn
 ; END OF FUNCTION CHUNK	FOR FATSECRD
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 CHECK_WRITE_LOCK proc near		; ...
 		test	byte ptr es:[di+4], 8
 		jz	short write_cont
 		call	SET_ACC_ERR_DS
 		retn
-; ---------------------------------------------------------------------------
-
 write_cont:				; ...
 		push	cx
 		or	cx, cx
 		jnz	short Not_Truncate
 		dec	cx
-
 Not_Truncate:				; ...
 		mov	al, 80h	; '€'
 		call	LOCK_CHECK
@@ -8981,37 +7245,25 @@ Not_Truncate:				; ...
 		jnb	short WRITE_OK
 		call	WRITE_LOCK_VIOLATION
 		jnb	short write_cont
-
 WRITE_OK:				; ...
 		retn
 CHECK_WRITE_LOCK endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 CHECK_READ_LOCK	proc near		; ...
 		test	byte ptr es:[di+4], 8
 		jz	short do_retry
 		call	SET_ACC_ERR
 		retn
-; ---------------------------------------------------------------------------
-
 do_retry:				; ...
 		xor	al, al
 		call	LOCK_CHECK
 		jnb	short READLOCK_OK
 		call	READ_LOCK_VIOLATION
 		jnb	short do_retry
-
 READLOCK_OK:				; ...
 		retn
 CHECK_READ_LOCK	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DSKREAD		proc near		; ...
 		push	cx
 		mov	ah, es:[bp+17h]
@@ -9021,11 +7273,7 @@ DSKREAD		proc near		; ...
 		call	SETREAD
 		jmp	short DODSKOP
 DSKREAD		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DWRITE		proc near		; ...
 		call	DSKWRITE
 		jz	short dw_ret_label
@@ -9037,15 +7285,10 @@ DWRITE		proc near		; ...
 		clc
 		jnz	short dw_ret_label
 		stc
-
 dw_ret_label:				; ...
 		retn
 DWRITE		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DSKWRITE	proc near		; ...
 		push	cx
 		mov	ah, es:[bp+17h]
@@ -9053,7 +7296,6 @@ DSKWRITE	proc near		; ...
 		push	bx
 		push	es
 		call	SETWRITE
-
 DODSKOP:				; ...
 		mov	cx, ds
 		pop	ds
@@ -9071,11 +7313,7 @@ DODSKOP:				; ...
 		test	ax, 8000h
 		retn
 DSKWRITE	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 HARDERRRW	proc near		; ...
 		cmp	al, 0Fh
 		jnz	short DO_ERR
@@ -9085,16 +7323,11 @@ HARDERRRW	proc near		; ...
 		mov	ax, word ptr ss:CALLVIDRW+2
 		mov	word ptr ss:EXTERRPT+2,	ax
 		pop	ax
-
 DO_ERR:					; ...
 		call	HARDERR
 		retn
 HARDERRRW	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SETUP		proc near		; ...
 		lds	si, es:[di+7]
 		mov	word ptr ss:THISDPB+2, ds
@@ -9131,7 +7364,6 @@ SETUP		proc near		; ...
 		ja	short EOFERR
 		mov	ds:CLUSNUM, ax
 		pop	es
-
 NOSETSTUFF:				; ...
 		mov	ax, cx
 		add	ax, word ptr ds:DMAADD
@@ -9140,29 +7372,20 @@ NOSETSTUFF:				; ...
 		neg	ax
 		jnz	short NoDec
 		dec	ax
-
 NoDec:					; ...
 		mov	cx, ax
 		jcxz	short NOROOM
-
 setup_OK:				; ...
 		retn
-; ---------------------------------------------------------------------------
-
 EOFERR:					; ...
 		pop	es
 		xor	cx, cx
-
 NOROOM:					; ...
 		pop	bx
 		clc
 		retn
 SETUP		endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 BREAKDOWN	proc near		; ...
 		mov	ax, ds:BYTSECPOS
 		mov	bx, cx
@@ -9174,7 +7397,6 @@ BREAKDOWN	proc near		; ...
 		jnb	short SAVFIR
 		add	ax, bx
 		xor	bx, bx
-
 SAVFIR:					; ...
 		mov	ds:BYTCNT1, ax
 		mov	ax, bx
@@ -9182,18 +7404,12 @@ SAVFIR:					; ...
 		div	word ptr es:[bp+2]
 		mov	ds:SECCNT, ax
 		mov	ds:BYTCNT2, dx
-
 _RET45:					; ...
 		retn
 BREAKDOWN	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 READ_LOCK_VIOLATION proc near		; ...
 		mov	ds:READOP, 0
-
 ERR_ON_CHECK:				; ...
 		test	byte ptr es:[di+3], 80h
 		jnz	short HARD_ERR
@@ -9203,37 +7419,25 @@ ERR_ON_CHECK:				; ...
 		cmp	cl, 0
 		pop	cx
 		jnz	short NO_HARD_ERR
-
 HARD_ERR:				; ...
 		call	LOCK_VIOLATION
 		jnb	short _RET45
-
 NO_HARD_ERR:				; ...
 		xor	cx, cx
 		mov	ax, 21h
 		stc
 		retn
 READ_LOCK_VIOLATION endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 WRITE_LOCK_VIOLATION proc near		; ...
 		mov	ds:READOP, 1
 		jmp	short ERR_ON_CHECK
 WRITE_LOCK_VIOLATION endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DISKREAD	proc near		; ...
-
 ; FUNCTION CHUNK AT 782C SIZE 00000002 BYTES
 ; FUNCTION CHUNK AT 7837 SIZE 0000008B BYTES
 ; FUNCTION CHUNK AT 7A4E SIZE 0000000B BYTES
-
 		mov	ax, es:[di+11h]
 		mov	bx, es:[di+13h]
 		sub	ax, ds:BYTPOS
@@ -9245,13 +7449,10 @@ DISKREAD	proc near		; ...
 		cmp	ax, cx
 		jnb	short ENUF
 		mov	cx, ax
-
 ENUF:					; ...
 		call	CHECK_READ_LOCK
 		jnb	short _READ_OK
 		retn
-; ---------------------------------------------------------------------------
-
 _READ_OK:				; ...
 		les	bp, ds:THISDPB
 		call	BREAKDOWN
@@ -9260,51 +7461,33 @@ _READ_OK:				; ...
 		jb	short SET_ACC_ERR_DS
 		or	cx, cx
 		jz	short SKIPERR
-
 RDERR:					; ...
 		mov	ah, 0Eh
 		jmp	WRTERR22
 DISKREAD	endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
 ; Attributes: thunk
-
 SETSFTJ2	proc near		; ...
 		jmp	SETSFT
 SETSFTJ2	endp
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR DISKREAD
-
 CANOT_READ:				; ...
 		pop	cx
 		pop	bx
 ; END OF FUNCTION CHUNK	FOR DISKREAD
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SET_ACC_ERR_DS	proc near		; ...
 		push	ss
 		pop	ds
 SET_ACC_ERR_DS	endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SET_ACC_ERR	proc near		; ...
 		xor	cx, cx
 		mov	ax, 5
 		stc
 		retn
 SET_ACC_ERR	endp
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR DISKREAD
-
 SKIPERR:				; ...
 		mov	ds:LASTPOS, dx
 		mov	ds:CLUSNUM, bx
@@ -9312,7 +7495,6 @@ SKIPERR:				; ...
 		jz	short RDMID
 		call	BUFRD
 		jb	short SET_ACC_ERR_DS
-
 RDMID:					; ...
 		cmp	ds:SECCNT, 0
 		jz	short RDLAST
@@ -9322,7 +7504,6 @@ RDMID:					; ...
 		mov	dl, ds:SECCLUSPOS
 		mov	cx, ds:SECCNT
 		mov	bx, ds:CLUSNUM
-
 RDLP:					; ...
 		call	OPTIMIZE
 		jb	short SET_ACC_ERR_DS
@@ -9351,8 +7532,6 @@ RDLP:					; ...
 		mov	dl, 0
 		inc	ds:LASTPOS
 		jmp	short RDLP
-; ---------------------------------------------------------------------------
-
 RDLAST:					; ...
 		mov	ax, ds:BYTCNT2
 		or	ax, ax
@@ -9365,13 +7544,9 @@ RDLAST:					; ...
 		jnb	short SETSFT
 		jmp	SET_ACC_ERR_DS
 ; END OF FUNCTION CHUNK	FOR DISKREAD
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SETSFT		proc near		; ...
 		les	di, ds:THISSFT
-
 SETCLUS:				; ...
 		mov	cx, ds:NEXTADD
 		sub	cx, word ptr ds:DMAADD
@@ -9382,25 +7557,16 @@ SETCLUS:				; ...
 		mov	ax, ds:LASTPOS
 		mov	es:[di+19h], ax
 SETSFT		endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ADDREC		proc near		; ...
 		jcxz	short RET28
 		add	es:[di+15h], cx
 		adc	word ptr es:[di+17h], 0
-
 RET28:					; ...
 		clc
 		retn
 ADDREC		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DskRdBufScan	proc near		; ...
 		cmp	ss:DirtyBufferCount, 0
 		jz	short bufx
@@ -9412,32 +7578,25 @@ DskRdBufScan	proc near		; ...
 		mov	ax, [di+2]
 		mov	ss:FIRST_BUFF_ADDR, ax
 		mov	al, es:[bp+0]
-
 bufq:					; ...
 		cmp	al, [di+4]
 		jnz	short bufq1
 		cmp	bx, [di+8]
 		jnz	short bufq01
 		cmp	dx, [di+6]
-
 bufq01:					; ...
 		ja	short bufq1
 		cmp	si, [di+8]
 		jnz	short bufq02
 		cmp	cx, [di+6]
-
 bufq02:					; ...
 		ja	short bufq2
-
 bufq1:					; ...
 		cmp	di, ss:FIRST_BUFF_ADDR
 		mov	di, [di]
 		jnz	short bufq
-
 bufx:					; ...
 		retn
-; ---------------------------------------------------------------------------
-
 bufq2:					; ...
 		push	ax
 		test	byte ptr [di+5], 40h
@@ -9465,7 +7624,6 @@ bufq2:					; ...
 		pop	si
 		pop	dx
 		pop	cx
-
 bufq3:					; ...
 		mov	ax, di
 		call	SCANPLACE
@@ -9474,24 +7632,14 @@ bufq3:					; ...
 		jnz	short bufq
 		jmp	short bufx
 DskRdBufScan	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DISKWRITE	proc near		; ...
-
 ; FUNCTION CHUNK AT 7A59 SIZE 000001B5 BYTES
-
 		call	CHECK_WRITE_LOCK
 		jnb	short _WRITE_OK
 		retn
-; ---------------------------------------------------------------------------
-
 WRTEOFJ:				; ...
 		jmp	WRTEOF
-; ---------------------------------------------------------------------------
-
 _WRITE_OK:				; ...
 		and	word ptr es:[di+5], 0BFBFh
 		mov	ax, es:[di+11h]
@@ -9515,7 +7663,6 @@ _WRITE_OK:				; ...
 		jnz	short CALCLUS
 		sub	ax, 1
 		sbb	dx, 0
-
 CALCLUS:				; ...
 		call	SHR32
 		pop	dx
@@ -9532,7 +7679,6 @@ CALCLUS:				; ...
 		jz	short NORND
 		add	ax, 1
 		adc	ds:VALSEC+2, 0
-
 NORND:					; ...
 		mov	ds:VALSEC, ax
 		xor	ax, ax
@@ -9546,14 +7692,11 @@ NORND:					; ...
 		sub	bx, cx
 		sbb	di, ds:TEMP_VAR2
 		jmp	short yesgrow
-; ---------------------------------------------------------------------------
-
 lowsec:					; ...
 		mov	di, 0
 		sub	bx, cx
 		jb	short NOGROW
 		jz	short TESTTAIL
-
 yesgrow:				; ...
 		mov	cx, dx
 		xchg	ax, bx
@@ -9570,21 +7713,16 @@ yesgrow:				; ...
 		add	ax, bx
 		adc	dx, 0
 		jmp	short SETGRW
-; ---------------------------------------------------------------------------
-
 HAVSTART:				; ...
 		mov	cx, ax
 		call	SKPCLP
 		jcxz	short DOWRTJ
 		call	ALLOCATE
 		jnb	short DOWRTJ
-
 WRTERR:					; ...
 		mov	ah, 0Fh
 DISKWRITE	endp ; sp-analysis failed
-
 ; START	OF FUNCTION CHUNK FOR DISKREAD
-
 WRTERR22:				; ...
 		mov	al, ds:THISDRV
 		xor	cx, cx
@@ -9592,26 +7730,18 @@ WRTERR22:				; ...
 		clc
 		retn
 ; END OF FUNCTION CHUNK	FOR DISKREAD
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR DISKWRITE
-
 DOWRTJ:					; ...
 		jmp	short DOWRT
-; ---------------------------------------------------------------------------
-
 ACC_ERRWJ:				; ...
 		jmp	SET_ACC_ERRW
-; ---------------------------------------------------------------------------
-
 TESTTAIL:				; ...
 		sub	ax, dx
 		jbe	short NOGROW
 		xor	dx, dx
-
 SETGRW:					; ...
 		mov	ds:GROWCNT, ax
 		mov	ds:GROWCNT+2, dx
-
 NOGROW:					; ...
 		pop	ax
 		mov	cx, ds:CLUSNUM
@@ -9633,18 +7763,15 @@ NOGROW:					; ...
 		jz	short NOSKIP
 		call	SKPCLP
 		jb	short ACC_ERRWJ
-
 NOSKIP:					; ...
 		mov	ds:CLUSNUM, bx
 		mov	ds:LASTPOS, dx
-
 DOWRT:					; ...
 		cmp	ds:BYTCNT1, 0
 		jz	short WRTMID
 		mov	bx, ds:CLUSNUM
 		call	BUFWRT
 		jb	short ACC_ERRWJ
-
 WRTMID:					; ...
 		mov	ax, ds:SECCNT
 		or	ax, ax
@@ -9657,7 +7784,6 @@ WRTMID:					; ...
 		mov	dl, ds:SECCLUSPOS
 		mov	bx, ds:CLUSNUM
 		mov	cx, ds:SECCNT
-
 WRTLP:					; ...
 		call	OPTIMIZE
 		jb	short SET_ACC_ERRW
@@ -9666,7 +7792,6 @@ WRTLP:					; ...
 		call	DskWrtBufPurge
 		mov	ds, word ptr ss:DMAADD+2
 		mov	ss:ALLOWED, 38h
-
 DWRITE_LUP:				; ...
 		call	DSKWRITE
 		jz	short DWRITE_OKAY
@@ -9680,7 +7805,6 @@ DWRITE_LUP:				; ...
 		clc
 		jnz	short DWRITE_OKAY
 		stc
-
 DWRITE_OKAY:				; ...
 		pop	cx
 		pop	bx
@@ -9691,8 +7815,6 @@ DWRITE_OKAY:				; ...
 		mov	dl, 0
 		inc	ds:LASTPOS
 		jmp	short WRTLP
-; ---------------------------------------------------------------------------
-
 DWRITE_DISK_FULL:			; ...
 		push	ss
 		pop	ds
@@ -9701,12 +7823,8 @@ DWRITE_DISK_FULL:			; ...
 		mov	ds:DISK_FULL, 1
 		stc
 		jmp	WRTERR
-; ---------------------------------------------------------------------------
-
 SET_ACC_ERRW:				; ...
 		jmp	SET_ACC_ERR_DS
-; ---------------------------------------------------------------------------
-
 WRTLAST:				; ...
 		mov	ax, ds:BYTCNT2
 		or	ax, ax
@@ -9717,7 +7835,6 @@ WRTLAST:				; ...
 		mov	ds:BYTSECPOS, 0
 		call	BUFWRT
 		jb	short SET_ACC_ERRW
-
 FINWRT:					; ...
 		les	di, ds:THISSFT
 		mov	ax, ds:GROWCNT
@@ -9725,17 +7842,13 @@ FINWRT:					; ...
 		or	ax, ax
 		jnz	short UPDATE_size
 		jcxz	short SAMSIZ
-
 UPDATE_size:				; ...
 		add	es:[di+11h], ax
 		adc	es:[di+13h], cx
 		mov	ax, 1
 		call	ds:ShSU
-
 SAMSIZ:					; ...
 		jmp	SETCLUS
-; ---------------------------------------------------------------------------
-
 WRTEOF:					; ...
 		mov	cx, ax
 		or	cx, dx
@@ -9751,13 +7864,11 @@ WRTEOF:					; ...
 		call	SHR32
 		mov	cx, ax
 		call	FNDCLUS
-
 SET_ACC_ERRWJ2:				; ...
 		jb	short SET_ACC_ERRW
 		jcxz	short RELFILE
 		call	ALLOCATE
 		jb	short WRTERRJ
-
 UPDATE:					; ...
 		les	di, ds:THISSFT
 		mov	ax, ds:BYTPOS
@@ -9768,12 +7879,8 @@ UPDATE:					; ...
 		call	ds:ShSU
 		xor	cx, cx
 		jmp	ADDREC
-; ---------------------------------------------------------------------------
-
 WRTERRJ:				; ...
 		jmp	WRTERR
-; ---------------------------------------------------------------------------
-
 RELFILE:				; ...
 		push	es
 		les	di, ds:THISSFT
@@ -9782,17 +7889,13 @@ RELFILE:				; ...
 		mov	word ptr es:[di+19h], 0
 		mov	dx, es:[di+0Bh]
 		mov	es:[di+35h], dx
-
 SKIPRESET:				; ...
 		pop	es
 		mov	dx, 0FFFFh
 		call	RELBLKS
-
 SET_ACC_ERRWJJ:				; ...
 		jb	short SET_ACC_ERRWJ2
 		jmp	short UPDATE
-; ---------------------------------------------------------------------------
-
 KILLFIL:				; ...
 		xor	bx, bx
 		push	es
@@ -9820,14 +7923,10 @@ KILLFIL:				; ...
 		pop	es
 		call	RELEASE
 		jb	short SET_ACC_ERRWJJ
-
 UPDATEJ:				; ...
 		jmp	short UPDATE
 ; END OF FUNCTION CHUNK	FOR DISKWRITE
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DskWrtBufPurge	proc near		; ...
 		push	bx
 		push	cx
@@ -9846,7 +7945,6 @@ DskWrtBufPurge	proc near		; ...
 		cmp	si, di
 		jnz	short sc01
 		cmp	cx, ax
-
 sc01:					; ...
 		jbe	short sc5
 		add	ax, ss:SC_CACHE_COUNT
@@ -9854,45 +7952,35 @@ sc01:					; ...
 		cmp	bx, di
 		jnz	short sc02
 		cmp	dx, ax
-
 sc02:					; ...
 		jnb	short sc5
 		mov	ss:SC_STATUS, 0
-
 sc5:					; ...
 		pop	ax
-
 nosc:					; ...
 		call	GETCURHEAD
-
 _bufq:					; ...
 		cmp	al, [di+4]
 		jnz	short bufq5
 		cmp	bx, [di+8]
 		jnz	short bufq04
 		cmp	dx, [di+6]
-
 bufq04:					; ...
 		ja	short bufq5
 		cmp	si, [di+8]
 		jnz	short bufq05
 		cmp	cx, [di+6]
-
 bufq05:					; ...
 		jbe	short bufq5
 		test	byte ptr [di+5], 40h
 		jz	short bufq4
 		call	DEC_DIRTY_COUNT
-
 bufq4:					; ...
 		mov	word ptr [di+4], 20FFh
 		call	SCANPLACE
 		jmp	short bufq6
-; ---------------------------------------------------------------------------
-
 bufq5:					; ...
 		mov	di, [di]
-
 bufq6:					; ...
 		cmp	di, ss:FIRST_BUFF_ADDR
 		jnz	short _bufq
@@ -9900,11 +7988,7 @@ bufq6:					; ...
 		pop	bx
 		retn
 DskWrtBufPurge	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DIV32		proc near		; ...
 		cmp	bx, 512
 		jnz	short div5
@@ -9918,8 +8002,6 @@ DIV32		proc near		; ...
 		shr	cx, 1
 		rcr	ax, 1
 		retn
-; ---------------------------------------------------------------------------
-
 div5:					; ...
 		mov	cx, ax
 		mov	ax, dx
@@ -9929,29 +8011,19 @@ div5:					; ...
 		div	bx
 		retn
 DIV32		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SHR32		proc near		; ...
 		mov	cl, es:[bp+5]
 		xor	ch, ch
 		jcxz	short norota
-
 rotashft2:				; ...
 		shr	dx, 1
 		rcr	ax, 1
 		loop	rotashft2
-
 norota:					; ...
 		retn
 SHR32		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SEARCH		proc near		; ...
 		call	STARTSRCH
 		mov	al, ds:ATTRIB
@@ -9959,13 +8031,10 @@ SEARCH		proc near		; ...
 		cmp	al, 8
 		jnz	short NOTVOLSRCH
 		call	SETROOTSRCH
-
 NOTVOLSRCH:				; ...
 		call	GETENTRY
 		jnb	short SRCH
 		jmp	SETESRET
-; ---------------------------------------------------------------------------
-
 SRCH:					; ...
 		push	ds
 		mov	ds, word ptr ds:CURBUF+2
@@ -9977,7 +8046,6 @@ SRCH:					; ...
 		test	byte ptr [bx+0Bh], 8
 		jz	short CHKFNAM
 		inc	ss:VOLID
-
 CHKFNAM:				; ...
 		mov	si, ss
 		mov	es, si
@@ -9986,36 +8054,28 @@ CHKFNAM:				; ...
 		cmp	ss:NAME1, 0E5h
 		jnz	short NO_E5
 		mov	ss:NAME1, 5
-
 NO_E5:					; ...
 		call	MetaCompare
 		jz	short FOUND
 		pop	ds
-
 NEXTENT:				; ...
 		les	bp, ds:THISDPB
 		call	NEXTENTRY
 		jnb	short SRCH
 		jmp	short SETESRET
-; ---------------------------------------------------------------------------
-
 FREE:					; ...
 		pop	ds
 		mov	cx, ds:LASTENT
 		cmp	cx, ds:ENTFREE
 		jnb	short TSTALL
 		mov	ds:ENTFREE, cx
-
 TSTALL:					; ...
 		cmp	ah, ds:DELALL
-
 NEXTENTJ:				; ...
 		jz	short NEXTENT
 		mov	ds:ENTLAST, cx
 		stc
 		jmp	short SETESRET
-; ---------------------------------------------------------------------------
-
 FOUND:					; ...
 		mov	ch, [si]
 		pop	ds
@@ -10028,8 +8088,6 @@ FOUND:					; ...
 		jz	short NEXTENTJ
 		xor	ah, ah
 		jmp	short RETFF
-; ---------------------------------------------------------------------------
-
 check_one_volume_id:			; ...
 		cmp	ah, 8
 		jz	short NEXTENTJ
@@ -10037,38 +8095,26 @@ check_one_volume_id:			; ...
 		jz	short RETFF
 		test	ds:CREATING, 0FFh
 		jz	short NEXTENTJ
-
 RETFF:					; ...
 		les	bp, ds:THISDPB
 		mov	ah, es:[bp+0]
-
 SETESRET:				; ...
 		push	ss
 		pop	es
 		retn
 SEARCH		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 MetaCompare	proc near		; ...
 		mov	cx, 11
-
 WILDCRD:				; ...
 		repe cmpsb
 		jz	short MetaRet
 		cmp	byte ptr es:[di-1], '?'
 		jz	short WILDCRD
-
 MetaRet:				; ...
 		retn
 MetaCompare	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 NEXTENTRY	proc near		; ...
 		mov	ax, ds:LASTENT
 		cmp	ax, ds:ENTLAST
@@ -10087,21 +8133,14 @@ NEXTENTRY	proc near		; ...
 		cmp	bx, 2
 		jb	short NONE
 		jmp	short GETENT
-; ---------------------------------------------------------------------------
-
 NONE:					; ...
 		stc
 		retn
-; ---------------------------------------------------------------------------
-
 HAVIT:					; ...
 		mov	ds:LASTENT, ax
 		clc
-
 nextentry_retn:				; ...
 		retn
-; ---------------------------------------------------------------------------
-
 SAMECLUS:				; ...
 		mov	ds:SECCLUSPOS, bl
 		mov	ds:LASTENT, ax
@@ -10117,14 +8156,9 @@ SAMECLUS:				; ...
 		xor	bx, bx
 		jmp	short SETENTRY
 NEXTENTRY	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GETENTRY	proc near		; ...
 		mov	ax, ds:LASTENT
-
 GETENT:					; ...
 		mov	ds:LASTENT, ax
 		mov	cl, 5
@@ -10140,7 +8174,6 @@ GETENT:					; ...
 		call	DIRREAD
 		pop	bx
 		jb	short nextentry_retn
-
 SETENTRY:				; ...
 		mov	dx, word ptr ds:CURBUF
 		add	dx, 20
@@ -10149,11 +8182,7 @@ SETENTRY:				; ...
 		clc
 		retn
 GETENTRY	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SETDIRSRCH	proc near		; ...
 		or	bx, bx
 		jz	short SETROOTSRCH
@@ -10168,8 +8197,6 @@ SETDIRSRCH	proc near		; ...
 		jnb	short UNP_OK
 		pop	si
 		retn
-; ---------------------------------------------------------------------------
-
 UNP_OK:					; ...
 		mov	ds:CLUSNUM, di
 		mov	dx, bx
@@ -10185,11 +8212,7 @@ UNP_OK:					; ...
 		clc
 		retn
 SETDIRSRCH	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SETROOTSRCH	proc near		; ...
 		xor	ax, ax
 		mov	ds:DIRSTART, ax
@@ -10205,17 +8228,10 @@ SETROOTSRCH	proc near		; ...
 		clc
 		retn
 SETROOTSRCH	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GETPATH		proc near		; ...
-
 ; FUNCTION CHUNK AT 7F82 SIZE 000001A5 BYTES
-
 		mov	word ptr ds:CREATING, 0E500h
-
 GetPathNoSet:				; ...
 		mov	ds:EXTERR_LOCUS, 2
 		mov	word ptr ds:CURBUF, 0FFFFh
@@ -10226,7 +8242,6 @@ GetPathNoSet:				; ...
 		mov	si, di
 		call	CHKDEV
 		jb	short InternalError
-
 Build_devJ:				; ...
 		mov	al, ds:SATTRIB
 		mov	ds:ATTRIB, al
@@ -10237,14 +8252,12 @@ Build_devJ:				; ...
 		mov	di, ds:WFP_START
 		mov	dx, di
 		mov	cx, 8
-
 MoveLoop:				; ...
 		lodsb
 		stosb
 		cmp	al, 20h	; ' '
 		jz	short NoSave
 		mov	dx, di
-
 NoSave:					; ...
 		loop	MoveLoop
 		mov	di, dx
@@ -10252,18 +8265,13 @@ NoSave:					; ...
 		call	Build_device_ent
 		inc	al
 		retn
-; ---------------------------------------------------------------------------
-
 InternalError:				; ...
 		jmp	short InternalError
-; ---------------------------------------------------------------------------
-
 CrackIt:				; ...
 		mov	si, ds:CURR_DIR_END
 		cmp	si, 0FFFFh
 		jnz	short LOOK_SING
 		lea	si, [di+3]
-
 LOOK_SING:				; ...
 		mov	ds:ATTRIB, 16h
 		les	di, ds:THISCDS
@@ -10296,11 +8304,8 @@ LOOK_SING:				; ...
 		jz	short GO_Chk_end
 		stc
 		jmp	short GO_Chk_end
-; ---------------------------------------------------------------------------
-
 GO_Chk_end1:				; ...
 		clc
-
 GO_Chk_end:				; ...
 		pop	bx
 		pop	si
@@ -10309,38 +8314,28 @@ GO_Chk_end:				; ...
 		pop	di
 		pop	es
 		jnb	short GOT_SEARCH_CLUSTER
-
 NO_CURR_D:				; ...
 		mov	si, ds:WFP_START
 		lea	si, [si+3]
 		les	bp, ds:THISDPB
 		jmp	short ROOTPATH
-; ---------------------------------------------------------------------------
-
 GOT_SEARCH_CLUSTER:			; ...
 		les	bp, ds:THISDPB
 		call	SETDIRSRCH
 		jb	short SETFERR
 		jmp	short FINDPATH
-; ---------------------------------------------------------------------------
-
 SETFERR:				; ...
 		xor	cl, cl
 		stc
 		retn
 GETPATH		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 CHKDEV		proc near		; ...
 		mov	si, di
 		mov	di, ss
 		mov	es, di
 		mov	di, offset NAME1
 		mov	cx, 9
-
 TESTLOOP:				; ...
 		call	GETLET
 		cmp	al, 2Eh	; '.'
@@ -10351,12 +8346,9 @@ TESTLOOP:				; ...
 		jz	short TESTDEVICE
 		stosb
 		loop	TESTLOOP
-
 NOTDEV:					; ...
 		stc
 		retn
-; ---------------------------------------------------------------------------
-
 TESTDEVICE:				; ...
 		add	cx, 2
 		mov	al, 20h	; ' '
@@ -10366,10 +8358,7 @@ TESTDEVICE:				; ...
 		call	DEVNAME
 		retn
 CHKDEV		endp
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR GETPATH
-
 ROOTPATH:				; ...
 		call	SETROOTSRCH
 		cmp	byte ptr [si], 0
@@ -10378,8 +8367,6 @@ ROOTPATH:				; ...
 		mov	ds:ATTRIB, al
 		xor	ah, ah
 		retn
-; ---------------------------------------------------------------------------
-
 FINDPATH:				; ...
 		push	es
 		push	si
@@ -10391,7 +8378,6 @@ FINDPATH:				; ...
 		jnz	short NOIDS
 		les	di, ds:THISCDS
 		mov	es:[di+73], cx
-
 NOIDS:					; ...
 		mov	ax, ss
 		mov	es, ax
@@ -10405,7 +8391,6 @@ NOIDS:					; ...
 		stosw
 		mov	di, offset NAME1
 		xor	ah, ah
-
 GetNam:					; ...
 		inc	cl
 		lodsb
@@ -10418,15 +8403,11 @@ GetNam:					; ...
 		cmp	al, '?'
 		jnz	short StoNam
 		or	ah, 1
-
 StoNam:					; ...
 		stosb
 		jmp	short GetNam
-; ---------------------------------------------------------------------------
-
 _SetExt:				; ...
 		mov	di, (offset NAME1+8)
-
 GetExt:					; ...
 		lodsb
 		or	al, al
@@ -10436,12 +8417,9 @@ GetExt:					; ...
 		cmp	al, '?'
 		jnz	short StoExt
 		or	ah, 1
-
 StoExt:					; ...
 		stosb
 		jmp	short GetExt
-; ---------------------------------------------------------------------------
-
 _GetDone:				; ...
 		dec	si
 		mov	cl, ah
@@ -10451,8 +8429,6 @@ _GetDone:				; ...
 		cmp	si, di
 		jnz	short check_device
 		jmp	_BADPATH
-; ---------------------------------------------------------------------------
-
 check_device:				; ...
 		push	si
 		mov	al, [si]
@@ -10460,7 +8436,6 @@ check_device:				; ...
 		jnz	short NOT_LAST
 		mov	bh, ds:SATTRIB
 		mov	ds:ATTRIB, bh
-
 NOT_LAST:				; ...
 		push	es
 		push	ss
@@ -10471,18 +8446,13 @@ NOT_LAST:				; ...
 		or	al, al
 		jz	short GO_BDEV
 		jmp	FILEINPATH
-; ---------------------------------------------------------------------------
-
 GO_BDEV:				; ...
 		pop	si
 		jmp	Build_devJ
-; ---------------------------------------------------------------------------
-
 FindFile:				; ...
 		cmp	ds:NAME1, 0E5h
 		jnz	short NOE5
 		mov	ds:NAME1, 5
-
 NOE5:					; ...
 		push	di
 		push	es
@@ -10490,22 +8460,17 @@ NOE5:					; ...
 		call	LookupPath
 		jnb	short DIR_FOUND
 		call	SEARCH
-
 DIR_FOUND:				; ...
 		pop	cx
 		pop	es
 		pop	di
 		jnb	short LOAD_BUF
 		jmp	BADPATHPOP
-; ---------------------------------------------------------------------------
-
 LOAD_BUF:				; ...
 		lds	di, ds:CURBUF
 		test	byte ptr [bx+0Bh], 10h
 		jnz	short GO_NEXT
 		jmp	FILEINPATH
-; ---------------------------------------------------------------------------
-
 GO_NEXT:				; ...
 		cmp	ss:NoSetDir, 0
 		jz	short SetDir
@@ -10519,18 +8484,14 @@ GO_NEXT:				; ...
 		test	ds:FastOpenFlg,	2
 		jz	short _nofast
 		mov	di, ds:Next_Element_Start
-
 _nofast:				; ...
 		cmp	byte ptr [di], 0
 		jnz	short NEXT_ONE
 		jmp	_SETRET
-; ---------------------------------------------------------------------------
-
 NEXT_ONE:				; ...
 		push	di
 		mov	di, dx
 		mov	ds, cx
-
 SetDir:					; ...
 		mov	dx, [si]
 		push	ds
@@ -10545,8 +8506,6 @@ SetDir:					; ...
 		pop	ax
 		add	sp, 2
 		jmp	short FAST_OPEN_SKIP
-; ---------------------------------------------------------------------------
-
 DO_NORMAL:				; ...
 		pop	ds
 		sub	bx, di
@@ -10567,7 +8526,6 @@ DO_NORMAL:				; ...
 		mov	ds:ALLOWED, 18h
 		xor	al, al
 		call	GETBUFFR
-
 SKIP_GETB:				; ...
 		pop	cx
 		pop	si
@@ -10577,14 +8535,11 @@ SKIP_GETB:				; ...
 		pop	di
 		mov	si, di
 		jmp	short _BADPATH
-; ---------------------------------------------------------------------------
-
 SET_THE_BUF:				; ...
 		call	SET_BUF_AS_DIR
 		mov	di, word ptr ds:CURBUF
 		add	si, di
 		add	bx, di
-
 FAST_OPEN_SKIP:				; ...
 		pop	di
 		call	InsertPath
@@ -10596,16 +8551,11 @@ FAST_OPEN_SKIP:				; ...
 		call	PATHCHRCMP
 		jnz	short find_bad_name
 		jmp	FINDPATH
-; ---------------------------------------------------------------------------
-
 find_bad_name:				; ...
 		dec	si
-
 _BADPATH:				; ...
 		xor	cl, cl
 		jmp	short BADPRET
-; ---------------------------------------------------------------------------
-
 FILEINPATH:				; ...
 		pop	di
 		push	ss
@@ -10615,39 +8565,29 @@ FILEINPATH:				; ...
 		test	ds:FastOpenFlg,	2
 		jz	short NO_FAST
 		mov	di, ds:Next_Element_Start
-
 NO_FAST:				; ...
 		mov	al, [di]
 		or	al, al
 		jz	short INCRET
 		mov	si, di
 		jmp	short BADPRET
-; ---------------------------------------------------------------------------
-
 INCRET:					; ...
 		call	InsertPath
 		inc	al
-
 _SETRET:				; ...
 		retn
-; ---------------------------------------------------------------------------
-
 BADPATHPOP:				; ...
 		pop	si
 		mov	al, [si]
 		mov	si, di
 		or	al, al
-
 BADPRET:				; ...
 		mov	al, ds:SATTRIB
 		mov	ds:ATTRIB, al
 		stc
 		retn
 ; END OF FUNCTION CHUNK	FOR GETPATH
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 STARTSRCH	proc near		; ...
 		les	bp, ds:THISDPB
 		xor	ax, ax
@@ -10658,11 +8598,7 @@ STARTSRCH	proc near		; ...
 		mov	ds:ENTLAST, ax
 		retn
 STARTSRCH	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 MatchAttributes	proc near		; ...
 		push	ax
 		mov	al, ss:ATTRIB
@@ -10672,11 +8608,7 @@ MatchAttributes	proc near		; ...
 		pop	ax
 		retn
 MatchAttributes	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DEVNAME		proc near		; ...
 		push	si
 		push	di
@@ -10686,12 +8618,10 @@ DEVNAME		proc near		; ...
 		cmp	ds:NAME1, 5
 		jnz	short NOKTR
 		mov	ds:NAME1, 0E5h
-
 NOKTR:					; ...
 		test	ds:ATTRIB, 8
 		jnz	short RET31
 		mov	si, offset NULDEV
-
 LOOKIO:					; ...
 		test	word ptr [si+4], 8000h
 		jz	short SKIPDEV
@@ -10702,15 +8632,12 @@ LOOKIO:					; ...
 		repe cmpsw
 		mov	si, ax
 		jz	short IOCHK
-
 SKIPDEV:				; ...
 		lds	si, [si]
 		cmp	si, 0FFFFh
 		jnz	short LOOKIO
-
 RET31:					; ...
 		stc
-
 RETNV:					; ...
 		mov	cx, ss
 		mov	ds, cx
@@ -10720,8 +8647,6 @@ RETNV:					; ...
 		pop	di
 		pop	si
 		retn
-; ---------------------------------------------------------------------------
-
 IOCHK:					; ...
 		mov	word ptr ss:DEVPT+2, ds
 		mov	bh, [si+4]
@@ -10730,11 +8655,7 @@ IOCHK:					; ...
 		mov	word ptr ss:DEVPT, si
 		jmp	short RETNV
 DEVNAME		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Build_device_ent proc near		; ...
 		mov	ax, 2020h
 		mov	di, (offset NAME1+8) ; DEVFCB+8
@@ -10761,17 +8682,11 @@ Build_device_ent proc near		; ...
 		xor	al, al
 		retn
 Build_device_ent endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
 ; Attributes: bp-based frame
-
 ValidateCDS	proc near		; ...
-
 SaveCDS		= dword	ptr -6
 Temp		= word ptr -2
-
 		push	bp
 		mov	bp, sp
 		sub	sp, 6
@@ -10783,8 +8698,6 @@ Temp		= word ptr -2
 		test	word ptr [si+43h], 8000h
 		jz	short _DoSplice
 		jmp	FatFail
-; ---------------------------------------------------------------------------
-
 _DoSplice:				; ...
 		xor	dl, dl
 		xchg	dl, ss:NoSetDir
@@ -10814,7 +8727,6 @@ _DoSplice:				; ...
 		mov	di, [bp+Temp]
 		mov	ss:WFP_START, di
 		call	FStrCpy
-
 DoChdir:				; ...
 		push	ss
 		pop	ds
@@ -10831,23 +8743,19 @@ DoChdir:				; ...
 		mov	word ptr ss:THISCDS+2, ds
 		xor	cx, cx
 		mov	[si+3],	cl
-
 SetCluster:				; ...
 		mov	word ptr [si+49h], 0FFFFh
 		lds	si, ss:THISCDS
 		test	word ptr [si+43h], 2000h
 		jz	short _setdirclus
 		mov	cx, 0FFFFh
-
 _setdirclus:				; ...
 		mov	[si+49h], cx
-
 RestoreCDS:				; ...
 		les	di, [bp+SaveCDS]
 		mov	word ptr ss:THISCDS, di
 		mov	word ptr ss:THISCDS+2, es
 		clc
-
 FatFail:				; ...
 		call	LCritDisk
 		les	di, [bp+SaveCDS]
@@ -10855,11 +8763,7 @@ FatFail:				; ...
 		pop	bp
 		retn
 ValidateCDS	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 CheckThisDevice	proc near		; ...
 		push	di
 		push	si
@@ -10879,7 +8783,6 @@ CheckThisDevice	proc near		; ...
 		lodsb
 		call	PATHCHRCMP
 		jnz	short NotDevice
-
 ParseDev:				; ...
 		push	ds
 		push	si
@@ -10892,39 +8795,27 @@ ParseDev:				; ...
 		mov	al, ds:SATTRIB
 		mov	ds:ATTRIB, al
 		call	DEVNAME
-
 SkipSearch:				; ...
 		pop	si
 		pop	ds
-
 CheckReturn:				; ...
 		pop	di
 		jnb	short Check_Done
 		mov	si, di
-
 Check_Done:				; ...
 		pop	di
 		cmc
 		retn
-; ---------------------------------------------------------------------------
-
 NotDevice:				; ...
 		stc
 		jmp	short CheckReturn
 CheckThisDevice	endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 LookupPath	proc near		; ...
 		test	ss:FastOpenFlg,	1
 		jnz	short FASTINST
-
 NOLOOK:					; ...
 		jmp	NOLOOKUP
-; ---------------------------------------------------------------------------
-
 FASTINST:				; ...
 		test	ss:FastOpenFlg,	8
 		jnz	short NOLOOK
@@ -10950,7 +8841,6 @@ FASTINST:				; ...
 		call	MatchAttributes
 		pop	cx
 		jnz	short NOLOOKUP
-
 parfnd:					; ...
 		mov	ss:Next_Element_Start, si
 		mov	bx, cx
@@ -10970,25 +8860,17 @@ parfnd:					; ...
 		lea	si, [di+1Ah]
 		or	ss:FastOpenFlg,	12h
 		retn
-; ---------------------------------------------------------------------------
-
 NOTFOUND:				; ...
 		cmp	ax, 0FFFFh
 		jnz	short Partial_Success
 		mov	ss:FastOpenFlg,	0
-
 Partial_Success:			; ...
 		and	ss:FastOpenFlg,	0FBh
-
 NOLOOKUP:				; ...
 		stc
 		retn
 LookupPath	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 InsertPath	proc near		; ...
 		pushf
 		test	ss:FastOpenFlg,	1
@@ -10998,8 +8880,6 @@ InsertPath	proc near		; ...
 		and	ss:FastOpenFlg,	0FDh
 		mov	di, ss:Next_Element_Start
 		jmp	short GET_NEXT2
-; ---------------------------------------------------------------------------
-
 INSERT_DIR_INFO:			; ...
 		push	ds
 		push	es
@@ -11040,7 +8920,6 @@ INSERT_DIR_INFO:			; ...
 		mov	si, offset FastOpenTable
 		call	dword ptr es:[si+2]
 		clc
-
 SKIP_INSERT:				; ...
 		pop	ax
 		pop	cx
@@ -11049,16 +8928,12 @@ SKIP_INSERT:				; ...
 		pop	bx
 		pop	es
 		pop	ds
-
 GET_NEXT2:				; ...
 		or	ss:FastOpenFlg,	8
-
 GET_NEXT_ELEMENT:			; ...
 		popf
 		retn
 InsertPath	endp
-
-; ---------------------------------------------------------------------------
 LenTab		db 22, 14, 22, 13, 15, 14 ; ...
 CmdTab		db 86h,	4		; ...
 		db 86h,	5
@@ -11066,10 +8941,7 @@ CmdTab		db 86h,	4		; ...
 		db 87h,	0Ah
 		db 86h,	7
 		db 86h,	5
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 IOFUNC		proc near		; ...
 		mov	word ptr ss:IOXAD+2, ss
 		mov	word ptr ss:IOXAD, offset DEVIOBUF
@@ -11078,14 +8950,10 @@ IOFUNC		proc near		; ...
 		test	byte ptr [si+6], 80h
 		jz	short IOTO22
 		jmp	IOTOFILE
-; ---------------------------------------------------------------------------
-
 IOTO22:					; ...
 		test	byte ptr [si+5], 80h
 		jnz	short IOTO33
 		jmp	IOTOFILE
-; ---------------------------------------------------------------------------
-
 IOTO33:					; ...
 		push	es
 		call	save_world
@@ -11097,7 +8965,6 @@ IOTO33:					; ...
 		cmp	ah, 5
 		jnz	short _no_sys_wait
 		or	bx, 400h
-
 _no_sys_wait:				; ...
 		mov	ds:IOCALL_REQSTAT, bx
 		xor	bx, bx
@@ -11114,7 +8981,6 @@ _no_sys_wait:				; ...
 		mov	di, ss:IOCALL_REQSTAT
 		and	di, di
 		js	short DevErr
-
 OKDevIO:				; ...
 		mov	ax, ss
 		mov	ds, ax
@@ -11122,12 +8988,10 @@ OKDevIO:				; ...
 		jnz	short DNODRD
 		mov	al, ds:IOMED
 		mov	byte ptr ds:DEVIOBUF, al
-
 DNODRD:					; ...
 		mov	ah, byte ptr ds:IOCALL_REQSTAT+1
 		not	ah
 		and	ah, 2
-
 QuickReturn:
 		call	restore_world
 		pop	es
@@ -11139,14 +9003,10 @@ QuickReturn:
 		inc	ss:IoStatFail
 		popf
 		retn
-; ---------------------------------------------------------------------------
-
 not_fail_ret:				; ...
 		mov	ax, ss:DEVIOBUF
 		popf
 		retn
-; ---------------------------------------------------------------------------
-
 DevErr:					; ...
 		mov	ah, cl
 		call	CHARHARD
@@ -11155,18 +9015,13 @@ DevErr:					; ...
 		call	restore_world
 		pop	es
 		jmp	IOFUNC
-; ---------------------------------------------------------------------------
-
 NO_RETRY:				; ...
 		and	byte ptr ss:IOCALL_REQSTAT+1, 0FDh
 		cmp	al, 3
 		jnz	short not_fail
 		dec	ss:IoStatFail
-
 not_fail:				; ...
 		jmp	short OKDevIO
-; ---------------------------------------------------------------------------
-
 IOTOFILE:				; ...
 		or	ah, ah
 		jz	short IOIN
@@ -11175,8 +9030,6 @@ IOTOFILE:				; ...
 		dec	ah
 		jz	short IOUT
 		retn
-; ---------------------------------------------------------------------------
-
 IOIST:					; ...
 		push	word ptr [si+15h]
 		push	word ptr [si+17h]
@@ -11184,21 +9037,14 @@ IOIST:					; ...
 		pop	word ptr [si+17h]
 		pop	word ptr [si+15h]
 		retn
-; ---------------------------------------------------------------------------
-
 IOUT:					; ...
 		call	SETXADDR
 		call	DOS_WRITE
 		call	RESTXADDR
-
 IOUT_retn:				; ...
 		retn
 IOFUNC		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 IOIN		proc near		; ...
 		call	SETXADDR
 		or	ss:DOS34_FLAG, 40h
@@ -11211,11 +9057,7 @@ IOIN		proc near		; ...
 		mov	al, 1Ah
 		retn
 IOIN		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SETXADDR	proc near		; ...
 		pop	word ptr ss:CALLBPB
 		push	es
@@ -11233,42 +9075,28 @@ SETXADDR	proc near		; ...
 		mov	cx, ds:IOSCNT
 		jmp	short RESTRET
 SETXADDR	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 RESTXADDR	proc near		; ...
 		pop	word ptr ds:CALLBPB
 		pop	word ptr ds:DMAADD+2
 		pop	word ptr ds:DMAADD
 		call	restore_world
 		pop	es
-
 RESTRET:				; ...
 		jmp	word ptr ss:CALLBPB
 RESTXADDR	endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DEV_OPEN_SFT	proc near		; ...
 		push	es
 		call	save_world
 		mov	al, 0Dh
 		jmp	short DO_OPCLS
 DEV_OPEN_SFT	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DEV_CLOSE_SFT	proc near		; ...
 		push	es
 		call	save_world
 		mov	al, 0Eh
-
 DO_OPCLS:				; ...
 		test	byte ptr es:[di+6], 80h
 		jnz	short OPCLS_DONE
@@ -11281,14 +9109,12 @@ DO_OPCLS:				; ...
 		mov	ah, es:[di+1]
 		mov	cl, es:[di]
 		les	di, es:[di+13h]
-
 GOT_DEV_ADDR:				; ...
 		test	byte ptr es:[di+5], 8
 		jz	short OPCLS_DONE
 		push	es
 		pop	ds
 		mov	si, di
-
 OPCLS_RETRY:				; ...
 		push	ss
 		pop	es
@@ -11312,41 +9138,27 @@ OPCLS_RETRY:				; ...
 		jz	short BLKDEV
 		mov	ah, 86h
 		jmp	short HRDERR
-; ---------------------------------------------------------------------------
-
 BLKDEV:					; ...
 		mov	al, cl
 		mov	ah, 6
-
 HRDERR:					; ...
 		call	CHARHARD
 		cmp	al, 1
 		jnz	short OPCLS_DONEP
 		pop	ax
 		jmp	short OPCLS_RETRY
-; ---------------------------------------------------------------------------
-
 OPCLS_DONEP:				; ...
 		pop	ax
-
 OPCLS_DONE:				; ...
 		call	restore_world
 		pop	es
 		retn
 DEV_CLOSE_SFT	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DEVIOCALL	proc near		; ...
 		lds	si, [si+7]
 DEVIOCALL	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DEVIOCALL2	proc near		; ...
 		call	ECritDevice
 		test	byte ptr [si+5], 80h
@@ -11357,7 +9169,6 @@ DEVIOCALL2	proc near		; ...
 		jz	short chkext
 		cmp	byte ptr es:[bx+2], 9
 		jnz	short chardev2
-
 chkext:					; ...
 		call	RW_SC
 		jb	short dev_exit
@@ -11370,15 +9181,11 @@ chkext:					; ...
 		mov	ax, ss:HIGH_SECTOR
 		mov	word ptr ss:CALLNEWSC+2, ax
 		jmp	short chardev2
-; ---------------------------------------------------------------------------
-
 chksector:				; ...
 		cmp	ss:HIGH_SECTOR,	0
 		jz	short chardev2
 		mov	word ptr es:[bx+3], 8107h
 		jmp	short dev_exit
-; ---------------------------------------------------------------------------
-
 chardev2:				; ...
 		mov	ax, [si+6]
 		mov	word ptr ss:CALLDEVAD, ax
@@ -11389,22 +9196,16 @@ chardev2:				; ...
 		call	ss:CALLDEVAD
 		call	VIRREAD
 		jb	short chardev2
-
 dev_exit:				; ...
 		call	LCritDevice
 		retn
 DEVIOCALL2	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SETREAD		proc near		; ...
 		push	di
 		push	cx
 		push	ax
 		mov	cl, 4
-
 SETCALLHEAD:				; ...
 		mov	al, 16h
 		push	ss
@@ -11439,11 +9240,7 @@ SETCALLHEAD:				; ...
 		mov	bx, offset DEVCALL
 		retn
 SETREAD		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SETWRITE	proc near		; ...
 		push	di
 		push	cx
@@ -11452,11 +9249,7 @@ SETWRITE	proc near		; ...
 		add	cl, ss:VERFLG
 		jmp	short SETCALLHEAD
 SETWRITE	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 RW_SC		proc near		; ...
 		cmp	ss:SC_CACHE_COUNT, 0
 		jz	short scexit4
@@ -11473,21 +9266,15 @@ RW_SC		proc near		; ...
 		jz	short doread
 		call	INVALIDATE_SC
 		jmp	scexit2
-; ---------------------------------------------------------------------------
-
 scexit4:				; ...
 		clc
 		retn
-; ---------------------------------------------------------------------------
-
 doread:					; ...
 		call	SC2BUF
 		jb	short readSC
 		mov	ss:DEVCALL_REQSTAT, 100h
 		stc
 		jmp	short saveseq
-; ---------------------------------------------------------------------------
-
 readSC:					; ...
 		mov	ax, ss:HIGH_SECTOR
 		mov	cx, word ptr ss:CALLBPB+2
@@ -11495,14 +9282,12 @@ readSC:					; ...
 		sbb	ax, ss:SEQ_SECTOR+2
 		cmp	ax, 0
 		jnz	short saveseq2
-
 chklow:
 		cmp	cx, 1
 		ja	short saveseq2
 		mov	ss:SC_STATUS, 0FFFFh
 		mov	ax, ss:SC_CACHE_COUNT
 		mov	word ptr ss:CALLBPB, ax	; [ss:CALLSCNT]
-
 readsr:
 		mov	ax, word ptr ss:CALLBR+2
 		mov	ss:TEMP_VAR2, ax
@@ -11519,21 +9304,16 @@ readsr:
 		mov	ss:CurSC_SECTOR, ax
 		mov	ax, ss:HIGH_SECTOR
 		mov	ss:CurSC_SECTOR+2, ax
-
 saveseq2:				; ...
 		clc
-
 saveseq:				; ...
 		mov	ax, ss:HIGH_SECTOR
 		mov	ss:SEQ_SECTOR+2, ax
 		mov	ax, word ptr ss:CALLBPB+2
 		mov	ss:SEQ_SECTOR, ax
 		jmp	short scexit
-; ---------------------------------------------------------------------------
-
 scexit2:				; ...
 		clc
-
 scexit:					; ...
 		pop	di
 		pop	es
@@ -11543,11 +9323,7 @@ scexit:					; ...
 		pop	cx
 		retn
 RW_SC		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 IN_SC		proc near		; ...
 		mov	al, ss:SC_DRIVE
 		cmp	al, ss:CurSC_DRIVE
@@ -11562,19 +9338,12 @@ IN_SC		proc near		; ...
 		jnb	short outrange2
 		clc
 		jmp	short inexit
-; ---------------------------------------------------------------------------
-
 outrange2:				; ...
 		stc
-
 inexit:					; ...
 		retn
 IN_SC		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 INVALIDATE_SC	proc near		; ...
 		call	IN_SC
 		jb	short outrange
@@ -11582,15 +9351,10 @@ INVALIDATE_SC	proc near		; ...
 		shl	ax, cl
 		not	ax
 		and	ss:SC_STATUS, ax
-
 outrange:				; ...
 		retn
 INVALIDATE_SC	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 VIRREAD		proc near		; ...
 		cmp	ss:SC_FLAG, 0
 		jz	short sc2end
@@ -11617,25 +9381,17 @@ VIRREAD		proc near		; ...
 		pop	si
 		pop	ds
 		jmp	short sc2end
-; ---------------------------------------------------------------------------
-
 scerror:				; ...
 		mov	word ptr ss:CALLBPB, 1
 		mov	ss:SC_STATUS, 0
 		mov	ss:CurSC_DRIVE,	0FFh
 		stc
 		retn
-; ---------------------------------------------------------------------------
-
 sc2end:					; ...
 		clc
 		retn
 VIRREAD		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SC2BUF		proc near		; ...
 		call	IN_SC
 		jb	short noSC
@@ -11643,7 +9399,6 @@ SC2BUF		proc near		; ...
 		shl	ax, cl
 		test	ss:SC_STATUS, ax
 		jz	short noSC
-
 SC2BUF2:				; ...
 		mov	ax, cx
 		mul	ss:SC_SECTOR_SIZE
@@ -11655,54 +9410,38 @@ SC2BUF2:				; ...
 		mov	di, word ptr ss:CALLBR
 		mov	cx, ss:SC_SECTOR_SIZE
 		shr	cx, 1
-
 MOVWORDS:
 		cmp	ss:DDMOVE, 0
 		jz	short nodd
 		shr	cx, 1
-; ---------------------------------------------------------------------------
 		db 66h			; 80386, 32 bit	op prefix
-; ---------------------------------------------------------------------------
-
 nodd:					; ...
 		rep movsw
 		clc
 		retn
-; ---------------------------------------------------------------------------
-
 noSC:					; ...
 		stc
 		retn
 SC2BUF		endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 BUILDDIR	proc near		; ...
 		mov	ax, ds:ENTFREE
 		cmp	ax, 0FFFFh
 		jz	short CHECK_IF_ROOT
 		clc
 		retn
-; ---------------------------------------------------------------------------
-
 CHECK_IF_ROOT:				; ...
 		cmp	ds:DIRSTART, 0
 		jnz	short NEWDIR
 		stc
-
 builddir_retn:				; ...
 		retn
-; ---------------------------------------------------------------------------
-
 NEWDIR:					; ...
 		mov	bx, ds:DIRSTART
 		or	bx, bx
 		jz	short NULLDIR
 		call	GETEOF
 		jb	short builddir_retn
-
 NULLDIR:				; ...
 		mov	cx, 1
 		call	ALLOCATE
@@ -11714,8 +9453,6 @@ NULLDIR:				; ...
 		jb	short builddir_retn
 		mov	ds:LASTENT, 0FFFFh
 		jmp	short GOTDIRREC
-; ---------------------------------------------------------------------------
-
 ADDINGDIR:				; ...
 		push	bx
 		mov	bx, ds:CLUSNUM
@@ -11734,17 +9471,14 @@ ADDINGDIR:				; ...
 		pop	bp
 		pop	ax
 		pop	cx
-
 NOTFIRSTGROW:				; ...
 		mov	dx, bx
 		xor	bl, bl
 		call	FIGREC
-
 GOTDIRREC:				; ...
 		mov	cl, es:[bp+4]
 		inc	cl
 		xor	ch, ch
-
 ZERODIR:				; ...
 		push	cx
 		mov	ds:ALLOWED, 18h
@@ -11753,8 +9487,6 @@ ZERODIR:				; ...
 		jnb	short GET_SSIZE
 		pop	cx
 		retn
-; ---------------------------------------------------------------------------
-
 GET_SSIZE:				; ...
 		mov	cx, es:[bp+2]
 		push	es
@@ -11767,14 +9499,12 @@ GET_SSIZE:				; ...
 		rep stosw
 		jnb	short EVENZ
 		stosb
-
 EVENZ:					; ...
 		pop	di
 		test	byte ptr es:[di+5], 40h
 		jnz	short yesdirty7
 		call	INC_DIRTY_COUNT
 		or	byte ptr es:[di+5], 40h
-
 yesdirty7:				; ...
 		pop	es
 		pop	cx
@@ -11786,11 +9516,7 @@ yesdirty7:				; ...
 		clc
 		retn
 BUILDDIR	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SETDOTENT	proc near		; ...
 		stosw
 		mov	cx, 4
@@ -11812,11 +9538,7 @@ SETDOTENT	proc near		; ...
 		stosw
 		retn
 SETDOTENT	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 MakeNode	proc near		; ...
 		mov	word ptr ds:CREATING, 0E5FFh
 		push	ax
@@ -11830,16 +9552,12 @@ MakeNode	proc near		; ...
 		jnz	short make_err_4
 		cmp	dl, 80h
 		jz	short RENAME_MAKE
-
 make_err_4:				; ...
 		mov	al, 4
-
 make_err_ret:				; ...
 		xor	ah, ah
 		stc
 		retn
-; ---------------------------------------------------------------------------
-
 RENAME_MAKE:				; ...
 		test	ds:EXTOPEN_ON, 1
 		jz	short make_type2
@@ -11848,18 +9566,13 @@ RENAME_MAKE:				; ...
 		jnz	short make_type2
 		stc
 		mov	ax, 7
-
 make_retn:				; ...
 		retn
-; ---------------------------------------------------------------------------
-
 make_type2:				; ...
 		les	di, ds:THISSFT
 		xor	ax, ax
 		stc
 		jmp	short make_new
-; ---------------------------------------------------------------------------
-
 make_exists:				; ...
 		jz	short make_exists_dir
 		mov	al, 3
@@ -11878,7 +9591,6 @@ make_exists:				; ...
 		pop	cx
 		jnz	short make_err_ret_5
 		xor	al, al
-
 make_share:				; ...
 		xor	ah, ah
 		push	ax
@@ -11894,25 +9606,17 @@ make_share:				; ...
 		pop	si
 		pop	cx
 		pop	ax
-
 Make_Share_ret:				; ...
 		mov	al, 6
 		jmp	short make_err_ret
-; ---------------------------------------------------------------------------
-
 make_err_ret_5P:			; ...
 		pop	cx
-
 make_err_ret_5:				; ...
 		mov	al, 5
 		jmp	short make_err_ret
-; ---------------------------------------------------------------------------
-
 make_exists_dir:			; ...
 		mov	al, 1
 		jmp	short make_err_ret
-; ---------------------------------------------------------------------------
-
 make_save:				; ...
 		push	ax
 		mov	ax, cx
@@ -11920,11 +9624,8 @@ make_save:				; ...
 		pop	ax
 		jnb	short make_retn
 		mov	al, 2
-
 make_save_retn:				; ...
 		retn
-; ---------------------------------------------------------------------------
-
 make_new:				; ...
 		call	make_save
 		jb	short make_save_retn
@@ -11945,15 +9646,12 @@ make_new:				; ...
 		jnz	short yesdirty8
 		call	INC_DIRTY_COUNT
 		or	byte ptr es:[di+5], 40h
-
 yesdirty8:				; ...
 		les	bp, ds:THISDPB
 		mov	al, es:[bp+0]
 		call	FLUSHBUF
 		pop	ax
 		jmp	short Make_Share_ret
-; ---------------------------------------------------------------------------
-
 MakeEndShare:				; ...
 		les	di, ds:THISSFT
 		xor	ax, ax
@@ -11984,15 +9682,10 @@ MakeEndShare:				; ...
 		pop	si
 		pop	bx
 		pop	ax
-
 makeendshare_retn:			; ...
 		retn
 MakeNode	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 NEWENTRY	proc near		; ...
 		les	bp, ds:THISDPB
 		jnb	short EXISTENT
@@ -12004,31 +9697,22 @@ NEWENTRY	proc near		; ...
 		call	GETENT
 		jb	short makeendshare_retn
 		jmp	short FREESPOT
-; ---------------------------------------------------------------------------
-
 ERRRET3:				; ...
 		stc
-
 newentry_retn:				; ...
 		retn
-; ---------------------------------------------------------------------------
-
 EXISTENT:				; ...
 		or	ah, ah
 		jns	short NOT_DEV1
 		jmp	DOOPEN
-; ---------------------------------------------------------------------------
-
 NOT_DEV1:				; ...
 		call	FREEENT
 		jb	short newentry_retn
-
 FREESPOT:				; ...
 		test	ds:ATTRIB, 8
 		jz	short NOTVOLID
 		cmp	ds:VOLID, 0
 		jnz	short ERRRET3
-
 NOTVOLID:				; ...
 		mov	es, word ptr ds:CURBUF+2
 		mov	di, bx
@@ -12056,7 +9740,6 @@ NOTVOLID:				; ...
 		jnz	short yesdirty9
 		call	INC_DIRTY_COUNT
 		or	byte ptr es:[si+5], 40h
-
 yesdirty9:				; ...
 		les	bp, ds:THISDPB
 		mov	al, es:[bp+0]
@@ -12077,7 +9760,6 @@ yesdirty9:				; ...
 		pop	ds
 		call	DEV_OPEN_SFT
 		mov	ds:VIRTUAL_OPEN, 1
-
 GotADevice:				; ...
 		pop	di
 		pop	es
@@ -12090,11 +9772,7 @@ GotADevice:				; ...
 		jnb	short DOOPEN
 		retn
 NEWENTRY	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DOOPEN		proc near		; ...
 		mov	dh, ah
 		les	di, ds:THISSFT
@@ -12104,7 +9782,6 @@ DOOPEN		proc near		; ...
 		js	short DEV_SFT1
 		mov	ds, word ptr ds:CURBUF+2
 		mov	al, [bx+0Bh]
-
 DEV_SFT1:				; ...
 		stosb
 		xor	ax, ax
@@ -12116,7 +9793,6 @@ DEV_SFT1:				; ...
 		or	dh, dh
 		js	short DEV_SFT2
 		lds	ax, ss:THISDPB
-
 DEV_SFT2:				; ...
 		stosw
 		mov	ax, ds
@@ -12135,7 +9811,6 @@ DEV_SFT2:				; ...
 		jns	short FILE_SFT1
 		xor	ax, ax
 		mov	cx, ax
-
 FILE_SFT1:				; ...
 		xchg	ax, cx
 		stosw
@@ -12166,8 +9841,6 @@ FILE_SFT1:				; ...
 		stosb
 		pop	ds
 		jmp	short Next_Name
-; ---------------------------------------------------------------------------
-
 Not_FastOpen:				; ...
 		pop	ds
 		mov	si, word ptr ss:CURBUF
@@ -12181,14 +9854,10 @@ Not_FastOpen:				; ...
 		mov	cl, 32
 		div	cl
 		stosb
-
 Next_Name:				; ...
 		jmp	short FILE_SFT2
-; ---------------------------------------------------------------------------
-
 DEV_SFT3:				; ...
 		add	di, 7
-
 FILE_SFT2:				; ...
 		mov	si, bx
 		mov	cx, 11
@@ -12199,11 +9868,7 @@ FILE_SFT2:				; ...
 		clc
 		retn
 DOOPEN		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 FREEENT		proc near		; ...
 		push	ds
 		lds	di, ds:CURBUF
@@ -12226,11 +9891,8 @@ FREEENT		proc near		; ...
 		pop	ds:HIGH_SECTOR
 		jnb	short GET_BUF_BACK
 		pop	bx
-
 freeent_retn:				; ...
 		retn
-; ---------------------------------------------------------------------------
-
 GET_BUF_BACK:				; ...
 		mov	ds:ALLOWED, 18h
 		xor	al, al
@@ -12241,16 +9903,11 @@ GET_BUF_BACK:				; ...
 		add	bx, word ptr ds:CURBUF
 		mov	si, bx
 		add	si, 1Ah
-
 RET1:					; ...
 		clc
 		retn
 FREEENT		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 CHECK_VIRT_OPEN	proc near		; ...
 		push	ax
 		lahf
@@ -12263,17 +9920,12 @@ CHECK_VIRT_OPEN	proc near		; ...
 		call	DEV_CLOSE_SFT
 		pop	di
 		pop	es
-
 ALL_CLOSED:				; ...
 		sahf
 		pop	ax
 		retn
 CHECK_VIRT_OPEN	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 FNDCLUS		proc near		; ...
 		push	es
 		les	di, ds:THISSFT
@@ -12286,11 +9938,9 @@ FNDCLUS		proc near		; ...
 		add	cx, dx
 		xor	dx, dx
 		mov	bx, es:[di+0Bh]
-
 FINDIT:					; ...
 		pop	es
 		jcxz	short RET9
-
 SKPCLP:					; ...
 		call	UNPACK
 		jb	short fndclus_retn
@@ -12301,26 +9951,18 @@ SKPCLP:					; ...
 		xchg	bx, di
 		inc	dx
 		loop	SKPCLP
-
 RET9:					; ...
 		clc
 		retn
-; ---------------------------------------------------------------------------
-
 NOCLUS:					; ...
 		pop	es
 		inc	cx
 		dec	dx
 		clc
-
 fndclus_retn:				; ...
 		retn
 FNDCLUS		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 BUFSEC		proc near		; ...
 		mov	dx, ds:CLUSNUM
 		mov	bl, ds:SECCLUSPOS
@@ -12341,22 +9983,15 @@ BUFSEC		proc near		; ...
 		clc
 		retn
 BUFSEC		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 BUFRD		proc near		; ...
 		push	es
 		xor	ax, ax
 		call	BUFSEC
 		jnb	short BUF_OK
-
 BUF_IO_FAIL:				; ...
 		pop	es
 		jmp	short RBUFPLACED
-; ---------------------------------------------------------------------------
-
 BUF_OK:					; ...
 		mov	bx, es
 		mov	es, word ptr ds:DMAADD+2
@@ -12374,20 +10009,14 @@ BUF_OK:					; ...
 		cmp	si, es:[bp+2]
 		jb	short RBUFPLACEDC
 		mov	word ptr ss:BufferQueue, di
-
 RBUFPLACEDC:				; ...
 		clc
-
 RBUFPLACED:				; ...
 		push	ss
 		pop	ds
 		retn
 BUFRD		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 BUFWRT		proc near		; ...
 		mov	ax, ds:SECPOS
 		add	ax, 1
@@ -12402,10 +10031,8 @@ BUFWRT		proc near		; ...
 		cmp	ax, ds:VALSEC
 		mov	al, 1
 		ja	short NOREAD
-
 _doread:				; ...
 		xor	al, al
-
 NOREAD:					; ...
 		push	es
 		call	BUFSEC
@@ -12421,25 +10048,19 @@ NOREAD:					; ...
 		jnz	short yesdirty10
 		call	INC_DIRTY_COUNT
 		or	byte ptr [bx+5], 40h
-
 yesdirty10:				; ...
 		lea	si, [bx+20]
 		sub	di, si
 		cmp	di, es:[bp+2]
 		jb	short WBUFPLACED
 		mov	word ptr ss:BufferQueue, bx
-
 WBUFPLACED:				; ...
 		clc
 		push	ss
 		pop	ds
 		retn
 BUFWRT		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 NEXTSEC		proc near		; ...
 		test	ds:TRANS, 0FFh
 		jz	short CLRET
@@ -12455,24 +10076,16 @@ NEXTSEC		proc near		; ...
 		mov	ds:CLUSNUM, di
 		inc	ds:LASTPOS
 		mov	al, 0
-
 SAVPOS:					; ...
 		mov	ds:SECCLUSPOS, al
-
 CLRET:					; ...
 		clc
 		retn
-; ---------------------------------------------------------------------------
-
 NONEXT:					; ...
 		stc
 		retn
 NEXTSEC		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 OPTIMIZE	proc near		; ...
 		push	dx
 		push	bx
@@ -12482,7 +10095,6 @@ OPTIMIZE	proc near		; ...
 		sub	al, dl
 		mov	dx, cx
 		mov	cx, 0
-
 OPTCLUS:				; ...
 		call	UNPACK
 		jb	short OP_ERR
@@ -12495,7 +10107,6 @@ OPTCLUS:				; ...
 		cmp	di, bx
 		jz	short OPTCLUS
 		dec	bx
-
 FINCLUS:				; ...
 		mov	ds:CLUSNUM, bx
 		sub	dx, cx
@@ -12514,14 +10125,10 @@ FINCLUS:				; ...
 		mov	bx, si
 		clc
 		retn
-; ---------------------------------------------------------------------------
-
 OP_ERR:					; ...
 		add	sp, 4
 		stc
 		retn
-; ---------------------------------------------------------------------------
-
 BLKDON:					; ...
 		sub	cx, dx
 		sub	ah, cl
@@ -12530,11 +10137,7 @@ BLKDON:					; ...
 		mov	cx, dx
 		jmp	short FINCLUS
 OPTIMIZE	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 FIGREC		proc near		; ...
 		push	cx
 		mov	cl, es:[bp+5]
@@ -12544,45 +10147,32 @@ FIGREC		proc near		; ...
 		or	cl, cl
 		jz	short noshift
 		xor	ch, ch
-
 rotleft:				; ...
 		clc
 		rcl	dx, 1
 		rcl	ss:HIGH_SECTOR,	1
 		loop	rotleft
-
 noshift:				; ...
 		or	dl, bl
 		add	dx, es:[bp+0Bh]
 		adc	ss:HIGH_SECTOR,	0
 		pop	cx
-
 figrec_retn:				; ...
 		retn
 FIGREC		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 callmagic	proc far		; ...
 		push	ds
 		push	ss:OffsetMagicPatch
 		retf
 callmagic	endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ALLOCATE	proc near		; ...
 		clc
 		push	cs
 		call	near ptr callmagic
 		jnb	short Regular_Allocate_Path
 		jmp	Disk_Full_Return
-; ---------------------------------------------------------------------------
-
 Regular_Allocate_Path:			; ...
 		push	bx
 		xor	bx, bx
@@ -12596,11 +10186,9 @@ Regular_Allocate_Path:			; ...
 		mov	bx, es:[bp+1Dh]
 		cmp	bx, 2
 		ja	short FINDFRE
-
 ads1:					; ...
 		mov	word ptr es:[bp+1Dh], 2
 		mov	bx, 1
-
 FINDFRE:				; ...
 		inc	bx
 		cmp	bx, es:[bp+0Dh]
@@ -12616,7 +10204,6 @@ FINDFRE:				; ...
 		cmp	word ptr es:[bp+1Fh], 0FFFFh
 		jz	short NO_ALLOC
 		dec	word ptr es:[bp+1Fh]
-
 NO_ALLOC:				; ...
 		xchg	ax, dx
 		xchg	bx, dx
@@ -12628,7 +10215,6 @@ NO_ALLOC:				; ...
 		loop	FINDFRE
 		mov	dx, 0FFFFh
 		call	PACK
-
 ads4:					; ...
 		pop	bx
 		pop	cx
@@ -12641,8 +10227,6 @@ ads4:					; ...
 		or	di, di
 		jz	short dofastk
 		retn
-; ---------------------------------------------------------------------------
-
 dofastk:				; ...
 		push	dx
 		mov	dl, es:[bp+0]
@@ -12653,8 +10237,6 @@ dofastk:				; ...
 		pop	es
 		pop	dx
 		retn
-; ---------------------------------------------------------------------------
-
 ads7:					; ...
 		cmp	word ptr es:[bp+1Dh], 2
 		jnz	short ads1
@@ -12664,17 +10246,12 @@ ads7:					; ...
 		pop	ax
 		sub	ax, cx
 		call	RESTFATBYT
-
 Disk_Full_Return:			; ...
 		mov	ds:DISK_FULL, 1
 		stc
 		retn
 ALLOCATE	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 RESTFATBYT	proc near		; ...
 		push	bx
 		push	dx
@@ -12687,14 +10264,9 @@ RESTFATBYT	proc near		; ...
 		pop	bx
 		retn
 RESTFATBYT	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 RELEASE		proc near		; ...
 		xor	dx, dx
-
 RELBLKS:				; ...
 		call	UNPACK
 		jb	short RELEASE_flush
@@ -12709,14 +10281,12 @@ RELBLKS:				; ...
 		cmp	word ptr es:[bp+1Fh], -1
 		jz	short NO_DEALLOC
 		inc	word ptr es:[bp+1Fh]
-
 NO_DEALLOC:				; ...
 		mov	bx, ax
 		dec	ax
 		jz	short RELEASE_flush
 		call	IsEOF
 		jb	short RELEASE
-
 RELEASE_flush:				; ...
 		mov	al, es:[bp+0]
 		push	si
@@ -12728,15 +10298,10 @@ RELEASE_flush:				; ...
 		pop	es
 		pop	cx
 		pop	si
-
 RET12:					; ...
 		retn
 RELEASE		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GETEOF		proc near		; ...
 		call	UNPACK
 		jb	short RET12
@@ -12748,18 +10313,13 @@ GETEOF		proc near		; ...
 		mov	bx, di
 		jmp	short GETEOF
 GETEOF		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 MAKEFCB		proc near		; ...
 		mov	ss:SpaceFlag, 0
 		xor	dl, dl
 		test	al, 2
 		jnz	short DEFDRV
 		mov	byte ptr es:[di], 0
-
 DEFDRV:					; ...
 		inc	di
 		mov	cx, 8
@@ -12769,7 +10329,6 @@ DEFDRV:					; ...
 		jz	short FILLB
 		add	di, cx
 		xor	cx, cx
-
 FILLB:					; ...
 		rep stosb
 		mov	cl, 3
@@ -12777,7 +10336,6 @@ FILLB:					; ...
 		jz	short FILLB2
 		add	di, cx
 		xor	cx, cx
-
 FILLB2:					; ...
 		rep stosb
 		xchg	ax, cx
@@ -12790,10 +10348,8 @@ FILLB2:					; ...
 		call	DELIM
 		jnz	short NOSCAN
 		inc	si
-
 SKPSPC:					; ...
 		call	SCANB
-
 NOSCAN:					; ...
 		call	GETLET
 		jbe	short NODRV
@@ -12808,19 +10364,15 @@ NOSCAN:					; ...
 		jnb	short HAVDRV
 		cmp	ss:DrvErr, 1Ah
 		jz	short HAVDRV
-
 BADDRV:					; ...
 		mov	dl, -1
-
 HAVDRV:					; ...
 		stosb
 		inc	si
 		dec	di
-
 NODRV:					; ...
 		dec	si
 		inc	di
-
 NORMSCAN:				; ...
 		mov	cx, 8
 		call	GETWORD
@@ -12832,40 +10384,27 @@ NORMSCAN:				; ...
 		movsb
 		mov	cx, 2
 		jmp	short contvol
-; ---------------------------------------------------------------------------
-
 VOLOK:					; ...
 		mov	cx, 3
-
 contvol:				; ...
 		call	MUSTGETWORD
-
 NODOT:					; ...
 		mov	al, dl
 		and	ss:DOS34_FLAG, 0FEFFh
 		retn
 MAKEFCB		endp
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR GETWORD
-
 NONAM:					; ...
 		add	di, cx
 		dec	si
 		retn
 ; END OF FUNCTION CHUNK	FOR GETWORD
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GETWORD		proc near		; ...
-
 ; FUNCTION CHUNK AT 8F67 SIZE 00000004 BYTES
-
 		call	GETLET
 		jbe	short NONAM
 		dec	si
-
 MUSTGETWORD:				; ...
 		call	GETLET
 		jnz	short MustCheckCX
@@ -12873,7 +10412,6 @@ MUSTGETWORD:				; ...
 		jz	short FILLNAM
 		cmp	al, ' '
 		jnz	short FILLNAM
-
 MustCheckCX:				; ...
 		jcxz	short MUSTGETWORD
 		dec	cx
@@ -12881,40 +10419,28 @@ MustCheckCX:				; ...
 		jnz	short NOSTAR
 		mov	al, '?'
 		rep stosb
-
 NOSTAR:					; ...
 		stosb
 		cmp	al, '?'
 		jnz	short MUSTGETWORD
 		or	dl, 1
 		jmp	short MUSTGETWORD
-; ---------------------------------------------------------------------------
-
 FILLNAM:				; ...
 		mov	al, ' '
 		rep stosb
 		dec	si
 		retn
 GETWORD		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SCANB		proc near		; ...
 		lodsb
 		call	SPCHK
 		jz	short SCANB
 		dec	si
-
 scanb_retn:				; ...
 		retn
 SCANB		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 NAMETRANS	proc near		; ...
 		mov	ss:SpaceFlag, 1
 		push	ss
@@ -12935,34 +10461,23 @@ NAMETRANS	proc near		; ...
 		mov	ss:NAME1, 5
 		retn
 NAMETRANS	endp
-
-; ---------------------------------------------------------------------------
 CharType	db 4 dup(66h), 6, 0Bh dup(66h),	0F8h, 0F6h, 3 dup(0FFh)	; ...
 		db 4Fh,	0F4h, 6Eh, 5 dup(0FFh),	2 dup(44h), 0F4h, 0Dh dup(0FFh)
 		db 6Fh,	66h, 0Fh dup(0FFh), 0F4h
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GETLET		proc near		; ...
 		lodsb
 GETLET		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 UCase		proc near		; ...
 		push	bx
 		mov	bx, offset FILE_UCASE_TAB_2
-
 gl_0:					; ...
 		cmp	al, 'a'
 		jb	short gl_2
 		cmp	al, 'z'
 		ja	short gl_1
 		sub	al, 20h
-
 gl_1:					; ...
 		cmp	al, 80h
 		jb	short gl_2
@@ -12971,7 +10486,6 @@ gl_1:					; ...
 		mov	ds, cs:DosDSeg
 		xlat
 		pop	ds
-
 gl_2:					; ...
 		push	ax
 		call	GetCharType
@@ -12980,20 +10494,12 @@ gl_2:					; ...
 		pop	bx
 		retn
 UCase		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GETLET3		proc near		; ...
 		push	bx
 		jmp	short gl_0
 GETLET3		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DELIM		proc near		; ...
 		push	ax
 		call	GetCharType
@@ -13001,11 +10507,7 @@ DELIM		proc near		; ...
 		pop	ax
 		retn
 DELIM		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SPCHK		proc near		; ...
 		push	ax
 		call	GetCharType
@@ -13013,11 +10515,7 @@ SPCHK		proc near		; ...
 		pop	ax
 		retn
 SPCHK		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GetCharType	proc near		; ...
 		cmp	al, 7Eh
 		jnb	short gct_90
@@ -13031,52 +10529,34 @@ GetCharType	proc near		; ...
 		shr	al, 1
 		shr	al, 1
 		shr	al, 1
-
 gct_80:					; ...
 		and	al, 0Fh
 		retn
-; ---------------------------------------------------------------------------
-
 gct_90:					; ...
 		mov	al, 0Fh
 		retn
 GetCharType	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 PATHCHRCMP	proc near		; ...
 		cmp	al, '/'
 		jbe	short PathRet
 		cmp	al, '\'
 		retn
-; ---------------------------------------------------------------------------
-
 GotFor:					; ...
 		mov	al, '\'
 		retn
-; ---------------------------------------------------------------------------
-
 PathRet:				; ...
 		jz	short GotFor
 		retn
 PATHCHRCMP	endp
-
-; ---------------------------------------------------------------------------
 LowInt23Addr	dd offset LowInt23	; ...
 LowInt24Addr	dd offset LowInt24	; ...
 LowInt28Addr	dd offset LowInt28	; ...
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DSKSTATCHK	proc far		; ...
 		cmp	ss:INDOS, 1
 		jz	short dskstatchk1
 		retn
-; ---------------------------------------------------------------------------
-
 dskstatchk1:				; ...
 		push	cx
 		push	es
@@ -13095,7 +10575,6 @@ dskstatchk1:				; ...
 		test	byte ptr ss:DSKSTST+1, 2
 		jz	short _GotCh
 		xor	al, al
-
 RET36:					; ...
 		pop	si
 		pop	ds
@@ -13103,8 +10582,6 @@ RET36:					; ...
 		pop	es
 		pop	cx
 		retn
-; ---------------------------------------------------------------------------
-
 _GotCh:					; ...
 		mov	al, ss:DSKCHRET
 		cmp	al, 3
@@ -13122,33 +10599,22 @@ _GotCh:					; ...
 		pop	cx
 		jmp	CNTCHAND
 DSKSTATCHK	endp
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR STATCHK
-
 NOSTOP:					; ...
 		cmp	al, 10h		; "P"-"@"
 		jnz	short check_next
 		cmp	ss:SCAN_FLAG, 0
 		jz	short INCHKJ
 		retn
-; ---------------------------------------------------------------------------
-
 check_next:				; ...
 		cmp	al, 3		; "C"-"@"
 		jz	short INCHKJ
-
 check_end:				; ...
 		retn
-; ---------------------------------------------------------------------------
-
 INCHKJ:					; ...
 		jmp	INCHK
 ; END OF FUNCTION CHUNK	FOR STATCHK
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SPOOLINT	proc near		; ...
 		pushf
 		cmp	ss:IDLEINT, 0
@@ -13160,32 +10626,21 @@ SPOOLINT	proc near		; ...
 		jnz	short do_low_int28
 		int	28h		; DOS 2+ internal - KEYBOARD BUSY LOOP
 		jmp	short spool_ret_addr
-; ---------------------------------------------------------------------------
-
 do_low_int28:				; ...
 		call	cs:LowInt28Addr
-
 spool_ret_addr:				; ...
 		pop	word ptr ss:IDLEINT
-
 POPFRET:				; ...
 		popf
-
 _RET18:					; ...
 		retn
 SPOOLINT	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 STATCHK		proc far		; ...
-
 ; FUNCTION CHUNK AT 4052 SIZE 0000007A BYTES
 ; FUNCTION CHUNK AT 40D0 SIZE 00000003 BYTES
 ; FUNCTION CHUNK AT 40F8 SIZE 00000154 BYTES
 ; FUNCTION CHUNK AT 90F4 SIZE 00000015 BYTES
-
 		call	near ptr DSKSTATCHK
 		push	bx
 		xor	bx, bx
@@ -13202,8 +10657,6 @@ STATCHK		proc far		; ...
 		xor	ah, ah
 		call	IOFUNC
 		jmp	short PAUSOSTRT
-; ---------------------------------------------------------------------------
-
 PRINTONOFF:				; ...
 		not	ss:PFLAG
 		push	bx
@@ -13232,34 +10685,24 @@ PRINTONOFF:				; ...
 					; ES:DI	-> SFT,	SS = DOS CS
 		pop	ax
 		jmp	short RETP6
-; ---------------------------------------------------------------------------
-
 NORM_PR:				; ...
 		cmp	ss:PFLAG, 0
 		jnz	short PRNOPN
 		call	DEV_CLOSE_SFT
 		jmp	short RETP6
-; ---------------------------------------------------------------------------
-
 PRNOPN:					; ...
 		call	DEV_OPEN_SFT
-
 RETP6:					; ...
 		pop	di
 		pop	es
-
 STATCHK_RETN:				; ...
 		retn
-; ---------------------------------------------------------------------------
-
 PAUSOLP:				; ...
 		call	SPOOLINT
-
 PAUSOSTRT:				; ...
 		mov	ah, 1
 		call	IOFUNC
 		jz	short PAUSOLP
-
 INCHK:					; ...
 		push	bx
 		xor	bx, bx
@@ -13272,21 +10715,18 @@ INCHK:					; ...
 		jz	short PRINTONOFF
 		cmp	al, 3		; "C"-"@"
 		jnz	short STATCHK_RETN
-
 CNTCHAND:				; ...
 		test	byte ptr ss:DOS34_FLAG+1, 2
 		jnz	short around_deadlock
 		mov	al, 3
 		call	BUFOUT
 		call	CRLF
-
 around_deadlock:			; ...
 		push	ss
 		pop	ds
 		cmp	ds:CONSWAP, 0
 		jz	short NOSWAP
 		call	SWAPBACK
-
 NOSWAP:					; ...
 		cli
 		mov	ss, ds:USER_SS
@@ -13309,12 +10749,9 @@ NOSWAP:					; ...
 					; else
 					; interrupted DOS call continues
 		jmp	short ctrlc_ret_addr
-; ---------------------------------------------------------------------------
-
 do_low_int23:				; ...
 		clc
 		call	cs:LowInt23Addr
-
 ctrlc_ret_addr:				; ...
 		cli
 		push	ax
@@ -13327,21 +10764,16 @@ ctrlc_ret_addr:				; ...
 		pop	ax
 		cmp	sp, ds:ConC_Spsave
 		jnz	short ctrlc_try_new
-
 ctrlc_repeat:				; ...
 		mov	ax, ds:USER_IN_AX
 		mov	ds, ds:TEMPSEG
-
 COMMANDJ:				; ...
 		jmp	command
-; ---------------------------------------------------------------------------
-
 ctrlc_try_new:				; ...
 		add	sp, 2
 		test	al, 1
 		jz	short ctrlc_repeat
 		mov	ds, ds:TEMPSEG
-
 ctrlc_abort:				; ...
 		mov	ax, 4C00h
 		push	ds
@@ -13350,9 +10782,6 @@ ctrlc_abort:				; ...
 		pop	ds
 		jmp	short COMMANDJ
 STATCHK		endp ; sp-analysis failed
-
-; ---------------------------------------------------------------------------
-
 DIVOV:					; ...
 		mov	si, offset DIVMES ; "\r\nDivide	overflow\r\n"
 		mov	bx, cs:DivMesLen
@@ -13360,10 +10789,7 @@ DIVOV:					; ...
 		mov	sp, offset AUXSTACK
 		call	_OUTMES
 		jmp	short ctrlc_abort
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 _OUTMES		proc near		; ...
 		push	ss
 		pop	es
@@ -13382,21 +10808,15 @@ _OUTMES		proc near		; ...
 		mov	es:DSKSTCNT, 1
 		retn
 _OUTMES		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 CHARHARD	proc near		; ...
 		cmp	ss:ERRORMODE, 0
 		jnz	short chard1
 		or	ah, 10h
 		test	ss:PFLAG, 0FFh
 		jnz	short ctrlp
-
 chard1:					; ...
 		or	ah, 38h
-
 ctrlp:					; ...
 		mov	ss:ALLOWED, ah
 		mov	word ptr ss:EXITHOLD+2,	es
@@ -13408,11 +10828,7 @@ ctrlp:					; ...
 		pop	si
 		retn
 CHARHARD	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 HARDERR		proc near		; ...
 		xchg	ax, di
 		and	di, 0FFh
@@ -13422,7 +10838,6 @@ HARDERR		proc near		; ...
 		mov	al, es:[bp+0]
 		mov	ss:WPERR, al
 		pop	ax
-
 NOSETWRPERR:				; ...
 		sub	ax, cx
 		add	dx, ax
@@ -13438,50 +10853,36 @@ NOSETWRPERR:				; ...
 		jnb	short TESTDIR
 		mov	word ptr es:[bp+1Fh], 0FFFFh
 		jmp	short ERRINT
-; ---------------------------------------------------------------------------
-
 TESTDIR:				; ...
 		inc	ah
 		cmp	dx, es:[bp+0Bh]
 		jb	short ERRINT
 		inc	ah
-
 ERRINT:					; ...
 		shl	ah, 1
 		or	ah, ss:READOP
 		or	ah, ss:ALLOWED
-
 FATAL:					; ...
 		mov	al, es:[bp+0]
-
 FATAL1:					; ...
 		mov	word ptr ss:EXITHOLD+2,	es
 		mov	word ptr ss:EXITHOLD, bp
 		les	si, es:[bp+13h]
 		mov	bp, es
 HARDERR		endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 FATALC		proc far		; ...
-
 ; FUNCTION CHUNK AT A1EA SIZE 0000000D BYTES
 ; FUNCTION CHUNK AT A1FF SIZE 00000022 BYTES
-
 		call	SET_I24_EXTENDED_ERROR
 		cmp	di, 0Ch
 		jbe	short NET_I24_ENTRY
 		mov	di, 0Ch
-
 NET_I24_ENTRY:				; ...
 		cmp	ss:ERRORMODE, 0
 		jz	short NoSetFail
 		mov	al, 3
 		jmp	short FailRet
-; ---------------------------------------------------------------------------
-
 NoSetFail:				; ...
 		mov	ss:CONTSTK, sp
 		push	ss
@@ -13494,7 +10895,6 @@ NoSetFail:				; ...
 		mov	byte ptr [si], 0FFh
 		pop	si
 		pop	ds
-
 _NoFree:				; ...
 		cli
 		inc	ss:ERRORMODE
@@ -13503,8 +10903,6 @@ _NoFree:				; ...
 		jz	short i24yes
 		mov	al, 3
 		jmp	short passi24
-; ---------------------------------------------------------------------------
-
 i24yes:					; ...
 		mov	ss, ss:USER_SS
 		mov	sp, es:USER_SP
@@ -13513,23 +10911,18 @@ i24yes:					; ...
 		int	24h		; DOS -	FATAL ERROR HANDLER ADDRESS
 					; Automatically	called upon detection of unrecoverable I/O error.
 		jmp	short criterr_ret_addr
-; ---------------------------------------------------------------------------
-
 do_low_int24:				; ...
 		call	cs:LowInt24Addr
-
 criterr_ret_addr:			; ...
 		mov	es:USER_SP, sp
 		mov	es:USER_SS, ss
 		mov	bp, es
 		mov	ss, bp
-
 passi24:				; ...
 		mov	sp, ss:CONTSTK
 		inc	ss:INDOS
 		mov	ss:ERRORMODE, 0
 		sti
-
 FailRet:				; ...
 		les	bp, ss:EXITHOLD
 		cmp	al, 1
@@ -13539,20 +10932,16 @@ FailRet:				; ...
 		jnz	short DoAbort
 		test	ss:ALLOWED, 8
 		jz	short DoAbort
-
 DoFail:					; ...
 		mov	al, 3
 		test	ss:EXTOPEN_ON, 2
 		jnz	short CleanUp
 		inc	ss:FAILERR
-
 CleanUp:				; ...
 		mov	ss:WPERR, 0FFh
 		cmp	ss:SFN,	0FFFFh
 		jnz	short CleanUp2
 		retn
-; ---------------------------------------------------------------------------
-
 CleanUp2:				; ...
 		push	ds
 		push	si
@@ -13564,35 +10953,26 @@ CleanUp2:				; ...
 		pop	si
 		pop	ds
 		retn
-; ---------------------------------------------------------------------------
-
 CheckIgnore:				; ...
 		test	ss:ALLOWED, 20h
 		jz	short DoFail
 		jmp	short CleanUp
-; ---------------------------------------------------------------------------
-
 CheckRetry:				; ...
 		test	ss:ALLOWED, 10h
 		jz	short DoFail
 		jmp	short CleanUp
-; ---------------------------------------------------------------------------
-
 DoAbort:				; ...
 		push	ss
 		pop	ds
 		cmp	ds:CONSWAP, 0
 		jz	short NOSWAP2
 		call	SWAPBACK
-
 NOSWAP2:				; ...
 		cmp	ds:fAborting, 0
 		jnz	short DoFail
 		mov	ds:EXIT_TYPE, 2
 		xor	al, al
 		jmp	exit_inner
-; ---------------------------------------------------------------------------
-
 reset_environment:			; ...
 		push	ds
 		mov	ah, 82h
@@ -13618,10 +10998,8 @@ reset_environment:			; ...
 		jz	short reset_to_parent
 		call	arena_free_process
 		call	DOS_ABORT
-
 reset_to_parent:			; ...
 		pop	ss:CurrentPDB
-
 reset_return:				; ...
 		push	ss
 		pop	ds
@@ -13661,11 +11039,7 @@ reset_return:				; ...
 		mov	ds, ds:TEMPSEG
 		iret
 FATALC		endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SET_I24_EXTENDED_ERROR proc near	; ...
 		push	ax
 		mov	ax, offset FIRST_BUFF_ADDR ; ErrMap24End
@@ -13677,7 +11051,6 @@ SET_I24_EXTENDED_ERROR proc near	; ...
 		jnb	short NoTrans
 		mov	al, ds:ErrMap24[di]
 		xor	ah, ah
-
 NoTrans:				; ...
 		mov	ds:EXTERR, ax
 		pop	ds
@@ -13688,39 +11061,26 @@ NoTrans:				; ...
 		pop	si
 		retn
 SET_I24_EXTENDED_ERROR endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 IsEOF		proc near		; ...
 		cmp	word ptr es:[bp+0Dh], 0FF6h
 		jnb	short EOF16
 		cmp	bx, 0FF0h
 		jz	short IsEOF_other
 		cmp	bx, 0FF8h
-
 IsEOF_other:				; ...
 		retn
-; ---------------------------------------------------------------------------
-
 EOF16:					; ...
 		cmp	bx, 0FFF8h
 		retn
 IsEOF		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 UNPACK		proc near		; ...
 		or	bx, bx
 		jnz	short up_cont
 		mov	di, ds:CL0FATENTRY
 		or	di, di
 		retn
-; ---------------------------------------------------------------------------
-
 up_cont:				; ...
 		cmp	bx, es:[bp+0Dh]
 		ja	short HURTFAT
@@ -13733,23 +11093,17 @@ up_cont:				; ...
 		jb	short Unpack12
 		or	di, di
 		jmp	short _DoContext
-; ---------------------------------------------------------------------------
-
 High12:					; ...
 		shr	di, 1
 		shr	di, 1
 		shr	di, 1
 		shr	di, 1
-
 Unpack12:				; ...
 		and	di, 0FFFh
-
 _DoContext:				; ...
 		push	ss
 		pop	ds
 		retn
-; ---------------------------------------------------------------------------
-
 HURTFAT:				; ...
 		mov	word ptr es:[bp+1Fh], 0FFFFh
 		push	ax
@@ -13761,25 +11115,17 @@ HURTFAT:				; ...
 		clc
 		jnz	short OKU_RET
 		stc
-
 OKU_RET:				; ...
 		pop	ax
-
 hurtfat_retn:				; ...
 		retn
 UNPACK		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 PACK		proc near		; ...
 		or	bx, bx
 		jnz	short p_cont
 		mov	ds:CL0FATENTRY,	dx
 		retn
-; ---------------------------------------------------------------------------
-
 p_cont:					; ...
 		call	MAPCLUSTER
 		jb	short _DoContext
@@ -13791,19 +11137,14 @@ p_cont:					; ...
 		pop	cx
 		and	si, 0Fh
 		jmp	short PACKIN
-; ---------------------------------------------------------------------------
-
 ALIGNED:				; ...
 		cmp	word ptr es:[bp+0Dh], 0FF6h
 		jnb	short Pack16
 		and	si, 0F000h
 		and	dx, 0FFFh
 		jmp	short PACKIN
-; ---------------------------------------------------------------------------
-
 Pack16:					; ...
 		xor	si, si
-
 PACKIN:					; ...
 		or	si, dx
 		mov	[di], si
@@ -13812,7 +11153,6 @@ PACKIN:					; ...
 		jnz	short yesdirty11
 		call	INC_DIRTY_COUNT
 		or	byte ptr [si+5], 40h
-
 yesdirty11:				; ...
 		cmp	ss:CLUSSPLIT, 0
 		push	ss
@@ -13841,14 +11181,12 @@ yesdirty11:				; ...
 		jnz	short yesdirty12
 		call	INC_DIRTY_COUNT
 		or	byte ptr [di+5], 40h
-
 yesdirty12:				; ...
 		add	di, 20
 		dec	di
 		add	di, es:[bp+2]
 		mov	[di], al
 		clc
-
 POPP_RET:				; ...
 		push	ss
 		pop	ds
@@ -13857,11 +11195,7 @@ POPP_RET:				; ...
 		pop	ax
 		retn
 PACK		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 MAPCLUSTER	proc near		; ...
 		mov	ds:CLUSSPLIT, 0
 		push	ax
@@ -13872,7 +11206,6 @@ MAPCLUSTER	proc near		; ...
 		cmp	word ptr es:[bp+0Dh], 0FF6h
 		jnb	short Map16
 		shr	ax, 1
-
 Map16:					; ...
 		xor	di, di
 		add	ax, bx
@@ -13887,12 +11220,9 @@ Map16:					; ...
 		rcr	al, 1
 		xor	ah, ah
 		jmp	short DivDone
-; ---------------------------------------------------------------------------
-
 _DoDiv:					; ...
 		mov	dx, di
 		div	cx
-
 DivDone:				; ...
 		add	ax, es:[bp+6]
 		dec	cx
@@ -13933,7 +11263,6 @@ DivDone:				; ...
 		pop	ds
 		mov	byte ptr ds:CLUSSAVE+1,	al
 		mov	di, offset CLUSSAVE
-
 MAPRET:					; ...
 		pop	dx
 		pop	cx
@@ -13942,13 +11271,10 @@ MAPRET:					; ...
 		cmp	word ptr es:[bp+0Dh], 0FF6h
 		jnb	short MapSet
 		mov	ax, bx
-
 MapSet:					; ...
 		test	al, 1
 		pop	ax
 		retn
-; ---------------------------------------------------------------------------
-
 MAP_POP:				; ...
 		pop	dx
 		pop	cx
@@ -13956,26 +11282,17 @@ MAP_POP:				; ...
 		pop	ax
 		retn
 MAPCLUSTER	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 FATREAD_SFT	proc near		; ...
 		les	bp, es:[di+7]
 		mov	al, es:[bp+0]
 		mov	ds:THISDRV, al
 		call	GOTDPB
 		call	FAT_GOT_DPB
-
 fatread_sft_retn:			; ...
 		retn
 FATREAD_SFT	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 FATREAD_CDS	proc near		; ...
 		push	es
 		push	di
@@ -13995,7 +11312,6 @@ FATREAD_CDS	proc near		; ...
 		xor	ch, ch
 		lds	si, es:[di+45h]
 		les	di, ss:CDSADDR
-
 frcd20:					; ...
 		test	byte ptr es:[di+44h], 80h
 		jnz	short frcd25
@@ -14007,21 +11323,16 @@ frcd20:					; ...
 		test	es:[di+49h], ax
 		jz	short frcd25
 		mov	es:[di+49h], ax
-
 frcd25:					; ...
 		add	di, 88
 		loop	frcd20
 		pop	ds
-
 NO_CHANGE:				; ...
 		les	bp, ds:THISDPB
 		clc
 		retn
 FATREAD_CDS	endp
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR FAT_GOT_DPB
-
 FAT_operation:				; ...
 		mov	word ptr es:[bp+1Fh], 0FFFFh ; -1
 		and	di, 0FFh
@@ -14035,14 +11346,9 @@ FAT_operation:				; ...
 		stc
 		retn
 ; END OF FUNCTION CHUNK	FOR FAT_GOT_DPB
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 FAT_GOT_DPB	proc near		; ...
-
 ; FUNCTION CHUNK AT 971C SIZE 00000021 BYTES
-
 		push	ss
 		pop	ds
 		mov	al, 0Fh
@@ -14071,20 +11377,14 @@ FAT_GOT_DPB	proc near		; ...
 		jnz	short CHECK_BYT
 		mov	ds:VOLCHNG_FLAG, 0FFh ;	-1
 		jmp	GOGETBPB
-; ---------------------------------------------------------------------------
-
 CHECK_BYT:				; ...
 		or	ah, byte ptr ds:CALLBR ; [CALLRBYT]
 		jns	short CHECK_ZR
 		jmp	short NEWDSK
-; ---------------------------------------------------------------------------
-
 CHECK_ZR:				; ...
 		jz	short CHKBUFFDIRT
 		clc
 		retn
-; ---------------------------------------------------------------------------
-
 DISK_CHNG_ERR:				; ...
 		push	es
 		push	bp
@@ -14109,17 +11409,13 @@ DISK_CHNG_ERR:				; ...
 		pop	di
 		pop	ds
 		cmp	al, 3
-
 FAIL_OPJ2:				; ...
 		jz	short FAIL_OP
 		jmp	FAT_GOT_DPB
-; ---------------------------------------------------------------------------
-
 CHKBUFFDIRT:				; ...
 		cmp	ss:DirtyBufferCount, 0
 		jz	short NEWDSK
 		call	GETCURHEAD
-
 nbuffer:				; ...
 		cmp	[di+4],	al	; [di+BUFFINFO.buf_ID]
 		jnz	short lfnxt
@@ -14129,24 +11425,18 @@ nbuffer:				; ...
 		pop	ds
 		clc
 		retn
-; ---------------------------------------------------------------------------
-
 FAIL_OP:				; ...
 		push	ss
 		pop	ds
 		stc
 		retn
-; ---------------------------------------------------------------------------
-
 lfnxt:					; ...
 		mov	di, [di]
 		cmp	ss:FIRST_BUFF_ADDR, di
 		jnz	short nbuffer
-
 NEWDSK:					; ...
 		mov	word ptr es:[bp+1Fh], 0FFFFh ; -1
 		call	GETCURHEAD
-
 nxbuffer:				; ...
 		cmp	[di+4],	al
 		jnz	short lfnxt2
@@ -14155,11 +11445,8 @@ nxbuffer:				; ...
 		mov	word ptr [di+4], 20FFh
 		call	SCANPLACE
 		jmp	short skpbuff
-; ---------------------------------------------------------------------------
-
 lfnxt2:					; ...
 		mov	di, [di]
-
 skpbuff:				; ...
 		cmp	di, ss:FIRST_BUFF_ADDR
 		jnz	short nxbuffer
@@ -14168,7 +11455,6 @@ skpbuff:				; ...
 		cmp	al, ss:CurSC_DRIVE
 		jnz	short GOGETBPB
 		mov	ss:CurSC_DRIVE,	0FFh ; -1
-
 GOGETBPB:				; ...
 		lds	di, es:[bp+13h]
 		test	byte ptr [di+5], 20h
@@ -14177,13 +11463,10 @@ GOGETBPB:				; ...
 		pop	ds
 		mov	bx, 2
 		call	UNPACK
-
 FAIL_OPJ:				; ...
 		jb	short FAIL_OP
 		lds	di, ds:CURBUF
 		jmp	short GOTGETBUF
-; ---------------------------------------------------------------------------
-
 GETFREEBUF:				; ...
 		push	es
 		push	bp
@@ -14194,7 +11477,6 @@ GETFREEBUF:				; ...
 		pop	bp
 		pop	es
 		jb	short FAIL_OPJ
-
 GOTGETBUF:				; ...
 		add	di, 20		; BUFINSIZ
 		mov	word ptr ss:CALLBR+2, ds ; [SS:CALLXAD+2]
@@ -14236,38 +11518,24 @@ GOTGETBUF:				; ...
 		pop	ds
 		xor	al, al
 		retn
-; ---------------------------------------------------------------------------
-
 FATERRJ:				; ...
 		jmp	FAT_operation
 FAT_GOT_DPB	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GETCURHEAD	proc near		; ...
 		lds	di, ss:BufferQueue
 		mov	word ptr ss:LastBuffer,	0FFFFh ; -1
 		mov	ss:FIRST_BUFF_ADDR, di
 		retn
 GETCURHEAD	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SCANPLACE	proc near		; ...
 		push	word ptr [di]
 		call	PLACEBUF
 		pop	di
 		retn
 SCANPLACE	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 PLACEBUF	proc near		; ...
 		push	ax
 		push	bx
@@ -14280,8 +11548,6 @@ PLACEBUF	proc near		; ...
 		jnz	short not_first
 		mov	word ptr ss:BufferQueue, ax
 		jmp	short nret
-; ---------------------------------------------------------------------------
-
 not_first:				; ...
 		mov	si, [di+2]
 		mov	[si], ax
@@ -14292,7 +11558,6 @@ not_first:				; ...
 		mov	[bx+2],	di
 		mov	[di+2],	si
 		mov	[di], bx
-
 nret:					; ...
 		pop	si
 		pop	bx
@@ -14300,13 +11565,9 @@ nret:					; ...
 		cmp	byte ptr [di+4], 0FFh
 		jnz	short pbx
 		mov	word ptr ss:BufferQueue, di
-
 pbx:					; ...
 		retn
 PLACEBUF	endp
-
-; ---------------------------------------------------------------------------
-
 POINTCOMP:				; ...
 		cmp	si, di
 		jnz	short _ret_label
@@ -14317,21 +11578,13 @@ POINTCOMP:				; ...
 		cmp	cx, dx
 		pop	dx
 		pop	cx
-
 _ret_label:				; ...
 		retn
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GETBUFFR	proc near		; ...
 		xor	si, si
 GETBUFFR	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GETBUFFRB	proc near		; ...
 		mov	ds:PREREAD, ax
 		mov	al, es:[bp+0]	; [ES:BP+DPB.DRIVE]
@@ -14346,11 +11599,8 @@ GETBUFFRB	proc near		; ...
 		cmp	al, [di+4]	; [DI+BUFFINFO.buf_ID]
 		jnz	short getb5
 		jmp	getb35
-; ---------------------------------------------------------------------------
-
 getb5:					; ...
 		call	GETCURHEAD
-
 getb10:					; ...
 		cmp	dx, [di+6]
 		jnz	short getb12
@@ -14359,8 +11609,6 @@ getb10:					; ...
 		cmp	al, [di+4]
 		jnz	short getb12
 		jmp	getb25
-; ---------------------------------------------------------------------------
-
 getb12:					; ...
 		mov	di, [di]
 		cmp	di, ss:FIRST_BUFF_ADDR
@@ -14378,8 +11626,6 @@ getb12:					; ...
 		pop	ss:HIGH_SECTOR
 		jnb	short getb13
 		jmp	getbx
-; ---------------------------------------------------------------------------
-
 getb13:					; ...
 		call	SET_RQ_SC_PARMS
 		xor	ah, ah
@@ -14396,19 +11642,15 @@ getb13:					; ...
 		push	ds
 		push	bx
 		lds	bx, ss:LoMemBuff
-
 getb14:					; ...
 		or	si, si
 		jz	short getb15
 		call	FATSECRD
 		mov	ah, 2
 		jmp	short getb17
-; ---------------------------------------------------------------------------
-
 getb15:					; ...
 		call	DREAD
 		mov	ah, 0
-
 getb17:					; ...
 		pushf
 		cmp	ss:BuffInHMA, 0
@@ -14424,7 +11666,6 @@ getb17:					; ...
 		rep movsw
 		push	es
 		pop	ds
-
 not_in_hma:				; ...
 		popf
 		pop	es
@@ -14432,7 +11673,6 @@ not_in_hma:				; ...
 		pop	di
 		pop	si
 		jb	short getbx
-
 getb20:					; ...
 		mov	cx, ss:HIGH_SECTOR
 		mov	[di+8],	cx	; [DI+BUFFINFO.buf_sector+2]
@@ -14441,7 +11681,6 @@ getb20:					; ...
 		mov	word ptr [di+0Fh], es ;	[DI+BUFFINFO.buf_DPB+2]
 		mov	al, es:[bp+0]	; [ES:BP+DPB.DRIVE]
 		mov	[di+4],	ax	; [DI+BUFFINFO.buf_ID]
-
 getb25:					; ...
 		mov	byte ptr [di+0Ah], 1 ; [DI+BUFFINFO.buf_wrtcnt]
 		xor	ax, ax
@@ -14450,37 +11689,28 @@ getb25:					; ...
 		mov	al, es:[bp+8]	; [ES:BP+DPB.FAT_COUNT]
 		mov	[di+0Ah], al	; [DI+BUFFINFO.buf_wrtcnt]
 		mov	ax, es:[bp+0Fh]	; [ES:BP+DPB.FAT_SIZE]
-
 getb30:					; ...
 		mov	[di+0Bh], ax	; [DI+BUFFINFO.buf_wrtcntinc]
 		call	PLACEBUF
-
 getb35:					; ...
 		mov	word ptr ss:CURBUF+2, ds
 		mov	word ptr ss:LastBuffer+2, ds
 		mov	word ptr ss:CURBUF, di
 		mov	word ptr ss:LastBuffer,	di
 		clc
-
 getbx:					; ...
 		push	ss
 		pop	ds
-
 getbuffrb_retn:				; ...
 		retn
 GETBUFFRB	endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 FLUSHBUF	proc near		; ...
 		call	GETCURHEAD
 		test	byte ptr ss:DOS34_FLAG,	4
 		jnz	short scan_buf_queue
 		cmp	ss:DirtyBufferCount, 0
 		jz	short end_scan
-
 scan_buf_queue:				; ...
 		call	CHECKFLUSH
 		mov	ah, [di+4]
@@ -14488,32 +11718,23 @@ scan_buf_queue:				; ...
 		jz	short free_the_buf
 		test	byte ptr ss:DOS34_FLAG,	4
 		jz	short dont_free_the_buf
-
 free_the_buf:				; ...
 		mov	word ptr [di+4], 0FFh ;	[DI+BUFFINFO.buf_ID]
-
 dont_free_the_buf:			; ...
 		mov	di, [di]	; [DI+BUFFINFO.buf_link]
 		cmp	di, ss:FIRST_BUFF_ADDR
 		jnz	short scan_buf_queue
-
 end_scan:				; ...
 		push	ss
 		pop	ds
 		cmp	ds:FAILERR, 0
 		jnz	short bad_flush
 		retn
-; ---------------------------------------------------------------------------
-
 bad_flush:				; ...
 		stc
 		retn
 FLUSHBUF	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 CHECKFLUSH	proc near		; ...
 		mov	ah, 0FFh
 		cmp	[di+4],	ah
@@ -14523,7 +11744,6 @@ CHECKFLUSH	proc near		; ...
 		cmp	al, [di+4]
 		clc
 		jnz	short getbuffrb_retn
-
 DOBUFFER:				; ...
 		test	byte ptr [di+5], 40h ; buf_dirty
 		jz	short getbuffrb_retn
@@ -14534,18 +11754,12 @@ DOBUFFER:				; ...
 		jb	short LEAVE_BUF
 		and	ah, 0BFh	; not 40h
 		mov	[di+4],	ax
-
 LEAVE_BUF:				; ...
 		pop	ax
-
 checkflush_retn:			; ...
 		retn
 CHECKFLUSH	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 BUFWRITE	proc near		; ...
 		mov	ax, 0FFh
 		xchg	ax, [di+4]	; [DI+BUFFINFO.buf_ID]
@@ -14568,14 +11782,12 @@ BUFWRITE	proc near		; ...
 		test	ah, 8
 		jz	short NO_IGNORE
 		or	ss:ALLOWED, 20h	; Allowed_IGNORE
-
 NO_IGNORE:				; ...
 		mov	ax, [di+11]	; [DI+BUFFINFO.buf_wrtcntinc]
 		push	di
 		xor	di, di
 		push	ds
 		push	bx
-
 WRTAGAIN:				; ...
 		push	di
 		push	cx
@@ -14599,7 +11811,6 @@ WRTAGAIN:				; ...
 		pop	ds
 		pop	es
 		pop	cx
-
 NBUFFINHMA:				; ...
 		call	DWRITE
 		pop	ds
@@ -14610,7 +11821,6 @@ NBUFFINHMA:				; ...
 		pop	di
 		jb	short NOSET
 		inc	di
-
 NOSET:					; ...
 		add	dx, ax
 		loop	WRTAGAIN
@@ -14619,16 +11829,11 @@ NOSET:					; ...
 		or	di, di
 		jnz	short BWROK
 		stc
-
 BWROK:					; ...
 		pop	di
 		retn
 BUFWRITE	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SET_RQ_SC_PARMS	proc near		; ...
 		push	ax
 		mov	ax, es:[bp+2]
@@ -14638,39 +11843,24 @@ SET_RQ_SC_PARMS	proc near		; ...
 		pop	ax
 		retn
 SET_RQ_SC_PARMS	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 INC_DIRTY_COUNT	proc near		; ...
 		inc	ss:DirtyBufferCount
 		retn
 INC_DIRTY_COUNT	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DEC_DIRTY_COUNT	proc near		; ...
 		cmp	ss:DirtyBufferCount, 0
 		jz	short ddcx
 		dec	ss:DirtyBufferCount
-
 ddcx:					; ...
 		retn
 DEC_DIRTY_COUNT	endp
-
-; ---------------------------------------------------------------------------
-
 $WAIT:					; ...
 		xor	ax, ax
 		xchg	ax, ss:exit_code
 		jmp	SYS_RET_OK
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 $EXEC		proc far		; ...
 		mov	ss:A20OFF_COUNT, 0
 		cmp	al, 5
@@ -14678,29 +11868,22 @@ $EXEC		proc far		; ...
 		pop	cx
 		mov	cx, offset LeaveDOS
 		push	cx
-
 Exec_@f:				; ...
 		push	bp
 		mov	bp, sp
 		sub	sp, 29		; sub sp, 30  ;	Retro DOS v4
 		cmp	al, 5
 		jbe	short Exec_Check_2
-
 Exec_Bad_Fun:				; ...
 		mov	ss:EXTERR_LOCUS, 1
 		mov	al, 1
-
 Exec_Ret_Err:				; ...
 		mov	sp, bp
 		pop	bp
 		jmp	SYS_RET_ERR
-; ---------------------------------------------------------------------------
-
 ExecReadyJ:				; ...
 		call	ExecReady
 		jmp	norm_ovl
-; ---------------------------------------------------------------------------
-
 Exec_Check_2:				; ...
 		cmp	al, 2
 		jz	short Exec_Bad_Fun
@@ -14736,16 +11919,11 @@ Exec_Check_2:				; ...
 		test	dl, 80h
 		jz	short Exec_Check_Environ
 		mov	al, 2
-
 Exec_BombJ:				; ...
 		jmp	Exec_Bomb
-; ---------------------------------------------------------------------------
-
 BadEnv:					; ...
 		mov	al, 0Ah
 		jmp	Exec_Bomb
-; ---------------------------------------------------------------------------
-
 Exec_Check_Environ:			; ...
 		mov	word ptr [bp-18], 0
 		mov	word ptr [bp-14], 0
@@ -14759,13 +11937,11 @@ Exec_Check_Environ:			; ...
 		mov	ax, ds:2Ch
 		or	ax, ax
 		jz	short Exec_Read_Header
-
 Exec_Scan_Env:				; ...
 		mov	es, ax
 		xor	di, di
 		mov	cx, 8000h
 		xor	al, al
-
 Exec_Get_Environ_Len:			; ...
 		repne scasb
 		jnz	short BadEnv
@@ -14784,8 +11960,6 @@ Exec_Get_Environ_Len:			; ...
 		pop	cx
 		jnb	short Exec_Save_Environ
 		jmp	short Exec_No_Mem
-; ---------------------------------------------------------------------------
-
 Exec_Save_Environ:			; ...
 		mov	es, ax
 		mov	[bp-14], ax
@@ -14797,7 +11971,6 @@ Exec_Save_Environ:			; ...
 		lds	si, [bp-26]
 		mov	cx, [bp-22]
 		rep movsb
-
 Exec_Read_Header:			; ...
 		push	ss
 		pop	ds
@@ -14816,18 +11989,14 @@ Exec_Read_Header:			; ...
 		test	ds:exec_max_BSS, 0FFFFh
 		jnz	short Exec_Check_Sig
 		mov	byte ptr [bp-6], 0FFh
-
 Exec_Check_Sig:				; ...
 		mov	ax, ds:exec_signature
 		cmp	ax, 'ZM'
 		jz	short Exec_Save_Start
 		cmp	ax, 'MZ'
 		jz	short Exec_Save_Start
-
 Exec_Com_Filej:				; ...
 		jmp	Exec_Com_File
-; ---------------------------------------------------------------------------
-
 Exec_Save_Start:			; ...
 		mov	ax, ds:exec_pages
 		mov	cl, 5
@@ -14842,16 +12011,11 @@ Exec_Save_Start:			; ...
 		mov	ax, es:[di+2]
 		mov	[bp-10], ax
 		jmp	Exec_Find_Res
-; ---------------------------------------------------------------------------
-
 Exec_No_Mem:				; ...
 		mov	al, 8
 		jmp	short Exec_Bomb
-; ---------------------------------------------------------------------------
-
 Exec_Bad_File:				; ...
 		mov	al, 0Bh
-
 Exec_Bomb:				; ...
 		mov	bx, [bp-8]
 		call	Exec_Dealloc
@@ -14862,8 +12026,6 @@ Exec_Bomb:				; ...
 		pop	bp
 		pop	ax
 		jmp	Exec_Ret_Err
-; ---------------------------------------------------------------------------
-
 Exec_Chk_Mem:				; ...
 		mov	al, ss:AllocMethod
 		mov	bl, ss:ALLOCMSAVE
@@ -14874,8 +12036,6 @@ Exec_Chk_Mem:				; ...
 		jz	short Exec_No_Mem
 		mov	ax, ss:SAVE_AX
 		jmp	short Exec_Norm_Alloc
-; ---------------------------------------------------------------------------
-
 Exec_Allocate:				; ...
 		mov	byte ptr [bp-29], 0
 		cmp	ds:exec_SS, 0
@@ -14886,12 +12046,10 @@ Exec_Allocate:				; ...
 		cmp	ax, 0FF0h	; 1000h-10h
 		jnb	short ea1
 		add	ax, 10h
-
 ea1:					; ...
 		test	ds:AllocMethod,	80h ; HIGH_FIRST
 		jz	short Exec_Norm_Alloc
 		or	ds:AllocMethod,	40h ; HIGH_ONLY
-
 Exec_Norm_Alloc:			; ...
 		mov	ds:SAVE_AX, ax
 		mov	bx, 0FFFFh
@@ -14915,10 +12073,8 @@ Exec_Norm_Alloc:			; ...
 		jb	short Exec_BX_Max
 		cmp	ax, bx
 		jbe	short Exec_Got_Block
-
 Exec_BX_Max:				; ...
 		mov	ax, bx
-
 Exec_Got_Block:				; ...
 		push	ds
 		mov	bx, ax
@@ -14927,8 +12083,6 @@ Exec_Got_Block:				; ...
 		pop	ds
 		jnb	short eat0
 		jmp	Exec_Chk_Mem
-; ---------------------------------------------------------------------------
-
 eat0:					; ...
 		mov	cl, ds:ALLOCMSAVE
 		mov	ds:AllocMethod,	cl
@@ -14940,7 +12094,6 @@ eat0:					; ...
 		shl	bx, cl
 		sub	bx, 100h
 		mov	ds:exec_SP, bx
-
 ea2:					; ...
 		mov	[bp-18], ax
 		add	ax, 10h
@@ -14949,11 +12102,9 @@ ea2:					; ...
 		add	ax, [bp-16]
 		sub	ax, [bp-12]
 		sub	ax, 10h
-
 Exec_Use_AX:				; ...
 		mov	[bp-10], ax
 		mov	[bp-20], ax
-
 Exec_Find_Res:				; ...
 		mov	dx, [bp-20]
 		mov	[bp-28], dx
@@ -14972,14 +12123,11 @@ Exec_Find_Res:				; ...
 		pop	ds
 		jnb	short Exec_Big_Read
 		jmp	Exec_Bomb
-; ---------------------------------------------------------------------------
-
 Exec_Big_Read:				; ...
 		mov	bx, [bp-12]
 		cmp	bx, 1000h
 		jb	short Exec_Read_OK
 		mov	bx, 0FE0h
-
 Exec_Read_OK:				; ...
 		sub	[bp-12], bx
 		push	bx
@@ -15000,7 +12148,6 @@ Exec_Read_OK:				; ...
 		sub	cx, ax
 		cmp	cx, 512
 		jnb	short Exec_Bad_FileJ
-
 ExecCheckEnd:				; ...
 		add	[bp-20], bx
 		test	word ptr [bp-12], 0FFFFh
@@ -15024,14 +12171,10 @@ ExecCheckEnd:				; ...
 		call	$LSEEK
 		pop	ds
 		jnb	short exec_get_entries
-
 Exec_Bad_FileJ:				; ...
 		jmp	Exec_Bad_File
-; ---------------------------------------------------------------------------
-
 exec_get_entries:			; ...
 		mov	dx, ds:exec_rle_count
-
 exec_read_reloc:			; ...
 		push	dx
 		mov	dx, offset OPENBUF ; Exec_Internal_Buffer
@@ -15044,11 +12187,9 @@ exec_read_reloc:			; ...
 		mov	cx, 99		; (Exec_Internal_Buffer_Size)/4
 		mov	di, offset OPENBUF ; Exec_Internal_Buffer
 		mov	si, [bp-10]
-
 exec_reloc_one:				; ...
 		or	dx, dx
 		jz	short Exec_Set_PDBJ
-
 exec_get_addr:
 		lds	bx, es:[di]
 		mov	ax, ds
@@ -15061,8 +12202,6 @@ exec_get_addr:
 		push	es
 		pop	ds
 		jmp	short exec_read_reloc
-; ---------------------------------------------------------------------------
-
 Exec_Set_PDBJ:				; ...
 		push	es
 		push	ax
@@ -15076,12 +12215,8 @@ Exec_Set_PDBJ:				; ...
 		pop	ax
 		pop	es
 		jmp	Exec_Set_PDB
-; ---------------------------------------------------------------------------
-
 Exec_No_Memj:				; ...
 		jmp	Exec_No_Mem
-; ---------------------------------------------------------------------------
-
 Exec_Com_File:				; ...
 		test	byte ptr [bp-5], 2
 		jz	short Exec_Alloc_Com_File
@@ -15090,8 +12225,6 @@ Exec_Com_File:				; ...
 		mov	[bp-20], ax
 		mov	ax, 0FFFFh
 		jmp	short Exec_Read_Block
-; ---------------------------------------------------------------------------
-
 Exec_Chk_Com_Mem:			; ...
 		mov	al, ss:AllocMethod
 		mov	bl, ss:ALLOCMSAVE
@@ -15104,13 +12237,10 @@ Exec_Chk_Com_Mem:			; ...
 		xor	bx, bx
 		call	ChangeOwner
 		jmp	short Exec_Norm_Com_Alloc
-; ---------------------------------------------------------------------------
-
 Exec_Alloc_Com_File:			; ...
 		test	ss:AllocMethod,	80h
 		jz	short Exec_Norm_Com_Alloc
 		or	ss:AllocMethod,	40h
-
 Exec_Norm_Com_Alloc:			; ...
 		mov	bx, 0FFFFh
 		call	$ALLOC
@@ -15132,10 +12262,8 @@ Exec_Norm_Com_Alloc:			; ...
 		cmp	ax, 200h
 		jbe	short Exec_Chk_Com_Mem
 		sub	ax, 100h
-
 Exec_Read_Com:				; ...
 		sub	ax, 100h
-
 Exec_Read_Block:			; ...
 		push	ax
 		mov	bx, [bp-8]
@@ -15151,14 +12279,10 @@ Exec_Read_Block:			; ...
 		pop	si
 		jnb	short OkRead
 		jmp	Exec_Bad_File
-; ---------------------------------------------------------------------------
-
 OkRead:					; ...
 		cmp	ax, si
 		jnz	short OkRead2
 		jmp	Exec_Chk_Com_Mem
-; ---------------------------------------------------------------------------
-
 OkRead2:				; ...
 		mov	bl, ss:ALLOCMSAVE
 		mov	ss:AllocMethod,	bl
@@ -15172,14 +12296,12 @@ OkRead2:				; ...
 		cmp	si, 0FFFEh
 		jz	short Exec_St_Ok
 		add	si, 100h
-
 Exec_St_Ok:				; ...
 		mov	ss:exec_init_SP, si
 		mov	ss:exec_init_SS, ax
 		mov	ds, ax
 		mov	word ptr [si], 0
 		call	ss:ChkCopyProt
-
 Exec_Set_PDB:				; ...
 		mov	bx, [bp-8]
 		call	Exec_Dealloc
@@ -15202,21 +12324,15 @@ Exec_Set_PDB:				; ...
 		push	ss:SPECIAL_VERSION
 		pop	word ptr es:40h
 		jmp	short setver_done
-; ---------------------------------------------------------------------------
-
 sysinit_done:				; ...
 		mov	ss:DriverLoad, 0
-
 setver_done:				; ...
 		pop	es
 		pop	si
-
 norm_ovl:				; ...
 		mov	sp, bp
 		pop	bp
 		jmp	SYS_RET_OK
-; ---------------------------------------------------------------------------
-
 Exec_Build_Header:			; ...
 		mov	dx, [bp-18]
 		mov	si, 1
@@ -15226,7 +12342,6 @@ Exec_Build_Header:			; ...
 		dec	ax
 		mov	ds, ax
 		mov	[si], dx
-
 No_Owner:				; ...
 		mov	ax, [bp-18]
 		dec	ax
@@ -15238,7 +12353,6 @@ No_Owner:				; ...
 		call	Scan_Execname
 		push	cx
 		push	si
-
 MoveName:				; ...
 		lodsb
 		cmp	al, '.'
@@ -15247,13 +12361,11 @@ MoveName:				; ...
 		cmp	di, 16		; ARENAHEADERSIZE
 		jnb	short mem_done
 		loop	MoveName
-
 mem_done:				; ...
 		xor	al, al
 		cmp	di, 16
 		jnb	short Fill8
 		stosb
-
 Fill8:					; ...
 		pop	si
 		pop	cx
@@ -15301,14 +12413,12 @@ Fill8:					; ...
 		call	GetVisDrv
 		jnb	short Exec_BL
 		mov	bh, cl
-
 Exec_BL:				; ...
 		mov	al, bl
 		xor	bl, bl
 		call	GetVisDrv
 		jnb	short Exec_Set_Return
 		mov	bl, cl
-
 Exec_Set_Return:			; ...
 		call	Get_User_Stack
 		push	word ptr [si+14h]
@@ -15339,8 +12449,6 @@ Exec_Set_Return:			; ...
 		mov	sp, bp
 		pop	bp
 		jmp	SYS_RET_OK
-; ---------------------------------------------------------------------------
-
 exec_go:				; ...
 		lds	si, dword ptr ss:exec_init_IP
 		les	di, dword ptr ss:exec_init_SP
@@ -15358,8 +12466,6 @@ exec_go:				; ...
 		push	ax
 		mov	ax, es
 		retf
-; ---------------------------------------------------------------------------
-
 Xfer_To_User:				; ...
 		cli
 		mov	ss:INDOS, 0
@@ -15373,11 +12479,7 @@ Xfer_To_User:				; ...
 		mov	ax, bx
 		retf
 $EXEC		endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ExecRead	proc near		; ...
 		call	Exec_Dealloc
 		mov	bx, [bp-8]
@@ -15387,11 +12489,7 @@ ExecRead	proc near		; ...
 		call	Exec_Alloc
 		retn
 ExecRead	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Exec_Dealloc	proc near		; ...
 		push	bx
 		sub	bx, bx
@@ -15400,11 +12498,7 @@ Exec_Dealloc	proc near		; ...
 		pop	bx
 		retn
 Exec_Dealloc	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Exec_Alloc	proc near		; ...
 		push	bx
 		mov	bx, ss:CurrentPDB
@@ -15413,11 +12507,7 @@ Exec_Alloc	proc near		; ...
 		pop	bx
 		retn
 Exec_Alloc	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ChangeOwners	proc near		; ...
 		pushf
 		push	ax
@@ -15427,15 +12517,10 @@ ChangeOwners	proc near		; ...
 		call	ChangeOwner
 		pop	ax
 		popf
-
 chgown_retn:				; ...
 		retn
 ChangeOwners	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ChangeOwner	proc near		; ...
 		or	ax, ax
 		jz	short chgown_retn
@@ -15446,17 +12531,11 @@ ChangeOwner	proc near		; ...
 		pop	ds
 		retn
 ChangeOwner	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Scan_Execname	proc near		; ...
 		lds	si, [bp-26]
-
 Scan_Execname1:				; ...
 		mov	cx, si
-
 Scan0:					; ...
 		lodsb
 		cmp	al, ':'
@@ -15469,11 +12548,7 @@ Scan0:					; ...
 		xchg	si, cx
 		retn
 Scan_Execname	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Scan_Special_Entries proc near		; ...
 		dec	cx
 		mov	ss:SPECIAL_VERSION, 1606h
@@ -15481,7 +12556,6 @@ Scan_Special_Entries proc near		; ...
 		mov	ax, es
 		or	ax, di
 		jz	short End_List
-
 GetEntries:				; ...
 		mov	al, es:[di]
 		or	al, al
@@ -15493,7 +12567,6 @@ GetEntries:				; ...
 		push	cx
 		push	si
 		push	ax
-
 sse_next_char:				; ...
 		lodsb
 		call	UCase
@@ -15506,27 +12579,19 @@ sse_next_char:				; ...
 		pop	si
 		pop	cx
 		jmp	short End_List
-; ---------------------------------------------------------------------------
-
 Not_Matched:				; ...
 		pop	ax
 		pop	si
 		pop	cx
-
 SkipOne:				; ...
 		mov	di, ss:TEMP_VAR2
 		xor	ah, ah
 		add	di, ax
 		add	di, 3
 		jmp	short GetEntries
-; ---------------------------------------------------------------------------
-
 End_List:				; ...
 		retn
 Scan_Special_Entries endp
-
-; ---------------------------------------------------------------------------
-
 $KEEP_PROCESS:				; ...
 		push	ax
 		mov	ss:EXIT_TYPE, 3
@@ -15534,7 +12599,6 @@ $KEEP_PROCESS:				; ...
 		cmp	dx, 6
 		jnb	short Keep_Shrink
 		mov	dx, 6
-
 Keep_Shrink:				; ...
 		mov	bx, dx
 		push	bx
@@ -15546,12 +12610,9 @@ Keep_Shrink:				; ...
 		mov	ax, ds
 		add	ax, bx
 		mov	ds:2, ax	; [PDB.BLOCK_LEN]
-
 Keep_Done:				; ...
 		pop	ax
 		jmp	short exit_inner
-; ---------------------------------------------------------------------------
-
 stay_resident:				; ...
 		mov	ax, 3100h
 		add	dx, 15
@@ -15559,8 +12620,6 @@ stay_resident:				; ...
 		mov	cl, 3
 		shr	dx, cl
 		jmp	command
-; ---------------------------------------------------------------------------
-
 $EXIT:					; ...
 		xor	ah, ah
 		xchg	ah, ss:DidCTRLC
@@ -15569,20 +12628,16 @@ $EXIT:					; ...
 		jz	short exit_inner
 		mov	ss:EXIT_TYPE, 1	; EXIT_CTRL_C
 ; START	OF FUNCTION CHUNK FOR FATALC
-
 exit_inner:				; ...
 		call	Get_User_Stack
 		push	ss:CurrentPDB
 		pop	word ptr [si+14h]
 		jmp	short abort_inner
 ; END OF FUNCTION CHUNK	FOR FATALC
-; ---------------------------------------------------------------------------
-
 $ABORT:					; ...
 		xor	al, al
 		mov	ss:EXIT_TYPE, 0	; EXIT_ABORT
 ; START	OF FUNCTION CHUNK FOR FATALC
-
 abort_inner:				; ...
 		mov	ah, ss:EXIT_TYPE
 		mov	ss:exit_code, ax
@@ -15600,21 +12655,14 @@ abort_inner:				; ...
 		movsw
 		jmp	reset_environment
 ; END OF FUNCTION CHUNK	FOR FATALC
-; ---------------------------------------------------------------------------
-
 RetExePatch:				; ...
 		retn
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 arena_free_process proc	near		; ...
 		mov	ax, ss:arena_head
-
 arena_free_process_start:		; ...
 		mov	di, 0
 		call	check_signature
-
 arena_free_process_loop:		; ...
 		jb	short check_signature_ok
 		push	es
@@ -15622,14 +12670,11 @@ arena_free_process_loop:		; ...
 		cmp	ds:1, bx	; [ARENA.OWNER]
 		jnz	short arena_free_next
 		mov	ds:1, di
-
 arena_free_next:			; ...
 		cmp	byte ptr [di], 5Ah ; 'Z'
 		jz	short arena_chk_umbs
 		call	arena_next
 		jmp	short arena_free_process_loop
-; ---------------------------------------------------------------------------
-
 arena_chk_umbs:				; ...
 		mov	ax, ss:UMB_HEAD
 		cmp	ax, 0FFFFh
@@ -15639,21 +12684,13 @@ arena_chk_umbs:				; ...
 		jnb	short check_signature_ok
 		jmp	short arena_free_process_start
 arena_free_process endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 arena_next	proc near		; ...
 		mov	ax, ds
 		add	ax, ds:3	; [ARENA.SIZE]
 		inc	ax
 arena_next	endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 check_signature	proc near		; ...
 		mov	es, ax
 		cmp	byte ptr es:[di], 4Dh ;	'M'
@@ -15661,15 +12698,10 @@ check_signature	proc near		; ...
 		cmp	byte ptr es:[di], 5Ah ;	'Z'
 		jz	short check_signature_ok
 		stc
-
 check_signature_ok:			; ...
 		retn
 check_signature	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Coalesce	proc near		; ...
 		cmp	byte ptr [di], 5Ah ; 'Z'
 		jz	short check_signature_ok
@@ -15684,11 +12716,7 @@ Coalesce	proc near		; ...
 		mov	[di], cl
 		jmp	short Coalesce
 Coalesce	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 $ALLOC		proc near		; ...
 		call	ECritDisk	; ECritMEM
 		mov	ax, ss:arena_head
@@ -15699,7 +12727,6 @@ $ALLOC		proc near		; ...
 		jz	short norm_alloc
 		mov	ax, ss:UMB_HEAD
 		mov	ss:START_ARENA,	ax
-
 norm_alloc:				; ...
 		xor	ax, ax
 		mov	di, ax
@@ -15707,18 +12734,15 @@ norm_alloc:				; ...
 		mov	ss:BestArena, ax
 		mov	ss:LastArena, ax
 		push	ax
-
 start_scan:				; ...
 		mov	ax, ss:START_ARENA
 		call	check_signature
 		jb	short alloc_err
-
 alloc_scan:				; ...
 		push	es
 		pop	ds
 		cmp	ds:1, di
 		jz	short alloc_free
-
 alloc_next:				; ...
 		test	ss:UMBFLAG, 1
 		jz	short norm_strat
@@ -15730,33 +12754,23 @@ alloc_next:				; ...
 		mov	ax, ds
 		cmp	ax, ss:UMB_HEAD
 		jmp	short alloc_chk_end
-; ---------------------------------------------------------------------------
-
 norm_strat:				; ...
 		cmp	byte ptr [di], 5Ah ; 'Z'
-
 alloc_chk_end:				; ...
 		jz	short alloc_end
 		call	arena_next
 		jnb	short alloc_scan
-
 alloc_err:				; ...
 		pop	ax
-
 alloc_trashed:				; ...
 		call	LCritDisk	; LCritMEM
 		mov	al, 7
-
 alloc_errj:				; ...
 		jmp	SYS_RET_ERR
-; ---------------------------------------------------------------------------
-
 alloc_end:				; ...
 		cmp	ss:FirstArena, 0
 		jz	short alloc_chk
 		jmp	alloc_do_split
-; ---------------------------------------------------------------------------
-
 alloc_chk:				; ...
 		mov	ax, ss:arena_head
 		cmp	ax, ss:START_ARENA
@@ -15765,8 +12779,6 @@ alloc_chk:				; ...
 		jnz	short alloc_fail
 		mov	ss:START_ARENA,	ax
 		jmp	short start_scan
-; ---------------------------------------------------------------------------
-
 alloc_fail:				; ...
 		call	Get_User_Stack
 		pop	bx
@@ -15774,8 +12786,6 @@ alloc_fail:				; ...
 		call	LCritDisk	; LCritMEM
 		mov	al, 8
 		jmp	short alloc_errj
-; ---------------------------------------------------------------------------
-
 alloc_free:				; ...
 		call	Coalesce
 		jb	short alloc_err
@@ -15784,7 +12794,6 @@ alloc_free:				; ...
 		cmp	cx, dx
 		jbe	short alloc_test
 		mov	dx, cx
-
 alloc_test:				; ...
 		push	dx
 		cmp	bx, cx
@@ -15792,7 +12801,6 @@ alloc_test:				; ...
 		cmp	ss:FirstArena, 0
 		jnz	short alloc_best
 		mov	ss:FirstArena, ds
-
 alloc_best:				; ...
 		cmp	ss:BestArena, 0
 		jz	short alloc_make_best
@@ -15801,15 +12809,11 @@ alloc_best:				; ...
 		cmp	es:3, cx
 		pop	es
 		jbe	short alloc_last
-
 alloc_make_best:			; ...
 		mov	ss:BestArena, ds
-
 alloc_last:				; ...
 		mov	ss:LastArena, ds
 		jmp	alloc_next
-; ---------------------------------------------------------------------------
-
 alloc_do_split_high:			; ...
 		mov	ds, ss:LastArena
 		mov	cx, ds:3
@@ -15821,8 +12825,6 @@ alloc_do_split_high:			; ...
 		dec	cx
 		xchg	bx, cx
 		jmp	short alloc_set_sizes
-; ---------------------------------------------------------------------------
-
 alloc_do_split:				; ...
 		xor	cx, cx
 		mov	cl, ss:AllocMethod
@@ -15832,7 +12834,6 @@ alloc_do_split:				; ...
 		mov	ds, ss:FirstArena
 		jb	short alloc_get_size
 		mov	ds, ss:BestArena
-
 alloc_get_size:				; ...
 		mov	cx, ds:3
 		sub	cx, bx
@@ -15843,7 +12844,6 @@ alloc_get_size:				; ...
 		inc	ax
 		mov	es, ax
 		dec	cx
-
 alloc_set_sizes:			; ...
 		mov	ds:3, bx
 		mov	es:3, cx
@@ -15851,7 +12851,6 @@ alloc_set_sizes:			; ...
 		xchg	bl, [di]
 		mov	es:[di], bl
 		mov	es:1, di
-
 alloc_set_owner:			; ...
 		mov	ds, dx
 		mov	ax, ss:CurrentPDB
@@ -15860,15 +12859,10 @@ alloc_set_owner:			; ...
 		inc	ax
 		pop	bx
 		call	LCritDisk	; LCritMEM
-
 alloc_ok:				; ...
 		jmp	SYS_RET_OK
 $ALLOC		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 $SETBLOCK	proc near		; ...
 		call	ECritDisk	; ECritMEM
 		mov	di, 0
@@ -15876,11 +12870,8 @@ $SETBLOCK	proc near		; ...
 		dec	ax
 		call	check_signature
 		jnb	short setblock_grab
-
 setblock_bad:				; ...
 		jmp	alloc_trashed
-; ---------------------------------------------------------------------------
-
 setblock_grab:				; ...
 		mov	ds, ax
 		call	Coalesce
@@ -15891,11 +12882,7 @@ setblock_grab:				; ...
 		jbe	short alloc_get_size
 		jmp	alloc_fail
 $SETBLOCK	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 $DEALLOC	proc near		; ...
 		call	ECritDisk	; ECritMEM
 		test	ss:DOS_FLAG, 4	; EXECA20OFF
@@ -15903,7 +12890,6 @@ $DEALLOC	proc near		; ...
 		cmp	ss:A20OFF_COUNT, 0
 		jnz	short deallocate
 		mov	ss:A20OFF_COUNT, 1
-
 deallocate:				; ...
 		mov	di, 0
 		mov	ax, es
@@ -15912,21 +12898,14 @@ deallocate:				; ...
 		jb	short dealloc_err
 		mov	es:1, di
 		call	LCritDisk	; LCritMEM
-
 dealloc_ok:				; ...
 		jmp	short alloc_ok
-; ---------------------------------------------------------------------------
-
 dealloc_err:				; ...
 		call	LCritDisk	; LCritMEM
 		mov	al, 9
-
 dealloc_errj:				; ...
 		jmp	SYS_RET_ERR
 $DEALLOC	endp
-
-; ---------------------------------------------------------------------------
-
 $ALLOCOPER:				; ...
 		or	al, al
 		jz	short AllocGetStrat
@@ -15936,51 +12915,35 @@ $ALLOCOPER:				; ...
 		jz	short AllocGetLink
 		cmp	al, 3
 		jz	short AllocSetLink
-
 AllocOperError:				; ...
 		mov	ss:EXTERR_LOCUS, 5
 		mov	al, 1
-
 AllocOperErrj:				; ...
 		jmp	short dealloc_errj
-; ---------------------------------------------------------------------------
-
 AllocArenaError:			; ...
 		mov	ss:EXTERR_LOCUS, 5
 		mov	al, 7
 		jmp	short AllocOperErrj
-; ---------------------------------------------------------------------------
-
 AllocGetStrat:				; ...
 		mov	al, ss:AllocMethod
 		xor	ah, ah
-
 AllocOperOK:				; ...
 		jmp	short dealloc_ok
-; ---------------------------------------------------------------------------
-
 AllocSetStrat:				; ...
 		push	bx
 		and	bx, 0FF3Fh
 		cmp	bx, 2
 		pop	bx
 		ja	short AllocOperError
-
 AllocOperSet:
 		mov	ss:AllocMethod,	bl
-
 AllocOperSetOK:				; ...
 		jmp	short AllocOperOK
-; ---------------------------------------------------------------------------
-
 AllocGetLink:				; ...
 		mov	al, ss:UMBFLAG
 		and	al, 1
-
 AllocGetLinkOK:				; ...
 		jmp	short AllocOperSetOK
-; ---------------------------------------------------------------------------
-
 AllocSetLink:				; ...
 		mov	cx, ss:UMB_HEAD
 		cmp	cx, 0FFFFh
@@ -15989,8 +12952,6 @@ AllocSetLink:				; ...
 		jb	short UnlinkUmbs
 		jz	short LinkUmbs
 		jmp	short AllocOperError
-; ---------------------------------------------------------------------------
-
 UnlinkUmbs:				; ...
 		test	ss:UMBFLAG, 1
 		jz	short unlinked
@@ -15998,11 +12959,8 @@ UnlinkUmbs:				; ...
 		jb	short AllocArenaError
 		mov	byte ptr ds:0, 5Ah ; 'Z'
 		and	ss:UMBFLAG, 0FEh
-
 unlinked:				; ...
 		jmp	short AllocGetLinkOK
-; ---------------------------------------------------------------------------
-
 LinkUmbs:				; ...
 		test	ss:UMBFLAG, 1
 		jnz	short linked
@@ -16010,13 +12968,9 @@ LinkUmbs:				; ...
 		jb	short AllocArenaError
 		mov	byte ptr ds:0, 4Dh ; 'M'
 		or	ss:UMBFLAG, 1
-
 linked:					; ...
 		jmp	short unlinked
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GetLastArena	proc near		; ...
 		push	ax
 		mov	ax, ss:arena_head
@@ -16024,7 +12978,6 @@ GetLastArena	proc near		; ...
 		xor	di, di
 		cmp	byte ptr es:[di], 5Ah ;	'Z'
 		jz	short GLA_done
-
 GLA_next:				; ...
 		mov	ds, ax
 		call	arena_next
@@ -16033,14 +12986,10 @@ GLA_next:				; ...
 		jnz	short GLA_chkumb
 		cmp	byte ptr es:[di], 5Ah ;	'Z'
 		jmp	short GLA_@f
-; ---------------------------------------------------------------------------
-
 GLA_chkumb:				; ...
 		cmp	ax, cx
-
 GLA_@f:					; ...
 		jnz	short GLA_next
-
 GLA_done:				; ...
 		test	ss:UMBFLAG, 1
 		jnz	short GLA_ret
@@ -16049,20 +12998,15 @@ GLA_done:				; ...
 		jb	short GLA_err
 		cmp	ax, cx
 		jnz	short GLA_err
-
 GLA_ret:				; ...
 		clc
 		pop	ax
 		retn
-; ---------------------------------------------------------------------------
-
 GLA_err:				; ...
 		stc
 		pop	ax
 		retn
 GetLastArena	endp
-
-; ---------------------------------------------------------------------------
 SERVERTAB	dw offset SERVER_DISP	; ...
 SERVERLEAVE	dw offset SERVERRETURN	; ...
 SERVER_DISP	db 11			; ...
@@ -16077,25 +13021,20 @@ SERVER_DISP	db 11			; ...
 		dw offset SPOOL_OPER
 		dw offset SPOOL_OPER
 		dw offset _$SetExtendedError
-; ---------------------------------------------------------------------------
-
 $ServerCall:				; ...
 		cmp	al, 7
 		jb	short SET_STUFF
 		cmp	al, 9
 		jbe	short NO_SET_ID
-
 SET_STUFF:				; ...
 		mov	si, dx
 		mov	bx, [si+12h]
 		test	ss:IsWin386, 1
 		jnz	short skip_win386
 		mov	ss:USER_ID, bx
-
 skip_win386:				; ...
 		mov	bx, [si+14h]
 		mov	ss:PROC_ID, bx
-
 NO_SET_ID:				; ...
 		push	cs:SERVERLEAVE
 		push	cs:SERVERTAB
@@ -16103,21 +13042,15 @@ NO_SET_ID:				; ...
 		call	TableDispatch
 		mov	ss:EXTERR_LOCUS, 1
 		mov	al, 1
-
 servercall_error:			; ...
 		jmp	SYS_RET_ERR
-; ---------------------------------------------------------------------------
-
 SERVERRETURN:				; ...
 		retn
-; ---------------------------------------------------------------------------
-
 COMMIT_ALL:				; ...
 		xor	bx, bx
 		push	ss
 		pop	ds
 		call	ECritDisk
-
 CommitLoop:				; ...
 		push	bx
 		call	SFFromSFN
@@ -16131,45 +13064,29 @@ CommitLoop:				; ...
 		mov	word ptr ds:THISSFT, di
 		mov	word ptr ds:THISSFT+2, es
 		call	DOS_COMMIT
-
 CommitNext:				; ...
 		pop	bx
 		inc	bx
 		jmp	short CommitLoop
-; ---------------------------------------------------------------------------
-
 CommitDone:				; ...
 		call	LCritDisk	; LCritSFT
 		pop	bx
-
 jmp_to_SYS_RET_OK:			; ...
 		jmp	SYS_RET_OK
-; ---------------------------------------------------------------------------
-
 CLOSE_NAME:				; ...
 		call	ss:MFTCloN
-
 CheckReturns:				; ...
 		jb	short func_err
-
 jmp_to_jmp_to_SYS_RET_OK:		; ...
 		jmp	short jmp_to_SYS_RET_OK
-; ---------------------------------------------------------------------------
-
 func_err:				; ...
 		jmp	short servercall_error
-; ---------------------------------------------------------------------------
-
 CLOSE_UID:				; ...
 		call	ss:MFTclU
 		jmp	short CheckReturns
-; ---------------------------------------------------------------------------
-
 CLOSE_UID_PID:				; ...
 		call	ss:MFTCloseP
 		jmp	short CheckReturns
-; ---------------------------------------------------------------------------
-
 GET_LIST:				; ...
 		call	ss:MFT_get
 		jb	short func_err
@@ -16177,14 +13094,10 @@ GET_LIST:				; ...
 		mov	[si+2],	bx
 		mov	[si+0Ah], di
 		mov	word ptr [si+10h], es
-
 SetCXOK:				; ...
 		mov	[si+4],	cx
-
 third_jmp_short_SYS_RET_OK:		; ...
 		jmp	short jmp_to_jmp_to_SYS_RET_OK
-; ---------------------------------------------------------------------------
-
 SRV_CALL:				; ...
 		pop	ax
 		push	ds
@@ -16214,8 +13127,6 @@ SRV_CALL:				; ...
 		mov	ss:SAVEBX, bx
 		mov	ss:FSHARING, 0FFh
 		jmp	REDISP
-; ---------------------------------------------------------------------------
-
 GET_DOS_DATA:				; ...
 		push	ss
 		pop	es
@@ -16232,8 +13143,6 @@ GET_DOS_DATA:				; ...
 		mov	[si+8],	di
 		mov	[si+6],	dx
 		jmp	short SetCXOK
-; ---------------------------------------------------------------------------
-
 SPOOL_OPER:				; ...
 		push	ax
 		mov	ax, 1125h
@@ -16244,12 +13153,8 @@ SPOOL_OPER:				; ...
 		pop	bx
 		jb	short func_err2
 		jmp	short third_jmp_short_SYS_RET_OK
-; ---------------------------------------------------------------------------
-
 func_err2:				; ...
 		jmp	SYS_RET_ERR
-; ---------------------------------------------------------------------------
-
 _$SetExtendedError:			; ...
 		mov	ax, [si]
 		mov	ss:EXTERR, ax
@@ -16262,34 +13167,23 @@ _$SetExtendedError:			; ...
 		mov	ax, [si+4]
 		mov	ss:EXTERR_LOCUS, ah
 		retn
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 pJFNFromHandle	proc near		; ...
 		mov	es, cs:DosDSeg
 		mov	es, es:CurrentPDB
 		cmp	bx, es:32h	; [ES:PDB.JFN_Length]
 		jb	short pjfn10
 		mov	al, 6
-
 ReturnCarry:				; ...
 		stc
 		retn
-; ---------------------------------------------------------------------------
-
 pjfn10:					; ...
 		les	di, es:34h	; [ES:PDB.JFN_Pointer]
 		add	di, bx
-
 pJFNFromHandle_error:			; ...
 		retn
 pJFNFromHandle	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SFFromHandle	proc near		; ...
 		call	pJFNFromHandle
 		jb	short pJFNFromHandle_error
@@ -16297,8 +13191,6 @@ SFFromHandle	proc near		; ...
 		jnz	short GetSF
 		mov	al, 6
 		jmp	short ReturnCarry
-; ---------------------------------------------------------------------------
-
 GetSF:					; ...
 		push	bx
 		mov	bl, es:[di]
@@ -16307,15 +13199,10 @@ GetSF:					; ...
 		pop	bx
 		retn
 SFFromHandle	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SFFromSFN	proc near		; ...
 		mov	es, cs:DosDSeg
 		les	di, es:SFT_ADDR
-
 sfsfn5:					; ...
 		cmp	bx, es:[di+4]
 		jb	short sfsfn7
@@ -16325,8 +13212,6 @@ sfsfn5:					; ...
 		jnz	short sfsfn5
 		stc
 		retn
-; ---------------------------------------------------------------------------
-
 sfsfn7:					; ...
 		push	ax
 		mov	ax, 59		; SF_ENTRY.size
@@ -16336,14 +13221,9 @@ sfsfn7:					; ...
 		add	di, 6
 		retn			; SFT.SFTable
 SFFromSFN	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 JFNFree		proc near		; ...
 		xor	bx, bx
-
 jfnf1:					; ...
 		call	pJFNFromHandle
 		jb	short jfnf5
@@ -16351,23 +13231,15 @@ jfnf1:					; ...
 		jz	short jfnfx
 		inc	bx
 		jmp	short jfnf1
-; ---------------------------------------------------------------------------
-
 jfnf5:					; ...
 		mov	al, 4
-
 jfnfx:					; ...
 		retn
 JFNFree		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SFNFree		proc near		; ...
 		push	ax
 		xor	bx, bx
-
 sfnf5:					; ...
 		push	bx
 		call	SFFromSFN
@@ -16377,12 +13249,9 @@ sfnf5:					; ...
 		jz	short sfnf20
 		cmp	word ptr es:[di], 0FFFFh
 		jz	short sfnf10
-
 sfnf7:					; ...
 		inc	bx
 		jmp	short sfnf5
-; ---------------------------------------------------------------------------
-
 sfnf10:					; ...
 		mov	ax, ss:USER_ID
 		cmp	es:[di+2Fh], ax
@@ -16390,7 +13259,6 @@ sfnf10:					; ...
 		mov	ax, ss:PROC_ID
 		cmp	es:[di+31h], ax
 		jnz	short sfnf7
-
 sfnf20:					; ...
 		mov	word ptr es:[di], 0FFFFh
 		mov	ax, ss:USER_ID
@@ -16400,18 +13268,12 @@ sfnf20:					; ...
 		pop	ax
 		clc
 		retn
-; ---------------------------------------------------------------------------
-
 sfnf95:					; ...
 		pop	ax
 		mov	al, 4
 		retn
 SFNFree		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 $CLOSE		proc near		; ...
 		call	CheckOwner
 		jb	short CloseError
@@ -16425,26 +13287,18 @@ $CLOSE		proc near		; ...
 		and	al, 0F0h
 		cmp	al, 70h
 		jz	short PostFree
-
 FreeJFN:				; ...
 		call	pJFNFromHandle
 		mov	byte ptr es:[di], 0FFh
-
 PostFree:				; ...
 		call	DOS_CLOSE
 		jb	short CloseError
 		mov	ah, 3Eh
-
 Close_OK:				; ...
 		jmp	SYS_RET_OK
-; ---------------------------------------------------------------------------
-
 CloseError:				; ...
 		jmp	SYS_RET_ERR
 $CLOSE		endp
-
-; ---------------------------------------------------------------------------
-
 $COMMIT:				; ...
 		call	CheckOwner
 		jb	short CommitError
@@ -16456,22 +13310,16 @@ $COMMIT:				; ...
 		jb	short CommitError
 		mov	ah, 68h
 ; START	OF FUNCTION CHUNK FOR $READ
-
 Commit_OK:				; ...
 		jmp	short Close_OK
-; ---------------------------------------------------------------------------
-
 CommitError:				; ...
 		jmp	short CloseError
 ; END OF FUNCTION CHUNK	FOR $READ
-; ---------------------------------------------------------------------------
-
 $ExtHandle:				; ...
 		xor	bp, bp
 		cmp	bx, 20
 		jnb	short exth2
 		mov	bx, 20		; FILPERPROC
-
 exth2:					; ...
 		mov	es, ss:CurrentPDB
 		mov	cx, es:32h	; [ES:PDB.JFN_Length]
@@ -16482,7 +13330,6 @@ exth2:					; ...
 		mov	ds, word ptr es:36h ; [ES:PDB.JFN_Pointer+2]
 		mov	si, bx
 		sub	cx, bx
-
 chck_handles:				; ...
 		cmp	byte ptr [si], 0FFh
 		jnz	short too_many_files
@@ -16494,8 +13341,6 @@ chck_handles:				; ...
 		mov	di, 24		; PDB.JFN_TABLE
 		push	bx
 		jmp	short movhandl
-; ---------------------------------------------------------------------------
-
 larger:					; ...
 		cmp	bx, 0FFFFh
 		jz	short invalid_func
@@ -16511,7 +13356,6 @@ larger:					; ...
 		jb	short no_memory
 		mov	es, ax
 		xor	di, di
-
 movhandl:				; ...
 		mov	ds, ss:CurrentPDB
 		test	bp, 3
@@ -16519,26 +13363,18 @@ movhandl:				; ...
 		pop	cx
 		push	cx
 		jmp	short copy_hand
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR $READ
-
 ok_done:				; ...
 		jmp	short Commit_OK
 ; END OF FUNCTION CHUNK	FOR $READ
-; ---------------------------------------------------------------------------
-
 too_many_files:				; ...
 		mov	al, 4
 ; START	OF FUNCTION CHUNK FOR $READ
-
 CommitErrorj:				; ...
 		jmp	short CommitError
 ; END OF FUNCTION CHUNK	FOR $READ
-; ---------------------------------------------------------------------------
-
 enlarge:				; ...
 		mov	cx, ds:32h	; [PDB.JFN_Length]
-
 copy_hand:				; ...
 		mov	dx, cx
 		lds	si, ds:34h
@@ -16559,77 +13395,56 @@ copy_hand:				; ...
 		pop	es
 		pop	ds
 		pop	bp
-
 update_info:				; ...
 		test	bp, 2
 		jz	short non_psp
 		mov	word ptr ds:34h, 18h ; 24
 		jmp	short final
-; ---------------------------------------------------------------------------
-
 non_psp:				; ...
 		mov	word ptr ds:34h, 0
-
 final:					; ...
 		mov	word ptr ds:36h, es
 		pop	word ptr ds:32h
 ; START	OF FUNCTION CHUNK FOR $READ
-
 ExtHandle_OK:				; ...
 		jmp	short ok_done
 ; END OF FUNCTION CHUNK	FOR $READ
-; ---------------------------------------------------------------------------
-
 no_memory:				; ...
 		pop	bx
 		mov	al, 8
 ; START	OF FUNCTION CHUNK FOR $READ
-
 jmp_to_jmp_CommitError:			; ...
 		jmp	short CommitErrorj
 ; END OF FUNCTION CHUNK	FOR $READ
-; ---------------------------------------------------------------------------
-
 invalid_func:				; ...
 		mov	al, 1
 ; START	OF FUNCTION CHUNK FOR $READ
-
 ExtHandle_err:				; ...
 		jmp	short jmp_to_jmp_CommitError
 ; END OF FUNCTION CHUNK	FOR $READ
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 $READ		proc near		; ...
-
 ; FUNCTION CHUNK AT A774 SIZE 00000004 BYTES
 ; FUNCTION CHUNK AT A7E0 SIZE 00000002 BYTES
 ; FUNCTION CHUNK AT A7E4 SIZE 00000002 BYTES
 ; FUNCTION CHUNK AT A82F SIZE 00000002 BYTES
 ; FUNCTION CHUNK AT A834 SIZE 00000002 BYTES
 ; FUNCTION CHUNK AT A838 SIZE 00000002 BYTES
-
 		mov	si, offset DOS_READ
-
 ReadDo:					; ...
 		call	pJFNFromHandle
 		jb	short ReadError
 		mov	al, es:[di]
 		call	CheckOwner
 		jnb	short ReadSetup
-
 ReadError:				; ...
 		jmp	short ExtHandle_err
-; ---------------------------------------------------------------------------
-
 ReadSetup:				; ...
 		mov	word ptr ss:THISSFT, di
 		mov	word ptr ss:THISSFT+2, es
 		test	byte ptr es:[di+3], 20h
 		jz	short needi24
 		or	ss:EXTOPEN_ON, 2
-
 needi24:				; ...
 		push	word ptr ss:DMAADD
 		push	word ptr ss:DMAADD+2
@@ -16641,19 +13456,12 @@ needi24:				; ...
 		pop	word ptr ds:DMAADD
 		jnb	short READ_OK
 		jmp	short ReadError
-; ---------------------------------------------------------------------------
-
 READ_OK:				; ...
 		mov	ax, cx
-
 Read_OK_j:				; ...
 		jmp	short ExtHandle_OK
 $READ		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Align_Buffer	proc near		; ...
 		mov	bx, dx
 		push	cx
@@ -16668,65 +13476,45 @@ Align_Buffer	proc near		; ...
 		mov	word ptr ss:DMAADD+2, ds
 		retn
 Align_Buffer	endp
-
-; ---------------------------------------------------------------------------
-
 $WRITE:					; ...
 		mov	si, offset DOS_WRITE
 		jmp	short ReadDo
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 $LSEEK		proc near		; ...
 		call	CheckOwner
-
 LSeekError:				; ...
 		jnb	short CHKOWN_OK
 		jmp	short ReadError
-; ---------------------------------------------------------------------------
-
 CHKOWN_OK:				; ...
 		cmp	al, 2
 		jbe	short LSeekDisp
 		mov	ss:EXTERR_LOCUS, 1
 		mov	al, 1
-
 jmp_to_ReadError:			; ...
 		jmp	short ReadError
-; ---------------------------------------------------------------------------
-
 LSeekDisp:				; ...
 		cmp	al, 1
 		jb	short LSeekStore
 		ja	short LSeekEOF
 		add	dx, es:[di+15h]
 		adc	cx, es:[di+17h]
-
 LSeekStore:				; ...
 		mov	ax, cx
 		xchg	ax, dx
-
 LSeekSetpos:				; ...
 		mov	es:[di+15h], ax
 		mov	es:[di+17h], dx
 		call	Get_User_Stack
 		mov	[si+6],	dx
-
 jmp_to_Read_OK_j:			; ...
 		jmp	short Read_OK_j
-; ---------------------------------------------------------------------------
-
 LSeekEOF:				; ...
 		test	byte ptr es:[di+6], 80h
 		jnz	short Check_LSeek_Mode
-
 LOCAL_LSeek:				; ...
 		add	dx, es:[di+11h]
 		adc	cx, es:[di+13h]
 		jmp	short LSeekStore
-; ---------------------------------------------------------------------------
-
 Check_LSeek_Mode:			; ...
 		test	byte ptr es:[di+3], 80h
 		jnz	short LOCAL_LSeek
@@ -16736,7 +13524,6 @@ Check_LSeek_Mode:			; ...
 		jz	short NET_LSEEK
 		cmp	ax, 30h
 		jnz	short LOCAL_LSeek
-
 NET_LSEEK:				; ...
 		mov	ax, 1121h
 		int	2Fh		; Multiplex - NETWORK REDIRECTOR - SEEK	FROM END OF REMOTE FILE
@@ -16746,13 +13533,9 @@ NET_LSEEK:				; ...
 					; Return: CF set on error
 					; CF clear if successful, DX:AX	= new file position
 		jnb	short LSeekSetpos
-
 jmp_to_jmp_ReadError:			; ...
 		jmp	short jmp_to_ReadError
 $LSEEK		endp
-
-; ---------------------------------------------------------------------------
-
 $FILE_TIMES:				; ...
 		cmp	al, 2
 		jnb	short inval_func
@@ -16768,8 +13551,6 @@ $FILE_TIMES:				; ...
 		mov	[si+4],	cx
 		mov	[si+6],	dx
 		jmp	short ok_ret
-; ---------------------------------------------------------------------------
-
 ft_set_time:				; ...
 		call	ECritDisk	; ECritSFT
 		mov	es:[di+0Dh], cx
@@ -16779,23 +13560,16 @@ ft_set_time:				; ...
 		and	word ptr es:[di+5], 0FFBFh
 		or	word ptr es:[di+5], 4000h
 		call	LCritDisk	; LCritSFT
-
 ok_ret:					; ...
 		jmp	short jmp_to_Read_OK_j
-; ---------------------------------------------------------------------------
-
 inval_func:				; ...
 		mov	ss:EXTERR_LOCUS, 1
 		mov	al, 1
-
 jmp3_to_ReadError:			; ...
 		jmp	short jmp_to_jmp_ReadError
-; ---------------------------------------------------------------------------
-
 $DUP:					; ...
 		mov	ax, bx
 		call	JFNFree
-
 DupErrorCheck:				; ...
 		jb	short DupErr
 		push	es
@@ -16810,12 +13584,8 @@ DupErrorCheck:				; ...
 		mov	bl, es:[di]
 		mov	[si], bl
 		jmp	short ok_ret
-; ---------------------------------------------------------------------------
-
 DupErr:					; ...
 		jmp	short jmp3_to_ReadError
-; ---------------------------------------------------------------------------
-
 $DUP2:					; ...
 		push	bx
 		push	cx
@@ -16825,10 +13595,7 @@ $DUP2:					; ...
 		pop	ax
 		call	pJFNFromHandle
 		jmp	short DupErrorCheck
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 CheckOwner	proc near		; ...
 		call	SFFromHandle
 		jb	short co_ret_label
@@ -16837,32 +13604,22 @@ CheckOwner	proc near		; ...
 		jz	short no_win386
 		xor	ax, ax
 		jmp	short _skip_win386
-; ---------------------------------------------------------------------------
-
 no_win386:				; ...
 		mov	ax, ss:USER_ID
 		cmp	ax, es:[di+47]	; [es:di+SF_ENTRY.sf_UID]
-
 _skip_win386:				; ...
 		pop	ax
 		jnz	short CheckOwner_err
 		retn
-; ---------------------------------------------------------------------------
-
 CheckOwner_err:				; ...
 		mov	al, 6
 		stc
-
 co_ret_label:				; ...
 		retn
 CheckOwner	endp
-
-; ---------------------------------------------------------------------------
-
 $AssignOper:				; ...
 		cmp	al, 7
 		jnz	short chk08
-
 srinuse:				; ...
 		push	ax
 		mov	al, dl
@@ -16875,18 +13632,12 @@ srinuse:				; ...
 		jnz	short resetdrv
 		or	word ptr [si+43h], 4000h
 		jmp	short okdone
-; ---------------------------------------------------------------------------
-
 resetdrv:				; ...
 		and	word ptr [si+43h], 0BFFFh
 		jmp	short okdone
-; ---------------------------------------------------------------------------
-
 baddrv:					; ...
 		mov	ax, 0Fh
 		jmp	short ASS_ERR
-; ---------------------------------------------------------------------------
-
 chk08:					; ...
 		cmp	al, 8
 		jz	short srinuse
@@ -16899,20 +13650,13 @@ chk08:					; ...
 					; STACK	unchanged
 		pop	bx
 		jb	short ASS_ERR
-
 okdone:					; ...
 		jmp	SYS_RET_OK
-; ---------------------------------------------------------------------------
-
 ASS_ERR:				; ...
 		jmp	SYS_RET_ERR
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 FIND_DPB	proc near		; ...
 		lds	si, ss:DPBHEAD
-
 fdpb5:					; ...
 		cmp	si, 0FFFFh
 		jz	short fdpb10
@@ -16920,19 +13664,12 @@ fdpb5:					; ...
 		jz	short ret_label15
 		lds	si, [si+19h]	; [SI+DPB.NEXT_DPB]
 		jmp	short fdpb5
-; ---------------------------------------------------------------------------
-
 fdpb10:					; ...
 		stc
-
 ret_label15:				; ...
 		retn
 FIND_DPB	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 InitCDS		proc near		; ...
 		push	ax
 		les	di, ss:THISCDS
@@ -16959,20 +13696,14 @@ InitCDS		proc near		; ...
 		jb	short icds5
 		mov	es:[di+45h], si
 		mov	word ptr es:[di+47h], ds
-
 icds5:					; ...
 		pop	si
 		pop	ds
-
 icdsx:					; ...
 		pop	ax
-
 RET45:					; ...
 		retn
 InitCDS		endp
-
-; ---------------------------------------------------------------------------
-
 $UserOper:				; ...
 		push	ax
 		sub	al, 1
@@ -16983,11 +13714,8 @@ $UserOper:				; ...
 		jbe	short UserPrint
 		mov	ss:EXTERR_LOCUS, 1
 		mov	al, 1
-
 useroper_error:				; ...
 		jmp	short ASS_ERR
-; ---------------------------------------------------------------------------
-
 UserGet:				; ...
 		push	ds
 		pop	es
@@ -16998,17 +13726,13 @@ UserGet:				; ...
 		push	ss
 		pop	ds
 		mov	si, offset MYNAME
-
 UserMove:				; ...
 		mov	cx, 15
 		rep movsb
 		xor	ax, ax
 		stosb
-
 UserBye:				; ...
 		jmp	SYS_RET_OK
-; ---------------------------------------------------------------------------
-
 UserSet:				; ...
 		mov	ss:MYNUM, cx
 		mov	si, dx
@@ -17017,8 +13741,6 @@ UserSet:				; ...
 		mov	di, offset MYNAME
 		inc	ss:DIFFNAM
 		jmp	short UserMove
-; ---------------------------------------------------------------------------
-
 UserPrint:				; ...
 		push	ax
 		mov	ax, 111Fh
@@ -17029,14 +13751,9 @@ UserPrint:				; ...
 		pop	dx
 		jnb	short OKPA
 		jmp	short useroper_error
-; ---------------------------------------------------------------------------
-
 OKPA:					; ...
 		jmp	short UserBye
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GetVisDrv	proc near		; ...
 		call	GETTHISDRV
 		jb	short RET45
@@ -17051,17 +13768,12 @@ GetVisDrv	proc near		; ...
 		stc
 		retn
 GetVisDrv	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GETTHISDRV	proc near		; ...
 		or	al, al
 		jnz	short GTD10
 		mov	al, ss:CURDRV
 		inc	ax
-
 GTD10:					; ...
 		dec	ax
 		push	ds
@@ -17082,37 +13794,27 @@ GTD10:					; ...
 		pop	ax
 		jz	short GTD30
 		jmp	short GTDX
-; ---------------------------------------------------------------------------
-
 GTD20:					; ...
 		call	GetCDSFromDrv
 		jb	short GTD30
 		test	word ptr [si+43h], 4000h
 		jnz	short GTDX
-
 GTD30:					; ...
 		mov	al, 0Fh
 		mov	ss:DrvErr, al
 		mov	ss:EXTERR_LOCUS, 1
 		stc
-
 GTDX:					; ...
 		pop	si
 		pop	ds
 		retn
 GETTHISDRV	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GetCDSFromDrv	proc near		; ...
 		cmp	al, ss:CDSCOUNT
 		jb	short GetCDS
 		stc
 		retn
-; ---------------------------------------------------------------------------
-
 GetCDS:					; ...
 		push	bx
 		push	ax
@@ -17127,12 +13829,8 @@ GetCDS:					; ...
 		clc
 		retn
 GetCDSFromDrv	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
 ; Attributes: bp-based frame
-
 TransFCB	proc near		; ...
 		push	bp
 		mov	bp, sp
@@ -17149,7 +13847,6 @@ TransFCB	proc near		; ...
 		mov	al, [si-1]
 		mov	ss:SATTRIB, al
 		mov	ss:EXTFCB, 0FFh
-
 GetDrive:				; ...
 		lodsb
 		call	GETTHISDRV
@@ -17157,7 +13854,6 @@ GetDrive:				; ...
 		call	TextFromDrive
 		mov	cx, 11
 		push	si
-
 FCBScan:				; ...
 		lodsb
 		call	GetCharType
@@ -17178,42 +13874,27 @@ FCBScan:				; ...
 		call	TransPathSet
 		pop	bp
 		jnb	short FCBRet
-
 BadPack:				; ...
 		stc
 		mov	al, 3
-
 FCBRet:					; ...
 		mov	sp, bp
 		pop	bp
-
 TransPath_retn:				; ...
 		retn
 TransFCB	endp ; sp-analysis failed
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 TransPath	proc near		; ...
 		xor	al, al
 		jmp	short SetSplice
 TransPath	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 TransPathSet	proc near		; ...
-
 ; FUNCTION CHUNK AT AC6D SIZE 000000A5 BYTES
-
 		mov	al, 0FFh
-
 SetSplice:				; ...
 		mov	ss:NoSetDir, al
 		mov	al, 0FFh
-
 TransPathNoSet:				; ...
 		mov	ss:FSPLICE, al
 		mov	ss:CMETA, 0FFh
@@ -17237,7 +13918,6 @@ TransPathNoSet:				; ...
 		test	ds:FSPLICE, 0FFh
 		jz	short NoServerSplice
 		call	Splice
-
 NoServerSplice:				; ...
 		push	ss
 		pop	ds
@@ -17245,12 +13925,9 @@ NoServerSplice:				; ...
 		call	ECritDisk
 		call	FATREAD_CDS
 		call	LCritDisk
-
 NoPath:					; ...
 		mov	al, 3
 		retn
-; ---------------------------------------------------------------------------
-
 CheckUNC:				; ...
 		mov	word ptr ss:THISCDS, 0FFFFh
 		mov	ax, 1123h
@@ -17270,7 +13947,6 @@ CheckUNC:				; ...
 		jnz	short CheckDevice
 		pop	ax
 		movsw
-
 UNCCpy:					; ...
 		lodsb
 		call	UCase
@@ -17281,18 +13957,13 @@ UNCCpy:					; ...
 		stosb
 		jnz	short UNCCpy
 		call	Canonicalize
-
 UNCDone:				; ...
 		push	ss
 		pop	ds
 		retn
-; ---------------------------------------------------------------------------
-
 UNCTerm:				; ...
 		stosb
 		jmp	short UNCDone
-; ---------------------------------------------------------------------------
-
 CheckDevice:				; ...
 		pop	ax
 		cmp	byte ptr [si], 0
@@ -17300,8 +13971,6 @@ CheckDevice:				; ...
 		mov	al, 2
 		stc
 		retn
-; ---------------------------------------------------------------------------
-
 CheckPath:				; ...
 		push	ax
 		push	bp
@@ -17319,23 +13988,15 @@ CheckPath:				; ...
 		clc
 		push	ss
 		pop	ds
-
 DoFile_retn:				; ...
 		retn
 TransPathSet	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
 ; Attributes: thunk
-
 no5Dshere	proc near		; ...
 		jmp	CheckThisDevice
 no5Dshere	endp
-
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR TransPathSet
-
 DoFile:					; ...
 		call	GetVisDrv
 		mov	al, 3
@@ -17363,7 +14024,6 @@ DoFile:					; ...
 		cmp	es:[di-1], al
 		jz	short GetOrig
 		stosb
-
 GetOrig:				; ...
 		dec	di
 		pop	si
@@ -17373,7 +14033,6 @@ GetOrig:				; ...
 		or	al, al
 		jz	short DoCanon
 		mov	di, bx
-
 SkipPath:				; ...
 		lodsb
 		call	PATHCHRCMP
@@ -17381,11 +14040,9 @@ SkipPath:				; ...
 		dec	si
 		or	al, al
 		jz	short DoCanon
-
 PathAssure:				; ...
 		mov	al, '\'
 		stosb
-
 DoCanon:				; ...
 		call	Canonicalize
 		jb	short DoFile_retn
@@ -17398,13 +14055,11 @@ DoCanon:				; ...
 		mov	al, [si-1]
 		call	PATHCHRCMP
 		jz	short DoSplice
-
 Pathline:
 		cmp	byte ptr es:[di], 0
 		jz	short DoSplice
 		inc	di
 		mov	ss:CURR_DIR_END, di
-
 DoSplice:				; ...
 		push	ss
 		pop	ds
@@ -17413,7 +14068,6 @@ DoSplice:				; ...
 		test	ds:FSPLICE, 0FFh
 		jz	short SkipSplice
 		call	Splice
-
 SkipSplice:				; ...
 		push	ss
 		pop	ds
@@ -17425,14 +14079,10 @@ SkipSplice:				; ...
 		call	FATREAD_CDS
 		call	LCritDisk
 		mov	al, 3
-
 Done:					; ...
 		retn
 ; END OF FUNCTION CHUNK	FOR TransPathSet
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Canonicalize	proc near		; ...
 		lodsb
 		call	PATHCHRCMP
@@ -17441,11 +14091,8 @@ Canonicalize	proc near		; ...
 		jnb	short CanonBad
 		stosb
 		jmp	short Canonicalize
-; ---------------------------------------------------------------------------
-
 CanonDec:				; ...
 		dec	si
-
 CanonLoop:				; ...
 		xor	ax, ax
 		cmp	[si], al
@@ -17455,26 +14102,19 @@ CanonLoop:				; ...
 		mov	al, '\'
 		stosb
 		mov	al, ah
-
 DoTerminate:				; ...
 		stosb
 		clc
 		retn
-; ---------------------------------------------------------------------------
-
 CanonBad:				; ...
 		call	ScanPathChar
 		mov	al, 3
 		jz	short PathEnc
 		mov	al, 2
-
 PathEnc:				; ...
 		stc
-
 CanonBad_retn:				; ...
 		retn
-; ---------------------------------------------------------------------------
-
 DoComponent:				; ...
 		call	CopyComponent
 		jb	short CanonBad_retn
@@ -17483,17 +14123,13 @@ DoComponent:				; ...
 		cmp	word ptr es:[di], '..' ; 2E2Eh
 		jnz	short CanonNormal
 		dec	di
-
 Skip1:					; ...
 		call	SkipBack
 		mov	al, 3
 		jb	short CanonBad_retn
 		jmp	short CanonPath
-; ---------------------------------------------------------------------------
-
 CanonNormal:				; ...
 		add	di, cx
-
 CanonPath:				; ...
 		call	PathSep
 		jnz	short CanonBad
@@ -17503,7 +14139,6 @@ CanonPath:				; ...
 		cmp	di, bp
 		jnb	short CanonBad
 		stosb
-
 CanonPathLoop:				; ...
 		lodsb
 		call	PATHCHRCMP
@@ -17511,25 +14146,16 @@ CanonPathLoop:				; ...
 		dec	si
 		jmp	short CanonLoop
 Canonicalize	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 PathSep		proc near		; ...
 		mov	al, [si]
-
 PathSepGotCh:				; ...
 		or	al, al
 		jz	short CanonBad_retn
 		call	PATHCHRCMP
 		retn
 PathSep		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SkipBack	proc near		; ...
 		cmp	di, bx
 		jb	short SkipBad
@@ -17539,18 +14165,12 @@ SkipBack	proc near		; ...
 		jnz	short SkipBack
 		clc
 		retn
-; ---------------------------------------------------------------------------
-
 SkipBad:				; ...
 		mov	al, 3
 		stc
 		retn
 SkipBack	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 CopyComponent	proc near		; ...
 		sub	sp, 14
 		push	ds
@@ -17566,7 +14186,6 @@ CopyComponent	proc near		; ...
 		jnz	short NormalComp
 		call	PathSep
 		jz	short NulTerm
-
 TryTwoDot:
 		lodsb
 		stosb
@@ -17574,14 +14193,11 @@ TryTwoDot:
 		jnz	short CopyBad
 		call	PathSep
 		jnz	short CopyBad
-
 NulTerm:				; ...
 		xor	al, al
 		stosb
 		mov	[bp+6],	si
 		jmp	short _GoodRet
-; ---------------------------------------------------------------------------
-
 NormalComp:				; ...
 		mov	si, [bp+6]
 		call	NAMETRANS
@@ -17595,7 +14211,6 @@ NormalComp:				; ...
 		jnz	short DoPack
 		or	dl, dl
 		jz	short CopyBadPath
-
 DoPack:					; ...
 		mov	[bp+6],	si
 		push	ss
@@ -17613,22 +14228,17 @@ DoPack:					; ...
 		mov	si, di
 		les	di, [bp+2]
 		call	FStrCpy
-
 _GoodRet:				; ...
 		clc
 		jmp	short CopyEnd
-; ---------------------------------------------------------------------------
-
 CopyBad:				; ...
 		stc
 		call	ScanPathChar
 		mov	al, 2
 		jnz	short CopyEnd
-
 CopyBadPath:				; ...
 		stc
 		mov	al, 3
-
 CopyEnd:				; ...
 		pop	bp
 		pop	di
@@ -17642,11 +14252,7 @@ CopyEnd:				; ...
 		sahf
 		retn
 CopyComponent	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 Splice		proc near		; ...
 		test	ss:SPLICES, 0FFh
 		jz	short AllDone
@@ -17657,7 +14263,6 @@ Splice		proc near		; ...
 		pop	di
 		pop	es
 		xor	ax, ax
-
 SpliceScan:				; ...
 		call	GetCDSFromDrv
 		jb	short SpliceDone
@@ -17667,18 +14272,14 @@ SpliceScan:				; ...
 		push	di
 		call	PathPref
 		jz	short SpliceFound
-
 SpliceSkip:				; ...
 		pop	di
 		jmp	short SpliceScan
-; ---------------------------------------------------------------------------
-
 SpliceFound:				; ...
 		cmp	byte ptr es:[di], 0
 		jnz	short SpliceDo
 		test	ss:NoSetDir, 0FFh
 		jnz	short SpliceSkip
-
 SpliceDo:				; ...
 		mov	si, di
 		push	es
@@ -17691,41 +14292,30 @@ SpliceDo:				; ...
 		add	ax, di
 		sub	ax, si
 		mov	ss:CURR_DIR_END, ax
-
 NoPoke:					; ...
 		cmp	byte ptr [si], 0
 		jnz	short SpliceCopy
 		mov	al, '\'
 		stosb
-
 SpliceCopy:				; ...
 		call	FStrCpy
 		add	sp, 4
 		or	cl, 1
 		jmp	short DoSet
-; ---------------------------------------------------------------------------
-
 SpliceDone:				; ...
 		pop	word ptr ss:THISCDS+2
 		pop	word ptr ss:THISCDS
-
 AllDone:				; ...
 		xor	cx, cx
-
 DoSet:					; ...
 		lds	si, ss:THISCDS
 		les	di, [si+45h]
 		mov	word ptr ss:THISDPB, di
 		mov	word ptr ss:THISDPB+2, es
-
 Splice_retn:				; ...
 		retn
 Splice		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 $NameTrans	proc far		; ...
 		push	ds
 		push	si
@@ -17743,8 +14333,6 @@ $NameTrans	proc far		; ...
 		pop	ds
 		jnb	short TransOK
 		jmp	SYS_RET_ERR
-; ---------------------------------------------------------------------------
-
 TransOK:				; ...
 		mov	si, offset OPENBUF
 		push	ss
@@ -17752,11 +14340,7 @@ TransOK:				; ...
 		call	FStrCpy
 		jmp	SYS_RET_OK
 $NameTrans	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 DriveFromText	proc near		; ...
 		xor	al, al
 		cmp	byte ptr [si], 0
@@ -17770,27 +14354,17 @@ DriveFromText	proc near		; ...
 		mov	al, 0FFh
 		retn
 DriveFromText	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 TextFromDrive	proc near		; ...
 		inc	al
-
 TextFromDrive1:				; ...
 		add	al, 40h	; '@'   ; 'A'-1
 		mov	ah, ':'
 		stosw
-
 PathPref_retn:				; ...
 		retn
 TextFromDrive	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 PathPref	proc near		; ...
 		call	DStrLen
 		dec	cx
@@ -17802,16 +14376,11 @@ PathPref	proc near		; ...
 		jz	short Prefix
 		mov	al, es:[di]
 		call	PathSepGotCh
-
 Prefix:					; ...
 		pop	ax
 		retn
 PathPref	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ScanPathChar	proc near		; ...
 		lodsb
 		call	PathSepGotCh
@@ -17819,20 +14388,14 @@ ScanPathChar	proc near		; ...
 		call	PATHCHRCMP
 		retn
 ScanPathChar	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 $OPEN		proc near		; ...
 		xor	ah, ah
-
 $Open2:					; ...
 		mov	ch, 16h		; attr_hidden+attr_system+attr_directory
 		call	SetAttrib
 		mov	cx, offset DOS_OPEN
 		push	ax
-
 AccessFile:				; ...
 		call	ECritDisk	; ECritSFT
 		call	SFNFree
@@ -17843,11 +14406,8 @@ AccessFile:				; ...
 		mov	word ptr ss:THISSFT+2, es
 		call	JFNFree
 		jnb	short SaveJFN
-
 OpenFailJ:				; ...
 		jmp	OpenFail
-; ---------------------------------------------------------------------------
-
 SaveJFN:				; ...
 		mov	word ptr ss:PJFN, di
 		mov	word ptr ss:PJFN+2, es
@@ -17864,11 +14424,8 @@ SaveJFN:				; ...
 		cmp	ss:CMETA, 0FFh
 		jz	short SetSearch
 		mov	al, 2
-
 OpenCleanJ:				; ...
 		jmp	short OpenClean
-; ---------------------------------------------------------------------------
-
 SetSearch:				; ...
 		pop	ax
 		xor	cx, cx
@@ -17880,7 +14437,6 @@ SetSearch:				; ...
 		jz	short _DoOper
 		and	al, 7Fh
 		mov	cx, 1000h
-
 _DoOper:				; ...
 		push	di
 		push	es
@@ -17898,66 +14454,46 @@ _DoOper:				; ...
 		pop	cx
 		lds	si, ds:THISSFT
 		jb	short OpenE2
-
 OpenOK:
 		mov	word ptr [si], 1
 		or	[si+5],	cx
 		mov	ax, ss:JFN
 		call	ss:ShCol
 		mov	ss:SFN,	0FFFFh
-
 OpenOKJ:				; ...
 		jmp	SYS_RET_OK
-; ---------------------------------------------------------------------------
-
 OpenE2:					; ...
 		cmp	ax, 57h
 		jnz	short OpenE
 		jmp	short OpenCritLeave
-; ---------------------------------------------------------------------------
-
 OpenClean:				; ...
 		pop	bx
-
 OpenE:					; ...
 		mov	word ptr [si], 0
 		lds	si, ss:PJFN
 		mov	byte ptr [si], 0FFh
 		jmp	short OpenCritLeave
-; ---------------------------------------------------------------------------
-
 OpenFail:				; ...
 		sti
 		pop	cx
-
 OpenCritLeave:				; ...
 		mov	ss:SFN,	0FFFFh
 		cmp	ss:EXTERR, 25h
 		jnz	short NORERR
 		jmp	From_GetSet
-; ---------------------------------------------------------------------------
-
 NORERR:					; ...
 		jmp	SYS_RET_ERR
 $OPEN		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 $CREAT		proc near		; ...
 		push	cx
 		mov	cx, offset DOS_CREATE
 $CREAT		endp
-
 ; START	OF FUNCTION CHUNK FOR $CreateNewFile
-
 AccessSet:				; ...
 		mov	ss:SATTRIB, 6	; attr_hidden+attr_system
 		jmp	AccessFile
 ; END OF FUNCTION CHUNK	FOR $CreateNewFile
-; ---------------------------------------------------------------------------
-
 $CHMOD:					; ...
 		mov	di, offset OPENBUF
 		push	ax
@@ -17978,50 +14514,35 @@ $CHMOD:					; ...
 		mov	ds:EXTERR_LOCUS, 1
 		mov	al, 1
 ; START	OF FUNCTION CHUNK FOR $UNLINK
-
 ChModErrj:				; ...
 		jmp	short NORERR
 ; END OF FUNCTION CHUNK	FOR $UNLINK
-; ---------------------------------------------------------------------------
-
 ChModGet:				; ...
 		call	GET_FILE_INFO
 		jb	short ChModE
 		call	Get_User_Stack
 		mov	[si+4],	ax
 ; START	OF FUNCTION CHUNK FOR $UNLINK
-
 ChModOKj:				; ...
 		jmp	short OpenOKJ
 ; END OF FUNCTION CHUNK	FOR $UNLINK
-; ---------------------------------------------------------------------------
-
 ChModSet:				; ...
 		mov	ax, cx
 		call	SET_FILE_ATTRIBUTE
 		jb	short ChModE
 ; START	OF FUNCTION CHUNK FOR $UNLINK
-
 ChModOK:				; ...
 		jmp	short ChModOKj
-; ---------------------------------------------------------------------------
-
 ChModErr:				; ...
 		mov	al, 3
-
 ChModE:					; ...
 		jmp	short ChModErrj
 ; END OF FUNCTION CHUNK	FOR $UNLINK
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 $UNLINK		proc near		; ...
-
 ; FUNCTION CHUNK AT B01D SIZE 00000002 BYTES
 ; FUNCTION CHUNK AT B02A SIZE 00000002 BYTES
 ; FUNCTION CHUNK AT B033 SIZE 00000006 BYTES
-
 		push	cx
 		mov	si, dx
 		mov	di, offset OPENBUF
@@ -18036,20 +14557,13 @@ $UNLINK		proc near		; ...
 		call	SetAttrib
 		call	DOS_DELETE
 		jb	short UnlinkE
-
 UnLinkOK:				; ...
 		jmp	short ChModOK
-; ---------------------------------------------------------------------------
-
 NotFound:				; ...
 		mov	al, 3
-
 UnlinkE:				; ...
 		jmp	short ChModE
 $UNLINK		endp
-
-; ---------------------------------------------------------------------------
-
 $RENAME:				; ...
 		push	cx
 		push	ds
@@ -18064,7 +14578,6 @@ $RENAME:				; ...
 		pop	si
 		pop	ds
 		pop	cx
-
 epjc2:					; ...
 		jb	short ChModErr
 		cmp	ss:CMETA, 0FFh
@@ -18084,7 +14597,6 @@ epjc2:					; ...
 		push	ss
 		pop	es
 		xor	al, al
-
 rnloop:					; ...
 		call	GetCDSFromDrv
 		jb	short dorn
@@ -18092,14 +14604,10 @@ rnloop:					; ...
 		jz	short rnerr
 		inc	al
 		jmp	short rnloop
-; ---------------------------------------------------------------------------
-
 rnerr:					; ...
 		add	sp, 4
 		mov	al, 10h
 		jmp	short UnlinkE
-; ---------------------------------------------------------------------------
-
 dorn:					; ...
 		pop	word ptr ss:THISCDS+2
 		pop	word ptr ss:THISCDS
@@ -18110,26 +14618,16 @@ dorn:					; ...
 		call	DOS_RENAME
 		jb	short UnlinkE
 		jmp	short UnLinkOK
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 $CreateNewFile	proc near		; ...
-
 ; FUNCTION CHUNK AT AFEB SIZE 00000009 BYTES
-
 		push	cx
 		mov	cx, offset DOS_Create_New
 		jmp	AccessSet
 $CreateNewFile	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 BinToAscii	proc near		; ...
 		mov	cx, 404h
-
 bta5:					; ...
 		rol	ax, cl
 		push	ax
@@ -18141,9 +14639,6 @@ bta5:					; ...
 		jnz	short bta5
 		retn
 BinToAscii	endp
-
-; ---------------------------------------------------------------------------
-
 $CreateTempFile:			; ...
 		push	bp
 		mov	bp, sp
@@ -18152,8 +14647,6 @@ $CreateTempFile:			; ...
 		jz	short OKatts
 		mov	ax, 5
 		jmp	short SETTMPERR
-; ---------------------------------------------------------------------------
-
 OKatts:					; ...
 		mov	[bp-10], cx
 		mov	[bp-8],	dx
@@ -18167,7 +14660,6 @@ OKatts:					; ...
 		or	cx, cx
 		jnz	short okok
 		mov	cx, 0FFFFh
-
 okok:					; ...
 		xor	ax, ax
 		repne scasb
@@ -18177,10 +14669,8 @@ okok:					; ...
 		jz	short SETENDPTR
 		mov	al, '\'
 		stosb
-
 SETENDPTR:				; ...
 		mov	[bp-4],	di
-
 CreateLoop:				; ...
 		push	ss
 		pop	ds
@@ -18209,44 +14699,29 @@ CreateLoop:				; ...
 		cmp	ss:EXTERR, 53h
 		jz	short SETTMPERR
 		jmp	short CreateLoop
-; ---------------------------------------------------------------------------
-
 SETTMPERR:				; ...
 		stc
-
 CreateDone:				; ...
 		mov	sp, bp
 		pop	bp
 		jb	short CreateFail
 		jmp	SYS_RET_OK
-; ---------------------------------------------------------------------------
 ; START	OF FUNCTION CHUNK FOR $Extended_Open
-
 CreateFail:				; ...
 		jmp	SYS_RET_ERR
 ; END OF FUNCTION CHUNK	FOR $Extended_Open
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SetAttrib	proc near		; ...
 		test	ss:FSHARING, 0FFh
 		jnz	short Set
 		mov	cl, ch
-
 Set:					; ...
 		mov	ss:SATTRIB, cl
 		retn
 SetAttrib	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 $Extended_Open	proc near		; ...
-
 ; FUNCTION CHUNK AT B171 SIZE 00000003 BYTES
-
 		mov	ss:EXTOPEN_FLAG, dx
 		mov	ss:EXTOPEN_IO_MODE, 0
 		test	dx, 0FE00h	; RESERVED_BITS_MASK
@@ -18271,31 +14746,21 @@ $Extended_Open	proc near		; ...
 		mov	dx, si
 		mov	ax, bx
 		jmp	short goopen2
-; ---------------------------------------------------------------------------
-
 ext_inval2:				; ...
 		mov	al, 1
-
 jmp_to_CreateFail:			; ...
 		jmp	short CreateFail
-; ---------------------------------------------------------------------------
-
 ext_inval_parm:
 		pop	cx
 		pop	si
 		mov	al, 13
 		jmp	short jmp_to_CreateFail
-; ---------------------------------------------------------------------------
-
 error_return:				; ...
 		retn
-; ---------------------------------------------------------------------------
-
 goopen2:				; ...
 		test	bx, 2000h
 		jz	short goopen
 		or	ss:EXTOPEN_ON, 2
-
 goopen:					; ...
 		or	ss:EXTOPEN_ON, 1
 		and	ss:EXTOPEN_FLAG, 0FFh
@@ -18307,12 +14772,8 @@ goopen:					; ...
 		jz	short ok_return2
 		mov	ss:EXTOPEN_FLAG, 2
 		jmp	setXAttr
-; ---------------------------------------------------------------------------
-
 ok_return2:				; ...
 		jmp	SYS_RET_OK
-; ---------------------------------------------------------------------------
-
 chknext:				; ...
 		test	ss:EXTOPEN_FLAG, 1
 		jnz	short exist_open
@@ -18325,18 +14786,13 @@ chknext:				; ...
 		jnz	short setXAttr
 		mov	ss:EXTOPEN_FLAG, 3
 		jmp	short setXAttr
-; ---------------------------------------------------------------------------
-
 error_return2:				; ...
 		stc
 		retn
-; ---------------------------------------------------------------------------
-
 exist_open:				; ...
 		test	ss:FSHARING, 0FFh
 		jz	short noserver
 		mov	cl, ch
-
 noserver:				; ...
 		call	$Open2
 		jnb	short ext_ok
@@ -18347,8 +14803,6 @@ noserver:				; ...
 		test	ss:EXTOPEN_FLAG, 10h
 		jnz	short do_creat
 		jmp	short extexit
-; ---------------------------------------------------------------------------
-
 do_creat:				; ...
 		mov	cx, ss:SAVE_CX
 		lds	si, dword ptr ss:SAVE_SI
@@ -18357,13 +14811,10 @@ do_creat:				; ...
 		jb	short extexit
 		mov	ss:EXTOPEN_FLAG, 2
 		jmp	short setXAttr
-; ---------------------------------------------------------------------------
-
 ext_ok:					; ...
 		cmp	ss:EXTOPEN_ON, 0
 		jz	short ok_return
 		mov	ss:EXTOPEN_FLAG, 1
-
 setXAttr:				; ...
 		push	ax
 		call	Get_User_Stack
@@ -18371,11 +14822,8 @@ setXAttr:				; ...
 		mov	[si+4],	ax
 		pop	ax
 		mov	[si], ax
-
 ok_return:				; ...
 		jmp	SYS_RET_OK
-; ---------------------------------------------------------------------------
-
 extexit2:
 		pop	bx
 		push	ax
@@ -18385,26 +14833,17 @@ extexit2:
 		lds	dx, [si]
 		call	$UNLINK
 		jmp	short reserror
-; ---------------------------------------------------------------------------
-
 justopen:				; ...
 		call	$CLOSE
-
 reserror:				; ...
 		pop	ax
 		jmp	short extexit
-; ---------------------------------------------------------------------------
 		mov	ax, 2
 		jmp	short extexit
-; ---------------------------------------------------------------------------
 		mov	ax, 1
-
 extexit:				; ...
 		jmp	SYS_RET_ERR
 $Extended_Open	endp
-
-; ---------------------------------------------------------------------------
-
 $LockOper:				; ...
 		cmp	al, 1
 		ja	short lock_bad_func
@@ -18413,19 +14852,13 @@ $LockOper:				; ...
 		jnb	short lock_do
 		pop	di
 		mov	al, 6
-
 LockOperErrj:				; ...
 		jmp	SYS_RET_ERR
-; ---------------------------------------------------------------------------
-
 lock_bad_func:				; ...
 		mov	ss:EXTERR_LOCUS, 1
 		mov	al, 1
-
 LockOperErr:				; ...
 		jmp	short LockOperErrj
-; ---------------------------------------------------------------------------
-
 lock_do:				; ...
 		mov	bx, ax
 		mov	bp, offset Lock_Buffer
@@ -18441,8 +14874,6 @@ lock_do:				; ...
 		test	al, 1
 		jnz	short DOS_Unlock
 		jmp	short DOS_Lock
-; ---------------------------------------------------------------------------
-
 DOS_Unlock:				; ...
 		test	byte ptr es:[di+6], 80h
 		jz	short LOCAL_UNLOCK
@@ -18453,21 +14884,14 @@ DOS_Unlock:				; ...
 					; SFT DPB field	-> DPB of drive	containing file, SS = DOS CS
 					; Return: CF set error
 		jmp	short ValChk
-; ---------------------------------------------------------------------------
-
 LOCAL_UNLOCK:				; ...
 		call	ds:clr_block
-
 ValChk:					; ...
 		jnb	short Lock_OK
 		jmp	short LockOperErr
-; ---------------------------------------------------------------------------
-
 Lock_OK:				; ...
 		mov	ax, ds:TEMP_VAR
 		jmp	SYS_RET_OK
-; ---------------------------------------------------------------------------
-
 DOS_Lock:				; ...
 		test	byte ptr es:[di+6], 80h
 		jz	short LOCAL_LOCK
@@ -18478,18 +14902,12 @@ DOS_Lock:				; ...
 					; SFT DPB field	-> DPB of drive	containing file, SS = DOS CS
 					; Return: CF set error
 		jmp	short ValChk
-; ---------------------------------------------------------------------------
-
 LOCAL_LOCK:				; ...
 		call	ds:set_block
 		jmp	short ValChk
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 LOCK_CHECK	proc near		; ...
 		mov	bx, ds:RetryCount
-
 LockRetry:				; ...
 		push	bx
 		push	ax
@@ -18501,15 +14919,10 @@ LockRetry:				; ...
 		dec	bx
 		jnz	short LockRetry
 		stc
-
 lc_ret_label:				; ...
 		retn
 LOCK_CHECK	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 LOCK_VIOLATION	proc near		; ...
 		push	ds
 		push	es
@@ -18531,11 +14944,7 @@ LOCK_VIOLATION	proc near		; ...
 		stc
 		retn
 LOCK_VIOLATION	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 CheckShare	proc near		; ...
 		push	ds
 		mov	ds, cs:DosDSeg
@@ -18543,22 +14952,13 @@ CheckShare	proc near		; ...
 		pop	ds
 		retn
 CheckShare	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SHARE_CHECK	proc near		; ...
 		call	ds:MFT_enter
-
 shchk_retn:				; ...
 		retn
 SHARE_CHECK	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 SHARE_VIOLATION	proc near		; ...
 		push	ds
 		push	es
@@ -18578,26 +14978,16 @@ SHARE_VIOLATION	proc near		; ...
 		stc
 		retn
 SHARE_VIOLATION	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ShareEnd	proc near		; ...
 		call	ds:MFTClose
 		retn
 ShareEnd	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ShareEnter	proc near		; ...
 		push	cx
-
 retry:					; ...
 		mov	cx, ds:RetryCount
-
 attempt:				; ...
 		les	di, ds:THISSFT
 		xor	ax, ax
@@ -18610,16 +15000,11 @@ attempt:				; ...
 		loop	attempt
 		call	SHARE_VIOLATION
 		jnb	short retry
-
 done:					; ...
 		pop	cx
 		retn
 ShareEnter	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ExecReady	proc near		; ...
 		mov	si, dx
 		test	word ptr [si+2], 1
@@ -18631,7 +15016,6 @@ ExecReady	proc near		; ...
 		mov	ax, [si+0Ch]
 		call	ss:FixExePatch
 		call	ss:Rational386PatchPtr
-
 er_setver:				; ...
 		test	word ptr [si+2], 2
 		jnz	short er_chkdoshi
@@ -18645,7 +15029,6 @@ er_setver:				; ...
 		mov	es, word ptr [si+8]
 		mov	ax, ss:SPECIAL_VERSION
 		mov	es:40h,	ax	; [es:PDB.Version]
-
 er_chkdoshi:				; ...
 		cmp	ss:DosHasHMA, 0
 		jz	short er_done
@@ -18657,17 +15040,13 @@ er_chkdoshi:				; ...
 		mov	ds, ax
 		call	IsCopyProt
 		pop	ds
-
 er_seta20:				; ...
 		inc	ss:A20OFF_COUNT
 		mov	ss:A20OFF_PSP, ax
-
 er_done:				; ...
 		xor	ax, ax
 		retn
 ExecReady	endp
-
-; ---------------------------------------------------------------------------
 rpFind1		db 0FAh, 0E4h, 21h, 60h, 33h, 0C0h, 0E6h, 43h, 8Bh, 16h	; ...
 rpFind1a	db 0B0h, 0Eh, 0E6h, 37h, 33h, 0C0h, 0E6h, 0F2h ; ...
 rpFind2		db 0Fh,	20h, 0C0h	; ...
@@ -18716,8 +15095,6 @@ rpBug4Strs	dw offset rpFind8	; ...
 		dw offset rpFind9
 		dw 3
 		dw 80h
-; ---------------------------------------------------------------------------
-
 Rational386Patch:			; ...
 		cmp	word ptr es:0, 395
 		jnb	short rp3QuickOut
@@ -18731,14 +15108,10 @@ Rational386Patch:			; ...
 		jnz	short rp3QO_ax
 		cmp	es:24h,	ax
 		jz	short rp3Maybe
-
 rp3QO_ax:				; ...
 		pop	ax
-
 rp3QuickOut:				; ...
 		retn
-; ---------------------------------------------------------------------------
-
 rp3Maybe:				; ...
 		cld
 		push	bx
@@ -18768,11 +15141,8 @@ rp3Maybe:				; ...
 		mov	dx, 8
 		call	ScanCodeSeq
 		jz	short rpGotPatch
-
 rp3Exit_j:				; ...
 		jmp	rp3Exit
-; ---------------------------------------------------------------------------
-
 rpGotPatch:				; ...
 		mov	[bp+4],	di
 		cmp	word ptr [bp+0], 381
@@ -18787,7 +15157,6 @@ rpGotPatch:				; ...
 		jnz	short rp_no_cx
 		dec	di
 		inc	dx
-
 rp_no_cx:				; ...
 		mov	si, offset rpRepl2
 		mov	cx, 6
@@ -18796,7 +15165,6 @@ rp_no_cx:				; ...
 		cmp	byte ptr es:[di-1], 59h	; 'Y'
 		jnz	short rp_no_cx2
 		mov	byte ptr es:[di-1], 90h	; ''
-
 rp_no_cx2:				; ...
 		mov	ax, [bp+4]
 		mov	es:[di+4], ax
@@ -18808,7 +15176,6 @@ rp_no_cx2:				; ...
 		add	bx, 8
 		call	GenJump
 		mov	[bp+4],	di
-
 rpBug2:					; ...
 		mov	bx, offset rpBug2Strs
 		call	FindBadCode
@@ -18837,7 +15204,6 @@ rpBug2:					; ...
 		mov	es:[si+0Dh], ax
 		mov	es:[di+0Bh], ax
 		add	word ptr [bp+4], 8
-
 rpBug3:					; ...
 		mov	bx, offset rpBug3Strs
 		call	FindBadCode
@@ -18860,7 +15226,6 @@ rpBug3:					; ...
 		mov	si, offset rpRepl7
 		mov	cx, 9
 		call	GenPatch
-
 rpBug4:					; ...
 		cmp	word ptr [bp+0], 360
 		jbe	short rp3Exit
@@ -18879,7 +15244,6 @@ rpBug4:					; ...
 		mov	si, offset rpRepl9
 		mov	cx, 5
 		call	CopyPatch
-
 rp3Exit:				; ...
 		add	sp, 6
 		pop	bp
@@ -18892,10 +15256,7 @@ rp3Exit:				; ...
 		pop	bx
 		pop	ax
 		retn
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 FindBadCode	proc near		; ...
 		mov	cx, [bp+2]
 		mov	si, [bx]
@@ -18915,17 +15276,11 @@ FindBadCode	proc near		; ...
 		ja	short fbc_error
 		clc
 		retn
-; ---------------------------------------------------------------------------
-
 fbc_error:				; ...
 		stc
 		retn
 FindBadCode	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GenPatch	proc near		; ...
 		push	di
 		mov	bx, [bp+4]
@@ -18937,11 +15292,7 @@ GenPatch	proc near		; ...
 		mov	[bp+4],	di
 		retn
 GenPatch	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 CopyPatch	proc near		; ...
 		push	cx
 		mov	di, [bp+4]
@@ -18951,11 +15302,7 @@ CopyPatch	proc near		; ...
 		mov	[bp+4],	di
 		retn
 CopyPatch	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 GenJump		proc near		; ...
 		mov	al, 0E9h
 		stosb
@@ -18965,24 +15312,15 @@ GenJump		proc near		; ...
 		stosw
 		retn
 GenJump		endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ScanCodeSeq	proc near		; ...
 		mov	di, 200h
 ScanCodeSeq	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ScanCodeSeq_di	proc near		; ...
 		push	cx
 		sub	cx, dx
 		inc	cx
-
 scsagain:				; ...
 		push	si
 		push	di
@@ -18995,16 +15333,11 @@ scsagain:				; ...
 		jz	short scsfound
 		inc	di
 		loop	scsagain
-
 scsfound:				; ...
 		pop	cx
 		retn
 ScanCodeSeq_di	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 VerifyVersion	proc near		; ...
 		mov	si, es:2Ah
 		mov	bl, 10
@@ -19017,15 +15350,10 @@ VerifyVersion	proc near		; ...
 		jnz	short vvexit
 		dec	si
 		call	VVDigit
-
 vvexit:					; ...
 		retn
 VerifyVersion	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 VVDigit		proc near		; ...
 		div	bl
 		add	ah, '0'
@@ -19034,14 +15362,10 @@ VVDigit		proc near		; ...
 		mov	ah, 0
 		retn
 VVDigit		endp
-
-; ---------------------------------------------------------------------------
-
 exepatch_start:				; ...
 		push	es
 		mov	ax, ds
 		sub	ax, dx
-
 first:
 		mov	ds, ax
 		mov	es, ax
@@ -19055,13 +15379,10 @@ first:
 		pop	di
 		pop	ax
 		sub	ax, dx
-
 second:
 		mov	es, ax
-
 _NextRec:				; ...
 		mov	cx, 204h
-
 _norm_agn:				; ...
 		mov	ax, si
 		not	ax
@@ -19075,10 +15396,8 @@ _norm_agn:				; ...
 		shl	dx, cl
 		sub	si, dx
 		xor	dx, dx
-
 _SItoDS:				; ...
 		mov	ds, dx
-
 _SI_ok:					; ...
 		xchg	si, di
 		push	ds
@@ -19100,20 +15419,16 @@ _SI_ok:					; ...
 		lodsb
 		rep stosb
 		jmp	short TryNext
-; ---------------------------------------------------------------------------
-
 TryEnum:				; ...
 		cmp	al, 0B2h	; ENMREC
 		jnz	short near ptr NextRec_2+1 ; db	75h,6Bh
 		rep movsb
-
 TryNext:				; ...
 		xchg	ax, dx
 		test	al, 1
 		jz	short _NextRec	; db 74h,0BAh
 		nop
 		nop
-
 scan_patch1:				; ...
 		mov	bx, es
 		mov	ax, ds
@@ -19130,7 +15445,6 @@ scan_patch1:				; ...
 		sub	ax, dx
 		mov	es, ax
 		mov	di, 0Fh
-
 NextRec_1:
 		mov	cl, 4
 		mov	ax, si
@@ -19142,7 +15456,6 @@ NextRec_1:
 		mov	ds, dx
 		assume ds:nothing
 		or	si, 0FFF0h
-
 SI_ok_1:				; ...
 		mov	ax, di
 		not	ax
@@ -19153,7 +15466,6 @@ SI_ok_1:				; ...
 		mov	es, dx
 		assume es:nothing
 		or	di, 0FFF0h
-
 scan_patch2:				; ...
 		mov	bx, es
 		mov	ax, ds
@@ -19172,7 +15484,6 @@ scan_patch2:				; ...
 		mov	es, ax
 		assume es:nothing
 		mov	di, 0Fh
-
 NextRec_2:				; ...
 		mov	cl, 4
 		mov	ax, si
@@ -19184,7 +15495,6 @@ NextRec_2:				; ...
 		mov	ds, dx
 		assume ds:nothing
 		or	si, 0FFF0h
-
 SI_ok_2:				; ...
 		mov	ax, di
 		not	ax
@@ -19195,7 +15505,6 @@ SI_ok_2:				; ...
 		mov	es, dx
 		assume es:nothing
 		or	di, 0FFF0h
-
 scan_patch3:				; ...
 		mov	bx, es
 		mov	ax, ds
@@ -19215,7 +15524,6 @@ scan_patch3:				; ...
 		mov	es, ax
 		assume es:nothing
 		mov	di, 0Fh
-
 NextRec_3:
 		mov	cl, 4
 		mov	ax, si
@@ -19227,7 +15535,6 @@ NextRec_3:
 		mov	ds, dx
 		assume ds:nothing
 		or	si, 0FFF0h
-
 SI_ok_3:				; ...
 		mov	ax, di
 		not	ax
@@ -19238,7 +15545,6 @@ SI_ok_3:				; ...
 		mov	es, dx
 		assume es:nothing
 		or	di, 0FFF0h
-
 scan_com:				; ...
 		lodsb
 		mov	dl, al
@@ -19253,26 +15559,19 @@ scan_com:				; ...
 		lodsb
 		rep stosb
 		jmp	short _TryNext
-; ---------------------------------------------------------------------------
 		nop
-
 _TryEnum:				; ...
 		cmp	al, 0B2h
 		jnz	short near ptr ep_chkpatch2+2
 		rep movsb
-
 _TryNext:				; ...
 		mov	al, dl
 		test	al, 1
-
 ExePatch:				; ...
 		call	ExePackPatch
 		call	ss:RationalPatchPtr
 		retn
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ExePackPatch	proc near		; ...
 		push	bx
 		mov	bx, es
@@ -19280,8 +15579,6 @@ ExePackPatch	proc near		; ...
 		jbe	short ep_cont
 		pop	bx
 		retn
-; ---------------------------------------------------------------------------
-
 ep_cont:				; ...
 		push	ds
 		push	es
@@ -19292,8 +15589,6 @@ ep_cont:				; ...
 		sub	cx, 2
 		jnb	short epp_1
 		jmp	ep_notpacked
-; ---------------------------------------------------------------------------
-
 epp_1:					; ...
 		mov	di, cx
 		mov	es, ax
@@ -19302,8 +15597,6 @@ epp_1:					; ...
 		cmp	word ptr es:[di], 'BR'
 		jz	short epp_2
 		jmp	ep_notpacked
-; ---------------------------------------------------------------------------
-
 epp_2:					; ...
 		push	cs
 		pop	ds
@@ -19322,11 +15615,8 @@ epp_2:					; ...
 		mov	si, offset exepatch_start
 		mov	cx, 102
 		rep movsb
-
 ep_done1:				; ...
 		jmp	ep_notpacked
-; ---------------------------------------------------------------------------
-
 ep_chkpatch2:				; ...
 		mov	di, 76h
 		call	chk_common_str
@@ -19344,7 +15634,6 @@ ep_chkpatch2:				; ...
 		mov	ax, 1C47h
 		call	chk_patchsum
 		jb	short ep_notpacked
-
 ep_patchcode2:				; ...
 		mov	si, offset exepatch_start
 		mov	cx, 3
@@ -19359,8 +15648,6 @@ ep_patchcode2:				; ...
 		mov	cx, 75
 		rep movsb
 		jmp	short ep_notpacked
-; ---------------------------------------------------------------------------
-
 ep_chkpatch3:				; ...
 		mov	di, 74h
 		call	chk_common_str
@@ -19384,7 +15671,6 @@ ep_chkpatch3:				; ...
 		add	si, 2
 		mov	cx, 75
 		rep movsb
-
 ep_notpacked:				; ...
 		pop	di
 		pop	si
@@ -19395,11 +15681,7 @@ ep_notpacked:				; ...
 		pop	bx
 		retn
 ExePackPatch	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 chk_common_str	proc near		; ...
 		mov	si, offset scan_com
 		mov	cx, 32
@@ -19408,15 +15690,10 @@ chk_common_str	proc near		; ...
 		cmp	byte ptr es:[di-1], 56h
 		jnz	short ccs_done
 		repe cmpsb
-
 ccs_done:				; ...
 		retn
 chk_common_str	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 chk_patchsum	proc near		; ...
 		push	di
 		repe cmpsb
@@ -19425,7 +15702,6 @@ chk_patchsum	proc near		; ...
 		mov	cx, bx
 		mov	bx, ax
 		xor	ax, ax
-
 ep_chksum:				; ...
 		add	ax, es:[di]
 		add	di, 2
@@ -19435,19 +15711,13 @@ ep_chksum:				; ...
 		jnz	short cp_fail
 		clc
 		retn
-; ---------------------------------------------------------------------------
-
 cp_fail:				; ...
 		stc
 		retn
 chk_patchsum	endp ; sp-analysis failed
-
-; ---------------------------------------------------------------------------
 RScanPattern1	db 2 dup(0), 20h, 3 dup(0), 40h, 0, 1, 0 ; ...
 RScanPattern2	db 8Bh,	0Eh, 10h, 0, 90h, 0E2h,	0FEh, 0E8h ; ...
 RScanPattern3	db 8Bh,	0Eh, 10h, 0, 0E2h, 0FEh, 0E8h ;	...
-; ---------------------------------------------------------------------------
-
 RationalPatch:				; ...
 		cld
 		push	ax
@@ -19483,7 +15753,6 @@ RationalPatch:				; ...
 		mov	dx, 15
 		call	ScanCodeSeq
 		jnz	short rpexit
-
 rpfound:				; ...
 		mov	al, 9Ah
 		stosb
@@ -19495,7 +15764,6 @@ rpfound:				; ...
 		sub	cx, 6
 		mov	al, 90h
 		rep stosb
-
 rpexit:					; ...
 		pop	ds
 		pop	es
@@ -19506,13 +15774,9 @@ rpexit:					; ...
 		pop	bx
 		pop	ax
 		retn
-; ---------------------------------------------------------------------------
 CPScanPattern	db 89h,	26h, 48h, 1, 8Ch, 0Eh, 4Ch, 1, 0C7h, 6,	4Ah, 1 ; ...
 		db 0, 1, 8Ch, 0Eh, 13h,	1, 0B8h, 20h, 1, 0BEh, 0, 1
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 IsCopyProt	proc near		; ...
 		cmp	word ptr ds:11Bh, 5343h
 		jnz	short CP_done
@@ -19530,21 +15794,13 @@ IsCopyProt	proc near		; ...
 		repe cmpsb
 		jnz	short CP_done
 		mov	ss:A20OFF_COUNT, 0Ah
-
 CP_done:				; ...
 		retn
 IsCopyProt	endp
-
-; ---------------------------------------------------------------------------
-
 initiret:				; ...
 		iret
-; ---------------------------------------------------------------------------
 InitBioDataSeg	dw 70h			; ...
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 ParaRound	proc near		; ...
 		add	ax, 15
 		rcr	ax, 1
@@ -19553,9 +15809,6 @@ ParaRound	proc near		; ...
 		shr	ax, 1
 		retn
 ParaRound	endp
-
-; ---------------------------------------------------------------------------
-
 DOSINIT:				; ...
 		cli
 		cld
@@ -19605,7 +15858,6 @@ DOSINIT:				; ...
 		mov	ax, offset Rational386Patch
 		jnb	short di_set_patch
 		mov	ax, offset RetExePatch
-
 di_set_patch:				; ...
 		mov	ds:Rational386PatchPtr,	ax
 		mov	ax, cs
@@ -19616,14 +15868,12 @@ di_set_patch:				; ...
 		push	si
 		mov	cx, 7
 		mov	si, offset Instance_Table_2
-
 Instance_init_loop:			; ...
 		mov	word ptr [si], ds
 		add	si, 6
 		loop	Instance_init_loop
 		mov	cx, 5
 		mov	si, offset OldInstanceJunk_6
-
 OldInstance_init_loop:			; ...
 		mov	word ptr [si], ds
 		add	si, 6
@@ -19677,7 +15927,6 @@ OldInstance_init_loop:			; ...
 		or	byte ptr [si+4], 3
 		mov	word ptr ss:BCON, si
 		mov	word ptr ss:BCON+2, ds
-
 char_init_loop:				; ...
 		lds	si, [si]
 		call	CHARINIT
@@ -19688,7 +15937,6 @@ char_init_loop:				; ...
 		mov	bp, 4970	; MSDAT001E
 		mov	word ptr ss:DPBHEAD, bp
 		mov	word ptr ss:DPBHEAD+2, es
-
 PERDRV:					; ...
 		lds	si, [si]
 		cmp	si, -1
@@ -19705,7 +15953,6 @@ PERDRV:					; ...
 		push	ds
 		push	si
 		lds	bx, ss:CALLBPB
-
 PERUNIT:				; ...
 		mov	si, [bx]
 		inc	bx
@@ -19720,7 +15967,6 @@ PERUNIT:				; ...
 		cmp	ax, ss:MAXSEC
 		jbe	short NOTMAX
 		mov	ss:MAXSEC, ax
-
 NOTMAX:					; ...
 		mov	ax, bp
 		add	ax, 33		; DPBSIZ
@@ -19745,8 +15991,6 @@ NOTMAX:					; ...
 		pop	si
 		pop	ds
 		jmp	PERDRV
-; ---------------------------------------------------------------------------
-
 CONTINIT:				; ...
 		sub	bp, 33
 		mov	word ptr [bp+19h], 0FFFFh
@@ -19780,21 +16024,18 @@ CONTINIT:				; ...
 		mov	di, 80h		; INTBASE
 		mov	ax, offset irett
 		mov	cx, 9
-
 iset1:					; ...
 		stosw
 		add	di, 2
 		loop	iset1
 		add	di, 4
 		mov	cx, 6
-
 iset2:					; ...
 		stosw
 		add	di, 2
 		loop	iset2
 		add	di, 8
 		mov	cx, 14
-
 iset3:					; ...
 		stosw
 		add	di, 2
@@ -19867,10 +16108,7 @@ iset3:					; ...
 		mov	sp, ss:USER_SP
 		mov	ss, ss:USER_SS
 		retf
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 CHARINIT	proc near		; ...
 		mov	ss:DEVCALL, 26
 		mov	ss:DEVCALL_REQUNIT, 0
@@ -19888,11 +16126,7 @@ CHARINIT	proc near		; ...
 		pop	es
 		retn
 CHARINIT	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 check_XMM	proc near		; ...
 		push	ax
 		mov	ax, 4300h
@@ -19918,18 +16152,12 @@ check_XMM	proc near		; ...
 		pop	bx
 		pop	ax
 		retn
-; ---------------------------------------------------------------------------
-
 cXMM_no_driver:				; ...
 		stc
 		pop	ax
 		retn
 check_XMM	endp
-
-; ---------------------------------------------------------------------------
 num_entry	db 0			; ...
-; ---------------------------------------------------------------------------
-
 _seg_reinit:				; ...
 		push	ds
 		mov	ds, cs:DosDSeg
@@ -19941,14 +16169,12 @@ _seg_reinit:				; ...
 		mov	ax, ds
 		call	patch_vec_segments
 		call	patch_offset
-
 second_entry:				; ...
 		mov	ax, es
 		mov	di, offset DOSINTTABLE
 		mov	cx, 9
 		push	ds
 		pop	es
-
 dosinttabloop:				; ...
 		add	di, 2
 		stosw
@@ -19966,20 +16192,14 @@ dosinttabloop:				; ...
 		jnz	short sr_done
 		mov	ds:RationalPatchPtr, offset RationalPatch
 		jmp	short sr_done
-; ---------------------------------------------------------------------------
-
 patch_vec_seg:				; ...
 		mov	ax, es
 		call	patch_vec_segments
-
 sr_done:				; ...
 		mov	cs:num_entry, 1
 		pop	ds
 		retf
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 WhatCPUType	proc near		; ...
 		pushf
 		push	bx
@@ -19999,24 +16219,17 @@ WhatCPUType	proc near		; ...
 		pop	ax
 		and	ax, 0F000h
 		jz	short cpu_286
-
 cpu_386:
 		inc	bx
-
 cpu_286:				; ...
 		inc	bx
-
 cpu_8086:				; ...
 		mov	ax, bx
 		pop	bx
 		popf
 		retn
 WhatCPUType	endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 patch_vec_segments proc	near		; ...
 		push	es
 		xor	cx, cx
@@ -20024,7 +16237,6 @@ patch_vec_segments proc	near		; ...
 		mov	di, 82h		; INTBASE+2
 		mov	es:2, ax
 		mov	cx, 2
-
 ps_set1:				; ...
 		stosw
 		add	di, 2
@@ -20033,21 +16245,18 @@ ps_set1:				; ...
 		stosw
 		add	di, 6
 		mov	cx, 4
-
 ps_set2:				; ...
 		stosw
 		add	di, 2
 		loop	ps_set2
 		add	di, 4
 		mov	cx, 6
-
 ps_set3:				; ...
 		stosw
 		add	di, 2
 		loop	ps_set3
 		add	di, 8
 		mov	cx, 14
-
 ps_set4:				; ...
 		stosw
 		add	di, 2
@@ -20056,11 +16265,7 @@ ps_set4:				; ...
 		pop	es
 		retn
 patch_vec_segments endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 patch_misc_segments proc near		; ...
 		push	bx
 		push	es
@@ -20071,17 +16276,14 @@ patch_misc_segments proc near		; ...
 		mov	di, offset JShare
 		mov	bx, ds:TEMP_DOSLOC
 		mov	cx, 15
-
 jumptabloop:				; ...
 		add	di, 2
 		cmp	bx, 0FFFFh
 		jz	short share_patch
 		cmp	bx, es:[di]
 		jnz	short no_share_patch
-
 share_patch:				; ...
 		stosw
-
 no_share_patch:				; ...
 		loop	jumptabloop
 		mov	si, offset COUNTRY_CDPG
@@ -20097,21 +16299,15 @@ no_share_patch:				; ...
 		mov	cx, ds:TEMP_DOSLOC
 		cmp	cx, [si+4]
 		jnz	short no_fast_patch
-
 fast_patch:				; ...
 		mov	[si+4],	ax
-
 no_fast_patch:				; ...
 		pop	ax
 		pop	es
 		pop	bx
 		retn
 patch_misc_segments endp
-
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 patch_offset	proc near		; ...
 		push	es
 		xor	ax, ax
@@ -20120,7 +16316,6 @@ patch_offset	proc near		; ...
 		mov	di, 80h
 		mov	ax, offset lirett
 		mov	cx, 2
-
 po_iset1:				; ...
 		stosw
 		add	di, 2
@@ -20129,21 +16324,18 @@ po_iset1:				; ...
 		stosw
 		add	di, 6
 		mov	cx, 4
-
 po_iset2:				; ...
 		stosw
 		add	di, 2
 		loop	po_iset2
 		add	di, 4
 		mov	cx, 6
-
 po_iset3:				; ...
 		stosw
 		add	di, 2
 		loop	po_iset3
 		add	di, 8
 		mov	cx, 14
-
 po_iset4:				; ...
 		stosw
 		add	di, 2
@@ -20159,8 +16351,6 @@ po_iset4:				; ...
 		pop	es
 		retn
 patch_offset	endp
-
-; ---------------------------------------------------------------------------
 patch_table	dw offset ldivov	; ...
 		dw offset lquit
 		dw offset lcommand
@@ -20169,17 +16359,13 @@ patch_table	dw offset ldivov	; ...
 		dw offset lstay_resident
 		dw offset lint2f
 		dw offset lcall_entry
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 patch_in_nops	proc near		; ...
 		push	ax
 		push	si
 		mov	si, offset patch_table
 		mov	ax, 9090h
 		mov	cx, 8
-
 pin_loop:				; ...
 		mov	di, cs:[si]
 		stosw
@@ -20189,13 +16375,9 @@ pin_loop:				; ...
 		pop	ax
 		retn
 patch_in_nops	endp
-
-; ---------------------------------------------------------------------------
 MEMSTRT		db 7 dup(0)		; ...
 DOSCODE		ends
-
 ; ===========================================================================
-
 ; Segment type:	Pure data
 DOSDATA		segment	byte public 'DATA' use16
 		assume cs:DOSDATA
@@ -20526,14 +16708,10 @@ aCueaaaaceeeiiiaae db 'CUEAAAACEEEIIIAAEAAOOOUUYOU$$$$$AIOUNN'
 		db 248,	249, 250, 251, 252, 253, 254, 255
 DBCS_TAB	dw 0			; ...
 DBCS_TAB_2	db 16 dup(0)		; ...
-; ---------------------------------------------------------------------------
-
 MAP_CASE:				; ...
 		cmp	al, 80h
 		jnb	short Map1
 		retf
-; ---------------------------------------------------------------------------
-
 Map1:					; ...
 		sub	al, 80h
 		push	ds
@@ -20545,7 +16723,6 @@ Map1:					; ...
 		pop	bx
 		pop	ds
 		retf
-; ---------------------------------------------------------------------------
 InterChar	db 0
 InterCon	db 0
 SaveCurFlg	db 0
@@ -20591,14 +16768,10 @@ SC_FLAG		db 0			; ...
 AbsDskErr	dw 0			; ...
 NO_NAME_ID	db 'NO NAME    '        ; ...
 LOOKSIZ		db 0
-; ---------------------------------------------------------------------------
-
 SNULDEV:				; ...
 		or	word ptr es:[bx+3], 100h
-
 INULDEV:				; ...
 		retf
-; ---------------------------------------------------------------------------
 WinoldPatch2	db 8 dup(0)		; ...
 UmbSave2	db 5 dup(0)		; ...
 UmbSaveFlag	db 0			; ...
@@ -20703,88 +16876,51 @@ DOSINTTABLE_28	dd call_entry		; ...
 DOSINTTABLE_32	dd irett
 SS_Save		dw 0			; ...
 SP_Save		dw 0			; ...
-; ---------------------------------------------------------------------------
-
 ldivov:					; ...
 		jmp	short divov_cont
-; ---------------------------------------------------------------------------
 		call	EnsureA20ON
-
 divov_cont:				; ...
 		jmp	cs:DOSINTTABLE
-; ---------------------------------------------------------------------------
-
 lquit:					; ...
 		jmp	short quit_cont
-; ---------------------------------------------------------------------------
 		call	EnsureA20ON
-
 quit_cont:				; ...
 		jmp	cs:DOSINTTABLE_4
-; ---------------------------------------------------------------------------
-
 lcommand:				; ...
 		jmp	short command_cont
-; ---------------------------------------------------------------------------
 		call	EnsureA20ON
-
 command_cont:				; ...
 		jmp	cs:DOSINTTABLE_8
-; ---------------------------------------------------------------------------
-
 labsdrd:				; ...
 		jmp	short absdrd_cont
-; ---------------------------------------------------------------------------
 		call	EnsureA20ON
-
 absdrd_cont:				; ...
 		jmp	cs:DOSINTTABLE_12
-; ---------------------------------------------------------------------------
-
 labsdwrt:				; ...
 		jmp	short absdwrt_cont
-; ---------------------------------------------------------------------------
 		call	EnsureA20ON
-
 absdwrt_cont:				; ...
 		jmp	cs:DOSINTTABLE_16
-; ---------------------------------------------------------------------------
-
 lstay_resident:				; ...
 		jmp	short sr_cont
-; ---------------------------------------------------------------------------
 		call	EnsureA20ON
-
 sr_cont:				; ...
 		jmp	cs:DOSINTTABLE_20
-; ---------------------------------------------------------------------------
-
 lint2f:					; ...
 		jmp	short int2f_cont
-; ---------------------------------------------------------------------------
 		call	EnsureA20ON
-
 int2f_cont:				; ...
 		jmp	cs:DOSINTTABLE_24
-; ---------------------------------------------------------------------------
-
 lcall_entry:				; ...
 		jmp	short callentry_cont
-; ---------------------------------------------------------------------------
 		call	EnsureA20ON
-
 callentry_cont:				; ...
 		jmp	cs:DOSINTTABLE_28
-; ---------------------------------------------------------------------------
-
 lirett:					; ...
 		iret
-; ---------------------------------------------------------------------------
 DosRetAddr23	dd 0			; ...
 DosRetAddr24	dd 0			; ...
 DosRetAddr28	dd 0
-; ---------------------------------------------------------------------------
-
 LowInt23:				; ...
 		pop	word ptr cs:DosRetAddr23
 		pop	word ptr cs:DosRetAddr23+2
@@ -20795,8 +16931,6 @@ LowInt23:				; ...
 					; interrupted DOS call continues
 		call	EnsureA20ON
 		jmp	cs:DosRetAddr23
-; ---------------------------------------------------------------------------
-
 LowInt24:				; ...
 		pop	word ptr cs:DosRetAddr24
 		pop	word ptr cs:DosRetAddr24+2
@@ -20804,14 +16938,10 @@ LowInt24:				; ...
 					; Automatically	called upon detection of unrecoverable I/O error.
 		call	EnsureA20ON
 		jmp	cs:DosRetAddr24
-; ---------------------------------------------------------------------------
-
 LowInt28:				; ...
 		int	28h		; DOS 2+ internal - KEYBOARD BUSY LOOP
 		call	EnsureA20ON
 		retf
-; ---------------------------------------------------------------------------
-
 disa20_xfer:				; ...
 		call	XMMDisableA20
 		cli
@@ -20825,8 +16955,6 @@ disa20_xfer:				; ...
 		mov	ds, dx
 		mov	ax, bx
 		retf
-; ---------------------------------------------------------------------------
-
 disa20_iret:				; ...
 		call	XMMDisableA20
 		dec	ds:INDOS
@@ -20848,10 +16976,7 @@ disa20_iret:				; ...
 		pop	ds
 		pop	es
 		iret
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 XMMDisableA20	proc near		; ...
 		push	bx
 		push	ax
@@ -20861,15 +16986,10 @@ XMMDisableA20	proc near		; ...
 		pop	bx
 		retn
 XMMDisableA20	endp
-
-; ---------------------------------------------------------------------------
 XMMcontrol	dd 0			; ...
 LowMemory	dd 80h			; ...
 HighMemory	dd 0FFFF0090h		; ...
-
 ; =============== S U B	R O U T	I N E =======================================
-
-
 EnsureA20ON	proc near		; ...
 		pushf
 		push	ds
@@ -20883,7 +17003,6 @@ EnsureA20ON	proc near		; ...
 		cld
 		repe cmpsw
 		jz	short EA20_OFF
-
 EA20_RET:				; ...
 		pop	di
 		pop	si
@@ -20892,8 +17011,6 @@ EA20_RET:				; ...
 		pop	ds
 		popf
 		retn
-; ---------------------------------------------------------------------------
-
 EA20_OFF:				; ...
 		push	bx
 		push	ax
@@ -20913,8 +17030,6 @@ EA20_OFF:				; ...
 		pop	ax
 		pop	bx
 		jmp	short EA20_RET
-; ---------------------------------------------------------------------------
-
 XMMerror:				; ...
 		mov	ah, 0Fh
 		int	10h		; - VIDEO - GET	CURRENT	VIDEO MODE
@@ -20927,7 +17042,6 @@ XMMerror:				; ...
 		mov	al, 2
 		int	10h		; - VIDEO - SET	VIDEO MODE
 					; AL = mode
-
 XMMcont:				; ...
 		mov	ah, 5
 		xor	al, al
@@ -20937,7 +17051,6 @@ XMMcont:				; ...
 		push	cs
 		pop	ds
 		cld
-
 XMMprnt:				; ...
 		lodsb
 		cmp	al, '$'
@@ -20948,14 +17061,10 @@ XMMprnt:				; ...
 					; AL = character, BH = display page (alpha modes)
 					; BL = foreground color	(graphics modes)
 		jmp	short XMMprnt
-; ---------------------------------------------------------------------------
-
 XMMStall:				; ...
 		sti
 		jmp	short XMMStall
 EnsureA20ON	endp
-
-; ---------------------------------------------------------------------------
 OldInstanceJunk	dw 70h			; ...
 		dw 0
 		dw 6
@@ -20980,17 +17089,13 @@ OldInstanceJunk_6 dw 0			; ...
 DosHasHMA	db 0			; ...
 FixExePatch	dw 0			; ...
 RationalPatchPtr dw 0			; ...
-; ---------------------------------------------------------------------------
-
 RatBugCode:				; ...
 		push	cx
 		mov	cx, ds:10h
-
 rbc_loop:				; ...
 		loop	rbc_loop
 		pop	cx
 		retf
-; ---------------------------------------------------------------------------
 UmbSave1	db 11 dup(0)		; ...
 COUNTRY_CDPG	db 8 dup(0)		; ...
 aCountry_sys	db '\COUNTRY.SYS',0
@@ -21079,17 +17184,12 @@ DOSP13_ID	db 0ACh
 		db 0EBh, 0F3h
 		db 0EBh, 0FEh
 Rational386PatchPtr dw 0		; ...
-; ---------------------------------------------------------------------------
-
 MagicPatch:				; ...
 		retf
-; ---------------------------------------------------------------------------
 		nop
 		nop
 		nop
 		nop
 		nop
 DOSDATA		ends
-
-
 		end

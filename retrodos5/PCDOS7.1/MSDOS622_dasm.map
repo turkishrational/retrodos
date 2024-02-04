@@ -50,6 +50,9 @@
  0000:428C       ERRIN
  0000:4292       ERROUT
  0000:4298       AbsSetup
+ 0000:42AD       errdriv
+ 0000:42B0       AbsSetup_retn
+ 0000:42B1       AbsSetup2
  0000:42E5       ABSDRD
  0000:4333       TLEAVE
  0000:4335       ERR_LEAVE
@@ -68,8 +71,19 @@
  0000:440D       NO_OP
  0000:4410       FCB_RET_ERR
  0000:441C       ErrorMap
+ 0000:442F       EXTENDED_NORMAL
  0000:4434       CAL_LK
+ 0000:4440       TABLK1
+ 0000:444E       GOT_VALS
+ 0000:4458       NO_SET_ACT
+ 0000:445F       NO_SET_CLS
+ 0000:4467       NO_SET_LOC
  0000:446B       ETAB_LK
+ 0000:447D       TABLK2
+ 0000:448F       NOT_IN_TABLE
+ 0000:4493       GOT_CALL
+ 0000:4497       CHECK_CODE
+ 0000:449F       NO_MAP
  0000:44A6       SetBad
  0000:44B7       BadCall
  0000:44BB       OKCall
@@ -113,7 +127,11 @@
  0000:4708       DOSGetGroup
  0000:470E       DOSInstall
  0000:4711       RW32_CONVERT
+ 0000:472D       letold
+ 0000:4740       new32format
+ 0000:4756       old_style
  0000:4758       Fastxxx_Purge
+ 0000:4774       nofast
  0000:4778       DIVMES
  0000:478B       DivMesLen
  0000:478D       NoVxDErrMsg
@@ -125,6 +143,7 @@
  0000:47F5       ESCCHAR
  0000:47F6       ESCTAB
  0000:4804       ESCFUNC
+ 0000:4820       OEMFunctionKey
  0000:4839       $GET_DATE
  0000:4855       _RET24
  0000:4856       $SET_DATE
@@ -135,14 +154,19 @@
  0000:48CE       DATE16
  0000:48F7       RET21
  0000:48F8       READTIME
+ 0000:4951       SK
  0000:496B       RET22
  0000:496C       DSLIDE
+ 0000:496E       DSLIDE1
  0000:4978       SETYEAR
  0000:4981       CHKYR
+ 0000:498A       SAVFEB
  0000:498D       RET23
  0000:498E       DODATE
  0000:49FF       WKDAY
  0000:4A12       DSUM
+ 0000:4A16       DSUM1
+ 0000:4A1B       DSUM9
  0000:4A1C       $GET_VERSION
  0000:4A2C       norm_vers
  0000:4A41       $GET_VERIFY_ON_WRITE
@@ -152,6 +176,10 @@
  0000:4A55       BX_HAS_CODE
  0000:4A69       international_find
  0000:4A7A       international_get
+ 0000:4A9B       stcdpg
+ 0000:4AA0       chkok
+ 0000:4AA4       setcarry
+ 0000:4AA6       interr
  0000:4AAA       international_copy
  0000:4ABA       international_ok3
  0000:4AC0       international_ok
@@ -225,24 +253,48 @@
  0000:4DA1       $DISK_RESET
  0000:4DD4       word3
  0000:4DD6       $SETDPB
+ 0000:4DEA       yesfat
+ 0000:4DF4       LOG2LOOP
+ 0000:4DFE       SAVLOG
+ 0000:4E4E       rott
+ 0000:4E55       norot
+ 0000:4E59       normal_dpb
+ 0000:4E61       setend
+ 0000:4E7F       setend_fat12
+ 0000:4E8D       setend_fat16
+ 0000:4E92       setend_faterr
+ 0000:4E94       setend_fat
  0000:4EA5       $DUP_PDB
  0000:4EB6       $CREATE_PROCESS_DATA_BLOCK
  0000:4EC0       CreateCopy
+ 0000:4EEF       Create_dup_jfn
+ 0000:4F1B       CreateStash
+ 0000:4F32       Create_PDB_cont
  0000:4F3F       SETMEM
+ 0000:4F5E       HAVDIF
+ 0000:4F84       addr_ok
  0000:4FBE       $GSetMediaID
  0000:4FCC       doioctl
  0000:4FD2       errorfunc
  0000:4FD7       StrCmp
+ 0000:4FDA       Cmplp
+ 0000:4FF5       PopRet
  0000:4FF9       StrCpy
+ 0000:4FFA       CPYLoop
  0000:5008       FStrCpy
+ 0000:5009       FCPYLoop
  0000:5011       StrLen
  0000:501F       DStrLen
  0000:5029       XCHGP
  0000:502F       xchgp_retn
  0000:5030       Idle
+ 0000:5040       Idle1
  0000:5043       Idle2
+ 0000:5048       Idle3
  0000:504A       TableDispatch
+ 0000:5070       TableError
  0000:5075       TestNet
+ 0000:508C       CMCRet
  0000:508E       IsSFTNet
  0000:5094       FastInit
  0000:50B7       ok_install
@@ -257,38 +309,72 @@
  0000:5139       MSG_RETRIEVAL
  0000:513A       ECritDisk
  0000:5145       ECritDisk_iret
+ 0000:5146       ECritDisk_1
+ 0000:5152       ECritDisk_2
  0000:5154       ECritDisk_iret2
+ 0000:5155       ECritDisk_3
  0000:515A       LCritDisk
  0000:5165       LCritDisk_iret
+ 0000:5166       LCritDisk_1
+ 0000:5172       LCritDisk_2
  0000:5174       LCritDisk_iret2
+ 0000:5175       LCritDisk_3
  0000:517A       ECritDevice
  0000:5185       ECritDevice_iret
+ 0000:5186       ECritDevice_1
+ 0000:5192       ECritDevice_2
  0000:5194       ECritDevice_iret2
+ 0000:5195       ECritDevice_3
  0000:519A       LCritDevice
  0000:51A5       LCritDevice_iret
+ 0000:51A6       LCritDevice_1
+ 0000:51B2       LCritDevice_2
  0000:51B4       LCritDevice_iret2
+ 0000:51B5       LCritDevice_3
  0000:51BA       $STD_CON_INPUT_NO_ECHO
+ 0000:51BC       INTEST
+ 0000:51CE       no_sys_wait
+ 0000:51F5       NoUpdate
+ 0000:51FC       GET
  0000:5213       noscan
  0000:5214       $STD_CON_STRING_OUTPUT
  0000:5216       STRING_OUT1
  0000:5220       $STD_CON_STRING_INPUT
+ 0000:523A       NOEDIT
+ 0000:523C       EDITON
  0000:523F       NEWLIN
  0000:525B       GETCH
+ 0000:525E       GOTCH
  0000:5288       SAVCH
+ 0000:52A3       BACKSPJ
+ 0000:52A5       BUFFUL
+ 0000:52AC       ESCAPE
+ 0000:52AF       ENDLIN
  0000:52B9       COPYNEW
  0000:52C4       OLDBAK_RETN
+ 0000:52C5       PHYCRLF
  0000:52CA       LineDel
  0000:52D3       WordDel
  0000:52F0       getchj
  0000:52F3       KILNEW
+ 0000:52F9       PUTNEW
  0000:5306       BACKSP
  0000:530C       BackSpace
+ 0000:5329       OLDBAK
+ 0000:5339       BAKTAB
+ 0000:5345       FNDPOS
+ 0000:5351       CHKCNT
+ 0000:5353       FIGTAB
+ 0000:5358       HAVTAB
+ 0000:5364       TABBAK
  0000:536B       BACKUP
  0000:536E       BACKMES
  0000:537D       TWOESC
  0000:5384       COPYLIN
  0000:538A       COPYSTR
  0000:538F       COPYONE
+ 0000:5391       COPYEACH
+ 0000:53AA       GETCH2
  0000:53AD       SKIPONE
  0000:53B7       SKIPSTR
  0000:53C1       FINDOLD
@@ -307,20 +393,37 @@
  0000:544B       $RAW_CON_INPUT
  0000:5461       rci5
  0000:5467       RAWOUT
+ 0000:548A       RAWRET
+ 0000:548B       RAWRET1
  0000:548C       RAWRET2
+ 0000:548D       RAWNORM
  0000:5492       RAWOUT2
  0000:5497       RAWOUT3
+ 0000:549A       ROLP
+ 0000:54A7       RAWOSTRT
+ 0000:54B7       nosend
  0000:54B9       Save_Restore_Packet
  0000:54C2       restore_packet
+ 0000:54CA       save_packet
+ 0000:54D0       set_seg
  0000:54E0       $STD_CON_INPUT
  0000:54E8       CON_INPUT_RETN
  0000:54E9       $STD_CON_OUTPUT
  0000:54EB       OUTT
  0000:54F8       OUTCH
+ 0000:550C       OUTSKIP
+ 0000:5545       TRIPOPJ
+ 0000:5548       LISSTRT2J
+ 0000:554B       CTRLOUT
  0000:555F       TAB
+ 0000:5566       TABLP
+ 0000:556D       POPTAB
+ 0000:556F       ZERPOS
  0000:5577       OUTJ
+ 0000:557A       BACKPOS
  0000:5582       BUFOUT
  0000:5592       NOT_CTRLU
+ 0000:559B       CTRLU
  0000:559E       BUFOUT_RETN
  0000:559F       $STD_AUX_INPUT
  0000:55AC       AUXILP
@@ -328,6 +431,8 @@
  0000:55BC       $STD_AUX_OUTPUT
  0000:55C2       $STD_PRINTER_OUTPUT
  0000:55C6       SENDOUT
+ 0000:55CF       LISSTRT2
+ 0000:55D2       TRIPOP
  0000:55D5       SCIS_RETN
  0000:55D6       $STD_CON_INPUT_STATUS
  0000:55E0       $STD_CON_INPUT_FLUSH
@@ -350,29 +455,95 @@
  0000:56F9       $FCB_RENAME
  0000:5731       fren90
  0000:5733       SaveFCBInfo
+ 0000:5748       SaveLocal
+ 0000:574F       SaveNoShare
+ 0000:5785       SetFCBBits
+ 0000:5798       SaveNoShareDev
+ 0000:57AA       SaveShare
+ 0000:57AF       SaveSFN
+ 0000:57C0       SaveNoSFN
+ 0000:57DC       SimpleStuff
  0000:57E1       ResetLRU
+ 0000:57F2       ovScan
+ 0000:57FA       ovLoop
  0000:5805       LRUFCB
+ 0000:5820       gotlocalSFT
+ 0000:582C       lru1
+ 0000:5840       findSFT
+ 0000:5859       hackpoint
+ 0000:5871       lru4
+ 0000:5886       lru5
+ 0000:5894       gotSFT
  0000:5898       notlocaluse
+ 0000:58A6       notinvalid
+ 0000:58A9       zerolocalSFT
+ 0000:58B4       gotnetSFT
+ 0000:58C0       closenet
+ 0000:58C8       LRUClose
+ 0000:58D7       errorbadSFT
+ 0000:58DA       LRUDone
+ 0000:58DF       LRUDead
+ 0000:58F0       LruFCB_err
  0000:58F3       RegenCopyName
  0000:58FB       FCBRegen
+ 0000:5910       RegenFail
+ 0000:591C       RegenDead
+ 0000:591D       FCBRegen_retn
+ 0000:591E       RegenNoSharing
+ 0000:598C       RegenDeadJ
+ 0000:598E       RegenFileNoSharing
  0000:59EE       BlastSFT
  0000:5A04       CheckFCB
  0000:5A46       CheckFirClus
  0000:5A4C       CheckD
  0000:5A59       BlastSFT_retn
  0000:5A5A       BadSFT
+ 0000:5A5C       CheckNet
  0000:5A66       CheckNoShare
+ 0000:5A6A       CheckNoShareDev
  0000:5A7E       SFTFromFCB
+ 0000:5AA5       Set_SFT
  0000:5AB4       FCBHardErr
  0000:5AD5       GetRR
+ 0000:5AE2       GetRRBye
  0000:5AE3       GetExtent
  0000:5AF6       SetExtent
  0000:5B10       GetExtended
+ 0000:5B1A       GetBye
  0000:5B1C       getextd_retn
  0000:5B1D       GetRecSize
  0000:5B2B       FCBIO
+ 0000:5B44       GetPos
+ 0000:5B59       GetRec
+ 0000:5B95       DoDiv
+ 0000:5BA1       DoOper
+ 0000:5BB3       DoGetExt
+ 0000:5BB8       FCBDeath
+ 0000:5BC7       ContinueOp
+ 0000:5BF3       DoContext
+ 0000:5C11       NODSKFULL
+ 0000:5C29       SkipOp
+ 0000:5C4D       SetEOF
+ 0000:5C51       TryBlank
+ 0000:5C7B       SetExt
+ 0000:5C8D       DoSetExt
+ 0000:5C90       TrySetRR
+ 0000:5CA5       TryReturn
+ 0000:5CB6       FCBSave
+ 0000:5CC5       DoReturn
  0000:5CCC       $FCB_OPEN
  0000:5CD2       DoAccess
+ 0000:5CE2       FCBOpenErr
+ 0000:5CE5       FindFCB
+ 0000:5D1B       HardMessage
+ 0000:5D20       DeadFCB
+ 0000:5D22       FCBOK
+ 0000:5D36       FCBOK2
+ 0000:5D4C       FCBNoDrive
+ 0000:5D7B       OpenScan
+ 0000:5D87       SkipCheck
+ 0000:5D8D       OpenDone
+ 0000:5D90       OpenFound
  0000:5DB1       $FCB_CREATE
  0000:5DBE       DoAccessJ
  0000:5DC1       $FCB_RANDOM_WRITE_BLOCK
@@ -400,6 +571,11 @@
  0000:5F1D       FindSet
  0000:5F3E       $FIND_NEXT
  0000:5F70       PackName
+ 0000:5F75       main_kill_tail
+ 0000:5F83       find_check_dot
+ 0000:5F8F       got_ext
+ 0000:5F97       ext_kill_tail
+ 0000:5FA1       find_done
  0000:5FA5       GET_FAST_SEARCH
  0000:5FB0       $CURRENT_DIR
  0000:5FBA       CurdirErr
@@ -436,14 +612,28 @@
  0000:6113       check_PathLen2
  0000:611E       IOCTLJMPTABLE
  0000:6142       $IOCTL
+ 0000:6159       ioctl_bad_funj2
  0000:615C       ioctl_getset_data
  0000:6161       ioctl_bad_handle
+ 0000:6163       ioctl_error
+ 0000:6166       ioctl_check_permissions
+ 0000:6176       ioctl_check_device
+ 0000:6186       ioctl_ok
+ 0000:6189       ioctl_read
+ 0000:61A1       ioctl_no_high
+ 0000:61A9       jmp_to_ioctl_ok
  0000:61AB       ioctl_control_string
  0000:61C5       ioctl_status
+ 0000:61CD       ioctl_get_status
+ 0000:61D6       DO_IOFUNC
+ 0000:61E1       ioctl_status_ret
  0000:61E3       Set_Retry_Parameters
  0000:61F1       GENERICIOCTLHANDLE
  0000:6208       GENERICIOCTL
+ 0000:6217       Do_GenIOCTL
+ 0000:6233       SetIOCtlBlock
  0000:6260       ioctl_bad_fun
+ 0000:6265       ioctl_bad_handlej
  0000:6268       ioctl_rem_media
  0000:62A3       ioctlt_rmed_ok
  0000:62A6       ioctl_drive_attr
@@ -457,29 +647,103 @@
  0000:6302       ioctl_got_sft
  0000:6308       ioctl_bad_funj
  0000:630B       ioctl_get_dev
+ 0000:6310       ioctl_do_string
+ 0000:6325       ioctl_control_call
+ 0000:6349       ioctl_do_IO
  0000:635A       ioctl_string_err
  0000:636E       Get_Driver_BL
+ 0000:6399       got_dev_ptr
+ 0000:639A       ioctl_bad_drv
  0000:639C       Check_If_Net
+ 0000:63AF       ioctl_drv_err_pop
  0000:63B3       ioctl_bad_funj3
  0000:63B6       ioctl_string_errj
  0000:63B8       ioctl_drive_owner
  0000:63D2       GetOwner
  0000:63FD       DOS_DELETE
+ 0000:6408       LOCAL_DELETE
+ 0000:641A       SKPNUL
+ 0000:642E       TEST_QUEST
+ 0000:644D       CHECK_ATTS
+ 0000:645B       NOT_ALL
+ 0000:646B       No_file
+ 0000:646E       ErrorReturn
+ 0000:6473       _bad_path
+ 0000:6478       Del_found
+ 0000:6481       Del_access_err
+ 0000:6486       NOT_DIR
+ 0000:648A       DELFILE
+ 0000:64A9       DoDelete
+ 0000:64B1       DEL_SHARE_OK
+ 0000:64BE       yesdirty
+ 0000:64DB       DELNXT
+ 0000:6520       No_Set_Flag
+ 0000:6524       DelError
+ 0000:652B       No_fileJ
+ 0000:652E       Del_access_errJ
  0000:6531       REN_DEL_Check
+ 0000:6595       CheckDone
  0000:659F       FastOpen_Delete
  0000:65AA       fastinvoke
  0000:65B4       FastOpen_Rename
  0000:65CE       FastOpen_Update
  0000:65D6       Fast_Dispatch
  0000:65DD       DOS_RENAME
+ 0000:65E8       LOCAL_RENAME
+ 0000:6605       SAMEDRV
+ 0000:662C       GOTERR
+ 0000:662D       RENAME_POP
+ 0000:6639       Check_Dev
+ 0000:6651       notdir
+ 0000:666A       REN_OK1
+ 0000:667B       NOT_DIR1
+ 0000:667F       SWAP_SOURCE
+ 0000:66A2       BAD_ACC
+ 0000:66A6       RENAME_CLEAN
+ 0000:66BA       BAD_ERR
+ 0000:66C1       NODEST
+ 0000:66CE       BAD_PATH
+ 0000:66D5       SAVEDEST
+ 0000:66E8       BUILDDEST
+ 0000:674B       BAD_ACCJ
+ 0000:674E       GOT_DEST
+ 0000:676A       yesdirty1
+ 0000:6787       SIMPLE_RENAME
+ 0000:679A       DIRTY_IT
+ 0000:67AD       yesdirty2
+ 0000:67C1       NOT_DIR2
+ 0000:67C2       NOT_DIRTY1
+ 0000:67E0       REN_OK2
+ 0000:67ED       Ren_Directory
+ 0000:67F3       RENAME_OVER
  0000:67F7       GET_SOURCE
+ 0000:680D       gs_ret_label
  0000:680E       NEW_RENAME
+ 0000:6815       NOCHG
  0000:681A       GET_FILE_INFO
+ 0000:6825       LOCAL_INFO
  0000:6832       NO_PATH
+ 0000:6838       info_no_file
+ 0000:683B       BadRet
+ 0000:683C       JustRet
+ 0000:6840       bad_path1
+ 0000:6845       info_check_dev
+ 0000:6857       not_root
+ 0000:6877       NO_SIZE
  0000:687B       SET_FILE_ATTRIBUTE
+ 0000:6880       _BAD_ACC
+ 0000:6894       set_look
+ 0000:68A1       LOCAL_SET
+ 0000:68B2       set_check_device
+ 0000:68BC       set_check_share
+ 0000:68CE       cannot_set_root
+ 0000:68D4       set_do
+ 0000:68F0       yesdirty3
+ 0000:6908       OK_BYE
  0000:690C       Get_FAST_PATH
  0000:691E       DOS_DUP
  0000:6928       DOS_Dup_Direct
+ 0000:6930       DO_INC
  0000:6934       DOS_CREATE
  0000:6936       Create_inter
  0000:6946       NoReset
@@ -497,7 +761,11 @@
  0000:69F2       NoVolLabel
  0000:6A03       DOS_Create_New
  0000:6A08       Set_Media_ID
+ 0000:6A2B       NoName
+ 0000:6A2E       doset
+ 0000:6A46       geterr
  0000:6A4C       Set_EXT_mode
+ 0000:6A5F       NOTEX
  0000:6A60       DOS_OPEN
  0000:6A86       _IFS_extopen
  0000:6A95       do_ret_label
@@ -518,23 +786,79 @@
  0000:6B53       SET_SFT_MODE
  0000:6B69       Clear_FastOpen
  0000:6B6A       SHARE_ERROR
+ 0000:6B7E       _HARD_ERR
+ 0000:6B83       _NO_HARD_ERR
  0000:6B88       DO_SHARE_CHECK
+ 0000:6B8B       OPN_RETRY
+ 0000:6B8F       OpenShareRetry
+ 0000:6BA4       Share_Ok2
  0000:6BA8       Check_Access_AX
+ 0000:6BBD       CheckShareMode
+ 0000:6BC2       CheckAccessMode
+ 0000:6BCF       Make_Bad_Access
  0000:6BD5       DISK_INFO
+ 0000:6BE0       LOCAL_DSK_INFO
+ 0000:6C0F       DoScan
+ 0000:6C12       SCANFREE
+ 0000:6C1A       NOTFREECLUS
+ 0000:6C1E       ReturnVals
+ 0000:6C2E       CRIT_LEAVE
+ 0000:6C32       GotVal
  0000:6C36       DOS_SEARCH_FIRST
+ 0000:6C45       TEST_RE_NET2
+ 0000:6C53       LOCAL_SEARCH_FIRST
+ 0000:6C63       NOFN
+ 0000:6C72       norm_GETPATH
  0000:6C7D       find_no_more
  0000:6C80       BadBye
+ 0000:6C8B       bad_path3
+ 0000:6C90       find_check_dev
+ 0000:6C9E       found_entry
  0000:6CAA       found_it
+ 0000:6CBF       notfast
+ 0000:6CC2       movmov
+ 0000:6CCF       NOTKANJB
+ 0000:6D01       OKSTORE
+ 0000:6D05       DOSREL
+ 0000:6D1A       NO05
  0000:6D27       DOS_SEARCH_NEXT
+ 0000:6D38       LOCAL_SEARCH_NEXT
  0000:6D73       RENAME_NEXT
+ 0000:6D87       No_files
+ 0000:6D8A       cont_load
+ 0000:6D9C       SEARCH_GOON
  0000:6DAF       CHECK_QUESTION
+ 0000:6DB6       getnext
+ 0000:6DC0       NO_Question
  0000:6DC1       DOS_ABORT
+ 0000:6DCB       reset_free_jfn
+ 0000:6DF2       FCBTest
+ 0000:6DFD       FCBNext
+ 0000:6E02       FCBScanDone
+ 0000:6E04       Scan
+ 0000:6E0C       Scan1
+ 0000:6E2B       scan_next
  0000:6E2E       DOS_CLOSE
+ 0000:6E42       LocalClose
  0000:6E54       CloseEntry
+ 0000:6E5E       rdir
+ 0000:6E68       clook
+ 0000:6E86       CLOSE_GO
+ 0000:6E9A       nofcb
+ 0000:6EA1       setattr
+ 0000:6EE0       yesdirty4
+ 0000:6EFF       do_update2
+ 0000:6F0D       do_update
+ 0000:6F1C       FREE_SFT_OK
+ 0000:6F1D       CloseFinish
+ 0000:6F2A       NoFree
  0000:6F2F       FREE_SFT
+ 0000:6F37       SetCount
  0000:6F3C       DirFromSFT
+ 0000:6F83       PopDone
  0000:6F85       PopDone_retn
  0000:6F86       DOS_COMMIT
+ 0000:6FA0       LOCAL_COMMIT
  0000:6FB7       localcommit_retn
  0000:6FB8       SetSFTTimes
  0000:6FDA       DOS_MKDIR
@@ -549,14 +873,51 @@
  0000:70D4       NODEEXISTS
  0000:70D7       NODEEXISTSP
  0000:70DA       DOS_CHDIR
+ 0000:70E5       LOCAL_CHDIR
+ 0000:70F6       nojoin
+ 0000:711B       ChDirDone
  0000:711F       DOS_RMDIR
+ 0000:712A       LOCAL_RMDIR
+ 0000:7148       NOPATH
+ 0000:714E       NOTDIRPATHPOP
+ 0000:7150       NOTDIRPATHPOP2
  0000:7151       NOTDIRPATH
  0000:7154       rmdir_get_buf
  0000:71E3       SWAPBACK
  0000:71E9       SWAPCON
  0000:71FD       DOS_READ
+ 0000:720E       READ_NO_MODE
+ 0000:721E       NoIORet
+ 0000:7220       LOCAL_READ
  0000:7232       critexit
+ 0000:7236       READDEV
+ 0000:724F       ENDRDDEVJ3
+ 0000:7252       TESTRAW
+ 0000:725F       DVRDRAW
+ 0000:7271       ReadRawRetry
  0000:72AA       CRDFERR
+ 0000:72AB       DEVIOFERR
+ 0000:72B3       CRDROK
+ 0000:72BD       NOTRDCON
+ 0000:72D7       DVRDLP
+ 0000:7300       CRDOK
+ 0000:7312       DVRDIGN
+ 0000:7328       ENDRDDEVJ2
+ 0000:732B       do_polling
+ 0000:7334       do_io
+ 0000:735E       check_busy
+ 0000:7398       next_char
+ 0000:73A4       devrderr
+ 0000:73AD       no_char
+ 0000:73B6       pop_done_read
+ 0000:73B7       done_read
+ 0000:73BF       TRANBUF
+ 0000:73C8       NORMCH
+ 0000:73D5       ENDRDCON
+ 0000:73DE       ENDRDDEV
+ 0000:73EF       SETSFTC
+ 0000:73F3       READCON
+ 0000:740B       GETBUF
  0000:742C       DOS_WRITE
  0000:743A       BadMode
  0000:743D       Check_FCB_RO
@@ -579,68 +940,254 @@
  0000:756F       WRCONLP
  0000:7579       CONEOF
  0000:7583       GET_IO_SFT
+ 0000:758B       GetNormal
+ 0000:759A       RET44P
+ 0000:759D       GetRedir
  0000:75A8       get_io_sft_retn
  0000:75A9       DIRREAD
+ 0000:75B5       SubDir
+ 0000:75C1       DoRead
+ 0000:75E9       SKPCLLP
+ 0000:75F7       HAVESKIPPED
  0000:7602       FIRSTCLUSTER
  0000:760E       SET_BUF_AS_DIR
  0000:761A       dirread_retn
  0000:761B       FATSECRD
+ 0000:762E       NXTFAT
  0000:7647       DREAD
+ 0000:765F       NO_CAR
+ 0000:7660       RET41P
  0000:7662       CHECK_WRITE_LOCK
+ 0000:766D       write_cont
+ 0000:7673       Not_Truncate
+ 0000:7680       WRITE_OK
  0000:7681       CHECK_READ_LOCK
+ 0000:768C       do_retry
+ 0000:7698       READLOCK_OK
  0000:7699       DSKREAD
  0000:76A9       DWRITE
+ 0000:76C1       dw_ret_label
  0000:76C2       DSKWRITE
  0000:76D0       DODSKOP
  0000:76F1       HARDERRRW
+ 0000:7707       DO_ERR
  0000:770B       SETUP
+ 0000:777A       NOSETSTUFF
+ 0000:778A       NoDec
+ 0000:778E       setup_OK
+ 0000:778F       EOFERR
+ 0000:7792       NOROOM
  0000:7795       BREAKDOWN
+ 0000:77AC       SAVFIR
  0000:77BE       _RET45
  0000:77BF       READ_LOCK_VIOLATION
  0000:77C4       ERR_ON_CHECK
+ 0000:77D9       HARD_ERR
+ 0000:77DE       NO_HARD_ERR
  0000:77E5       WRITE_LOCK_VIOLATION
  0000:77EC       DISKREAD
+ 0000:780A       ENUF
+ 0000:7810       _READ_OK
+ 0000:7824       RDERR
  0000:7829       SETSFTJ2
+ 0000:782C       CANOT_READ
  0000:782E       SET_ACC_ERR_DS
  0000:7830       SET_ACC_ERR
+ 0000:7837       SKIPERR
+ 0000:784B       RDMID
+ 0000:7868       RDLP
+ 0000:78A5       RDLAST
  0000:78C2       SETSFT
  0000:78C6       SETCLUS
  0000:78E3       ADDREC
+ 0000:78EE       RET28
  0000:78F0       DskRdBufScan
+ 0000:7912       bufq
+ 0000:791F       bufq01
+ 0000:7929       bufq02
+ 0000:792B       bufq1
+ 0000:7934       bufx
+ 0000:7935       bufq2
+ 0000:796B       bufq3
  0000:797A       DISKWRITE
+ 0000:7980       WRTEOFJ
+ 0000:7983       _WRITE_OK
+ 0000:79C6       CALCLUS
+ 0000:79EE       NORND
+ 0000:7A0E       lowsec
+ 0000:7A17       yesgrow
  0000:7A40       HAVSTART
  0000:7A4C       WRTERR
+ 0000:7A4E       WRTERR22
  0000:7A59       DOWRTJ
+ 0000:7A5B       ACC_ERRWJ
+ 0000:7A5E       TESTTAIL
+ 0000:7A64       SETGRW
+ 0000:7A6B       NOGROW
+ 0000:7A99       NOSKIP
+ 0000:7AA1       DOWRT
+ 0000:7AB1       WRTMID
+ 0000:7AD7       WRTLP
+ 0000:7AEC       DWRITE_LUP
+ 0000:7B08       DWRITE_OKAY
+ 0000:7B18       DWRITE_DISK_FULL
+ 0000:7B25       SET_ACC_ERRW
+ 0000:7B28       WRTLAST
+ 0000:7B42       FINWRT
+ 0000:7B53       UPDATE_size
+ 0000:7B62       SAMSIZ
+ 0000:7B65       WRTEOF
+ 0000:7B88       SET_ACC_ERRWJ2
+ 0000:7B91       UPDATE
+ 0000:7BAF       WRTERRJ
+ 0000:7BB2       RELFILE
+ 0000:7BCB       SKIPRESET
+ 0000:7BD2       SET_ACC_ERRWJJ
+ 0000:7BD6       KILLFIL
+ 0000:7C0C       UPDATEJ
  0000:7C0E       DskWrtBufPurge
+ 0000:7C3F       sc01
+ 0000:7C4F       sc02
+ 0000:7C58       sc5
+ 0000:7C59       nosc
+ 0000:7C5C       _bufq
+ 0000:7C69       bufq04
+ 0000:7C73       bufq05
+ 0000:7C7E       bufq4
+ 0000:7C88       bufq5
+ 0000:7C8A       bufq6
  0000:7C94       DIV32
+ 0000:7CAF       div5
  0000:7CBB       SHR32
+ 0000:7CC3       rotashft2
+ 0000:7CC9       norota
  0000:7CCA       SEARCH
+ 0000:7CD9       NOTVOLSRCH
  0000:7CE1       SRCH
+ 0000:7CFE       CHKFNAM
+ 0000:7D15       NO_E5
  0000:7D1B       NEXTENT
+ 0000:7D26       FREE
+ 0000:7D35       TSTALL
+ 0000:7D39       NEXTENTJ
+ 0000:7D42       FOUND
+ 0000:7D5D       check_one_volume_id
+ 0000:7D6E       RETFF
+ 0000:7D76       SETESRET
  0000:7D79       MetaCompare
+ 0000:7D7C       WILDCRD
+ 0000:7D87       MetaRet
  0000:7D88       NEXTENTRY
+ 0000:7DB5       NONE
+ 0000:7DB7       HAVIT
  0000:7DBB       nextentry_retn
+ 0000:7DBC       SAMECLUS
  0000:7DE4       GETENTRY
  0000:7DE7       GETENT
  0000:7E08       SETENTRY
  0000:7E17       SETDIRSRCH
+ 0000:7E37       UNP_OK
  0000:7E57       SETROOTSRCH
  0000:7E7C       GETPATH
  0000:7E82       GetPathNoSet
  0000:7EA2       Build_devJ
+ 0000:7EBB       MoveLoop
+ 0000:7EC3       NoSave
+ 0000:7ED0       InternalError
+ 0000:7ED2       CrackIt
+ 0000:7EDE       LOOK_SING
+ 0000:7F2B       GO_Chk_end1
+ 0000:7F2C       GO_Chk_end
+ 0000:7F36       NO_CURR_D
+ 0000:7F43       GOT_SEARCH_CLUSTER
+ 0000:7F4E       SETFERR
  0000:7F52       CHKDEV
+ 0000:7F5E       TESTLOOP
+ 0000:7F71       NOTDEV
+ 0000:7F73       TESTDEVICE
+ 0000:7F82       ROOTPATH
+ 0000:7F93       FINDPATH
+ 0000:7FB0       NOIDS
+ 0000:7FC5       GetNam
+ 0000:7FDB       StoNam
+ 0000:7FDE       _SetExt
+ 0000:7FE1       GetExt
+ 0000:7FF1       StoExt
+ 0000:7FF4       _GetDone
+ 0000:8003       check_device
+ 0000:8012       NOT_LAST
+ 0000:8022       GO_BDEV
+ 0000:8026       FindFile
+ 0000:8032       NOE5
+ 0000:803D       DIR_FOUND
+ 0000:8045       LOAD_BUF
+ 0000:8052       GO_NEXT
+ 0000:8073       _nofast
+ 0000:807B       NEXT_ONE
+ 0000:8080       SetDir
+ 0000:809C       DO_NORMAL
+ 0000:80C3       SKIP_GETB
+ 0000:80CE       SET_THE_BUF
+ 0000:80D9       FAST_OPEN_SKIP
+ 0000:80EE       find_bad_name
+ 0000:80EF       _BADPATH
+ 0000:80F3       FILEINPATH
+ 0000:8108       NO_FAST
+ 0000:8112       INCRET
+ 0000:8117       _SETRET
+ 0000:8118       BADPATHPOP
+ 0000:811F       BADPRET
  0000:8127       STARTSRCH
  0000:813B       MatchAttributes
  0000:8148       DEVNAME
+ 0000:815C       NOKTR
+ 0000:8166       LOOKIO
+ 0000:817E       SKIPDEV
+ 0000:8185       RET31
+ 0000:8186       RETNV
+ 0000:8193       IOCHK
  0000:81A8       Build_device_ent
  0000:81D6       ValidateCDS
+ 0000:81F7       _DoSplice
+ 0000:823D       DoChdir
+ 0000:8265       SetCluster
+ 0000:8279       _setdirclus
+ 0000:827C       RestoreCDS
+ 0000:828A       FatFail
  0000:8294       CheckThisDevice
+ 0000:82B6       ParseDev
+ 0000:82CC       SkipSearch
+ 0000:82CE       CheckReturn
+ 0000:82D3       Check_Done
+ 0000:82D6       NotDevice
  0000:82D9       LookupPath
+ 0000:82E1       NOLOOK
+ 0000:82E4       FASTINST
+ 0000:832C       parfnd
+ 0000:836A       NOTFOUND
+ 0000:8375       Partial_Success
+ 0000:837B       NOLOOKUP
  0000:837D       InsertPath
+ 0000:839B       INSERT_DIR_INFO
+ 0000:83F2       SKIP_INSERT
+ 0000:83F9       GET_NEXT2
+ 0000:83FF       GET_NEXT_ELEMENT
  0000:8401       LenTab
  0000:8407       CmdTab
  0000:8413       IOFUNC
+ 0000:8433       IOTO22
+ 0000:843C       IOTO33
+ 0000:8453       _no_sys_wait
+ 0000:8484       OKDevIO
+ 0000:8493       DNODRD
  0000:849C       QuickReturn
+ 0000:84B2       not_fail_ret
+ 0000:84B8       DevErr
+ 0000:84C8       NO_RETRY
+ 0000:84D7       not_fail
+ 0000:84D9       IOTOFILE
+ 0000:84E6       IOIST
+ 0000:84F6       IOUT
  0000:84FF       IOUT_retn
  0000:8500       IOIN
  0000:8520       SETXADDR
@@ -649,39 +1196,100 @@
  0000:8569       DEV_OPEN_SFT
  0000:8571       DEV_CLOSE_SFT
  0000:8577       DO_OPCLS
+ 0000:859E       GOT_DEV_ADDR
+ 0000:85A9       OPCLS_RETRY
+ 0000:85D6       BLKDEV
+ 0000:85DA       HRDERR
+ 0000:85E4       OPCLS_DONEP
+ 0000:85E5       OPCLS_DONE
  0000:85EA       DEVIOCALL
  0000:85ED       DEVIOCALL2
+ 0000:860B       chkext
+ 0000:8633       chksector
+ 0000:8643       chardev2
+ 0000:8665       dev_exit
  0000:8669       SETREAD
  0000:866E       SETCALLHEAD
  0000:869C       SETWRITE
  0000:86A8       RW_SC
+ 0000:86D1       scexit4
+ 0000:86D3       doread
+ 0000:86E2       readSC
  0000:86FA       chklow
  0000:870E       readsr
+ 0000:874C       saveseq2
+ 0000:874D       saveseq
+ 0000:875F       scexit2
+ 0000:8760       scexit
  0000:8767       IN_SC
+ 0000:8791       outrange2
+ 0000:8792       inexit
  0000:8793       INVALIDATE_SC
+ 0000:87A4       outrange
  0000:87A5       VIRREAD
+ 0000:87E5       scerror
+ 0000:87FB       sc2end
  0000:87FD       SC2BUF
  0000:880E       SC2BUF2
  0000:8834       MOVWORDS
+ 0000:883F       nodd
+ 0000:8843       noSC
  0000:8845       BUILDDIR
+ 0000:884F       CHECK_IF_ROOT
+ 0000:8857       builddir_retn
  0000:8858       NEWDIR
+ 0000:8865       NULLDIR
+ 0000:8882       ADDINGDIR
+ 0000:88A6       NOTFIRSTGROW
+ 0000:88AD       GOTDIRREC
+ 0000:88B5       ZERODIR
+ 0000:88C4       GET_SSIZE
+ 0000:88DF       EVENZ
+ 0000:88EF       yesdirty7
  0000:8901       SETDOTENT
  0000:8925       MakeNode
+ 0000:8945       make_err_4
  0000:8947       make_err_ret
  0000:894B       RENAME_MAKE
  0000:8962       make_retn
  0000:8963       make_type2
+ 0000:896C       make_exists
+ 0000:8995       make_share
  0000:89AD       Make_Share_ret
+ 0000:89B1       make_err_ret_5P
+ 0000:89B2       make_err_ret_5
+ 0000:89B6       make_exists_dir
  0000:89BA       make_save
  0000:89C5       make_save_retn
  0000:89C6       make_new
  0000:89F5       yesdirty8
+ 0000:8A03       MakeEndShare
  0000:8A33       makeendshare_retn
  0000:8A34       NEWENTRY
+ 0000:8A4E       ERRRET3
+ 0000:8A4F       newentry_retn
+ 0000:8A50       EXISTENT
+ 0000:8A57       NOT_DEV1
+ 0000:8A5C       FREESPOT
+ 0000:8A6A       NOTVOLID
+ 0000:8AA3       yesdirty9
+ 0000:8AD4       GotADevice
  0000:8AE4       DOOPEN
+ 0000:8AFA       DEV_SFT1
+ 0000:8B0F       DEV_SFT2
+ 0000:8B28       FILE_SFT1
+ 0000:8B5C       Not_FastOpen
+ 0000:8B76       Next_Name
+ 0000:8B78       DEV_SFT3
+ 0000:8B7B       FILE_SFT2
  0000:8B87       FREEENT
+ 0000:8BBA       freeent_retn
+ 0000:8BBB       GET_BUF_BACK
+ 0000:8BD4       RET1
  0000:8BD6       CHECK_VIRT_OPEN
+ 0000:8BEF       ALL_CLOSED
  0000:8BF2       FNDCLUS
+ 0000:8C0F       FINDIT
  0000:8C12       SKPCLP
  0000:8C25       RET9
  0000:8C27       NOCLUS
@@ -689,25 +1297,63 @@
  0000:8C2C       BUFSEC
  0000:8C68       BUFRD
  0000:8C70       BUF_IO_FAIL
+ 0000:8C73       BUF_OK
+ 0000:8C9F       RBUFPLACEDC
+ 0000:8CA0       RBUFPLACED
  0000:8CA3       BUFWRT
+ 0000:8CC9       _doread
+ 0000:8CCB       NOREAD
+ 0000:8CF1       yesdirty10
+ 0000:8D01       WBUFPLACED
  0000:8D05       NEXTSEC
+ 0000:8D2F       SAVPOS
+ 0000:8D32       CLRET
+ 0000:8D34       NONEXT
  0000:8D36       OPTIMIZE
+ 0000:8D47       OPTCLUS
+ 0000:8D5D       FINCLUS
+ 0000:8D83       OP_ERR
+ 0000:8D88       BLKDON
  0000:8D96       FIGREC
+ 0000:8DAA       rotleft
+ 0000:8DB4       noshift
  0000:8DC1       figrec_retn
  0000:8DC2       callmagic
  0000:8DC9       ALLOCATE
+ 0000:8DD3       Regular_Allocate_Path
+ 0000:8DED       ads1
+ 0000:8DF6       FINDFRE
+ 0000:8E1C       NO_ALLOC
+ 0000:8E31       ads4
+ 0000:8E46       dofastk
+ 0000:8E5B       ads7
+ 0000:8E6F       Disk_Full_Return
  0000:8E76       RESTFATBYT
  0000:8E86       RELEASE
  0000:8E88       RELBLKS
+ 0000:8EA7       NO_DEALLOC
+ 0000:8EB1       RELEASE_flush
  0000:8EC0       RET12
  0000:8EC1       GETEOF
  0000:8ED3       MAKEFCB
+ 0000:8EE3       DEFDRV
+ 0000:8EF2       FILLB
+ 0000:8EFF       FILLB2
+ 0000:8F15       SKPSPC
+ 0000:8F18       NOSCAN
+ 0000:8F36       BADDRV
+ 0000:8F38       HAVDRV
+ 0000:8F3B       NODRV
  0000:8F3D       NORMSCAN
  0000:8F57       VOLOK
  0000:8F5A       contvol
  0000:8F5D       NODOT
+ 0000:8F67       NONAM
  0000:8F6B       GETWORD
  0000:8F71       MUSTGETWORD
+ 0000:8F82       MustCheckCX
+ 0000:8F8D       NOSTAR
+ 0000:8F97       FILLNAM
  0000:8F9D       SCANB
  0000:8FA4       scanb_retn
  0000:8FA5       NAMETRANS
@@ -715,55 +1361,178 @@
  0000:9011       GETLET
  0000:9012       UCase
  0000:9016       gl_0
+ 0000:9020       gl_1
+ 0000:902E       gl_2
  0000:9037       GETLET3
  0000:903A       DELIM
  0000:9042       SPCHK
  0000:904A       GetCharType
+ 0000:9061       gct_80
+ 0000:9064       gct_90
  0000:9067       PATHCHRCMP
+ 0000:906E       GotFor
+ 0000:9071       PathRet
  0000:9074       LowInt23Addr
  0000:9078       LowInt24Addr
  0000:907C       LowInt28Addr
  0000:9080       DSKSTATCHK
+ 0000:9089       dskstatchk1
+ 0000:90BC       RET36
+ 0000:90C2       _GotCh
+ 0000:90F4       NOSTOP
+ 0000:9101       check_next
+ 0000:9105       check_end
+ 0000:9106       INCHKJ
  0000:9109       SPOOLINT
+ 0000:912B       do_low_int28
+ 0000:9130       spool_ret_addr
+ 0000:9135       POPFRET
  0000:9136       _RET18
  0000:9137       STATCHK
+ 0000:915D       PRINTONOFF
+ 0000:9191       NORM_PR
+ 0000:919E       PRNOPN
+ 0000:91A1       RETP6
+ 0000:91A3       STATCHK_RETN
+ 0000:91A4       PAUSOLP
+ 0000:91A7       PAUSOSTRT
+ 0000:91AE       INCHK
  0000:91C4       CNTCHAND
+ 0000:91D4       around_deadlock
+ 0000:91E0       NOSWAP
+ 0000:9213       do_low_int23
+ 0000:9219       ctrlc_ret_addr
+ 0000:9231       ctrlc_repeat
+ 0000:9238       COMMANDJ
+ 0000:923B       ctrlc_try_new
  0000:9246       ctrlc_abort
  0000:9257       DIVOV
  0000:926C       _OUTMES
  0000:92A5       CHARHARD
+ 0000:92B8       chard1
+ 0000:92BB       ctrlp
  0000:92D6       HARDERR
  0000:92EA       NOSETWRPERR
+ 0000:930E       TESTDIR
+ 0000:9318       ERRINT
  0000:9324       FATAL
  0000:9328       FATAL1
  0000:9338       FATALC
  0000:9343       NET_I24_ENTRY
+ 0000:934F       NoSetFail
+ 0000:936A       _NoFree
+ 0000:9381       i24yes
+ 0000:9397       do_low_int24
+ 0000:939C       criterr_ret_addr
+ 0000:93AA       passi24
+ 0000:93BB       FailRet
+ 0000:93D2       DoFail
+ 0000:93E1       CleanUp
+ 0000:93F0       CleanUp2
+ 0000:9402       CheckIgnore
+ 0000:940C       CheckRetry
+ 0000:9416       DoAbort
+ 0000:9422       NOSWAP2
+ 0000:9433       reset_environment
+ 0000:946C       reset_to_parent
+ 0000:9471       reset_return
  0000:94D3       SET_I24_EXTENDED_ERROR
+ 0000:94EC       NoTrans
  0000:94FA       IsEOF
+ 0000:950C       IsEOF_other
+ 0000:950D       EOF16
  0000:9511       UNPACK
+ 0000:951C       up_cont
+ 0000:9539       High12
+ 0000:9541       Unpack12
  0000:9545       _DoContext
+ 0000:9548       HURTFAT
+ 0000:9563       OKU_RET
  0000:9564       hurtfat_retn
  0000:9565       PACK
+ 0000:956E       p_cont
+ 0000:9582       ALIGNED
+ 0000:9594       Pack16
+ 0000:9596       PACKIN
+ 0000:95AC       yesdirty11
+ 0000:95F0       yesdirty12
+ 0000:95FB       POPP_RET
  0000:9601       MAPCLUSTER
+ 0000:9616       Map16
+ 0000:9636       _DoDiv
+ 0000:963A       DivDone
+ 0000:969B       MAPRET
+ 0000:96AA       MapSet
+ 0000:96AE       MAP_POP
  0000:96B3       FATREAD_SFT
  0000:96C4       fatread_sft_retn
  0000:96C5       FATREAD_CDS
+ 0000:96F1       frcd20
+ 0000:9710       frcd25
+ 0000:9716       NO_CHANGE
+ 0000:971C       FAT_operation
  0000:973D       FAT_GOT_DPB
+ 0000:9789       CHECK_BYT
+ 0000:9791       CHECK_ZR
+ 0000:9795       DISK_CHNG_ERR
+ 0000:97CA       FAIL_OPJ2
+ 0000:97CF       CHKBUFFDIRT
+ 0000:97DA       nbuffer
+ 0000:97E9       FAIL_OP
+ 0000:97ED       lfnxt
+ 0000:97F6       NEWDSK
+ 0000:97FF       nxbuffer
+ 0000:9814       lfnxt2
+ 0000:9816       skpbuff
+ 0000:9832       GOGETBPB
+ 0000:9844       FAIL_OPJ
+ 0000:984C       GETFREEBUF
+ 0000:985F       GOTGETBUF
+ 0000:98CF       FATERRJ
  0000:98D2       GETCURHEAD
  0000:98E4       SCANPLACE
  0000:98EB       PLACEBUF
+ 0000:9903       not_first
+ 0000:9919       nret
+ 0000:9927       pbx
  0000:9928       POINTCOMP
  0000:9936       _ret_label
  0000:9937       GETBUFFR
  0000:9939       GETBUFFRB
+ 0000:9960       getb5
+ 0000:9963       getb10
+ 0000:9975       getb12
+ 0000:9994       getb13
+ 0000:99B9       getb14
+ 0000:99C4       getb15
+ 0000:99C9       getb17
+ 0000:99E3       not_in_hma
+ 0000:99EA       getb20
+ 0000:9A02       getb25
+ 0000:9A17       getb30
+ 0000:9A1D       getb35
+ 0000:9A32       getbx
  0000:9A34       getbuffrb_retn
  0000:9A35       FLUSHBUF
+ 0000:9A48       scan_buf_queue
+ 0000:9A5D       free_the_buf
+ 0000:9A62       dont_free_the_buf
+ 0000:9A6B       end_scan
+ 0000:9A75       bad_flush
  0000:9A77       CHECKFLUSH
+ 0000:9A88       DOBUFFER
+ 0000:9A9E       LEAVE_BUF
  0000:9A9F       checkflush_retn
  0000:9AA0       BUFWRITE
+ 0000:9AE4       NO_IGNORE
+ 0000:9AEC       WRTAGAIN
+ 0000:9B15       NBUFFINHMA
+ 0000:9B21       NOSET
+ 0000:9B2C       BWROK
  0000:9B2E       SET_RQ_SC_PARMS
  0000:9B41       INC_DIRTY_COUNT
  0000:9B47       DEC_DIRTY_COUNT
+ 0000:9B54       ddcx
  0000:9B55       $WAIT
  0000:9B5F       $EXEC
  0000:9B6E       Exec_@f
@@ -834,7 +1603,13 @@
  0000:A128       ChangeOwner
  0000:A136       Scan_Execname
  0000:A139       Scan_Execname1
+ 0000:A13B       Scan0
  0000:A14D       Scan_Special_Entries
+ 0000:A160       GetEntries
+ 0000:A174       sse_next_char
+ 0000:A189       Not_Matched
+ 0000:A18C       SkipOne
+ 0000:A19A       End_List
  0000:A19B       $KEEP_PROCESS
  0000:A1AF       Keep_Shrink
  0000:A1C1       Keep_Done
@@ -842,22 +1617,48 @@
  0000:A1D3       $EXIT
  0000:A1EA       exit_inner
  0000:A1F7       $ABORT
+ 0000:A1FF       abort_inner
  0000:A221       RetExePatch
  0000:A222       arena_free_process
+ 0000:A226       arena_free_process_start
+ 0000:A22C       arena_free_process_loop
+ 0000:A23A       arena_free_next
+ 0000:A244       arena_chk_umbs
  0000:A255       arena_next
  0000:A25C       check_signature
  0000:A26B       check_signature_ok
  0000:A26C       Coalesce
  0000:A28E       $ALLOC
+ 0000:A2B1       norm_alloc
+ 0000:A2C2       start_scan
+ 0000:A2CB       alloc_scan
+ 0000:A2D3       alloc_next
+ 0000:A2F7       norm_strat
+ 0000:A2FA       alloc_chk_end
+ 0000:A301       alloc_err
  0000:A302       alloc_trashed
+ 0000:A307       alloc_errj
+ 0000:A30A       alloc_end
+ 0000:A315       alloc_chk
  0000:A32E       alloc_fail
+ 0000:A33C       alloc_free
+ 0000:A34C       alloc_test
+ 0000:A35E       alloc_best
+ 0000:A374       alloc_make_best
+ 0000:A379       alloc_last
+ 0000:A381       alloc_do_split_high
+ 0000:A399       alloc_do_split
  0000:A3B5       alloc_get_size
+ 0000:A3C7       alloc_set_sizes
+ 0000:A3DC       alloc_set_owner
  0000:A3EC       alloc_ok
  0000:A3EF       $SETBLOCK
  0000:A3FD       setblock_bad
  0000:A400       setblock_grab
  0000:A413       $DEALLOC
+ 0000:A42C       deallocate
  0000:A43F       dealloc_ok
+ 0000:A441       dealloc_err
  0000:A446       dealloc_errj
  0000:A449       $ALLOCOPER
  0000:A459       AllocOperError
@@ -876,6 +1677,12 @@
  0000:A4BC       LinkUmbs
  0000:A4D4       linked
  0000:A4D6       GetLastArena
+ 0000:A4E5       GLA_next
+ 0000:A4FA       GLA_chkumb
+ 0000:A4FC       GLA_@f
+ 0000:A4FE       GLA_done
+ 0000:A511       GLA_ret
+ 0000:A514       GLA_err
  0000:A517       SERVERTAB
  0000:A519       SERVERLEAVE
  0000:A51B       SERVER_DISP
@@ -906,15 +1713,30 @@
  0000:A649       _$SetExtendedError
  0000:A66D       pJFNFromHandle
  0000:A680       ReturnCarry
+ 0000:A682       pjfn10
  0000:A689       pJFNFromHandle_error
  0000:A68A       SFFromHandle
+ 0000:A699       GetSF
  0000:A6A4       SFFromSFN
+ 0000:A6AE       sfsfn5
+ 0000:A6C2       sfsfn7
  0000:A6CF       JFNFree
+ 0000:A6D1       jfnf1
+ 0000:A6DF       jfnf5
+ 0000:A6E1       jfnfx
  0000:A6E2       SFNFree
+ 0000:A6E5       sfnf5
+ 0000:A6F8       sfnf7
+ 0000:A6FB       sfnf10
+ 0000:A70F       sfnf20
+ 0000:A727       sfnf95
  0000:A72B       $CLOSE
+ 0000:A74A       FreeJFN
+ 0000:A751       PostFree
  0000:A758       Close_OK
  0000:A75B       CloseError
  0000:A75E       $COMMIT
+ 0000:A774       Commit_OK
  0000:A776       CommitError
  0000:A778       $ExtHandle
  0000:A782       exth2
@@ -923,22 +1745,38 @@
  0000:A7D1       movhandl
  0000:A7E0       ok_done
  0000:A7E2       too_many_files
+ 0000:A7E4       CommitErrorj
  0000:A7E6       enlarge
  0000:A7EA       copy_hand
  0000:A813       update_info
  0000:A821       non_psp
  0000:A827       final
+ 0000:A82F       ExtHandle_OK
  0000:A831       no_memory
+ 0000:A834       jmp_to_jmp_CommitError
  0000:A836       invalid_func
+ 0000:A838       ExtHandle_err
  0000:A83A       $READ
  0000:A83D       ReadDo
  0000:A84A       ReadError
+ 0000:A84C       ReadSetup
+ 0000:A863       needi24
+ 0000:A880       READ_OK
  0000:A882       Read_OK_j
  0000:A884       Align_Buffer
  0000:A8A0       $WRITE
  0000:A8A5       $LSEEK
  0000:A8A8       LSeekError
+ 0000:A8AC       CHKOWN_OK
+ 0000:A8B8       jmp_to_ReadError
+ 0000:A8BA       LSeekDisp
+ 0000:A8C8       LSeekStore
+ 0000:A8CB       LSeekSetpos
  0000:A8D9       jmp_to_Read_OK_j
+ 0000:A8DB       LSeekEOF
+ 0000:A8E2       LOCAL_LSeek
+ 0000:A8EC       Check_LSeek_Mode
+ 0000:A904       NET_LSEEK
  0000:A90B       jmp_to_jmp_ReadError
  0000:A90D       $FILE_TIMES
  0000:A92F       ft_set_time
@@ -950,6 +1788,10 @@
  0000:A979       DupErr
  0000:A97B       $DUP2
  0000:A989       CheckOwner
+ 0000:A99B       no_win386
+ 0000:A9A3       _skip_win386
+ 0000:A9A7       CheckOwner_err
+ 0000:A9AA       co_ret_label
  0000:A9AB       $AssignOper
  0000:A9AF       srinuse
  0000:A9C9       resetdrv
@@ -958,7 +1800,12 @@
  0000:A9E2       okdone
  0000:A9E5       ASS_ERR
  0000:A9E8       FIND_DPB
+ 0000:A9ED       fdpb5
+ 0000:A9FB       fdpb10
+ 0000:A9FC       ret_label15
  0000:A9FD       InitCDS
+ 0000:AA46       icds5
+ 0000:AA48       icdsx
  0000:AA49       RET45
  0000:AA4A       $UserOper
  0000:AA5E       useroper_error
@@ -970,47 +1817,110 @@
  0000:AA9D       OKPA
  0000:AA9F       GetVisDrv
  0000:AABC       GETTHISDRV
+ 0000:AAC5       GTD10
+ 0000:AAF7       GTD20
+ 0000:AB03       GTD30
+ 0000:AB10       GTDX
  0000:AB13       GetCDSFromDrv
+ 0000:AB1C       GetCDS
  0000:AB37       TransFCB
+ 0000:AB62       GetDrive
+ 0000:AB6F       FCBScan
+ 0000:AB92       BadPack
+ 0000:AB95       FCBRet
  0000:AB98       TransPath_retn
  0000:AB99       TransPath
  0000:AB9D       TransPathSet
  0000:AB9F       SetSplice
  0000:ABA5       TransPathNoSet
+ 0000:ABEC       NoServerSplice
+ 0000:ABFB       NoPath
+ 0000:ABFE       CheckUNC
+ 0000:AC22       UNCCpy
+ 0000:AC35       UNCDone
+ 0000:AC38       UNCTerm
+ 0000:AC3B       CheckDevice
+ 0000:AC45       CheckPath
  0000:AC69       DoFile_retn
  0000:AC6A       no5Dshere
+ 0000:AC6D       DoFile
+ 0000:ACA0       GetOrig
+ 0000:ACAE       SkipPath
+ 0000:ACB9       PathAssure
  0000:ACBC       DoCanon
  0000:ACD8       Pathline
  0000:ACE4       DoSplice
  0000:ACF6       SkipSplice
  0000:AD11       Done
  0000:AD12       Canonicalize
+ 0000:AD1F       CanonDec
+ 0000:AD20       CanonLoop
+ 0000:AD32       DoTerminate
+ 0000:AD35       CanonBad
+ 0000:AD3E       PathEnc
  0000:AD3F       CanonBad_retn
+ 0000:AD40       DoComponent
+ 0000:AD53       Skip1
+ 0000:AD5C       CanonNormal
+ 0000:AD5E       CanonPath
+ 0000:AD6E       CanonPathLoop
  0000:AD77       PathSep
  0000:AD79       PathSepGotCh
  0000:AD81       SkipBack
+ 0000:AD90       SkipBad
  0000:AD94       CopyComponent
  0000:ADAB       TryTwoDot
+ 0000:ADB6       NulTerm
+ 0000:ADBE       NormalComp
+ 0000:ADE1       DoPack
+ 0000:AE05       _GoodRet
+ 0000:AE08       CopyBad
+ 0000:AE10       CopyBadPath
+ 0000:AE13       CopyEnd
  0000:AE22       Splice
+ 0000:AE3A       SpliceScan
+ 0000:AE4E       SpliceSkip
+ 0000:AE51       SpliceFound
+ 0000:AE5F       SpliceDo
+ 0000:AE77       NoPoke
+ 0000:AE7F       SpliceCopy
+ 0000:AE8A       SpliceDone
+ 0000:AE94       AllDone
+ 0000:AE96       DoSet
  0000:AEA8       Splice_retn
  0000:AEA9       $NameTrans
+ 0000:AEC3       TransOK
  0000:AECE       DriveFromText
  0000:AEE5       TextFromDrive
  0000:AEE7       TextFromDrive1
  0000:AEEC       PathPref_retn
  0000:AEED       PathPref
+ 0000:AF04       Prefix
  0000:AF06       ScanPathChar
  0000:AF10       $OPEN
  0000:AF12       $Open2
  0000:AF1B       AccessFile
+ 0000:AF3A       OpenFailJ
+ 0000:AF3D       SaveJFN
+ 0000:AF6F       OpenCleanJ
+ 0000:AF71       SetSearch
+ 0000:AF89       _DoOper
  0000:AFA0       OpenOK
  0000:AFB7       OpenOKJ
+ 0000:AFBA       OpenE2
+ 0000:AFC1       OpenClean
+ 0000:AFC2       OpenE
+ 0000:AFD0       OpenFail
+ 0000:AFD2       OpenCritLeave
  0000:AFE4       NORERR
  0000:AFE7       $CREAT
+ 0000:AFEB       AccessSet
  0000:AFF4       $CHMOD
  0000:B01D       ChModErrj
  0000:B01F       ChModGet
+ 0000:B02A       ChModOKj
  0000:B02C       ChModSet
+ 0000:B033       ChModOK
  0000:B035       ChModErr
  0000:B037       ChModE
  0000:B039       $UNLINK
@@ -1024,6 +1934,7 @@
  0000:B0BA       dorn
  0000:B0D2       $CreateNewFile
  0000:B0D9       BinToAscii
+ 0000:B0DC       bta5
  0000:B0EA       $CreateTempFile
  0000:B0FB       OKatts
  0000:B116       okok
@@ -1033,6 +1944,7 @@
  0000:B169       CreateDone
  0000:B171       CreateFail
  0000:B174       SetAttrib
+ 0000:B17E       Set
  0000:B184       $Extended_Open
  0000:B1DB       ext_inval2
  0000:B1DD       jmp_to_CreateFail
@@ -1065,6 +1977,7 @@
  0000:B32E       DOS_Lock
  0000:B33C       LOCAL_LOCK
  0000:B342       LOCK_CHECK
+ 0000:B346       LockRetry
  0000:B357       lc_ret_label
  0000:B358       LOCK_VIOLATION
  0000:B37E       CheckShare
@@ -1073,7 +1986,14 @@
  0000:B390       SHARE_VIOLATION
  0000:B3B6       ShareEnd
  0000:B3BB       ShareEnter
+ 0000:B3BC       retry
+ 0000:B3C0       attempt
+ 0000:B3DB       done
  0000:B3DD       ExecReady
+ 0000:B3FE       er_setver
+ 0000:B41D       er_chkdoshi
+ 0000:B43C       er_seta20
+ 0000:B445       er_done
  0000:B448       rpFind1
  0000:B452       rpFind1a
  0000:B45A       rpFind2
@@ -1110,12 +2030,16 @@
  0000:B62E       rpBug4
  0000:B65C       rp3Exit
  0000:B669       FindBadCode
+ 0000:B690       fbc_error
  0000:B692       GenPatch
  0000:B6A6       CopyPatch
  0000:B6B2       GenJump
  0000:B6BE       ScanCodeSeq
  0000:B6C1       ScanCodeSeq_di
+ 0000:B6C5       scsagain
+ 0000:B6D4       scsfound
  0000:B6D6       VerifyVersion
+ 0000:B6F4       vvexit
  0000:B6F5       VVDigit
  0000:B702       exepatch_start
  0000:B707       first
@@ -1140,8 +2064,16 @@
  0000:B84E       _TryNext
  0000:B852       ExePatch
  0000:B85B       ExePackPatch
+ 0000:B866       ep_cont
+ 0000:B874       epp_1
+ 0000:B887       epp_2
+ 0000:B8B2       ep_done1
  0000:B8B5       ep_chkpatch2
+ 0000:B8E2       ep_patchcode2
+ 0000:B901       ep_chkpatch3
+ 0000:B939       ep_notpacked
  0000:B941       chk_common_str
+ 0000:B954       ccs_done
  0000:B955       chk_patchsum
  0000:B965       ep_chksum
  0000:B974       cp_fail
@@ -1153,6 +2085,7 @@
  0000:B9F1       rpexit
  0000:B9FA       CPScanPattern
  0000:BA12       IsCopyProt
+ 0000:BA47       CP_done
  0000:BA48       initiret
  0000:BA49       InitBioDataSeg
  0000:BA4B       ParaRound
@@ -1170,6 +2103,7 @@
  0000:BC7A       iset3
  0000:BD52       CHARINIT
  0000:BD7A       check_XMM
+ 0000:BDA1       cXMM_no_driver
  0000:BDA4       num_entry
  0000:BDA5       _seg_reinit
  0000:BDC3       second_entry
@@ -1178,13 +2112,29 @@
  0000:BE05       sr_done
  0000:BE0D       WhatCPUType
  0000:BE2B       cpu_386
+ 0000:BE2C       cpu_286
+ 0000:BE2D       cpu_8086
  0000:BE32       patch_vec_segments
+ 0000:BE41       ps_set1
+ 0000:BE51       ps_set2
+ 0000:BE5D       ps_set3
+ 0000:BE69       ps_set4
  0000:BE75       patch_misc_segments
+ 0000:BE86       jumptabloop
+ 0000:BE93       share_patch
+ 0000:BE94       no_share_patch
+ 0000:BEBF       fast_patch
+ 0000:BEC2       no_fast_patch
  0000:BEC6       patch_offset
+ 0000:BEDB       po_iset1
+ 0000:BEEB       po_iset2
+ 0000:BEF7       po_iset3
+ 0000:BF03       po_iset4
  0000:BF42       patch_table
  0000:BF52       patch_in_nops
  0000:BF5D       pin_loop
  0000:BF69       MEMSTRT
+ 0BF7:0000       byte_BF70
  0BF7:0004       DataVersion
  0BF7:0006       WinoldPatch1
  0BF7:000E       MYNUM
@@ -1209,6 +2159,7 @@
  0BF7:0046       NUMIO
  0BF7:0047       CDSCOUNT
  0BF7:0048       NULDEV
+ 0BF7:0050       off_BFC0
  0BF7:0052       aNul
  0BF7:005A       SPLICES
  0BF7:005B       Special_Entries
@@ -1569,6 +2520,7 @@
  0BF7:116B       HighMemory
  0BF7:116F       EnsureA20ON
  0BF7:1187       EA20_RET
+ 0BF7:118E       EA20_OFF
  0BF7:11BC       XMMerror
  0BF7:11CA       XMMcont
  0BF7:11D6       XMMprnt
