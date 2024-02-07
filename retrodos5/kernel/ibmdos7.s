@@ -1,7 +1,7 @@
 ;*****************************************************************************
 ; IBMDOS7.S (PCDOS 7.1 Kernel) - RETRO DOS v5.0 by ERDOGAN TAN - 01/01/2024
 ; ----------------------------------------------------------------------------
-; Last Update: 04/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
+; Last Update: 07/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
 ; ----------------------------------------------------------------------------
 ; Beginning: 22/04/2019 (Retro DOS 4.0), 03/11/2022 (Retro DOS 4.2)
 ; ----------------------------------------------------------------------------
@@ -7118,14 +7118,24 @@ _$SET_TIME:			;System call 45
 	PUSH	DX
 	PUSH	SS
 	POP	DS
+
+; 07/02/2024
+%if 0
 	MOV	BX,TIMEBUF
 	MOV	CX,6
-	;XOR	DX,DX
-	;MOV	AX,DX
-	xor	ax,ax
-	cwd	; 06/01/2024
+	; 06/02/2024 ; *
+	;;XOR	DX,DX
+	;;MOV	AX,DX
+	;xor	ax,ax
+	;cwd	; 06/01/2024
 	PUSH	BX
-	CALL	SETREAD
+	;CALL	SETREAD
+	; 06/02/2024 ; *
+	call	SETREAD_X
+%else
+	call	SETREAD_XT
+%endif
+
 	PUSH	DS
 	LDS	SI,[BCLOCK]
 	CALL	DEVIOCALL2	;Get correct day count
@@ -7203,14 +7213,21 @@ READTIME:
 	PUSH	BX
 
 	MOV	BX,TIMEBUF
-
+; 07/02/2024
+%if 0
 	MOV	CX,6
-	;XOR	DX,DX
-	;MOV	AX,DX
-	; 06/01/2024
-	xor	ax,ax
-	cwd
-	CALL	SETREAD
+	; 06/02/2024
+	;;XOR	DX,DX
+	;;MOV	AX,DX
+	;; 06/01/2024
+	;xor	ax,ax
+	;cwd
+	;CALL	SETREAD
+	; 06/02/2024
+	call	SETREAD_X
+%else
+	call	SETREAD_XTC
+%endif
 	PUSH	DS
 	LDS	SI,[BCLOCK]
 	CALL	DEVIOCALL2	;Get correct date and time
@@ -7363,16 +7380,23 @@ DODATE:
 	PUSH	BX
 	PUSH	AX
 
+; 07/02/2024
+%if 0
 	MOV	BX,TIMEBUF
-
 	MOV	CX,6
-	;XOR	DX,DX
-	;MOV	AX,DX
-	; 06/01/2024
-	xor	ax,ax
-	cwd
+	; 06/02/2024 ; *
+	;;XOR	DX,DX
+	;;MOV	AX,DX
+	;; 06/01/2024
+	;xor	ax,ax
+	;cwd
 	PUSH	BX
-	CALL	SETREAD
+	;CALL	SETREAD
+	; 06/02/2024 ; *
+	call	SETREAD_X
+%else
+	call	SETREAD_XT
+%endif
 
 	PUSH	DS
 	LDS	SI,[BCLOCK]
@@ -23657,6 +23681,9 @@ ChDirDone:
 ; 17/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 ; DOSCODE:710Bh (MSDOS 5.0, MSDOS.SYS)
 
+; 06/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+; PCDOS 7.1 IBMDOS.COM - DOSCODE:7A6Bh
+
 DOS_RMDIR:
 	call	TestNet
 	JNC	short LOCAL_RMDIR
@@ -23684,10 +23711,37 @@ LOCAL_RMDIR:
 	call	GETPATH
 	JC	short NOPATH		; Path not found
 	JNZ	short NOTDIRPATH	; Path not a DIR
+
+; 06/04/2024
+%if 0	
 	MOV	DI,[DIRSTART]
 	OR	DI,DI			; Root ?
 	JNZ	short rmdir_get_buf	; No
 	JMP	SHORT NOTDIRPATH
+%else
+	; 06/02/2024 - Retro DOS v5.0
+	; PCDOS 7.1 IBMDOS.COM
+	mov	di,[DIRSTART]
+	or	di,di			; Root ?
+	jnz	short LOCAL_RMDIR_cont	; No
+	
+	;cmp	word [DIRSTART_HW],0
+	cmp	[DIRSTART_HW],di ; 0
+	jz      short NOTDIRPATH ; root directory
+
+LOCAL_RMDIR_cont:
+	;cmp	word [es:bp+0Fh],0
+	cmp	word [es:bp+DPB.FAT_SIZE],0
+	jnz	short rmdir_get_buf	; not FAT32
+	;cmp	di,[es:bp+35h]
+	cmp	di,[es:bp+DPB.ROOT_CLUSTER]
+	jne	short rmdir_get_buf
+	mov	di,[DIRSTART_HW]
+	;cmp	di,[es:bp+37h]
+	cmp	di,[es:bp+DPB.ROOT_CLUSTER+2]
+	jne	short rmdir_get_buf
+	jmp	short NOTDIRPATH
+%endif		
 
 NOPATH:
 	;mov	ax,3
@@ -23706,7 +23760,9 @@ rmdir_get_buf:
 	LDS	DI,[CURBUF]
 	SUB	BX,DI		; Compute true offset
 	PUSH	BX		; Save entry pointer
-	
+
+; 06/04/2024
+%if 0		
 	; MSDOS 6.0
 	;push	word [di+8]
 	PUSH	WORD [DI+BUFFINFO.buf_sector+2] ;F.C. >32mb
@@ -23714,6 +23770,15 @@ rmdir_get_buf:
 	; MSDOS 3.3 (& MSDOS 6.0)
 	;push	word [di+6]
 	PUSH	WORD [DI+BUFFINFO.buf_sector] ; Save sector number
+%else
+	; 06/02/2024 - Retro DOS v5.0
+	; PCDOS 7.1 IBMDOS.COM
+
+	;les	di,[di+6]
+	les	di,[di+BUFFINFO.buf_sector]
+	push	es
+	push	di
+%endif
 
 ;hkn; SS is DOSDATA
 	;context DS
@@ -23761,9 +23826,19 @@ rmdir_get_buf:
 	CMP	byte [FAILERR],0
 	JNZ	short NOTDIRPATHPOP	; Failure of search due to I 24 FAIL
 	LES	BP,[THISDPB]
+	;;;
+	; 06/02/2024 - Retro DOS v5.0
+	; PCDOS 7.1 IBMDOS.COM
+	mov	bx,[DIRSTART_HW]
+	mov	[CLUSTNUM_HW],bx
+	;;;
 	MOV	BX,[DIRSTART]
 	call	RELEASE 		; Release data in sub dir
 	JC	short NOTDIRPATHPOP	; Screw up
+	;;;
+	; 06/02/2024 - Retro DOS v5.0 (PCDOS 7.1 IBMDOS.COM)
+	call	update_fat32_fsinfo
+	;;;
 	POP	DX			; Sector # of entry
 	POP	word [HIGH_SECTOR] ; MSDOS 6.0	; F.C. >32mb
 	; 22/09/2023
@@ -23773,6 +23848,8 @@ rmdir_get_buf:
 	;call	GETBUFFR		; Get sector back
 	call	GETBUFFER ; *		; Pre Read
 	JC	short NOTDIRPATHPOP2	; Screw up
+
+rmdir_fde:	; 06/02/2024
 	LDS	DI,[CURBUF]
 	;or	byte [di+5],4
 	OR	byte [DI+BUFFINFO.buf_flags],buf_isDIR
@@ -23811,6 +23888,7 @@ rmdir_get_buf:
 ;============================================================================
 ; 23/07/2018 - Retro DOS v3.0 
 ; 04/05/2019 - Retro DOS v4.0
+; 06/02/2024 - Retro DOS v5.0
 
 ;	TITLE	DISK - Disk utility routines
 ;	NAME	Disk
@@ -23936,6 +24014,13 @@ SWAPCON:
 ; DOSCODE:71E9h (MSDOS 5.0, MSDOS.SYS)
 ; 17/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 
+; 07/02/2024
+; 06/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+; PCDOS 7.1 IBMDOS.COM - DOSCODE:7B76h
+
+; (Windows ME IO.SYS - BIOSCODE:7997h)
+; (MSDOS 6.22 MSDOS.SYS - DOSCODE:71FDh)
+
 DOS_READ:
 	LES	DI,[THISSFT]
 
@@ -23943,8 +24028,12 @@ DOS_READ:
 
 	;mov	al,[es:di+2]
 	MOV	AL,[ES:DI+SF_ENTRY.sf_mode]
-	;and	al,0Fh
-	AND	AL,access_mask
+	;;and	al,0Fh	; (MSDOS 5.0 & 6.22)
+	;AND	AL,access_mask
+	; 06/02/2024 - Retro DOS v5.0
+	; (PCDOS 7.1 & Win Me)
+	and	al,3	; open_mode_mask ?
+
 	;cmp	al,1
 	CMP	AL,open_for_write
 	JNE	short READ_NO_MODE	; Is read or both
@@ -24040,15 +24129,27 @@ DVRDRAW:
 
 	test	byte [ss:IsWin386],1 ; 19/05/2019
 	jz	short ReadRawRetry	;not present
-	test	bl,devid_device_con_in	;is it console device
+	test	bl,devid_device_con_in	;is it console device?
 	jz	short ReadRawRetry	;no, do normal read
 	jmp	do_polling		;yes, do win386 polling loop
 
 ReadRawRetry:
+
+; 07/02/2024
+%if 0
 	MOV	BX,DI			; DS:BX transfer addr
-	XOR	AX,AX			; Media Byte, unit = 0
-	MOV	DX,AX			; Start at 0
-	call	SETREAD
+	; 06/02/2024 ; *
+	;XOR	AX,AX			; Media Byte, unit = 0
+	;;MOV	DX,AX			; Start at 0
+	;; 06/02/2024
+	;cwd
+	;call	SETREAD
+	; 06/02/2024 ; *
+	call	SETREAD_X
+%else
+	call	SETREAD_XJ
+%endif
+
 	PUSH	DS			; Save Seg part of Xaddr
 
 ;hkn; SS override
@@ -24067,14 +24168,19 @@ ReadRawRetry:
 	jns	short CRDROK		; no errors
 	; MSDOS 3.3 (& MSDOS 6.0)
 	call	CHARHARD
+
+; 06/02/2024 - Retrro DOS v5.0
+%if 0
 	MOV	DI,DX			; DS:DI is Xaddr
-
 	; 04/05/2019
-
 	; MSDOS 6.0
 	add	di,[ss:CALLSCNT]	; update ptr and count to reflect the	M065
 	sub	cx,[ss:CALLSCNT]	; number of chars xferred		M065
-
+%else
+	mov	di,[ss:CALLSCNT]
+	sub	cx,di			; update transfer count
+	add	di,dx			; update pointer
+%endif
 	; MSDOS 3.3 (& MSDOS 6.0)
 	OR	AL,AL
 	JZ	short CRDROK		; Ignore
@@ -24114,15 +24220,33 @@ CRDROK:
 ; like, LF line CR. This is a little weird.
 
 NOTRDCON:
-	MOV	AX,ES
-	MOV	DS,AX
+	;MOV	AX,ES
+	;MOV	DS,AX
+	; 07/02/2024
+	push	es
+	pop	ds
+
+; 07/02/2024
+%if 0
 	MOV	BX,DI
-	XOR	DX,DX
-	MOV	AX,DX
+	; 06/02/2024 ; *
+	;;XOR	DX,DX
+	;;MOV	AX,DX
+	;; 06/02/2024
+	;xor	ax,ax
+	;cwd
 	PUSH	CX
 	MOV	CX,1
-	call	SETREAD
+	;call	SETREAD
+	; 06/02/2024 ; *
+	call	SETREAD_X
 	POP	CX
+%else
+	push	cx
+	mov	cx,1
+	call	SETREAD_XJ
+	pop	cx
+%endif
 
 ;hkn; SS override
 	LDS	SI,[SS:THISSFT]
@@ -24131,7 +24255,7 @@ NOTRDCON:
 DVRDLP:
 	call	DSKSTATCHK
 	call	DEVIOCALL2
-	PUSH	DI		; Save "count" done
+	PUSH	DI			; Save "count" done
 	MOV	AH,86H
 
 ;hkn; SS override
@@ -24150,7 +24274,7 @@ DVRDLP:
 ;hkn; SS override
 	MOV	word [SS:CALLSCNT],1
 	CMP	AL,1
-	JZ	short DVRDLP		;Retry
+	JZ	short DVRDLP		; Retry
 	CMP	AL,3
 	JZ	short DEVIOFERR		; FAIL
 	XOR	AL,AL			; Ignore, Pick some random character
@@ -24203,10 +24327,21 @@ ENDRDDEVJ2:
 ;		  cx is count
 
 do_polling:
+
+; 07/02/2024
+%if 0
 	mov	bx,di			;ds:bx is Xfer address
-	xor	ax,ax
-	mov	dx,ax
-	call	SETREAD			;prepare device packet
+	; 06/02/2024 ; *
+	;xor	ax,ax
+	;;mov	dx,ax
+	;; 06/02/2024
+	;cwd
+	;call	SETREAD			;prepare device packet
+	; 06/02/2024 ; *
+	call	SETREAD_X
+%else
+	call	SETREAD_XJ
+%endif
 
 do_io:
 ;Change read to a NON-DESTRUCTIVE READ, NO WAIT
@@ -24226,6 +24361,8 @@ do_io:
 
 	push	ds
 	mov	dx,di
+
+invoke_charhard:	; 07/02/2024
 	;invoke charhard		;invoke int 24h handler
 	call	CHARHARD
 	mov	di,dx
@@ -24257,8 +24394,12 @@ check_busy:
 	;mov	di,[es:bx+3]
 	mov	di,[es:bx+SRHEAD.REQSTAT] ;get returned status
 	test	di,STERR ; 8000h	;was there an error during read?
-	jz	short next_char		;no,read next character
+	;jz	short next_char		;no,read next character
+	; 07/02/2024
+	jnz	short invoke_charhard
 
+; 07/02/2024
+%if 0
 	;invoke	charhard		;invoke int 24h handler
 	call	CHARHARD
 	mov	di,dx			;restore di
@@ -24268,14 +24409,17 @@ check_busy:
 	jz	short devrderr		;user issued a 'fail',indicate error
 	pop	ds
 	jmp	short do_io		;user issued a retry
+%endif
 
 next_char:
 	pop	ds
 	mov	di,dx
 	dec	cx			;decrement count
-	jcxz	done_read		;all characters read in
+	;jcxz	done_read		;all characters read in
+	; 07/02/2024
+	jz	short done_read
 	inc	word [es:bx+14]		;update transfer address
-	jmp	short do_io			;read next character in
+	jmp	short do_io		;read next character in
 
 devrderr:
 	pop	di			;discard segment address
@@ -24344,7 +24488,7 @@ endrddev1:	; 04/05/2019
 	JNZ	short SETSFTC 	; Zero set if Ctrl-Z found in input
 	LES	DI,[THISSFT]
 	;and	byte [es:di+5],0BFh
-	AND	BYTE [ES:DI+SF_ENTRY.sf_flags],~devid_device_EOF 
+	AND	BYTE [ES:DI+SF_ENTRY.sf_flags],~devid_device_EOF
 				; Mark as no more data available
 SETSFTC:
 	; 31/07/2019
@@ -24363,7 +24507,7 @@ ENDRDDEV:
 	JNZ	short SETSFTC 	; Zero set if Ctrl-Z found in input
 	LES	DI,[THISSFT]
 	;and	byte [es:di+5],0BFh
-	AND	BYTE [ES:DI+SF_ENTRY.sf_flags],~devid_device_EOF 
+	AND	BYTE [ES:DI+SF_ENTRY.sf_flags],~devid_device_EOF
 				; Mark as no more data available
 SETSFTC:
 	;call	SETSFT
@@ -24440,6 +24584,11 @@ GETBUF:
 
 ; 17/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 ; DOSCODE:7418h (MSDOS 5.0, MSDOS.SYS)
+
+; 07/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+; PCDOS 7.1 IBMDOS.COM - DOSCODE:7D8Fh
+
+; burada kaldým... 07/02/2024
 
 DOS_WRITE:
 	LES	DI,[THISSFT]
@@ -25550,6 +25699,7 @@ NO_HARD_ERR:
 	;mov	ax,21h
 	MOV	AX,error_lock_violation
 	STC
+RET3:		; 06/02/2024
 	retn
 
 ;----------------------------------------------------------------------------
@@ -25594,6 +25744,9 @@ WRITE_LOCK_VIOLATION:
 ; 18/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 ; DOSCODE:77D8h (MSDOS 5.0, MSDOS.SYS)
 
+; 06/02/2024 - Retro DOS v5.0
+; PCDOS 7.1 IBMDOS.COM - DOSCODE:81D5h
+
 DISKREAD:
 	;mov	ax,[es:di+11h]
 	MOV	AX,[ES:DI+SF_ENTRY.sf_size]
@@ -25621,20 +25774,28 @@ ENUF:
 
 	; MSDOS 6.0
 	call	CHECK_READ_LOCK		;IFS. check read lock	;AN000;
-	JNC	short _READ_OK 		; There are no locks
-	retn
+	;JNC	short _READ_OK 		; There are no locks
+	;retn
+	; 06/02/2024
+	jc	short RET3
 
 _READ_OK:
 	LES	BP,[THISDPB]
 	CALL	BREAKDOWN
 	MOV	CX,[CLUSNUM]
-
+	;;;
+	; 06/02/2023 (PCDOS 7.1 IBMDOS.COM)
+	mov	dx,[CLUSNUM_HW]
+	;;;
 	call	FNDCLUS
      	; MSDOS 6.0			;M022 conditional removed here
 	JC	short SET_ACC_ERR_DS	; fix to take care of I24 fail
 					; migrated from 330a - HKN
-	OR	CX,CX
-	JZ	short SKIPERR
+	;OR	CX,CX
+	;JZ	short SKIPERR
+	; 06/02/2024
+	jcxz	SKIPERR
+
 RDERR:
 	MOV	AH,0EH			;MS. read/data/fail ;AN000;
 	jmp	WRTERR22
@@ -29830,6 +29991,31 @@ dev_exit:
 ; No other registers effected
 ;
 ;---------------------------------------------------------------------------
+
+SETREAD_XJ:
+	;;;
+	; 07/02/2024 - Retro DOS v5.0
+	mov	bx,di
+	jmp	short SETREAD_X
+	;;;
+
+SETREAD_XT:
+	;;;
+	; 07/02/2024 - Retro DOS v5.0
+	mov	bx,TIMEBUF
+	push	bx
+SETREAD_XTC:
+	mov	cx,6
+	;;;
+SETREAD_X:
+	;;;
+	; 06/02/2024 - Retro DOS v5.0
+	xor	ax,ax
+	;mov	dx,ax ; 0
+	cwd
+	;;;
+
+; ------------------------------------
 
 SETREAD:
 	PUSH	DI
