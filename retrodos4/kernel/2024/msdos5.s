@@ -1,7 +1,7 @@
 ;*****************************************************************************
 ; MSDOS5.BIN (MSDOS 5.0 Kernel) - RETRO DOS v4.0 by ERDOGAN TAN - 03/11/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 04/02/2024	((Previous: 27/09/2023))
+; Last Update: 07/02/2024	((Previous: 27/09/2023))
 ; ----------------------------------------------------------------------------
 ; Beginning: 07/07/2018 (Retro DOS 3.0), 22/04/2019 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -20448,6 +20448,8 @@ do_io:
 
 	push	ds
 	mov	dx,di
+
+invoke_charhard:	; 07/02/2024
 	;invoke charhard		;invoke int 24h handler
 	call	CHARHARD
 	mov	di,dx
@@ -20479,8 +20481,12 @@ check_busy:
 	;mov	di,[es:bx+3]
 	mov	di,[es:bx+SRHEAD.REQSTAT] ;get returned status
 	test	di,STERR ; 8000h	;was there an error during read?
-	jz	short next_char		;no,read next character
+	;jz	short next_char		;no,read next character
+	; 07/02/2024
+	jnz	short invoke_charhard
 
+; 07/02/2024
+%if 0
 	;invoke	charhard		;invoke int 24h handler
 	call	CHARHARD
 	mov	di,dx			;restore di
@@ -20490,6 +20496,7 @@ check_busy:
 	jz	short devrderr		;user issued a 'fail',indicate error
 	pop	ds
 	jmp	short do_io		;user issued a retry
+%endif
 
 next_char:
 	pop	ds
@@ -20497,7 +20504,7 @@ next_char:
 	dec	cx			;decrement count
 	jcxz	done_read		;all characters read in
 	inc	word [es:bx+14]		;update transfer address
-	jmp	short do_io			;read next character in
+	jmp	short do_io		;read next character in
 
 devrderr:
 	pop	di			;discard segment address
@@ -20566,7 +20573,7 @@ endrddev1:	; 04/05/2019
 	JNZ	short SETSFTC 	; Zero set if Ctrl-Z found in input
 	LES	DI,[THISSFT]
 	;and	byte [es:di+5],0BFh
-	AND	BYTE [ES:DI+SF_ENTRY.sf_flags],~devid_device_EOF 
+	AND	BYTE [ES:DI+SF_ENTRY.sf_flags],~devid_device_EOF
 				; Mark as no more data available
 SETSFTC:
 	; 31/07/2019
@@ -20585,7 +20592,7 @@ ENDRDDEV:
 	JNZ	short SETSFTC 	; Zero set if Ctrl-Z found in input
 	LES	DI,[THISSFT]
 	;and	byte [es:di+5],0BFh
-	AND	BYTE [ES:DI+SF_ENTRY.sf_flags],~devid_device_EOF 
+	AND	BYTE [ES:DI+SF_ENTRY.sf_flags],~devid_device_EOF
 				; Mark as no more data available
 SETSFTC:
 	;call	SETSFT
@@ -21755,6 +21762,7 @@ NO_HARD_ERR:
 	;mov	ax,21h
 	MOV	AX,error_lock_violation
 	STC
+RET3:		; 06/02/2024
 	retn
 
 ;----------------------------------------------------------------------------
@@ -21826,8 +21834,10 @@ ENUF:
 
 	; MSDOS 6.0
 	call	CHECK_READ_LOCK		;IFS. check read lock	;AN000;
-	JNC	short _READ_OK 		; There are no locks
-	retn
+	;JNC	short _READ_OK 		; There are no locks
+	;retn
+	; 06/02/2024
+	jc	short RET3
 
 _READ_OK:
 	LES	BP,[THISDPB]
