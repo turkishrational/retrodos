@@ -1,7 +1,7 @@
 ;*****************************************************************************
 ; MSDOS5.BIN (MSDOS 5.0 Kernel) - RETRO DOS v4.0 by ERDOGAN TAN - 03/11/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 07/02/2024	((Previous: 27/09/2023))
+; Last Update: 10/02/2024	((Previous: 27/09/2023))
 ; ----------------------------------------------------------------------------
 ; Beginning: 07/07/2018 (Retro DOS 3.0), 22/04/2019 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -21126,7 +21126,7 @@ dirread_retn:
 ;---------------------------------------------------------------------------
 
 	; 04/05/2019 - Retro DOS v4.0
-	; 18/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)	
+	; 18/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 
 FATSECRD:
 ;hkn; SS override
@@ -21137,12 +21137,12 @@ FATSECRD:
 	MOV	CL,[ES:BP+DPB.FAT_COUNT]
 	; MSDOS 3.3
 	;;mov	al,[es:bp+0Fh]
-	;MOV	AL,[ES:BP+DPB.FAT_SIZE] 				
+	;MOV	AL,[ES:BP+DPB.FAT_SIZE]
 	;XOR	AH,AH
 	; MSDOS 6.0
 	;mov	ax,[es:bp+0Fh]
 	MOV	AX,[ES:BP+DPB.FAT_SIZE] ;>32mb
-	XOR	CH,CH	
+	XOR	CH,CH
 	PUSH	DX
 NXTFAT:
 	; MSDOS 6.0
@@ -22322,7 +22322,9 @@ bufq3:
 	;retn
 	; 18/11/2022 (MSDOS 5.0 MSDOS.SYS compability)
 	jne	short bufq
-	jmp	short bufx
+	;jmp	short bufx
+	; 09/02/2024
+	retn	; Exit
 
 ;EndProc DskRdBufScan
 
@@ -22398,7 +22400,7 @@ _WRITE_OK:
 	AND     word [ES:DI+SF_ENTRY.sf_flags],~(sf_close_nodate|devid_file_clean)
 				; Mark file as dirty, clear no date on close
 
-	; 04/05/2019 - Retro DOS v4.0	
+	; 04/05/2019 - Retro DOS v4.0
 
 	; MSDOS 6.0
 	; mov 	ax,[es:di+11h]
@@ -22530,15 +22532,15 @@ yesgrow:
 	MUL	word [ES:BP+DPB.SECTOR_SIZE]  ; Bytes of full sector growth
 	
 	; MSDOS 6.0
-	MOV	[HIGH_SECTOR],DX         ;F.C. >32mb save dx                    ;AN000;
-	MOV	[TEMP_VAR2],AX    	 ;M039; F.C. >32mb save ax		;AN000;
-	MOV	AX,DI                    ;F.C. >32mb                            ;AN000;
+	MOV	[HIGH_SECTOR],DX	;F.C. >32mb save dx		;AN000;
+	MOV	[TEMP_VAR2],AX		;M039; F.C. >32mb save ax	;AN000;
+	MOV	AX,DI			;F.C. >32mb			;AN000;
 	;mul	word [es:bp+2]
 	MUL	word [ES:BP+DPB.SECTOR_SIZE] ;F.C. >32mb do higher word multiply ;AN000;
 	
-	ADD	AX,[HIGH_SECTOR]         ;F.C. >32mb add lower value            ;AN000;
-	MOV	DX,AX                    ;F.C. >32mb DX:AX is the result of     ;AN000;
-	MOV	AX,[TEMP_VAR2]    	 ;M039; F.C. >32mb a 32 bit multiply	;AN000;
+	ADD	AX,[HIGH_SECTOR]	;F.C. >32mb add lower value	;AN000;
+	MOV	DX,AX			;F.C. >32mb DX:AX is the result of ;AN000;
+	MOV	AX,[TEMP_VAR2]		;M039; F.C. >32mb a 32 bit multiply ;AN000;
 
 	; MSDOS 3.3 (& MSDOS 6.0)
 	SUB     AX,CX			; Take off current "tail"
@@ -22566,17 +22568,17 @@ HAVSTART:
 
 	;entry   WRTERR
 WRTERR:
-	MOV     AH,0FH			;MS. write/data/fail/abort      ;AN000;
+	MOV     AH,0FH			;MS. write/data/fail/abort	;AN000;
 
 	;entry WRTERR22
 WRTERR22:
-	MOV     AL,[THISDRV]		;MS.                            ;AN000;
+	MOV     AL,[THISDRV]		;MS.				;AN000;
 
 	; 27/07/2018
 WRTERR33:
 	;MOV	CX,0			;No bytes transferred
 	XOR     CX,CX
-					
+
 	LES     DI,[THISSFT]
 	;CLC ; 19/05/2019
 	; 20/11/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
@@ -22595,7 +22597,7 @@ ACC_ERRWJ:
 	; 16/12/2022
 	jmp	SET_ACC_ERR_DS
 	; 20/11/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
-	;jmp	SET_ACC_ERRW	
+	;jmp	SET_ACC_ERRW
 
 TESTTAIL:
 	SUB     AX,DX
@@ -22739,15 +22741,15 @@ WRTLP:
 
 	; 16/12/2022
 	; MSDOS 5.0 (& MSDOS 3.3)
-	;pop     cx
-	;pop     bx
-	;push    ss
-	;pop     ds
-	;jc      short SET_ACC_ERRW
-	;jcxz    WRTLAST
-	;mov     dl, 0
-	;inc     word [LASTPOS]
-	;jmp     short WRTLP
+	;pop	cx
+	;pop	bx
+	;push	ss
+	;pop	ds
+	;jc	short SET_ACC_ERRW
+	;jcxz	WRTLAST
+	;mov	dl,0
+	;inc	word [LASTPOS]
+	;jmp	short WRTLP
 
 	; 16/12/2022
 	; 20/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
@@ -22813,8 +22815,9 @@ DWRITE_OKAY:
 
 	JCXZ    WRTLAST
 
-	;MOV	DL,0
-	xor	dl,dl ; 23/07/2019
+	; 10/02/2024
+	MOV	DL,0
+	;xor	dl,dl ; 23/07/2019
 	INC     word [LASTPOS]	; We'll be using next cluster
 	JMP     short WRTLP
 
@@ -22942,21 +22945,21 @@ UPDATE:
 
 RELFILE:
 	; MSDOS 6.0
-	PUSH    ES                    ;AN002; BL Reset Lstclus and cluspos to
-	LES     DI,[THISSFT]          ;AN002; BL beginning of file if current
+	PUSH	ES			;AN002; BL Reset Lstclus and cluspos to
+	LES	DI,[THISSFT]		;AN002; BL beginning of file if current
 	;cmp	dx,[es:di+19h]
-	CMP     DX,[ES:DI+SF_ENTRY.sf_cluspos]	;AN002; BL cluspos is past EOF.
-	JAE	short SKIPRESET	      		;AN002; BL
+	CMP	DX,[ES:DI+SF_ENTRY.sf_cluspos]	;AN002; BL cluspos is past EOF.
+	JAE	short SKIPRESET			;AN002; BL
 	;mov	[es:di+19h],0
-	MOV     word [ES:DI+SF_ENTRY.sf_cluspos],0 ;AN002; BL
+	MOV	word [ES:DI+SF_ENTRY.sf_cluspos],0 ;AN002; BL
 	;mov	dx,[es:di+0Bh]
-	MOV     DX,[ES:DI+SF_ENTRY.sf_firclus]	;AN002; BL
+	MOV	DX,[ES:DI+SF_ENTRY.sf_firclus]	;AN002; BL
 	;mov	[es:di+35h],dx
-	MOV     [ES:DI+SF_ENTRY.sf_lstclus],DX	;AN002; BL
-SKIPRESET:                            		;AN002; BL
-	POP     ES                    		;AN002; BL
+	MOV	[ES:DI+SF_ENTRY.sf_lstclus],DX	;AN002; BL
+SKIPRESET:					;AN002; BL
+	POP	ES                    		;AN002; BL
 ;
-	MOV     DX,0FFFFH
+	MOV	DX,0FFFFH
 	call	RELBLKS
 	; 16/12/2022
 	; 20/11/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
@@ -22971,15 +22974,15 @@ SET_ACC_ERRWJ:
 	;JMP	SHORT UPDATE
 
 KILLFIL:
-	XOR     BX,BX
-	PUSH    ES
-	LES     DI,[THISSFT]
+	XOR	BX,BX
+	PUSH	ES
+	LES	DI,[THISSFT]
 	;mov	[es:di+19h],bx
 	MOV	[ES:DI+SF_ENTRY.sf_cluspos],BX
 	;mov	[es:di+35h],bx ; 04/05/2019
 	MOV	[ES:DI+SF_ENTRY.sf_lstclus],BX
 	;xchg	bx,[es:di+0Bh]
-	XCHG    BX,[ES:DI+SF_ENTRY.sf_firclus]
+	XCHG	BX,[ES:DI+SF_ENTRY.sf_firclus]
 	POP	ES
 
 	OR	BX,BX
@@ -22990,19 +22993,19 @@ KILLFIL:
 	;jz	short UPDATEJ
 
 ;; 10/23/86 FastOpen update
-	PUSH	ES              ; since first cluster # is 0
-	PUSH	BP              ; we must delete the old cache entry
+	PUSH	ES			; since first cluster # is 0
+	PUSH	BP			; we must delete the old cache entry
 	PUSH	AX
 	PUSH	CX
 	PUSH	DX
-	LES	BP,[THISDPB]             ; get current DPB
+	LES	BP,[THISDPB]		; get current DPB
 	; 15/12/2022
 	mov	dl,[ES:BP] ; mov dl,[es:bp+0]
 	; 20/11/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
 	;MOV	DL,[ES:BP+DPB.DRIVE]	; get current drive
-	MOV	CX,BX                    ; first cluster #
-	MOV	AH,2                     ; delete cache entry by drive:firclus
-	call	FastOpen_Update          ; call fastopen
+	MOV	CX,BX			; first cluster #
+	MOV	AH,2			; delete cache entry by drive:firclus
+	call	FastOpen_Update		; call fastopen
 	POP	DX
 	POP	CX
 	POP	AX
@@ -23090,7 +23093,7 @@ DskWrtBufPurge:
 	jne	short sc01
 	cmp	cx,ax
 sc01: 
-	jbe	short sc5	
+	jbe	short sc5
 
 	add	ax,[ss:SC_CACHE_COUNT]
 	adc	di,0                    ;DI:AX = SC end + 1.
@@ -23253,7 +23256,7 @@ norota:
 ; DIR.ASM, MSDOS 6.0, 1991
 ;============================================================================
 ; 27/07/2018 - Retro DOS v3.0
-; 19/05/2019 - Retro DOS v4.0 
+; 19/05/2019 - Retro DOS v4.0
 
 ;	TITLE	DIR - Directory and path cracking
 ;	NAME	Dir
