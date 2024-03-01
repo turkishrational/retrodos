@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; IBMBIO7.S (PCDOS 7.1 IBMBIO.COM) - RETRO DOS 5.0 by ERDOGAN TAN - 12/09/2023
 ; ----------------------------------------------------------------------------
-; Last Update: 01/01/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
+; Last Update: 21/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0), 01/10/2022 (Retro DOS 4.2)
 ; ----------------------------------------------------------------------------
@@ -15997,7 +15997,7 @@ ioctl_input_5:
 
 IoReadJumpTable: db 8	; ((IoWriteJumpTable-IoReadJumpTable)-1)/2
 		dw 0CA7h	; 60h	; GetDeviceParameters
-		dw 0EE8h	; 61h	;gh ReadTrack
+		dw 0EE8h	; 61h	; ReadTrack
 		dw 0E86h	; 62h	; VerifyTrack
 		dw 0CA3h	 	; Cmd_Error_Proc
 		dw 0CA3h		; Cmd_Error_Proc
@@ -20790,8 +20790,12 @@ section .SYSINIT vstart=0
 ;MINOR_VERSION   EQU	0
 
 ; 01/01/2023 - Retro DOS v4.2 (Modified MSDOS 6.21)
-MAJOR_VERSION   EQU	6
-MINOR_VERSION   EQU	22
+;MAJOR_VERSION   EQU	6
+;MINOR_VERSION   EQU	22
+
+; 21/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
+MAJOR_VERSION   EQU	7
+MINOR_VERSION   EQU	10
 
 expected_version equ	(MINOR_VERSION<<8)+MAJOR_VERSION
 
@@ -20868,7 +20872,9 @@ DRDNDHL EQU     14              ;Size of non destructive read header
 DEVIST  EQU     6               ;Input status
 DSTATHL EQU     13              ;Size of status header
 DEVIFL  EQU     7               ;Input flush
-DFLSHL  EQU     15              ;Size of flush header
+; 21/02/2024
+;DFLSHL EQU     15              ;Size of flush header
+DFLSHL	equ	13	; PCDOS 7.1 IBMDOS.COM  ; 21/02/2024
 DEVWRT  EQU     8               ;Write
 DEVWRTV EQU     9               ;Write with verify
 DEVOST  EQU     10              ;Output status
