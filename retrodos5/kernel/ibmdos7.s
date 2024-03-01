@@ -1,7 +1,7 @@
 ;*****************************************************************************
 ; IBMDOS7.S (PCDOS 7.1 Kernel) - RETRO DOS v5.0 by ERDOGAN TAN - 01/01/2024
 ; ----------------------------------------------------------------------------
-; Last Update: 10/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
+; Last Update: 29/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
 ; ----------------------------------------------------------------------------
 ; Beginning: 22/04/2019 (Retro DOS 4.0), 03/11/2022 (Retro DOS 4.2)
 ; ----------------------------------------------------------------------------
@@ -1905,6 +1905,7 @@ endstruc
 ;============================================================================
 ; 07/07/2018 - Retro DOS v3.0
 ; 30/04/2019 - Retro DOS v4.0 (DEVSYM.INC, MSDOS 6.0, 1991)
+; 21/02/2024 - Retro DOS v5.0
 
 ;**	DevSym.inc - Device Symbols
 
@@ -2031,7 +2032,9 @@ DBPBHL  EQU     22              ;Size of Get BPB header
 DRDWRHL EQU     22              ;Size of RD/WR header
 DRDNDHL EQU     14              ;Size of non destructive read header
 DSTATHL EQU     13              ;Size of status header
-DFLSHL  EQU     15              ;Size of flush header
+; 21/02/2024
+;DFLSHL EQU     15              ;Size of flush header
+DFLSHL	equ	13	; PCDOS 7.1 IBMDOS.COM  ; 21/02/2024
 
 DEVINIT EQU     0               ;Initialization
 DEVMDCH EQU     1               ;Media check
@@ -2963,12 +2966,14 @@ FCBMASK     EQU 0C0h
 ;============================================================================
 ; 11/07/2018 - Retro DOS v3.0
 ; 25/04/2019 - Retro DOS v4.0
+; 21/02/2024 - Retro DOS v5.0
 
 struc FEI	; FASTOPEN_EXTENDED_INFO
 .dirpos:	resb 1
 .dirsec:	resd 1 ; MSDOS 6.0
 ;.dirsec:	resw 1 ; MSDOS 3.3
 .clusnum:	resw 1
+		resw 1 ; PCDOS 7.1 ; 21/02/2024
 .lastent:	resw 1	; for search first ; MSDOS 6.0
 .dirstart:	resw 1	; for search first ; MSDOS 6.0
 .size:
@@ -5360,6 +5365,7 @@ FAT32_ABSDWRT:	; ah=1 si=1 cf=0 (jump from '_$FAT32EXT')
 	jnz	short absdwrt_1		; locked (logical drive) -allowed to abs write-
 					; NOTE: lock/unlock are MSDOS/PCDOS 7 extd functions
 	test	byte [DOS_FLAG],40h	; test bit 6 (large disk support -windows- bit?)
+					; (Windows OS running bit ?) ; 23/02/2024
 					; NOTE: Retro DOS v5 kernel must set this bit.
 absdwrt_1:
 	pop     ds
@@ -27807,15 +27813,16 @@ SEARCH:
 	; DOSCODE:7C90h (MSDOS 5.0, MSDOS.SYS)
 
 	; 19/05/2019 - Retro DOS v4.0
-	; DOSCODE:7CCA (MSDOS 6.21, MSDOS.SYS)
+	; DOSCODE:7CCAh (MSDOS 6.21, MSDOS.SYS)
 
 	; 27/07/2018 - Retro DOS v3.0
 	; IBMDOS.COM (MSDOS 3.3) - Offset 45B3h
 	; 15/03/2018 - Retro DOS v2.0
 
-	; burada kaldým ... 11/02/2024
-
 	; 24/01/2024
+
+	; 13/02/2024 - Retro DOS v5.0
+	; DOSCODE:8797h (PCDOS 7.1, IBMDOS.COM)
 
 	;entry	FindEntry
 FINDENTRY:
@@ -27836,6 +27843,12 @@ NOTVOLSRCH:
 
 	;entry	Srch
 SRCH:
+	;;;
+	; 13/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	mov     word [LNE_COUNT],0	; reset long name entry count
+SRCH2:
+	;;;
+
 	PUSH	DS
 	MOV	DS,[CURBUF+2]
 
@@ -27845,6 +27858,15 @@ SRCH:
 	;MOV	AH,[BX+dir_entry.dir_name] ; mov ah,[bx+0]
 	OR	AH,AH			; End of directory?
 	JZ	short FREE
+
+	;;;
+	; 13/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	push	ax
+	mov	al,[bx+0Bh]		; [BX+dir_entry.dir_attr]
+	call	check_longname
+	pop	ax
+	jz	short NEXTENT2
+	;;;
 
 ;hkn; SS override
 	CMP	AH,[SS:DELALL]		; Free entry?
@@ -27890,7 +27912,30 @@ NEXTENT:
 SETESRET:
 	PUSH	SS
 	POP	ES
+
+	;;;
+	; 13/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	push	word [ENTLAST]
+	pop	word [ENTLAST_PREV]	; previous ENTLAST
+	jnc	short SETESRETN
+	mov	word [LNE_COUNT],0	; reset long name entry count
+SETESRETN:
+	;;;
+
 	retn
+
+	;;;
+	; 13/02/2024 (PCDOS 7.1 IBMDOS.COM)
+NEXTENT2:
+	pop	ds
+	inc	word [LNE_COUNT]	; Long Name entry count
+NEXTENT3:
+	les	bp,[THISDPB]
+	call	NEXTENTRY
+	jnc	short SRCH2
+	jmp	short SETESRET
+	;;;
+
 FREE:
 	POP	DS
 	MOV	CX,[LASTENT]
@@ -27900,7 +27945,11 @@ FREE:
 TSTALL:
 	CMP	AH,[DELALL]		; At end of directory?
 NEXTENTJ:
-	je	short NEXTENT 		; No - continue search
+	;je	short NEXTENT 		; No - continue search
+	;;;
+	; 13/02/2024
+	je	short NEXTENT3		; No - continue search
+	;;;
 	MOV	[ENTLAST],CX
 	STC
 	JMP	SHORT SETESRET
@@ -28012,6 +28061,9 @@ NEXTENTRY:
 	; IBMDOS.COM (MSDOS 3.3) - Offset 4671h 
 	; 15/03/2018 - Retro DOS v2.0
 
+	; 14/02/2024 - Retro DOS v5.0
+	; DOSCODE:8884h (PCDOS 7.1, IBMDOS.COM)
+
 	MOV	AX,[LASTENT]
 	CMP	AX,[ENTLAST]
 	JZ	short NONE
@@ -28023,13 +28075,42 @@ NEXTENTRY:
 	;JB	short HAVIT ; MSDOS 6.0 src (dir.asm)
 	; 16/12/2022
 	jne	short HAVIT ; MSDOS 6.21 (DOSCODE:7D97h)
+
+	;;;
+	; 14/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	cmp	word [DIRSTART],0
+	jnz	short nextentry_cont
+	cmp	word [DIRSTART_HW],0
+	jnz	short nextentry_cont
+	;cmp	ax,[es:bp+9]
+	cmp	ax,[es:bp+DPB.ROOT_ENTRIES] ; Number of root dir entries
+	;jnb	short NONE
+	;jmp	short GETENT
+	jb	short GETENT
+NONE:		; 14/02/2024
+	stc
+	retn
+	
+nextentry_cont:
+	;;;
+
 	MOV	BL,[SECCLUSPOS]
 	INC	BL
 	CMP	BL,[CLUSFAC]
 	JB	short SAMECLUS
+	;;;
+	; 14/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	mov	bx,[NXTCLUSNUM_HW]
+	mov	[CLUSTNUM_HW],bx
+	;;;
 	MOV	BX,[NXTCLUSNUM]
 	call	IsEOF
 	JAE	short NONE
+	;;;
+	; 14/02/2024
+	cmp	word [CLUSTNUM_HW],0
+	jnz	short GETENT
+	;;;
 	; 23/07/2019
 	CMP	BX,2
 	;JB	short NONE
@@ -28039,14 +28120,16 @@ NEXTENTRY:
 	; 21/11/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
 	;JB	short NONE
 	;JMP	short GETENT
-NONE:
-	STC
+	; 14/02/2024 - Retro DOS v5.0
+;NONE:
+	;STC
 	retn
 HAVIT:
 	MOV	[LASTENT],AX
 	CLC
 nextentry_retn:
 	retn
+
 SAMECLUS:
 	MOV	[SECCLUSPOS],BL
 	MOV	[LASTENT],AX
@@ -28059,11 +28142,15 @@ SAMECLUS:
 	;MOV	DX,[DI+BUFFINFO.buf_sector+2]	;AN000; >32mb
 ;hkn; SS override
 	;MOV	[SS:HIGH_SECTOR],DX 		;AN000; >32mb
+
+; 14/02/2024
+%if 0
 	; 23/09/2023
-	mov	si,[di+BUFFINFO.buf_sector+2]	
+	mov	si,[di+BUFFINFO.buf_sector+2]
 	
 	;mov	dx,[di+6]
 	MOV	DX,[DI+BUFFINFO.buf_sector]	;AN000; >32mb
+
 	;inc	dx ; MSDOS 3.3
 	; MSDOS 6.0
 	;ADD	DX,1				;AN000; >32mb
@@ -28078,6 +28165,18 @@ nextexntry_fc:
 	mov	[SS:HIGH_SECTOR],si
 	; MSDOS 3.3 & MSDOS 6.0
 	POP	DS
+%else
+	; 14/02/2024 - Retro DOS v5.0
+	lds	dx,[di+BUFFINFO.buf_sector]
+	mov	si,ds
+	pop	ds
+	inc	dx
+	jnz	short nextexntry_fc
+	inc	si
+nextexntry_fc:
+	mov	[HIGH_SECTOR],si
+%endif
+
 	call	FIRSTCLUSTER
 	XOR	BX,BX
 	JMP	short SETENTRY
@@ -28134,16 +28233,22 @@ GETENT:
 	and	bl,0E0h
 	;AND	BL,255-31		; Must be multiple of 32
 	DIV	BX
-	MOV	BX,DX			; Position within sector
-	PUSH	BX
+	; 14/02/2024
+	;MOV	BX,DX			; Position within sector
+				; NOTE: This BX value is not used in DIRREAD
+				; Erdogan Tan - 14/02/2024
+	;PUSH	BX
+	push	dx
+	;
 	call	DIRREAD
 	POP	BX
 	;retc
-	jc	short nextentry_retn	
+	jc	short nextentry_retn
 SETENTRY:
 	MOV	DX,[CURBUF]
-	;add	dx,16 ; MSDOS 3.3
-	;add	dx,20 ; MSDOS 6.0 
+	;;;add	dx,16 ; MSDOS 3.3
+	;;add	dx,20 ; MSDOS 6.0 
+	;add	dx,24 ; PCDOS 7.1 ; 14/02/2024	
 	ADD	DX,BUFINSIZ
 	ADD	BX,DX
 	;add	dx,[es:bp+2]
@@ -28281,7 +28386,7 @@ SETROOTSRCH:
 %else
 	;;;
 	; 23/01/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
-	; PCDOS 7.1 IBMDOS.COM - 8A27h
+	; PCDOS 7.1 IBMDOS.COM - 89C3h
 	;;;
 SETDIRSRCH:
 	mov	ax,[ROOTCLUST_HW]
@@ -28502,7 +28607,35 @@ set_setfcbe_4:
 ; 24/01/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
 ; PCDOS 7.1 IBMDOS.COM - DOSCODE:8AECh
 
+	; 14/02/2024
 find_sft_entry_number:
+	push	es		; es:di = SFT entry
+	xor	cx,cx
+	mov	dx,es
+	mov	es,[cs:DosDSeg]
+	les	bx,[es:SFT_ADDR] ; address of the first SFT
+f_sfte_1:
+	mov	ax,es
+	cmp	ax,dx		; same SFT segment ?
+	jne	short f_sfte_2	; no
+	mov	ax,di
+	sub	ax,bx		; ax = entry offset
+	;sub	ax,6		; ax = offset from start of the SFT table
+	sub	ax,SFT.SFTable
+	;mov	bx,59
+	mov	bx,SF_ENTRY.size ; (SFT entry size)
+	xor	dx,dx
+	div	bx		; ax = SFT entry index in the table
+	add	ax,cx		; ax = SFT index number (for requested SFT entry)
+	pop	es
+	retn
+f_sfte_2:
+	add	cx,[es:bx+4]	; SFT.SFCount ; number of entries in the table
+	les	bx,[es:bx]	; SFT.SFLink
+	cmp	bx,0FFFFh ; -1	; the last SFT
+	jnz	short f_sfte_1
+	stc			; (not found)
+	pop	es
 	retn
 
 ;----------------------------------------------------------------------------
@@ -28510,7 +28643,50 @@ find_sft_entry_number:
 ; 24/01/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
 ; PCDOS 7.1 IBMDOS.COM - DOSCODE:8B22h
 
-int_2Fh_1230h:
+	; 14/02/2024
+int_2Fh_1230h:		; Windows95 - FIND SFT ENTRY IN INTERNAL FILE TABLES
+	call	find_sft_entry_number
+	jc	short find_sfte_i_error
+	push	es	; ax = SFT enty index number (of the requested SFT entry)
+	push	di
+	push	cs
+	pop	es
+	mov	cx,20		; statically allocated with 20 entries,
+				; and used only for FCB calls
+	mov	di,sft_fcb_table ; new file system (internal) table
+				;  only for fcb calls
+scan_next_sftfcb:
+	repne scasb
+	stc
+	jnz	short sfte_i_notfound ; not found (cf=1)
+	lea	bx,[di-1]	; offset of the entry in the table
+	sub	bx,sft_fcb_table ; index into new file system table
+	mov	dx,bx
+	add	bx,bx		; 2*bx
+	add	bx,dx		; 3*bx
+	add	bx,bx		; bx = 6*bx  ; entry size = 6 bytes
+	mov	si,[es:bx+sftfcb.cluster+2] ; dir start cluster number, hw
+	mov	dx,[es:bx+sftfcb.direntry] ; directory entry number
+	push	cx
+	mov	cx,[es:bx+sftfcb.cluster] ; dir start cluster number, lw
+	or	cx,cx
+	jnz	short sfte_i_found
+	or	si,si
+	jnz	short sfte_i_found
+	pop	cx
+	or	cx,cx
+	jnz	short scan_next_sftfcb
+	stc			; not found (cf=1)
+	jmp	short sfte_i_notfound
+
+sfte_i_found:
+	pop	ax		; clear stack
+	clc			; found (cf=0)
+sfte_i_notfound:
+	pop	di
+	pop	es
+find_sfte_i_error:
+	mov	ax,0
 	retn
 
 ;----------------------------------------------------------------------------
@@ -28518,7 +28694,39 @@ int_2Fh_1230h:
 ; 24/01/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
 ; PCDOS 7.1 IBMDOS.COM - DOSCODE:8B6Dh
 
+	; 14/02/2024
 SFT_FREE:
+	push	ax
+	push	cx
+	push	dx
+	push	bx
+	;push	bp	; 14/02/2024 - Retro DOS v5.0
+	push	si
+	;push	di
+	mov     word [es:di],0 ; [ES:DI+SF_ENTRY.sf_ref_Count]
+	call    int_2Fh_1230h
+	jc      short sftf_1
+	mov	word [cs:bx+sftfcb.cluster+2],0 ; clear directory start cluster
+						;  in the new (sftfcb) table
+	mov	word [cs:bx+sftfcb.cluster],0	; ((empty entry))
+sftf_1:
+	;pop	di
+	pop	si
+	;pop	bp
+	pop	bx
+	pop	dx
+	pop	cx
+	pop	ax
+	retn
+
+; =============== S U B R O U T I N E =======================================
+
+; 13/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+; PCDOS 7.1 IBMDOS.COM - DOSCODE:8B94h
+
+check_longname:
+	and     al,0Fh
+	cmp     al,0Fh
 	retn
 
 ;----------------------------------------------------------------------------
@@ -28527,7 +28735,8 @@ SFT_FREE:
 ; DIR2.ASM, MSDOS 6.0, 1991
 ;============================================================================
 ; 27/07/2018 - Retro DOS v3.0
-; 19/05/2019 - Retro DOS v4.0 
+; 19/05/2019 - Retro DOS v4.0
+; 14/02/2024 - Retro DOS v5.0
 
 ;	TITLE	DIR2 - Directory and path cracking
 ;	NAME	Dir2
@@ -28596,6 +28805,10 @@ SFT_FREE:
 ;hkn; DS already set up at this point.
 
 	; 21/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
+
+	; 15/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+	; PCDOS 7.1 IBMDOS.COM - DOSCODE:8B99h
+
 GETPATH:
 	;mov	word [CREATING],0E500h
 	MOV	WORD [CREATING],DIRFREE*256+0 ; Not Creating, not DEL *.*
@@ -28604,8 +28817,11 @@ GETPATH:
 
 	;entry	GetPathNoSet
 GetPathNoSet:
-	;mov	byte [EXTERR_LOCUS],2	
-	MOV	byte [EXTERR_LOCUS],errLOC_Disk
+	;;mov	byte [EXTERR_LOCUS],2
+	;MOV	byte [EXTERR_LOCUS],errLOC_Disk
+	; 15/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	call	set_exerr_locus_disk
+	;
 	MOV	word [CURBUF],-1	; initial setting
 
 ; See if the input indicates a device that has already been detected. If so,
@@ -28631,12 +28847,16 @@ GetPathNoSet:
 Build_devJ:
 	MOV	AL,[SATTRIB]
 	MOV	[ATTRIB],AL
-	;mov	byte [EXTERR_LOCUS],1
-	MOV	byte [EXTERR_LOCUS],errLOC_Unk ; In the particular case of
+	; 15/02/2024
+	;;mov	byte [EXTERR_LOCUS],1
+	;MOV	byte [EXTERR_LOCUS],errLOC_Unk ; In the particular case of
 					; "finding" a char device
 					; set LOCUS to Unknown. This makes
 					; certain idiotic problems reported
 					; by a certain 3 letter OEM go away.
+	; 15/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	call	set_exerr_locus_unk
+
 
 ; Take name in name1 and pack it back into where wfp_start points. This
 ; guarantees wfp_start pointing to a canonical representation of a device.
@@ -28669,28 +28889,39 @@ NoSave:
 ; at this point.
 
 	mov	di,dx
-	mov	byte [di],0		; end of string
+	;mov	byte [di],0		; end of string
+	; 15/02/2024
+	mov	[di],cl ; 0
 	call	Build_device_ent	; Clears carry sets zero
 	INC	AL			; reset zero
 	retn
 
 InternalError:
 InternalError_loop:
-	JMP	short InternalError_loop	; freeze
+	JMP	short InternalError_loop ; freeze
 
 ; Start off at the correct spot. Optimize if the current dir part is valid.
 
 CrackIt:
+; 15/02/2024
+%if 0
 	MOV	SI,[CURR_DIR_END]	; get current directory pointer
 	CMP	SI,-1			; valid?
 	JNZ	short LOOK_SING		; Yes, use it.
 	LEA	SI,[DI+3]		; skip D:\.
 LOOK_SING:
+%endif
 	;mov	byte [ATTRIB],16h
 	MOV	byte [ATTRIB],attr_directory+attr_system+attr_hidden
 					; Attributes to search through Dirs
 	LES	DI,[THISCDS]
-	MOV	AX,-1
+	MOV	AX,-1 ; 0FFFFh
+	;;;
+	; 15/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	;mov	bx,[es:di+4Bh]
+	mov	bx,[es:di+curdir.ID+2]
+	mov	[ROOTCLUST_HW],bx
+	;;;
 	;mov	bx,[es:di+73]
 	MOV	BX,[ES:DI+curdir.ID]
 	MOV	SI,[CURR_DIR_END]
@@ -28703,10 +28934,18 @@ LOOK_SING:
 
 	CMP	SI,AX			; if Current directory is not part
 	JZ	short NO_CURR_D		; then we must crack from root
+	;;;
+	; 15/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	cmp	[ROOTCLUST_HW],ax ; 0FFFFh
+	jnz	short CrackIt2
+	;;;
 	CMP	BX,AX			; is the current directory cluster valid
 
 ; DOS 3.3  6/25/86
-	JZ	short NO_CURR_D		; no, crack form the root
+	JZ	short NO_CURR_D		; no, crack from the root
+
+CrackIt2:	; 15/02/2024 - Retro DOS v5.0
+
 	;test	byte [FastOpenFlg],1
 	TEST	byte [FastOpenFlg],FastOpen_Set ; for fastopen ?
 	JZ	short GOT_SEARCH_CLUSTER	; no
@@ -28716,7 +28955,9 @@ LOOK_SING:
 	PUSH	word [SI-1]		; save \ and 1st char of next element
 	PUSH	SI
 	PUSH	BX
-
+	;;; 15/02/2024
+	push	word [ROOTCLUST_HW]
+	;;;
 	MOV	BYTE [SI-1],0		; call fastopen to look up cur dir info
 	MOV	SI,[WFP_START]
 
@@ -28749,6 +28990,9 @@ GO_Chk_end1:	; 29/12/2022
 	;clc
 
 GO_Chk_end:				; restore registers
+	;;; 15/02/2024
+	pop	word [ROOTCLUST_HW]
+	;;;
 	POP	BX
 	POP	SI
 	POP	word [SI-1]
@@ -28764,7 +29008,9 @@ GO_Chk_end:				; restore registers
 
 NO_CURR_D:
 	MOV	SI,[WFP_START]
-	LEA	SI,[SI+3]		; Skip "d:/"
+	;LEA	SI,[SI+3]		; Skip "d:/"
+	; 15/02/2024
+	add	si,3
 	LES	BP,[THISDPB]		; Get ES:BP
 	JMP	short ROOTPATH
 
@@ -28852,6 +29098,12 @@ TESTDEVICE:
 	; 21/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 	; DOSCODE:7F47h (MSDOS 5.0, MSDOS.SYS)
 
+	; 15/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+	; PCDOS 7.1 IBMDOS.COM - DOSCODE:8C9Dh
+
+	; (MSDOS 6.22 MSDOS.SYS - DOSCODE:7F82h)
+	; (Windows ME IO.SYS - BIOSCODE:829Eh)
+
 ROOTPATH:
 	call	SETROOTSRCH
 	; 24/09/2023
@@ -28859,6 +29111,12 @@ ROOTPATH:
 	;CMP	BYTE [SI],0
 	cmp	[si],ah ; 0
 	JNZ	short FINDPATH
+
+	;;;
+	;; 15/02/2024
+	; Windows ME IO.SYS - BIOSCODE:82A6h
+	;mov	word [CURBUF],0FFFFh
+	;;;
 
 ; Root dir specified
 	MOV	AL,[SATTRIB]
@@ -28928,6 +29186,9 @@ ROOTPATH:
 	; 21/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 	; DOSCODE:7F58h (MSDOS 5.0, MSDOS.SYS)
 
+	; 15/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+	; PCDOS 7.1 IBMDOS.COM - DOSCODE:8CAEh
+
     	;entry	FINDPATH
 FINDPATH:
 	PUSH	ES			; Save ES:BP
@@ -28939,8 +29200,14 @@ FINDPATH:
 	CMP	DI,[CURR_DIR_END]
 	JNZ	short NOIDS		; Not to current dir end yet
 	LES	DI,[THISCDS]
+	;;;
+	; 15/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	mov	ax,[DIRSTART_HW]
+	;mov	[es:di+4Bh],ax
+	mov	[es:di+curdir.ID+2],ax
+	;;;
 	;mov	[es:di+73],cx
-	MOV	[ES:DI+curdir.ID],CX	; Set current directory currency
+	MOV	[ES:DI+curdir.ID],CX	; Set current directory cluster
 NOIDS:
 
 ; Parse the name off of DS:SI into NAME1. AL = 1 if there was a meta
@@ -28953,8 +29220,11 @@ NOIDS:
 ; TransPath so no special casing needs to be done. All we do is try to copy
 ; the name until ., \ or 0 is hit.
 
-	MOV	AX,SS
-	MOV	ES,AX
+	;MOV	AX,SS
+	;MOV	ES,AX
+	; 15/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	push	ss
+	pop	es
 
 ;hkn; Name1 is in DOSDATA
 	MOV	DI,NAME1
@@ -29016,9 +29286,10 @@ _GetDone:
 check_device:
 	PUSH	SI			; Start of next element
 	;MOV	AL,[SI]
-	;OR	AL,AL
+	; 15/02/2024
+	OR	AL,AL
 	; 23/09/2023
-	cmp	byte [si],0
+	;cmp	byte [si],0
 	JNZ	short NOT_LAST
 
 ; for last element of the path switch to the correct search attributes
@@ -29114,7 +29385,17 @@ NEXT_ONE:
 	MOV	DI,DX
 	MOV	DS,CX			; Get back pointer to entry
 SetDir:
-	MOV	DX,[SI] 		; Dir_first
+	;;;
+	; 15/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	xor	dx,dx ; 0
+	;cmp	[es:bp+0Fh],dx
+	cmp	[es:bp+DPB.FAT_SIZE],dx ; 0
+	jnz     short SetDir2 ; not FAT32
+	mov     dx,[si-6]		; dir_entry.dir_fclus_hi
+SetDir2:
+	mov	[ss:ROOTCLUST_HW],dx
+	;;;
+	MOV	DX,[SI] 		; dir_entry.dir_first
 
 ;DOS 3.3 FastOPen 6/12/86 F.C.
 	PUSH	DS		      ; save [curbuf+2]
@@ -29146,12 +29427,23 @@ DO_NORMAL:
 	PUSH	AX
 	PUSH	SI
 	PUSH	CX
+
+; 15/02/2024
+%if 0
 	;push	word [di+6]
 	PUSH	WORD [DI+BUFFINFO.buf_sector]	;AN000;>32mb
 	; 19/05/2019
 	; MSDOS 6.0
 	;push	word [di+8]
 	PUSH	WORD [DI+BUFFINFO.buf_sector+2]	;AN000;>32mb
+%else	
+	; 15/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	;lds	bx,[di+6]
+	lds	bx,[di+BUFFINFO.buf_sector]
+	push	bx
+	push	ds
+%endif
+
 	MOV	BX,DX
 
 ;hkn; SS is DOSDATA
@@ -29312,6 +29604,12 @@ MatchAttributes:
 
 ; 21/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 ; DOSCODE:810Dh (MSDOS 5.0, MSDOS.SYS)
+
+; 16/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+; DOSCODE:8E74h (PCDOS 7.1, IBMDOS.COM)
+
+; (MSDOS 6.22 MSDOS.SYS - DOSCODE:8148h)
+; (Windows ME IO.SYS - BIOSCODE:843Ch)
 
 ;Break <DevName - Look for name of device>
 ;---------------------------------------------------------------------------
@@ -29497,6 +29795,12 @@ Build_device_ent:
 	; 21/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 	; DOSCODE:819Bh (MSDOS 5.0, MSDOS.SYS)
 
+	; 16/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+	; DOSCODE:8F01h (PCDOS 7.1, IBMDOS.COM)
+
+	; (MSDOS 6.22 MSDOS.SYS - DOSCODE:81D6h)
+	; (Windows ME IO.SYS - BIOSCODE:84CBh)
+
 ValidateCDS:
 	; 19/05/2019 - Retro DOS v4.0
 	; 28/07/2018 - Retro DOS v3.0
@@ -29562,6 +29866,14 @@ _DoSplice:
 	JC	short FatFail
 
 	LDS	SI,[THISCDS]		;   if (ThisCDS->ID == -1) {
+
+	;;;
+	; 16/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	;cmp	word [si+4Bh],0FFFFh
+	cmp	word [si+curdir.ID+2],-1
+	jnz	short RestoreCDS
+	;;;
+	
 	;cmp	word [si+73],-1
 	CMP	word [SI+curdir.ID],-1
 	JNZ	short RestoreCDS
@@ -29599,6 +29911,10 @@ DoChdir:
 	pop	bx
 	pop	word [WFP_START]
 	MOV	[SATTRIB],BL
+	;;;
+	; 16/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	mov	di,[DIRSTART_HW]
+	;;;
 	LDS	SI,SaveCDS
 	JNC	short SetCluster	;	if (c == -1) {
 
@@ -29606,10 +29922,16 @@ DoChdir:
 	MOV	[SS:THISCDS],SI		;	    ThisCDS = TmpCDS;
 	MOV	[SS:THISCDS+2],DS
 	XOR	CX,CX			;	    TmpCDS->text[3] = c = 0;
+	;;;
+	; 16/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	xor	di,di
+	;;;
 	MOV	[SI+3],CL		;	    }
 SetCluster:
-	;mov	word [si+73],0FFFFh
-	MOV	word [SI+curdir.ID],-1	;	TmpCDS->ID = -1;
+	; 16/02/2024
+	;;mov	word [si+73],0FFFFh
+	;MOV	word [SI+curdir.ID],-1	;	TmpCDS->ID = -1;
+	;
 	LDS	SI,[SS:THISCDS]		;	ThisCDS->ID = c;
 	; 21/11/2022
 	;test	byte [si+curdir.flags+1],20h
@@ -29621,8 +29943,18 @@ SetCluster:
 	;;test	word [si+67],2000h
 	;TEST	word [SI+curdir.flags],curdir_splice ;AN000;;MS. for Join and Subst
 	JZ	short _setdirclus		     ;AN000;;MS.
-	MOV	CX,-1				     ;AN000;;MS.
+	MOV	CX,-1	; 0FFFFh		     ;AN000;;MS.
+	;;;
+	; 16/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	mov	di,cx
+	;;;
 _setdirclus:
+	;;;
+	; 16/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	mov	[ss:DIRSTART_HW],di
+	;mov	[si+4Bh],di
+	mov	[si+curdir.ID+2],di
+	;;;
 	;mov	[si+73],cx
 	MOV	[SI+curdir.ID],CX	;	}
 RestoreCDS:
@@ -29759,6 +30091,11 @@ NotDevice:
 ;
 ;----------------------------------------------------------------------------
 
+	; 21/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+	; PCDOS 7.1 IBMDOS.COM - DOSCODE:9015h
+	
+	; (MSDOS 6.22 MSDOS.SYS - DOSCODE:82D9h)
+
 LookupPath:
 ;	PUSH	AX
 
@@ -29768,6 +30105,19 @@ LookupPath:
 	JNZ	short FASTINST			    ; and this routine is
 NOLOOK:
 	JMP	NOLOOKUP			    ; executed once
+
+	; 21/02/2024
+NOTFOUND:
+	CMP	AX,-1				    ; not in memory ?
+	JNZ	short Partial_Success 		    ; yes, in memory
+	MOV	byte [SS:FastOpenFlg],0		    ; no more fastopen
+Partial_Success:
+	;and	byte [SS:FastOpenFlg],0FBh
+	AND	byte [SS:FastOpenFlg],Special_Fill_Reset
+NOLOOKUP:
+;	POP	AX
+	STC
+	RETN
 
 FASTINST:
 ;hkn; SS override
@@ -29799,7 +30149,7 @@ FASTINST:
 	; 19/05/2019 - Retro DOS v4.0
 
 	; MSDOS 6.0				    ; fully or partially found
-	CMP	BYTE [SI],0			    ;AN000;FO.
+	CMP	BYTE [SI],0 ; * ; 21/02/2024	    ;AN000;FO.
 	JNZ	short parfnd			    ;AN000;FO.; partiallyfound
 	PUSH	CX				    ;AN000;FO.; is attribute matched ?
 
@@ -29813,8 +30163,42 @@ FASTINST:
 ;;;	MOV	[ss:ATTRIB],CL			    ;AN001;FO.; restore attrib
 	POP	CX				    ;AN000;FO.;
 	JNZ	short NOLOOKUP			    ;AN000;FO.; not matched
-parfnd:
 
+	; 21/02/2024 - Retro DOS v5.0
+	; PCDOS 7.1 IBMDOS.COM
+	;;;
+	cmp	byte [ss:NoSetDir],0
+	jz	short parfnd
+	;
+	;cmp	byte [si],0  ; * ; byte [si] = 0
+	;jnz	short parfnd
+	;
+	;test	byte [es:di+0Bh],10h
+	test	byte [es:di+dir_entry.dir_attr],attr_directory
+	jz	short parfnd
+	mov	bx,cx
+	jmp	short parfnd2
+parfnd:
+	mov	bx,cx
+	;mov	ax,[bx+0Bh]
+	mov	ax,[bx+FEI.dirstart]
+	mov	[ss:DIRSTART],ax
+	mov	ax,[bx+7]
+	mov	ax,[bx+FEI.clusnum+2]
+	mov	[ss:CLUSNUM_HW],ax
+	;mov	ax,[bx+5]
+	mov	ax,[bx+FEI.clusnum]
+	mov	[ss:CLUSNUM],ax
+parfnd2:
+	mov	[ss:Next_Element_Start],si
+	;mov	ax,[bx+9]
+	mov	ax,[bx+FEI.lastent]
+	mov	[ss:LASTENT],ax
+	;;;		
+
+; 21/02/2024
+%if 0
+parfnd:
 ;hkn; SS override
 	MOV	[SS:Next_Element_Start],SI	    ; save si
 	MOV	BX,CX
@@ -29830,6 +30214,7 @@ parfnd:
 	;mov	ax,[bx+5] ; MSDOS 6.0
 	MOV	AX,[BX+FEI.clusnum]		    ; restore next cluster num
 	MOV	[SS:CLUSNUM],AX			    ;
+%endif
 
 	PUSH	ES				    ; save ES
 ;hkn; SS override
@@ -29853,17 +30238,6 @@ parfnd:
 	OR	byte [SS:FastOpenFlg],Lookup_Success+Set_For_Search
 ;	POP	AX
 	RETN
-NOTFOUND:
-	CMP	AX,-1				    ; not in memory ?
-	JNZ	short Partial_Success 		    ; yes, in memory
-	MOV	byte [SS:FastOpenFlg],0		    ; no more fastopen
-Partial_Success:
-	;and	byte [SS:FastOpenFlg],0FBh
-	AND	byte [SS:FastOpenFlg],Special_Fill_Reset
-NOLOOKUP:
-;	POP	AX
-	STC
-	RETN
 
 ;BREAK <InsertPath - call fastopen to insert dir entry info>
 ;-----------------------------------------------------------------------------
@@ -29877,6 +30251,7 @@ NOLOOKUP:
 ;-----------------------------------------------------------------------------
 
 	; 21/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
+	; 21/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
 
 InsertPath:
 	PUSHF
@@ -29891,6 +30266,7 @@ InsertPath:
 	AND	byte [SS:FastOpenFlg],Lookup_Reset  ; we got dir info from fastopen so
 	MOV	DI,[SS:Next_Element_Start]	; no need to insert it again
 	JMP	short GET_NEXT2
+
 INSERT_DIR_INFO:				; save registers
 	PUSH	DS
 	PUSH	ES
@@ -29903,6 +30279,9 @@ INSERT_DIR_INFO:				; save registers
 ;hkn; SS override
 	LDS	DI,[SS:CURBUF]			; DS:DI -> buffer header
 	MOV	SI,FastOpen_Ext_Info
+
+; 21/02/2024
+%if 0
 	;mov	ax,[di+6]
 	MOV	AX,[DI+BUFFINFO.buf_sector]	; get directory sector
 	; MSDOS 6.0
@@ -29914,12 +30293,30 @@ INSERT_DIR_INFO:				; save registers
 ;hkn; SS is DOSDATA
 	push	ss
 	pop	ds
-	; MSDOS 3.3	
-	;;mov	[si+1],ax	
+	; MSDOS 3.3
+	;;mov	[si+1],ax
 	;MOV	[SI+FEI.dirsec],AX
 	; MSDOS 6.0
 	;mov	[si+3],ax
 	MOV	[SI+FEI.dirsec+2],AX		;AN000;>32mb save high dir sector
+%else
+	;lds	ax,[di+6]
+	lds	ax,[di+BUFFINFO.buf_sector]	; get directory sector
+	;mov	[ss:si+1],ax
+	mov	[ss:si+FEI.dirsec],ax
+	;mov	[ss:si+3],ax
+	mov	[ss:si+FEI.dirsec+2],ds
+	push	ss
+	pop	ds
+%endif
+
+	; 21/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	mov	ax,[CLUSNUM_HW]
+	;mov	[si+7],ax
+	mov	[si+FEI.clusnum+2],ax
+	;;;
+
 	; MSDOS 3.3 (& MSDOS 6.0)
 	MOV	AX,[CLUSNUM]		; save next cluster number
 	;;mov	[si+5],ax ; MSDOS 6.0
@@ -29927,15 +30324,19 @@ INSERT_DIR_INFO:				; save registers
 	MOV	[SI+FEI.clusnum],AX
 	; MSDOS 6.0
 	MOV	AX,[LASTENT]		;AN000;FO. save lastentry for search first
-	;mov	[si+7],ax
+	;;mov	[si+7],ax
+	;mov	[si+9],ax ; PCDOS 7.1 ; 21/02/2024
 	MOV	[SI+FEI.lastent],AX	;AN000;FO.
 	MOV	AX,[DIRSTART]		;AN001;FO. save  for search first
-	;mov	[si+9],ax
+	;;mov	[si+9],ax
+	;mov	[si+11],ax ; PCDOS 7.1 ; 21/02/2024
 	MOV	[SI+FEI.dirstart],AX	;AN001;FO.
+
 	; MSDOS 3.3 (& MSDOS 6.0)
 	MOV	AX,BX
-	;;add	di,16  ; MSDOS 3.3
-	;add	di,20  ; MSDOS 6.0
+	;;;add	di,16  ; MSDOS 3.3
+	;;add	di,20  ; MSDOS 6.0
+	;add	di,24  ; PCDOS 7.1 ; 21/02/2024	
 	ADD	DI,BUFINSIZ		; DS:DI -> start of data in buffer
 	SUB	AX,DI			; AX=BX relative to start of sector
 	;mov	cl,32
@@ -29953,6 +30354,18 @@ INSERT_DIR_INFO:				; save registers
 	CMP	word [DI+dir_entry.dir_first],0 
 					; never insert info when file is empty
 	JZ	short SKIP_INSERT	; e.g. newly created file
+
+	; 21/02/2024 - Erdogan Tan
+	; Note: PCDOS 7.1 IBMDOS.COM code doesn't check high word
+	;	of the 1st cluster here
+	;;;
+	; 21/02/2024 - Retro DOS v5.0
+	;jnz	short dont_skip_insert
+	;;cmp	word [di+14h],0
+	;cmp	word [di+dir_entry.dir_fclus_hi],0
+	;jz	short SKIP_INSERT
+;dont_skip_insert:	; Retro DOS v5.0
+	;;;
 
 	PUSH	SI			; ES:BX -> extended info
 	POP	BX
@@ -29986,18 +30399,24 @@ GET_NEXT_ELEMENT:
 ;============================================================================
 ; 17/07/2018 - Retro DOS v3.0
 ; 30/04/2019 - Retro DOS v4.0
+; 21/02/2024 - Retro DOS v5.0
 
 ;**	Misc Routines to do 1-12 low level I/O and call devices
 
 ; Offset 12B8h of IBMDOS.COM (MSDOS 3.3), 1987
 
-;DOSCODE:8401h (MSDOS 6.21, MSDOS.SYS)
+;DOSCODE:8401h (MSDOS 6.21 & 6.22, MSDOS.SYS) ; 21/02/2024
+;BIOSCODE:8608h (Windows ME, IO.SYS) ; 21/02/2024
+
+;DOSCODE:9163h (PCDOS 7.1, IBMDOS.COM) ; 21/02/2024
 
 ;Public DEV001S, DEV001E 		; Pathgen labels
 ;DEV001s:
 ;		length of packets
 LenTab:	 DB	DRDWRHL, DRDNDHL, DRDWRHL, DSTATHL, DFLSHL, DRDNDHL
-;LenTab: db	22,14,22,13,15,14
+; 21/02/2024
+;;LenTab: db	22,14,22,13,15,14 ; MSDOS 5.0-6.22 & Windows ME
+;LenTab: db	22,14,22,13,13,14 ; PCDOS 7.1
 
 ;	Error Function
 
@@ -30061,6 +30480,12 @@ CmdTab:
 
 ; 21/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 ; DOSCODE:83D8h (MSDOS 5.0, MSDOS.SYS)
+
+; 21/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+; DOSCODE:9175h (PCDOS 7.1, IBMDOS.COM)
+
+; DOSCODE:8413h (MSDOS 6.22, MSDOS.SYS)
+; BIOSCODE:861Ah (Windows ME, IO.SYS)
 
 IOFUNC:
 	MOV	[SS:IOXAD+2],SS		; SS override for IOXAD, IOSCNT, 
@@ -30141,8 +30566,30 @@ QuickReturn:				;AN000; 2/13/KK
 	pushf
 	mov	al,[ss:IoStatFail]	;assume fail error
 	cbw				;sign extend to word
-	cmp	ax,-1
+
+; 21/02/2024
+%if 0
+	; PCDOS 7.1 IBMDOS.COM
+	; cbw
+	inc	ax		; 21/02/2024 - Erdogan Tan
+				; this may be a BUG
+				; MSDOS 6.22 MSDOS.SYS & Win ME IO.SYS code is
+				;  cbw
+				;  cmp  ax,-1
+				;  jne  short not_fail_ret
+				;  inc  byte [ss:IoStatFail]
+				;  popf
+				;  retn
+	jnz	short not_fail_ret
+	dec	ax	
+	jnz	short not_fail_ret ; jns ?
+%else
+	;cbw
+	cmp	ax,-1		; (MSDOS 6.22 & Windows ME)
 	jne	short not_fail_ret
+
+%endif
+
 	inc	byte [ss:IoStatFail]
 	popf
 	retn
@@ -30248,6 +30695,8 @@ SETXADDR:
 	;PUSH	WORD [SS:DMAADD+2]
 	MOV	[SS:THISSFT+2],DS
 
+; 22/02/2024
+%if 0
 	push	ss
 	pop	ds
 
@@ -30260,6 +30709,20 @@ SETXADDR:
 	MOV	[DMAADD+2],CX
 	MOV	CX,[IOXAD]
 	MOV	[DMAADD],CX		; Set byte trans addr
+%else
+	; 22/02/2024
+	; PCDOS 7.1 IBMDOS.COM
+	
+	lds	cx,[ss:DMAADD]		; Save Disk transfer address
+	push	cx
+	push	ds
+	lds	cx,[ss:IOXAD]		; Set byte trans address
+	mov	[ss:DMAADD+2],ds
+	push	ss
+	pop	ds
+	mov	[DMAADD],cx
+	mov	[THISSFT],si
+%endif
 	MOV	CX,[IOSCNT]		; ioscnt specifies length of buffer
 	JMP	SHORT RESTRET		; RETURN ADDRESS
 
@@ -30278,6 +30741,9 @@ RESTRET:
 ; DOSCODE:8569h (MSDOS 6.21, MSDOS.SYS)
 ; 21/11/2022
 ; DOSCODE:852Eh (MSDOS 5.0, MSDOS.SYS)
+
+; 22/02/2024 - Retro DOS v5.0
+; DOSCODE:92CAh (PCDOS 7.1, IBMDOS.COM)
 
 ;Break <DEV_OPEN_SFT, DEV_CLOSE_SFT - OPEN or CLOSE A DEVICE>
 
@@ -30346,11 +30812,21 @@ DO_OPCLS:
 	CMP	byte [ss:fShare],1	;AN010; /NC or no SHARE
 	JBE	short OPCLS_DONE	;AN010; yes
 
+; 22/02/2024
+%if 0
 	; MSDOS 3.3 (& MSDOS 6.0)
 	;mov	ah,[es:di+1]
 	MOV	AH,[ES:DI+DPB.UNIT]	; (ah) = unit
 	mov	cl,[es:di]
 	;MOV	CL,[ES:DI+DPB.DRIVE]	; (cl) = drive
+%else
+	; 22/02/2024 - Retro DOS v5.0
+	;mov	cx,[es:di+DPB.DRIVE]
+	mov	cx,[es:di]
+	mov	ah,ch			; AH = unit
+					; CL = drive
+%endif
+
 	;;les	di,[es:di+12h] ; MSDOS 3.3
 	;les	di,[es:di+13h] ; MSDOS 6.0
 	LES	DI,[ES:DI+DPB.DRIVER_ADDR] ; Get device
@@ -30376,10 +30852,14 @@ OPCLS_RETRY:
 	MOV	AL,DOPCLHL
 	STOSB				; Length
 	POP	AX
+
 	XCHG	AH,AL
-	STOSB				; Unit
+	;STOSB				; Unit
+	; 22/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	stosw				; Unit, Command
 	XCHG	AH,AL
-	STOSB				; Command
+	;STOSB				; Command
+
 	MOV	WORD [ES:DI],0		; Status
 	PUSH	AX			; Save Unit,Command
 	;invoke	DEVIOCALL2
@@ -30422,6 +30902,9 @@ OPCLS_DONE:
 
 ; 22/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 ; DOSCODE:85AFh (MSDOS 5.0, MSDOS.SYS)
+
+; 22/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+; DOSCODE:9348h (PCDOS 7.1, IBMDOS.COM)
 
 ;Break	<DEVIOCALL, DEVIOCALL2 - CALL A DEVICE>
 ;----------------------------------------------------------------------------
@@ -30478,20 +30961,31 @@ DEVIOCALL2:
 	;CMP	byte [ES:BX+SRHEAD.REQFUNC],DEVWRTV
 	;				;AN000; >32mb write/verify ?
 	;JNZ	short chardev2		;AN000; >32mb no
+
 chkext:
+
+; 22/02/2024 - Retro DOS v5.0 (PCDOS 7.1)
+%if 0
 	CALL	RW_SC			;AN000;LB. use secondary cache if there
 	JC	short dev_exit		;AN000;LB. done
+%endif
 
 	;test	byte [si+4],2
 	TEST	byte [SI+SYSDEV.ATT],EXTDRVR ;AN000;>32mb extended driver?
 	JZ	short chksector		;AN000;>32mb   no
 	ADD	BYTE [ES:BX],8		;AN000;>32mb   make length to 30
-	MOV	AX,[SS:CALLSSEC]	;AN000;>32mb
-	MOV	word [SS:CALLSSEC],-1	;AN000;>32mb   old sector  =-1
+
+	;MOV	AX,[SS:CALLSSEC]	;AN000;>32mb
+	;MOV	word [SS:CALLSSEC],-1	;AN000;>32mb   old sector  =-1
+	; 22/02/2024
+	mov	ax,-1 ; 0FFFFh
+	xchg    ax,[ss:CALLSSEC]
+	
 	MOV	[SS:CALLNEWSC],AX	;AN000;>32mb   new sector  =
 	MOV	AX,[SS:HIGH_SECTOR]	;AN000; >32mb  low sector,high sector
 	MOV	[SS:CALLNEWSC+2],AX	;AN000; >32mb
 	JMP	short chardev2		;AN000; >32mb
+
 chksector:				;AN000; >32mb
 	CMP	word [SS:HIGH_SECTOR],0	;AN000; >32mb   if >32mb
 	JZ	short chardev2		;AN000; >32mb   then fake error
@@ -30504,6 +30998,11 @@ chardev2:				;AN000;
 	; As above only DS:SI points to device header on entry, and DS:SI is 
 	; preserved
 
+	;;;
+	; 22/02/2024 - Retro DOS v5.0 (PCDOS 7.1 IBMDOS.COM)
+	inc	byte [ss:DEVIO_IN_PROGRESS] ; lock (deviocall in progress)
+	;;;	
+
 	;mov	ax,[si+6]
 	MOV	AX,[SI+SYSDEV.STRAT]
 	MOV	[SS:CALLDEVAD],AX
@@ -30515,9 +31014,17 @@ chardev2:				;AN000;
 	MOV	[SS:CALLDEVAD],AX
 	CALL	far [SS:CALLDEVAD]
 
+	;;;
+	; 22/02/2024 - Retro DOS v5.0 (PCDOS 7.1 IBMDOS.COM)
+	dec	byte [ss:DEVIO_IN_PROGRESS] ; unlock (deviocall completed)
+	;;;
+
+; 22/02/2024 - Retro DOS v5.0 (PCDOS 7.1)
+%if 0
 	; MSDOS 6.0
 	CALL	VIRREAD 		;AN000;LB. move data from SC to buffer
 	JC	short chardev2		;AN000;LB. bad sector or exceeds max sec
+%endif
 
 dev_exit:
 	;LeaveCrit critDevice
@@ -30640,6 +31147,9 @@ SETWRITE:
 	MOV	CL,DEVWRT ; mov cl,8
 	ADD	CL,[SS:VERFLG]		; SS override
 	JMP	SHORT SETCALLHEAD
+
+; 22/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+%if 0	; SC
 
 ; 30/04/2019 - Retro DOS v4.0
 ; DOSCODE:86A8h (MSDOS 6.21, MSDOS.SYS)
@@ -30944,11 +31454,14 @@ noSC:					    ;AN000;
 sexit:					    ;AN000;
 	retn				    ;AN000;LB.
 
+%endif	; SC
+
 ;============================================================================
 ; MKNODE.ASM, MSDOS 6.0, 1991
 ;============================================================================
 ; 29/07/2018 - Retro DOS v3.0
 ; 19/05/2019 - Retro DOS v4.0
+; 22/02/2024 - Retro DOS v5.0
 
 ;	TITLE	MKNODE - Node maker
 ;	NAME	MKNODE
@@ -31005,126 +31518,185 @@ sexit:					    ;AN000;
 ; 24/09/2023 - Retro DOS v4.2 (Modified MSDOS 6.21 MSDOS.SYS)
 ; DOSCODE:8845h (MSDOS 6.22, MSDOS.SYS)
 
+; 23/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+; DOSCODE:940Ah (PCDOS 7.1, IBMDOS.COM)
+
+; (Windows ME IO.SYS - BIOSCODE:890Ch)
+
 BUILDDIR:
 	; 29/07/2018 - Retro DOS v3.0
 	; IBMDOS.COM (MSDOS 3.3, 1987) - Offset 4E66h
 
-        MOV     AX,[ENTFREE]
-        CMP     AX,-1 ; 0FFFFh
+	MOV	AX,[ENTFREE]
+	CMP	AX,-1 ; 0FFFFh
 	;JZ	short CHECK_IF_ROOT
-        ;CLC
-        ;retn
+	;CLC
+	;retn
 	; 24/09/2023
 	jne	short builddir_cmc_retn  ; cf=1 (will be 0)
 
 CHECK_IF_ROOT:
-        CMP     word [DIRSTART],0
-        JNZ	short NEWDIR
-        ;STC
+	; 23/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	cmp	word [DIRSTART_HW],0
+	jnz	short NEWDIR 
+	;;;
+	CMP	word [DIRSTART],0
+	JNZ	short NEWDIR
+	;STC				; Can't grow root
 	; 24/09/2023
 	; [DIRSTART]=0, cf=0, zf=1 (cf will be 1 after cmc instruction)
 builddir_cmc_retn:
 	; 24/09/2023
 	cmc	; cf=1 <-> cf=0
 builddir_retn:
-        retn				; Can't grow root
+	retn
 
 	;entry   NEWDIR
 NEWDIR: 
-	MOV     BX,[DIRSTART]
-        OR      BX,BX
-        JZ	short NULLDIR
+	; 23/02/2024
+	;;;
+	mov	bx,[DIRSTART_HW]
+	mov	[CLUSTNUM_HW],bx
+	or	bx,bx
+	;;;
+	MOV	BX,[DIRSTART]
+	;;;
+	jnz	short NEWDIR2 ; 23/02/2024
+	;;;
+	OR	BX,BX
+	JZ	short NULLDIR
+NEWDIR2:
 	call	GETEOF
-        jc	short builddir_retn	; Screw up
+	jc	short builddir_retn	; Screw up
 NULLDIR:
-        MOV     CX,1
+	;MOV	CX,1
+	; 23/02/2024
+	;;;
+	xor	cx,cx
+	mov	[CCOUNT_HW],cx ; 0
+	inc	cx ; 1
+	;;;
 	call	ALLOCATE
-        jc	short  builddir_retn
-        MOV     DX,[DIRSTART]
-        OR      DX,DX
-        JNZ	short ADDINGDIR
+	jc	short builddir_retn
+	MOV	DX,[DIRSTART]
+	; 23/02/2024
+	;;;
+	cmp	dx,[DIRSTART_HW]
+	jnz	short ADDINGDIR
+	;;;
+	OR	DX,DX
+	JNZ	short ADDINGDIR
+	; 23/02/2024
+	;;;
+	push	word [CLUSTNUM_HW]
+	pop	word [ROOTCLUST_HW]
+	;;;
 	call	SETDIRSRCH
-        jc	short  builddir_retn
-        MOV     word [LASTENT],-1
-        JMP     SHORT GOTDIRREC
+	jc	short builddir_retn
+	MOV	word [LASTENT],-1
+	JMP	SHORT GOTDIRREC
 ADDINGDIR:
-        PUSH    BX
-        MOV     BX,[CLUSNUM]
-        call	IsEOF
-        POP     BX
-        JB	short NOTFIRSTGROW
+	PUSH    BX
+	; 23/02/2024
+	;;;
+	push	word [CLUSTNUM_HW]
+	;
+	mov	bx,[CLUSNUM_HW]
+	mov	[CLUSTNUM_HW],bx
+	;;;
+	MOV	BX,[CLUSNUM]
+	call	IsEOF
+	;;;
+	pop	word [CLUSTNUM_HW] ; 23/02/2024
+	;;;
+	POP	BX
+	JB	short NOTFIRSTGROW
 ;;;; 10/17/86 update CLUSNUM in the fastopen cache
-        MOV     [CLUSNUM],BX
+	MOV	[CLUSNUM],BX
 	; 24/09/2023
 	;PUSH	CX ; (not necessary)
 	PUSH	AX
 	PUSH	BP
-        MOV     AH,1			; CLUSNUM update
+	; 23/02/2024
+	;;;
+	mov	ax,[CLUSTNUM_HW]
+	mov	[CLUSNUM_HW],ax
+	;;;
+	MOV	AH,1			; CLUSNUM update
 	; 15/12/2022
 	mov	dl,[ES:BP] ; 09/09/2018
-        ; 22/11/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
+	; 22/11/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
 	;;mov	dl,[es:bp+0]
 	;MOV	DL,[ES:BP+DPB.DRIVE]	; drive #
-        MOV     CX,[DIRSTART]		; first cluster #
-        MOV     BP,BX 			; CLUSNUM
+	MOV	CX,[DIRSTART]		; first cluster #
+	MOV	BP,BX 			; CLUSNUM
 	call	FastOpen_Update
-        POP     BP
-        POP     AX
+	POP	BP
+	POP	AX
 	; 24/09/2023
-        ;POP	CX
+	;POP	CX
 
 ;;;; 10/17/86 update CLUSNUM in the fastopen cache
 NOTFIRSTGROW:
-        MOV     DX,BX
-        XOR     BL,BL
+	MOV	DX,BX
+	XOR	BL,BL
 	call	FIGREC
 GOTDIRREC:
 	;mov	cl,[es:bp+4]
-        MOV     CL,[ES:BP+DPB.CLUSTER_MASK]
-        INC     CL
-        XOR     CH,CH
+	MOV	CL,[ES:BP+DPB.CLUSTER_MASK]
+	INC	CL
+	XOR	CH,CH
 ZERODIR:
-        PUSH    CX
+	PUSH    CX
 	; 22/09/2023
 	;;mov	byte [ALLOWED],18h
-        ;MOV	byte [ALLOWED],Allowed_FAIL+Allowed_RETRY ; *
-        MOV     AL,0FFH
-        ;call	GETBUFFR
-        call	GETBUFFRD ; *
+	;MOV	byte [ALLOWED],Allowed_FAIL+Allowed_RETRY ; *
+	MOV	AL,0FFH
+	;call	GETBUFFR
+	call	GETBUFFRD ; *
 	JNC	short GET_SSIZE
-        POP     CX
-        retn
+	POP	CX
+	retn
 
 GET_SSIZE:
 	;mov	cx,[es:bp+2]
-        MOV     CX,[ES:BP+DPB.SECTOR_SIZE]
-        PUSH    ES
-        LES     DI,[CURBUF]
+	MOV	CX,[ES:BP+DPB.SECTOR_SIZE]
+	PUSH    ES
+	LES	DI,[CURBUF]
 	;or	byte [es:di+5],4
-        OR      byte [ES:DI+BUFFINFO.buf_flags],buf_isDIR
-        PUSH    DI
-	;;add	di,16	; MSDOS 3.3
-	;add	di,20	; MSDOS 6.0	
-        ADD     DI,BUFINSIZ
-        XOR     AX,AX
-        SHR     CX,1
-        REP     STOSW
-        JNC	short EVENZ
-        STOSB
+	OR	byte [ES:DI+BUFFINFO.buf_flags],buf_isDIR
+	PUSH    DI
+	;;;add	di,16	; MSDOS 3.3
+	;;add	di,20	; MSDOS 6.0	
+	;add	di,24	; PCDOS 7.1 ; 23/02/2024
+	ADD	DI,BUFINSIZ
+	XOR	AX,AX
+	SHR	CX,1
+	REP	STOSW
+	JNC	short EVENZ
+	STOSB
 EVENZ:
-        POP     DI
+	POP	DI
 
+; 23/02/2024
+%if 0
 	; MSDOS 6.0
 	TEST	byte [ES:DI+BUFFINFO.buf_flags],buf_dirty
 					;LB. if already dirty		  ;AN000;
-        JNZ	short yesdirty7		;LB.  don't increment dirty count ;AN000;
-        call	INC_DIRTY_COUNT		;LB. 				  ;AN000;
-        
+	JNZ	short yesdirty7		;LB.  don't increment dirty count ;AN000;
+	call	INC_DIRTY_COUNT		;LB. 				  ;AN000;
+	
 	;or	byte [es:di+5],40h
-	OR      byte [ES:DI+BUFFINFO.buf_flags],buf_dirty
+	OR	byte [ES:DI+BUFFINFO.buf_flags],buf_dirty
+%else
+	; 23/02/2024 - Retro DOS v5.0 (PCDOS 7.1 IBMDOS.COM)
+	call    SET_BUF_DIRTY
+%endif
+
 yesdirty7:
-        POP	ES
-        POP	CX
+	POP	ES
+	POP	CX
 
 	; 19/05/2019 - Retro DOS v4.0
 
@@ -31143,14 +31715,14 @@ yesdirty7:
 	jnz	short loop_zerodir
 	inc	word [HIGH_SECTOR]
 loop_zerodir:
-        LOOP    ZERODIR
+	LOOP	ZERODIR
 
-        MOV     AX,[LASTENT]
-        INC     AX
+	MOV	AX,[LASTENT]
+	INC	AX
 	; 24/09/2023
 	; cf=0
 	;CLC
-        retn
+	retn
 
 ;--------------------------------------------------------------------------
 ;
@@ -31164,38 +31736,47 @@ loop_zerodir:
 ;
 ;----------------------------------------------------------------------------
 
+	; 23/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+
 SETDOTENT:
 ;	Fill in name field
-        STOSW
-        MOV     CX,4
-        MOV     AX,"  " ; 2020h
-        REP     STOSW
-        STOSB
+	STOSW
+	MOV	CX,4
+	MOV	AX,"  " ; 2020h
+	REP	STOSW
+	STOSB
 
 ;	Set up attribute
 	;mov	al, 10h
-        MOV     AL,attr_directory
-        STOSB
+	MOV	AL,attr_directory
+	STOSB
 
 ;	Initialize time and date of creation
-        ADD     DI,10
-        MOV     SI,[THISSFT]
+	;ADD	DI,10
+	; 23/04/2024 - Retro DOS v5.0 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	add	di,8
+	mov	ax,[CLUSTERS_HW]
+	stosw		; Set up first cluster field (hw)
+	;;;	
+	MOV	SI,[THISSFT]
 	;mov	ax,[si+0Dh]
-        MOV     AX,[SI+SF_ENTRY.sf_time]
-        STOSW
+	MOV	AX,[SI+SF_ENTRY.sf_time]
+	STOSW
 	;mov	ax,[si+0Fh]
-        MOV     AX,[SI+SF_ENTRY.sf_date]
+	MOV	AX,[SI+SF_ENTRY.sf_date]
 	STOSW
 
-;	Set up first cluster field
-        MOV     AX,DX
-        STOSW
+;	Set up first cluster field (lw)
+	MOV	AX,DX
+	STOSW
 
 ;	0 file size
-        XOR     AX,AX
-        STOSW
-        STOSW
-        retn
+	;XOR	AX,AX
+	xchg	ax,cx ; 23/02/2024
+	STOSW
+	STOSW
+	retn
 
 ;Break   <MAKENODE -- CREATE A NEW NODE>
 ;---------------------------------------------------------------------------
@@ -31253,29 +31834,36 @@ SETDOTENT:
 ; 22/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 ; DOSCODE:88EAh (MSDOS 5.0, MSDOS.SYS)
 
+; 23/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+; DOSCODE:951Ah (PCDOS 7.1, IBMDOS.COM)
+
 MakeNode:
 	;mov	word [CREATING],0E5FFh
 	MOV	WORD [CREATING],DIRFREE*256 + 0FFh ; Creating, not DEL *.*
-        PUSH    AX              ; Save AH value
+	PUSH	AX 		; Save AH value
 	MOV	byte [NoSetDir],0
 	MOV	[SATTRIB],AL
 	call	GetPathNoSet
-        MOV     DL,CL           ; Save CL info
-        MOV     CX,AX           ; Device ID to CH
-        POP     AX              ; Get back AH
-        JNC	short make_exists ; File existed
-        JNZ	short make_err_4 ; Path bad
-        CMP     DL,80h          ; Check "CL" return from GETPATH
-        JZ	short make_type	; Name simply not found, and no metas
+	MOV	DL,CL		; Save CL info
+	;MOV	CX,AX		; Device ID to CH
+	; 23/02/2024
+	xchg	ax,cx
+	POP	AX		; Get back AH
+	JNC	short make_exists ; File existed
+	JNZ	short make_err_4 ; Path bad
+	CMP	DL,80h		; Check "CL" return from GETPATH
+	JZ	short make_type	; Name simply not found, and no metas
 make_err_4:
-        MOV     AL,4            ; case 1 bad path
+	MOV	AL,4		; case 1 bad path
 make_err_ret:
-        XOR     AH,AH
-        STC
+	;XOR	AH,AH
+	; 23/02/2024
+	cbw
+	STC
 ;make_retn:	; 22/11/2022
-        retn
+	retn
 
-        ;entry	RENAME_MAKE     ; Used by DOS_RENAME to "copy" a node
+	;entry	RENAME_MAKE	; Used by DOS_RENAME to "copy" a node
 RENAME_MAKE:
 make_type:
 ;Extended Open hooks
@@ -31298,10 +31886,10 @@ make_retn:
 ;	Extended Open hooks
 
 make_type2:
-        LES     DI,[THISSFT]
-        XOR     AX,AX           ; nothing exists Disk Node
-        STC                     ; Not found
-        JMP     short make_new
+	LES	DI,[THISSFT]
+	XOR	AX,AX		; nothing exists Disk Node
+	STC			; Not found
+	JMP	short make_new
 
 ; The node exists. It may be either a device, directory or file:
 ;   Zero set => directory
@@ -31309,39 +31897,42 @@ make_type2:
 ;   else => file
 
 make_exists:
-        JZ	short make_exists_dir
-        MOV     AL,3            ; file exists type 3  (error or device node)
+	JZ	short make_exists_dir
+	MOV	AL,3		; file exists type 3  (error or device node)
 	;test	byte [ATTRIB],18h
 	TEST	byte [ATTRIB],attr_volume_id+attr_directory
-        JNZ	short make_err_ret_5
+	JNZ	short make_err_ret_5
 				; Cannot already exist as Disk or Device Node
-                                ;       if making DIR or Volume ID
-        OR      CH,CH
-        JS	short make_share ; No further checks on attributes if device
-        OR      AH,AH
-        JNZ	short make_err_ret ; truncating NOT OK (AL = 3)
-        PUSH    CX              ; Save device ID
-        MOV     ES,[CURBUF+2]
+				;  if making DIR or Volume ID
+	OR	CH,CH
+	JS	short make_share ; No further checks on attributes if device
+	OR	AH,AH
+	JNZ	short make_err_ret ; truncating NOT OK (AL = 3)
+	PUSH	CX		; Save device ID
+	MOV	ES,[CURBUF+2]
 	;mov	ch,[es:bx+0Bh]
-        MOV     CH,[ES:BX+dir_entry.dir_attr] ; Get file attributes
+	MOV	CH,[ES:BX+dir_entry.dir_attr] ; Get file attributes
 	;test	ch,1
 	test	CH,attr_read_only
-        JNZ	short make_err_ret_5P ; Cannot create on read only files
+	JNZ	short make_err_ret_5P ; Cannot create on read only files
 	call	MatchAttributes
-        POP     CX              ; Devid back in CH
-        JNZ	short make_err_ret_5 ; Attributes not ok
-        XOR     AL,AL           ; AL = 0, Disk Node
+	POP	CX		; Devid back in CH
+	JNZ	short make_err_ret_5 ; Attributes not ok
+	XOR	AL,AL		; AL = 0, Disk Node
+
 make_share:
-        XOR     AH,AH
-        PUSH    AX              ; Save Disk or Device node
-        PUSH    CX              ; Save Device ID
-        MOV     AH,CH           ; Device ID to AH
-        CALL    DOOPEN          ; Fill in SFT for share check
-        LES     DI,[THISSFT]
+	;XOR	AH,AH
+	; 23/02/2024
+	cbw
+	PUSH	AX		; Save Disk or Device node
+	PUSH	CX		; Save Device ID
+	MOV	AH,CH		; Device ID to AH
+	CALL	DOOPEN		; Fill in SFT for share check
+	LES	DI,[THISSFT]
 	push	si
 	push	bx		; Save CURBUF pointers
 	call	ShareEnter
-        jnc	short MakeEndShare
+	jnc	short MakeEndShare
 
 ; User failed request.
 	pop	bx
@@ -31350,42 +31941,42 @@ make_share:
 	pop	ax
 
 Make_Share_ret:
-        MOV     AL,6
-        JMP	short make_err_ret
+	MOV	AL,6
+	JMP	short make_err_ret
 
 make_err_ret_5P:
-        POP     CX              ; Get back device ID
+	POP	CX		; Get back device ID
 make_err_ret_5:
-        MOV     AL,5            ; Attribute mismatch
+	MOV     AL,5		; Attribute mismatch
         ; 22/11/2022
-	JMP     short make_err_ret
+	JMP	short make_err_ret
 
 make_exists_dir:
-        MOV     AL,1            ; exists as directory, always an error
+	MOV	AL,1		; exists as directory, always an error
 	; 22/11/2022
-	JMP     short make_err_ret
+	JMP	short make_err_ret
 
 make_save:
-        PUSH    AX              ; Save whether Disk or File
-        MOV     AX,CX           ; Device ID to AH
-        CALL    NEWENTRY
-        POP     AX              ; 0 if Disk, 3 if File
-        jnc	short make_retn
-        MOV     AL,2            ; create failed case 2
+	PUSH	AX		; Save whether Disk or File
+	MOV	AX,CX		; Device ID to AH
+	CALL	NEWENTRY
+	POP	AX		; 0 if Disk, 3 if File
+	jnc	short make_retn
+	MOV	AL,2		; create failed case 2
 make_save_retn:
-        retn
+	retn
 
 make_new:
-        call    make_save
-        jc	short make_save_retn	; case 2 fail
+	call	make_save
+	jc	short make_save_retn	; case 2 fail
 	;test	byte [ATTRIB],10h
 	test	BYTE [ATTRIB],attr_directory
-        jnz	short make_save_retn	; Don't "open" directories,
+	jnz	short make_save_retn	; Don't "open" directories,
 					; so don't tell the sharer about them
 	push	ax
 	push	bx
-	push	si		
-        call	ShareEnter
+	push	si
+	call	ShareEnter
 	pop	si
 	pop	bx
 	pop	ax
@@ -31395,30 +31986,36 @@ make_new:
 ; this nature is an out-of-space or an internal error. We clean up as best as
 ; possible: delete the newly created directory entry and return share_error.
 
-        PUSH    AX
-        LES     DI,[CURBUF]
+	PUSH	AX
+	LES	DI,[CURBUF]
 	;mov	byte [es:bx],0E5h
 	MOV	BYTE [ES:BX],DIRFREE	; nuke newly created entry.
-	
+
+; 23/02/2024
+%if 0	
 	; MSDOS 6.0
 	;test	byte [es:di+5],40h
 	TEST	byte [ES:DI+BUFFINFO.buf_flags],buf_dirty  
 					;LB. if already dirty		  ;AN000;
-        JNZ	short yesdirty8		;LB.  don't increment dirty count ;AN000;
+	JNZ	short yesdirty8		;LB.  don't increment dirty count ;AN000;
 	; 22/11/2022
 	call	INC_DIRTY_COUNT		;LB.				  ;AN000;
 	;or	byte [es:di+5],40h
-        OR      byte [ES:DI+BUFFINFO.buf_flags],buf_dirty ; flag buffer as dirty
+	OR	byte [ES:DI+BUFFINFO.buf_flags],buf_dirty ; flag buffer as dirty
 yesdirty8:
-        LES     BP,[THISDPB]
+%else
+	; 23/02/2024 - Retro DOS v5.0 (PCDOS 7.1 IBMDOS.COM)
+	call    SET_BUF_DIRTY	
+%endif
+	LES	BP,[THISDPB]
 	; 15/12/2022
-        mov	al,[ES:BP]
+	mov	al,[ES:BP]
 	; 22/11/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
 	;;mov	al,[es:bp+0]
 	;MOV	AL,[ES:BP+DPB.DRIVE]	; get drive for flush
-        call	FLUSHBUF		; write out buffer.
-        POP     AX
-        jmp	short Make_Share_ret
+	call	FLUSHBUF		; write out buffer.
+	POP	AX
+	jmp	short Make_Share_ret
 
 ; We have found an existing file. We have also entered it into the share set.
 ; At this point we need to call newentry to correctly address the problem of
@@ -31435,20 +32032,20 @@ yesdirty8:
 	; DOSCODE:89C8h (MSDOS 5.0, MSDOS.SYS)
 
 MakeEndShare:
-        LES     DI,[THISSFT]		; grab SFT
-        XOR     AX,AX
+	LES	DI,[THISSFT]		; grab SFT
+	XOR	AX,AX
 	call	ECritSFT
 	xchg	AX,[ES:DI]
 	;XCHG	AX,[ES:DI+SF_ENTRY.sf_ref_count]
 	push	ax
 	push	di
 	push	es
-        PUSHF
-        call	ShareEnd                ; remove sharing
-        POPF
+	PUSHF
+	call	ShareEnd		; remove sharing
+	POPF
 	pop	es
 	pop	di
-        pop	word [ES:DI]	
+	pop	word [ES:DI]
 	;pop	word [ES:DI+SF_ENTRY.sf_ref_count]
 	call	LCritSFT
 	; 22/11/2022
@@ -31457,17 +32054,17 @@ MakeEndShare:
 	pop	si
 	pop	cx
 	pop	ax
-        CALL    make_save
+	CALL	make_save
 
 ; If the user failed, we do not reenter into the sharing set.
 
-        jc	short make_save_retn	; bye if error
+	jc	short make_save_retn	; bye if error
 	push	ax
 	push	bx
 	push	si
-        PUSHF
-        call	ShareEnter
-        POPF
+	PUSHF
+	call	ShareEnter
+	POPF
 	pop	si
 	pop	bx
 	pop	ax
@@ -31475,40 +32072,40 @@ MakeEndShare:
 ; If Share_check fails, then we have an internal ERROR!!!!!
 
 makeendshare_retn:
-        retn
+	retn
 
 ;---------------------------------------------------------------------------
 ;
 ; Procedure Name : NEWENTRY
 ;
 ; Inputs:
-;       [THISSFT] set
-;       [THISDPB] set
-;       [LASTENT] current last valid entry number in directory if no free
-;               entries
-;       [VOLID] set if a volume ID was found during search
+;	  [THISSFT] set
+;	  [THISDPB] set
+;	  [LASTENT] current last valid entry number in directory if no free
+;		  entries
+;	  [VOLID] set if a volume ID was found during search
 ;	Attrib Contains attributes for new file
-;       [DIRSTART] Points to first cluster of dir (0 means root)
-;       CARRY FLAG INDICATES STATUS OF SEARCH FOR FILE
-;               NC means file existed (device)
-;               C  means file did not exist
-;       AH = Device ID byte
-;       If FILE
-;           [CURBUF+2]:BX points to start of directory entry
-;           [CURBUF+2]:SI points to dir_first of directory entry
-;       If device
-;           DS:BX points to start of "fake" directory entry
-;           DS:SI points to dir_first of "fake" directory entry
-;               (has DWORD pointer to device header)
+;	  [DIRSTART] Points to first cluster of dir (0 means root)
+;	  CARRY FLAG INDICATES STATUS OF SEARCH FOR FILE
+;		  NC means file existed (device)
+;		  C  means file did not exist
+;	  AH = Device ID byte
+;	  If FILE
+;	  [CURBUF+2]:BX points to start of directory entry
+;	  [CURBUF+2]:SI points to dir_first of directory entry
+;	  If device
+;	  DS:BX points to start of "fake" directory entry
+;	  DS:SI points to dir_first of "fake" directory entry
+;		  (has DWORD pointer to device header)
 ; Function:
-;       Make a new directory entry
-;       If an old one existed it is truncated first
+;	  Make a new directory entry
+;	  If an old one existed it is truncated first
 ; Outputs:
-;       Carry set if error
-;               Can't grow dir, atts didn't match, attempt to make 2nd
-;               vol ID, user FAILed to I 24
-;       else
-;               outputs of DOOPEN
+;	  Carry set if error
+;		  Can't grow dir, atts didn't match, attempt to make 2nd
+;		  vol ID, user FAILed to I 24
+;	  else
+;		  outputs of DOOPEN
 ; DS, BX, SI preserved (meaning on SI BX, not value), others destroyed
 ;
 ;----------------------------------------------------------------------------
@@ -31516,68 +32113,78 @@ makeendshare_retn:
 	; 22/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 	; DOSCODE:89F9h (MSDOS 5.0, MSDOS.SYS)
 
+	; 23/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+	; DOSCODE:961Ah (PCDOS 7.1, IBMDOS.COM)
+
+	; (MSDOS 6.22 MSDOS.SYS - DOSCODE:8A34h)
+	; (Windows ME IO.SYS - BIOSCODE:8B7Dh)
+
 NEWENTRY:
-        LES     BP,[THISDPB]
-        JNC	short EXISTENT	
-        CMP     byte [FAILERR],0
+	LES	BP,[THISDPB]
+	JNC	short EXISTENT	
+	CMP	byte [FAILERR],0
 	;STC
-        ;jnz	short makeendshare_retn	; User FAILed, node might exist
-        ; 24/09/2023
+	;jnz	short makeendshare_retn	; User FAILed, node might exist
+	; 24/09/2023
 	jnz	short ERRRET3
-	CALL    BUILDDIR        ; Try to build dir
-        jc	short makeendshare_retn	; Failed
-        call	GETENT          ; Point at that free entry
-        jc	short makeendshare_retn	; Failed
-        JMP     SHORT FREESPOT
+	CALL	BUILDDIR	; Try to build dir
+	jc	short makeendshare_retn	; Failed
+	call	GETENT		; Point at that free entry
+	jc	short makeendshare_retn	; Failed
+	JMP	SHORT FREESPOT
 
 ERRRET3:
-        STC
+	STC
 newentry_retn:
-        retn
+	retn
 
 EXISTENT:
-        OR      AH,AH           ; Check if file is I/O device
-        JNS	short NOT_DEV1
-        JMP     DOOPEN          ; If so, proceed with open
+	OR	AH,AH		; Check if file is I/O device
+	JNS	short NOT_DEV1
+	JMP	DOOPEN		; If so, proceed with open
 
 NOT_DEV1:
-        call	FREEENT		; Free cluster chain
-        jc	short newentry_retn ; Failed
+	call	FREEENT	; Free cluster chain
+	jc	short newentry_retn ; Failed
 FREESPOT:
 	;test	byte [ATTRIB],8
 	test	BYTE [ATTRIB],attr_volume_id
-        JZ	short NOTVOLID
-        CMP     BYTE [VOLID],0
-        JNZ	short ERRRET3	; Can't create a second volume ID
+	JZ	short NOTVOLID
+	CMP	BYTE [VOLID],0
+	JNZ	short ERRRET3	; Can't create a second volume ID
 NOTVOLID:
-        MOV     ES,[CURBUF+2]
-        MOV     DI,BX
+	MOV	ES,[CURBUF+2]
+	MOV	DI,BX
 
-        MOV     SI,NAME1
+	MOV	SI,NAME1
 
-        MOV     CX,5
-        REP     MOVSW
-        MOVSB                   ; Move name into dir entry
+	MOV	CX,5
+	REP	MOVSW
+	MOVSB			; Move name into dir entry
 	MOV	AL,[ATTRIB]
-	STOSB                   ; Attributes
+	STOSB			; Attributes
 
 ;; File Tagging for Create DOS 4.00
-        MOV     CL,5            ;FT. assume normal FBUGBUG	;AN000;
+	MOV	CL,5		;FT. assume normal FBUGBUG	;AN000;
 ;; File Tagging for Create DOS 4.00
 
-        XOR     AX,AX
-        REP     STOSW           ; Zero pad
-        call	DATE16
-        XCHG    AX,DX
-        STOSW                   ; dir_time
-        XCHG    AX,DX
-        STOSW                   ; dir_date
-        XOR     AX,AX
-        PUSH    DI              ; Correct SI input value
-				; 	(recomputed for new buffer)
-        STOSW                   ; Zero dir_first and size
-        STOSW
-        STOSW
+	XOR	AX,AX
+	REP	STOSW		; Zero pad
+	call	DATE16
+	XCHG	AX,DX
+	STOSW			; dir_time
+	XCHG	AX,DX
+	; 23/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	mov	[es:di-6],ax	; last access date
+	;;;
+	STOSW			; dir_date
+	XOR	AX,AX
+	PUSH	DI		; Correct SI input value
+				; (recomputed for new buffer)
+	STOSW			; Zero dir_first and size
+	STOSW
+	STOSW
 updnxt:
 	MOV	SI,[CURBUF]
 
@@ -31586,20 +32193,20 @@ updnxt:
 	; MSDOS 6.0
 	TEST	byte [ES:SI+BUFFINFO.buf_flags],buf_dirty
 				;LB. if already dirty		  ;AN000;
-        JNZ	short yesdirty9	;LB.  don't increment dirty count ;AN000;
-        call	INC_DIRTY_COUNT	;LB.				  ;AN000;
-        
+	JNZ	short yesdirty9	;LB.  don't increment dirty count ;AN000;
+	call	INC_DIRTY_COUNT	;LB.				  ;AN000;
+	
 	;or	byte [es:si+5],40h
-	OR      byte [ES:SI+BUFFINFO.buf_flags],buf_dirty
+	OR	byte [ES:SI+BUFFINFO.buf_flags],buf_dirty
 yesdirty9:
-        LES     BP,[THISDPB]
+	LES	BP,[THISDPB]
 	; 15/12/2022
 	MOV	AL,[ES:BP]
 	; 22/11/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
 	;;mov	al,[es:bp+0]
 	;MOV	AL,[ES:BP+DPB.DRIVE] ; Sets AH value again (in AL)
-        PUSH    AX
-        PUSH    BX
+	PUSH	AX
+	PUSH	BX
 
 ; If we have a file, we need to increment the open ref. count so that
 ; we have some protection against invalid media changes if an Int 24
@@ -31608,35 +32215,44 @@ yesdirty9:
 
 	push	es
 	push	di
-        LES     DI,[THISSFT]
+	LES	DI,[THISSFT]
 	;test	word [es:di+5],80h
 	;TEST	word [ES:DI+SF_ENTRY.sf_flags],devid_device
 	test	byte [ES:DI+SF_ENTRY.sf_flags],devid_device
-        jnz	short GotADevice
+	jnz	short GotADevice
 	push	ds
 	push	bx
-        LDS     BX,[THISDPB]
+	LDS	BX,[THISDPB]
 	;mov	[es:di+7],bx
-        MOV     [ES:DI+SF_ENTRY.sf_devptr],BX
-        MOV     BX,DS
+	MOV	[ES:DI+SF_ENTRY.sf_devptr],BX
+	MOV	BX,DS
 	;mov	[es:di+9],bx
-        MOV     [ES:DI+SF_ENTRY.sf_devptr+2],BX
+	MOV	[ES:DI+SF_ENTRY.sf_devptr+2],BX
 	pop	bx
 	pop	ds ; need to use DS for segment later on
-	call	DEV_OPEN_SFT    ; increment ref. count
-        mov	byte [VIRTUAL_OPEN],1; set flag
+
+; 23/02/2024 Retro DOS v5.0 (PCDOS 7.1 IBMDOS.COM)
+%if 0
+	call	DEV_OPEN_SFT	; increment ref. count
+	mov	byte [VIRTUAL_OPEN],1; set flag
+%endif
+
 GotADevice:
 	pop	di
 	pop	es
 
-        call	FLUSHBUF
-        Call    CHECK_VIRT_OPEN ; decrement ref. count            ;AN000;
-        POP     BX
-        POP     AX
-        POP     SI              ; Get SI input back
-        MOV     AH,AL           ; Get I/O driver number back
-	jnc	short DOOPEN    ; Failed
-	retn
+	call	FLUSHBUF
+
+; 23/02/2024 Retro DOS v5.0 (PCDOS 7.1 IBMDOS.COM)
+%if 0
+	Call	CHECK_VIRT_OPEN	; decrement ref. count	;AN000;
+%endif
+	POP	BX
+	POP	AX
+	POP	SI		; Get SI input back
+	MOV	AH,AL		; Get I/O driver number back
+	jnc	short DOOPEN	
+	retn			; Failed
 	
 ;NOTE FALL THROUGH
 
@@ -31649,144 +32265,208 @@ GotADevice:
 ;----------------------------------------------------------------------------
 ;
 ; Inputs:
-;       [THISDPB] points to DPB if file
-;       [THISSFT] points to SFT being used
-;       AH = Device ID byte
-;       If FILE
-;           [CURBUF+2]:BX points to start of directory entry
-;           [CURBUF+2]:SI points to dir_first of directory entry
-;       If device
-;           DS:BX points to start of "fake" directory entry
-;           DS:SI points to dir_first of "fake" directory entry
-;               (has DWORD pointer to device header)
+;	  [THISDPB] points to DPB if file
+;	  [THISSFT] points to SFT being used
+;	  AH = Device ID byte
+;	  If FILE
+;	  [CURBUF+2]:BX points to start of directory entry
+;	  [CURBUF+2]:SI points to dir_first of directory entry
+;	  If device
+;	  DS:BX points to start of "fake" directory entry
+;	  DS:SI points to dir_first of "fake" directory entry
+;		  (has DWORD pointer to device header)
 ; Function:
-;       Fill in SFT from dir entry
+;	  Fill in SFT from dir entry
 ; Outputs:
-;       CARRY CLEAR
-;       sf_ref_count and sf_mode fields not altered
-;       sf_flags high byte = 0
-;       sf_flags low byte = AH except
-;       sf_flags Bit 6 set (not dirty or not EOF)
-;       sf_attr sf_date sf_time sf_name set from entry
-;       sf_position = 0
-;       If device
-;           sf_devptr = dword at dir_first (pointer to device header)
-;           sf_size = 0
-;       If file
-;           sf_firclus sf_size set from entry
-;           sf_devptr = [THISDPB]
-;           sf_cluspos = 0
-;           sf_lstclus = sf_firclus
-;           sf_dirsec sf_dirpos set
+;	  CARRY CLEAR
+;	  sf_ref_count and sf_mode fields not altered
+;	  sf_flags high byte = 0
+;	  sf_flags low byte = AH except
+;	  sf_flags Bit 6 set (not dirty or not EOF)
+;	  sf_attr sf_date sf_time sf_name set from entry
+;	  sf_position = 0
+;	  If device
+;	  sf_devptr = dword at dir_first (pointer to device header)
+;	  sf_size = 0
+;	  If file
+;	  sf_firclus sf_size set from entry
+;	  sf_devptr = [THISDPB]
+;	  sf_cluspos = 0
+;	  sf_lstclus = sf_firclus
+;	  sf_dirsec sf_dirpos set
 ; DS,SI,BX preserved, others destroyed
 ;
 ;----------------------------------------------------------------------------
+
+	; 23/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+	; DOSCODE:96C3h (PCDOS 7.1, IBMDOS.COM)
+
+	; (MSDOS 6.22 MSDOS.SYS - DOSCODE:8AE4h)
+	; (Windows ME IO.SYS - BIOSCODE:8C4Ch)
 
 	;entry	DOOPEN
 DOOPEN:
 ;	Generate and store attribute
 
-        MOV     DH,AH           ; AH to different place
-        LES     DI,[THISSFT]
+	MOV	DH,AH	  	; AH to different place
+	; 23/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	xor	dl,dl ; 0
+	or	ah,ah
+	js	short DEV_SFT0
+	les	di,[THISDPB]
+	;cmp	word [es:di+0Fh],0
+	cmp	word [es:di+DPB.FAT_SIZE],0
+	jz	short DEV_SFT0 ; FAT32
+	inc	dl ; 1	
+DEV_SFT0:
+	;;;
+	LES	DI,[THISSFT]
 	;add	di,4
-        ADD     DI,SF_ENTRY.sf_attr ; Skip ref_count and mode fields
+	ADD	DI,SF_ENTRY.sf_attr ; Skip ref_count and mode fields
 	; 24/09/2023
 	xor	ax,ax
 	;XOR	AL,AL		; Assume it's a device, devices have an
-				;   attribute of 0 (for R/O testing etc).
-        OR      DH,DH           ; See if our assumption good.
-        JS	short DEV_SFT1	; If device DS=DOSGROUP
-        MOV     DS,[CURBUF+2]
+				;  attribute of 0 (for R/O testing etc).
+	OR	DH,DH		; See if our assumption good.
+	JS	short DEV_SFT1	; If device DS=DOSGROUP
+	MOV	DS,[CURBUF+2]
 	;mov	al,[BX+0Bh]
-        MOV     AL,[BX+dir_entry.dir_attr]
+	MOV	AL,[BX+dir_entry.dir_attr]
 				; If file, get attrib from dir entry
 DEV_SFT1:
-        STOSB                   ; sf_attr, ES:DI -> sf_flags
+	STOSB			; sf_attr, ES:DI -> sf_flags
 
 ;	Generate and store flags word
 
 	; 24/09/2023
 	;XOR	AX,AX
-        ; ah=0
-	MOV     AL,DH
+	; ah=0
+	MOV	AL,DH
 	;or	al,40h
-        OR      AL,devid_file_clean
-        STOSW                   ; sf_flags, ES:DI -> sf_devptr
+	OR	AL,devid_file_clean
+	STOSW			; sf_flags, ES:DI -> sf_devptr
 
 ;	Generate and store device pointer
 
-        PUSH    DS
+	PUSH	DS
 	;lds	ax,[bx+1Ah]
-        LDS     AX,[BX+dir_entry.dir_first] ; Assume device
-        OR      DH,DH
-        JS	short DEV_SFT2
+	LDS	AX,[BX+dir_entry.dir_first] ; Assume device
+	OR	DH,DH
+	JS	short DEV_SFT2
 
 ;hkn; SS override
-        LDS     AX,[SS:THISDPB]	; Was file
+	LDS	AX,[SS:THISDPB]	; Was file
 DEV_SFT2:
-        STOSW 			; store offset
-        MOV     AX,DS
-        POP     DS
+	STOSW			; store offset
+	MOV	AX,DS
+	POP	DS
 	STOSW			; store segment
 				; ES:DI -> sf_firclus
 
-;	Generate pointer to, generate and store first cluster 
+;	Generate pointer to, generate and store first cluster
 ;	(irrelevant for devices)
 
-        PUSH    SI              ; Save pointer to dir_first
-        MOVSW                   ; dir_first -> sf_firclus
-                                ; DS:SI -> dir_size_l, ES:DI -> sf_time
+	PUSH	SI		; Save pointer to dir_first
+
+; 23/02/2024
+%if 0
+
+	MOVSW			; dir_first -> sf_firclus
+				; DS:SI -> dir_size_l, ES:DI -> sf_time
 
 ;	Copy time/date of last modification
 
 	;sub	si,6
-        SUB     SI,dir_entry.dir_size_l - dir_entry.dir_time 
+	SUB	SI,dir_entry.dir_size_l - dir_entry.dir_time
+%else
+	; 23/02/2024 - Retro DOS v5.0
+	; (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	add	di,32		; SF_ENTRY.sf_chain ; first cluster (32 bit) !?
+	movsw			; first cluster, lw
+	;add	si,0FFF8h
+	add	si,-8
+	movsw			; first cluster, hw
+	;
+	or	dl,dl
+	jz	short FILE_SFT0 ; FAT32
+	xor	ax,ax ; 0	; clear hw of first cluster (invalid)
+FILE_SFT0:
+	stosw
+	;add	di,0FFDEh
+	add	di,-34		; SF_ENTRY.sf_time		
+	;;;	
+%endif
 				; DS:SI->dir_time
-        MOVSW                   ; dir_time -> sf_time
-                                ; DS:SI -> dir_date, ES:DI -> sf_date
-        MOVSW                   ; dir_date -> sf_date
-                                ; DS:SI -> dir_first, ES:DI -> sf_size
+	MOVSW			; dir_time -> sf_time
+				; DS:SI -> dir_date, ES:DI -> sf_date
+	MOVSW			; dir_date -> sf_date
+				; DS:SI -> dir_first, ES:DI -> sf_size
 
 ;	Generate and store file size (0 for devices)
 
-        LODSW                   ; skip dir_first, DS:SI -> dir_size_l
-        LODSW                   ; dir_size_l in AX , DS:SI -> dir_size_h
-        MOV     CX,AX           ; dir_size_l in CX
-        LODSW                   ; dir_size_h (size AX:CX), DS:SI -> ????
-        OR      DH,DH
-        JNS	short FILE_SFT1
-        XOR     AX,AX
-        MOV     CX,AX           ; Devices are open ended
+	LODSW			; skip dir_first, DS:SI -> dir_size_l
+	LODSW			; dir_size_l in AX, DS:SI -> dir_size_h
+	;MOV	CX,AX		; dir_size_l in CX
+	; 23/02/2024
+	xchg	ax,cx
+	LODSW			; dir_size_h (size AX:CX), DS:SI -> ????
+	OR	DH,DH
+	JNS	short FILE_SFT1
+	XOR	AX,AX
+	MOV	CX,AX		; Devices are open ended
 FILE_SFT1:
-        XCHG    AX,CX
-        STOSW                   ; Low word of sf_size
-        XCHG    AX,CX
-        STOSW                   ; High word of sf_size
-                                ; ES:DI -> sf_position
+	XCHG	AX,CX
+	STOSW			; Low word of sf_size
+	XCHG	AX,CX
+	STOSW			; High word of sf_size
+				; ES:DI -> sf_position
 ; Initialize position to 0
 
-        XOR     AX,AX
-        STOSW
-        STOSW                   ; sf_position
-                                ; ES:DI -> sf_cluspos
+	XOR	AX,AX
+	STOSW
+	STOSW			; sf_position
+				; ES:DI -> sf_cluspos
 
 ; Generate cluster optimizations for files
 
-        OR      DH,DH
-        JS	short DEV_SFT3
-        STOSW                   ; sf_cluspos ; 19h
+	OR	DH,DH
+	JS	short DEV_SFT3
+	STOSW			; sf_cluspos ; 19h
+
+; 23/02/2024
+%if 0
 	;mov	ax,[bx+1Ah]
-        MOV     AX,[BX+dir_entry.dir_first]
+	MOV	AX,[BX+dir_entry.dir_first]
 	; 19/05/2019
 	; MSDOS 3.3
-	;STOSW 			; sf_lstclus ; 1Bh
+	;STOSW			; sf_lstclus ; 1Bh
 	; MSDOS 6.0
-        PUSH	DI              ;AN004; save dirsec offset
+	PUSH	DI		;AN004; save dirsec offset
 	;sub	di,1Bh
-        SUB	DI,SF_ENTRY.sf_dirsec	;AN004; es:di -> SFT
+	SUB	DI,SF_ENTRY.sf_dirsec	;AN004; es:di -> SFT
 	;mov	[es:di+35h],ax
-        MOV	[ES:DI+SF_ENTRY.sf_lstclus],AX	;AN004; save it
-        POP	DI              ;AN004; restore dirsec offset
+	MOV	[ES:DI+SF_ENTRY.sf_lstclus],AX	;AN004; save it
+	POP	DI		;AN004; restore dirsec offset
+%else
+	; 23/02/2024 - Retro DOS v5.0
+	; (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	;add	di,0FFF0h
+	add	di,-16
+	stosw			; sf_cluspos_h (sf_firclus in MSDOS 5.0-6.22)
+	;add	di,SF_ENTRY.sf_dirsec
+	add	di,14		; sf_dirsec ; 27
+	mov	ax,[es:di+10h]	; [ES:DI+SF_ENTRY.sf_chain] ; 43
+				; first cluster (32 bit)
+	mov	[es:di+1Ah],ax
+	;mov	[es:di+SF_ENTRY.sf_lstclus-SF_ENTRY.sf_dirsec],ax ; 53
+	mov	ax,[es:di+12h]	; [ES:DI+SF_ENTRY.sf_chain+2] ; 45
+	mov	[es:di+1Ch],ax
+	;mov	[es:di+SF_ENTRY.sf_lstclus+2-SF_ENTRY.sf_dirsec],ax ; 55
+	;;;
+%endif
 
 ; DOS 3.3  FastOpen  6/13/86
 
@@ -31800,29 +32480,29 @@ FILE_SFT1:
 	JZ	short Not_FastOpen
 
 ;hkn; FastOpen_Ext_Info is in DOSDATA
-        MOV     SI,FastOpen_Ext_Info
+	MOV	SI,FastOpen_Ext_Info
 
 	;mov	ax,[si+1]
-        MOV     AX,[SI+FEI.dirsec]
-        STOSW                   ; sf_dirsec
+	MOV	AX,[SI+FEI.dirsec]
+	STOSW		  	; sf_dirsec
 	; MSDOS 6.0
 	;mov	ax,[si+3]
-        MOV	AX,[SI+FEI.dirsec+2]
-				;;; changed for >32mb
-        STOSW                   ; sf_dirsec
+	MOV	AX,[SI+FEI.dirsec+2]
+		;;; changed for >32mb
+	STOSW		  	; sf_dirsec
 	; 19/08//2018
 	mov	al,[SI]
-        ;MOV	AL,[SI+FEI.dirpos] ; mov al,[SI+0]
-        STOSB                   ; sf_dirpos
-        POP	DS
-        ;JMP	short Next_Name
+	;MOV	AL,[SI+FEI.dirpos] ; mov al,[SI+0]
+	STOSB		  	; sf_dirpos
+	POP	DS
+	;JMP	short Next_Name
 	; 24/09/2023
-	jmp	short FILE_SFT2  ; cf=0 (after 'test' instruction)
+	jmp	short FILE_SFT2	; cf=0 (after 'test' instruction)
 
 ; DOS 3.3  FastOpen  6/13/86
 
 Not_FastOpen:
-        ;POP     DS		; normal path
+	;POP	DS		; normal path
 
 ;hkn; SS override
 	;MOV	SI,[SS:CURBUF]	; DS:SI->buffer header
@@ -31835,113 +32515,159 @@ Not_FastOpen:
 	;mov	si,[ss:CURBUF]
 	
 	;mov	ax,[si+6]
-        MOV     AX,[SI+BUFFINFO.buf_sector]     ;F.C. >32mb ;AN000;
-        STOSW                   ; sf_dirsec     ;F.C. >32mb ;AN000;
-	; 19/05/2019        
+	MOV	AX,[SI+BUFFINFO.buf_sector]	;F.C. >32mb ;AN000;
+	STOSW		  	; sf_dirsec	;F.C. >32mb ;AN000;
+	; 19/05/2019	
 	; MSDOS 6.0
 	;mov	ax,[si+8]
 	MOV	AX,[SI+BUFFINFO.buf_sector+2]	;F.C. >32mb ;AN000;
-        STOSW                   ; sf_dirsec     ;F.C. >32mb ;AN000;
-        
-	MOV     AX,BX
-	;;add	si,16	; MSDOS 3.3	
-	;add	si,20	; MSDOS 6.0
-        ADD     SI,BUFINSIZ     ; DS:SI-> start of data in buffer
-        SUB     AX,SI           ; AX = BX relative to start of sector
-        ;mov	cl,32
-	MOV     CL,dir_entry.size
-        DIV     CL
-        STOSB                   ; sf_dirpos
+	STOSW		  	; sf_dirsec	;F.C. >32mb ;AN000;
+	
+	MOV	AX,BX
+	;;;add	si,16	; MSDOS 3.3
+	;;add	si,20	; MSDOS 6.0
+	;add	si,24	; PCDOS 7.1 ; 23/02/2024
+	ADD	SI,BUFINSIZ	; DS:SI-> start of data in buffer
+	SUB	AX,SI		; AX = BX relative to start of sector
+	;mov	cl,32
+	MOV	CL,dir_entry.size
+	DIV	CL
+	STOSB		  	; sf_dirpos
 Next_Name:
-        JMP     SHORT FILE_SFT2
+	JMP	SHORT FILE_SFT2
 
 	; 24/09/2023
 	; cf=0 (after 'or' instruction)
 DEV_SFT3:
 	;add	di,7
-        ADD     DI,SF_ENTRY.sf_name-SF_ENTRY.sf_cluspos
+	ADD	DI,SF_ENTRY.sf_name-SF_ENTRY.sf_cluspos
 FILE_SFT2:
 
 ; Copy in the object's name
 
-        MOV     SI,BX           ; DS:SI points to dir_name
-        MOV     CX,11
-        REP     MOVSB           ; sf_name
-        POP     SI              ; recover DS:SI -> dir_first
+	MOV	SI,BX		; DS:SI points to dir_name
+	MOV	CX,11
+	REP	MOVSB		; sf_name
+	POP	SI		; recover DS:SI -> dir_first
 
 ;hkn; SS is DOSDATA
-        push	ss
+	push	ss
 	pop	ds
 	; 24/09/2023
 	; cf=0
-        ;CLC
-        retn
+	;CLC
+	retn
 
 ;---------------------------------------------------------------------------
 ;
 ; Procedure Name : FREEENT
 ;
 ; Inputs:
-;       ES:BP -> DPB
-;       [CURBUF] Set
-;       [CURBUF+2]:BX points to directory entry
-;       [CURBUF+2]:SI points to above dir_first
+;	  ES:BP -> DPB
+;	  [CURBUF] Set
+;	  [CURBUF+2]:BX points to directory entry
+;	  [CURBUF+2]:SI points to above dir_first
 ; Function:
-;       Free the cluster chain for the entry if present
+;	  Free the cluster chain for the entry if present
 ; Outputs:
-;       Carry set if error (currently user FAILed to I 24)
-;       (NOTE dir_firclus and dir_size_l/h are wrong)
+;	  Carry set if error (currently user FAILed to I 24)
+;	  (NOTE dir_firclus and dir_size_l/h are wrong)
 ; DS BX SI ES BP preserved (BX,SI in meaning, not value) others destroyed
 ;---------------------------------------------------------------------------
 
 	; 25/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
+	; 24/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+
 FREEENT:
-        PUSH    DS
-        LDS     DI,[CURBUF]
-        MOV     CX,[SI]         ; Get pointer to clusters
+	PUSH	DS
+	LDS	DI,[CURBUF]
+	MOV	CX,[SI]		; Get pointer to clusters
+	; 24/02/2023 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	mov	ax,[si-6]	; hw of first cluster (dir_first)
+	;;;
 	; 19/05/2019 - Retro DOS v4.0
 	; MSDOS 6.0
-	MOV	DX,[DI+BUFFINFO.buf_sector+2]  ;F.C. >32mb	;AN000;
+	;mov	dx,[di+8] ; 24/02/2024
+	MOV	DX,[DI+BUFFINFO.buf_sector+2] ;F.C. >32mb  ;AN000;
 ;hkn; SS override
-        MOV	[SS:HIGH_SECTOR],DX		;F.C. >32mb	;AN000;
-        MOV     DX,[DI+BUFFINFO.buf_sector]
-        POP     DS
+	MOV	[SS:HIGH_SECTOR],DX	      ;F.C. >32mb  ;AN000;
+	;mov	dx,[di+6] ; 24/02/2024
+	MOV	DX,[DI+BUFFINFO.buf_sector]
+	POP	DS
+
+	; 24/02/2023 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	;cmp	word [bp+0Fh],0
+	cmp	word [es:bp+DPB.FAT_SIZE],0
+	jnz	short freeent2	; not FAT32
+	;cmp	ax,0
+	or	ax,ax
+	jnz	short freeent1
+	;
+	cmp	cx,2
+	jb	short RET1	; Was 0 length file (or mucked Firclus if AX:CX=1)
+freeent1:
+	;cmp	ax,[es:bp+2Fh]
+	cmp	ax,[es:bp+DPB.LAST_CLUSTER+2]
+	jne	short freeent3
+	;cmp	cx,[es:bp+2Dh]
+	cmp	cx,[es:bp+DPB.LAST_CLUSTER]
+	jmp	short freeent3
+freeent2:
+	xor	ax,ax
+	;;;
+
 	CMP	CX,2
-        JB	short RET1	; Was 0 length file (or mucked Firclus if CX=1)
+	JB	short RET1	; Was 0 length file (or mucked Firclus if CX=1)
+
 	;cmp	cx,[es:bp+0Dh]
-        CMP     CX,[ES:BP+DPB.MAX_CLUSTER]
-        JA	short RET1	; Treat like zero length file (firclus mucked)
-        SUB     BX,DI
-        PUSH    BX              ; Save offset
+	CMP	CX,[ES:BP+DPB.MAX_CLUSTER]
+freeent3:	; 24/02/2024
+	;JA	short RET1	; Treat like zero length file (firclus mucked)
+	ja	short freeent_retn ; 24/02/2024
+	SUB	BX,DI
+	PUSH	BX		; Save offset
 	PUSH	word [HIGH_SECTOR] ;F.C. >32mb	;AN000;
-        PUSH    DX              ; Save sector number
-        MOV     BX,CX
-        call	RELEASE         ; Free any data allocated
-        POP     DX
-        POP	word [HIGH_SECTOR] ;F.C. >32mb	;AN000;
-        JNC	short GET_BUF_BACK
-        POP     BX
+	PUSH	DX		; Save sector number
+	MOV	BX,CX
+	; 24/02/2023 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	mov	[CLUSTNUM_HW],ax
+	;;;
+	call	RELEASE		; Free any data allocated
+	POP	DX
+	POP	word [HIGH_SECTOR] ;F.C. >32mb	;AN000;
+	JNC	short GET_BUF_BACK
+	POP	BX
 freeent_retn:
-        retn			; Screw up
+	retn			; Screw up
 
 GET_BUF_BACK:
 	; 22/09/2023
 	;;mov	byte [ALLOWED],18h
-        ;MOV	byte [ALLOWED],Allowed_RETRY+Allowed_FAIL ; *
-        ;XOR	AL,AL ; *
-	;call	GETBUFFR        ; Get sector back
-	call	GETBUFFER ; * ; pre read      
+	;MOV	byte [ALLOWED],Allowed_RETRY+Allowed_FAIL ; *
+	;XOR	AL,AL ; *
+	;call	GETBUFFR	; Get sector back
+	call	GETBUFFER ; *	; pre read
 
-	POP     BX              ; Get offset back
-        jc	short freeent_retn
+	POP	BX		; Get offset back
+	jc	short freeent_retn
 	call	SET_BUF_AS_DIR
-        ADD     BX,[CURBUF]	; Correct it for new buffer
-        MOV     SI,BX
-	;add	si,1Ah
-        ADD     SI,dir_entry.dir_first	; Get corrected SI
+	ADD	BX,[CURBUF]	; Correct it for new buffer
+
+	;MOV	SI,BX
+	;;add	si,1Ah
+	;ADD	SI,dir_entry.dir_first	; Get corrected SI
+	; 24/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	;lea	si,[bx+1Ah]
+	lea	si,[bx+dir_entry.dir_first]
 RET1:
-        CLC
-        retn
+	CLC
+	retn
+
+; 23/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+%if 0
 
 ;---------------------------------------------------------------------------
 ;
@@ -31957,28 +32683,31 @@ RET1:
 ;---------------------------------------------------------------------------
 
 CHECK_VIRT_OPEN:
-	PUSH    AX
-        lahf                    ; preserve flags
-        CMP     byte [VIRTUAL_OPEN],0
-        JZ	short ALL_CLOSED
-        mov     byte [VIRTUAL_OPEN],0	; reset flag
+	PUSH	AX
+	lahf			; preserve flags
+	CMP	byte [VIRTUAL_OPEN],0
+	JZ	short ALL_CLOSED
+	mov	byte [VIRTUAL_OPEN],0 ; reset flag
 	push	es
 	push	di
-        LES     DI,[THISSFT]
-        call	DEV_CLOSE_SFT
+	LES	DI,[THISSFT]
+	call	DEV_CLOSE_SFT
 	pop	di
 	pop	es
 
 ALL_CLOSED:
-        sahf                    ; restore flags
-        POP     AX
-        retn
+	sahf			; restore flags
+	POP	AX
+	retn
+
+%endif
 
 ;============================================================================
 ; ROM.ASM, MSDOS 6.0, 1991
 ;============================================================================
 ; 29/07/2018 - Retro DOS v3.0
 ; 20/05/2019 - Retro DOS v4.0
+; 10/02/2024 - Retro DOS v5.0
 
 ;	TITLE	ROM - Miscellaneous routines
 ;	NAME	ROM
@@ -32035,6 +32764,7 @@ FNDCLUS_X:
 ; 25/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 ; DOSCODE:8BB7h (MSDOS 5.0, MSDOS.SYS)
 
+; 25/02/2024
 ; 10/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
 ; DOSCODE:9801h (PCDOS 7.1 IBMDOS.COM)
 
@@ -32045,8 +32775,8 @@ FNDCLUS:
 	;;;
 	; 10/02/2024 (PCDOS 7.1 IBMDOS.COM)
 	mov	[CLSKIP_HW],dx
-	mov	bx,[es:di+37h]
-	;mov	bx,[es:di+SF_ENTRY.sf_lstclus+2]
+	;mov	bx,[es:di+37h]
+	mov	bx,[es:di+SF_ENTRY.sf_lstclus+2] ; 24/02/2024
 	mov	[CLUSTNUM_HW],bx
 	or	bx,bx ; *
 	mov	dx,[es:di+0Bh] ; [ES:DI+SF_ENTRY.sf_firclus] ; MSDOS 5.0-6.22
@@ -32106,7 +32836,7 @@ FINDIT:
 	pop	es
 	cmp	cx,[CLSKIP_HW]
 	jnz	short SKPCLP
-	jcxz	RET9
+	jcxz	RET9	 ; cf=0
 	;;;
 %endif
 
@@ -32166,7 +32896,9 @@ SKPCLP:
 	jc	short SKPCLP2
 	pop	bx
 	pop	word [CLUSTNUM_HW]
-	jmp	short RET9
+	;jmp	short RET9
+	; 25/02/2024
+	retn
 
 SKPCLP2:
 	add	sp,4
@@ -32183,7 +32915,9 @@ SKPCLP3:
 %endif
 
 RET9:	
-	CLC
+	;CLC
+	; 25/02/2024
+	; cf=0
 	retn
 
 NOCLUS:
@@ -32196,17 +32930,26 @@ NOCLUS:
 %else
 	;;;
 	; 10/02/2024 (PCDOS 7.1 IBMDOS.COM)
-	push	di
-	xor	di,di ; 0
-	add	cx,1
-	adc	[CLSKIP_HW],di	; CLSKIP_HW:BX = Last cluster skipped to
-	sub	dx,1
-	sbb	[LASTPOS_HW],di	; LASTPOS_HW:DX = Position of last cluster
-	pop	di
+	;push	di
+	;xor	di,di ; 0
+	;add	cx,1
+	;adc	[CLSKIP_HW],di	; CLSKIP_HW:BX = Last cluster skipped to
+	;sub	dx,1
+	;sbb	[LASTPOS_HW],di	; LASTPOS_HW:DX = Position of last cluster
+	;pop	di
 	;;;
+	; 25/02/2024 - Retro DOS v5.0
+	dec	dx
+	jns	short noclus1
+	dec	word [LASTPOS_HW]
+noclus1:
+	inc	cx
+	jnz	short fndclus_retn
+	inc	word [CLSKIP_HW]
 %endif
-
-        CLC
+	; 25/02/2024
+	; cf=0
+        ;CLC
 
 fndclus_retn:
         retn
@@ -32235,13 +32978,32 @@ fndclus_retn:
 ;       Carry set if error (user FAILed to I 24)
 ;--------------------------------------------------------------------------
 
+	; 25/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+	; PCDOS 7.1 IBMDOS.COM - DOSCODE:98C2h
+
+	; (MSDOS 5.0 MSDOS.SYS - DOSCODE:8BF1h) - Retro DOS v4.0 (& v4.1)
+	; (MSDOS 6.22 MSDOS.SYS - DOSCODE:8C2Ch) - Retro DOS v4.2
+	; (Windows ME IO.SYS - BIOSCODE:0BE33h)
+
 BUFSEC:
+	; 25/02/2024
+	;;;
+	;push	word [CLUSTNUM_HW]
+	mov	dx,[CLUSNUM_HW]
+	;mov	[CLUSTNUM_HW],dx
+	xchg	dx,[CLUSTNUM_HW]
+	push	dx	; [CLUSTNUM_HW]
+	;;;
         MOV     DX,[CLUSNUM]
         MOV     BL,[SECCLUSPOS]
 	;mov	byte [ALLOWED],38h
         MOV     byte [ALLOWED],Allowed_FAIL+Allowed_RETRY+Allowed_IGNORE
         CALL    FIGREC
 	call	GETBUFFR
+	; 25/02/2024
+	;;;
+	pop	word [CLUSTNUM_HW]
+	;;;
         jc	short fndclus_retn
 
         MOV     BYTE [TRANS],1	; A transfer is taking place
@@ -32253,11 +33015,12 @@ BUFSEC:
         LES     DI,[CURBUF]
 	;or	byte [es:di+5],8
         OR      byte [ES:DI+BUFFINFO.buf_flags],buf_isDATA
-	;;lea	di,[di+16] ; MSDOS 3.3 
-	;lea	di,[di+20] ; MSDOS 6.0
-        LEA     DI,[DI+BUFINSIZ]        ; Point to buffer
+	;;;lea	di,[di+16] ; MSDOS 3.3 
+	;;lea	di,[di+20] ; MSDOS 6.0
+        ;lea	di,[di+24] ; PCDOS 7.1  ; 25/02/2024
+	LEA     DI,[DI+BUFINSIZ]        ; Point to buffer
         ADD     DI,[BYTSECPOS]
-        CLC
+        CLC	; (not necessary!?) ; 25/02/2024
         retn
 
 ;Break   <BUFRD, BUFWRT -- PERFORM BUFFERED READ AND WRITE>
@@ -32274,17 +33037,18 @@ BUFSEC:
 ;
 ;----------------------------------------------------------------------------
 
+	; 25/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
 	; 25/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 	; 20/05/2019 - Retro DOS v4.0
 BUFRD:
         PUSH	ES
-        xor	ax, ax			; pre-read sector
+        xor	ax,ax			; pre-read sector
         CALL    BUFSEC
-        JNC	short BUF_OK
+        JNC	short BUF_OK ; ds=ss
 
 BUF_IO_FAIL:				; this label used by BUFWRT also
         POP	ES
-        JMP     SHORT RBUFPLACED
+        JMP     SHORT RBUFPLACED ; ds=ss
 
 BUF_OK:
         MOV     BX,ES
@@ -32318,14 +33082,15 @@ EVENRD: ; ****
         POP	ES
 ;hkn; SS override
         LDS     DI,[SS:CURBUF]
-	;;lea	bx,[di+16]
-	;lea	bx,[di+20] ; MSDOS 6.0
+	;;;lea	bx,[di+16]
+	;;lea	bx,[di+20] ; MSDOS 6.0
+	;lea	bx,[di+24] ; PCDOS 7.1	; 25/02/2024
 	LEA     BX,[DI+BUFINSIZ]
         SUB     SI,BX                   ; Position in buffer
         call	PLACEBUF
 	;cmp	si,[es:bp+2]
 	CMP	SI,[ES:BP+DPB.SECTOR_SIZE] ; Read Last byte?
-        JB	short RBUFPLACEDC	; No, leave buf where it is
+        JB	short RBUFPLACEDC ; ds<>ss ; No, leave buf where it is
 ;M039
 	; MSDOS 3.3
 	;call	PLACEHEAD               ; Make it prime candidate for chucking
@@ -32336,9 +33101,10 @@ EVENRD: ; ****
 
 RBUFPLACEDC:
         CLC
-RBUFPLACED:
+;RBUFPLACED:
 	push	ss
 	pop	ds
+RBUFPLACED:	; 25/02/2024 (ds=ss)
         retn
 
 ;----------------------------------------------------------------------------
@@ -32356,22 +33122,22 @@ RBUFPLACED:
 	; 25/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 	; 20/05/2019 - Retro DOS v4.0
 BUFWRT:
-        ;MOV     AX,[SECPOS]
-        ; MSDOS 6.0
-	;ADD	AX,1            	; Set for next sector
-        ;MOV	[SECPOS],AX 		;F.C. >32mb	;AN000;
-        ;ADC	word [SECPOS+2],0	;F.C. >32mb	;AN000;
-        ; 24/09/2023
+	;MOV	AX,[SECPOS]
+	; MSDOS 6.0
+	;ADD	AX,1			; Set for next sector
+	;MOV	[SECPOS],AX 		;F.C. >32mb	;AN000;
+	;ADC	word [SECPOS+2],0	;F.C. >32mb	;AN000;
+	; 24/09/2023
 	inc	word [SECPOS]
 	jnz	short bufw_secpos
 	inc	word [SECPOS+2]
 bufw_secpos:
 	MOV	AX,[SECPOS+2]		;F.C. >32mb	;AN000;
-        CMP	AX,[VALSEC+2]		;F.C. >32mb	;AN000;
-        MOV	AL,1			;F.C. >32mb	;AN000;
-        JA	short NOREAD		;F.C. >32mb	;AN000;
-        JB	short _doread		;F.C. >32mb	;AN000;
-        MOV	AX,[SECPOS]		;F.C. >32mb	;AN000;
+	CMP	AX,[VALSEC+2]		;F.C. >32mb	;AN000;
+	MOV	AL,1			;F.C. >32mb	;AN000;
+	JA	short NOREAD		;F.C. >32mb	;AN000;
+	JB	short _doread		;F.C. >32mb	;AN000;
+	MOV	AX,[SECPOS]		;F.C. >32mb	;AN000;
 
 	; MSDOS 3.3
 	;INC	AX
@@ -32379,17 +33145,17 @@ bufw_secpos:
 
 	; 20/05/2019
 	; MSDOS 3.3 & MSDOS 6.0
-        CMP     AX,[VALSEC]		; Has sector been written before?
-        MOV     AL,1
-        JA	short NOREAD		; Skip preread if SECPOS>VALSEC
+	CMP	AX,[VALSEC]		; Has sector been written before?
+	MOV	AL,1
+	JA	short NOREAD		; Skip preread if SECPOS>VALSEC
 _doread:
-        XOR     AL,AL
+	XOR	AL,AL
 NOREAD:
-        PUSH	ES
-        CALL    BUFSEC
+	PUSH	ES
+	CALL	BUFSEC
 	JC	short BUF_IO_FAIL
-        MOV     DS,[DMAADD+2]
-        SHR     CX,1
+	MOV	DS,[DMAADD+2]
+	SHR	CX,1
 ;M039
 	; MSDOS 3.3
 	;JNC	short EVENWRT ; 09/09/2018
@@ -32398,13 +33164,13 @@ NOREAD:
 	;REP	MOVSW
 
 ;	CX = # of whole WORDs; CF=1 if odd # of bytes.
-;       DS:SI-> Source within Transfer memory block.
-;       ES:DI-> Destination within Buffer.
+;	DS:SI-> Source within Transfer memory block.
+;	ES:DI-> Destination within Buffer.
 
 	; MSDOS 6.0
 	rep	movsw			;Copy Transfer memory to Buffer.
-	;adc	cx,0                    ;CX=1 if odd # of bytes, else CX=0.
-	;rep	movsb                   ;Copy last byte.
+	;adc	cx,0			;CX=1 if odd # of bytes, else CX=0.
+	;rep	movsb		  	;Copy last byte.
 	; 16/12/2022
 	jnc	short EVENWRT ; **** 20/05/2019
 	movsb ; ****
@@ -32413,24 +33179,25 @@ NOREAD:
 	;rep	movsb
 ;M039
 EVENWRT: ; ****
-        POP	ES
+	POP	ES
 
 ;hkn; SS override
-        LDS     BX,[SS:CURBUF]
+	LDS	BX,[SS:CURBUF]
 
 	; MSDOS 6.0
-        TEST	byte [BX+BUFFINFO.buf_flags],buf_dirty
-					;LB. if already dirty		  ;AN000;
-        JNZ	short yesdirty10	;LB.  don't increment dirty count ;AN000;
-	call	INC_DIRTY_COUNT		;LB.				  ;AN000;
+	TEST	byte [BX+BUFFINFO.buf_flags],buf_dirty
+					;LB. if already dirty		 ;AN000;
+	JNZ	short yesdirty10	;LB. don't increment dirty count ;AN000;
+	call	INC_DIRTY_COUNT		;LB.				 ;AN000;
 	
 	;or	byte [bx+5],40h
-        OR	byte [BX+BUFFINFO.buf_flags],buf_dirty
+	OR	byte [BX+BUFFINFO.buf_flags],buf_dirty
 yesdirty10:
-	;;lea	si,[bx+16]
-	;lea	si,[bx+20] ; MSDOS 6.0
-        LEA     SI,[BX+BUFINSIZ]
-        SUB     DI,SI                   ; Position in buffer
+	;;;lea	si,[bx+16]
+	;;lea	si,[bx+20] ; MSDOS 6.0
+	;lea	si,[bx+24] ; PCDOS 7.1	; 25/02/2024
+	LEA	SI,[BX+BUFINSIZ]
+	SUB	DI,SI		  	; Position in buffer
 ;M039
 	; MSDOS 3.3
 	;MOV	SI,DI
@@ -32439,9 +33206,8 @@ yesdirty10:
 	;;cmp	si,[es:bp+2]
 	;CMP	SI,[ES:BP+DPB.SECTOR_SIZE] ; Written last byte?
 	;JB	short WBUFPLACED	; No, leave buf where it is
-	;call	PLACEHEAD               ; Make it prime candidate for chucking
-                                        ;  even though it is MRU.
-
+	;call	PLACEHEAD		; Make it prime candidate for chucking
+					;  even though it is MRU.
 	; 10/02/2024
 	push	ss
 	pop	ds
@@ -32449,20 +33215,20 @@ yesdirty10:
 	; MSDOS 6.0
 	;cmp	di,[es:bp+2]
 	CMP	di,[ES:BP+DPB.SECTOR_SIZE] ; Written last byte?
-        JB	short WBUFPLACED	; No, leave buf where it is
+	JB	short WBUFPLACED	; No, leave buf where it is
 
 	; 10/02/2024
-        ;MOV	[ss:BufferQueue],BX	; Make it prime candidate for
+	;MOV	[ss:BufferQueue],BX	; Make it prime candidate for
 					; chucking even though it is MRU.
 	mov	[BufferQueue],bx
 ;M039
 
 WBUFPLACED:
-        CLC
+	CLC
 	; 10/02/2024
 	;push	ss
 	;pop	ds
-        retn
+	retn
 
 ;Break   <NEXTSEC -- Compute next sector to read or write>
 ;---------------------------------------------------------------------------
@@ -32474,34 +33240,64 @@ WBUFPLACED:
 ;
 ;---------------------------------------------------------------------------
 
+	; 29/02/2024
+	; 26/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+
 NEXTSEC:
 	test	byte [TRANS],0FFh ; -1 
-        JZ	short CLRET
+	;JZ	short CLRET
+	; 29/02/2024
+	jz	short CLRET2
 
-        MOV     AL,[SECCLUSPOS]
-        INC     AL
+	MOV	AL,[SECCLUSPOS]
+	INC	AL
 	;cmp	al,[es:bp+4]
-        CMP     AL,[ES:BP+DPB.CLUSTER_MASK]
-        JBE	short SAVPOS
+	CMP	AL,[ES:BP+DPB.CLUSTER_MASK]
+	JBE	short SAVPOS
+	
+	; 26/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	mov     bx,[CLUSNUM_HW]
+	mov	[CLUSTNUM_HW],bx
+	;;;
 
-        MOV     BX,[CLUSNUM]
-        call	IsEOF
-        JAE	short NONEXT
+	MOV	BX,[CLUSNUM]
+	call	IsEOF
+	JAE	short NONEXT
 
-        call	UNPACK
-        JC	short NONEXT
+	call	UNPACK
+	;JC	short NONEXT
+	; 26/02/2024
+	jc	short NONEXT2
 clusgot:
-        MOV     [CLUSNUM],DI
-        INC     word [LASTPOS]
-        MOV     AL,0
+	; 26/02/2024 - Retro DOS v5.0
+	;;;
+	;push	di
+	;mov	di,[CCONTENT_HW]
+	;mov	[CLUSNUM_HW],di
+	;pop	di
+	push	word [CCONTENT_HW]
+	pop	word [CLUSNUM_HW]
+	;;;
+	MOV	[CLUSNUM],DI
+	INC	word [LASTPOS]
+	; 26/02/2024 - Retro DOS v5.0
+	;;;
+	jnz	short clusgot1
+	inc	word [LASTPOS_HW]
+clusgot1:		
+	;;;
+	MOV	AL,0
 SAVPOS:
-        MOV     [SECCLUSPOS],AL
+	MOV	[SECCLUSPOS],AL
 CLRET:
-        CLC
-        retn
+	CLC
+CLRET2:		; 29/02/2024
+	retn
 NONEXT:
-        STC
-        retn
+	STC
+NONEXT2:	; 26/02/2024
+	retn
 
 ;Break	<OPTIMIZE -- DO A USER DISK REQUEST WELL>
 ;----------------------------------------------------------------------------
@@ -32509,35 +33305,41 @@ NONEXT:
 ; Procedure Name : OPTIMIZE
 ;
 ; Inputs:
-;       BX = Physical cluster
-;       CX = No. of records
-;       DL = sector within cluster
-;       ES:BP = Base of drive parameters
-;       [NEXTADD] = transfer address
+;	  BX = Physical cluster
+;	  CX = No. of records
+;	  DL = sector within cluster
+;	  ES:BP = Base of drive parameters
+;	  [NEXTADD] = transfer address
 ; Outputs:
-;       AX = No. of records remaining
-;       BX = Transfer address
-;       CX = No. or records to be transferred
-;       DX = Physical sector address            (LOW)
-;       [HIGH_SECTOR] = Physical sector address (HIGH)
-;       DI = Next cluster
-;       [CLUSNUM] = Last cluster accessed
-;       [NEXTADD] updated
-;       Carry set if error (currently user FAILed to I 24)
+;	  AX = No. of records remaining
+;	  BX = Transfer address
+;	  CX = No. or records to be transferred
+;	  DX = Physical sector address (LOW)
+;	  [HIGH_SECTOR] = Physical sector address (HIGH)
+;	  DI = Next cluster
+;	  [CLUSNUM] = Last cluster accessed
+;	  [NEXTADD] updated
+;	  Carry set if error (currently user FAILed to I 24)
 ; ES:BP unchanged. Note that segment of transfer not set.
 ;
 ;---------------------------------------------------------------------------
 
 	; 25/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
+	; 27/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+
 OPTIMIZE:
-	PUSH    DX
-        PUSH    BX
+	PUSH	DX
+	; 27/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	push	word [CLUSTNUM_HW]
+	;;;
+	PUSH	BX
 	;mov	al,[es:bp+4]
-        MOV     AL,[ES:BP+DPB.CLUSTER_MASK]
-        INC     AL              ; Number of sectors per cluster
-        MOV     AH,AL
-        SUB     AL,DL           ; AL = Number of sectors left in first cluster
-        MOV     DX,CX
+	MOV	AL,[ES:BP+DPB.CLUSTER_MASK]
+	INC	AL		; Number of sectors per cluster
+	MOV	AH,AL
+	SUB	AL,DL		; AL = Num of sectors left in first cluster
+	MOV	DX,CX
 	;MOV	CX,0
 	; 25/11/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
 	; 16/12/2022
@@ -32552,51 +33354,105 @@ OPTCLUS:
 ; ES:SI has FAT pointer
 
 do_norm3:
-        call	UNPACK
-        JC	short OP_ERR
-clusgot2:
+	call	UNPACK
+	JC	short OP_ERR	; ds=ss ; 27/02/2024
+;clusgot2:
 	ADD	CL,AL
-        ADC     CH,0
-        CMP     CX,DX
-        JAE	short BLKDON
-        MOV     AL,AH
-        INC     BX
-        CMP     DI,BX
-        JZ	short OPTCLUS
-        DEC     BX
+	ADC	CH,0
+	CMP	CX,DX
+	JAE	short BLKDON
+	MOV	AL,AH
+	;INC	BX
+	; 27/02/2024 - Retro DOS v5.0 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	;push	di
+	;xor	di,di
+	;add	bx,1
+	;adc	[CLUSTNUM_HW],di
+	;
+	inc	bx
+	jnz	short clusgot2
+	inc	word [CLUSTNUM_HW]
+clusgot2:
+	mov	di,[CCONTENT_HW]
+	cmp	di,[CLUSTNUM_HW]
+	;pop	di
+	jne	short clusgot3
+	cmp	di,bx
+	je	short OPTCLUS
+clusgot3:
+	;;;	
+	;CMP	DI,BX
+	;JZ	short OPTCLUS
+	;DEC	BX
+	; 27/02/2024 - Retro DOS v5.0 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	;sub	bx,1
+	;sbb	word [CLUSTNUM_HW],0
+	;
+	dec	bx
+	jns	short FINCLUS
+	dec	word [CLUSTNUM_HW]
+	;;;
 FINCLUS:
-        MOV     [CLUSNUM],BX    ; Last cluster accessed
-        SUB     DX,CX           ; Number of sectors still needed
-        PUSH    DX
-        MOV     AX,CX
+	;MOV	[CLUSNUM],BX	; Last cluster accessed
+	; 27/02/2024 - Retro DOS v5.0 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	;push	bx
+	;add	[LASTPOS],bx
+	;mov	bx,[CLUSTNUM_HW]
+	;adc	[LASTPOS_HW],bx
+	;mov	[CLUSNUM_HW],bx
+	;pop	word [CLUSNUM]
+	;
+	mov	[CLUSNUM],bx
+	add	[LASTPOS],bx
+	mov	ax,[CLUSTNUM_HW]
+	adc	[LASTPOS_HW],ax
+	mov	[CLUSNUM_HW],ax
+	;;;
+	SUB	DX,CX		; Number of sectors still needed
+	PUSH	DX
+	MOV	AX,CX
 	;mul	word[ES:BP+2]
-        MUL	word [ES:BP+DPB.SECTOR_SIZE] 
+	MUL	word [ES:BP+DPB.SECTOR_SIZE] 
 				; Number of sectors times sector size
-        MOV     SI,[NEXTADD]
-        ADD     AX,SI           ; Adjust by size of transfer
-        MOV     [NEXTADD],AX
-        POP     AX              ; Number of sectors still needed
-        POP     DX              ; Starting cluster
-        SUB     BX,DX           ; Number of new clusters accessed
-        ADD     [LASTPOS],BX
-        POP     BX              ; BL = sector position within cluster
+	MOV	SI,[NEXTADD]
+	ADD	AX,SI		; Adjust by size of transfer
+	MOV	[NEXTADD],AX
+	POP	AX		; Number of sectors still needed
+	POP	DX		; Starting cluster
+	; 27/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	;SUB	BX,DX		; Number of new clusters accessed
+	;ADD	[LASTPOS],BX
+	;;;
+	pop	bx		; Starting cluster, hw
+	mov	[CLUSTNUM_HW],bx
+	sub	[LASTPOS],dx
+	sbb	[LASTPOS_HW],bx
+	;;;
+	POP	BX		; BL = sector position within cluster
 	call	FIGREC
-        MOV     BX,SI
+	MOV	BX,SI
 	; 24/09/2023
 	; cf=0 (at the return of FIGREC)
 	;CLC
-        retn
+	retn
 OP_ERR:
-        ADD     SP,4
+	;ADD	SP,4
+	; 27/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	add	sp,6
+	;;;
 	STC
-        retn
+	retn
 BLKDON:
-        SUB     CX,DX           ; Number of sectors in cluster we don't want
-        SUB     AH,CL           ; Number of sectors in cluster we accepted
-        DEC     AH              ; Adjust to mean position within cluster
-        MOV     [SECCLUSPOS],AH
-        MOV     CX,DX           ; Anyway, make the total equal to the request
-        JMP     SHORT FINCLUS
+	SUB	CX,DX	  	; Number of sectors in cluster we don't want
+	SUB	AH,CL	  	; Number of sectors in cluster we accepted
+	DEC	AH		; Adjust to mean position within cluster
+	MOV	[SECCLUSPOS],AH
+	MOV	CX,DX		; Anyway, make the total equal to the request
+	JMP	SHORT FINCLUS
 
 ;Break	<FIGREC -- Figure sector in allocation unit>
 ;---------------------------------------------------------------------------
@@ -32604,12 +33460,12 @@ BLKDON:
 ; Procedure Name : FIGREC
 ;
 ; Inputs:
-;       DX = Physical cluster number
-;       BL = Sector position within cluster
-;       ES:BP = Base of drive parameters
+;	  DX = Physical cluster number
+;	  BL = Sector position within cluster
+;	  ES:BP = Base of drive parameters
 ; Outputs:
-;       DX = physical sector number           (LOW)
-;       [HIGH_SECTOR] Physical sector address (HIGH)
+;	  DX = physical sector number (LOW)
+;	  [HIGH_SECTOR] Physical sector address (HIGH)
 ; No other registers affected.
 ;
 ;---------------------------------------------------------------------------
@@ -32618,14 +33474,33 @@ BLKDON:
 	; 20/05/2019 - Retro DOS v4.0
 	; DOSCODE:8D96h (MSDOS 6.21, MSDOS.SYS)
 	; 25/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
-	; DOSCODE:8D5Bh (MSDOS 5.0, MSDOS.SYS)	
-FIGREC:
-        PUSH    CX
-	;mov	cl,[es:bp+5]
-        MOV     CL,[ES:BP+DPB.CLUSTER_SHIFT]
-        DEC     DX
-        DEC     DX
+	; DOSCODE:8D5Bh (MSDOS 5.0, MSDOS.SYS)
 
+	; 27/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+	; DOSCODE:9A89h (PCDOS 7.1, IBMDOS.COM)	
+FIGREC:
+	PUSH	CX
+	; 27/02/2024
+	;;;
+	push	ax
+	xor	cx,cx
+	;;;
+	;mov	cl,[es:bp+5]
+	MOV	CL,[ES:BP+DPB.CLUSTER_SHIFT]
+	;DEC	DX
+	;DEC	DX
+	; 27/02/2024
+	;;;
+	;mov	ax,[ss:CLUSTNUM_HW]
+	; ds = ss ; Retro DOS v5.0	
+	mov	ax,[CLUSTNUM_HW]
+	sub	dx,2
+	sbb	ax,0
+	jcxz	noshift
+	;;;
+
+; 27/02/2024
+%if 0
 	; MSDOS 3.3
 	;SHL	DX,CL
 
@@ -32636,29 +33511,63 @@ FIGREC:
 	xor	ch,ch				;F.C. >32mb
 	OR	CL,CL				;F.C. >32mb
 	JZ	short noshift			;F.C. >32mb
-	XOR	CH,CH				;F.C. >32mb
+	; 27/02/2024
+	;XOR	CH,CH				;F.C. >32mb
 rotleft:					;F.C. >32mb
 	CLC					;F.C. >32mb
 	RCL	DX,1				;F.C. >32mb
 	; 10/06/2019
 	RCL	word [ss:HIGH_SECTOR],1		;F.C. >32mb
 	LOOP	rotleft				;F.C. >32mb
+%else
+	; 27/02/2024 - Retro DOS v5.0
+	; (PCDOS 7.1 IBMDOS.COM)
+rotleft:
+	clc
+	rcl	dx,1
+	rcl	ax,1
+	loop	rotleft	
+%endif
+
 noshift:
 	; MSDOS 3.3 & MSDOS 6.0
-        OR      DL,BL
+	OR	DL,BL
+	
+	; 27/02/2024 - Retro DOS v5.0
+	;;;
+	;cmp	word [es:bp+0Fh],0
+	cmp	word [es:bp+DPB.FAT_SIZE],cx ; 0
+	jnz	short noshift1  ; not FAT32
+	;add	dx,[es:bp+29h]
+	add	dx,[es:bp+DPB.FCLUS_FSECTOR]
+	;adc	ax,[es:bp+2Bh]
+	adc	ax,[es:bp+DPB.FCLUS_FSECTOR+2]
+	jmp	short noshift2
+noshift1:
+	;;;
+
 	;add	dx,[es:bp+0Bh]
-        ADD     DX,[ES:BP+DPB.FIRST_SECTOR]
+	ADD	DX,[ES:BP+DPB.FIRST_SECTOR]
 	; MSDOS 6.0
 	; 10/06/2019
 	;ADC	word [ss:HIGH_SECTOR],0		;F.C. >32mb
 	; 24/09/2023
 	; cx=0
-	ADC	word [ss:HIGH_SECTOR],cx ; 0
+	;ADC	word [ss:HIGH_SECTOR],cx ; 0
+	; 27/02/2024 - Retro DOS v5.0
+	;;;
+	adc	ax,cx ; adc ax,0
+noshift2:	
+	;mov	[ss:HIGH_SECTOR],ax
+	mov	[HIGH_SECTOR],ax
+	;
+	pop	ax
+	;;;
 
 	; MSDOS 3.3 & MSDOS 6.0
-	POP     CX
+	POP	CX
 figrec_retn:
-        retn
+	retn
 
 ; 20/05/2019 - Retro DOS v4.0
 ; DOSCODE:8DC2h (MSDOS 6.21, MSDOS.SYS)
@@ -32736,13 +33645,13 @@ figrec_retn:
 ;               ES:BP = Base of drive parameters
 ;               [THISSFT] = Points to SFT
 ;
-;       EXIT    'C' set if insufficient space
-;                 [FAILERR] can be tested to see the reason for failure
-;                 CX = max. no. of clusters that could be added to file
-;               'C' clear if space allocated
-;                 BX = First cluster allocated
-;                 FAT is fully updated
-;                 sf_FIRCLUS field of SFT set if file was null
+;       EXIT   'C' set if insufficient space
+;                [FAILERR] can be tested to see the reason for failure
+;                CX = max. no. of clusters that could be added to file
+;              'C' clear if space allocated
+;                BX = First cluster allocated
+;                FAT is fully updated
+;                sf_FIRCLUS field of SFT set if file was null
 ;
 ;       USES    ALL but SI, BP
 
@@ -32755,11 +33664,17 @@ figrec_retn:
 ;                                              ;call will return this routine
 ;callmagic  endp
 
+; 27/02/2024 - Retro DOS v5.0
+;PCDOS 7.1 IBMDOS.COM - DOSCODE:9AC5h
+
+; (MSDOS 6.22 MSDOS.SYS - DOSCODE:8DC2h)
+; (Windows ME IO.SYS - BIOSCODE:0C078h)
+
 ; 25/09/2023
-%if 0
+%if 1	; 27/02/2024
 callmagic:
 	push	ds
-	push	MagicPatch
+	push	word [ss:OffsetMagicPatch]
 	retf	
 %endif
 
@@ -32769,6 +33684,12 @@ ALLOCATE_X:
 	mov	[CCOUNT_HW],ax
 	;jmp	short ALLOCATE
 %endif
+
+	; 27/02/2024 - Retro DOS v5.0
+	; PCDOS 7.1 IBMDOS.COM - DOSCODE:9ACFh
+
+	; (MSDOS 6.22 MSDOS.SYS - DOSCODE:8DC9h)
+	; (Windows ME IO.SYS - BIOSCODE:0C07Fh)
 
 ALLOCATE:
 	; 10/09/2018
@@ -32795,9 +33716,12 @@ ALLOCATE:
         ;jnc	short Regular_Allocate_Path
 	;jmp	Disk_Full_Return
 
+; 27/02/2024 - Retro DOS v5.0
+; DOSCODE:9ACFh (PCDOS 7.1, IBMDOS.COM)
+
 ; 25/09/2023
-%if 0
-	clc
+%if 1	; 27/02/2024 - Retro DOS v5.0
+	clc		; COUNT_HW:CX = Number of clusters to allocate
 	push	cs
 	call	callmagic
 	jnc	short Regular_Allocate_Path
@@ -32811,13 +33735,33 @@ Regular_Allocate_Path:
 	; 25/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 	; DOSCODE:8D87h (MSDOS 5.0, MSDOS.SYS)
 
+	; 27/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+	; DOSCODE:9AD6h (PCDOS 7.1, IBMDOS.COM)
+
         PUSH    BX                      ; save (bx)
         XOR     BX,BX
+
+	; 27/02/2024
+	;;;
+	push	word [CLUSTNUM_HW]
+	mov	[CLUSTNUM_HW],bx ; cluster 0
+	;;;
+
 	call	UNPACK
         MOV     [FATBYT],DI             ; save correct cluster 0 value
-        POP     BX
-        jc	short figrec_retn	; abort if error   [INTERR?]
 
+	; 27/02/2024
+	;;;		; CCONTENT_HW:DI = content of FAT (for cluster 0)
+	mov	bx,[CCONTENT_HW]
+	mov	[FATBYT_HW],bx
+	pop	word [CLUSTNUM_HW]
+	;;;
+
+        POP     BX
+        jc	short figrec_retn	; abort if error [INTERR?]
+
+; 27/02/2024
+%if 0
         PUSH    CX
         PUSH    BX
 
@@ -32837,6 +33781,56 @@ ads1:
         mov     word [ES:BP+DPB.NEXT_FREE],2
         mov     bx,1                    ; Counter next instruction so first
                                         ;       cluster examined is 2
+%else
+	; 27/02/2024 - Retro DOS v5.0
+	; (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	push	word [CCOUNT_HW]
+	push	cx
+	push	word [CLUSTNUM_HW]
+	push	bx
+
+	mov	dx,bx
+
+	xor	bx,bx ; 0
+	;cmp	[es:bp+0Fh],bx ; 0
+	cmp	[es:bp+DPB.FAT_SIZE],bx ; 0
+	xchg	bx,[CLUSTNUM_HW]
+	mov	[CLUSDATA_HW],bx
+	;mov	bx,[es:bp+1Dh]
+	mov	bx,[es:bp+DPB.NEXT_FREE]
+	jnz	short ads1		; not FAT32
+
+	;mov	bx,[es:bp+3Bh]
+	mov	bx,[es:bp+DPB.FAT32_NXTFREE+2]
+	mov	[CLUSTNUM_HW],bx
+	;cmp	bx,0
+	or	bx,bx
+	;mov	bx,[es:bp+39h]
+	mov	bx,[es:bp+DPB.FAT32_NXTFREE]
+	jnz	short FINDFRE
+ads1:
+	cmp	bx,2
+	ja	short FINDFRE
+ads2:
+	xor	bx,bx ; 0
+	;cmp	[es:bp+0Fh],bx
+	cmp	[es:bp+DPB.FAT_SIZE],bx ; 0
+	jnz	short ads3		; not FAT32
+
+	;mov	word [es:bp+39h],2
+	mov	word [es:bp+DPB.FAT32_NXTFREE],2
+	;mov	[es:bp+3Bh],bx
+	mov	[es:bp+DPB.FAT32_NXTFREE+2],bx ; 0
+ads3:
+	mov	[CLUSTNUM_HW],bx ; 0
+	;mov	word [es:bp+1Dh],2	
+	mov	word [es:bp+DPB.NEXT_FREE],2
+	inc	bx ; 1
+	;or	[es:bp+18h],bl
+	or	[es:bp+DPB.FIRST_ACCESS],bl ; 1	
+	;;;
+%endif
 
 ;   Scanning both forwards and backwards for a free cluster
 ;
@@ -32846,6 +33840,7 @@ ads1:
 ;       (TOS) = last cluster of file
 
 FINDFRE:
+%if 0
         INC     BX
 	;cmp	bx,[es:bp+0Dh]
         CMP	BX,[ES:BP+DPB.MAX_CLUSTER]
@@ -32884,12 +33879,177 @@ NO_ALLOC:
         xchg    BX,AX           ; (BX) = last one we looked at
         mov     dx,bx           ; (dx) = current end of file
         LOOP    FINDFRE         ; alloc more if needed
+%else
+	; 27/02/2024 - Retro DOS v5.0
+	; (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	;add	bx,1
+	;adc	word [CLUSTNUM_HW],0
+	inc	bx
+	jnz	short FINDFRE2
+	inc	word [CLUSTNUM_HW]
+FINDFRE2:
+	;cmp	word [es:bp+0Fh],0
+	cmp	word [es:bp+DPB.FAT_SIZE],0
+	jnz	short ads4 ; not FAT32
+	; FAT32
+	push	bx
+	mov	bx,[CLUSTNUM_HW]
+	;cmp	bx,[es:bp+2Fh]
+	cmp	bx,[es:bp+DPB.LAST_CLUSTER+2]
+	pop	bx
+	jne	short ads5
+	;cmp	bx,[es:bp+2Dh]
+	cmp	bx,[es:bp+DPB.LAST_CLUSTER]
+	jmp	short ads5
+ads4:
+	;cmp	bx,[es:bp+0Dh]
+	cmp	bx,[es:bp+DPB.MAX_CLUSTER]
+ads5:
+	jbe	short ads6 ; jna short ads6
+	jmp	ads15
+ads6:
+	; 27/02/2024 - Retro DOS v5.0
+	;push	cx
+	;push	word [CCOUNT_HW]
+	;push	bx
+	;push	word [CLUSTNUM_HW]
+	;push	dx
+	;push	word [CLUSDATA_HW]
+
+	call	UNPACK
+
+	; 27/02/2024 - Retro DOS v5.0
+	;pop	word [CLUSDATA_HW]
+	;pop	dx
+	;pop	word [CLUSTNUM_HW]
+	;pop	bx
+	;pop	word [CCOUNT_HW]
+	;pop	cx
+	
+	jnc	short ads7
+	
+	jmp	ads13
+ads7:
+	jnz	short FINDFRE
+
+	;mov	[es:bp+1Dh],bx
+	mov	[es:bp+DPB.NEXT_FREE],bx
+
+	;cmp	word [es:bp+0Fh],0
+	cmp	word [es:bp+DPB.FAT_SIZE],0
+	jnz	short ads8 ; not FAT32
+	; FAT32
+	push	bx
+	mov	bx,[CLUSTNUM_HW]
+	;mov	[es:bp+3Bh],bx
+	mov	[es:bp+DPB.FAT32_NXTFREE+2],bx
+	pop	bx
+	;mov	[es:bp+39h],bx
+	mov	[es:bp+DPB.FAT32_NXTFREE],bx
+ads8:
+	;or	byte [es:bp+18h],1
+	or	byte [es:bp+DPB.FIRST_ACCESS],1
+
+	; 27/02/2024 - Retro DOS v5.0
+	;push	cx
+	;push	word [CCOUNT_HW]
+	
+	push	bx
+	push	word [CLUSTNUM_HW]
+	push	dx
+	push	word [CLUSDATA_HW]
+
+	xor	dx,dx	; 0
+	mov	[CLUSDATA_HW],dx ; 0
+	inc	dx	; 1	; mark this free guy as "1"
+	call	PACK		; set special "temporary" mark
+
+	pop	word [CLUSTNUM_HW]
+	pop	bx
+	pop	word [CLUSDATA_HW]
+	pop	dx
+
+	; 27/02/2024 - Retro DOS v5.0
+	;pop	word [CCOUNT_HW]
+	;pop	cx
+
+	jc	short ads13
+
+	push	ax
+	xor	ax,ax ; 0
+	;cmp	[es:bp+0Fh],ax ; 0
+	cmp	[es:bp+DPB.FAT_SIZE],ax ; 0
+	jnz	short ads10 ; not FAT32
+	; FAT32
+	dec	ax ; 0FFFFh ; -1
+	;cmp	[es:bp+21h],ax
+	cmp	[es:bp+DPB.FREE_CNT+2],ax ; 0FFFFh
+	jnz	short ads9
+	;cmp	[es:bp+1Fh],ax
+	cmp	[es:bp+DPB.FREE_CNT],ax ; 0FFFFh
+;ads9:
+	jz	short NO_ALLOC	; Free count not valid
+ads9:	
+	; Reduce free count by 1
+	;add	[es:bp+1Fh],ax
+	add	[es:bp+DPB.FREE_CNT],ax ; -1
+	;adc	[es:bp+21h],ax
+	adc	[es:bp+DPB.FREE_CNT+2],ax ; -1
+	jmp	short NO_ALLOC
+ads10:
+	dec	ax ; 0FFFFh ; -1
+	;cmp	[es:bp+1Fh],ax
+	cmp	[es:bp+DPB.FREE_CNT],ax ; 0FFFFh
+	jz	short NO_ALLOC	; Free count not valid
+	;dec	word [es:bp+1Fh]
+	dec	word [es:bp+DPB.FREE_CNT] ; Reduce free count by 1
+NO_ALLOC:
+	pop	ax
+
+	; 27/02/2024 - Retro DOS v5.0
+	;push	cx
+	;push	word [CCOUNT_HW]
+
+	push	dx
+	push	word [CLUSDATA_HW]
+
+	call	PACK
+
+	pop	word [CLUSTNUM_HW]
+	pop	bx
+
+	; 27/02/2024 - Retro DOS v5.0
+	;pop	word [CCOUNT_HW]
+	;pop	cx
+	
+	jc	short ads13
+	
+	mov	dx,[CLUSTNUM_HW]
+	mov	[CLUSDATA_HW],dx
+	mov	dx,bx
+
+	sub	cx,1
+	sbb	word [CCOUNT_HW],0
+
+	cmp	cx,[CCOUNT_HW]
+	jne	short ads11
+	jcxz	ads12
+ads11:
+	jmp	FINDFRE
+	;;;
+%endif
+
 
 ;   We've successfully extended the file. Clean up and exit
 ;
 ;       (BX) = last cluster in file
 
+ads12:		; 27/02/2024
         MOV     DX,0FFFFH
+	;;;
+	mov	[CLUSDATA_HW],dx
+	;;;
 	call	PACK            ; mark last cluster EOF
 
 ;   Note that FAT errors jump here to clean the stack and exit. This saves us
@@ -32897,6 +34057,9 @@ NO_ALLOC:
 ;
 ;       'C' set if error
 ;       calling (BX) and (CX) pushed on stack
+
+; 27/02/2024
+%if 0
 
 ads4:   
 	POP     BX
@@ -32910,10 +34073,38 @@ ads4:
         XCHG    BX,DI           ; (DI) = last cluster in file upon our entry
         OR      DI,DI           ; clear 'C'
 	jnz	short figrec_retn ; we were extending an existing file
+%else
+	; 27/02/2024 - Retro DOS v5.0
+	; (PCDOS 7.1 IBMDOS.COM)
+	;;;
+ads13:
+	pop	bx
+	pop	word [CLUSTNUM_HW]
+	pop	cx
+	pop	word [CCOUNT_HW]
+	jnc	short ads14
+ads_ret:
+	retn
+ads14:
+	call	UNPACK		; Get first cluster allocated for return
+	jc	short ads_ret
+	call    RESTFATBYT      ; Restore correct cluster 0 value
+	jc	short ads_ret
+	push	ax
+	mov	ax,[CCONTENT_HW]
+	xchg	ax,[CLUSTNUM_HW]
+	xchg	bx,di		; CLUSTNUM_HW:DI = last cluster in file upon our entry
+	or	ax,di
+	pop	ax
+	jnz	short ads_ret	; we were extending an existing file
+	;;;
+%endif
 
 ;   We were doing the first allocation for a new file. Update the SFT cluster
 ;   info
 dofastk:
+; 27/02/2024
+%if 0
 	; 20/05/2019
 	; MSDOS 6.0
 	;push	dx ; * MSDOS 6.0
@@ -32929,7 +34120,7 @@ dofastk:
 	;mov	dl,[ES:BP+DPB.DRIVE] 
 	; 15/12/2022
 	;mov	dl,[es:bp]
-	
+
 	; MSDOS 3.3 & MSDOS 6.0
 	PUSH	ES
 	LES     DI,[THISSFT]
@@ -32946,15 +34137,62 @@ dofastk:
 	; 16/12/2022
 	; 25/11/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
 	;pop	dx ; *
+%else
+	; 27/02/2024 - Retro DOS v5.0
+	; (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	push	dx
+	push	es
+	les	di,[THISSFT]
+	mov	dx,[CLUSTNUM_HW]
+	mov	[es:di+2Bh],bx	; [es:di+SF_ENTRYT.sf_chain]
+				; 32 bit first cluster, lw
+	mov	[es:di+2Dh],dx	; [es:di+SF_ENTRYT.sf_chain+2]
+				; 32 bit first cluster, hw
+	mov	[es:di+35h],bx	; [es:di+SF_ENTRYT.sf_lstclus]
+				; 32 bit last cluster, lw
+	mov	[es:di+37h],dx	; [es:di+SF_ENTRYT.sf_lstclus+2]
+				; 32 bit last cluster, hw
+	pop	es
+	pop	dx
+	;;;
+%endif	
 
-	retn	
+	retn
 
 ;** we're at the end of the disk, and not satisfied. See if we've scanned ALL
 ;   of the disk...
 
-ads7:   
+; 27/02/2024
+%if 0
+ads7:
+	;cmp	word [es:bp+1Dh],2   
 	cmp	word [ES:BP+DPB.NEXT_FREE],2
 	jnz	short ads1	; start scan from front of disk
+%else	
+	; 27/02/2024 - Retro DOS v5.0 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+ads15:
+	;cmp	word [es:bp+0Fh],0
+	cmp	word [es:bp+DPB.FAT_SIZE],0
+	jz	short ads16 ; FAT32
+	; FAT
+	;cmp	word [es:bp+1Dh],2
+	cmp	word [es:bp+DPB.NEXT_FREE],2
+	jmp	short ads17
+ads16:
+	;cmp	word [es:bp+3Bh],0
+	cmp	word [es:bp+DPB.FAT32_NXTFREE+2],0
+	;jnz	short ads17
+	jnz	short ads19 ; 27/02/2024
+	;cmp	word [es:bp+39h],2
+	cmp	word [es:bp+DPB.FAT32_NXTFREE],2
+ads17:
+	jz	short ads18
+ads19:
+	jmp	ads2		; start scan from front of disk
+	;;;
+%endif
 
 ;   Sorry, we've gone over the whole disk, with insufficient luck. Lets give
 ;   the space back to the free list and tell the caller how much he could have
@@ -32965,14 +34203,31 @@ ads7:
 ;       (TOS) = last cluster of file (before call to ALLOCATE)
 ;       (TOS+1) = # of clusters wanted to allocate
 
+ads18:		; 27/02/2024
         POP     BX              ; (BX) = last cluster of file
         MOV     DX,0FFFFH
+
+	; 27/02/2024 - Retro DOS v5.0 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	mov	[CLUSDATA_HW],dx
+	pop	word [CLUSTNUM_HW]
+	;;;
+
 	call	RELBLKS         ; give back any clusters just alloced
         POP     AX              ; No. of clusters requested
                                 ; Don't "retc". We are setting Carry anyway,
                                 ;   Alloc failed, so proceed with return CX
                                 ;   setup.
+	;;;	; 27/02/2024
+	pop	word [CLUSTERS_HW]
+	;;;
+
         SUB     AX,CX           ; AX=No. of clusters allocated
+
+	;;;	; 27/02/2024
+	sbb	word [CLUSTERS_HW],0
+	;;;
+
 	call	RESTFATBYT      ; Don't "retc". We are setting Carry anyway,
                                 ;   Alloc failed.
 Disk_Full_Return:               ;label added for magic patch 8-6-92 scottq
@@ -32989,16 +34244,42 @@ Disk_Full_Return:               ;label added for magic patch 8-6-92 scottq
 ;       Carry set if error (currently user FAILed to I 24)
 ;-----------------------------------------------------------------------
 
+	; 27/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+
 RESTFATBYT:
         PUSH    BX
         PUSH    DX
         PUSH    DI
+
         XOR     BX,BX
+
+	; 27/02/2024 - Retro DOS v5.0
+	; (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	;push	word [CLUSTNUM_HW]
+	;push	word [CLUSDATA_HW]
+	;push	word [CCONTENT_HW]  ; (not necessary ?)
+	mov	[CLUSTNUM_HW],bx ; 0
+	mov	dx,[FATBYT_HW]
+	mov	[CLUSDATA_HW],dx
+	;;;
+
         MOV     DX,[FATBYT]
+
 	call	PACK
+
+	; 27/02/2024 - Retro DOS v5.0
+	; (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	pop	word [CCONTENT_HW]
+	pop	word [CLUSDATA_HW]
+	pop	word [CLUSTNUM_HW]
+	;;;
+
         POP     DI
         POP     DX
         POP     BX
+
 ; 16/12/2022
 ; 25/11/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
 ;RELEASE_flush:
@@ -33019,10 +34300,26 @@ RESTFATBYT:
 ;
 ;-----------------------------------------------------------------------------
 
+	; 28/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+	; PCDOS 7.1 IBMDOS.COM - DOSCODE:9D13h
+
+	; (MSDOS 6.22 MSDOS.SYS - DOSCODE:8E86h)
+	; (Windows ME IO.SYS - BIOSCODE:0C27Fh)
+
 	; 25/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 	; 20/05/2019 - Retro DOS v4.0
 RELEASE:
         XOR     DX,DX
+	
+	; 28/02/2024 - Retro DOS v5.0
+	; (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	mov	[CLUSDATA_HW],dx ; (dx = 0, release)
+	;;;
+
+	; PCDOS 7.1 IBMDOS.COM - DOSCODE:9D19h
+	; (MSDOS 6.22 MSDOS.SYS - DOSCODE:8E88h)
+	; (Windows ME IO.SYS - BIOSCODE:0C285h)
 
 	;entry	RELBLKS
 RELBLKS:
@@ -33031,15 +34328,38 @@ RELBLKS:
 ;   and free the rest in the chain.
 
 	call	UNPACK
-	jc	short RELEASE_flush
-	jz	short RELEASE_flush
-        MOV     AX,DI
+	;jc	short RELEASE_flush
+	;jz	short RELEASE_flush
+	; 28/12/2024 (PCDOS 7.1 IBMDOS.COM)
+        jbe	short RET12 ; jna short RET12
+				; CCONTENT_HW:DI= Content of FAT
+ 				; for given cluster (next cluster)
+	MOV     AX,DI
         PUSH    DX
+
+	;;; 28/12/2024 - Retro DOS v5.0
+	;push	ax
+	;;;
+
 	call	PACK
-        POP     DX
-	jc	short RELEASE_flush
-        OR      DX,DX
+
+	;;; 28/12/2024 - Retro DOS v5.0 (PCDOS 7.1 IBMDOS.COM)
+	;pop	ax
+	mov	dx,[CCONTENT_HW]
+	mov	[CLUSTNUM_HW],dx ; next cluster (hw) to be released
+	mov	bx,ax		 ; next cluster (lw) to be released
+	;;;
+        
+	POP     DX
+	;jc	short RELEASE_flush
+	; 28/12/2024 (PCDOS 7.1 IBMDOS.COM)
+	jc	short RET12
+        
+	OR      DX,DX
         JNZ	short NO_DEALLOC	; Was putting EOF mark
+
+; 28/02/2024
+%if 0
 	;;cmp	word [es:bp+1Eh],-1 ; MSDOS 3.3
 	;cmp	word [es:bp+1Fh],-1 ; MSDOS 6.0
 	CMP     word [ES:BP+DPB.FREE_CNT],-1 ; Free count valid?
@@ -33049,12 +34369,53 @@ NO_DEALLOC:
         MOV     BX,AX
         dec     ax              ; check for "1"
 	jz	short RELEASE_flush	; is last cluster of incomplete chain
+%else
+	; 28/02/2024 - Retro DOS v5.0
+	; (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	cmp	dx,[CLUSDATA_HW]	; > 0 ? (delete, release)
+	jnz	short NO_DEALLOC	; no, EOF (allocate, -1), (dx = 0)
+	;cmp	word [es:bp+1Fh],0FFFFh
+	cmp	word [es:bp+DPB.FREE_CNT],0FFFFh ; -1
+					; Free count valid?
+	jz	short NO_DEALLOC	; No (dx = 0)
+relblks_ifc:
+	;inc	word ptr es:[bp+1Fh]
+	inc	word [ES:BP+DPB.FREE_CNT] ; Increase free count by 1
+	jnz	short NO_DEALLOC2
+
+	;cmp	[es:bp+0Fh],dx
+	cmp	[es:bp+DPB.FAT_SIZE],dx
+	jnz	short NO_DEALLOC2	; not FAT32
+
+	;inc	word [es:bp+21h]
+	inc	word [es:bp+DPB.FREE_CNT+2]
+	jmp	short NO_DEALLOC2
+NO_DEALLOC:
+	;cmp	[es:bp+0Fh],dx
+	cmp	[es:bp+DPB.FAT_SIZE],dx	; dx is -1 or 0
+					; (valid 16 bit fat size is another number)
+	jnz	short NO_DEALLOC2 ; FAT (FAT16 or FAT12)
+					; dx = 0, FAT32
+	;cmp	word [es:bp+21h],0FFFFh
+	cmp	word [es:bp+DPB.FREE_CNT+2],0FFFFh
+	jnz	short relblks_ifc
+NO_DEALLOC2:
+	cmp	word [CLUSTNUM_HW],0
+	jnz	short NO_DEALLOC3
+	dec	ax			; check for "1"	
+	jz	short RET12		; is last cluster of incomplete chain
+NO_DEALLOC3:
+	;;;
+%endif
+
 	call	IsEOF
         JB	short RELEASE	; Carry clear if JMP not taken
 
 	; 16/12/2022
 ; 25/11/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
-;%if 0
+; 28/02/2024 (PCDOS 7.1 IBMDOS.COM)
+%if 0
 RELEASE_flush:
 	; MSDOS 6.0
 	mov	al,[es:bp]
@@ -33068,7 +34429,8 @@ RELEASE_flush:
 	pop	es
 	pop	cx
 	pop	si
-;%endif
+%endif		; 28/02/2024
+
 RET12:
 	retn
 
@@ -33088,6 +34450,8 @@ RET12:
 ;
 ;--------------------------------------------------------------------------
 
+	; 28/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+%if 0
 GETEOF:
 	call	UNPACK
         jc	short RET12
@@ -33098,12 +34462,57 @@ GETEOF:
         JAE     short RET12
         MOV     BX,DI
         JMP     short GETEOF
+%else
+	; 28/02/2024 - Retro DOS v5.0
+	;;;
+GETEOF4:	; **
+	pop	word [CLUSTNUM_HW] ; * ; 28/02/2024
+GETEOF1:
+	mov	di,ax
+	mov	[CLUSTERS_HW],dx ; CLUSTERS_HW:DI = Cluster Count
+	pop	ax
+	pop	dx
+	retn
+
+	; PCDOS 7.1 IBMDOS.COM - DOSCODE:9D7Ch
+GETEOF:
+	push	dx
+	push	ax
+	xor	dx,dx ; 0	; cluster count = 0
+	xor	ax,ax ; 0
+GETEOF2:
+	call	UNPACK
+	jc	short GETEOF1
+		; CCONTENT_HW:DI = next cluster (cluster content)
+	inc	ax
+	jnz	short GETEOF3
+	inc	dx
+GETEOF3:
+	push	word [CLUSTNUM_HW] ; * ; 28/02/2024
+	push    bx
+	;push	word [CLUSTNUM_HW]
+	mov	bx,[CCONTENT_HW]
+	mov	[CLUSTNUM_HW],bx
+	mov	bx,di
+	call	IsEOF
+	;pop	word [CLUSTNUM_HW] ; * ; 28/02/2024
+	pop	bx
+	;jae	short GETEOF1   ; EOF
+	jae	short GETEOF4 ; ** ; 28/02/2024
+	;mov	bx,[CCONTENT_HW] ; not EOF
+	;mov	[CLUSTNUM_HW],bx
+	pop	bx	; * ; 28/02/2024
+	mov	bx,di
+	jmp	short GETEOF2   ; get next cluster
+	;;;
+%endif
 
 ;============================================================================
 ; FCB.ASM, MSDOS 6.0, 1991
 ;============================================================================
 ; 30/07/2018 - Retro DOS v3.0
 ; 20/05/2019 - Retro DOS v4.0
+; 29/02/2024 - Retro DOS v5.0
 
 ;	TITLE	FCB - FCB parse calls for MSDOS
 ;	NAME	FCB
@@ -33143,14 +34552,25 @@ EXTBIT		EQU	8
 
 	; 25/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 	; DOSCODE:8E77h (MSDOS 5.0, MSDOS.SYS)
+
+	; 29/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+	; PCDOS 7.1 IBMDOS.COM - DOSCODE:9DB0h
+
+	; (MSDOS 6.22 MSDOS.SYS - DOSCODE:8ED3h)
+	; (Windows ME IO.SYS - BIOSCODE:8D92h)
+
 MAKEFCB:
 ;hkn; SS override
-	MOV	BYTE [SS:SpaceFlag],0
+	;MOV	BYTE [SS:SpaceFlag],0
 	XOR	DL,DL		; Flag--not ambiguous file name
+	; 29/02/2024
+	mov	[ss:SpaceFlag],dl ; 0
 	;test	al,2
 	test	AL,DRVBIT	; Use current drive field if default?
 	JNZ	short DEFDRV
-	MOV	BYTE [ES:DI],0	; No - use default drive
+	;MOV	BYTE [ES:DI],0	; No - use default drive
+	; 29/02/2024
+	mov	[es:di],dl ; 0
 DEFDRV:
 	INC	DI
 	MOV	CX,8
@@ -33324,6 +34744,10 @@ scanb_retn:
 
 	; 25/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 	; 20/05/2019 - Retro DOS v4.0
+
+	; 29/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+	; PCDOS 7.1 IBMDOS.COM - DOSCODE:9E7Ch
+
 NameTrans:
 ;hkn; SS override
 	MOV	BYTE [SS:SpaceFlag],1
@@ -33333,12 +34757,27 @@ NameTrans:
 ;hkn; NAME1 is in DOSDATA
 	MOV	DI,NAME1
 	PUSH	DI
-	MOV	AX,'  '
+
+; 29/02/2024
+%if 0
+	MOV	AX,'  '	; 2020h
 	MOV	CX,5
 	STOSB
 	REP	STOSW		; Fill "FCB" at NAME1 with spaces
 	XOR	AL,AL		; Set stuff for NORMSCAN
 	MOV	DL,AL
+%else
+	; 29/02/2024
+	; (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	mov     al, 20h ; ' '
+	mov     cx, 11
+	rep stosb               ; Fill "FCB" at NAME1 with spaces
+	xchg    ax, cx
+	cwd
+	;;;
+%endif
+
 	STOSB
 	POP	DI
 
@@ -33725,10 +35164,13 @@ SPCHK:
 ;
 ;-------------------------------------------------------------------------
 
+	; 29/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+
 	; 25/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 
 	; 20/05/2019 - Retro DOS v4.0
 	; MSDOS 6.0
+
 GetCharType:
 	;cmp	al,7Eh
 	cmp	al,CharType_last 	; beyond end of table?
@@ -33746,10 +35188,22 @@ GetCharType:
 
 	jnc	short gct_80		; carry clear, no shift needed
 
+; 29/02/2024
+%if 0
 	shr	al,1			; we want high nibble, shift it down
 	shr	al,1
 	shr	al,1
 	shr	al,1
+%else
+	; 29/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	push	cx
+	mov	cl,4			; we want high nibble, shift it down
+	shr	al,cl
+	pop	cx
+	;;;
+%endif
+
 gct_80:
 	and	al,0Fh			; clear the unused nibble
 	retn
@@ -33780,6 +35234,7 @@ PathRet:
 ;============================================================================
 ; 30/07/2018 - Retro DOS v3.0
 ; 29/04/2019 - Retro DOS v4.0
+; 29/02/2024 - Retro DOS v5.0
 
 ; 15/03/2018 - Retro DOS v2.0 (MSDOS 2.11, CTRLC.ASM, 1983)
 
@@ -33847,27 +35302,30 @@ LowInt28Addr: ;	LABEL	DWORD
 
         ;procedure DSKSTATCHK,NEAR ; Check for ^C if only one level in
 
+	; 29/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
+	; PCDOS 7.1 IBMDOS.COM - DOSCODE:9F51h
+
 DSKSTATCHK:        
 	;CMP	BYTE [INDOS],1
-        CMP     BYTE [SS:INDOS],1 ; 15/03/2018
+	CMP	BYTE [SS:INDOS],1 ; 15/03/2018
 	;retnz			; Do NOTHING
 	; 16/12/2022
-	JNZ	SHORT _RET37 ; Retro DOS v2.0 - 04/03/2018         
+	JNZ	SHORT _RET37 ; Retro DOS v2.0 - 04/03/2018
 	; 25/11/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
 	;jz	short _RET37 ; dskstatchk1
 	;retn
 ;_RET37:
 ;dskstatchk1:
 	PUSH    CX
-        PUSH    ES
-        PUSH    BX
-        PUSH    DS
-        PUSH    SI
+	PUSH    ES
+	PUSH    BX
+	PUSH    DS
+	PUSH    SI
         
 	;PUSH	CS
-        ;POP	ES
-        ;PUSH	CS
-        ;POP	DS
+	;POP	ES
+	;PUSH	CS
+	;POP	DS
 
 	MOV	BX,SS		; SS is DOSDATA. ES:BX must be set up
 	MOV	ES,BX		; for deviocall2
@@ -33902,37 +35360,67 @@ DSKSTATCHK:
 ;	lds	si,[ss:BCON]
 
 	CALL	DEVIOCALL2
+
+	; 29/02/2024
+	push	ds ; *
+	push	ss
+	pop	ds
+
  	; 15/03/2018
 	;;test	word [ss:DSKSTST],200h
         ;TEST	WORD [SS:DSKSTST],STBUI
 	; 05/05/2019
-	test	byte [ss:DSKSTST+1],(STBUI>>8) ; 2
+	;test	byte [ss:DSKSTST+1],(STBUI>>8) ; 2
+	; 29/02/2024
+	test	byte [DSKSTST+1],(STBUI>>8) ; 2
 	jz	short _GotCh		; No characters available
 
-        XOR     AL,AL                   ; Set zero
+	XOR	AL,AL			; Set zero
 RET36:
-        POP     SI
-        POP     DS
-        POP     BX
-        POP     ES
-        POP     CX
+	; 29/02/2024
+	pop	si ; *
+	;
+	POP	SI
+	POP	DS
+	POP	BX
+	POP	ES
+	POP	CX
 	; 16/12/2022
 	; 25/11/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
 _RET37:
-        RETN
+	RETN
 
 _GotCh:
-        MOV     AL,[SS:DSKCHRET]	; SS override
 
-        CMP     AL,"C"-"@" ; cmp al,3
-        JNZ     SHORT RET36
-        MOV     BYTE [SS:DSKSTCOM],DEVRD
-        MOV     BYTE [SS:DSKSTCALL],DRDWRHL
-        MOV     [SS:DSKCHRET],CL
+; 29/02/2024
+%if 0
+	MOV	AL,[SS:DSKCHRET]	; SS override
+
+	CMP	AL,"C"-"@" ; cmp al,3
+	JNZ	SHORT RET36
+	MOV	BYTE [SS:DSKSTCOM],DEVRD
+	MOV	BYTE [SS:DSKSTCALL],DRDWRHL
+	MOV	[SS:DSKCHRET],CL
 	; 09/09/2018
 	MOV	word [SS:DSKSTST],0
 	MOV	word [SS:DSKSTCNT],1
+%else
+	; 29/02/2024
+	mov	al,[DSKCHRET]
+
+	cmp	al,"C"-"@" ; cmp al,3
+	jnz	short RET36
+
+	mov	byte [DSKSTCOM],DEVRD
+	mov	byte [DSKSTCALL],DRDWRHL
+	mov	[DSKCHRET],cl
+	mov	word [DSKSTST],0
+	mov	word [DSKSTCNT],1
+	pop	ds ; *
+%endif
+	
 	CALL	DEVIOCALL2              ; Eat the ^C
+
         POP     SI
         POP     DS
         POP     BX                      ; Clean stack
@@ -33969,7 +35457,7 @@ INCHKJ:	; 10/08/2018
 	jmp	INCHK
 
 	; MSDOS 3.3
-        ;CMP     AL,"P"-"@"  ; cmp al,16
+        ;CMP	AL,"P"-"@"  ; cmp al,16
         ;JZ	short INCHKJ
 
 	; 15/04/2018
@@ -33978,7 +35466,7 @@ INCHKJ:	; 10/08/2018
         ;JZ	SHORT INCHKJ
         ;;ENDIF
 	
-	;CMP     AL,"C"-"@"  ; cmp al,3
+	;CMP	AL,"C"-"@"  ; cmp al,3
         ;JZ	short INCHKJ
 	;RETN
 
@@ -33997,12 +35485,12 @@ INCHKJ:	; 10/08/2018
 ;----------------------------------------------------------------------------
 
 SPOOLINT:
-        PUSHF
+	PUSHF
 	; 15/03/2018
-        CMP     BYTE [SS:IDLEINT],0	; SS override
-        JZ      SHORT POPFRET
-        CMP     BYTE [SS:ERRORMODE],0
-        JNZ     SHORT POPFRET		;No spool ints in error mode
+	CMP	BYTE [SS:IDLEINT],0	; SS override
+	JZ	SHORT POPFRET
+	CMP	BYTE [SS:ERRORMODE],0
+	JNZ	SHORT POPFRET		; No spool ints in error mode
 
 	; 30/07/2018
 
@@ -34016,7 +35504,7 @@ SPOOLINT:
 	; MSDOS 6.0
 	cmp	byte [SS:DosHasHMA],0	; Q: is dos running in HMA (M021)
 	jne	short do_low_int28	; Y: the int must be done from low mem
-	INT	int_spooler  ; int 28h 	; N: Execute user int 28 handler
+	INT	int_spooler  ; int 28h	; N: Execute user int 28 handler
 	jmp	short spool_ret_addr
 
 do_low_int28:
@@ -34028,7 +35516,7 @@ spool_ret_addr:
 
 	POP	WORD [SS:IDLEINT]
 POPFRET:
-        POPF
+	POPF
 _RET18:  
 	RETN
 
@@ -34176,6 +35664,8 @@ INCHK:
 ;
 ;---------------------------------------------------------------------------
 
+	; 29/02/2024 - Retro DOS v5.0
+
 CNTCHAND:
 	; MSDOS 6.0			; SS override
 					; AN002; from RAWOUT
@@ -34227,6 +35717,10 @@ NOSWAP:
 	;getdseg <ds>			; ds -> dosdata
 	mov	ds,[cs:DosDSeg]
 	mov	byte [INDOS],0		; Go to known state
+	; 29/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	mov	byte [INDOS_FLAG],0	; 2nd 'in dos' flag (what for?)
+	;;;
 	mov	byte [ERRORMODE],0
 	mov	[ConC_Spsave],SP	; save his SP
 	; User SP has changed because of push. Adjust for it
@@ -34242,7 +35736,7 @@ NOSWAP:
 	; 05/05/2019
 do_low_int23:
 	clc
-	call	far [cs:LowInt23Addr]	
+	call	far [cs:LowInt23Addr]
 
 	; 30/07/2018 
 
@@ -34285,11 +35779,11 @@ ctrlc_ret_addr: ; 05/05/2019
 
 	; MSDOS 3.3
 	;CMP	SP,[CS:ConC_Spsave]
-	;JNZ     SHORT ctrlc_try_new ; current SP not the same as saved SP
+	;JNZ	SHORT ctrlc_try_new	; current SP not the same as saved SP
 
 	; MSDOS 6.0
 	CMP	SP,[ConC_Spsave]
-	JNZ     SHORT ctrlc_try_new ; current SP not the same as saved SP
+	JNZ	SHORT ctrlc_try_new	; current SP not the same as saved SP
 
 ; Repeat the operation by redispatching the system call.
 
@@ -34309,10 +35803,16 @@ COMMANDJ:
 ; RETF'd leaving some flags on the stack and examine the input
 
 ctrlc_try_new:
-	ADD	SP,2			; pop those flags
+	; 29/02/2024
+	;ADD	SP,2			; pop those flags
+	;
 	;;test	ax,1
 	;TEST	AX,f_Carry		; did he return with carry?
 	test	al,f_Carry ; test al,1
+	;
+	; 29/02/2024
+	pop	ax  ;  (PCDOS 7.1 IBMDOS.COM)
+	;
 	JZ	short ctrlc_repeat	; no carry set, just retry
 
 	; MSDOS 6.0
@@ -34324,7 +35824,7 @@ ctrlc_try_new:
 ctrlc_abort:
 	; MSDOS 3.3
         ;;MOV	AX,(EXIT SHL 8) + 0
-        ;MOV	AX, (EXIT*256) + 0  ; 4C00h
+        ;MOV	AX,(EXIT*256) + 0  ; 4C00h
 	;mov	byte [CS:DidCTRLC],0FFh ; 14/03/2018
         ;transfer COMMAND	    ; give up by faking $EXIT
 	;;JMP	SHORT COMMANDJ
@@ -34332,7 +35832,7 @@ ctrlc_abort:
 
 	; 05/05/2019 - Retro DOS v4.0
 	; MSDOS 6.0
-	MOV	AX,(EXIT<<8)+0  ; 4C00h
+	MOV	AX,(EXIT<<8)+0 ; 4C00h
 	push	ds
 	;getdseg <ds>			; ds -> dosdata
 	mov	ds,[cs:DosDSeg]	
@@ -34440,7 +35940,8 @@ _OUTMES:
 	;mov	[DEVIOBUF_PTR],si
 	; MSDOS 6.0
 					; CS is used for string, fill in 
-					; segment address 
+					; segment address
+	;mov	[DOSSEG_INIT],cs ; 29/02/2024 
 	MOV	[DSKCHRET+3],CS
 
         LDS     SI,[BCON]
@@ -34533,85 +36034,134 @@ ctrlp:			; SS override for Allowed and EXITHOLD
 ;--------------------------------------------------------------------------
 
 	; 25/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
+	; 29/02/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMDOS.COM)
 HARDERR:
 	; 05/05/2019 - Retro DOS v4.0
 	; 30/07/2018
 	; 08/07/2018 - Retro DOS v3.0
-	XCHG    AX,DI                   ; Error code in DI, count in AX
-        ;and	di,0FFh
-	AND     DI,STECODE              ; And off status bits
-        ;CMP	DI,WRECODE		; Write Protect Error?
+	XCHG	AX,DI		  	; Error code in DI, count in AX
+	;and	di,0FFh
+	AND	DI,STECODE		; And off status bits
+	;CMP	DI,WRECODE		; Write Protect Error?
 	;cmp	di,0
 	cmp	DI,error_I24_write_protect ; Write Protect Error?
-        JNZ     short NOSETWRPERR
-        PUSH    AX
+	JNZ	short NOSETWRPERR
+	PUSH	AX
 	; 25/11/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
 	;MOV	AL,[ES:BP+DPB.DRIVE]
-        ;;MOV	AL,[ES:BP+0]
+	;;MOV	AL,[ES:BP+0]
 	; 15/12/2022
 	mov	al,[ES:BP]
-        	; 15/03/2018
-        MOV     [SS:WPERR],AL		; Flag drive with WP error
-        POP     AX
+		; 15/03/2018
+	MOV	[SS:WPERR],AL		; Flag drive with WP error
+	POP	AX
 NOSETWRPERR:
-        SUB     AX,CX                   ; Number of sectors successfully transferred
-        ADD     DX,AX                   ; First sector number to retry
-        PUSH    DX
+	SUB	AX,CX		  ; Number of sectors successfully transferred
+	ADD	DX,AX		  ; First sector number to retry
+	; 29/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	adc	word [ss:HIGH_SECTOR],0
+	;;;
+	PUSH	DX
 	; 08/07/2018
-        ;MUL	word [ES:BP+2] 		; Number of bytes transferred
+	;MUL	word [ES:BP+2] 		; Number of bytes transferred
 	MUL	word [ES:BP+DPB.SECTOR_SIZE]
-        POP     DX
-        ADD     BX,AX                   ; First address for retry
-        XOR     AH,AH                   ; Flag disk section in error
-        ;CMP	DX,[ES:BP+6] 		; In reserved area?
+	POP	DX
+	ADD	BX,AX		  	; First address for retry
+	;XOR	AH,AH ; *	  	; Flag disk section in error
+	; 29/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	xor	ax,ax ; * ; 29/02/2024 - Retro DOS v5.0
+	;cmp	word [ss:HIGH_SECTOR],0
+	cmp	[ss:HIGH_SECTOR],ax ; 0 ; *
+	jnz	short TESTDIR
+	;;;
+	;CMP	DX,[ES:BP+6] 		; In reserved area?
 	CMP	DX,[ES:BP+DPB.FIRST_FAT]
-        JB      SHORT ERRINT
-        INC     AH                      ; Flag for FAT
-        ;CMP	DX,[ES:BP+10H] ; MSDOS 3.3
-	;cmp	dx,[ES:BP+11h] ; MSDOS 6.0 - 05/05/2019 	
-	CMP	DX,[ES:BP+DPB.DIR_SECTOR]  ; In FAT?  
-	JAE	short TESTDIR 		; No
-		 ; Err in FAT must force recomp of freespace
+	JB	SHORT ERRINT
+
+TESTDIR:	; 29/02/2024	
+	INC	AH			; Flag for FAT
+
+	; 29/02/2024 - Retro DOS v5.0 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	;cmp	word [es:bp+0Fh],0
+	cmp	word [es:bp+DPB.FAT_SIZE],0
+	jnz	short TESTDIR3 ; not FAT32
+	push	dx
+	mov	dx,[ss:HIGH_SECTOR]
+	;cmp	dx,[es:bp+2Bh]
+	cmp	dx,[es:bp+DPB.FCLUS_FSECTOR+2]
+	pop	dx
+	jnz	short TESTDIR1	; Err in FAT must force recomp of freespace
+	;cmp	dx,[es:bp+29h]
+	cmp	dx,[es:bp+DPB.FCLUS_FSECTOR]
+TESTDIR1:
+	jnb	short TESTDIR2
+	;mov	word [es:bp+1Fh],0FFFFh ; -1
+	mov	word [es:bp+DPB.FREE_CNT],0FFFFh
+	;mov	word [es:bp+21h],0FFFFh ; -1
+	mov	word [es:bp+DPB.FREE_CNT+2],0FFFFh
+	jmp	short ERRINT
+TESTDIR2:  
+	inc	ah
+	;inc	ah
+	;jmp	short ERRINT
+	; 29/02/2024 - Retro DOS v5.0
+	jmp	short ERRINT2
+TESTDIR3:
+	;;;
+
+	;CMP	DX,[ES:BP+10H] ; MSDOS 3.3
+	;cmp	dx,[ES:BP+11h] ; MSDOS 6.0 - 05/05/2019
+	CMP	DX,[ES:BP+DPB.DIR_SECTOR] ; In FAT?  
+	;JAE	short TESTDIR 		; No
+	jae	short TESTDIR4 ; 29/02/2024
+
+		; Err in FAT must force recomp of freespace
 	;mov	word [ES:BP+1Eh],-1 ; MSDOS 3.3
 	;mov	word [ES:BP+1Fh],-1 ; MSDOS 6.0 - 05/05/2019 
 	MOV	word [ES:BP+DPB.FREE_CNT],-1
+
 	JMP	SHORT ERRINT
-TESTDIR:
-        INC     AH
-        ;CMP	DX,[ES:BP+0BH]		; In directory?
-	CMP	DX,[ES:BP+DPB.FIRST_SECTOR] 
-        JB      SHORT ERRINT
-        INC     AH                      ; Must be in data area
+;TESTDIR:
+TESTDIR4:	; 29/02/2024
+	INC	AH
+	;CMP	DX,[ES:BP+0BH]		; In directory?
+	CMP	DX,[ES:BP+DPB.FIRST_SECTOR]
+	JB	SHORT ERRINT
+ERRINT2:	; 29/02/2024
+	INC	AH			; Must be in data area
 ERRINT:
-        SHL     AH,1                    ; Make room for read/write bit
-        OR      AH,[SS:READOP] ; 15/03/2018
+	SHL	AH,1			; Make room for read/write bit
+	OR	AH,[SS:READOP] ; 15/03/2018
 
 	; 15/08/2018
 					; SS override for allowed and EXITHOLD
 	OR	AH,[SS:ALLOWED]		; Set the allowed_ bits
 
-        ;entry   FATAL
+	;entry   FATAL
 FATAL:
 	; 25/11/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
 	;MOV	AL,[ES:BP+DPB.DRIVE]
-        ;;MOV	AL,[ES:BP+0]		; Get drive number
+	;;MOV	AL,[ES:BP+0]		; Get drive number
 	; 15/12/2022
-	MOV	AL,[ES:BP]        
+	MOV	AL,[ES:BP]	
 
 	;entry   FATAL1
 FATAL1:  
-	; 15/03/2018      
-	MOV     [SS:EXITHOLD+2],ES
-        MOV     [SS:EXITHOLD],BP	; The only things we preserve	
+	; 15/03/2018	
+	MOV	[SS:EXITHOLD+2],ES
+	MOV	[SS:EXITHOLD],BP	; The only things we preserve
 	;LES	SI,[ES:BP+12H] ; MSDOS 3.3
 	;LES	SI,[ES:BP+13H] ; MSDOS 6.0 - 05/05/2019
 	LES	SI,[ES:BP+DPB.DRIVER_ADDR]
-        MOV     BP,ES                   ; BP:SI points to the device involved
+	MOV	BP,ES			; BP:SI points to the device involved
 
-	; DI has the INT-24-style extended error. We now map the error code 
-	; for this into the normalized get extended error set by using the 
-	; ErrMap24 table as a translate table. Note that we translate ONLY 
-	; the device returned codes and leave all others beyond the look up 
+	; DI has the INT-24-style extended error. We now map the error code
+	; for this into the normalized get extended error set by using the
+	; ErrMap24 table as a translate table. Note that we translate ONLY
+	; the device returned codes and leave all others beyond the look up
 	; table alone.
 
 	; 08/07/2018 - Retro DOS v3.0
@@ -34622,6 +36172,7 @@ FATALC:
 	JBE	short GOT_RIGHT_CODE	; Error codes above gen_failure get
 	MOV	DI,error_I24_gen_failure; mapped to gen_failure. Real codes
 					;  Only come via GetExtendedError
+
 ;** ----------------------------------------------------------------
 ;
 ; Entry point used by REDIRector on Network I 24 errors.
@@ -34629,23 +36180,23 @@ FATALC:
 ;	ASSUME	DS:NOTHING,ES:NOTHING,SS:DOSDATA
 ;
 ; ALL I 24 regs set up. ALL Extended error info SET. ALLOWED Set.
-;     EXITHOLD set for restore of ES:BP.
+;	EXITHOLD set for restore of ES:BP.
 ; ------------------------------------------------------------------
 	;entry	NET_I24_ENTRY
 NET_I24_ENTRY:
 GOT_RIGHT_CODE:
-	CMP     BYTE [SS:ERRORMODE],0	; No INT 24s if already INT 24
-        JZ	SHORT NoSetFail
+	CMP	BYTE [SS:ERRORMODE],0	; No INT 24s if already INT 24
+	JZ	SHORT NoSetFail
 	MOV	AL,3
 	JMP	short FailRet
 NoSetFail:
-        MOV     [SS:CONTSTK],SP		; SS override
-        PUSH	SS
-        POP	ES
+	MOV	[SS:CONTSTK],SP		; SS override
+	PUSH	SS
+	POP	ES
     
 	; Wango!!! We may need to free some user state info... In 
-	; particular, we may have locked down a JFN for a user and he may 
-	; NEVER return to us. Thus,we need to free it here and then 
+	; particular, we may have locked down a JFN for a user and he may
+	; NEVER return to us. Thus,we need to free it here and then
 	; reallocate it when we come back.
 
 	CMP	word [SS:SFN],-1 ; 0FFFFh
@@ -34660,15 +36211,20 @@ NoSetFail:
 _NoFree:
 	CLI
 					; Prepare to play with stack
-        INC     BYTE [SS:ERRORMODE]	; Flag INT 24 in progress
-        DEC     BYTE [SS:INDOS]		; INT 24 handler might not return
+	INC	BYTE [SS:ERRORMODE]	; Flag INT 24 in progress
+	DEC	BYTE [SS:INDOS]		; INT 24 handler might not return
+
+	; 29/02/2024 - Retro DOS v5.0 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	dec	byte [ss:INDOS_FLAG]	; 2nd 'in dos' flag (what for?)
+	;;;
 
 	; 05/05/2019 - Retro DOS v4.0 (MSDOS 6.0, MSDOS 6.21)
 
 	;; Extended Open hooks
 					; AN000;IFS.I24 error disabled
 	;test	byte [ss:EXTOPEN_ON],2
-	TEST	byte [ss:EXTOPEN_ON],EXT_OPEN_I24_OFF 
+	TEST	byte [ss:EXTOPEN_ON],EXT_OPEN_I24_OFF
 	JZ	short i24yes		; AN000;IFS.no
 faili24:				; AN000;
 	MOV	AL,3			; AN000;IFS.fake fail
@@ -34676,16 +36232,16 @@ faili24:				; AN000;
 i24yes: 				; AN000;
 	;; Extended Open hooks
 
-        MOV     SS,[SS:USER_SS]
-        MOV     SP,[ES:USER_SP]         ; User stack pointer restored
+	MOV	SS,[SS:USER_SS]
+	MOV	SP,[ES:USER_SP]	; User stack pointer restored
 
 	;;int	24h	
-        ;IN	int_fatal_abort		; Fatal error interrupt vector,
+	;IN	int_fatal_abort		; Fatal error interrupt vector,
 					; must preserve ES
 	; 05/05/2019
-	cmp	byte [es:DosHasHMA], 0	; Q: is dos running in HMA (M021)
+	cmp	byte [es:DosHasHMA],0	; Q: is dos running in HMA (M021)
 	jne	short do_low_int24	; Y: the int must be done from low mem
-	INT	int_fatal_abort 	; Fatal error interrupt vector, 
+	INT	int_fatal_abort 	; Fatal error interrupt vector,
 					; must preserve ES
 	jmp	short criterr_ret_addr
 
@@ -34694,17 +36250,23 @@ do_low_int24:
 	; MSDOS 6.0
 	call    far [cs:LowInt24Addr]
 criterr_ret_addr:
-        MOV     [ES:USER_SP],SP         ; restore our stack
-        MOV     [ES:USER_SS],SS
-        MOV     BP,ES
-        MOV     SS,BP
+	MOV	[ES:USER_SP],SP	; restore our stack
+	MOV	[ES:USER_SS],SS
+	MOV	BP,ES
+	MOV	SS,BP
 passi24:
-        MOV     SP,[SS:CONTSTK]
-        INC     BYTE [SS:INDOS]		; Back in the DOS
-        MOV     BYTE [SS:ERRORMODE],0	; Back from INT 24
-        STI
+	MOV	SP,[SS:CONTSTK]
+	INC	BYTE [SS:INDOS]		; Back in the DOS
+
+	; 29/02/2024 - Retro DOS v5.0 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	inc	byte [ss:INDOS_FLAG]
+	;;;
+
+	MOV	BYTE [SS:ERRORMODE],0	; Back from INT 24
+	STI
 FailRet:
-        LES     BP,[SS:EXITHOLD]
+	LES	BP,[SS:EXITHOLD]
 	
 	; 08/07/2018
 
@@ -34718,14 +36280,14 @@ FailRet:
 
 	; The reply was fail. See if we are allowed to fail.
 
-				; SS override for ALLOWED, EXTOPEN_ON, 
-				; ALLOWED, FAILERR, WPERR, SFN, pJFN
+					; SS override for ALLOWED, EXTOPEN_ON,
+					; ALLOWED, FAILERR, WPERR, SFN, pJFN
 	;test	byte [ss:ALLOWED],8
 	test	byte [ss:ALLOWED],Allowed_FAIL ; Can we?
-	jz	short DoAbort	; No, do abort
+	jz	short DoAbort		; No, do abort
 DoFail:
-	MOV	AL,3		; just in case...
-				; AN000;EO. I24 error disabled
+	MOV	AL,3			; just in case...
+					; AN000;EO. I24 error disabled
 	; 05/05/2019
 	;(MSDOS 6.0, MSCTRLC.ASM, 1991)
 	test	byte [ss:EXTOPEN_ON],EXT_OPEN_I24_OFF ; 2
@@ -34758,7 +36320,8 @@ Cleanup_retn:
 CheckIgnore:
 	;test	byte [ss:ALLOWED],20h
 	test	byte [ss:ALLOWED],Allowed_IGNORE ; Can we?
-	jz	short DoFail			 ; No, do fail
+CheckRI:	; 29/02/2024
+	jz	short DoFail			; No, do fail
 	jmp	short CleanUp
 
 	; The reply was RETRY. See if we are allowed to retry.
@@ -34766,9 +36329,11 @@ CheckIgnore:
 CheckRetry:
 	;test	byte [ss:ALLOWED],10h
 	test	byte [ss:ALLOWED],Allowed_RETRY	; Can we?
-	jz	short DoFail			; No, do fail
-	JMP	short CleanUp
-
+	;jz	short DoFail			; No, do fail
+	;JMP	short CleanUp
+	; 29/02/2024 (PCDOS 7.1 IBMDOS.COM)
+	jmp	short CheckRI
+	
 	; The reply was ABORT.
 DoAbort:
 	push	ss
@@ -34824,7 +36389,7 @@ reset_environment:
 
 	PUSH	DS			; save PDB of process
 
-	; There are no critical sections in force. Although we may enter 
+	; There are no critical sections in force. Although we may enter
 	; here with critical sections locked down, they are no longer 
 	; relevant. We may safely free all allocated resources.
 
@@ -34840,8 +36405,8 @@ reset_environment:
 	;CallInstall NetResetEnvironment, MultNET, 34  
 					; Allow REDIR to clear some stuff
 					; On process exit.
-	mov     ax, 1122h
-	int     2Fh	; Multiplex - NETWORK REDIRECTOR - PROCESS TERMINATION HOOK
+	mov	ax, 1122h
+	int	2Fh	; Multiplex - NETWORK REDIRECTOR - PROCESS TERMINATION HOOK
 			; SS = DOS CS
 	;mov	al,22h	
 	MOV	AL,int_terminate
@@ -34856,7 +36421,7 @@ reset_environment:
 	MOV	AX,[PDB.PARENT_PID]	; get parentPDB
 
 	; AX = parentPDB, BX = CurrentPDB, CX = ThisPDB
-	; Only free handles if AX <> BX and BX = CX and [exit_code].upper 
+	; Only free handles if AX <> BX and BX = CX and [exit_code].upper
 	; is not Exit_keep_process
 	
 	CMP	AX,BX
@@ -34870,14 +36435,14 @@ reset_environment:
 	CMP	BYTE [SS:EXIT_TYPE],EXIT_KEEP_PROCESS ; 15/08/2018
 	JZ	short reset_to_parent 	; keeping this process
 
-	; We are truly removing a process. Free all allocation blocks 
+	; We are truly removing a process. Free all allocation blocks
 	; belonging to this PDB
 
 	;invoke	arena_free_process
 	call	arena_free_process
 
-	; Kill off remainder of this process. Close file handles and signal 
-	; to relevant network folks that this process is dead. Remember that 
+	; Kill off remainder of this process. Close file handles and signal
+	; to relevant network folks that this process is dead. Remember that
 	; CurrentPDB is STILL the current process!
 
 	;invoke	DOS_ABORT
@@ -34888,13 +36453,13 @@ reset_to_parent:
 	POP	word [SS:CurrentPDB]	; set up process as parent
 
 reset_return:				; come here for normal return
-	;Context DS			; DS is used to refer to DOSDATA  
+	;Context DS			; DS is used to refer to DOSDATA
 	push	ss
 	pop	ds	
 
 	MOV	AL,-1
 
-	; make sure that everything is clean In this case ignore any errors, 
+	; make sure that everything is clean In this case ignore any errors,
 	; we cannot "FAIL" the abort, the program being aborted is dead.
 
 	;EnterCrit critDisk
@@ -34904,11 +36469,22 @@ reset_return:				; come here for normal return
 	;LeaveCrit critDisk
 	call	LCritDisk
 
+; 29/02/2024 - Retrto DOS v5.0
+; PCDOS 7.1 IBMDOS.COM
+%if 0
 	; Decrement open ref. count if we had done a virtual open earlier.
 
 	call	CHECK_VIRT_OPEN
+%endif
+
 	CLI
 	MOV	BYTE [INDOS],0		; Go to known state
+
+	; 29/02/2024 - Retro DOS v5.0 (PCDOS 7.1 IBMDOS.COM)
+	;;;
+	mov	byte [INDOS_FLAG],0
+	;;;
+
 	MOV	BYTE [WPERR],-1		; Forget about WP error
 	MOV	byte [fAborting],0	; let aborts occur
 	POP	WORD [EXITHOLD]
@@ -34926,7 +36502,7 @@ reset_return:				; come here for normal return
 	pop	es ; * ; MSDOS 6.21 (DOSCODE:94A8h, MSDOS.SYS)
 
 	; MSDOS 6.0
-	push	ax			; set up ds, but save ds in TEMPSEG 
+	push	ax			; set up ds, but save ds in TEMPSEG
 	mov	ax,ds			; and not on stack.
 	;getdseg <ds>			; ds -> dosdata
 	mov	ds,[cs:DosDSeg] 
@@ -34986,7 +36562,7 @@ SET_I24_EXTENDED_ERROR:
 					; ErrMap24End is in DOSDATA
 	MOV	AX,ErrMap24End
 	SUB	AX,ErrMap24
-					; Change to dosdata to access 
+					; Change to dosdata to access
 					; ErrMap24 and EXTERR -SR
 	; 05/05/2019 - Retro DOS v4.0
 	
@@ -34995,7 +36571,7 @@ SET_I24_EXTENDED_ERROR:
 	;getdseg <ds>			; ds ->dosdata
 	mov	ds,[cs:DosDSeg]
 
-	; AX is the index of the first unavailable error. Do not translate 
+	; AX is the index of the first unavailable error. Do not translate
 	; if greater or equal to AX.
 
 	CMP	DI,AX
@@ -35012,7 +36588,7 @@ NoTrans:
 	;assume	ds:nothing
 	POP	AX
 
-	; Now Extended error is set correctly. Translate it to get correct 
+	; Now Extended error is set correctly. Translate it to get correct
 	; error locus class and recommended action.
 
 	PUSH	SI
