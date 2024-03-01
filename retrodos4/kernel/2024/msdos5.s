@@ -1,7 +1,7 @@
 ;*****************************************************************************
 ; MSDOS5.BIN (MSDOS 5.0 Kernel) - RETRO DOS v4.0 by ERDOGAN TAN - 03/11/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 10/02/2024	((Previous: 27/09/2023))
+; Last Update: 29/02/2024	((Previous: 27/09/2023))
 ; ----------------------------------------------------------------------------
 ; Beginning: 07/07/2018 (Retro DOS 3.0), 22/04/2019 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -23599,12 +23599,17 @@ GETENT:
 	and	bl,0E0h
 	;AND	BL,255-31		; Must be multiple of 32
 	DIV	BX
-	MOV	BX,DX			; Position within sector
-	PUSH	BX
+	; 14/02/2024
+	;MOV	BX,DX			; Position within sector
+				; NOTE: This BX value is not used in DIRREAD
+				; Erdogan Tan - 14/02/2024
+	;PUSH	BX
+	push	dx
+	;
 	call	DIRREAD
 	POP	BX
 	;retc
-	jc	short nextentry_retn	
+	jc	short nextentry_retn
 SETENTRY:
 	MOV	DX,[CURBUF]
 	;add	dx,16 ; MSDOS 3.3
@@ -23872,11 +23877,14 @@ InternalError_loop:
 ; Start off at the correct spot. Optimize if the current dir part is valid.
 
 CrackIt:
+; 15/02/2024
+%if 0
 	MOV	SI,[CURR_DIR_END]	; get current directory pointer
 	CMP	SI,-1			; valid?
 	JNZ	short LOOK_SING		; Yes, use it.
 	LEA	SI,[DI+3]		; skip D:\.
 LOOK_SING:
+%endif
 	;mov	byte [ATTRIB],16h
 	MOV	byte [ATTRIB],attr_directory+attr_system+attr_hidden
 					; Attributes to search through Dirs
@@ -23897,7 +23905,7 @@ LOOK_SING:
 	CMP	BX,AX			; is the current directory cluster valid
 
 ; DOS 3.3  6/25/86
-	JZ	short NO_CURR_D		; no, crack form the root
+	JZ	short NO_CURR_D		; no, crack from the root
 	;test	byte [FastOpenFlg],1
 	TEST	byte [FastOpenFlg],FastOpen_Set ; for fastopen ?
 	JZ	short GOT_SEARCH_CLUSTER	; no
@@ -24114,7 +24122,7 @@ FINDPATH:
 	JNZ	short NOIDS		; Not to current dir end yet
 	LES	DI,[THISCDS]
 	;mov	[es:di+73],cx
-	MOV	[ES:DI+curdir.ID],CX	; Set current directory currency
+	MOV	[ES:DI+curdir.ID],CX	; Set current directory cluster
 NOIDS:
 
 ; Parse the name off of DS:SI into NAME1. AL = 1 if there was a meta
@@ -24778,8 +24786,10 @@ DoChdir:
 	XOR	CX,CX			;	    TmpCDS->text[3] = c = 0;
 	MOV	[SI+3],CL		;	    }
 SetCluster:
-	;mov	word [si+73],0FFFFh
-	MOV	word [SI+curdir.ID],-1	;	TmpCDS->ID = -1;
+	; 16/02/2024
+	;;mov	word [si+73],0FFFFh
+	;MOV	word [SI+curdir.ID],-1	;	TmpCDS->ID = -1;
+	;
 	LDS	SI,[SS:THISCDS]		;	ThisCDS->ID = c;
 	; 21/11/2022
 	;test	byte [si+curdir.flags+1],20h
@@ -26160,12 +26170,12 @@ NEWDIR:
 NULLDIR:
         MOV     CX,1
 	call	ALLOCATE
-        jc	short  builddir_retn
+        jc	short builddir_retn
         MOV     DX,[DIRSTART]
         OR      DX,DX
         JNZ	short ADDINGDIR
 	call	SETDIRSRCH
-        jc	short  builddir_retn
+        jc	short builddir_retn
         MOV     word [LASTENT],-1
         JMP     SHORT GOTDIRREC
 ADDINGDIR:
@@ -26851,7 +26861,7 @@ DEV_SFT2:
 ;	Generate and store file size (0 for devices)
 
         LODSW                   ; skip dir_first, DS:SI -> dir_size_l
-        LODSW                   ; dir_size_l in AX , DS:SI -> dir_size_h
+        LODSW                   ; dir_size_l in AX, DS:SI -> dir_size_h
         MOV     CX,AX           ; dir_size_l in CX
         LODSW                   ; dir_size_h (size AX:CX), DS:SI -> ????
         OR      DH,DH
@@ -26996,7 +27006,7 @@ FREEENT:
         MOV     CX,[SI]         ; Get pointer to clusters
 	; 19/05/2019 - Retro DOS v4.0
 	; MSDOS 6.0
-	MOV	DX,[DI+BUFFINFO.buf_sector+2]  ;F.C. >32mb	;AN000;
+	MOV	DX,[DI+BUFFINFO.buf_sector+2]	;F.C. >32mb	;AN000;
 ;hkn; SS override
         MOV	[SS:HIGH_SECTOR],DX		;F.C. >32mb	;AN000;
         MOV     DX,[DI+BUFFINFO.buf_sector]
@@ -27404,19 +27414,27 @@ yesdirty10:
 	;JB	short WBUFPLACED	; No, leave buf where it is
 	;call	PLACEHEAD               ; Make it prime candidate for chucking
                                         ;  even though it is MRU.
+	; 10/02/2024
+	push	ss
+	pop	ds
+
 	; MSDOS 6.0
 	;cmp	di,[es:bp+2]
 	CMP	di,[ES:BP+DPB.SECTOR_SIZE] ; Written last byte?
-        JB	short WBUFPLACED	; No, leave buf where it is
-        MOV	[ss:BufferQueue],BX	; Make it prime candidate for
+	JB	short WBUFPLACED	; No, leave buf where it is
+
+	; 10/02/2024
+	;MOV	[ss:BufferQueue],BX	; Make it prime candidate for
 					; chucking even though it is MRU.
+	mov	[BufferQueue],bx
 ;M039
 
 WBUFPLACED:
-        CLC
-	push	ss
-	pop	ds
-        retn
+	CLC
+	; 10/02/2024
+	;push	ss
+	;pop	ds
+	retn
 
 ;Break   <NEXTSEC -- Compute next sector to read or write>
 ;---------------------------------------------------------------------------
@@ -27430,32 +27448,38 @@ WBUFPLACED:
 
 NEXTSEC:
 	test	byte [TRANS],0FFh ; -1 
-        JZ	short CLRET
+	;JZ	short CLRET
+	; 29/02/2024
+	jz	short CLRET2
 
-        MOV     AL,[SECCLUSPOS]
-        INC     AL
+	MOV	AL,[SECCLUSPOS]
+	INC	AL
 	;cmp	al,[es:bp+4]
-        CMP     AL,[ES:BP+DPB.CLUSTER_MASK]
-        JBE	short SAVPOS
+	CMP	AL,[ES:BP+DPB.CLUSTER_MASK]
+	JBE	short SAVPOS
 
-        MOV     BX,[CLUSNUM]
-        call	IsEOF
-        JAE	short NONEXT
+	MOV	BX,[CLUSNUM]
+	call	IsEOF
+	JAE	short NONEXT
 
-        call	UNPACK
-        JC	short NONEXT
+	call	UNPACK
+	;JC	short NONEXT
+	; 26/02/2024
+	jc	short NONEXT2
 clusgot:
-        MOV     [CLUSNUM],DI
-        INC     word [LASTPOS]
-        MOV     AL,0
+	MOV	[CLUSNUM],DI
+	INC	word [LASTPOS]
+	MOV	AL,0
 SAVPOS:
-        MOV     [SECCLUSPOS],AL
+	MOV	[SECCLUSPOS],AL
 CLRET:
         CLC
-        retn
+CLRET2:		; 29/02/2024
+	retn
 NONEXT:
-        STC
-        retn
+	STC
+NONEXT2:	; 26/02/2024
+	retn
 
 ;Break	<OPTIMIZE -- DO A USER DISK REQUEST WELL>
 ;----------------------------------------------------------------------------
