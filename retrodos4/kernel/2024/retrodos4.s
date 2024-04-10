@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RETRODOS.SYS (MSDOS 5.0 Kernel) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 29/02/2024 (Previous: 24/12/2023)
+; Last Update: 09/04/2024 (Previous: 24/12/2023)
 ; ----------------------------------------------------------------------------
 ; Beginning: 25/05/2018 (Retro DOS 3.0), 26/12/2018 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -10333,13 +10333,19 @@ iosetup:
 		push	ds
 		lds	si, [dpt]	; get pointer to disk base table
 		mov	[si+4],	al
-		; 23/12/2023
-		mov	ah, al
-		mov	al, [si+10]	; [si+DISK_PARMS.DISK_MOTOR_STRT]
-		;mov	ah, [si+4]	; [si+DISK_PARMS.DISK_EOT]
+		
+		;; 23/12/2023
+		;mov	ah, al
+		;mov	al, [si+10]	; [si+DISK_PARMS.DISK_MOTOR_STRT]
+		;;mov	ah, [si+4]	; [si+DISK_PARMS.DISK_EOT]
+		;pop	ds
+		;mov	[motorstartup], al
+		;mov	[save_eot], ah
+		; 07/04/2024
+		mov	ah,[si+10]
 		pop	ds
-		mov	[motorstartup], al
-		mov	[save_eot], ah
+		mov	[motorstartup], ah
+		mov	[save_eot], al
 
 ; for 3.5" drives, both external as well as on the k09, we need to set the
 ; motor start time to 4. this checking for every i/o is going to affect
@@ -15738,6 +15744,8 @@ curdir_local	EQU	0001000000000000B
 ; ----------------------------------------------------------------------
 ; 25/03/2019 - Retro DOS v4.0
 
+; 09/04/2024 - Retro DOS v4.0 (BugFix)
+
 ; system file table
 
 ;**	System File Table SuperStructure
@@ -15795,11 +15803,10 @@ struc	SF_ENTRY
 .sf_size: 	resd	1		; Size associated with file
 .sf_position:	resd	1		; Read/Write pointer or LRU count for FCBs
 ;
-; Starting here, the next 7 bytes may be used by the file system to store an
-; ID
+; Starting here, the next 7 bytes may be used by the file system to store an ID
 ;
 .sf_cluspos:	resw	1		; Position of last cluster accessed
-.sf_dirsec:	resw	1		; Sector number of directory sector for this file
+.sf_dirsec:	resd	1 ; 09/04/2024	; Sector number of directory sector for this file
 .sf_dirpos:	resb	1		; Offset of this entry in the above
 ;
 ; End of 7 bytes of file-system specific info.
@@ -19853,8 +19860,9 @@ multrk_flag_done:
 	mov	word [es:di],-1		; 0FFFFh
 	;mov	[es:di+SF.SFCount],ax
 	mov	[es:di+4],ax
-	;mov	bl,SF_ENTRY.size ; 59
-	mov	bl,59
+	; 09/04/2024
+	mov	bl,SF_ENTRY.size ; 59
+	;mov	bl,59
 	mul	bl			;ax = number of bytes to clear
 	mov	cx,ax
 	; 11/12/2022
@@ -36682,6 +36690,9 @@ MSDOS_BIN_OFFSET: ; this offset must be paragraph aligned
 		;; 28/06/2019 ('msdos6.s') 
 		;incbin	'MSDOS6.BIN' ; Retro DOS 4.0 - MSDOS 6.21 KERNEL
 		
+		; 24/03/2024
+		; 16/03/2024
+		; 10/03/2024
 		; 29/02/2024
 		; 15/02/2024
 		; 07/02/2024

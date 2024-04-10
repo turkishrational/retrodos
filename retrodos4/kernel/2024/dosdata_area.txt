@@ -1,0 +1,18 @@
+10/03/2024
+Retro DOS v4.2 msdos6.s
+Retro DOS v4.1 msdos5.1s
+Retro DOS v5.0 ibmdos7.s
+dosyalarýnda DOSDATA segment'te
+
+** HACK FOR DOS 4.0 REDIR ** yazan yerlerde açýklanmýþ olan
+
+DOSDATA:0D12h (MSVERS)
+DOSDATA:0DDBh (ERR_TABLE_21)
+DOSDATA:0EABh (ErrMap24)
+ve
+DOSDATA:122Ah (COUNTRY_CDPG)
+
+hizalamalarý çok önemli olduðu için yapýlacak, 
+bunlarý gereken offset adreslerde býrakmayý atlamýþým.
+
+
