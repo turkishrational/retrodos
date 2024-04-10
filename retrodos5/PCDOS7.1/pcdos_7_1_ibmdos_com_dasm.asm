@@ -21,10 +21,10 @@
 DOSDATA         segment byte public 'DOSDATA' use16
                 assume cs:DOSDATA
                 assume es:nothing, ss:nothing, ds:nothing, fs:nothing, gs:nothing
-byte_0          db 4 dup(0)             ; ...
+                db 4 dup(0)
 DataVersion     dw 1
 WinoldPatch1    db 8 dup(0)             ; ...
-MYNUM           dw 0
+MYNUM           dw 0                    ; ...
 FCBLRU          dw 0                    ; ...
 OpenLRU         dw 0
 OEM_HANDLER     dd 0FFFFFFFFh
@@ -46,21 +46,22 @@ KEEPCOUNT       dw 0
 NUMIO           db 0                    ; ...
 CDSCOUNT        db 0                    ; ...
 NULDEV          dw 2 dup(0)             ; ...
-word_4C         dw 8004h                ; Null device attributes = DEVTYP|ISNULL
-off_4E          dw offset SNULDEV       ; Strategy entry point
-off_50          dw offset INULDEV       ; Interrupt entry point
-asc_52          db 'NUL     '           ; Name of null device
+                dw 8004h                ; Null device attributes = DEVTYP|ISNULL
+                dw offset SNULDEV       ; Strategy entry point
+                dw offset INULDEV       ; Interrupt entry point
+                db 'NUL     '           ; Name of null device
 SPLICES         db 0                    ; ...
 Special_Entries dw 0
-UU_IFS_DOS_CALL dd 0
+UU_IFS_DOS_CALL dd 0                    ; ...
 ChkCopyProt     dw 0                    ; ...
 A20OFF_PSP      dw 0                    ; ...
-word_65         dw 0
-                dw 0
+BUFFERS_PARM1   dw 0
+BUFFERS_PARM2   dw 0
 BOOTDRIVE       db 0                    ; ...
 DDMOVE          db 0                    ; ...
 EXT_MEM_SIZE    dw 0
 BufferQueue     dd 0                    ; ...
+                                        ; HASHINITVAR
 DirtyBufferCount dw 0                   ; ...
 SC_CACHE_PTR    dd 0
 SC_CACHE_COUNT  dw 0                    ; ...
@@ -74,26 +75,26 @@ A20OFF_COUNT    db 0                    ; ...
 DOS_FLAG        db 0                    ; ...
 UNPACK_OFFSET   dw 0                    ; ...
 UMBFLAG         db 0                    ; ...
-word_8A         dw 0                    ; ...
+SAVE_AX         dw 0                    ; ...
 UMB_HEAD        dw 0FFFFh               ; ...
 START_ARENA     dw 1                    ; ...
 JShare          dd BadCall              ; ...
 MFT_enter       dd OKCall               ; ...
 MFTClose        dd OKCall               ; ...
-                dd BadCall
+MFTclU          dd BadCall              ; ...
 MFTCloseP       dd BadCall              ; ...
-MFTCloN         dd BadCall
+MFTCloN         dd BadCall              ; ...
 set_block       dd BadCall              ; ...
 clr_block       dd BadCall              ; ...
 chk_block       dd OKCall               ; ...
-MFT_get         dd BadCall
+MFT_get         dd BadCall              ; ...
 ShSave          dd BadCall              ; ...
 ShChk           dd BadCall              ; ...
 ShCol           dd OKCall               ; ...
 ShCloseFile     dd BadCall              ; ...
 ShSU            dd BadCall              ; ...
 SFTABL          dd 0FFFFFFFFh           ; ...
-                dw 5
+                dw 5                    ; sf_default_number
 SFT0_SFTable    db 295 dup(0)           ; ...
 CARPOS          db 0                    ; ...
 STARTPOS        db 0                    ; ...
@@ -105,7 +106,7 @@ CHARCO          db 3                    ; ...
 chSwitch        db '/'
 AllocMethod     db 0                    ; ...
 fShare          db 0                    ; ...
-DIFFNAM         db 1
+DIFFNAM         db 1                    ; ...
 MYNAME          db 10h dup(20h)         ; ...
 CritPatch       dw offset redir_patch   ; ...
                 dw offset redir_patch
@@ -135,8 +136,8 @@ ConC_Spsave     dw 0                    ; ...
 exit_code       dw 0                    ; ...
 CURDRV          db 0                    ; ...
 CNTCFLAG        db 0                    ; ...
-                db 0
-                db 0
+CPSWFLAG        db 0
+CPSWSAVE        db 0
 USER_IN_AX      dw 0                    ; ...
 PROC_ID         dw 0                    ; ...
 USER_ID         dw 0                    ; ...
@@ -167,10 +168,13 @@ DEVCALL_REQFUNC db 0                    ; ...
 DEVCALL_REQSTAT dw 0                    ; ...
                 db 8 dup(0)
 CALLUNIT        db 0                    ; ...
+                                        ; CALLMED ; media byte
 CALLBR          db 0                    ; ...
+                                        ; CALLXAD ; dword
 CALLVIDM        db 0                    ; ...
 CALLXAD_2       dw 0                    ; ...
 CALLBPB         dw 0                    ; ...
+                                        ; CALLSCNT
 CALLSSEC        dw 0                    ; ...
 CALLVIDRW       dd 0                    ; ...
 CALLNEWSC       dw 2 dup(0)             ; ...
@@ -200,15 +204,17 @@ Lock_Buffer     dd 0                    ; ...
 IOCTL_drvnum    db 90h                  ; ...
 USERNUM         dd 0                    ; ...
 TIMEBUF         dw 3 dup(0)             ; ...
+                                        ; MSDAT001S
 DEVIOBUF        dw 0                    ; ...
 OPENBUF         db 128 dup(0)           ; ...
 RENBUF          db 128 dup(0)           ; ...
 SEARCHBUF       db 53 dup(0)            ; ...
 DUMMYCDS        db 88 dup(0)            ; ...
 NAME1           db 12 dup(0)            ; ...
+                                        ; DEVFCB
 NAME2           db 13 dup(0)            ; ...
 DESTSTART       dw 0                    ; ...
-                db 5 dup(0)
+                db 5 dup(0)             ; ((dir_entry.size)-($-DEVFCB))
 ATTRIB          db 0                    ; ...
 EXTFCB          db 0                    ; ...
 SATTRIB         db 0                    ; ...
@@ -289,8 +295,8 @@ TEMP_VAR        dw 0                    ; ...
 TEMP_VAR2       dw 0                    ; ...
 DrvErr          db 0                    ; ...
 DOS34_FLAG      dw 0                    ; ...
-dword_613       dd 0                    ; ...
-                dd 0
+NO_FILTER_PATH  dd 0
+NO_FILTER_DPATH dd 0
 AbsRdWr_SS      dw 0                    ; ...
 AbsRdWr_SP      dw 0                    ; ...
                 db 0
@@ -303,9 +309,9 @@ VOLCHNG_FLAG    db 0FFh                 ; ...
                 db 0
 TEMP_DOSLOC     dw 0FFFFh               ; ...
 LNE_COUNT       dw 0                    ; ...
-                db 0Eh dup(0)
+                db 14 dup(0)
 ENTLAST_PREV    dw 0                    ; ...
-                db 24h dup(0)
+                db 36 dup(0)
 absdrw_extd     db 0                    ; ...
 DIRSTART_HW     dw 0                    ; ...
 CLUSNUM_HW      dw 0                    ; ...
@@ -325,6 +331,8 @@ CLUSTERS_HW     dw 0                    ; ...
                 dw 0
                 dw 0
 CLSKIP_HW       dw 0                    ; ...
+                                        ;
+                                        ; SWAP_END
 UCASE_TAB       dw 128                  ; ...
 UCASE_TAB_2     db 128,154, 69, 65,142, 65,143,128 ; ...
                 db  69, 69, 69, 73, 73, 73,142,143
@@ -448,11 +456,11 @@ AbsDskErr       dw 0                    ; ...
                                         ; Storage for Abs dsk read/write err
 NO_NAME_ID      db 'NO NAME    '        ; ...
                                         ; null media id
-                db    0
+LOOKSIZ         db 0
 ; ---------------------------------------------------------------------------
 
 SNULDEV:                                ; ...
-                or      word ptr es:[bx+3], 100h ; [es:bx+SRHEAD.REQSTAT+1],(STDON>>8)
+                or      word ptr es:[bx+3], 100h ; [es:bx+SRHEAD.REQSTAT],STDON
 
 INULDEV:                                ; ...
                 retf
@@ -516,21 +524,23 @@ ErrMap24        db  13h, 14h, 15h, 16h, 17h, 18h, 19h, 1Ah ; ...
                 db  1Bh, 1Ch, 1Dh, 1Eh, 1Fh, 1Fh, 1Fh, 22h
 SPECIAL_VERSION dw 0                    ; ...
 OLD_FIRSTCLUS   dw 0                    ; ...
-exec_init_SP    dd 0                    ; ...
-exec_init_IP    dd 0                    ; ...
-                dw 0
-                dw 0
-                dw 0
-                dw 0
-                dw 0
-                dw 0
-                dw 0
-                dw 0
-                dw 0
-                dw 0
-                dw 0
-                dw 0
-                dw 0
+exec_init_SP    dw 0                    ; ...
+exec_init_SS    dw 0                    ; ...
+exec_init_IP    dw 0                    ; ...
+exec_init_CS    dw 0                    ; ...
+exec_signature  dw 0                    ; ...
+exec_len_mod_512 dw 0
+exec_pages      dw 0                    ; ...
+exec_rle_count  dw 0                    ; ...
+exec_par_dir    dw 0                    ; ...
+exec_min_BSS    dw 0                    ; ...
+exec_max_BSS    dw 0                    ; ...
+exec_SS         dw 0                    ; ...
+exec_SP         dw 0                    ; ...
+exec_chksum     dw 0
+exec_IP         dw 0                    ; ...
+exec_CS         dw 0
+exec_rle_table  dw 0                    ; ...
 Win386_Info     db 4, 0                 ; ...
                                         ; WIN386_SIS version
                 dd 0                    ; .Next_Dev_Ptr
@@ -538,7 +548,7 @@ Win386_Inf_Virt_Dev_Ptr dd 0            ; ...
                                         ; .Virt_Dev_File_Ptr
                 dd 0                    ; .Reference_Data
 Instance_Data_Ptr dw offset Instance_Table
-word_EF1        dw 0                    ; ...
+Win386_Info_16  dw 0                    ; ...
                 dw offset Unknown_Table
                 dw 0                    ; Win386_IIS.size
 Instance_Table  dw offset CONTPOS       ; ...
@@ -581,7 +591,7 @@ Unknown_Table   dw 0                    ; ...
                 dw offset SFTABL
                 dw offset CARPOS
                 dw 0C9h
-                dw 114Dh                ; ?
+                dw offset UNKNOWN1      ; ?
                 dw 0
                 dw 0
 Win386_DOSVars  db 5                    ; ...
@@ -615,25 +625,25 @@ SP_Save         dw 0                    ; ...
 ; ---------------------------------------------------------------------------
 
 ldivov:                                 ; ...
-                jmp     short divov_cont
+                jmp     short divov_cont ; DIVIDE BY 0 handler
 ; ---------------------------------------------------------------------------
-                call    EnsureA20ON
+                call    EnsureA20ON     ; we must turn on A20 if OFF
 
 divov_cont:                             ; ...
-                jmp     cs:DOSINTTABLE
+                jmp     cs:DOSINTTABLE  ; jmp to DOS
 ; ---------------------------------------------------------------------------
 
 lquit:                                  ; ...
-                jmp     short quit_cont
+                jmp     short quit_cont ; INT 20h Handler
 ; ---------------------------------------------------------------------------
                 call    EnsureA20ON
 
 quit_cont:                              ; ...
-                jmp     cs:DOSINTTABLE_4
+                jmp     cs:DOSINTTABLE_4 ; jmp far [cs:DOSINTTABLE+4] ; jump to DOS
 ; ---------------------------------------------------------------------------
 
 lcommand:                               ; ...
-                jmp     short command_cont
+                jmp     short command_cont ; INT 21h Handler
 ; ---------------------------------------------------------------------------
                 call    EnsureA20ON
 
@@ -642,7 +652,7 @@ command_cont:                           ; ...
 ; ---------------------------------------------------------------------------
 
 labsdrd:                                ; ...
-                jmp     short absdrd_cont
+                jmp     short absdrd_cont ; INT 25h
 ; ---------------------------------------------------------------------------
                 call    EnsureA20ON
 
@@ -651,7 +661,7 @@ absdrd_cont:                            ; ...
 ; ---------------------------------------------------------------------------
 
 labsdwrt:                               ; ...
-                jmp     short absdwrt_cont
+                jmp     short absdwrt_cont ; INT 26h
 ; ---------------------------------------------------------------------------
                 call    EnsureA20ON
 
@@ -660,7 +670,7 @@ absdwrt_cont:                           ; ...
 ; ---------------------------------------------------------------------------
 
 lstay_resident:                         ; ...
-                jmp     short sr_cont
+                jmp     short sr_cont   ; INT 27h
 ; ---------------------------------------------------------------------------
                 call    EnsureA20ON
 
@@ -669,21 +679,21 @@ sr_cont:                                ; ...
 ; ---------------------------------------------------------------------------
 
 lint2f:                                 ; ...
-                jmp     short int2f_cont
+                jmp     short int2f_cont ; INT 2Fh
 ; ---------------------------------------------------------------------------
-                call    EnsureA20ON
+                call    EnsureA20ON     ; we must turn on A20 if OFF
 
 int2f_cont:                             ; ...
-                jmp     cs:DOSINTTABLE_24
+                jmp     cs:DOSINTTABLE_24 ; jmp far [cs:DOSINTTABLE+24]
 ; ---------------------------------------------------------------------------
 
 lcall_entry:                            ; ...
-                jmp     short callentry_cont
+                jmp     short callentry_cont ; CPM entry
 ; ---------------------------------------------------------------------------
                 call    EnsureA20ON
 
 callentry_cont:                         ; ...
-                jmp     cs:DOSINTTABLE_28
+                jmp     cs:DOSINTTABLE_28 ; jmp far [cs:DOSINTTABLE+28] ; jmp to DOS
 ; ---------------------------------------------------------------------------
 DosRetAddr23    dd 0                    ; ...
 DosRetAddr24    dd 0                    ; ...
@@ -717,18 +727,21 @@ LowInt28:                               ; ...
 ; ---------------------------------------------------------------------------
 
 disa20_xfer:                            ; ...
-                call    XMMDisableA20
-                cli
+                call    XMMDisableA20   ; disable A20
+                cli                     ; DS:SI points to entry point
+                                        ; AX:DI points to initial stack
+                                        ; DX has PDB pointer
+                                        ; BX has initial AX value
                 mov     cs:INDOS, 0
                 mov     ss:INDOS_FLAG, 0
-                mov     ss, ax
-                mov     sp, di
+                mov     ss, ax          ; set up user's stack
+                mov     sp, di          ; and SP
                 sti
-                push    ds
+                push    ds              ; fake long call to entry
                 push    si
-                mov     es, dx
+                mov     es, dx          ; set up proper seg registers
                 mov     ds, dx
-                mov     ax, bx
+                mov     ax, bx          ; set up proper AX
                 retf
 ; ---------------------------------------------------------------------------
 
@@ -736,14 +749,14 @@ disa20_iret:                            ; ...
                 call    XMMDisableA20
                 dec     ds:INDOS
                 dec     ds:INDOS_FLAG
-                mov     ss, ds:USER_SS
+                mov     ss, ds:USER_SS  ; restore user stack
                 mov     sp, ds:USER_SP
                 mov     bp, sp
-                mov     [bp+0], al
+                mov     [bp+0], al      ; [BP+user_env.user_AX]
                 les     ax, dword ptr ds:NSS
                 mov     ds:USER_SP, es
                 mov     ds:USER_SS, ax
-                pop     ax
+                pop     ax              ; restore user regs
                 pop     bx
                 pop     cx
                 pop     dx
@@ -762,7 +775,7 @@ lirett:                                 ; ...
 XMMDisableA20   proc near               ; ...
                 push    bx
                 push    ax
-                mov     ah, 6
+                mov     ah, 6           ; XMM_LOCAL_DISABLE_A20
                 call    cs:XMMcontrol
                 pop     ax
                 pop     bx
@@ -784,19 +797,19 @@ EnsureA20ON     proc near               ; ...
                 push    cx
                 push    si
                 push    di
-                xor     si, si
-                mov     ds, si
+                xor     si, si          ; Compare the 4 words at 0000:0080
+                mov     ds, si          ; with the 4 at FFFF:0090
                 assume ds:DOSCODE
                 dec     si
-                mov     di, 90h
+                mov     di, 90h         ; 0FFFFh:0090h ; HighMemory
                 mov     es, si
-                mov     si, 80h
+                mov     si, 80h         ; 0000h:0080h ; LowMemory
                 mov     cx, 4
                 cld
                 repe cmpsw
-                jz      short loc_10A7
+                jz      short EA20_OFF
 
-loc_10A0:                               ; ...
+EA20_RET:                               ; ...
                 pop     di
                 pop     si
                 pop     cx
@@ -807,7 +820,7 @@ loc_10A0:                               ; ...
                 retn
 ; ---------------------------------------------------------------------------
 
-loc_10A7:                               ; ...
+EA20_OFF:                               ; ...
                 push    bx
                 push    ax
                 mov     ax, cs
@@ -816,55 +829,55 @@ loc_10A7:                               ; ...
                 mov     ss, ax
                 assume ss:DOSCODE
                 mov     sp, offset AUXSTACK
-                mov     ah, 5
-                call    cs:XMMcontrol
+                mov     ah, 5           ; XMM_LOCAL_ENABLE_A20
+                call    cs:XMMcontrol   ; call far [cs:XMMcontrol]
                 or      ax, ax
-                jz      short loc_10D3
+                jz      short XMMerror  ; AX = 0 fatal error
                 mov     ss, cs:SS_Save
                 assume ss:nothing
                 mov     sp, cs:SP_Save
                 pop     ax
                 pop     bx
-                jmp     short loc_10A0
+                jmp     short EA20_RET
 ; ---------------------------------------------------------------------------
 
-loc_10D3:                               ; ...
+XMMerror:                               ; ...
                 mov     ah, 0Fh
                 int     10h             ; - VIDEO - GET CURRENT VIDEO MODE
                                         ; Return: AH = number of columns on screen
                                         ; AL = current video mode
                                         ; BH = current active display page
                 cmp     al, 7
-                jz      short loc_10E0
+                jz      short XMMcont
                 mov     ax, 2
                 int     10h             ; - VIDEO - SET VIDEO MODE
                                         ; AL = mode
 
-loc_10E0:                               ; ...
+XMMcont:                                ; ...
                 mov     ax, 500h
                 int     10h             ; - VIDEO - SELECT DISPLAY PAGE
                                         ; AL = display page, 0-7  for modes 0 & 1, 0-3  for modes 2 & 3
-                mov     si, 1213h
+                mov     si, offset XMMERRMSG ; "\r\n"
                 push    cs
                 pop     ds
                 assume ds:DOSCODE
                 cld
 
-loc_10EB:                               ; ...
+XMMprnt:                                ; ...
                 lodsb
-                cmp     al, 24h ; '$'
-                jz      short loc_10F9
+                cmp     al, 24h ; '$'   ; indicates end of XMMERRMSG
+                jz      short XMMStall
                 mov     ah, 0Eh
                 mov     bx, 7
                 int     10h             ; - VIDEO - WRITE CHARACTER AND ADVANCE CURSOR (TTY WRITE)
                                         ; AL = character, BH = display page (alpha modes)
                                         ; BL = foreground color (graphics modes)
-                jmp     short loc_10EB
+                jmp     short XMMprnt
 ; ---------------------------------------------------------------------------
 
-loc_10F9:                               ; ...
+XMMStall:                               ; ...
                 sti
-                jmp     short loc_10F9
+                jmp     short XMMStall
 EnsureA20ON     endp
 
 ; ---------------------------------------------------------------------------
@@ -909,13 +922,11 @@ FastTable_2     dw offset FastRet       ; ...
                 dw offset FastRet
                 dw 0
 FastOpenFlg     db 0                    ; ...
-FastOpen_Ext_Info db 11 dup(0)          ; ...
-                dw 0
+FastOpen_Ext_Info db 6 dup(0)           ; ...
+UNKNOWN1        dw 0                    ; ...
+                db 5 dup(0)
 PATHNAMELEN     dw 67                   ; ...
-                db  0, 0, 0, 0, 0, 0, 0, 0
-                db  0, 0, 0, 0, 0, 0, 0, 0
-                db  0, 0, 0, 0, 0, 0, 0, 0
-                db  0, 0, 0, 0, 0, 0, 0
+                db 31 dup(0)
 CurSC_DRIVE     db 0FFh                 ; ...
 WinoldPatch2    db 8 dup(0)             ; ...
 FIRST_BUFF_ADDR dw 0                    ; ...
@@ -957,7 +968,7 @@ DOSP10_ID       db  6,1Fh
                 db 5Fh, 8Bh, 0FAh
 DOSP13_ID       db 0ACh,3Ch,24h,74h, 8,0B3h, 7,0B4h
                 db 0Eh,0CDh,10h,0EBh,0F3h,0EBh,0FEh
-XMMERRMSG       db 0Dh,0Ah
+XMMERRMSG       db 0Dh,0Ah              ; ...
                 db 'A20 Hardware Error',0Dh,0Ah,'$'
 COUNTRY_CDPG    db 0, 0, 0, 0, 0, 0, 0, 0 ; ...
                                         ; reserved words
@@ -1018,8 +1029,8 @@ VxDpath         db 'c:\wina20.386',0    ; ...
                 db 0
 drv_flags_1     db 0                    ; ...
 drive_flags     db 26 dup(0)            ; ...
-                db 1
-BiosComBlockPtr dw 2 dup(0)             ; ...
+DriverLoad      db 1                    ; ...
+BiosDataPtr     dw 2 dup(0)             ; ...
                 db 5 dup(0)
                 dw 4
                 dw offset INDOS_FLAG
@@ -1647,7 +1658,7 @@ AbsSetup2:
                 mov     ss:HIGH_SECTOR, 0
                 call    RW32_CONVERT
                 jb      short errdriv
-                call    null_sub
+                call    null_sub        ; SET_RQ_SC_PARMS
                 push    ds
                 push    si
                 push    ax
@@ -1846,7 +1857,7 @@ absdrwt_3:                              ; ...
                 call    chk_set_first_access
                 call    ECritDisk
                 mov     ss:CurSC_DRIVE, 0FFh ; invalidate secondary cache
-                call    Fastxxx_Purge   ; purge fatopen
+                call    Fastxxx_Purge   ; purge fastopen
                 call    LCritDisk
                 push    ds
                 call    DskWrtBufPurge
@@ -4171,7 +4182,7 @@ setdpbf_30:                             ; ...
 
 setdpbf_31:                             ; ...
                 test    dx, 0FF70h
-                jz      short setdpbf_33 ; bit 4-6 of DBP.EXT_FLAGS must be 0
+                jz      short setdpbf_33 ; bit 4-6 of DPB.EXT_FLAGS must be 0
                 mov     al, 57h         ; error_invalid_parameter
 
 setdpbf_32:                             ; ...
@@ -4371,7 +4382,7 @@ getdpb_5:                               ; ...
                 pop     di
                 cmp     bx, 0F1A6h      ; (!) signature (undocumented),
                                         ;  must be 0F1A6h to get device driver
-                                        ;  address and next-DBP pointer
+                                        ;  address and next-DPB pointer
                                         ; (Ref: Ralf Brown's Interrupt List)
                 jz      short getdpb_6
                 xor     ax, ax          ; 0
@@ -12281,7 +12292,7 @@ RDLP:                                   ; ...
                 mov     ds, word ptr ds:DMAADD+2
                 push    dx              ; [HIGH_SECTOR]:DX = phys. sector #.
                 push    cx              ; CX = # of contiguous sectors to read.
-                call    null_sub
+                call    null_sub        ; SET_RQ_SC_PARMS
                 call    DREAD
                 pop     cx
                 pop     dx
@@ -17418,8 +17429,8 @@ SET_I24_EXTENDED_ERROR endp
 
 
 IsEOF           proc near               ; ...
-                call    IsFAT32
-                jnb     short IsEOF_FAT ; 12 or 16 bit compare
+                call    IsFAT32         ; is it FAT32 drive ?
+                jnb     short IsEOF_FAT ; no, it has 12 or 16 bit FAT
                 cmp     ss:CLUSTNUM_HW, 0FFFh ; FAT32
                 jnz     short IsEOF_other1 ; not EOF
                 cmp     bx, 0FFF8h      ; 32 bit compare
@@ -17433,10 +17444,10 @@ IsEOF_FAT:                              ; ...
                                         ; is this 16 bit fat?
                 jnb     short EOF16     ; yes, check for eof there
                 cmp     bx, 0FF0h
-                jz      short IsEOF_other2
+                jz      short IsEOF_other
                 cmp     bx, 0FF8h       ; do the 12 bit compare
 
-IsEOF_other2:                           ; ...
+IsEOF_other:                            ; ...
                 retn                    ; cf=0 -> EOF, cf=1 -> not EOF
 ; ---------------------------------------------------------------------------
 
@@ -17449,7 +17460,7 @@ IsEOF           endp
 ; START OF FUNCTION CHUNK FOR UNPACK
 
 up_1:                                   ; ...
-                cmp     ds:CLUSTNUM_HW, bx
+                cmp     ds:CLUSTNUM_HW, bx ; 0
                 jnz     short up_cont
                 mov     di, ds:CL0FATENTRY_HW
                 or      di, di
@@ -17459,7 +17470,7 @@ up_1:                                   ; ...
                 or      di, di
 
 unpack_retn:                            ; ...
-                retn
+                retn                    ; [CCONTENT_HW]:DI = contents of CL0FATENTRY
 ; END OF FUNCTION CHUNK FOR UNPACK
 
 ; =============== S U B R O U T I N E =======================================
@@ -17506,7 +17517,7 @@ up_fat32:                               ; ...
                 mov     si, ss
                 mov     ds, si
                 jnz     short up_retn
-                or      ds:CCONTENT_HW, di ; CCONTENT_HW:di = 0 -> zf = 1
+                or      ds:CCONTENT_HW, di ; [CCONTENT_HW]:DI = 0 -> zf = 1
 
 up_retn:                                ; ...
                 retn
@@ -17533,9 +17544,19 @@ HURTFAT:                                ; ...
                 push    ax
                 mov     ah, 88h         ; Allowed_FAIL+80h
                 mov     ss:ALLOWED, 8   ; Allowed_FAIL
-                push    ss:CLUSTNUM_HW
-                push    bx
-                call    FATAL
+                push    ss:CLUSTNUM_HW  ; (necessary!?)
+                push    bx              ; (necessary!?)
+                call    FATAL           ; NOTE: DI would be 0FFFFh here (or 0FFFh as in MSDOS 6.?)
+                                        ; because, in SET_I24_EXTENDED_ERROR in FATAL,
+                                        ; DI is compared with error code
+                                        ; ;
+                                        ; xor di,di
+                                        ; dec di ; 0FFFFh
+                                        ; push di
+                                        ; call FATAL
+                                        ; pop word [ss:CCONTENT_HW]
+                                        ; ;
+                                        ; Erdogan Tan - 02/03/2024
                 pop     bx
                 pop     ss:CLUSTNUM_HW
                 xor     di, di
@@ -17585,12 +17606,12 @@ p_cont:                                 ; ...
                 call    MAPCLUSTER
                 jb      short _DoContext
                 mov     si, [di]
-                jz      short ALIGNED
+                jz      short ALIGNED   ; byte (not nibble) aligned
+                add     dx, dx          ; move data to upper 12 bits
                 add     dx, dx
                 add     dx, dx
                 add     dx, dx
-                add     dx, dx
-                and     si, 0Fh
+                and     si, 0Fh         ; leave in original low 4 bits
                 jmp     short PACKIN
 ; ---------------------------------------------------------------------------
 
@@ -17607,15 +17628,16 @@ ALIGNED:                                ; ...
 ; ---------------------------------------------------------------------------
 
 p_fat:                                  ; ...
-                cmp     word ptr es:[bp+0Dh], 0FF6h
-                jnb     short Pack16
-                and     si, 0F000h
-                and     dh, 0Fh
+                cmp     word ptr es:[bp+0Dh], 0FF6h ; [ES:BP+DPB.MAX_CLUSTER],4096-10
+                                        ; is 16 bit FAT ?
+                jnb     short Pack16    ; yes, go clobber original data
+                and     si, 0F000h      ; leave in upper 4 bits of original
+                and     dh, 0Fh         ; store only 12 bits
                 jmp     short PACKIN
 ; ---------------------------------------------------------------------------
 
 Pack16:                                 ; ...
-                xor     si, si
+                xor     si, si          ; no original data
 
 PACKIN:                                 ; ...
                 or      si, dx
@@ -17624,7 +17646,7 @@ PACKIN:                                 ; ...
 PACKIN2:                                ; ...
                 lds     si, ss:CURBUF
                 test    byte ptr [si+5], 40h ; [SI+BUFFINFO.buf_flags],buf_dirty
-                jnz     short yesdirty11
+                jnz     short yesdirty11 ; don't increment dirty count
                 inc     ss:DirtyBufferCount
                 or      byte ptr [si+5], 40h ; [SI+BUFFINFO.buf_flags],buf_dirty
 
@@ -17678,7 +17700,7 @@ PACK            endp
 
 
 IsFAT32         proc near               ; ...
-                cmp     word ptr es:[bp+0Fh], 1 ; [es:bp+DBP.FAT_SIZE]
+                cmp     word ptr es:[bp+0Fh], 1 ; [es:bp+DPB.FAT_SIZE]
                 jnb     short isfat32eof_2 ; not FAT32
                 cmp     word ptr es:[bp+2Fh], 0 ; [es:bp+DPB.LAST_CLUSTER+2]
                 jnz     short isfat32eof_1 ; FAT32
@@ -17694,13 +17716,13 @@ IsFAT32         endp
 ; ---------------------------------------------------------------------------
 ; START OF FUNCTION CHUNK FOR MAPCLUSTER
 
-loc_A5CE:                               ; ...
+_DoDiv:                                 ; ...
                 xchg    ax, di
                 xchg    ax, dx
                 div     cx
                 xchg    ax, di
                 div     cx
-                jmp     short loc_A637
+                jmp     short DivDone
 ; END OF FUNCTION CHUNK FOR MAPCLUSTER
 
 ; =============== S U B R O U T I N E =======================================
@@ -17720,49 +17742,49 @@ MAPCLUSTER      proc near               ; ...
                 mov     dx, ds:CLUSTNUM_HW
                 xor     di, di
                 call    IsFAT32
-                jnb     short loc_A5FF
+                jnb     short mapcl1    ; not FAT32
                 shl     ax, 1
                 rcl     dx, 1
                 rcl     di, 1
                 shl     ax, 1
                 rcl     dx, 1
-                rcl     di, 1
-                jmp     short loc_A613
+                rcl     di, 1           ; DI:DX:AX = 4*(DX:AX)
+                jmp     short Map16     ; 32 bit FAT
 ; ---------------------------------------------------------------------------
 
-loc_A5FF:                               ; ...
-                cmp     word ptr es:[bp+0Dh], 0FF6h
-                jnb     short loc_A60B
+mapcl1:                                 ; ...
+                cmp     word ptr es:[bp+0Dh], 0FF6h ; [ES:BP+DPB.MAX_CLUSTER]
+                jnb     short mapcl2    ; 16 bit FAT
                 shr     dx, 1
                 rcr     ax, 1
 
-loc_A60B:                               ; ...
+mapcl2:                                 ; ...
                 add     ax, bx
                 adc     dx, ds:CLUSTNUM_HW
                 adc     di, di
 
-loc_A613:                               ; ...
-                mov     cx, es:[bp+2]
+Map16:                                  ; ...
+                mov     cx, es:[bp+2]   ; [ES:BP+DPB.SECTOR_SIZE]
                 cmp     cx, 512
-                jnz     short loc_A5CE
+                jnz     short _DoDiv
                 push    ax
                 shr     di, 1
                 rcr     dx, 1
                 rcr     ax, 1
-                mov     al, ah
+                mov     al, ah          ; 9 bit shift to right
                 mov     ah, dl
                 mov     dl, dh
                 xor     dh, dh
                 shr     di, 1
                 adc     dh, dh
-                xchg    dx, di
+                xchg    dx, di          ; DI:AX = sector contains requested cluster data
                 pop     dx
-                and     dx, 1FFh
+                and     dx, 1FFh        ; offset in sector
 
-loc_A637:                               ; ...
-                add     ax, es:[bp+6]
+DivDone:                                ; ...
+                add     ax, es:[bp+6]   ; [ES:BP+DPB.FIRST_FAT]
                 adc     di, 0
-                dec     cx
+                dec     cx              ; CX is sector size - 1
                 push    di
                 push    ax
                 push    dx
@@ -17774,56 +17796,56 @@ loc_A637:                               ; ...
                 call    GETBUFFRB
                 pop     cx
                 pop     ax
-                pop     dx
-                pop     bx
-                jb      short loc_A6BC
+                pop     dx              ; CX is sec siz-1, AX is offset in sec
+                pop     bx              ; BX:DX is sector
+                jb      short MAP_POP   ; (ds=ss)
                 lds     si, ds:CURBUF
-                lea     di, [si+18h]
+                lea     di, [si+18h]    ; [SI+BUFINSIZ]
                 add     di, ax
                 cmp     ax, cx
-                jnz     short loc_A69F  ; ds<>ss
+                jnz     short MAPRET    ; ds<>ss
                 mov     al, [di]
                 mov     si, ss
                 mov     ds, si
                 inc     ds:CLUSSPLIT
                 mov     byte ptr ds:CLUSSAVE, al
                 mov     word ptr ds:CLUSSEC, dx
-                xor     ax, ax
+                xor     ax, ax          ; 0
                 add     dx, 1
                 mov     word ptr ds:CLUSSEC+2, bx
-                adc     bx, ax
+                adc     bx, ax          ; adc bx,0
                 mov     ds:HIGH_SECTOR, bx
                 mov     si, 1
                 call    GETBUFFRB
-                jb      short loc_A6BC
+                jb      short MAP_POP   ; (ds=ss)
                 lds     si, ds:CURBUF
-                lea     di, [si+18h]
+                lea     di, [si+18h]    ; [SI+BUFINSIZ]
                 mov     al, [di]
                 mov     di, ss
                 mov     ds, di
                 mov     byte ptr ds:CLUSSAVE+1, al
                 mov     di, offset CLUSSAVE
 
-loc_A69F:                               ; ...
+MAPRET:                                 ; ...
                 pop     ss:CLUSTNUM_HW  ; (ds<>ss)
                 pop     dx
                 pop     cx
                 pop     bx
                 xor     ax, ax
                 call    IsFAT32
-                jb      short loc_A6B8
-                cmp     word ptr es:[bp+0Dh], 0FF6h
-                jnb     short loc_A6B8
-                mov     ax, bx
+                jb      short MapSet
+                cmp     word ptr es:[bp+0Dh], 0FF6h ; [ES:BP+DPB.MAX_CLUSTER]
+                jnb     short MapSet    ; 16 bit FAT
+                mov     ax, bx          ; 12 bit FAT
 
-loc_A6B8:                               ; ...
-                test    al, 1
+MapSet:                                 ; ...
+                test    al, 1           ; set zero flag if not on boundary
                 pop     ax
                 retn
 ; ---------------------------------------------------------------------------
 
-loc_A6BC:                               ; ...
-                pop     ss:CLUSTNUM_HW
+MAP_POP:                                ; ...
+                pop     ss:CLUSTNUM_HW  ; (ds=ss)
                 pop     dx
                 pop     cx
                 pop     bx
@@ -17839,7 +17861,7 @@ FATREAD_SFT     proc near               ; ...
                 les     bp, es:[di+7]   ; [ES:DI+SF_ENTRY.sf_devptr]
 
 fatread_gotdpb:                         ; ...
-                mov     al, es:[bp+0]
+                mov     al, es:[bp+0]   ; [ES:BP+DPB.DRIVE]
                 mov     ds:THISDRV, al
                 call    GOTDPB          ; Set THISDPB
                 call    FAT_GOT_DPB
@@ -17861,15 +17883,18 @@ FATREAD_CDS     proc near               ; ...
                 pop     es
                 jb      short fatread_sft_retn
                 jnz     short NO_CHANGE
+
+MED_CHANGE:                             ;
                 mov     ax, 0FFFFh      ; -1
                 push    ds
                 mov     cl, ds:CDSCOUNT
                 xor     ch, ch          ; CX is number of structures
-                lds     si, es:[di+45h] ; Find all CDS with this devptr
+                lds     si, es:[di+45h] ; [ES:DI+curdir.devptr]
+                                        ; Find all CDS with this devptr
                 les     di, ss:CDSADDR  ; (es:di) = CDS pointer
 
 frcd20:                                 ; ...
-                test    byte ptr es:[di+44h], 80h ; ES:DI+curdir.flags+1],
+                test    byte ptr es:[di+44h], 80h ; [ES:DI+curdir.flags+1],
                                         ; (curdir_isnet>>8)
                 jnz     short frcd25
                 cmp     si, es:[di+45h] ; [ES:DI+curdir.devptr]
@@ -17880,6 +17905,9 @@ frcd20:                                 ; ...
                 test    es:[di+49h], ax ; [ES:DI+curdir.ID]
                                         ; If root (0), leave root
                 jz      short frcd25    ; = 0
+                                        ; PCDOS 7.1 bug (!?) ; Erdogan Tan - 03/03/2024
+                                        ; test dword ptr es:[di+49h],-1 ; Win ME
+                                        ; jz short frcd25
                 test    es:[di+4Bh], ax ; [ES:DI+curdir.ID+2]
                 jz      short frcd25    ; leave root (= 0)
                 mov     es:[di+4Bh], ax ; else invalid (-1)
@@ -17902,7 +17930,7 @@ FATREAD_CDS     endp
 
 
 chk_set_first_access proc near          ; ...
-                cmp     word ptr es:[bp+0Fh], 0 ; DPB.FATSIZE
+                cmp     word ptr es:[bp+0Fh], 0 ; DPB.FAT_SIZE
                 jnz     short chk_set_fa_1 ; FAT (FAT12 or FAT16)
                                         ; FAT32
                 cmp     word ptr es:[bp+21h], 0FFFFh ; DPB.FREE_CNT_HW
@@ -17978,7 +18006,7 @@ FAT_GOT_DPB     proc near               ; ...
                 and     byte ptr es:[bp+18h], 7Fh ; clear first access (FAT) bit 7
                 cmp     ds:VOLCHNG_FLAG, al
                 jnz     short CHECK_BYT
-                mov     ds:VOLCHNG_FLAG, 0FFh
+                mov     ds:VOLCHNG_FLAG, 0FFh ; -1
                 jmp     GOGETBPB
 ; ---------------------------------------------------------------------------
 
@@ -18056,8 +18084,8 @@ lfnxt:                                  ; ...
 NEWDSK:                                 ; ...
                 mov     word ptr es:[bp+1Fh], 0FFFFh ; [ES:BP+DPB.FREE_CNT],-1
                                         ; Media changed, must recompute
-                cmp     word ptr es:[bp+0Fh], 0 ; [ES:BP+DPB.FATSIZE] = 0 for FAT32 fs
-                jnz     short newdsk2
+                cmp     word ptr es:[bp+0Fh], 0 ; [ES:BP+DPB.FAT_SIZE] = 0 for FAT32 fs
+                jnz     short newdsk2   ; not FAT32
                 mov     word ptr es:[bp+21h], 0FFFFh ; [ES:BP+DPB.FREE_CNT_HW],-1
 
 newdsk2:                                ; ...
@@ -18075,7 +18103,7 @@ nxbuffer:                               ; ...
 ; ---------------------------------------------------------------------------
 
 lfnxt2:                                 ; ...
-                mov     di, [di]
+                mov     di, [di]        ; [di+BUFFINFO.buf_next]
 
 skpbuff:                                ; ...
                 cmp     di, ss:FIRST_BUFF_ADDR
@@ -18092,7 +18120,7 @@ GOGETBPB:                               ; ...
                 jnz     short GETFREEBUF
                 push    ss
                 pop     ds
-                mov     word ptr es:[bp+2], 200h ; DPB.SECTORSIZE ; bytes per sector
+                mov     word ptr es:[bp+2], 200h ; DPB.SECTOR_SIZE ; bytes per sector
                 mov     word ptr es:[bp+6], 1 ; DPB.FIRST_FAT ; starting sector of FATs
                 mov     byte ptr es:[bp+8], 1 ; DPB.FAT_COUNT ; number of FATs
                 mov     word ptr es:[bp+0Dh], 3 ; DPB.MAX_CLUSTER ; cluster count + 1
@@ -18133,7 +18161,7 @@ GOTGETBUF:                              ; ...
                 mov     ax, ss
                 mov     ds, ax
                 mov     word ptr ds:CALLBR, di ; [CALLXAD]
-                mov     al, 16h         ; DBPBHL
+                mov     al, 22          ; DBPBHL
                 mov     ah, es:[bp+1]   ; [ES:BP+DPB.UNIT]
                 mov     ds:DEVCALL_REQFUNC, 2 ; DEVBPB
                 mov     word ptr ds:DEVCALL_REQLEN, ax
@@ -18168,8 +18196,8 @@ gotgetbuf2:                             ; ...
                 mov     dx, 4152h       ; 'RA' ; FAT32 extended BPB/DPB signature
                 cmp     [si+0Bh], cx    ; BPB.fatsecs ; 16 bit FAT size = 0 for FAT32 fs
                 jnz     short gotgetbuf3 ; not FAT32
-                mov     es:[bp+39h], cx ; clear reserved bytes (DPB.RESERVED)
-                mov     es:[bp+3Bh], cx
+                mov     es:[bp+39h], cx ; [ES:BP+DPB.FAT32_NXTFREE],0
+                mov     es:[bp+3Bh], cx ; [ES:BP+DPB.FAT32_NXTFREE+2],0
                 dec     cx              ; -1
                 mov     es:[bp+1Fh], cx ; (DPB.FREE_CNT) set free count to -1 (unknown)
                 mov     es:[bp+21h], cx
@@ -18221,8 +18249,8 @@ gotgetbuf6:                             ; ...
                 push    dx              ; valid
                 push    bx
                 push    cx
-                mov     bx, es:[bp+2Fh] ; [es:bp+DPB.LASTCLUSTER+2]
-                mov     cx, es:[bp+2Dh] ; [es:bp+DPB.LASTCLUSTER]
+                mov     bx, es:[bp+2Fh] ; [es:bp+DPB.LAST_CLUSTER+2]
+                mov     cx, es:[bp+2Dh] ; [es:bp+DPB.LAST_CLUSTER]
                 mov     ax, [di+488]    ; FSI_FreeCount ; bx:cx = number of clusters + 1
                 mov     dx, [di+490]    ; FSI_FreeCount+2
                 cmp     dx, bx          ; is Free Count >= (Number of Clusters + 1) ?
@@ -18261,10 +18289,10 @@ gotgetbuf11:                            ; ...
 gotgetbuf12:                            ; ...
                 cmp     ss:BuffInHMA, 0
                 jnz     short gotgetbuf16
-                cmp     word ptr es:[bp+6], 1
+                cmp     word ptr es:[bp+6], 1 ; [es:bp+DPB.FIRST_FAT]
                 jz      short gotgetbuf13
                 mov     word ptr [di-20], 0FFh ; invalidate buffer (set it as free buffer)
-                                        ; di = buffer header + 4 (BUFINFO.buf_ID)
+                                        ; di = buffer header + 4 (BUFFINFO.buf_ID)
 
 gotgetbuf13:                            ; ...
                 mov     al, es:[bp+8]   ; [es:bp+DPB.FAT_COUNT]
@@ -18285,6 +18313,8 @@ gotgetbuf14:                            ; ...
 
 gotgetbuf15:                            ; ...
                 mov     [di-15], ax     ; BUFFINFO.buf_wrtcntinc+2 ; hw of sectors per FAT
+                                        ; PCDOS 7.1 BUG !? This would be 'mov [di-11],ax'
+                                        ; Erdogan Tan - 03/03/2024
 
 gotgetbuf16:                            ; ...
                 mov     ax, ss          ; SS is DOSDATA
@@ -18309,7 +18339,7 @@ GETCURHEAD      endp
 
 
 SCANPLACE       proc near               ; ...
-                push    word ptr [di]
+                push    word ptr [di]   ; [di+BUFFINFO.buf_next]
                 call    PLACEBUF
                 pop     di
                 retn
@@ -18322,37 +18352,37 @@ SCANPLACE       endp
 PLACEBUF        proc near               ; ...
                 push    ax
                 push    bx
-                mov     ax, [di]
-                mov     bx, word ptr ss:BufferQueue
-                cmp     ax, bx
-                jz      short loc_AA93
-                cmp     di, bx
-                jnz     short loc_AA7B
-                mov     word ptr ss:BufferQueue, ax
-                jmp     short loc_AA93
+                mov     ax, [di]        ; [DI+BUFFINFO.buf_next]
+                mov     bx, word ptr ss:BufferQueue ; bx = offset of head of list
+                cmp     ax, bx          ; Buf = last?
+                jz      short nret      ; Yes, special case
+                cmp     di, bx          ; Buf = first?
+                jnz     short not_first
+                mov     word ptr ss:BufferQueue, ax ; Yes, special case
+                jmp     short nret      ; Continue with repositioning
 ; ---------------------------------------------------------------------------
 
-loc_AA7B:                               ; ...
+not_first:                              ; ...
                 push    si
-                mov     si, [di+2]
-                mov     [si], ax
+                mov     si, [di+2]      ; [DI+BUFFINFO.buf_prev] ; prior Buf
+                mov     [si], ax        ; [SI+BUFFINFO.buf_next]
                 xchg    ax, si
-                mov     [si+2], ax
-                mov     si, [bx+2]
-                mov     [bx+2], di
-                mov     [si], di
-                mov     [di+2], si
-                mov     [di], bx
+                mov     [si+2], ax      ; [SI+BUFFINFO.buf_prev]
+                mov     si, [bx+2]      ; [BX+BUFFINFO.buf_prev] ; last buffer
+                mov     [bx+2], di      ; [BX+BUFFINFO.buf_prev]
+                mov     [si], di        ; [SI+BUFFINFO.buf_next] ; Add Buf to end of list
+                mov     [di+2], si      ; [DI+BUFFINFO.buf_prev] ; Update link in Buf too
+                mov     [di], bx        ; [DI+BUFFINFO.buf_next]
                 pop     si
 
-loc_AA93:                               ; ...
+nret:                                   ; ...
                 pop     bx
                 pop     ax
-                cmp     byte ptr [di+4], 0FFh
-                jnz     short locret_AAA0
-                mov     word ptr ss:BufferQueue, di
+                cmp     byte ptr [di+4], 0FFh ; [DI+BUFFINFO.buf_ID],-1 ; Buffer FREE?
+                jnz     short pbx       ; -no, jump.
+                mov     word ptr ss:BufferQueue, di ; -yes, make it LRU.
 
-locret_AAA0:                            ; ...
+pbx:                                    ; ...
                 retn
 PLACEBUF        endp
 
@@ -18381,117 +18411,118 @@ GETBUFFR        proc near               ; ...
 GETBUFFRB:                              ; ...
                 mov     ds:PREREAD, ax
                 or      si, si
-                jz      short loc_AAE2
+                jz      short getb1
                 cmp     word ptr es:[bp+0Fh], 0
-                jnz     short loc_AAE2
-                mov     ax, es:[bp+23h]
-                test    al, 80h
-                jz      short loc_AAE2
-                and     ax, 0Fh
-                jz      short loc_AAE2
+                jnz     short getb1     ; not FAT32
+                mov     ax, es:[bp+23h] ; [es:bp+DPB.EXT_FLAGS]
+                test    al, 80h         ; bit 7 -- 1 means only one FAT is active
+                jz      short getb1
+                and     ax, 0Fh         ; Active FAT is the one referenced in bits 0-3
+                jz      short getb1
                 push    dx
-                mov     cx, ax
-                mul     word ptr es:[bp+33h]
+                mov     cx, ax          ; Zero based number of active FAT.
+                                        ; (Only valid if mirroring is disabled.)
+                mul     word ptr es:[bp+33h] ; [es:bp+DPB.FAT32_SIZE+2]
                 xchg    ax, cx
-                mul     word ptr es:[bp+31h]
+                mul     word ptr es:[bp+31h] ; [es:bp+DPB.FAT32_SIZE]
                 add     cx, dx
                 pop     dx
                 add     dx, ax
                 adc     ds:HIGH_SECTOR, cx
 
-loc_AAE2:                               ; ...
-                mov     al, es:[bp+0]
-                mov     bx, 0FFFFh
-                lds     di, ds:1Eh
+getb1:                                  ; ...
+                mov     al, es:[bp+0]   ; [ES:BP+DPB.DRIVE]
+                mov     bx, 0FFFFh      ; -1
+                lds     di, ds:LastBuffer ; Get the recency pointer
                 mov     cx, ss:HIGH_SECTOR
-                cmp     di, 0FFFFh
-                jz      short loc_AB09
-                cmp     dx, [di+6]
-                jnz     short loc_AB09
-                cmp     cx, [di+8]
-                jnz     short loc_AB09
-                cmp     al, [di+4]
-                jnz     short loc_AB09
-                jmp     loc_AC1B
+                cmp     di, 0FFFFh      ; Recency pointer valid?
+                jz      short getb5     ; No
+                cmp     dx, [di+6]      ; [DI+BUFFINFO.buf_sector]
+                jnz     short getb5
+                cmp     cx, [di+8]      ; [DI+BUFFINFO.buf_sector+2]
+                jnz     short getb5
+                cmp     al, [di+4]      ; [DI+BUFFINFO.buf_ID]
+                jnz     short getb5
+                jmp     getb35
 ; ---------------------------------------------------------------------------
 
-loc_AB09:                               ; ...
-                lds     di, ss:BufferQueue
+getb5:                                  ; ...
+                lds     di, ss:BufferQueue ; ... CALL GETCURHEAD ...
                 mov     word ptr ss:LastBuffer, 0FFFFh
                 mov     ss:FIRST_BUFF_ADDR, di
 
-loc_AB1A:                               ; ...
-                cmp     dx, [di+6]
-                jnz     short loc_AB2C
-                cmp     cx, [di+8]
-                jnz     short loc_AB2C
-                cmp     al, [di+4]
-                jnz     short loc_AB2C
-                jmp     loc_ABD0
+getb10:                                 ; ...
+                cmp     dx, [di+6]      ; [DI+BUFFINFO.buf_sector]
+                jnz     short getb11    ; wrong sector lo
+                cmp     cx, [di+8]      ; [DI+BUFFINFO.buf_sector+2]
+                jnz     short getb11    ; wrong sector hi
+                cmp     al, [di+4]      ; [DI+BUFFINFO.buf_ID]
+                jnz     short getb11    ; Found the requested sector
+                jmp     getb25
 ; ---------------------------------------------------------------------------
 
-loc_AB2C:                               ; ...
-                cmp     byte ptr [di+4], 0FFh
-                jnz     short loc_AB34
-                mov     bx, di
+getb11:                                 ; ...
+                cmp     byte ptr [di+4], 0FFh ; Free buffer ?
+                jnz     short getb12    ; no
+                mov     bx, di          ; save buffer (offset) addr
 
-loc_AB34:                               ; ...
-                mov     di, [di]
-                cmp     di, ss:FIRST_BUFF_ADDR
-                jnz     short loc_AB1A
-                cmp     bx, 0FFFFh
-                jz      short loc_AB46
-                mov     di, bx
-                jmp     short loc_AB59
+getb12:                                 ; ...
+                mov     di, [di]        ; [DI+BUFFINFO.BUF_NEXT]
+                cmp     di, ss:FIRST_BUFF_ADDR ; back at the front again?
+                jnz     short getb10    ; no, continue looking
+                cmp     bx, 0FFFFh      ; -1 ; invalid (not a free buffer addr)
+                jz      short getb12x
+                mov     di, bx          ; restore free buff (header offset) addr
+                jmp     short getb13
 ; ---------------------------------------------------------------------------
 
-loc_AB46:                               ; ...
+getb12x:                                ; ...
                 push    cx
                 push    si
                 push    dx
                 push    bp
                 push    es
-                call    BUFWRITE
+                call    BUFWRITE        ; Write out the dirty buffer
                 pop     es
                 pop     bp
                 pop     dx
                 pop     si
                 pop     ss:HIGH_SECTOR
-                jb      short loc_ABB6
+                jb      short getb19x   ; if got hard error
 
-loc_AB59:                               ; ...
-                xor     ah, ah
-                cmp     byte ptr ss:PREREAD, ah
-                jnz     short loc_ABB8
-                lea     bx, [di+18h]
+getb13:                                 ; ...
+                xor     ah, ah          ; initial flags
+                cmp     byte ptr ss:PREREAD, ah ; am to Read in the new sector?
+                jnz     short getb20    ; no, we're done
+                lea     bx, [di+24]     ; LEA BX,[DI+BUFINSIZ]
                 mov     cx, 1
                 push    si
                 push    di
                 push    dx
                 push    es
-                cmp     ss:BuffInHMA, 0
-                jz      short loc_AB7B
+                cmp     ss:BuffInHMA, 0 ; is buffers in HMA?
+                jz      short getb14    ; no
                 push    ds
                 push    bx
-                lds     bx, ss:LoMemBuff
+                lds     bx, ss:LoMemBuff ; Then let's read it into scratch buff
 
-loc_AB7B:                               ; ...
-                or      si, si
-                jz      short loc_AB86
-                call    FATSECRD
-                mov     ah, 2
-                jmp     short loc_AB8B
+getb14:                                 ; ...
+                or      si, si          ; FAT sector ?
+                jz      short getb15    ; no
+                call    FATSECRD        ; yes
+                mov     ah, 2           ; buf_isFAT
+                jmp     short getb17    ; Buffer is marked free if read barfs
 ; ---------------------------------------------------------------------------
 
-loc_AB86:                               ; ...
-                call    DREAD
-                mov     ah, 0
+getb15:                                 ; ...
+                call    DREAD           ; Buffer is marked free if read barfs
+                mov     ah, 0           ; Set buf_flags to no type, DO NOT XOR!
 
-loc_AB8B:                               ; ...
+getb17:                                 ; ...
                 mov     ch, 0
-                mov     cl, ss:BuffInHMA
-                jcxz    short loc_ABB2
-                mov     cx, es:[bp+2]
+                mov     cl, ss:BuffInHMA ; did we read into scratch buff ?
+                jcxz    short getb19    ; no
+                mov     cx, es:[bp+2]   ; [ES:BP+DPB.SECTOR_SIZE]
                 mov     si, bx
                 pop     di
                 pop     es
@@ -18499,70 +18530,71 @@ loc_AB8B:                               ; ...
                 shr     cx, 1
                 cld
                 cmp     ss:DDMOVE, 0
-                jz      short near ptr loc_ABAA+1 ; rep movsw (skip 32bit prefix)
+                jz      short near ptr getb18+1 ; rep movsw (skip 32bit prefix)
                 shr     cx, 1
 
-loc_ABAA:                               ; ...
-                rep movsd
+getb18:                                 ; ...
+                rep movsd               ; move the contents of scratch buffer
                 mov     dx, es
                 mov     ds, dx
-                popf
+                popf                    ; Retrieve possible CY from DREAD
 
-loc_ABB2:                               ; ...
+getb19:                                 ; ...
                 pop     es
                 pop     dx
                 pop     di
                 pop     si
 
-loc_ABB6:                               ; ...
-                jb      short loc_AC26
+getb19x:                                ; ...
+                jb      short getbx
 
-loc_ABB8:                               ; ...
+getb20:                                 ; ...
                 mov     cx, ss:HIGH_SECTOR
-                mov     al, es:[bp+0]
-                mov     [di+6], dx
-                mov     [di+0Fh], bp
-                mov     word ptr [di+11h], es
-                mov     [di+8], cx
-                mov     [di+4], ax
+                mov     al, es:[bp+0]   ; [ES:BP+DPB.DRIVE]
+                mov     [di+6], dx      ; [DI+BUFFINFO.buf_sector]
+                mov     [di+0Fh], bp    ; [DI+BUFFINFO.buf_DPB]
+                mov     word ptr [di+11h], es ; [DI+BUFFINFO.buf_DPB+2]
+                mov     [di+8], cx      ; [DI+BUFFINFO.buf_sector+2]
+                mov     [di+4], ax      ; [DI+BUFFINFO.buf_ID]
 
-loc_ABD0:                               ; ...
-                mov     byte ptr [di+0Ah], 1
+getb25:                                 ; ...
+                mov     byte ptr [di+0Ah], 1 ; [DI+BUFFINFO.buf_wrtcnt],1
+                                        ; Default to not a FAT sector
                 xor     ax, ax
                 mov     [di+0Dh], ax
-                or      si, si
-                jz      short loc_AC0B
-                cmp     word ptr es:[bp+0Fh], 0
-                jnz     short loc_AC00
-                test    word ptr es:[bp+23h], 80h
-                jnz     short loc_ABF3
-                mov     al, es:[bp+8]
-                mov     [di+0Ah], al
+                or      si, si          ; FAT sector ?
+                jz      short getb30    ; no
+                cmp     word ptr es:[bp+0Fh], 0 ; [es:bp+DPB.FAT_SIZE]
+                jnz     short getb27    ; not FAT32
+                test    word ptr es:[bp+23h], 80h ; [es:bp+DPB.EXT_FLAGS]
+                jnz     short getb26    ; bit 7 -- 1 means only one FAT is active
+                mov     al, es:[bp+8]   ; [es:bp+DPB.FAT_COUNT]
+                mov     [di+0Ah], al    ; [di+BUFFINFO.buf_wrtcnt]
 
-loc_ABF3:                               ; ...
-                mov     ax, es:[bp+33h]
-                mov     [di+0Dh], ax
-                mov     ax, es:[bp+31h]
-                jmp     short loc_AC0B
+getb26:                                 ; ...
+                mov     ax, es:[bp+33h] ; [es:bp+DPB.FAT32_SIZE+2]
+                mov     [di+0Dh], ax    ; [di+BUFFINFO.buf_wrtcntinc+2]
+                mov     ax, es:[bp+31h] ; [es:bp+DPB.FAT32_SIZE]
+                jmp     short getb30
 ; ---------------------------------------------------------------------------
 
-loc_AC00:                               ; ...
-                mov     al, es:[bp+8]
-                mov     [di+0Ah], al
-                mov     ax, es:[bp+0Fh]
+getb27:                                 ; ...
+                mov     al, es:[bp+8]   ; [es:bp+DPB.FAT_COUNT]
+                mov     [di+0Ah], al    ; [di+BUFFINFO.buf_wrtcnt]
+                mov     ax, es:[bp+0Fh] ; [es:bp+DPB.FAT_SIZE]
 
-loc_AC0B:                               ; ...
-                mov     [di+0Bh], ax
+getb30:                                 ; ...
+                mov     [di+0Bh], ax    ; [di+BUFFINFO.buf_wrtcntinc]
                 call    PLACEBUF
                 mov     word ptr ss:LastBuffer+2, ds
                 mov     word ptr ss:LastBuffer, di
 
-loc_AC1B:                               ; ...
+getb35:                                 ; ...
                 mov     word ptr ss:CURBUF+2, ds
                 mov     word ptr ss:CURBUF, di
                 clc
 
-loc_AC26:                               ; ...
+getbx:                                  ; ...
                 mov     ax, ss
                 mov     ds, ax
 
@@ -18580,7 +18612,7 @@ FLUSHBUF        proc near               ; ...
                 mov     bx, 26
 
 flshbuf_1:                              ; ...
-                and     ss:drv_flags_1[bx], 0F7h ; [ss:bx+drv_flags-1],0F7h
+                and     ss:drv_flags_1[bx], 0F7h ; [ss:bx+drive_flags-1],0F7h
                                         ; clear bit 3
                 dec     bx              ; backward
                 jnz     short flshbuf_1
@@ -18598,12 +18630,12 @@ scan_buf_queue:                         ; ...
                 cmp     ss:WPERR, ah
                 jz      short free_the_buf
                 test    byte ptr ss:DOS34_FLAG, 4 ; FROM_DISK_RESET
-                jz      short flshbuf_3
+                jz      short dont_free_the_buf
 
 free_the_buf:                           ; ...
                 mov     word ptr [di+4], 0FFh
 
-flshbuf_3:                              ; ...
+dont_free_the_buf:                      ; ...
                 mov     di, [di]        ; [DI+BUFFINFO.buf_next]
                 cmp     di, ss:FIRST_BUFF_ADDR
                 jnz     short scan_buf_queue
@@ -18661,35 +18693,35 @@ CHECKFLUSH      endp
 
 BUFWRITE        proc near               ; ...
                 mov     ax, 0FFh
-                xchg    ax, [di+4]
+                xchg    ax, [di+4]      ; [DI+BUFFINFO.buf_ID]
                 cmp     al, 0FFh
                 jz      short checkflush_retn
-                test    ah, 40h
+                test    ah, 40h         ; buf_dirty
                 jz      short checkflush_retn
                 call    DEC_DIRTY_COUNT
                 cmp     al, ss:WPERR
                 jz      short checkflush_retn
-                les     dx, [di+6]
-                lea     bx, [di+18h]
-                mov     cl, [di+0Ah]
+                les     dx, [di+6]      ; [DI+BUFFINFO.buf_sector]
+                lea     bx, [di+24]     ; [DI+BUFINSIZ]
+                mov     cl, [di+10]     ; [DI+BUFFINFO.buf_wrtcnt]
                 mov     ch, 0
                 mov     ss:HIGH_SECTOR, es
-                les     bp, [di+0Fh]
-                mov     ss:ALLOWED, 18h
-                test    ah, 8
-                jz      short loc_ACEE
-                or      ss:ALLOWED, 20h
+                les     bp, [di+15]     ; [DI+BUFFINFO.buf_DPB]
+                mov     ss:ALLOWED, 18h ; Allowed_RETRY+Allowed_FAIL
+                test    ah, 8           ; buf_isDATA
+                jz      short NO_IGNORE
+                or      ss:ALLOWED, 20h ; Allowed_IGNORE
 
-loc_ACEE:                               ; ...
-                mov     si, [di+0Dh]
-                mov     ax, [di+0Bh]
+NO_IGNORE:                              ; ...
+                mov     si, [di+13]     ; [DI+BUFFINFO.buf_wrtcntinc+2]
+                mov     ax, [di+11]     ; [DI+BUFFINFO.buf_wrtcntinc]
                 push    di
                 xor     di, di
                 push    ds
                 push    bx
 
-loc_ACF9:                               ; ...
-                push    si
+WRTAGAIN:                               ; ...
+                push    si              ; SI:AX = FAT size (in sectors)
                 push    ss:HIGH_SECTOR
                 push    di
                 push    cx
@@ -18699,27 +18731,27 @@ loc_ACF9:                               ; ...
                 push    dx
                 push    ds
                 cmp     ss:BuffInHMA, 0
-                jz      short loc_AD33
+                jz      short NBUFFINHMA
                 push    cx
                 push    es
                 mov     si, bx
-                mov     cx, es:[bp+2]
+                mov     cx, es:[bp+2]   ; [es:bp+DPB.SECTOR_SIZE]
                 les     di, ss:LoMemBuff
                 shr     cx, 1
                 mov     bx, di
                 cld
                 cmp     ss:DDMOVE, 0
-                jz      short near ptr loc_AD2C+1
+                jz      short near ptr bufwr_movsd+1 ; rep movsw
                 shr     cx, 1
 
-loc_AD2C:                               ; ...
+bufwr_movsd:                            ; ...
                 rep movsd
                 push    es
                 pop     ds
                 pop     es
                 pop     cx
 
-loc_AD33:                               ; ...
+NBUFFINHMA:                             ; ...
                 call    DWRITE
                 pop     ds
                 pop     dx
@@ -18729,13 +18761,13 @@ loc_AD33:                               ; ...
                 pop     di
                 pop     ss:HIGH_SECTOR
                 pop     si
-                jb      short loc_AD47
+                jb      short NOSET
                 mov     di, 1
 
-loc_AD47:                               ; ...
+NOSET:                                  ; ...
                 add     dx, ax
                 adc     ss:HIGH_SECTOR, si
-                loop    loc_ACF9
+                loop    WRTAGAIN
                 pop     bx
                 pop     ds
                 sub     di, 1
@@ -18748,7 +18780,7 @@ BUFWRITE        endp
 
 
 null_sub        proc near               ; ...
-                retn
+                retn                    ; SET_RQ_SC_PARMS
 null_sub        endp
 
 
@@ -18795,9 +18827,9 @@ $WAIT:                                  ; ...
 
 $EXEC:                                  ; ...
                 mov     ss:A20OFF_COUNT, 0
-                cmp     al, 5
-                jnz     short Exec_@f
-                pop     cx
+                cmp     al, 5           ; is this ExecReady call ?
+                jnz     short Exec_@f   ; no, continue
+                pop     cx              ; change ret address to LeaveDOS
                 mov     cx, offset LeaveDOS
                 push    cx
 
@@ -18805,629 +18837,668 @@ Exec_@f:                                ; ...
                 push    bp
                 mov     bp, sp
                 sub     sp, 29
-                cmp     al, 5
+                cmp     al, 5           ; only 0, 1, 3 or 5 are allowed
                 jbe     short Exec_Check_2
 
 Exec_Bad_Fun:                           ; ...
-                call    set_exerr_locus_unk
-                mov     al, 1
+                call    set_exerr_locus_unk ; mov byte [ss:EXTERR_LOCUS],errLOC_Unk ; 1
+                mov     al, 1           ; error_invalid_function
 
-loc_ADA0:                               ; ...
+Exec_Ret_Err:                           ; ...
                 mov     sp, bp
                 pop     bp
                 jmp     SYS_RET_ERR
 ; ---------------------------------------------------------------------------
 
-loc_ADA6:                               ; ...
-                call    sub_C697
-                jmp     loc_B1C6
+ExecReadyJ:                             ; ...
+                call    ExecReady
+                jmp     norm_ovl        ; do a Leave & xfer sysret_OK
 ; ---------------------------------------------------------------------------
 
 Exec_Check_2:                           ; ...
                 cmp     al, 2
                 jz      short Exec_Bad_Fun
-                cmp     al, 4
+                cmp     al, 4           ; 2 & 4 are not allowed
                 jz      short Exec_Bad_Fun
                 cmp     al, 5
-                jz      short loc_ADA6
-                mov     [bp-4], bx
-                mov     word ptr [bp-2], es
-                mov     [bp-5], al
-                mov     byte ptr [bp-6], 0
-                mov     [bp-1Ah], dx
-                mov     word ptr [bp-18h], ds
-                mov     si, dx
+                jz      short ExecReadyJ ; SET EXECUTION STATE
+                mov     [bp-4], bx      ; Exec_BlkL,BX ; stash args
+                mov     word ptr [bp-2], es ; Exec_BlkH,ES
+                mov     [bp-5], al      ; Exec_Func,AL
+                mov     byte ptr [bp-6], 0 ; Exec_Load_High,0
+                mov     [bp-26], dx     ; ExecNameL,DX ; set up length of exec name
+                mov     word ptr [bp-24], ds ; ExecNameH,DS
+                mov     si, dx          ; move pointer to convenient place
                 call    DStrLen
-                mov     [bp-16h], cx
-                mov     al, ss:302h
-                mov     ss:84h, al
-                mov     al, 0A0h
+                mov     [bp-22], cx     ; ExecNameLen,CX ; save length
+                mov     al, ss:AllocMethod ; save alloc method
+                mov     ss:ALLOCMSAVE, al
+                mov     al, 0A0h        ; Access mode bits: (0 to 2)
+                                        ; 000  read access
+                                        ;
+                                        ; Sharing mode bits: (4 to 6)
+                                        ; 010  deny others write access
+                                        ;
+                                        ; bit 7 - private
                 push    bp
-                or      byte ptr ss:86h, 1
+                or      ss:DOS_FLAG, 1  ; EXECOPEN
                 push    ds
                 push    dx
                 call    $OPEN
                 pop     dx
                 pop     ds
-                jnb     short loc_ADF2
+                jnb     short Exec_Open_Ok
                 xor     al, al
                 call    $OPEN
 
-loc_ADF2:                               ; ...
+Exec_Open_Ok:                           ; ...
                 pushf
-                and     byte ptr ss:86h, 0FEh
+                and     ss:DOS_FLAG, 0FEh ; ~EXECOPEN ; reset flag
                 popf
                 pop     bp
-                jb      short loc_ADA0
-                mov     [bp-8], ax
+                jb      short Exec_Ret_Err
+                mov     [bp-8], ax      ; Exec_FH,AX
                 mov     bx, ax
                 xor     al, al
                 call    $IOCTL
-                jb      short loc_AE10
-                test    dl, 80h
-                jz      short loc_AE18
-                mov     al, 2
+                jb      short Exec_BombJ
+                test    dl, 80h         ; devid_ISDEV
+                jz      short Exec_Check_Environ
+                mov     al, 2           ; error_file_not_found
 
-loc_AE10:                               ; ...
-                jmp     loc_AEDC
+Exec_BombJ:                             ; ...
+                jmp     Exec_Bomb
 ; ---------------------------------------------------------------------------
 
-loc_AE13:                               ; ...
-                mov     al, 0Ah
-                jmp     loc_AEDC
+BadEnv:                                 ; ...
+                mov     al, 0Ah         ; error_bad_environment
+                jmp     Exec_Bomb
 ; ---------------------------------------------------------------------------
 
-loc_AE18:                               ; ...
-                mov     word ptr [bp-12h], 0
-                mov     word ptr [bp-0Eh], 0
-                test    byte ptr [bp-5], 2
-                jnz     short loc_AE7B
-                lds     si, [bp-4]
-                mov     ax, [si]
+Exec_Check_Environ:                     ; ...
+                mov     word ptr [bp-18], 0 ; Exec_Load_Block,0
+                mov     word ptr [bp-14], 0 ; Exec_Environ,0
+                test    byte ptr [bp-5], 2 ; Exec_Func,exec_func_overlay
+                jnz     short Exec_Read_Header
+                lds     si, [bp-4]      ; Exec_Blk ; get block
+                mov     ax, [si]        ; [SI+EXEC1.ENVIRON] ; address of environ
                 or      ax, ax
-                jnz     short loc_AE3D
-                mov     ds, word ptr ss:330h
-                mov     ax, ds:2Ch
+                jnz     short Exec_Scan_Env
+                mov     ds, ss:CurrentPDB
+                mov     ax, ds:44       ; [PDB.ENVIRON]
                 or      ax, ax
-                jz      short loc_AE7B
+                jz      short Exec_Read_Header
 
-loc_AE3D:                               ; ...
+Exec_Scan_Env:                          ; ...
                 mov     es, ax
                 xor     di, di
-                mov     cx, 8000h
+                mov     cx, 8000h       ; at most 32k of environment
                 xor     al, al
 
-loc_AE46:                               ; ...
-                repne scasb
-                jnz     short loc_AE13
-                dec     cx
-                js      short loc_AE13
-                scasb
-                jnz     short loc_AE46
+Exec_Get_Environ_Len:                   ; ...
+                repne scasb             ; find that nul byte
+                jnz     short BadEnv
+                dec     cx              ; Dec CX for the next nul byte test
+                js      short BadEnv    ; gone beyond the end of the environment
+                scasb                   ; is there another nul byte?
+                jnz     short Exec_Get_Environ_Len ; no, scan some more
                 push    di
-                lea     bx, [di+11h]
-                add     bx, [bp-16h]
+                lea     bx, [di+11h]    ; LEA BX,[DI+0Fh+2]
+                add     bx, [bp-22]     ; ExecNameLen ; BX <- length of environment
+                                        ; remember argv[0] length
+                                        ; round up and remember argc
                 mov     cl, 4
-                shr     bx, cl
+                shr     bx, cl          ; number of paragraphs needed
                 push    es
-                call    $ALLOC
+                call    $ALLOC          ; can we get the space?
                 pop     ds
                 pop     cx
-                jnb     short loc_AE65
-                jmp     short loc_AED6
+                jnb     short Exec_Save_Environ
+                jmp     short Exec_No_Mem ; nope... cry and sob
 ; ---------------------------------------------------------------------------
 
-loc_AE65:                               ; ...
+Exec_Save_Environ:                      ; ...
                 mov     es, ax
-                mov     [bp-0Eh], ax
+                mov     [bp-14], ax     ; Exec_Environ,AX  ; save him for a rainy day
                 xor     si, si
                 mov     di, si
-                rep movsb
+                rep movsb               ; copy the environment
                 xchg    ax, cx
                 inc     ax
                 stosw
-                lds     si, [bp-1Ah]
-                mov     cx, [bp-16h]
+                lds     si, [bp-26]     ; lds SI,ExecName
+                mov     cx, [bp-22]     ; mov CX,ExecNameLen
                 rep movsb
 
-loc_AE7B:                               ; ...
+Exec_Read_Header:                       ; ...
                 push    ss
                 pop     ds
-                mov     cx, 1Ah
-                mov     dx, 0EC7h
+                mov     cx, 26          ; exec_header_len ; header size
+                mov     dx, offset exec_signature
                 push    es
                 push    ds
                 call    ExecRead
                 pop     ds
                 pop     es
-                jb      short loc_AEDA
+                jb      short Exec_Bad_File
                 or      ax, ax
-                jz      short loc_AEDA
-                cmp     ax, 1Ah
-                jnz     short loc_AEAE
-                test    word ptr ds:0ED3h, 0FFFFh
-                jnz     short loc_AEA1
-                mov     byte ptr [bp-6], 0FFh
+                jz      short Exec_Bad_File
+                cmp     ax, 26          ; exec_header_len
+                                        ; did we read the right number?
+                jnz     short Exec_Com_Filej ;
+                                        ; yep... continue
+                test    ds:exec_max_BSS, 0FFFFh ; -1 ; indicate load high?
+                jnz     short Exec_Check_Sig
+                mov     byte ptr [bp-6], 0FFh ; mov Exec_Load_High,-1
 
-loc_AEA1:                               ; ...
-                mov     ax, ds:0EC7h
-                cmp     ax, 5A4Dh
-                jz      short loc_AEB1
-                cmp     ax, 4D5Ah
-                jz      short loc_AEB1
+Exec_Check_Sig:                         ; ...
+                mov     ax, ds:exec_signature
+                cmp     ax, 5A4Dh       ; 'MZ' ; exe_valid_signature
+                jz      short Exec_Save_Start ; assume com file if no signature
+                cmp     ax, 4D5Ah       ; 'ZM' ; exe_valid_old_signature
+                jz      short Exec_Save_Start
 
-loc_AEAE:                               ; ...
-                jmp     loc_B0A4
+Exec_Com_Filej:                         ; ...
+                jmp     Exec_Com_File
 ; ---------------------------------------------------------------------------
 
-loc_AEB1:                               ; ...
-                mov     ax, ds:0ECBh
-                mov     cl, 5
+Exec_Save_Start:                        ; ...
+                mov     ax, ds:exec_pages ; get 512-byte pages
+                mov     cl, 5           ; convert to paragraphs
                 shl     ax, cl
-                sub     ax, ds:0ECFh
-                mov     [bp-0Ch], ax
-                test    byte ptr [bp-5], 2
-                jz      short loc_AF0C
-                les     di, [bp-4]
+                sub     ax, ds:exec_par_dir ; AX = size in paragraphs
+                mov     [bp-12], ax     ; mov Exec_Res_Len_Para,AX
+                test    byte ptr [bp-5], 2 ; test Exec_Func,exec_func_overlay
+                jz      short Exec_Allocate ; allocation of space
+                les     di, [bp-4]      ; les DI,Exec_Blk
                 push    es
-                les     ax, es:[di]
-                mov     [bp-14h], ax
-                mov     word ptr [bp-0Ah], es
+                les     ax, es:[di]     ; les ax,[ES:DI+EXEC3.load_addr]
+                mov     [bp-20], ax     ; mov Exec_DMA,AX
+                mov     word ptr [bp-10], es ; mov Exec_Rel_Fac,ES
                 pop     es
-                jmp     loc_AFB8
+                jmp     Exec_Find_Res
 ; ---------------------------------------------------------------------------
 
-loc_AED6:                               ; ...
-                mov     al, 8
-                jmp     short loc_AEDC
+Exec_No_Mem:                            ; ...
+                mov     al, 8           ; error_not_enough_memory
+                jmp     short Exec_Bomb
 ; ---------------------------------------------------------------------------
 
-loc_AEDA:                               ; ...
-                mov     al, 0Bh
+Exec_Bad_File:                          ; ...
+                mov     al, 0Bh         ; error_bad_format
 
-loc_AEDC:                               ; ...
-                mov     bx, [bp-8]
+Exec_Bomb:                              ; ...
+                mov     bx, [bp-8]      ; mov BX,Exec_FH
                 call    Exec_Dealloc
-                call    LCritDisk
+                call    LCritDisk       ; call LCritMEM
                 push    ax
                 push    bp
                 call    $CLOSE
                 pop     bp
                 pop     ax
-                jmp     loc_ADA0
+                jmp     Exec_Ret_Err
 ; ---------------------------------------------------------------------------
 
-loc_AEEF:                               ; ...
-                mov     al, ss:302h
-                mov     bl, ss:84h
-                mov     ss:302h, bl
-                test    bl, 40h
-                jnz     short loc_AED6
-                test    al, 40h
-                jz      short loc_AED6
-                mov     ax, ss:8Ah
-                jmp     short loc_AF34
+Exec_Chk_Mem:                           ; ...
+                mov     al, ss:AllocMethod ; save current alloc method in ax
+                mov     bl, ss:ALLOCMSAVE
+                mov     ss:AllocMethod, bl ; restore original allocmethod
+                test    bl, 40h         ; HIGH_ONLY
+                jnz     short Exec_No_Mem ; no space in UMBs. Quit
+                test    al, 40h         ; HIGH_ONLY
+                jz      short Exec_No_Mem ; no memory
+                mov     ax, ss:SAVE_AX
+                jmp     short Exec_Norm_Alloc ; Try again
 ; ---------------------------------------------------------------------------
 
-loc_AF0C:                               ; ...
+Exec_Allocate:                          ; ...
                 xor     bx, bx
-                mov     [bp-1Dh], bl
-                cmp     ds:0ED5h, bx
-                jnz     short loc_AF28
-                cmp     ds:0ED7h, bx
-                jnz     short loc_AF28
-                inc     byte ptr [bp-1Dh]
-                cmp     ax, 0FF0h
-                jnb     short loc_AF28
-                add     ax, 10h
+                mov     [bp-29], bl     ; mov Exec_NoStack,bl ; 0
+                cmp     ds:exec_SS, bx  ; is there a stack seg ?
+                jnz     short ea1       ; yes, continue normal processing
+                cmp     ds:exec_SP, bx  ; is there a stack ptr ?
+                jnz     short ea1       ; yes, continue normal processing
+                inc     byte ptr [bp-29] ; inc Exec_NoStack
+                cmp     ax, 0FF0h       ; 1000h-10h ; Q: is this >= 64K-256 bytes
+                jnb     short ea1       ; Y: don't set Exec_SP
+                add     ax, 10h         ; add 10h paras to mem requirement
 
-loc_AF28:                               ; ...
-                test    byte ptr ds:302h, 80h
-                jz      short loc_AF34
-                or      byte ptr ds:302h, 40h
+ea1:                                    ; ...
+                test    ds:AllocMethod, 80h ; HIGH_FIRST
+                                        ; Q: is the alloc strat high_first
+                jz      short Exec_Norm_Alloc ; N: normal allocate
+                                        ; Y: set high_only bit
+                or      ds:AllocMethod, 40h ; HIGH_ONLY
 
-loc_AF34:                               ; ...
-                mov     ds:8Ah, ax
-                mov     bx, 0FFFFh
+Exec_Norm_Alloc:                        ; ...
+                mov     ds:SAVE_AX, ax  ; save ax for possible 2nd
+                                        ; attempt at allocating memory
+                mov     bx, 0FFFFh      ; see how much room in arena
                 push    ds
-                call    $ALLOC
+                call    $ALLOC          ; should have carry set and BX has max
                 pop     ds
-                mov     ax, ds:8Ah
-                add     ax, 10h
-                cmp     bx, 11h
-                jb      short loc_AEEF
+                mov     ax, ds:SAVE_AX
+                add     ax, 10h         ; room for header
+                cmp     bx, 11h         ; enough room for a header
+                jb      short Exec_Chk_Mem
+                cmp     ax, bx          ; is there enough for bare image?
+                ja      short Exec_Chk_Mem
+                test    byte ptr [bp-6], 0FFh ; test Exec_Load_High,-1
+                jnz     short Exec_BX_Max ; load high, use max
+                add     ax, ds:exec_min_BSS ; go for min allocation
+                jb      short Exec_Chk_Mem
+                cmp     ax, bx          ; enough space?
+                ja      short Exec_Chk_Mem ; nope...
+                sub     ax, ds:exec_min_BSS
+                add     ax, ds:exec_max_BSS ; go for the MAX
+                jb      short Exec_BX_Max
                 cmp     ax, bx
-                ja      short loc_AEEF
-                test    byte ptr [bp-6], 0FFh
-                jnz     short loc_AF6C
-                add     ax, ds:0ED1h
-                jb      short loc_AEEF
-                cmp     ax, bx
-                ja      short loc_AEEF
-                sub     ax, ds:0ED1h
-                add     ax, ds:0ED3h
-                jb      short loc_AF6C
-                cmp     ax, bx
-                jbe     short loc_AF6E
+                jbe     short Exec_Got_Block
 
-loc_AF6C:                               ; ...
+Exec_BX_Max:                            ; ...
                 mov     ax, bx
 
-loc_AF6E:                               ; ...
+Exec_Got_Block:                         ; ...
                 push    ds
                 mov     bx, ax
-                mov     [bp-10h], bx
-                call    $ALLOC
+                mov     [bp-10h], bx    ; mov Exec_Size,BX
+                call    $ALLOC          ; get the space
                 pop     ds
-                jnb     short loc_AF7D
-                jmp     loc_AEEF
+                jnb     short ea0
+                jmp     Exec_Chk_Mem
 ; ---------------------------------------------------------------------------
 
-loc_AF7D:                               ; ...
-                mov     cl, ds:84h
-                mov     ds:302h, cl
-                cmp     byte ptr [bp-1Dh], 0
-                jz      short loc_AF9D
-                cmp     bx, 1000h
-                jnb     short loc_AF9D
+ea0:                                    ; ...
+                mov     cl, ds:ALLOCMSAVE
+                mov     ds:AllocMethod, cl ; restore allocmethod
+                cmp     byte ptr [bp-29], 0 ; cmp Exec_NoStack,0
+                jz      short ea2
+                cmp     bx, 1000h       ; Q: >= 64K memory block
+                jnb     short ea2       ; Y: Exec_SP = 0
                 mov     cl, 4
-                shl     bx, cl
-                sub     bx, 100h
-                mov     ds:0ED7h, bx
+                shl     bx, cl          ; get byte offset
+                sub     bx, 100h        ; take care of PSP
+                mov     ds:exec_SP, bx  ; Exec_SP = top of block
 
-loc_AF9D:                               ; ...
-                mov     [bp-12h], ax
+ea2:                                    ; ...
+                mov     [bp-18], ax     ; mov Exec_Load_Block,AX
                 add     ax, 10h
-                test    byte ptr [bp-6], 0FFh
-                jz      short loc_AFB2
-                add     ax, [bp-10h]
-                sub     ax, [bp-0Ch]
-                sub     ax, 10h
+                test    byte ptr [bp-6], 0FFh ; test Exec_Load_High,-1
+                jz      short Exec_Use_AX ; use ax for load info
+                add     ax, [bp-16]     ; add AX,Exec_Size ; go to end
+                sub     ax, [bp-12]     ; sub AX,Exec_Res_Len_Para
+                                        ; drop off header
+                sub     ax, 10h         ; drop off pdb
 
-loc_AFB2:                               ; ...
-                mov     [bp-0Ah], ax
-                mov     [bp-14h], ax
+Exec_Use_AX:                            ; ...
+                mov     [bp-10], ax     ; mov Exec_Rel_Fac,AX ; new segment
+                mov     [bp-20], ax     ; mov Exec_DMA,AX ; beginning of dma
 
-loc_AFB8:                               ; ...
-                mov     dx, [bp-14h]
-                mov     [bp-1Ch], dx
-                mov     dx, ds:0ECFh
+Exec_Find_Res:                          ; ...
+                mov     dx, [bp-20]     ; mov DX,Exec_DMA
+                mov     [bp-28], dx     ; mov Exec_DMA_Save,DX
+                mov     dx, ds:exec_par_dir
                 push    dx
                 mov     cl, 4
-                shl     dx, cl
+                shl     dx, cl          ; low word of location
                 pop     ax
-                mov     cl, 0Ch
-                shr     ax, cl
-                mov     cx, ax
-                mov     bx, [bp-8]
+                mov     cl, 12
+                shr     ax, cl          ; high word of location
+                mov     cx, ax          ; CX <- high
+                mov     bx, [bp-8]      ; mov BX,Exec_FH
                 push    ds
                 xor     al, al
-                call    $LSEEK
+                call    $LSEEK          ; Seek to resident
                 pop     ds
-                jnb     short loc_AFDD
-                jmp     loc_AEDC
+                jnb     short Exec_Big_Read ; Read resident into memory
+                jmp     Exec_Bomb
 ; ---------------------------------------------------------------------------
 
-loc_AFDD:                               ; ...
-                mov     bx, [bp-0Ch]
-                cmp     bx, 1000h
-                jb      short loc_AFE9
-                mov     bx, 0FE0h
+Exec_Big_Read:                          ; ...
+                mov     bx, [bp-12]     ; mov BX,Exec_Res_Len_Para
+                cmp     bx, 1000h       ; Too many bytes to read?
+                jb      short Exec_Read_OK
+                mov     bx, 0FE0h       ; Max in one chunk FE00 bytes
 
-loc_AFE9:                               ; ...
-                sub     [bp-0Ch], bx
+Exec_Read_OK:                           ; ...
+                sub     [bp-12], bx     ; sub Exec_Res_Len_Para,BX
+                                        ; We read (soon) this many
                 push    bx
                 mov     cl, 4
-                shl     bx, cl
-                mov     cx, bx
+                shl     bx, cl          ; Get count in bytes from paras
+                mov     cx, bx          ; Count in correct register
                 push    ds
-                mov     ds, word ptr [bp-14h]
+                mov     ds, word ptr [bp-20] ; mov DS,Exec_DMA ; Set up read buffer
                 xor     dx, dx
                 push    cx
                 call    ExecRead
-                pop     cx
+                pop     cx              ; Get old count to verify
                 pop     ds
-                jb      short loc_B049
-                cmp     cx, ax
-                pop     bx
-                jz      short loc_B00E
+                jb      short Exec_Bad_FileJ
+                cmp     cx, ax          ; Did we read enough?
+                pop     bx              ; Get paragraph count back
+                jz      short ExecCheckEnd ; and do reloc if no more to read
                 sub     cx, ax
-                cmp     cx, 200h
-                jnb     short loc_B049
+                cmp     cx, 512
+                jnb     short Exec_Bad_FileJ ; If we are off by 512 bytes or more
+                                        ; then the header lied and we have an error
 
-loc_B00E:                               ; ...
-                add     [bp-14h], bx
-                test    word ptr [bp-0Ch], 0FFFFh
-                jnz     short loc_AFDD
-                mov     cx, [bp-0Ah]
-                mov     ax, ds:0ED5h
-                add     ax, cx
-                mov     ds:0EC1h, ax
-                mov     ax, ds:0ED7h
-                mov     ds:0EBFh, ax
-                les     ax, ds:0EDBh
-                mov     ds:0EC3h, ax
+ExecCheckEnd:                           ; ...
+                add     [bp-20], bx     ; add Exec_DMA,BX ; Bump dma address
+                test    word ptr [bp-12], 0FFFFh ; test Exec_Res_Len_Para,-1
+                jnz     short Exec_Big_Read
+
+exec_do_reloc:                          ;
+                mov     cx, [bp-10]     ; mov CX,Exec_Rel_Fac
+                mov     ax, ds:exec_SS  ; get initial SS
+                add     ax, cx          ; and relocate him
+                mov     ds:exec_init_SS, ax
+                mov     ax, ds:exec_SP
+                mov     ds:exec_init_SP, ax
+                les     ax, dword ptr ds:exec_IP
+                mov     ds:exec_init_IP, ax
                 mov     ax, es
-                add     ax, cx
-                mov     ds:0EC5h, ax
+                add     ax, cx          ; relocated...
+                mov     ds:exec_init_CS, ax
                 xor     cx, cx
-                mov     dx, ds:0EDFh
-                mov     bx, [bp-8]
+                mov     dx, ds:exec_rle_table
+                mov     bx, [bp-8]      ; mov BX,Exec_FH
                 push    ds
                 xor     ax, ax
                 call    $LSEEK
                 pop     ds
-                jnb     short loc_B04C
+                jnb     short exec_get_entries
 
-loc_B049:                               ; ...
-                jmp     loc_AEDA
+Exec_Bad_FileJ:                         ; ...
+                jmp     Exec_Bad_File
 ; ---------------------------------------------------------------------------
 
-loc_B04C:                               ; ...
-                mov     dx, ds:0ECDh
+exec_get_entries:                       ; ...
+                mov     dx, ds:exec_rle_count ; Number of entries left
 
-loc_B050:                               ; ...
+exec_read_reloc:                        ; ...
                 push    dx
-                mov     dx, 3BEh
-                mov     cx, 18Ch
+                mov     dx, offset OPENBUF
+                mov     cx, 396         ; ((Exec_Internal_Buffer_Size)/4)*4
+                                        ; (397>>2)<<2
                 push    ds
                 call    ExecRead
                 pop     es
                 pop     dx
-                jb      short loc_B049
-                mov     cx, 63h ; 'c'
-                mov     di, 3BEh
-                mov     si, [bp-0Ah]
+                jb      short Exec_Bad_FileJ
+                mov     cx, 99          ; (Exec_Internal_Buffer_Size)/4
+                                        ; (397>>2)
+                mov     di, offset OPENBUF ; mov DI,Exec_Internal_Buffer
+                mov     si, [bp-10]     ; mov SI,Exec_Rel_Fac
+                                        ; Relocate a single address
 
-loc_B068:                               ; ...
-                or      dx, dx
-                jz      short loc_B082
-                lds     bx, es:[di]
-                mov     ax, ds
-                add     ax, [bp-1Ch]
+exec_reloc_one:                         ; ...
+                or      dx, dx          ; Any more entries?
+                jz      short Exec_Set_PDBJ ; no
+                lds     bx, es:[di]     ; Get ra/sa of entry
+                mov     ax, ds          ; Relocate address of item
+                add     ax, [bp-28]     ; add AX,Exec_DMA_Save
                 mov     ds, ax
                 add     [bx], si
                 add     di, 4
                 dec     dx
-                loop    loc_B068
+                loop    exec_reloc_one  ; End of internal buffer?
                 push    es
                 pop     ds
-                jmp     short loc_B050
+                jmp     short exec_read_reloc ; Read in the next
+                                        ; piece of the relocation table
 ; ---------------------------------------------------------------------------
 
-loc_B082:                               ; ...
-                push    es
+Exec_Set_PDBJ:                          ; ...
+                push    es              ; determine if this is a buggy exe packed file
+                                        ; and if so patch in the right code
                 push    ax
                 push    cx
-                mov     es, word ptr [bp-1Ch]
-                mov     ax, ss:0EC5h
-                mov     cx, ss:0EC3h
-                call    word ptr ss:0D67h
-                call    word ptr ss:133Eh
+                mov     es, word ptr [bp-28] ; mov es,Exec_DMA_Save ; load segment
+                mov     ax, ss:exec_init_CS
+                mov     cx, ss:exec_init_IP
+                call    ss:FixExePatch
+                call    ss:Rational386PatchPtr
                 pop     cx
                 pop     ax
                 pop     es
-                jmp     loc_B17E
+                jmp     Exec_Set_PDB
 ; ---------------------------------------------------------------------------
 
-loc_B0A1:                               ; ...
-                jmp     loc_AED6
+Exec_No_Memj:                           ; ...
+                jmp     Exec_No_Mem
 ; ---------------------------------------------------------------------------
 
-loc_B0A4:                               ; ...
-                test    byte ptr [bp-5], 2
-                jz      short loc_B0D7
-                lds     si, [bp-4]
-                lodsw
-                mov     [bp-14h], ax
+Exec_Com_File:                          ; ...
+                test    byte ptr [bp-5], 2 ; test Exec_Func,exec_func_overlay
+                jz      short Exec_Alloc_Com_File
+                lds     si, [bp-4]      ; lds SI,Exec_Blk ; get arg block
+                lodsw                   ; get load address
+                mov     [bp-20], ax     ; mov Exec_DMA,AX
                 mov     ax, 0FFFFh
-                jmp     short loc_B119
+                jmp     short Exec_Read_Block ; read it all!
 ; ---------------------------------------------------------------------------
 
-loc_B0B6:                               ; ...
-                mov     al, ss:302h
-                mov     bl, ss:84h
-                mov     ss:302h, bl
-                test    bl, 40h
-                jnz     short loc_B0A1
-                test    al, 40h
-                jz      short loc_B0A1
-                mov     ax, [bp-12h]
-                xor     bx, bx
-                call    sub_B34B
-                jmp     short loc_B0E5
+Exec_Chk_Com_Mem:                       ; ...
+                mov     al, ss:AllocMethod ; save current alloc method in ax
+                mov     bl, ss:ALLOCMSAVE
+                mov     ss:AllocMethod, bl ; restore original allocmethod
+                test    bl, 40h         ; HIGH_ONLY
+                                        ; Q: was the HIGH_ONLY bit already set
+                jnz     short Exec_No_Memj ; Y: no space in UMBs. Quit
+                                        ; N: continue
+                test    al, 40h         ; HIGH_ONLY
+                                        ; Q: did we set the HIGH_ONLY bit
+                jz      short Exec_No_Memj ; N: no memory
+                mov     ax, [bp-18]     ; mov ax,Exec_Load_Block
+                                        ; ax = block we just allocated
+                xor     bx, bx          ; bx => free arena
+                call    ChangeOwner     ; free this block
+                jmp     short Exec_Norm_Com_Alloc
 ; ---------------------------------------------------------------------------
 
-loc_B0D7:                               ; ...
-                test    byte ptr ss:302h, 80h
-                jz      short loc_B0E5
-                or      byte ptr ss:302h, 40h
+Exec_Alloc_Com_File:                    ; ...
+                test    ss:AllocMethod, 80h ; HIGH_FIRST
+                                        ; Q: is the alloc strat high_first
+                jz      short Exec_Norm_Com_Alloc ; N: normal allocate
+                                        ; Y: set high_only bit
+                or      ss:AllocMethod, 40h ; HIGH_ONLY
 
-loc_B0E5:                               ; ...
+Exec_Norm_Com_Alloc:                    ; ...
                 mov     bx, 0FFFFh
-                call    $ALLOC
+                call    $ALLOC          ; largest piece available as error
                 or      bx, bx
-                jz      short loc_B0B6
-                mov     [bp-10h], bx
+                jz      short Exec_Chk_Com_Mem
+                mov     [bp-16], bx     ; mov Exec_Size,BX
+                                        ; save size of allocation block
                 push    bx
-                call    $ALLOC
-                pop     bx
-                mov     [bp-12h], ax
-                add     ax, 10h
-                mov     [bp-14h], ax
-                xor     ax, ax
-                cmp     bx, 1000h
-                jnb     short loc_B116
-                mov     ax, bx
+                call    $ALLOC          ; largest piece available
+                pop     bx              ; get size of block...
+                mov     [bp-18], ax     ; mov Exec_Load_Block,AX
+                add     ax, 10h         ; increment for header
+                mov     [bp-20], ax     ; mov Exec_DMA,AX
+                xor     ax, ax          ; presume 64K read...
+                cmp     bx, 1000h       ; 64k or more in block?
+                jnb     short Exec_Read_Com ; yes, read only 64k
+                mov     ax, bx          ; convert size to bytes
                 mov     cl, 4
                 shl     ax, cl
-                cmp     ax, 200h
-                jbe     short loc_B0B6
-                sub     ax, 100h
+                cmp     ax, 200h        ; enough memory for PSP and stack?
+                jbe     short Exec_Chk_Com_Mem ; jump if not
+                sub     ax, 100h        ; size of the block is < 64K
+                                        ; reserve 256 bytes for stack
 
-loc_B116:                               ; ...
-                sub     ax, 100h
+Exec_Read_Com:                          ; ...
+                sub     ax, 100h        ; remember size of psp
 
-loc_B119:                               ; ...
-                push    ax
-                mov     bx, [bp-8]
-                xor     cx, cx
-                xor     ax, ax
+Exec_Read_Block:                        ; ...
+                push    ax              ; save number to read
+                mov     bx, [bp-8]      ; mov BX,Exec_FH ; of com file
+                xor     cx, cx          ; but seek to 0:0
+                xor     ax, ax          ; seek relative to beginning
                 cwd
-                call    $LSEEK
-                pop     cx
-                mov     ds, word ptr [bp-14h]
+                call    $LSEEK          ; back to beginning of file
+                pop     cx              ; number to read
+                mov     ds, word ptr [bp-20] ; mov DS,Exec_DMA
                 xor     dx, dx
                 push    cx
                 call    ExecRead
-                pop     si
-                jnb     short loc_B135
-                jmp     loc_AEDA
+                pop     si              ; get number of bytes to read
+                jnb     short OkRead
+                jmp     Exec_Bad_File
 ; ---------------------------------------------------------------------------
 
-loc_B135:                               ; ...
-                cmp     ax, si
-                jnz     short loc_B13C
-                jmp     loc_B0B6
+OkRead:                                 ; ...
+                cmp     ax, si          ; did we read them all?
+                jnz     short OkRead2   ; no
+                jmp     Exec_Chk_Com_Mem
 ; ---------------------------------------------------------------------------
 
-loc_B13C:                               ; ...
-                mov     bl, ss:84h
-                mov     ss:302h, bl
-                test    byte ptr [bp-5], 2
-                jnz     short loc_B17E
-                mov     ax, [bp-14h]
+OkRead2:                                ; ...
+                mov     bl, ss:ALLOCMSAVE
+                mov     ss:AllocMethod, bl ; restore alloc method
+                test    byte ptr [bp-5], 2 ; test Exec_Func,exec_func_overlay
+                jnz     short Exec_Set_PDB ; no starto, chumo!
+                mov     ax, [bp-20]     ; mov AX,Exec_DMA
                 sub     ax, 10h
-                mov     ss:0EC5h, ax
-                mov     word ptr ss:0EC3h, 100h
-                add     si, 0FEh
-                cmp     si, 0FFFEh
-                jz      short loc_B16A
-                add     si, 100h
+                mov     ss:exec_init_CS, ax
+                mov     ss:exec_init_IP, 100h ; initial IP is 100h
+                add     si, 0FEh        ; SI is AT MOST FF00h.
+                                        ; Add FE to account for PSP
+                                        ; word of 0 on stack.
+                cmp     si, 0FFFEh      ; Q: was there >= 64K available
+                jz      short Exec_St_Ok ; Y: stack is fine
+                add     si, 100h        ; N: add the xtra 100h for stack
 
-loc_B16A:                               ; ...
-                mov     ss:0EBFh, si
-                mov     ss:0EC1h, ax
+Exec_St_Ok:                             ; ...
+                mov     ss:exec_init_SP, si ; max value for read is also SP!
+                mov     ss:exec_init_SS, ax
                 mov     ds, ax
-                mov     word ptr [si], 0
-                call    word ptr ss:61h
+                mov     word ptr [si], 0 ; 0 for return
+                call    ss:ChkCopyProt  ; We now determine if this is a Copy Protected App.
+                                        ; If so the A20OFF_COUNT is set to 6.
+                                        ; Note that ChkCopyProt will point to a ret if
+                                        ; DOS is loaded low. Also DS contains the load segment.
 
-loc_B17E:                               ; ...
-                mov     bx, [bp-8]
+Exec_Set_PDB:                           ; ...
+                mov     bx, [bp-8]      ; mov BX,Exec_FH ; we are finished with the file.
                 call    Exec_Dealloc
                 push    bp
-                call    $CLOSE
+                call    $CLOSE          ; release the jfn
                 pop     bp
                 call    Exec_Alloc
-                test    byte ptr [bp-5], 2
-                jz      short loc_B1CC
-                call    sub_B359
-                call    sub_B370
-                cmp     byte ptr ss:1322h, 0
-                jz      short loc_B1C6
+                test    byte ptr [bp-5], 2 ; test Exec_Func,exec_func_overlay
+                jz      short Exec_Build_Header
+                call    Scan_Execname
+                call    Scan_Special_Entries
+                cmp     ss:DriverLoad, 0 ; was Sysinit processing done?
+                jz      short norm_ovl  ; yes, no special handling
                 push    si
                 push    es
-                les     si, ss:1323h
-                cmp     byte ptr es:[si], 0
-                jz      short loc_B1BE
-                mov     es, word ptr ss:330h
-                push    word ptr ss:0EBBh
-                pop     word ptr es:40h
-                jmp     short loc_B1C4
+                les     si, dword ptr ss:BiosDataPtr ; get ptr to BIOS data block
+                cmp     byte ptr es:[si], 0 ; in Sysinit?
+                jz      short sysinit_done ; no, Sysinit is finished
+                mov     es, ss:CurrentPDB ; es = current PSP (Sysinit PSP)
+                push    ss:SPECIAL_VERSION
+                pop     word ptr es:40h ; [es:PDB.Version] ; store lie version in Sysinit PSP
+                jmp     short setver_done
 ; ---------------------------------------------------------------------------
 
-loc_B1BE:                               ; ...
-                mov     byte ptr ss:1322h, 0
+sysinit_done:                           ; ...
+                mov     ss:DriverLoad, 0 ; Sysinit done,special handling off
 
-loc_B1C4:                               ; ...
+setver_done:                            ; ...
                 pop     es
                 pop     si
 
-loc_B1C6:                               ; ...
+norm_ovl:                               ; ...
                 mov     sp, bp
                 pop     bp
-                jmp     SYS_RET_OK
+                jmp     SYS_RET_OK      ; overlay load -> done
 ; ---------------------------------------------------------------------------
 
-loc_B1CC:                               ; ...
-                mov     dx, [bp-12h]
-                mov     si, 1
-                mov     ax, [bp-0Eh]
+Exec_Build_Header:                      ; ...
+                mov     dx, [bp-18]     ; mov DX,Exec_Load_Block
+                mov     si, 1           ; ARENA.OWNER ; pointer to owner field
+                mov     ax, [bp-14]     ; mov AX,Exec_Environ ; get environ pointer
                 or      ax, ax
-                jz      short loc_B1DE
-                dec     ax
+                jz      short No_Owner  ; no environment
+                dec     ax              ; point to header
                 mov     ds, ax
-                mov     [si], dx
+                mov     [si], dx        ; assign ownership
 
-loc_B1DE:                               ; ...
-                mov     ax, [bp-12h]
+No_Owner:                               ; ...
+                mov     ax, [bp-18]     ; mov ax,Exec_Load_Block
+                                        ; get load block pointer
                 dec     ax
-                mov     ds, ax
-                mov     [si], dx
+                mov     ds, ax          ; point to header
+                mov     [si], dx        ; assign ownership
                 push    ds
                 pop     es
-                mov     di, 8
-                call    sub_B359
-                push    cx
-                push    si
+                mov     di, 8           ; ARENA.NAME ; ES:DI points to destination
+                call    Scan_Execname   ; parse execname
+                                        ; ds:si->name, cx=name length
+                push    cx              ; save for fake version
+                push    si              ; save for fake version
 
-loc_B1F0:                               ; ...
-                lodsb
-                cmp     al, 2Eh ; '.'
-                jz      short loc_B1FD
+MoveName:                               ; ...
+                lodsb                   ; get char
+                cmp     al, 2Eh ; '.'   ; is '.', may be name.exe
+                jz      short Mem_Done  ; no, move to header
+                stosb                   ; move char
+                cmp     di, 16          ; ARENAHEADERSIZE ; end of mem arena block?
+                jnb     short Mem_Done  ; jump if so
+                loop    MoveName        ; continue
+
+Mem_Done:                               ; ...
+                xor     al, al          ; make ASCIIZ
+                cmp     di, 16          ; ARENAHEADERSIZE ; if not all filled
+                jnb     short Fill8
                 stosb
-                cmp     di, 10h
-                jnb     short loc_B1FD
-                loop    loc_B1F0
 
-loc_B1FD:                               ; ...
-                xor     al, al
-                cmp     di, 10h
-                jnb     short loc_B205
-                stosb
-
-loc_B205:                               ; ...
-                pop     si
+Fill8:                                  ; ...
+                pop     si              ; ds:si -> file name
                 pop     cx
-                call    sub_B370
+                call    Scan_Special_Entries
                 push    dx
-                mov     si, [bp-10h]
+                mov     si, [bp-16]     ; mov SI,Exec_Size
                 add     si, dx
-                call    $DUP_PDB
+                call    $DUP_PDB        ; ES is now PDB
                 pop     dx
-                push    word ptr [bp-0Eh]
-                pop     word ptr es:2Ch
-                push    ss:SPECIAL_VERSION
-                pop     word ptr es:40h
-                lds     si, [bp-4]
+                push    word ptr [bp-14] ; push Exec_Environ
+                pop     word ptr es:2Ch ; pop word [ES:PDB.ENVIRON]
+                push    ss:SPECIAL_VERSION ; Set the DOS version number to ..
+                pop     word ptr es:40h ; pop word [ES:PDB.Version]
+                                        ; .. to be used for this application
+                lds     si, [bp-4]      ; lds SI,Exec_Blk ; get the block
                 push    ds
                 push    si
-                lds     si, [si+6]
-                mov     cx, 0Ch
+                lds     si, [si+6]      ; lds SI,[SI+EXEC0.5C_FCB] ; get the 5c fcb
+                mov     cx, 12          ; copy drive, name and ext
                 push    cx
-                mov     di, 5Ch ; '\'
+                mov     di, 5Ch
                 mov     bl, [si]
-                rep movsb
-                xchg    ax, cx
+                rep movsb               ; DI = 5Ch + 12 = 5Ch + 0Ch = 68h
+                xchg    ax, cx          ; zero extent, etc for CPM
                 stosw
                 stosw
-                pop     cx
+                pop     cx              ; get block
                 pop     si
                 pop     ds
-                push    ds
+                push    ds              ; save (again)
                 push    si
-                lds     si, [si+0Ah]
-                mov     bh, [si]
+                lds     si, [si+0Ah]    ; lds SI,[SI+EXEC0.6C_FCB] ; get 6C FCB
+                mov     bh, [si]        ; do same as above
                 rep movsb
                 stosw
                 stosw
-                pop     si
+                pop     si              ; get block (last time)
                 pop     ds
-                lds     si, [si+2]
+                lds     si, [si+2]      ; lds SI,[SI+EXEC0.COM_LINE] ; command line
                 or      cl, 80h
                 mov     di, cx
-                rep movsb
-                dec     cl
+                rep movsb               ; Wham!
+                dec     cl              ; get 0FFh in CL
                 mov     al, bh
                 xor     bh, bh
                 call    GetVisDrv
@@ -19442,69 +19513,78 @@ Exec_BL:                                ; ...
                 mov     bl, cl
 
 Exec_Set_Return:                        ; ...
-                call    Get_User_Stack
+                call    Get_User_Stack  ; get his return address
                 lds     ax, [si+12h]
-                push    ds
+                push    ds              ; suck out the CS and IP
                 push    ax
-                mov     es:0Ah, ax
-                mov     word ptr es:0Ch, ds
+                mov     es:0Ah, ax      ; [ES:PDB.EXIT]
+                mov     word ptr es:0Ch, ds ; [ES:PDB.EXIT+2]
                 xor     ax, ax
-                mov     ds, ax
+                mov     ds, ax          ; save them where we can get them
+                                        ; later when the child exits.
                 assume ds:DOSCODE
-                pop     UNPACK_OFFSET+1
-                pop     word_8A
+                pop     word ptr addr_int_terminate ; 22h*4
+                pop     word ptr addr_int_terminate+2 ; (22h*4)+2
                 mov     word ptr ss:DMAADD, 80h
                 mov     ds, ss:CurrentPDB
                 assume ds:nothing
                 mov     word ptr ss:DMAADD+2, ds
-                test    byte ptr [bp-5], 1
+                test    byte ptr [bp-5], 1 ; test Exec_Func,exec_func_no_execute
                 jz      short exec_go
-                lds     si, ss:exec_init_SP
-                les     di, [bp-4]
-                mov     word ptr es:[di+10h], ds
+                lds     si, dword ptr ss:exec_init_SP ; get stack
+                les     di, [bp-4]      ; les DI,Exec_Blk ; and block for return
+                mov     word ptr es:[di+10h], ds ; mov [ES:DI+EXEC1.SS],DS
+                                        ; return SS
+                dec     si              ; 'push' default AX
                 dec     si
-                dec     si
-                mov     [si], bx
-                mov     es:[di+0Eh], si
-                lds     ax, ss:exec_init_IP
-                mov     word ptr es:[di+14h], ds
-                mov     es:[di+12h], ax
+                mov     [si], bx        ; save default AX reg
+                mov     es:[di+0Eh], si ; mov [ES:DI+EXEC1.SP],SI ; return 'SP'
+                lds     ax, dword ptr ss:exec_init_IP
+                mov     word ptr es:[di+14h], ds ; mov [ES:DI+EXEC1.CS],DS
+                                        ; initial entry stuff
+                mov     es:[di+12h], ax ; mov [ES:DI+EXEC1.IP],AX
                 mov     sp, bp
                 pop     bp
                 jmp     SYS_RET_OK
 ; ---------------------------------------------------------------------------
 
 exec_go:                                ; ...
-                lds     si, ss:exec_init_IP
-                les     di, ss:exec_init_SP
+                lds     si, dword ptr ss:exec_init_IP ; get entry point
+                les     di, dword ptr ss:exec_init_SP ; new stack
                 mov     ax, es
-                cmp     ss:DosHasHMA, 0
-                jz      short Xfer_To_User
-                push    ds
-                mov     ds, cs:DosDSeg
-                or      ds:DOS_FLAG, 4
-                mov     ds:A20OFF_PSP, dx
-                mov     ax, ds
+                cmp     ss:DosHasHMA, 0 ; Q: is dos in HMA
+                jz      short Xfer_To_User ; N: transfer control to user
+                push    ds              ; Y: control must go to low mem stub
+                mov     ds, cs:DosDSeg  ; where we disable a20
+                                        ; and Xfer control to user
+                or      ds:DOS_FLAG, 4  ; Set bit to signal int 21h
+                                        ; ah = 25h & ah= 49h
+                mov     ds:A20OFF_PSP, dx ; set the PSP for which A20 is
+                                        ; going to be turned OFF.
+                mov     ax, ds          ; segment of low mem stub
                 pop     ds
-                push    ax
+                push    ax              ; ret far into the low mem stub
                 mov     ax, offset disa20_xfer
                 push    ax
-                mov     ax, es
+                mov     ax, es          ; restore ax
                 retf
 ; ---------------------------------------------------------------------------
 
 Xfer_To_User:                           ; ...
-                cli
+                cli                     ; DS:SI points to entry point
+                                        ; AX:DI points to initial stack
+                                        ; DX has PDB pointer
+                                        ; BX has initial AX value
                 mov     ss:INDOS, 0
                 mov     ss:INDOS_FLAG, 0
-                mov     ss, ax
-                mov     sp, di
+                mov     ss, ax          ; set up user's stack
+                mov     sp, di          ; and SP
                 sti
-                push    ds
+                push    ds              ; fake long call to entry
                 push    si
-                mov     es, dx
+                mov     es, dx          ; set up proper seg registers
                 mov     ds, dx
-                mov     ax, bx
+                mov     ax, bx          ; set up proper AX
                 retf
 
 ; =============== S U B R O U T I N E =======================================
@@ -19512,7 +19592,7 @@ Xfer_To_User:                           ; ...
 
 ExecRead        proc near               ; ...
                 call    Exec_Dealloc
-                mov     bx, [bp-8]
+                mov     bx, [bp-8]      ; MOV bx,Exec_FH
                 push    bp
                 call    $READ
                 pop     bp
@@ -19526,9 +19606,9 @@ ExecRead        endp
 
 Exec_Dealloc    proc near               ; ...
                 push    bx
-                sub     bx, bx
+                sub     bx, bx          ; (bx) = ARENA_OWNER_SYSTEM
                 call    ECritDisk
-                call    sub_B33A
+                call    ChangeOwners
                 pop     bx
                 retn
 Exec_Dealloc    endp
@@ -19539,9 +19619,9 @@ Exec_Dealloc    endp
 
 Exec_Alloc      proc near               ; ...
                 push    bx
-                mov     bx, ss:330h
-                call    sub_B33A
-                call    LCritDisk
+                mov     bx, ss:CurrentPDB
+                call    ChangeOwners
+                call    LCritDisk       ; call LCritMEM
                 pop     bx
                 retn
 Exec_Alloc      endp
@@ -19550,123 +19630,118 @@ Exec_Alloc      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-sub_B33A        proc near               ; ...
+ChangeOwners    proc near               ; ...
                 pushf
                 push    ax
-                mov     ax, [bp-0Eh]
-                call    sub_B34B
-                mov     ax, [bp-12h]
-                call    sub_B34B
+                mov     ax, [bp-14]     ; mov AX,Exec_Environ
+                call    ChangeOwner
+                mov     ax, [bp-18]     ; mov AX,Exec_Load_Block
+                call    ChangeOwner
                 pop     ax
                 popf
 
-locret_B34A:                            ; ...
+chgown_retn:                            ; ...
                 retn
-sub_B33A        endp
+ChangeOwners    endp
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-sub_B34B        proc near               ; ...
-                or      ax, ax
-                jz      short locret_B34A
+ChangeOwner     proc near               ; ...
+                or      ax, ax          ; is area allocated?
+                jz      short chgown_retn ; no, do nothing
                 dec     ax
                 push    ds
                 mov     ds, ax
-                mov     ds:1, bx
+                mov     ds:1, bx        ; mov [ARENA.OWNER],BX
                 pop     ds
                 retn
-sub_B34B        endp
+ChangeOwner     endp
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-sub_B359        proc near               ; ...
-                lds     si, [bp-1Ah]
-sub_B359        endp
+Scan_Execname   proc near               ; ...
+                lds     si, [bp-26]     ; lds SI,ExecName ; DS:SI points to name
 
+Scan_Execname1:                         ; ...
+                mov     cx, si          ; CX= starting addr
 
-; =============== S U B R O U T I N E =======================================
-
-
-sub_B35C        proc near               ; ...
-                mov     cx, si
-
-loc_B35E:                               ; ...
-                lodsb
-                cmp     al, 3Ah ; ':'
-                jz      short sub_B35C
-                cmp     al, 5Ch ; '\'
-                jz      short sub_B35C
-                cmp     al, 0
-                jnz     short loc_B35E
-                sub     si, cx
-                xchg    si, cx
+Scan0:                                  ; ...
+                lodsb                   ; get char
+                cmp     al, 3Ah ; ':'   ; is ':' , may be A:name
+                jz      short Scan_Execname1 ; yes, save si
+                cmp     al, 5Ch ; '\'   ; is '\', may be A:\name
+                jz      short Scan_Execname1 ; yes, save si
+                cmp     al, 0           ; is end of name
+                jnz     short Scan0     ; no, continue scanning
+                sub     si, cx          ; get name's length
+                xchg    si, cx          ; cx= length, si= starting addr
                 retn
-sub_B35C        endp
+Scan_Execname   endp
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-sub_B370        proc near               ; ...
+Scan_Special_Entries proc near          ; ...
                 dec     cx
-                mov     word ptr ss:0EBBh, 0A07h
-                les     di, ss:5Dh
+                mov     ss:SPECIAL_VERSION, 0A07h ; (MINOR_VERSION<<8)+MAJOR_VERSION
+                les     di, ss:UU_IFS_DOS_CALL ; ES:DI --> Table in SETVER.SYS
                 mov     ax, es
                 or      ax, di
-                jz      short locret_B3AA
+                jz      short End_List  ; If ZR then no table
 
-loc_B383:                               ; ...
-                mov     al, es:[di]
+GetEntries:                             ; ...
+                mov     al, es:[di]     ; end of list
                 or      al, al
-                jz      short locret_B3AA
-                mov     ss:60Eh, di
-                cmp     al, cl
-                jnz     short loc_B3AE
-                inc     di
-                push    cx
+                jz      short End_List  ; yes
+                mov     ss:TEMP_VAR2, di ; save di
+                cmp     al, cl          ; same length ?
+                jnz     short SkipOne   ; no
+                inc     di              ; es:di -> special name
+                push    cx              ; save length and name addr
                 push    si
-                push    ax
+                push    ax              ; save len
 
-loc_B397:                               ; ...
+sse_next_char:                          ; ...
                 lodsb
                 call    UCase
                 scasb
-                jnz     short loc_B3AB
-                loop    loc_B397
-                mov     ax, es:[di]
-                mov     ss:0EBBh, ax
-                pop     ax
+                jnz     short Not_Matched
+                loop    sse_next_char
+                mov     ax, es:[di]     ; get special version
+                mov     ss:SPECIAL_VERSION, ax ; save it
+                pop     ax              ; take len off the stack
                 pop     si
                 pop     cx
 
-locret_B3AA:                            ; ...
+End_List:                               ; ...
                 retn
 ; ---------------------------------------------------------------------------
 
-loc_B3AB:                               ; ...
-                pop     ax
-                pop     si
+Not_Matched:                            ; ...
+                pop     ax              ; get len from stack
+                pop     si              ; restore si,cx
                 pop     cx
 
-loc_B3AE:                               ; ...
-                mov     di, ss:60Eh
-                xor     ah, ah
+SkipOne:                                ; ...
+                mov     di, ss:TEMP_VAR2 ; restore old di
+                xor     ah, ah          ; position to next entry
                 add     di, ax
-                add     di, 3
-                jmp     short loc_B383
-sub_B370        endp
+                add     di, 3           ; DI -> next entry length
+                jmp     short GetEntries
+Scan_Special_Entries endp
 
 ; ---------------------------------------------------------------------------
 
 $KEEP_PROCESS:                          ; ...
-                push    ax
-                mov     byte ptr ss:EXIT_TYPE, 3
+                push    ax              ; Terminate and stay resident handler
+                mov     byte ptr ss:EXIT_TYPE, 3 ; EXIT_KEEP_PROCESS
                 mov     es, ss:CurrentPDB
-                cmp     dx, 6
+                cmp     dx, 6           ; keep enough space around for system info
                 jnb     short Keep_Shrink
                 mov     dx, 6
 
@@ -19677,19 +19752,20 @@ Keep_Shrink:                            ; ...
                 call    $SETBLOCK
                 pop     ds
                 pop     bx
-                jb      short Keep_Done
+                jb      short Keep_Done ; failed on modification
                 mov     ax, ds
                 add     ax, bx
-                mov     ds:2, ax
+                mov     ds:2, ax        ; [PDB.BLOCK_LEN]
 
 Keep_Done:                              ; ...
                 pop     ax
-                jmp     short exit_inner
+                jmp     short exit_inner ; let abort take care of the rest
 ; ---------------------------------------------------------------------------
 
 stay_resident:                          ; ...
-                mov     ax, 3100h
-                add     dx, 0Fh
+                mov     ax, 3100h       ; (KEEP_PROCESS<<8)+0
+                                        ; Lower part is return code
+                add     dx, 15
                 rcr     dx, 1
                 mov     cl, 3
                 shr     dx, cl
@@ -19697,37 +19773,38 @@ stay_resident:                          ; ...
 ; ---------------------------------------------------------------------------
 
 $EXIT:                                  ; ...
-                xor     ah, ah
+                xor     ah, ah          ; return to parent process
                 xchg    ah, ss:DidCTRLC
                 or      ah, ah
-                mov     byte ptr ss:EXIT_TYPE, 0
+                mov     byte ptr ss:EXIT_TYPE, 0 ; EXIT_TERMINATE
                 jz      short exit_inner
-                mov     byte ptr ss:EXIT_TYPE, 1
+                mov     byte ptr ss:EXIT_TYPE, 1 ; EXIT_CTRL_C
 ; START OF FUNCTION CHUNK FOR FATALC
 
 exit_inner:                             ; ...
                 call    Get_User_Stack
                 push    ss:CurrentPDB
-                pop     word ptr [si+14h]
+                pop     word ptr [si+14h] ; [SI+user_env.user_CS]
                 jmp     short abort_inner
 ; END OF FUNCTION CHUNK FOR FATALC
 ; ---------------------------------------------------------------------------
 
 $ABORT:                                 ; ...
-                xor     al, al
-                mov     byte ptr ss:57Ch, 0
+                xor     al, al          ; Terminate a process
+                mov     byte ptr ss:EXIT_TYPE, 0 ; EXIT_ABORT
 ; START OF FUNCTION CHUNK FOR FATALC
 
 abort_inner:                            ; ...
-                mov     ah, ss:57Ch
-                mov     ss:334h, ax
+                mov     ah, byte ptr ss:EXIT_TYPE
+                mov     ss:exit_code, ax
                 call    Get_User_Stack
-                mov     ds, word ptr [si+14h]
+                mov     ds, word ptr [si+14h] ; [SI+user_env.user_CS]
+                                        ; set up old interrupts
                 xor     ax, ax
                 mov     es, ax
                 assume es:DOSCODE
-                mov     si, 0Ah
-                mov     di, 88h
+                mov     si, 0Ah         ; SAVEXIT
+                mov     di, 88h         ; addr_int_terminate
                 movsw
                 movsw
                 movsw
@@ -19744,10 +19821,10 @@ RetExePatch:                            ; ...
 ; =============== S U B R O U T I N E =======================================
 
 
-sub_B443        proc near               ; ...
-                test    byte ptr ss:89h, 1
-                retn
-sub_B443        endp
+test_umb_flag   proc near               ; ...
+                test    ss:UMBFLAG, 1   ; LINKSTATE  ; Q: are umb's linked
+                retn                    ; ZF=1 -> N: scan from arena_head
+test_umb_flag   endp                    ; ZF=0 -> Y: start_arena = umb_head
 
 
 ; =============== S U B R O U T I N E =======================================
@@ -19756,45 +19833,46 @@ sub_B443        endp
 arena_free_process proc near            ; ...
                 mov     ax, ss:arena_head
 
-loc_B44E:                               ; ...
-                mov     di, 0
+arena_free_process_start:               ; ...
+                mov     di, 0           ; ARENA.SIGNATURE
                 call    check_signature
 
-loc_B454:                               ; ...
-                jb      short check_signature_ok
+arena_free_process_loop:                ; ...
+                jb      short check_signature_ok ; AFP_RETN
                 push    es
                 pop     ds
                 assume ds:DOSCODE
-                cmp     word ptr byte_0+1, bx
-                jnz     short loc_B462
-                mov     word ptr byte_0+1, di
+                cmp     word ptr ds:1, bx ; [ARENA.OWNER] ; is block owned by pid?
+                jnz     short arena_free_next ; no, skip to next
+                mov     word ptr ds:1, di ; [ARENA.OWNER] ; yes... free him
 
-loc_B462:                               ; ...
-                cmp     byte ptr [di], 5Ah ; 'Z'
-                jz      short loc_B46C
-                call    sub_B47C
-                jmp     short loc_B454
+arena_free_next:                        ; ...
+                cmp     byte ptr [di], 5Ah ; 'Z' ; arena_signature_end
+                                        ; end of road, Jack?
+                jz      short arena_chk_umbs ; never come back no more
+                call    arena_next      ; next item in ES/AX carry set if trash
+                jmp     short arena_free_process_loop
 ; ---------------------------------------------------------------------------
 
-loc_B46C:                               ; ...
-                mov     ax, ss:8Ch
-                cmp     ax, 0FFFFh
-                jz      short check_signature_ok
+arena_chk_umbs:                         ; ...
+                mov     ax, ss:UMB_HEAD
+                cmp     ax, 0FFFFh      ; Q: is umb_head initialized
+                jz      short check_signature_ok ; N: we're done
                 mov     di, ds
-                cmp     di, ax
-                jb      short loc_B44E
-                retn
+                cmp     di, ax          ; Q: is last arena above umb_head
+                jb      short arena_free_process_start
+                retn                    ; Y: we've scanned umbs also. done.
 arena_free_process endp
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-sub_B47C        proc near               ; ...
-                mov     ax, ds
-                add     ax, word ptr byte_0+3
-                inc     ax
-sub_B47C        endp
+arena_next      proc near               ; ...
+                mov     ax, ds          ; AX <- current block
+                add     ax, word ptr ds:3 ; [ARENA.SIZE] ; + current block length
+                inc     ax              ; remember that header!
+arena_next      endp
 
 
 ; =============== S U B R O U T I N E =======================================
@@ -19803,9 +19881,9 @@ sub_B47C        endp
 check_signature proc near               ; ...
                 mov     es, ax
                 assume es:nothing
-                cmp     byte ptr es:[di], 4Dh ; 'M'
+                cmp     byte ptr es:[di], 4Dh ; 'M' ; arena_signature_normal
                 jz      short check_signature_ok
-                cmp     byte ptr es:[di], 5Ah ; 'Z'
+                cmp     byte ptr es:[di], 5Ah ; 'Z' ; arena_signature_end
                 jz      short check_signature_ok
                 stc
 
@@ -19817,20 +19895,20 @@ check_signature endp
 ; =============== S U B R O U T I N E =======================================
 
 
-sub_B493        proc near               ; ...
-                cmp     byte ptr [di], 5Ah ; 'Z'
+Coalesce        proc near               ; ...
+                cmp     byte ptr [di], 5Ah ; 'Z' ; arena_signature_end
                 jz      short check_signature_ok
-                call    sub_B47C
-                jb      short check_signature_ok
-                cmp     es:1, di
+                call    arena_next
+                jb      short check_signature_ok ; IF next block isnt free THEN return
+                cmp     es:1, di        ; [ES:ARENA.OWNER]
                 jnz     short check_signature_ok
-                mov     cx, es:3
-                inc     cx
-                add     word ptr byte_0+3, cx
-                mov     cl, es:[di]
+                mov     cx, es:3        ; [ES:ARENA.SIZE] ; next block size
+                inc     cx              ; + 1 (for header size)
+                add     word ptr ds:3, cx ; [ARENA.SIZE]
+                mov     cl, es:[di]     ; move up signature
                 mov     [di], cl
-                jmp     short sub_B493
-sub_B493        endp
+                jmp     short Coalesce  ; try again
+Coalesce        endp
 
 
 ; =============== S U B R O U T I N E =======================================
@@ -19838,230 +19916,229 @@ sub_B493        endp
 
 $ALLOC          proc near               ; ...
 
-; FUNCTION CHUNK AT B52B SIZE 00000024 BYTES
-; FUNCTION CHUNK AT B54F SIZE 0000000E BYTES
+; FUNCTION CHUNK AT B528 SIZE 00000035 BYTES
 ; FUNCTION CHUNK AT B55D SIZE 00000076 BYTES
 ; FUNCTION CHUNK AT B5D3 SIZE 0000003A BYTES
 
-                call    ECritDisk
+                call    ECritDisk       ; call ECritMEM
                 mov     ax, ss:arena_head
-                test    ss:AllocMethod, 0C0h
-                mov     ss:START_ARENA, ax
-                jz      short loc_B4D5
-                call    sub_B443
-                jz      short loc_B4D5
+                test    ss:AllocMethod, 0C0h ; HIGH_FIRST+HIGH_ONLY
+                mov     ss:START_ARENA, ax ; assume LOW_FIRST
+                jz      short norm_alloc
+                call    test_umb_flag
+                jz      short norm_alloc
                 mov     ax, ss:UMB_HEAD
-                mov     ss:START_ARENA, ax
+                mov     ss:START_ARENA, ax ; start_arena = umb_head
 
-loc_B4D5:                               ; ...
-                xor     ax, ax
+norm_alloc:                             ; ...
+                xor     ax, ax          ; 0
                 mov     di, ax
-                mov     ss:FirstArena, ax
+                mov     ss:FirstArena, ax ; 0 ; init the options
                 mov     ss:BestArena, ax
                 mov     ss:LastArena, ax
-                push    ax
+                push    ax              ; alloc_max = 0
 
-loc_B4E6:                               ; ...
-                mov     ax, ss:START_ARENA
+start_scan:                             ; ...
+                mov     ax, ss:START_ARENA ; beginning of arena
                 call    check_signature
-                jb      short loc_B522
+                jb      short alloc_err
 
-loc_B4EF:                               ; ...
+alloc_scan:                             ; ...
                 push    es
                 pop     ds
                 assume ds:nothing
-                cmp     ds:1, di
-                jz      short loc_B55D
+                cmp     ds:1, di        ; [ARENA.OWNER]
+                jz      short alloc_free ; IF current block is free THEN examine
 
-loc_B4F7:                               ; ...
-                call    sub_B443
-                jz      short loc_B518
-                test    byte ptr ss:302h, 80h
-                jz      short loc_B518
-                mov     ax, ss:8Eh
-                cmp     ax, ss:24h
-                jnz     short loc_B518
-                mov     ax, ds
-                cmp     ax, ss:8Ch
-                jmp     short loc_B51B
+alloc_next:                             ; ...
+                call    test_umb_flag
+                jz      short norm_strat
+                test    ss:AllocMethod, 80h ; HIGH_FIRST
+                                        ; Q: is alloc strategy high_first
+                jz      short norm_strat ; N: see if we reached last arena
+                mov     ax, ss:START_ARENA
+                cmp     ax, ss:arena_head ;  Q: did we start scan from arena_head
+                jnz     short norm_strat ; N: see if we reached last arena
+                mov     ax, ds          ; ax = current block
+                cmp     ax, ss:UMB_HEAD ; Q: check against umb_head
+                jmp     short alloc_chk_end
 ; ---------------------------------------------------------------------------
 
-loc_B518:                               ; ...
-                cmp     byte ptr [di], 5Ah ; 'Z'
+norm_strat:                             ; ...
+                cmp     byte ptr [di], 5Ah ; 'Z' ; arena_signature_end
+                                        ; IF current block is last THEN
 
-loc_B51B:                               ; ...
-                jz      short loc_B52B
-                call    sub_B47C
-                jnb     short loc_B4EF
+alloc_chk_end:                          ; ...
+                jz      short alloc_end ; GOTO end
+                call    arena_next      ; AX, ES <- next block, Carry set if error
+                jnb     short alloc_scan ; IF no error THEN GOTO scan
 
-loc_B522:                               ; ...
+alloc_err:                              ; ...
                 pop     ax
 $ALLOC          endp
 
 ; START OF FUNCTION CHUNK FOR $SETBLOCK
 
-loc_B523:                               ; ...
-                call    LCritDisk
+alloc_trashed:                          ; ...
+                call    LCritDisk       ; call LCritMEM
 
-loc_B526:                               ; ...
-                mov     al, 7
-
-loc_B528:                               ; ...
-                jmp     SYS_RET_ERR
+alloc_trashed2:                         ; ...
+                mov     al, 7           ; error_arena_trashed
 ; END OF FUNCTION CHUNK FOR $SETBLOCK
-; ---------------------------------------------------------------------------
 ; START OF FUNCTION CHUNK FOR $ALLOC
 
-loc_B52B:                               ; ...
-                cmp     word ptr ss:340h, 0
-                jz      short loc_B536
-                jmp     loc_B5BA
+alloc_errj:                             ; ...
+                jmp     SYS_RET_ERR
 ; ---------------------------------------------------------------------------
 
-loc_B536:                               ; ...
-                mov     ax, ss:24h
-                cmp     ax, ss:8Eh
-                jz      short loc_B54F
-                test    byte ptr ss:302h, 40h
-                jnz     short loc_B54F
-                mov     ss:8Eh, ax
-                jmp     short loc_B4E6
-; END OF FUNCTION CHUNK FOR $ALLOC
+alloc_end:                              ; ...
+                cmp     ss:FirstArena, 0
+                jz      short alloc_chk
+                jmp     alloc_do_split
 ; ---------------------------------------------------------------------------
-; START OF FUNCTION CHUNK FOR $SETBLOCK
-;   ADDITIONAL PARENT FUNCTION $ALLOC
 
-loc_B54F:                               ; ...
+alloc_chk:                              ; ...
+                mov     ax, ss:arena_head
+                cmp     ax, ss:START_ARENA ; Q: started scanning from arena_head
+                jz      short alloc_fail ; Y: not enough memory
+                test    ss:AllocMethod, 40h ; HIGH_ONLY
+                                        ; Q: is the alloc strat HIGH_ONLY
+                jnz     short alloc_fail ; Y: return size of largest UMB
+                mov     ss:START_ARENA, ax ; N: start scanning from arena_head
+                jmp     short start_scan
+; ---------------------------------------------------------------------------
+
+alloc_fail:                             ; ...
                 call    Get_User_Stack
                 pop     bx
-                mov     [si+2], bx
-                call    LCritDisk
-                mov     al, 8
-                jmp     short loc_B528
-; END OF FUNCTION CHUNK FOR $SETBLOCK
+                mov     [si+2], bx      ; [SI+user_env.user_BX]
+                call    LCritDisk       ; call LCritMEM
+                mov     al, 8           ; error_not_enough_memory
+                jmp     short alloc_errj
+; END OF FUNCTION CHUNK FOR $ALLOC
 ; ---------------------------------------------------------------------------
 ; START OF FUNCTION CHUNK FOR $ALLOC
 
-loc_B55D:                               ; ...
-                call    sub_B493
-                jb      short loc_B522
-                mov     cx, ds:3
+alloc_free:                             ; ...
+                call    Coalesce        ; add following free block to current
+                jb      short alloc_err
+                mov     cx, ds:3        ; [ARENA.SIZE]
                 pop     dx
-                cmp     cx, dx
-                jbe     short loc_B56D
+                cmp     cx, dx          ; check for max found size
+                jbe     short alloc_test
                 mov     dx, cx
 
-loc_B56D:                               ; ...
+alloc_test:                             ; ...
                 push    dx
                 cmp     bx, cx
-                ja      short loc_B4F7
-                cmp     word ptr ss:340h, 0
-                jnz     short loc_B57F
-                mov     word ptr ss:340h, ds
+                ja      short alloc_next
+                cmp     ss:FirstArena, 0
+                jnz     short alloc_best
+                mov     ss:FirstArena, ds ; save first one found
 
-loc_B57F:                               ; ...
-                cmp     word ptr ss:342h, 0
-                jz      short loc_B595
+alloc_best:                             ; ...
+                cmp     ss:BestArena, 0
+                jz      short alloc_make_best ; initial best
                 push    es
-                mov     es, word ptr ss:342h
-                cmp     es:3, cx
+                mov     es, ss:BestArena
+                cmp     es:3, cx        ; [ES:ARENA.SIZE]
+                                        ; is size of best larger than found?
                 pop     es
-                jbe     short loc_B59A
+                jbe     short alloc_last
 
-loc_B595:                               ; ...
-                mov     word ptr ss:342h, ds
+alloc_make_best:                        ; ...
+                mov     ss:BestArena, ds ; assign best
 
-loc_B59A:                               ; ...
-                mov     word ptr ss:344h, ds
-                jmp     loc_B4F7
+alloc_last:                             ; ...
+                mov     ss:LastArena, ds ; assign last
+                jmp     alloc_next
 ; ---------------------------------------------------------------------------
 
-loc_B5A2:                               ; ...
-                mov     ds, word ptr ss:344h
-                mov     cx, ds:3
+alloc_do_split_high:                    ; ...
+                mov     ds, ss:LastArena
+                mov     cx, ds:3        ; [ARENA.SIZE]
                 sub     cx, bx
                 mov     dx, ds
-                jz      short loc_B5FA
-                add     dx, cx
-                mov     es, dx
+                jz      short alloc_set_owner ; sizes are equal, no split
+                add     dx, cx          ; point to next block
+                mov     es, dx          ; no decrement!
                 dec     cx
-                xchg    bx, cx
-                jmp     short loc_B5E5
+                xchg    bx, cx          ; bx has size of lower block
+                jmp     short alloc_set_sizes ; cx has upper (requested) size
 ; ---------------------------------------------------------------------------
 
-loc_B5BA:                               ; ...
-                mov     cl, ss:302h
-                and     cl, 3Fh
-                cmp     cl, 1
-                ja      short loc_B5A2
-                mov     ds, word ptr ss:340h
-                jb      short loc_B5D3
-                mov     ds, word ptr ss:342h
+alloc_do_split:                         ; ...
+                mov     cl, ss:AllocMethod
+                and     cl, 3Fh         ; mask off bit 7
+                cmp     cl, 1           ; BEST_FIT
+                ja      short alloc_do_split_high
+                mov     ds, ss:FirstArena
+                jb      short alloc_get_size
+                mov     ds, ss:BestArena
 ; END OF FUNCTION CHUNK FOR $ALLOC
-; START OF FUNCTION CHUNK FOR $SETBLOCK
-;   ADDITIONAL PARENT FUNCTION $ALLOC
+; START OF FUNCTION CHUNK FOR $ALLOC
+;   ADDITIONAL PARENT FUNCTION $SETBLOCK
 
-loc_B5D3:                               ; ...
-                mov     cx, ds:3
+alloc_get_size:                         ; ...
+                mov     cx, ds:3        ; [ARENA.SIZE]
                 mov     ax, ds
-                sub     cx, bx
+                sub     cx, bx          ; get room left over
                 mov     dx, ax
-                jz      short loc_B5FA
+                jz      short alloc_set_owner ; IF BX = size THEN (don't split)
                 add     ax, bx
-                inc     ax
-                mov     es, ax
-                dec     cx
+                inc     ax              ; remember the header
+                mov     es, ax          ; ES <- DS + BX (new header location)
+                dec     cx              ; CX <- size of split block
 
-loc_B5E5:                               ; ...
-                mov     ds:3, bx
-                mov     bl, 4Dh ; 'M'
-                mov     es:3, cx
-                xchg    bl, [di]
-                mov     es:1, di
-                mov     es:[di], bl
+alloc_set_sizes:                        ; ...
+                mov     ds:3, bx        ; [ARENA.SIZE]
+                mov     bl, 4Dh ; 'M'   ; arena_signature_normal
+                mov     es:3, cx        ; split size
+                xchg    bl, [di]        ; current signature
+                mov     es:1, di        ; [ES:ARENA.OWNER]
+                mov     es:[di], bl     ; new block sig <- old block sig
 
-loc_B5FA:                               ; ...
+alloc_set_owner:                        ; ...
                 mov     ds, dx
-                mov     ax, ss:330h
-                mov     ds:1, ax
+                mov     ax, ss:CurrentPDB
+                mov     ds:1, ax        ; [ARENA.OWNER]
                 mov     ax, ds
                 inc     ax
                 pop     bx
-                call    LCritDisk
+                call    LCritDisk       ; call LCritMEM
 
-loc_B60A:                               ; ...
+alloc_ok:                               ; ...
                 jmp     SYS_RET_OK
-; END OF FUNCTION CHUNK FOR $SETBLOCK
+; END OF FUNCTION CHUNK FOR $ALLOC
 
 ; =============== S U B R O U T I N E =======================================
 
 
 $SETBLOCK       proc near               ; ...
 
-; FUNCTION CHUNK AT B523 SIZE 00000008 BYTES
-; FUNCTION CHUNK AT B54F SIZE 0000000E BYTES
+; FUNCTION CHUNK AT B523 SIZE 00000005 BYTES
 ; FUNCTION CHUNK AT B5D3 SIZE 0000003A BYTES
 
-                call    ECritDisk
-                mov     di, 0
+                call    ECritDisk       ; call ECritMEM
+                mov     di, 0           ; ARENA.SIGNATURE
                 mov     ax, es
                 dec     ax
                 call    check_signature
-                jnb     short loc_B61E
+                jnb     short setblock_grab
 
-loc_B61B:                               ; ...
-                jmp     loc_B523
+setblock_bad:                           ; ...
+                jmp     alloc_trashed
 ; ---------------------------------------------------------------------------
 
-loc_B61E:                               ; ...
+setblock_grab:                          ; ...
                 mov     ds, ax
-                call    sub_B493
-                jb      short loc_B61B
-                mov     cx, ds:3
+                call    Coalesce
+                jb      short setblock_bad
+                mov     cx, ds:3        ; [ARENA.SIZE]
                 push    cx
                 cmp     bx, cx
-                jbe     short loc_B5D3
-                jmp     loc_B54F
+                jbe     short alloc_get_size
+                jmp     alloc_fail
 $SETBLOCK       endp
 
 
@@ -20069,321 +20146,338 @@ $SETBLOCK       endp
 
 
 $DEALLOC        proc near               ; ...
-                call    ECritDisk
-                test    ss:DOS_FLAG, 4
-                jz      short loc_B649
+                call    ECritDisk       ; call ECritMEM
+                test    ss:DOS_FLAG, 4  ; EXECA20OFF
+                jz      short deallocate ; Q: was the previous call an int 21h
+                                        ;  exec call
+                                        ; N: continue
                 cmp     ss:A20OFF_COUNT, 0
-                jnz     short loc_B649
+                jnz     short deallocate
                 inc     ss:A20OFF_COUNT
 
-loc_B649:                               ; ...
-                mov     di, 0
+deallocate:                             ; ...
+                mov     di, 0           ; ARENA.SIGNATURE
                 mov     ax, es
                 dec     ax
                 call    check_signature
-                jb      short loc_B65E
-                mov     es:1, di
-                call    LCritDisk
+                jb      short dealloc_err
+                mov     es:1, di        ; [ES:ARENA.OWNER]
+                call    LCritDisk       ; call LCritMEM
 
-loc_B65C:                               ; ...
-                jmp     short loc_B60A
+dealloc_ok:                             ; ...
+                jmp     short alloc_ok
 ; ---------------------------------------------------------------------------
 
-loc_B65E:                               ; ...
+dealloc_err:                            ; ...
                 call    LCritDisk
-                mov     al, 9
+                mov     al, 9           ; error_invalid_block
 
-loc_B663:                               ; ...
+AllocOperErrj:                          ; ...
                 jmp     SYS_RET_ERR
 $DEALLOC        endp
 
 ; ---------------------------------------------------------------------------
 
 $ALLOCOPER:                             ; ...
-                or      al, al
-                jz      short loc_B67D
+                or      al, al          ; get/set allocation mechanism
+                jz      short AllocGetStrat
                 cmp     al, 1
-                jz      short loc_B685
+                jz      short AllocSetStrat
                 cmp     al, 2
-                jz      short loc_B696
+                jz      short AllocGetLink
                 cmp     al, 3
-                jz      short loc_B69E
+                jz      short AllocSetLink
 
-loc_B676:                               ; ...
+AllocOperError:                         ; ...
                 call    set_exerr_locus_mem
                 mov     al, 1
-                jmp     short loc_B663
+                jmp     short AllocOperErrj
 ; ---------------------------------------------------------------------------
 
-loc_B67D:                               ; ...
+AllocGetStrat:                          ; ...
                 mov     al, ss:AllocMethod
                 xor     ah, ah
 
-loc_B683:                               ; ...
-                jmp     short loc_B65C
+AllocOperOk:                            ; ...
+                jmp     short dealloc_ok
 ; ---------------------------------------------------------------------------
 
-loc_B685:                               ; ...
+AllocSetStrat:                          ; ...
                 push    bx
-                and     bl, 3Fh
+                and     bl, 3Fh         ; STRAT_MASK ; mask off bit 6 & 7
                 cmp     bx, 2
-                pop     bx
-                ja      short loc_B676
-                mov     ss:302h, bl
-                jmp     short loc_B683
+                pop     bx              ; BX must be 0-2
+                ja      short AllocOperError
+                mov     ss:AllocMethod, bl
+                jmp     short AllocOperOk
 ; ---------------------------------------------------------------------------
 
-loc_B696:                               ; ...
-                mov     al, ss:89h
-                and     al, 1
-                jmp     short loc_B683
+AllocGetLink:                           ; ...
+                mov     al, ss:UMBFLAG  ; return link state in al
+                and     al, 1           ; LINKSTATE
+                jmp     short AllocOperOk
 ; ---------------------------------------------------------------------------
 
-loc_B69E:                               ; ...
-                mov     cx, ss:8Ch
-                inc     cx
-                jz      short loc_B676
+AllocSetLink:                           ; ...
+                mov     cx, ss:UMB_HEAD
+                inc     cx              ; Q: has umb_head been initialized
+                jz      short AllocOperError ; -1 ; N: error
                 dec     cx
                 dec     bx
-                jz      short loc_B6C4
+                jz      short LinkUmbs
                 inc     bx
-                jz      short loc_B6AF
-                jmp     short loc_B676
+                jz      short UnlinkUmbs
+                jmp     short AllocOperError
 ; ---------------------------------------------------------------------------
 
-loc_B6AF:                               ; ...
-                call    sub_B443
-                jz      short loc_B6C2
-                call    sub_B6D9
-                mov     byte ptr ds:0, 5Ah ; 'Z'
-                and     byte ptr ss:89h, 0FEh
+UnlinkUmbs:                             ; ...
+                call    test_umb_flag   ; test byte [ss:UMBFLAG],LINKSTATE
+                                        ; Q: umbs unlinked?
+                jz      short unlinked  ; Y: return
+                call    GetLastArena    ; get arena before umb_head in DS
+                mov     byte ptr ds:0, 5Ah ; 'Z' ; arena_signature_end
+                and     ss:UMBFLAG, 0FEh ; ~LINKSTATE
+                                        ; indicate unlink'd state in umbflag
 
-loc_B6C2:                               ; ...
-                jmp     short loc_B683
+unlinked:                               ; ...
+                jmp     short AllocOperOk
 ; ---------------------------------------------------------------------------
 
-loc_B6C4:                               ; ...
-                call    sub_B443
-                jnz     short loc_B6D7
-                call    sub_B6D9
-                mov     byte ptr ds:0, 4Dh ; 'M'
-                or      byte ptr ss:89h, 1
+LinkUmbs:                               ; ...
+                call    test_umb_flag   ; Q: umbs linked?
+                jnz     short linked    ; Y: return
+                call    GetLastArena    ; get arena before umb_head
+                mov     byte ptr ds:0, 4Dh ; 'M' ; arena_signature_normal
+                or      ss:UMBFLAG, 1   ; LINKSTATE
+                                        ; indicate link'd state in umbflag
 
-loc_B6D7:                               ; ...
-                jmp     short loc_B683
+linked:                                 ; ...
+                jmp     short AllocOperOk
 
 ; =============== S U B R O U T I N E =======================================
 
 
-sub_B6D9        proc near               ; ...
+GetLastArena    proc near               ; ...
                 push    ax
-                mov     ax, ss:24h
+                mov     ax, ss:arena_head
                 mov     es, ax
                 xor     di, di
-                cmp     byte ptr es:[di], 5Ah ; 'Z'
-                jz      short loc_B6FE
+                cmp     byte ptr es:[di], 5Ah ; 'Z' ; arena_signature_end
+                                        ; Q: is this the last arena
+                jz      short GLA_done  ; Y: return last arena in ES
 
-loc_B6E8:                               ; ...
+GLA_next:                               ; ...
                 mov     ds, ax
-                call    sub_B47C
-                jb      short loc_B711
-                call    sub_B443
-                jnz     short loc_B6FA
-                cmp     byte ptr es:[di], 5Ah ; 'Z'
-                jmp     short loc_B6FC
+                call    arena_next      ; ax, es -> next arena
+                jb      short GLA_err
+                call    test_umb_flag   ; Q: are UMBs linked
+                jnz     short GLA_chkumb ; Y: terminating condition is umb_head
+                cmp     byte ptr es:[di], 5Ah ; 'Z' ; Q: is this the last arena
+                jmp     short GLA_@f
 ; ---------------------------------------------------------------------------
 
-loc_B6FA:                               ; ...
-                cmp     ax, cx
+GLA_chkumb:                             ; ...
+                cmp     ax, cx          ; Q: is this umb_head
 
-loc_B6FC:                               ; ...
-                jnz     short loc_B6E8
+GLA_@f:                                 ; ...
+                jnz     short GLA_next  ; N: get next arena
 
-loc_B6FE:                               ; ...
-                call    sub_B443
-                jnz     short loc_B70E
+GLA_done:                               ; ...
+                call    test_umb_flag
+                jnz     short GLA_ret
                 mov     ds, ax
-                call    sub_B47C
-                jb      short loc_B711
+                call    arena_next
+                jb      short GLA_err
                 cmp     ax, cx
-                jnz     short loc_B711
+                jnz     short GLA_err
 
-loc_B70E:                               ; ...
+GLA_ret:                                ; ...
                 clc
                 pop     ax
                 retn
 ; ---------------------------------------------------------------------------
 
-loc_B711:                               ; ...
+GLA_err:                                ; ...
                 stc
                 pop     ax
-                pop     ax
+                pop     ax              ; return address to _$ALLOCOPER (the caller)
                 call    set_exerr_locus_mem
-                jmp     loc_B526
-sub_B6D9        endp
+                jmp     alloc_trashed2  ; (error return from _$ALLOCOPER)
+GetLastArena    endp
 
 ; ---------------------------------------------------------------------------
-word_B71A       dw 0B71Eh               ; ...
-word_B71C       dw 0B76Dh               ; ...
-                db  0Bh
-                db 0D4h
-                db 0B7h
-                db  6Eh ; n
-                db 0B7h
-                db 0A5h
-                db 0B7h
-                db 0AEh
-                db 0B7h
-                db 0B5h
-                db 0B7h
-                db 0BCh
-                db 0B7h
-                db  15h
-                db 0B8h
-                db  39h ; 9
-                db 0B8h
-                db  39h ; 9
-                db 0B8h
-                db  39h ; 9
-                db 0B8h
-                db  45h ; E
-                db 0B8h
+SERVERTAB       dw offset SERVER_DISP   ; ...
+SERVERLEAVE     dw offset SERVERRETURN  ; ...
+SERVER_DISP     db 11                   ; ...
+                                        ; (SERVER_DISP_END-SERVER_DISP-1)/2 = 11
+                dw offset SRV_CALL      ; 0
+                dw offset COMMIT_ALL    ; 1
+                dw offset CLOSE_NAME    ; 2
+                dw offset CLOSE_UID     ; 3
+                dw offset CLOSE_UID_PID ; 4
+                dw offset GET_LIST      ; 5
+                dw offset GET_DOS_DATA  ; 6
+                dw offset SPOOL_OPER    ; 7
+                dw offset SPOOL_OPER    ; 8
+                dw offset SPOOL_OPER    ; 9
+                dw offset _$SetExtendedError ; 10
+                                        ; SERVER_DISP_END
 ; ---------------------------------------------------------------------------
 
 $ServerCall:                            ; ...
                 cmp     al, 7
-                jb      short loc_B73D
+                jb      short SET_STUFF
                 cmp     al, 9
-                jbe     short loc_B757
+                jbe     short NO_SET_ID ; No DPL on calls 7,8,9
 
-loc_B73D:                               ; ...
-                mov     si, dx
-                mov     bx, [si+12h]
+SET_STUFF:                              ; ...
+                mov     si, dx          ; Point to DPL with DS:SI
+                mov     bx, [si+12h]    ; [SI+DPL.UID]
                 test    ss:IsWin386, 1
-                jnz     short loc_B74F
-                mov     ss:USER_ID, bx
+                jnz     short skip_win386
+                mov     ss:USER_ID, bx  ; Set UID
 
-loc_B74F:                               ; ...
-                mov     bx, [si+14h]
-                mov     ss:PROC_ID, bx
+skip_win386:                            ; ...
+                mov     bx, [si+14h]    ; [SI+DPL.PID]
+                mov     ss:PROC_ID, bx  ; Set process ID
 
-loc_B757:                               ; ...
-                push    cs:word_B71C
-                push    cs:word_B71A
+NO_SET_ID:                              ; ...
+                push    cs:SERVERLEAVE
+                push    cs:SERVERTAB
                 push    ax
                 call    TableDispatch
-                call    set_exerr_locus_unk
-                mov     al, 1
+                call    set_exerr_locus_unk ; Extended Error Locus
+                mov     al, 1           ; error_invalid_function
 
-loc_B76A:                               ; ...
+servercall_error:                       ; ...
                 jmp     SYS_RET_ERR
 ; ---------------------------------------------------------------------------
+
+SERVERRETURN:                           ; ...
                 retn
 ; ---------------------------------------------------------------------------
+
+COMMIT_ALL:                             ; ...
                 xor     bx, bx
                 push    ss
                 pop     ds
-                call    ECritDisk
+                call    ECritDisk       ; call ECritSFT
 
-loc_B775:                               ; ...
-                push    bx
+CommitLoop:                             ; ...
+                push    bx              ; scan SFT cache
                 call    SFFromSFN
-                jb      short loc_B79E
-                cmp     word ptr es:[di], 0
-                jz      short loc_B79A
-                cmp     word ptr es:[di], 0FFFFh
-                jz      short loc_B79A
-                test    word ptr es:[di+5], 8000h
-                jnz     short loc_B79A
+                jb      short CommitDone
+                cmp     word ptr es:[di], 0 ; [ES:DI+SF_ENTRY.sf_Ref_Count]
+                jz      short CommitNext
+                cmp     word ptr es:[di], 0FFFFh ; [ES:DI+SF_ENTRY.sf_Ref_Count],sf_busy
+                jz      short CommitNext
+                test    word ptr es:[di+5], 8000h ; [ES:DI+SF_ENTRY.sf_flags],sf_isnet
+                jnz     short CommitNext
                 mov     word ptr ds:THISSFT, di
                 mov     word ptr ds:THISSFT+2, es
                 call    DOS_COMMIT
 
-loc_B79A:                               ; ...
+CommitNext:                             ; ...
                 pop     bx
                 inc     bx
-                jmp     short loc_B775
+                jmp     short CommitLoop
 ; ---------------------------------------------------------------------------
 
-loc_B79E:                               ; ...
-                call    LCritDisk
+CommitDone:                             ; ...
+                call    LCritDisk       ; call LCritSFT
                 pop     bx
 
-loc_B7A2:                               ; ...
+Commit_Ok:                              ; ...
                 jmp     SYS_RET_OK
 ; ---------------------------------------------------------------------------
-                call    dword ptr ss:0A4h
 
-loc_B7AA:                               ; ...
-                jnb     short loc_B7A2
+CLOSE_NAME:                             ; ...
+                call    ss:MFTCloN      ; Call far [SS:JShare+(5*4)] ; 5 = MFTcloN
 
-loc_B7AC:                               ; ...
-                jmp     short loc_B76A
+CheckReturns:                           ; ...
+                jnb     short Commit_Ok
+
+func_err:                               ; ...
+                jmp     short servercall_error
 ; ---------------------------------------------------------------------------
-                call    dword ptr ss:9Ch
-                jmp     short loc_B7AA
+
+CLOSE_UID:                              ; ...
+                call    ss:MFTclU       ; Call far [SS:JShare+(3*4)] ; 3 = MTFTclu
+                jmp     short CheckReturns
 ; ---------------------------------------------------------------------------
-                call    dword ptr ss:0A0h
-                jmp     short loc_B7AA
+
+CLOSE_UID_PID:                          ; ...
+                call    ss:MFTCloseP    ; Call far [SS:JShare+(4*4)] ; 4 = MFTCloseP
+                jmp     short CheckReturns
 ; ---------------------------------------------------------------------------
-                call    dword ptr ss:0B4h
-                jb      short loc_B7AC
+
+GET_LIST:                               ; ...
+                call    ss:MFT_get      ; Call far [SS:JShare+(9*4)] ; 9 = MFT_get
+                jb      short func_err
                 call    Get_User_Stack
-                mov     [si+2], bx
-                mov     [si+0Ah], di
-                mov     word ptr [si+10h], es
+                mov     [si+2], bx      ; [SI+user_env.user_BX]
+                mov     [si+10], di     ; [SI+user_env.user_DI]
+                mov     word ptr [si+16], es ; [SI+user_env.user_ES]
 
-loc_B7CF:                               ; ...
-                mov     [si+4], cx
+SetCXOK:                                ; ...
+                mov     [si+4], cx      ; [SI+user_env.user_CX]
 
-loc_B7D2:                               ; ...
-                jmp     short loc_B7A2
+Commit_Okj2:                            ; ...
+                jmp     short Commit_Ok
 ; ---------------------------------------------------------------------------
-                pop     ax
+
+SRV_CALL:                               ; ...
+                pop     ax              ; get rid of call to $srvcall
                 push    ds
                 push    si
                 call    Get_User_Stack
                 pop     di
-                pop     es
+                pop     es              ; DS:SI point to stack
+                                        ; ES:DI point to DPL
                 call    XCHGP
-                push    si
-                mov     cx, 6
-                rep movsw
+                push    si              ; DS:SI point to DPL
+                                        ; ES:DI point to stack
+                mov     cx, 6           ; copy the registers from DPL
+                rep movsw               ; Put in AX,BX,CX,DX,SI,DI
                 inc     di
-                inc     di
-                movsw
-                movsw
-                pop     si
-                mov     ax, [si]
-                mov     bx, [si+2]
-                mov     cx, [si+4]
-                mov     dx, [si+6]
-                mov     di, [si+0Ah]
-                mov     es, word ptr [si+0Eh]
-                push    word ptr [si+8]
-                mov     ds, word ptr [si+0Ch]
+                inc     di              ; Skip user_BP
+                movsw                   ; DS
+                movsw                   ; ES
+                pop     si              ; DS:SI -> DPL
+                mov     ax, [si]        ; [SI+DPL.AX]
+                mov     bx, [si+2]      ; [SI+DPL.BX]
+                mov     cx, [si+4]      ; [SI+DPL.CX]
+                mov     dx, [si+6]      ; [SI+DPL.DX]
+                mov     di, [si+10]     ; [SI+DPL.DI]
+                mov     es, word ptr [si+14] ; [SI+DPL.ES]
+                push    word ptr [si+8] ; [SI+DPL.SI]
+                mov     ds, word ptr [si+12] ; [SI+DPL.DS]
                 pop     si
                 mov     ss:SAVEDS, ds
                 mov     ss:SAVEBX, bx
-                mov     ss:FSHARING, 0FFh
+                mov     ss:FSHARING, 0FFh ; -1 ; set no redirect flag
                 jmp     REDISP
 ; ---------------------------------------------------------------------------
+
+GET_DOS_DATA:                           ; ...
                 push    ss
                 pop     es
-                mov     di, offset ERRORMODE
-                mov     cx, 0AFAh
-                mov     dx, offset USER_IN_AX
+                mov     di, offset ERRORMODE ; offset SWAP_START
+                mov     cx, offset UCASE_TAB ; offset SWAP_END
+                mov     dx, offset USER_IN_AX ; offset SWAP_ALWAYS
                 sub     cx, di
                 sub     dx, di
-                shr     cx, 1
-                adc     cx, 0
-                add     cx, cx
+                shr     cx, 1           ; div by 2, remainder in carry
+                adc     cx, 0           ; div by 2 + round up
+                add     cx, cx          ; round up to 2 boundary
                 call    Get_User_Stack
-                mov     word ptr [si+0Eh], es
-                mov     [si+8], di
-                mov     [si+6], dx
-                jmp     short loc_B7CF
+                mov     word ptr [si+14], es ; [SI+user_env.user_DS]
+                mov     [si+8], di      ; [SI+user_env.user_SI]
+                mov     [si+6], dx      ; [SI+user_env.user_DX]
+                jmp     short SetCXOK
 ; ---------------------------------------------------------------------------
+
+SPOOL_OPER:                             ; ...
                 push    ax
                 mov     ax, 1125h
                 int     2Fh             ; Multiplex - NETWORK REDIRECTOR - REDIRECTED PRINTER MODE
@@ -20391,18 +20485,20 @@ loc_B7D2:                               ; ...
                                         ; Return: CF set on error, AX = error code
                                         ; STACK unchanged
                 pop     bx
-                jnb     short loc_B7D2
+                jnb     short Commit_Okj2
                 jmp     SYS_RET_ERR
 ; ---------------------------------------------------------------------------
-                mov     ax, [si]
+
+_$SetExtendedError:                     ; ...
+                mov     ax, [si]        ; [SI+DPL.AX]
                 mov     ss:EXTERR, ax
-                mov     ax, [si+0Ah]
+                mov     ax, [si+10]     ; [SI+DPL.DI]
                 mov     word ptr ss:EXTERRPT, ax
-                mov     ax, [si+0Eh]
+                mov     ax, [si+14]     ; [SI+DPL.ES]
                 mov     word ptr ss:EXTERRPT+2, ax
-                mov     ax, [si+2]
+                mov     ax, [si+2]      ; [SI+DPL.BX]
                 mov     word ptr ss:EXTERR_ACTION, ax
-                mov     ax, [si+4]
+                mov     ax, [si+4]      ; [SI+DPL.CX]
                 mov     ss:EXTERR_LOCUS, ah
                 retn
 
@@ -20410,22 +20506,24 @@ loc_B7D2:                               ; ...
 
 
 pJFNFromHandle  proc near               ; ...
-                mov     es, cs:DosDSeg
-                mov     es, es:CurrentPDB
-                cmp     bx, es:32h
-                jnb     short loc_B882
-                les     di, es:34h
-                add     di, bx
+                mov     es, cs:DosDSeg  ; es -> dosdata
+                mov     es, es:CurrentPDB ; get user process data block
+                cmp     bx, es:32h      ; [ES:PDB.JFN_Length]
+                                        ; is handle greater than allocated ?
+                jnb     short ReturnCarry_inv_hndl ; yes
+                les     di, es:34h      ; [ES:PDB.JFN_Pointer]
+                                        ; get pointer to beginning of table
+                add     di, bx          ; add in offset, clear 'C'
                 retn
 ; ---------------------------------------------------------------------------
 
-loc_B882:                               ; ...
-                mov     al, 6
+ReturnCarry_inv_hndl:                   ; ...
+                mov     al, 6           ; error_invalid_handle
 
-loc_B884:                               ; ...
+ReturnCarry:                            ; ...
                 stc
 
-locret_B885:                            ; ...
+pJFNFromHandle_error:                   ; ...
                 retn
 pJFNFromHandle  endp
 
@@ -20434,21 +20532,21 @@ pJFNFromHandle  endp
 
 
 SFFromHandle    proc near               ; ...
-                call    pJFNFromHandle
-                jb      short locret_B885
-                cmp     byte ptr es:[di], 0FFh
-                jz      short loc_B89C
-                push    bx
-                mov     bl, es:[di]
-                xor     bh, bh
-                call    SFFromSFN
-                pop     bx
+                call    pJFNFromHandle  ; get jfn pointer
+                jb      short pJFNFromHandle_error
+                cmp     byte ptr es:[di], 0FFh ; -1 ; unused handle
+                jz      short ReturnCarry_inv_hndl2
+                push    bx              ; save handle
+                mov     bl, es:[di]     ; get SFN
+                xor     bh, bh          ; ignore upper half
+                call    SFFromSFN       ; get real sf spot
+                pop     bx              ; restore
                 retn
 ; ---------------------------------------------------------------------------
 
-loc_B89C:                               ; ...
-                mov     al, 6
-                jmp     short loc_B884
+ReturnCarry_inv_hndl2:                  ; ...
+                mov     al, 6           ; error_invalid_handle
+                jmp     short ReturnCarry
 SFFromHandle    endp
 
 
@@ -20456,28 +20554,30 @@ SFFromHandle    endp
 
 
 SFFromSFN       proc near               ; ...
-                mov     es, cs:DosDSeg
-                les     di, es:2Ah
+                mov     es, cs:DosDSeg  ; es -> dosdata
+                les     di, es:SFT_ADDR ; (es:di) = start of SFT table
 
-loc_B8AA:                               ; ...
-                cmp     bx, es:[di+4]
-                jb      short loc_B8BE
-                sub     bx, es:[di+4]
-                les     di, es:[di]
-                cmp     di, 0FFFFh
-                jnz     short loc_B8AA
+sfsfn5:                                 ; ...
+                cmp     bx, es:[di+4]   ; [ES:DI+SFT.SFCount]
+                                        ; is handle in this table?
+                jb      short sfsfn7    ; yes, go grab it
+                sub     bx, es:[di+4]   ; [ES:DI+SFT.SFCount]
+                les     di, es:[di]     ; [ES:DI+SFT.SFLink]
+                                        ; get next table segment
+                cmp     di, 0FFFFh      ; -1 ; end of tables?
+                jnz     short sfsfn5    ; no, try again
                 stc
-                retn
+                retn                    ; return with error, not found
 ; ---------------------------------------------------------------------------
 
-loc_B8BE:                               ; ...
+sfsfn7:                                 ; ...
                 push    ax
-                mov     ax, 3Bh ; ';'
-                mul     bl
-                add     di, ax
+                mov     ax, 59          ; SF_ENTRY.size
+                mul     bl              ; (ax) = offset into this SF block
+                add     di, ax          ; add base of SF block
                 pop     ax
-                add     di, 6
-                retn
+                add     di, 6           ; SFT.SFTable  ; offset into structure
+                retn                    ; return with 'C' clear
 SFFromSFN       endp
 
 
@@ -20485,21 +20585,21 @@ SFFromSFN       endp
 
 
 JFNFree         proc near               ; ...
-                xor     bx, bx
+                xor     bx, bx          ; (bx) = initial JFN to try = 0
 
-loc_B8CD:                               ; ...
-                call    pJFNFromHandle
-                jb      short loc_B8DB
-                cmp     byte ptr es:[di], 0FFh
-                jz      short locret_B8DD
-                inc     bx
-                jmp     short loc_B8CD
+jfnf1:                                  ; ...
+                call    pJFNFromHandle  ; get the appropriate handle
+                jb      short jfnf5     ; no more handles
+                cmp     byte ptr es:[di], 0FFh ; -1 ; free?
+                jz      short jfnfx     ; yes, carry is clear
+                inc     bx              ; no, next handle
+                jmp     short jfnf1     ; and try again
 ; ---------------------------------------------------------------------------
 
-loc_B8DB:                               ; ...
-                mov     al, 4
+jfnf5:                                  ; ...
+                mov     al, 4           ; error_too_many_open_files
 
-locret_B8DD:                            ; ...
+jfnfx:                                  ; ...
                 retn
 JFNFree         endp
 
@@ -20508,46 +20608,46 @@ JFNFree         endp
 
 
 SFNFree         proc near               ; ...
-                push    ax
-                xor     bx, bx
+                push    ax              ; Allocate a Free SFN/SFT
+                xor     bx, bx          ; 0
 
-loc_B8E1:                               ; ...
-                push    bx
-                call    SFFromSFN
+sfnf5:                                  ; ...
+                push    bx              ; (bx) = SFN to consider
+                call    SFFromSFN       ; get the potential handle
                 pop     bx
-                jb      short loc_B923
-                cmp     word ptr es:[di], 0
-                jz      short loc_B90B
-                cmp     word ptr es:[di], 0FFFFh
-                jz      short loc_B8F7
+                jb      short sfnf95    ; no more free SFNs
+                cmp     word ptr es:[di], 0 ; [ES:DI+SF_ENTRY.sf_Ref_Count] ; free?
+                jz      short sfnf20    ; yep, got one
+                cmp     word ptr es:[di], 0FFFFh ; [ES:DI+SF_ENTRY.sf_ref_count],sf_busy
+                jz      short sfnf10    ; special busy mark
 
-loc_B8F4:                               ; ...
-                inc     bx
-                jmp     short loc_B8E1
+sfnf7:                                  ; ...
+                inc     bx              ; try the next one
+                jmp     short sfnf5
 ; ---------------------------------------------------------------------------
 
-loc_B8F7:                               ; ...
+sfnf10:                                 ; ...
                 mov     ax, ss:USER_ID
-                cmp     es:[di+2Fh], ax
-                jnz     short loc_B8F4
+                cmp     es:[di+2Fh], ax ; [ES:DI+SF_ENTRY.sf_UID]
+                jnz     short sfnf7     ; not ours
                 mov     ax, ss:PROC_ID
-                cmp     es:[di+31h], ax
-                jnz     short loc_B8F4
+                cmp     es:[di+31h], ax ; [ES:DI+SF_ENTRY.sf_PID]
+                jnz     short sfnf7     ; can't use this one, try the next
 
-loc_B90B:                               ; ...
-                mov     word ptr es:[di], 0FFFFh
+sfnf20:                                 ; ...
+                mov     word ptr es:[di], 0FFFFh ; [ES:DI+SF_ENTRY.sf_ref_count],sf_busy
                 mov     ax, ss:USER_ID
-                mov     es:[di+2Fh], ax
+                mov     es:[di+2Fh], ax ; [ES:DI+SF_ENTRY.sf_UID]
                 mov     ax, ss:PROC_ID
-                mov     es:[di+31h], ax
+                mov     es:[di+31h], ax ; [ES:DI+SF_ENTRY.sf_PID]
                 pop     ax
                 clc
-                retn
+                retn                    ; return with no error
 ; ---------------------------------------------------------------------------
 
-loc_B923:                               ; ...
+sfnf95:                                 ; ...
                 pop     ax
-                jmp     short loc_B8DB
+                jmp     short jfnf5     ; return with 'C' and error
 SFNFree         endp
 
 
@@ -20555,29 +20655,31 @@ SFNFree         endp
 
 
 $CLOSE          proc near               ; ...
-                call    CheckOwner
+                call    CheckOwner      ; get system file entry
                 jb      short CloseError
                 push    ss
                 pop     ds
                 mov     word ptr ds:THISSFT, di
-                mov     word ptr ds:5A0h, es
-                cmp     word ptr es:[di], 1
-                jz      short FreeJFN
-                mov     al, es:[di+2]
-                and     al, 0F0h
-                cmp     al, 70h
-                jz      short PostFree
+                mov     word ptr ds:THISSFT+2, es ; DS:SI point to JFN table entry
+                                        ; ES:DI point to SFT
+                cmp     word ptr es:[di], 1 ; [ES:DI+SF_ENTRY.sf_ref_count]
+                                        ; will the SFT become free?
+                jz      short FreeJFN   ; yes, free JFN anyway.
+                mov     al, es:[di+2]   ; [ES:DI+SF_ENTRY.sf_mode]
+                and     al, 0F0h        ; SHARING_MASK
+                cmp     al, 70h         ; SHARING_NET_FCB
+                jz      short PostFree  ; 70-mode and big ref count => free it
 
 FreeJFN:                                ; ...
                 call    pJFNFromHandle
-                mov     byte ptr es:[di], 0FFh
+                mov     byte ptr es:[di], 0FFh ; release the JFN
 
 PostFree:                               ; ...
                 call    DOS_CLOSE
                 jb      short CloseError
-                mov     ah, 3Eh ; '>'
+                mov     ah, 3Eh         ; CLOSE ; Bogus multiplan fix
 
-loc_B953:                               ; ...
+CloseOk:                                ; ...
                 jmp     SYS_RET_OK
 ; ---------------------------------------------------------------------------
 
@@ -20588,7 +20690,7 @@ $CLOSE          endp
 ; ---------------------------------------------------------------------------
 
 $COMMIT:                                ; ...
-                call    CheckOwner
+                call    CheckOwner      ; get system file entry
                 jb      short CommitError
                 push    ss
                 pop     ds
@@ -20596,8 +20698,8 @@ $COMMIT:                                ; ...
                 mov     word ptr ds:THISSFT+2, es
                 call    DOS_COMMIT
                 jb      short CommitError
-                mov     ah, 68h
-                jmp     short loc_B953
+                mov     ah, 68h         ; COMMIT
+                jmp     short CloseOk
 ; ---------------------------------------------------------------------------
 ; START OF FUNCTION CHUNK FOR $READ
 
@@ -20607,126 +20709,135 @@ CommitError:                            ; ...
 ; ---------------------------------------------------------------------------
 
 $ExtHandle:                             ; ...
-                xor     bp, bp
-                cmp     bx, 20
-                jnb     short loc_B97D
+                xor     bp, bp          ; 0: enlarge  1: shrink  2:psp
+                cmp     bx, 20          ; FILPERPROC
+                jnb     short exth2     ; Don't set less than FilPerProc no
                 mov     bx, 20
 
-loc_B97D:                               ; ...
+exth2:                                  ; ...
                 mov     es, ss:CurrentPDB
-                mov     cx, word ptr es:BCON
-                cmp     bx, cx
-                jz      short loc_B953
-                ja      short loc_B9AB
-                inc     bp
-                mov     ds, es:MAXSEC
+                mov     cx, word ptr es:32h ; [ES:PDB.JFN_Length]
+                                        ; get number of handle allowed
+                cmp     bx, cx          ; the requested == current
+                jz      short CloseOk   ; yes and exit
+                ja      short larger    ; go allocate new table
+                inc     bp              ; bp = 1 ; shrink
+                mov     ds, es:36h      ; [ES:PDB.JFN_Pointer+2]
                 mov     si, bx
-                sub     cx, bx
+                sub     cx, bx          ; get difference
 
-loc_B997:                               ; ...
-                cmp     byte ptr [si], 0FFh
-                jnz     short loc_B9D5
+chck_handles:                           ; ...
+                cmp     byte ptr [si], 0FFh ; -1 ; scan through handles to ensure
+                jnz     short too_many_files ; close status
                 inc     si
-                loop    loc_B997
-                cmp     bx, 14h
-                ja      short loc_B9AB
-                inc     bp
-                mov     di, 18h
+                loop    chck_handles
+                cmp     bx, 20          ; FILPERPROC
+                ja      short larger
+                inc     bp              ; bp = 2 ; psp
+                mov     di, 24          ; PDB.JFN_TABLE
                 push    bx
-                jmp     short loc_B9C6
+                jmp     short movhandl
 ; ---------------------------------------------------------------------------
 
-loc_B9AB:                               ; ...
+larger:                                 ; ...
                 inc     bx
-                jz      short loc_BA2A
+                jz      short invalid_func ; 65535 is not allowed
                 dec     bx
                 clc
                 push    bx
-                add     bx, 0Fh
+                add     bx, 0Fh         ; adjust to paragraph boundary
                 mov     cl, 4
                 rcr     bx, cl
-                and     bh, 1Fh
+                and     bh, 1Fh         ; clear most 3 bits
                 push    bp
-                call    $ALLOC
+                call    $ALLOC          ; allocate memory
                 pop     bp
-                jb      short loc_BA25
+                jb      short no_memory ; not enough memory
                 mov     es, ax
-                xor     di, di
+                xor     di, di          ; es:di points to new table memory
 
-loc_B9C6:                               ; ...
-                mov     ds, word ptr ss:330h
-                test    bp, 3
-                jz      short loc_B9D9
-                pop     cx
+movhandl:                               ; ...
+                mov     ds, ss:CurrentPDB
+                test    bp, 3           ; enlarge ?
+                jz      short enlarge   ; yes
+                pop     cx              ; cx = the amount you shrink
                 push    cx
-                jmp     short loc_B9DD
+                jmp     short copy_hand
 ; ---------------------------------------------------------------------------
 
-loc_B9D5:                               ; ...
-                mov     al, 4
+too_many_files:                         ; ...
+                mov     al, 4           ; error_too_many_open_files
 ; START OF FUNCTION CHUNK FOR $READ
 
-loc_B9D7:                               ; ...
+CommitErrorj:                           ; ...
                 jmp     short CommitError
 ; END OF FUNCTION CHUNK FOR $READ
 ; ---------------------------------------------------------------------------
 
-loc_B9D9:                               ; ...
-                mov     cx, ds:32h
+enlarge:                                ; ...
+                mov     cx, ds:32h      ; [PDB.JFN_Length]
+                                        ; get number of old handles
 
-loc_B9DD:                               ; ...
+copy_hand:                              ; ...
                 mov     dx, cx
-                lds     si, ds:34h
-                rep movsb
-                pop     cx
+                lds     si, ds:34h      ; [PDB.JFN_Pointer]
+                                        ; get old table pointer
+                rep movsb               ; copy infomation to new table
+                pop     cx              ; get new number of handles
                 push    cx
-                sub     cx, dx
-                mov     al, 0FFh
+                sub     cx, dx          ; get the difference
+                mov     al, 0FFh        ; -1 ; set availability to handles
                 rep stosb
-                mov     ds, word ptr ss:330h
-                cmp     word ptr ds:34h, 0
-                jnz     short loc_BA06
+                mov     ds, ss:CurrentPDB
+                cmp     word ptr ds:34h, 0 ; [PDB.JFN_Pointer]
+                                        ; check if original table pointer
+                jnz     short update_info ; yes, go update PDB entries
                 push    bp
                 push    ds
                 push    es
-                mov     es, word ptr ds:36h
-                call    $DEALLOC
+                mov     es, word ptr ds:36h ; [PDB.JFN_Pointer+2]
+                                        ; get old table segment
+                call    $DEALLOC        ; deallocate old table memory
                 pop     es
                 pop     ds
                 pop     bp
 
-loc_BA06:                               ; ...
-                test    bp, 2
-                jz      short loc_BA14
-                mov     word ptr ds:34h, 18h
-                jmp     short loc_BA1A
+update_info:                            ; ...
+                test    bp, 2           ; psp?
+                jz      short non_psp   ; no
+                mov     word ptr ds:34h, 18h ; [PDB.JFN_Pointer],PDB.JFN_TABLE
+                                        ; restore
+                jmp     short final
 ; ---------------------------------------------------------------------------
 
-loc_BA14:                               ; ...
-                mov     word ptr ds:34h, 0
+non_psp:                                ; ...
+                mov     word ptr ds:34h, 0 ; [PDB.JFN_Pointer]
+                                        ; new table pointer offset always 0
 
-loc_BA1A:                               ; ...
-                mov     word ptr ds:36h, es
-                pop     word ptr ds:32h
+final:                                  ; ...
+                mov     word ptr ds:36h, es ; [PDB.JFN_Pointer+2]
+                                        ; new table segment
+                pop     word ptr ds:32h ; [PDB.JFN_Length]
+                                        ; restore new number of handles
 ; START OF FUNCTION CHUNK FOR $READ
 
-loc_BA22:                               ; ...
+ok_done:                                ; ...
                 jmp     SYS_RET_OK
 ; END OF FUNCTION CHUNK FOR $READ
 ; ---------------------------------------------------------------------------
 
-loc_BA25:                               ; ...
-                pop     bx
-                mov     al, 8
-                jmp     short loc_B9D7
+no_memory:                              ; ...
+                pop     bx              ; clean stack
+                mov     al, 8           ; error_not_enough_memory
+                jmp     short CommitErrorj
 ; ---------------------------------------------------------------------------
 
-loc_BA2A:                               ; ...
-                mov     al, 1
+invalid_func:                           ; ...
+                mov     al, 1           ; error_invalid_function
 ; START OF FUNCTION CHUNK FOR $READ
 
-loc_BA2C:                               ; ...
-                jmp     short loc_B9D7
+CommitErrorj3:                          ; ...
+                jmp     short CommitErrorj
 ; END OF FUNCTION CHUNK FOR $READ
 
 ; =============== S U B R O U T I N E =======================================
@@ -20743,18 +20854,19 @@ $READ           proc near               ; ...
 
 ReadDO:                                 ; ...
                 call    pJFNFromHandle
-                jb      short loc_BA8A
+                jb      short ReadError
                 mov     al, es:[di]
-                call    CheckOwner
-                jb      short loc_BA8A
+                call    CheckOwner      ; get the handle
+                jb      short ReadError
                 mov     word ptr ss:THISSFT, di
                 mov     word ptr ss:THISSFT+2, es
-                test    byte ptr es:[di+3], 20h
-                jz      short loc_BA55
-                or      ss:EXTOPEN_ON, 2
+                test    byte ptr es:[di+3], 20h ; [ES:DI+SF_ENTRY.sf_mode+1],(INT_24_ERROR>>8)
+                                        ; need i24
+                jz      short needi24   ; yes
+                or      ss:EXTOPEN_ON, 2 ; EXT_OPEN_I24_OFF ; set it off
 
-loc_BA55:                               ; ...
-                mov     ax, ds
+needi24:                                ; ...
+                mov     ax, ds          ; original segment
                 lds     bx, ss:DMAADD
                 push    bx
                 push    ds
@@ -20763,24 +20875,24 @@ loc_BA55:                               ; ...
                 shr     bx, 1
                 shr     bx, 1
                 shr     bx, 1
-                add     ax, bx
-                and     dx, 0Fh
+                add     ax, bx          ; new segment
+                and     dx, 0Fh         ; normalize offset
                 mov     word ptr ss:DMAADD, dx
                 mov     word ptr ss:DMAADD+2, ax
                 mov     ax, ss
                 mov     ds, ax
-                call    si ; DOS_READ
+                call    si ; DOS_READ   ; indirect call to operation
                 pop     word ptr ds:DMAADD+2
                 pop     word ptr ds:DMAADD
-                jb      short loc_BA8A
-                mov     ax, cx
+                jb      short ReadError
+                mov     ax, cx          ; get correct return in correct reg
 
-loc_BA88:                               ; ...
-                jmp     short loc_BA22
+Read_Ok:                                ; ...
+                jmp     short ok_done   ; successful return
 ; ---------------------------------------------------------------------------
 
-loc_BA8A:                               ; ...
-                jmp     short loc_BA2C
+ReadError:                              ; ...
+                jmp     short CommitErrorj3
 $READ           endp
 
 ; ---------------------------------------------------------------------------
@@ -20793,51 +20905,55 @@ $WRITE:                                 ; ...
 
 
 $LSEEK          proc near               ; ...
-                call    CheckOwner
+                call    CheckOwner      ; get system file entry
 
-loc_BA94:                               ; ...
-                jb      short loc_BA8A
-                cmp     al, 2
-                ja      short loc_BAED
-                cmp     al, 1
-                jb      short loc_BAA8
-                ja      short loc_BABB
-                add     dx, es:[di+15h]
-                adc     cx, es:[di+17h]
+LSeekError:                             ; ...
+                jb      short ReadError
 
-loc_BAA8:                               ; ...
+CHKOWN_OK:                              ;
+                cmp     al, 2           ; is the seek value correct?
+                ja      short LSeekError1 ; no
+
+LSeekDisp:                              ; yes, go dispatch
+                cmp     al, 1           ; best way to dispatch; check middle
+                jb      short LSeekStore ; just store CX:DX
+                ja      short LSeekEOF  ; seek from end of file
+                add     dx, es:[di+15h] ; [ES:DI+SF_ENTRY.sf_position]
+                adc     cx, es:[di+17h] ; [ES:DI+SF_ENTRY.sf_position+2]
+
+LSeekStore:                             ; ...
                 mov     ax, cx
-                xchg    ax, dx
+                xchg    ax, dx          ; DX:AX is the correct value
 
-loc_BAAB:                               ; ...
-                mov     es:[di+15h], ax
-                mov     es:[di+17h], dx
+LSeekSetpos:                            ; ...
+                mov     es:[di+15h], ax ; [ES:DI+SF_ENTRY.sf_position]
+                mov     es:[di+17h], dx ; [ES:DI+SF_ENTRY.sf_position+2]
                 call    Get_User_Stack
-                mov     [si+6], dx
-                jmp     short loc_BA88
+                mov     [si+6], dx      ; [SI+user_env.user_DX] ; return DX:AX
+                jmp     short Read_Ok   ; successful return
 ; ---------------------------------------------------------------------------
 
-loc_BABB:                               ; ...
-                test    byte ptr es:[di+6], 80h
-                jnz     short loc_BACC
+LSeekEOF:                               ; ...
+                test    byte ptr es:[di+6], 80h ; [ES:DI+SF_ENTRY.sf_flags+1],(sf_isnet>>8)
+                jnz     short Check_LSeek_Mode ; is net
 
-loc_BAC2:                               ; ...
-                add     dx, es:[di+11h]
-                adc     cx, es:[di+13h]
-                jmp     short loc_BAA8
+LOCAL_LSeek:                            ; ...
+                add     dx, es:[di+11h] ; [ES:DI+SF_ENTRY.sf_size]
+                adc     cx, es:[di+13h] ; [ES:DI+SF_ENTRY.sf_size+2]
+                jmp     short LSeekStore ; go and set the position
 ; ---------------------------------------------------------------------------
 
-loc_BACC:                               ; ...
-                test    byte ptr es:[di+3], 80h
-                jnz     short loc_BAC2
-                mov     ax, es:[di+2]
-                and     ax, 0F0h
-                cmp     ax, 40h ; '@'
-                jz      short loc_BAE4
-                cmp     ax, 30h ; '0'
-                jnz     short loc_BAC2
+Check_LSeek_Mode:                       ; ...
+                test    byte ptr es:[di+3], 80h ; [ES:DI+SF_ENTRY.sf_mode+1],(sf_isFCB>>8)
+                jnz     short LOCAL_LSeek ; FCB treated like local file
+                mov     ax, es:[di+2]   ; ES:DI+SF_ENTRY.sf_mode]
+                and     ax, 0F0h        ; SHARING_MASK
+                cmp     ax, 40h         ; SHARING_DENY_NONE
+                jz      short NET_LSEEK ; LSEEK exported in this mode
+                cmp     ax, 30h         ; SHARING_DENY_READ
+                jnz     short LOCAL_LSeek ; Treated like local Lseek
 
-loc_BAE4:                               ; ...
+NET_LSEEK:                              ; ...
                 mov     ax, 1121h
                 int     2Fh             ; Multiplex - NETWORK REDIRECTOR - SEEK FROM END OF REMOTE FILE
                                         ; CX:DX = offset (in bytes) from end
@@ -20845,273 +20961,281 @@ loc_BAE4:                               ; ...
                                         ; SS = DOS CS
                                         ; Return: CF set on error
                                         ; CF clear if successful, DX:AX = new file position
-                jnb     short loc_BAAB
+                jnb     short LSeekSetpos
 
-loc_BAEB:                               ; ...
-                jmp     short loc_BA8A
+LSeekError3:                            ; ...
+                jmp     short ReadError
 ; ---------------------------------------------------------------------------
 
-loc_BAED:                               ; ...
-                call    set_exerr_locus_unk
-                mov     al, 1
+LSeekError1:                            ; ...
+                call    set_exerr_locus_unk ; Extended Error Locus
+                mov     al, 1           ; error_invalid_function
 
-loc_BAF2:                               ; ...
+LSeekError2:                            ; ...
                 jmp     SYS_RET_ERR
 $LSEEK          endp
 
 ; ---------------------------------------------------------------------------
 
 $FILE_TIMES:                            ; ...
-                cmp     al, 7
-                jnb     short loc_BAED
-                cmp     al, 4
-                jnb     short loc_BB01
-                cmp     al, 2
-                jnb     short loc_BAED
+                cmp     al, 7           ; SET CREATION DATE AND TIME
+                                        ; 6 = GET CREATION DATE AND TIME
+                                        ; 5 = SET LAST ACCESS DATE AND TIME
+                jnb     short LSeekError1
+                cmp     al, 4           ; GET LAST ACCESS DATE AND TIME
+                jnb     short ft1
+                cmp     al, 2           ; 0 = GET FILE'S LAST-WRITTEN DATE AND TIME
+                                        ; 1 = SET FILE'S LAST-WRITTEN DATE AND TIME
+                jnb     short LSeekError1 ; 2,3 -> invalid
 
-loc_BB01:                               ; ...
-                call    CheckOwner
-                jb      short loc_BA94
+ft1:                                    ; ...
+                call    CheckOwner      ; get sft
+                jb      short LSeekError ; bad handle
                 cmp     al, 1
-                ja      short loc_BB42
-                or      al, al
-                jnz     short ft_set_time
-                lds     cx, es:[di+0Dh]
-                mov     dx, ds
+                ja      short ft2       ; PCDOS 7.1 (MSDOS 7) sub function
+                or      al, al          ; get time/date ?
+                jnz     short ft_set_time ; no, set
+                lds     cx, es:[di+0Dh] ; [es:di+SF_ENTRY.sf_time]
+                                        ; get the time
+                mov     dx, ds          ; & date ; [es:di+SF_ENTRY.sf_date]
                 call    Get_User_Stack
-                mov     [si+4], cx
-                mov     [si+6], dx
-                jmp     short loc_BB3F
+                mov     [si+4], cx      ; [si+user_env.user_CX]
+                mov     [si+6], dx      ; [si+user_env.user_DX]
+                jmp     short ft_ok
 ; ---------------------------------------------------------------------------
 
 ft_set_time:                            ; ...
-                call    ECritDisk
-                mov     es:[di+0Dh], cx
-                mov     es:[di+0Fh], dx
+                call    ECritDisk       ; call ECritSFT
+                mov     es:[di+0Dh], cx ; [es:di+SF_ENTRY.sf_time] ; drop in new time
+                mov     es:[di+0Fh], dx ; [es:di+SF_ENTRY.sf_date] ; and date
                 xor     ax, ax
-                call    dword ptr ss:0C8h
-                and     word ptr es:[di+5], 0FFBFh
-                or      word ptr es:[di+5], 4000h
-                call    LCritDisk
+                call    ss:ShSU         ; call far [ss:JShare+(14*4)] ; 14 = ShSU
+                and     word ptr es:[di+5], 0FFBFh ; [es:di+SF_ENTRY.sf_flags],~devid_file_clean
+                or      word ptr es:[di+5], 4000h ; [es:di+SF_ENTRY.sf_flags],sf_close_nodate
+                call    LCritDisk       ; call LCritSFT
 
-loc_BB3F:                               ; ...
+ft_ok:                                  ; ...
                 jmp     SYS_RET_OK
 ; ---------------------------------------------------------------------------
 
-loc_BB42:                               ; ...
-                test    byte ptr es:[di+5], 80h
-                jnz     short loc_BB4C
+ft2:                                    ; ...
+                test    byte ptr es:[di+5], 80h ; [es:di+SF_ENTRY.sf_flags],devid_device
+                jnz     short ft3       ; device
                 call    IsSFTNet
 
-loc_BB4C:                               ; ...
-                jz      short loc_BB61
-                test    al, 1
-                jnz     short loc_BB5F
-                mov     dx, es:[di+0Fh]
+ft3:                                    ; ...
+                jz      short ft5       ; local file
+                test    al, 1           ; 0 = GET, 1 = SET
+                jnz     short ft_okj    ; SET
+                mov     dx, es:[di+0Fh] ; [es:di+SF_ENTRY.sf_date]
+                                        ; (sub cx,cx ; Windows ME IO.SYS BIOSCODE:A348h)
 
-loc_BB56:                               ; ...
+ft4:                                    ; ...
                 call    Get_User_Stack
-                mov     [si+4], cx
-                mov     [si+6], dx
+                mov     [si+4], cx      ; [si+user_env.user_CX] ; time
+                mov     [si+6], dx      ; [si+user_env.user_DX] ; date
 
-loc_BB5F:                               ; ...
-                jmp     short loc_BB3F
+ft_okj:                                 ; ...
+                jmp     short ft_ok
 ; ---------------------------------------------------------------------------
 
-loc_BB61:                               ; ...
-                push    ss
+ft5:                                    ; ...
+                push    ss              ; Retrieve the directory entry for the file
                 pop     ds
                 push    ax
                 push    dx
-                push    cx
-                call    DirFromSFT
+                push    cx              ; ES:DI point to SFT
+                call    DirFromSFT      ; locate a directory entry given an SFT
                 pop     cx
                 pop     dx
-                jnb     short loc_BB70
+                jnb     short ft6       ; ES:DI point to entry
+                                        ; (DS:SI point to SFT)
+                                        ; (ES:BX point to buffer header)
                 pop     cx
 
-loc_BB6E:                               ; ...
-                jmp     short loc_BAF2
+ft_error:                               ; ...
+                jmp     short LSeekError2
 ; ---------------------------------------------------------------------------
 
-loc_BB70:                               ; ...
+ft6:                                    ; ...
                 pop     ax
-                test    al, 1
-                jnz     short loc_BB89
-                xor     cx, cx
-                mov     dx, es:[di+12h]
-                cmp     al, 6
-                jnz     short loc_BB87
-                mov     cx, es:[di+0Eh]
-                mov     dx, es:[di+10h]
+                test    al, 1           ; SET ?
+                jnz     short ft8       ; yes
+                xor     cx, cx          ; (always) last access time = 0
+                mov     dx, es:[di+12h] ; [es:di+dir_entry.dir_lstaccdate]
+                cmp     al, 6           ; GET CREATION DATE AND TIME ?
+                jnz     short ft7       ; no, GET LAST ACCESS DATE AND TIME
+                mov     cx, es:[di+0Eh] ; [es:di+dir_entry.dir_crttime]
+                mov     dx, es:[di+10h] ; [es:di+dir_entry.dir_crtdate]
 
-loc_BB87:                               ; ...
-                jmp     short loc_BB56
+ft7:                                    ; ...
+                jmp     short ft4
 ; ---------------------------------------------------------------------------
 
-loc_BB89:                               ; ...
-                test    dl, 1Fh
-                jnz     short loc_BB92
+ft8:                                    ; ...
+                test    dl, 1Fh         ; check date (set) values
+                                        ; DAY (1 to 31) > 0 ?
+                jnz     short ft9       ; yes, valid
 
-loc_BB8E:                               ; ...
-                mov     al, 0Dh
+ft_err_invd:                            ; ...
+                mov     al, 0Dh         ; error_invalid_data
 
-loc_BB90:                               ; ...
-                jmp     short loc_BB6E
+ft_errj:                                ; ...
+                jmp     short ft_error
 ; ---------------------------------------------------------------------------
 
-loc_BB92:                               ; ...
-                test    dx, 1E0h
-                jz      short loc_BB8E
+ft9:                                    ; ...
+                test    dx, 1E0h        ; MONTH (1 to 12) > 0 ?
+                jz      short ft_err_invd ; no, invalid
                 push    dx
-                and     dx, 1E0h
-                cmp     dx, 180h
+                and     dx, 1E0h        ; isolate MONTH
+                cmp     dx, 180h        ; > 12 ?
                 pop     dx
-                ja      short loc_BB8E
-                cmp     al, 5
-                jnz     short loc_BBAE
-                mov     es:[di+12h], dx
-                jmp     short loc_BBCE
+                ja      short ft_err_invd ; yes, invalid
+                cmp     al, 5           ; SET LAST ACCESS DATE AND TIME ?
+                jnz     short ft10      ; no, SET CREATION DATE AND TIME
+                mov     es:[di+12h], dx ; [es:di+dir_entry.dir_lstaccdate]
+                jmp     short ft11
 ; ---------------------------------------------------------------------------
 
-loc_BBAE:                               ; ...
+ft10:                                   ; ...
+                mov     ax, cx          ; check time (set) values
+                and     ax, 0F81Fh      ; isolate seconds/2 and hour
+                cmp     ah, 0B8h        ; HOUR > 23 ?
+                ja      short ft_err_invd ; yes, invalid
+                cmp     al, 1Dh         ; SECONDS/2 > 29 (count of 2 seconds)
+                ja      short ft_err_invd ; yes, invalid
                 mov     ax, cx
-                and     ax, 0F81Fh
-                cmp     ah, 0B8h
-                ja      short loc_BB8E
-                cmp     al, 1Dh
-                ja      short loc_BB8E
-                mov     ax, cx
-                and     ax, 7E0h
-                cmp     ax, 760h
-                ja      short loc_BB8E
-                mov     es:[di+10h], dx
-                mov     es:[di+0Eh], cx
+                and     ax, 7E0h        ; isolate MINUTE
+                cmp     ax, 760h        ; MINUTE > 59 ?
+                ja      short ft_err_invd ; yes, invalid
+                mov     es:[di+10h], dx ; [es:di+dir_entry.dir_crtdate]
+                mov     es:[di+0Eh], cx ; [es:di+dir_entry.dir_crttime]
 
-loc_BBCE:                               ; ...
-                test    byte ptr es:[bx+5], 40h
-                jnz     short loc_BBDD
+ft11:                                   ; ...
+                test    byte ptr es:[bx+5], 40h ; [es:bx+BUFFINFO.buf_flags],buf_dirty
+                jnz     short ft12
                 call    INC_DIRTY_COUNT
-                or      byte ptr es:[bx+5], 40h
+                or      byte ptr es:[bx+5], 40h ; [es:bx+BUFFINFO.buf_flags],buf_dirty
 
-loc_BBDD:                               ; ...
+ft12:                                   ; ...
                 push    es
                 pop     ds
-                mov     di, bx
-                mov     al, 0FFh
+                mov     di, bx          ; DS:DI - pointer to buffer
+                mov     al, 0FFh        ; Drive number, -1 means do not check for drive
                 call    CHECKFLUSH
-                jb      short loc_BB6E
+                jb      short ft_error
 
-loc_BBE8:                               ; ...
+ok_ret:                                 ; ...
                 jmp     SYS_RET_OK
 ; ---------------------------------------------------------------------------
 
 $DUP:                                   ; ...
-                mov     ax, bx
+                mov     ax, bx          ; duplicate a jfn, bx = file handle
                 call    JFNFree
 
-loc_BBF0:                               ; ...
-                jnb     short loc_BBF5
-                jmp     loc_BAEB
+DupErrorCheck:                          ; ...
+                jnb     short dupjfn_1  ; free handle addr in ES:DI, new in BX
+                jmp     LSeekError3     ; nope, bye
 ; ---------------------------------------------------------------------------
 
-loc_BBF5:                               ; ...
+dupjfn_1:                               ; ...
                 push    es
                 push    di
                 pop     si
-                pop     ds
-                xchg    ax, bx
-                call    CheckOwner
-                jnb     short loc_BC01
-                jmp     short loc_BB90
+                pop     ds              ; ds:si = (free) jfn address
+                xchg    ax, bx          ; get back old handle
+                call    CheckOwner      ; get sft in ES:DI
+                jnb     short dupjfn_2
+                jmp     short ft_errj   ; errors go home
 ; ---------------------------------------------------------------------------
 
-loc_BC01:                               ; ...
+dupjfn_2:                               ; ...
                 call    DOS_Dup_Direct
-                call    pJFNFromHandle
-                mov     bl, es:[di]
-                mov     [si], bl
-                jmp     short loc_BBE8
+                call    pJFNFromHandle  ; get pointer
+                mov     bl, es:[di]     ; get SFT number
+                mov     [si], bl        ; stuff in new SFT
+                jmp     short ok_ret    ; and go home
 ; ---------------------------------------------------------------------------
 
 $DUP2:                                  ; ...
-                push    bx
-                push    cx
+                push    bx              ; force a dup on a particular jfn
+                push    cx              ; bx = file handle, cx = new file handle
                 mov     bx, cx
-                call    $CLOSE
+                call    $CLOSE          ; close destination handle
                 pop     bx
-                pop     ax
+                pop     ax              ; old in AX, new in BX
                 call    pJFNFromHandle
-                jmp     short loc_BBF0
+                jmp     short DupErrorCheck ; check error and do dup
 
 ; =============== S U B R O U T I N E =======================================
 
 
 CheckOwner      proc near               ; ...
                 call    SFFromHandle
-                jb      short locret_BC40
+                jb      short co_ret_label
                 push    ax
                 test    ss:IsWin386, 1
-                jz      short loc_BC32
-                xor     ax, ax
+                jz      short no_win386 ; win386 is not present
+                xor     ax, ax          ; set the zero flag
                 pop     ax
-                jnz     short loc_BC30
+                jnz     short _skip_win386
 
-locret_BC2F:                            ; ...
+CheckOwner_retn:                        ; ...
                 retn
 ; ---------------------------------------------------------------------------
 
-loc_BC30:                               ; ...
-                jmp     short loc_BC3D
+_skip_win386:                           ; ...
+                jmp     short CheckOwner_err
 ; ---------------------------------------------------------------------------
 
-loc_BC32:                               ; ...
+no_win386:                              ; ...
                 mov     ax, ss:USER_ID
-                cmp     ax, es:[di+2Fh]
+                cmp     ax, es:[di+2Fh] ; [es:di+SF_ENTRY.sf_UID]
                 pop     ax
-                jz      short locret_BC2F
+                jz      short CheckOwner_retn
 
-loc_BC3D:                               ; ...
-                mov     al, 6
+CheckOwner_err:                         ; ...
+                mov     al, 6           ; error_invalid_handle
                 stc
 
-locret_BC40:                            ; ...
+co_ret_label:                           ; ...
                 retn
 CheckOwner      endp
 
 ; ---------------------------------------------------------------------------
 
 $AssignOper:                            ; ...
-                cmp     al, 7
-                jnz     short loc_BC69
+                cmp     al, 7           ; set in_use ?
+                jnz     short chk08     ; no
 
-loc_BC45:                               ; ...
+srinuse:                                ; ...
                 push    ax
-                mov     al, dl
-                call    GetCDSFromDrv
+                mov     al, dl          ; AL= drive id
+                call    GetCDSFromDrv   ; ds:si -> cds
                 pop     ax
-                jb      short loc_BC64
-                cmp     word ptr [si+45h], 0
-                jz      short loc_BC64
-                cmp     al, 7
-                jnz     short loc_BC5E
-                or      byte ptr [si+44h], 40h
-                jmp     short loc_BC76
+                jb      short baddrv    ; bad drive
+                cmp     word ptr [si+45h], 0 ; [SI+curdir.devptr]
+                jz      short baddrv
+                cmp     al, 7           ; set ?
+                jnz     short resetdrv  ; no
+                or      byte ptr [si+44h], 40h ; [SI+curdir.flags+1],(curdir_inuse>>8)
+                jmp     short okdone
 ; ---------------------------------------------------------------------------
 
-loc_BC5E:                               ; ...
-                and     byte ptr [si+44h], 0BFh
-                jmp     short loc_BC76
+resetdrv:                               ; ...
+                and     byte ptr [si+44h], 0BFh ; [SI+curdir.flags+1],(~curdir_inuse)>>8
+                jmp     short okdone
 ; ---------------------------------------------------------------------------
 
-loc_BC64:                               ; ...
-                mov     ax, 0Fh
-                jmp     short loc_BC79
+baddrv:                                 ; ...
+                mov     ax, 0Fh         ; error_invalid_drive
+                jmp     short ASS_ERR
 ; ---------------------------------------------------------------------------
 
-loc_BC69:                               ; ...
-                cmp     al, 8
-                jz      short loc_BC45
+chk08:                                  ; ...
+                cmp     al, 8           ; reset inuse ?
+                jz      short srinuse   ; yes
                 push    ax
                 mov     ax, 111Eh
                 int     2Fh             ; Multiplex - NETWORK REDIRECTOR - DO REDIRECTION
@@ -21120,34 +21244,34 @@ loc_BC69:                               ; ...
                                         ; Return: CF set on error, AX = error code
                                         ; STACK unchanged
                 pop     bx
-                jb      short loc_BC79
+                jb      short ASS_ERR
 
-loc_BC76:                               ; ...
+okdone:                                 ; ...
                 jmp     SYS_RET_OK
 ; ---------------------------------------------------------------------------
 
-loc_BC79:                               ; ...
+ASS_ERR:                                ; ...
                 jmp     SYS_RET_ERR
 
 ; =============== S U B R O U T I N E =======================================
 
 
 FIND_DPB        proc near               ; ...
-                lds     si, ss:26h
+                lds     si, ss:DPBHEAD  ; Find a DPB from a drive number
 
-loc_BC81:                               ; ...
-                cmp     si, 0FFFFh
-                jz      short loc_BC8F
-                cmp     al, [si]
-                jz      short locret_BC90
-                lds     si, [si+19h]
-                jmp     short loc_BC81
+fdpb5:                                  ; ...
+                cmp     si, 0FFFFh      ; -1
+                jz      short fdpb10
+                cmp     al, [si]        ; [SI+DPB.DRIVE]
+                jz      short ret_label15 ; Carry clear (retz)
+                lds     si, [si+19h]    ; [SI+DPB.NEXT_DPB]
+                jmp     short fdpb5
 ; ---------------------------------------------------------------------------
 
-loc_BC8F:                               ; ...
+fdpb10:                                 ; ...
                 stc
 
-locret_BC90:                            ; ...
+ret_label15:                            ; ...
                 retn
 FIND_DPB        endp
 
@@ -21156,90 +21280,97 @@ FIND_DPB        endp
 
 
 InitCDS         proc near               ; ...
-                push    ax
+                push    ax              ; set up an empty CDS
+                                        ; AL has uppercase drive letter
                 les     di, ss:THISCDS
-                mov     word ptr es:[di+43h], 0
-                sub     al, 40h ; '@'
+                mov     word ptr es:[di+43h], 0 ; [ES:DI+curdir.flags] ; "free" CDS
+                sub     al, 40h ; '@'   ; "A"-1  ; A = 1
                 cmp     ss:NUMIO, al
-                jb      short loc_BCDC
-                dec     ax
+                jb      short icdsx     ; Drive does not map a physical drive
+                dec     ax              ; (AL) = 0 if A, 1 if B, etc.
                 push    ax
-                add     al, 41h ; 'A'
-                mov     ah, 3Ah ; ':'
-                mov     es:[di], ax
-                mov     word ptr es:[di+2], 5Ch ; '\'
-                or      byte ptr es:[di+44h], 40h
+                add     al, 'A'
+                mov     ah, ':'
+                mov     es:[di], ax     ; [ES:DI+curdir.text] ; set "x:"
+                mov     word ptr es:[di+2], 5Ch ; '\' ; [ES:DI+curdir.text+2],"\"
+                                        ; NUL terminate
+                or      byte ptr es:[di+44h], 40h ; [ES:DI+curdir.flags+1],
+                                        ; (curdir_inuse>>8)
                 sub     ax, ax
-                mov     es:[di+49h], ax
-                mov     es:[di+4Bh], ax
+                mov     es:[di+49h], ax ; [ES:DI+curdir.ID],0
+                mov     es:[di+4Bh], ax ; [ES:DI+curdir.ID+2],0
                 mov     al, 2
-                mov     es:[di+4Fh], ax
-                pop     ax
+                mov     es:[di+4Fh], ax ; [ES:DI+curdir.end],2
+                pop     ax              ; (al) = drive number
                 push    ds
                 push    si
                 call    FIND_DPB
-                jb      short loc_BCDA
-                mov     es:[di+45h], si
-                mov     word ptr es:[di+47h], ds
+                jb      short icds5     ; OOOOPPPPPSSSS!!!!
+                mov     es:[di+45h], si ; [ES:DI+curdir.devptr]
+                mov     word ptr es:[di+47h], ds ; [ES:DI+curdir.devptr+2]
 
-loc_BCDA:                               ; ...
+icds5:                                  ; ...
                 pop     si
                 pop     ds
 
-loc_BCDC:                               ; ...
+icdsx:                                  ; ...
                 pop     ax
 
-locret_BCDD:                            ; ...
+RET45:                                  ; ...
                 retn
 InitCDS         endp
 
 ; ---------------------------------------------------------------------------
 
 $UserOper:                              ; ...
-                cmp     al, 1
-                jb      short loc_BCEF
-                jz      short loc_BD0E
-                cmp     al, 5
-                jbe     short loc_BD21
+                cmp     al, 1           ; get/set current user ID (for net)
+                                        ; AL has function type
+                jb      short UserGet   ; 0-get
+                jz      short UserSet   ; 1-set
+                cmp     al, 5           ; 5-printer-get-flags
+                jbe     short UserPrint ; 2-printer-set
+                                        ; 3-printer-get
+                                        ; 4-printer-set-flags
                 call    set_exerr_locus_unk
-                mov     al, 1
+                mov     al, 1           ; error_invalid_function
 
-loc_BCED:                               ; ...
-                jmp     short loc_BC79
+useroper_error:                         ; ...
+                jmp     short ASS_ERR
 ; ---------------------------------------------------------------------------
 
-loc_BCEF:                               ; ...
-                push    ds
+UserGet:                                ; ...
+                push    ds              ; return to user the string
                 pop     es
-                mov     di, dx
-                mov     cx, ss:0Eh
+                mov     di, dx          ; destination
+                mov     cx, ss:MYNUM    ; Get number
                 call    Get_User_Stack
-                mov     [si+4], cx
+                mov     [si+4], cx      ; [SI+user_env.user_CX]
+                                        ; Set number return
                 push    ss
                 pop     ds
-                mov     si, offset MYNAME
+                mov     si, offset MYNAME ; point source to user string
 
-loc_BD03:                               ; ...
-                mov     cx, 0Fh
+UserMove:                               ; ...
+                mov     cx, 15
                 rep movsb
-                xor     ax, ax
+                xor     ax, ax          ; 16th byte is 0
                 stosb
 
-loc_BD0B:                               ; ...
+UserBye:                                ; ...
                 jmp     SYS_RET_OK
 ; ---------------------------------------------------------------------------
 
-loc_BD0E:                               ; ...
-                mov     ss:0Eh, cx
-                mov     si, dx
+UserSet:                                ; ...
+                mov     ss:MYNUM, cx    ; set the current user
+                mov     si, dx          ; user space has source
                 push    ss
                 pop     es
-                mov     di, 305h
-                inc     byte ptr ss:304h
-                jmp     short loc_BD03
+                mov     di, offset MYNAME ; point dest to user string
+                inc     ss:DIFFNAM      ; signal change
+                jmp     short UserMove
 ; ---------------------------------------------------------------------------
 
-loc_BD21:                               ; ...
+UserPrint:                              ; ...
                 push    ax
                 mov     ax, 111Fh
                 int     2Fh             ; Multiplex - NETWORK REDIRECTOR - PRINTER SETUP
@@ -21247,23 +21378,24 @@ loc_BD21:                               ; ...
                                         ; Return: CF set on error, AX = error code
                                         ; STACK unchanged
                 pop     dx
-                jnb     short loc_BD0B
-                jmp     short loc_BCED
+                jnb     short UserBye
+                jmp     short useroper_error
 
 ; =============== S U B R O U T I N E =======================================
 
 
 GetVisDrv       proc near               ; ...
-                call    GETTHISDRV
-                jb      short locret_BCDD
+                call    GETTHISDRV      ; correctly map non-spliced inuse drives
+                                        ; get inuse drive
+                jb      short RET45
                 push    ds
                 push    si
-                lds     si, ss:5A2h
-                test    byte ptr [si+44h], 20h
+                lds     si, ss:THISCDS
+                test    byte ptr [si+44h], 20h ; [SI+curdir.flags+1],(curdir_splice>>8)
                 pop     si
                 pop     ds
-                jz      short locret_BCDD
-                mov     ss:DrvErr, 0Fh
+                jz      short RET45     ; if not spliced, return OK
+                mov     ss:DrvErr, 0Fh  ; error_invalid_drive
                 stc
                 retn
 GetVisDrv       endp
@@ -21273,46 +21405,47 @@ GetVisDrv       endp
 
 
 GETTHISDRV      proc near               ; ...
-                or      al, al
-                jnz     short loc_BD51
-                mov     al, ss:CURDRV
-                inc     ax
+                or      al, al          ; are we using default drive?
+                jnz     short GTD10     ; no, go get the CDS pointers
+                mov     al, ss:CURDRV   ; get the current drive
+                inc     ax              ; Counteract next instruction
 
-loc_BD51:                               ; ...
-                dec     ax
+GTD10:                                  ; ...
+                dec     ax              ; 0 = A
                 push    ds
                 push    si
                 call    set_exerr_locus_disk
-                cmp     ss:FSHARING, 0
-                jz      short loc_BD7F
+                cmp     ss:FSHARING, 0  ; Logical or Physical?
+                jz      short GTD20     ; Logical
                 push    ax
                 push    es
                 push    di
-                mov     word ptr ss:THISCDS, (offset dword_613 - (offset SFT0_SFTable+4Eh))
+                mov     word ptr ss:THISCDS, offset DUMMYCDS
                 mov     word ptr ss:THISCDS+2, ss
-                add     al, 41h ; 'A'
+                add     al, 'A'
                 call    InitCDS
-                test    byte ptr es:[di+44h], 40h
+                test    byte ptr es:[di+44h], 40h ; [ES:DI+curdir.flags+1],
+                                        ; (curdir_inuse>>8)
                 pop     di
                 pop     es
                 pop     ax
-                jz      short loc_BD8A
-                jmp     short loc_BD94
+                jz      short GTD30
+                jmp     short GTDX      ; carry clear
 ; ---------------------------------------------------------------------------
 
-loc_BD7F:                               ; ...
+GTD20:                                  ; ...
                 call    GetCDSFromDrv
-                jb      short loc_BD8A
-                test    byte ptr [si+44h], 40h
-                jnz     short loc_BD94
+                jb      short GTD30     ; Unassigned CDS -> return error already set
+                test    byte ptr [si+44h], 40h ; [SI+curdir.flags+1],(curdir_inuse>>8)
+                jnz     short GTDX
 
-loc_BD8A:                               ; ...
-                mov     al, 0Fh
-                mov     ss:DrvErr, al
-                call    set_exerr_locus_unk
+GTD30:                                  ; ...
+                mov     al, 0Fh         ; error_invalid_drive ; invalid FAT drive
+                mov     ss:DrvErr, al   ; save this for IOCTL
+                call    set_exerr_locus_unk ; [ss:EXTERR_LOCUS],errLOC_Unk
                 stc
 
-loc_BD94:                               ; ...
+GTDX:                                   ; ...
                 pop     si
                 pop     ds
                 retn
@@ -21323,24 +21456,26 @@ GETTHISDRV      endp
 
 
 GetCDSFromDrv   proc near               ; ...
-                cmp     al, ss:CDSCOUNT
-                jnb     short loc_BDB9
+                cmp     al, ss:CDSCOUNT ; is this a valid designator ?
+                jnb     short GetCDS_err ; error
+
+GetCDS:                                 ; yes, get the macro
                 push    bx
                 push    ax
-                lds     si, ss:CDSADDR
-                mov     bl, 88
-                mul     bl
-                add     si, ax
+                lds     si, ss:CDSADDR  ; get pointer to table
+                mov     bl, 88          ; curdir.size
+                mul     bl              ; get net offset
+                add     si, ax          ; convert to true pointer
                 mov     word ptr ss:THISCDS, si
                 mov     word ptr ss:THISCDS+2, ds
                 pop     ax
                 pop     bx
-                clc
+                clc                     ; no error
                 retn
 ; ---------------------------------------------------------------------------
 
-loc_BDB9:                               ; ...
-                stc
+GetCDS_err:                             ; ...
+                stc                     ; signal error
                 retn
 GetCDSFromDrv   endp
 
@@ -21379,28 +21514,28 @@ GetDrive:                               ; ...
 
 FCBScan:                                ; ...
                 lodsb                   ; get a byte
-                call    GetCharType
-                test    al, 8
+                call    GetCharType     ; get flags
+                test    al, 8           ; FFCB
                 jz      short BadPack
                 loop    FCBScan
                 pop     si
                 mov     bx, di
-                call    PackName
-                pop     di
+                call    PackName        ; crunch the path
+                pop     di              ; get original destination
                 pop     es
                 push    ss
                 pop     ds
-                lea     si, [bp+FCBTmp]
+                lea     si, [bp+FCBTmp] ; lea si,[bp-16] ; point at new pathname
                 cmp     byte ptr [bx], 0
                 jz      short BadPack
                 push    bp
-                call    TransPathSet
+                call    TransPathSet    ; convert the path
                 pop     bp
                 jnb     short FCBRet
 
 BadPack:                                ; ...
                 stc
-                mov     al, 3
+                mov     al, 3           ; error_path_not_found
 
 FCBRet:                                 ; ...
                 mov     sp, bp
@@ -21415,7 +21550,7 @@ TransFCB        endp
 
 
 TransPath       proc near               ; ...
-                xor     al, al
+                xor     al, al          ; 0
                 jmp     short SetSplice
 TransPath       endp
 
@@ -21427,32 +21562,34 @@ TransPathSet    proc near               ; ...
 
 ; FUNCTION CHUNK AT BEF1 SIZE 000000A5 BYTES
 
-                mov     al, 0FFh
+                mov     al, 0FFh        ; -1
 
 SetSplice:                              ; ...
-                mov     ss:NoSetDir, al
-                mov     al, 0FFh
+                mov     ss:NoSetDir, al ; NoSetDir = !fExact
+                mov     al, 0FFh        ; -1
 
 TransPathNoSet:                         ; ...
-                mov     ss:FSPLICE, al
-                mov     ss:CMETA, 0FFh
+                mov     ss:FSPLICE, al  ; fSplice = TRUE
+                mov     ss:CMETA, 0FFh  ; -1
                 mov     ss:WFP_START, di
-                mov     ss:CURR_DIR_END, 0FFFFh
-                push    ss
+                mov     ss:CURR_DIR_END, 0FFFFh ; -1 ; crack from start
+                push    ss              ; DS:SI - point to ASCIZ string path
+                                        ; DI - point to buffer in DOSDATA
                 pop     es
-                lea     bp, [di+86h]
-                cmp     ss:FSHARING, 0
-                jz      short CheckUNC
-                call    DriveFromText
-                call    GETTHISDRV
+                lea     bp, [di+134]    ; [DI+TEMPLEN] ; end of buffer
+                cmp     ss:FSHARING, 0  ; if no sharing
+                jz      short CheckUNC  ; skip to UNC check
+                                        ; ES:DI point to buffer
+                call    DriveFromText   ; get drive and advance DS:SI
+                call    GETTHISDRV      ; Set ThisCDS and convert to 0-based
                 jb      short NoPath
-                call    TextFromDrive
-                lea     bx, [di+1]
-                call    Canonicalize
-                jb      short TransPath_retn
+                call    TextFromDrive   ; drop in new
+                lea     bx, [di+1]      ; backup limit
+                call    Canonicalize    ; copy and canonicalize
+                jb      short TransPath_retn ; errors
                 push    ss
                 pop     ds
-                mov     si, ds:WFP_START
+                mov     si, ds:WFP_START ; point to name
                 test    ds:FSPLICE, 0FFh
                 jz      short NoServerSplice
                 call    Splice
@@ -21460,284 +21597,304 @@ TransPathNoSet:                         ; ...
 NoServerSplice:                         ; ...
                 push    ss
                 pop     ds
-                les     di, ds:THISCDS
+                les     di, ds:THISCDS  ; for FATREAD
                 call    ECritDisk
                 call    FATREAD_CDS
                 call    LCritDisk
 
 NoPath:                                 ; ...
-                mov     al, 3
-                retn
+                mov     al, 3           ; error_path_not_found
+                                        ; (Set up for possible bad path error)
+                retn                    ; (any errors are in Carry flag)
 ; ---------------------------------------------------------------------------
 
 CheckUNC:                               ; ...
-                mov     word ptr ss:THISCDS, 0FFFFh
-                mov     ax, 1123h
+                mov     word ptr ss:THISCDS, 0FFFFh ; -1 ; NULL thisCDS
+                mov     ax, 1123h       ; NetSpoolCheck
                 int     2Fh             ; Multiplex - NETWORK REDIRECTOR - QUALIFY REMOTE FILENAME
                                         ; DS:SI -> ASCIZ filename to canonicalize
                                         ; ES:DI -> 128-byte buffer for qualified name
                                         ; Return: CF set if not resolved
-                jnb     short loc_BEB9
-                call    DriveFromText
+                jnb     short UNCDone
+                call    DriveFromText   ; eat drive letter
                 push    ax
-                mov     ax, [si]
-                call    PATHCHRCMP
-                xchg    ah, al
-                call    PATHCHRCMP
-                jnz     short loc_BEBF
-                cmp     ah, al
-                jnz     short loc_BEBF
-                pop     ax
-                movsw
+                mov     ax, [si]        ; get first two bytes of path
+                call    PATHCHRCMP      ; convert to normal form
+                xchg    ah, al          ; swap for second byte
+                call    PATHCHRCMP      ; convert to normal form
+                jnz     short CheckDevice ; not a path char
+                cmp     ah, al          ; are they same?
+                jnz     short CheckDevice ; nope
+                pop     ax              ; We have a UNC request
+                                        ; (prefixed with two leading \\s)
+                movsw                   ; get the lead \\.
 
-loc_BEA6:                               ; ...
-                lodsb
-                call    UCase
+UNCCpy:                                 ; ...
+                lodsb                   ; get a byte
+                call    UCase           ; convert the char
                 or      al, al
-                jz      short loc_BEBC
-                call    PATHCHRCMP
-                mov     bx, di
+                jz      short UNCTerm   ; end of string. All done.
+                call    PATHCHRCMP      ; is it a path char?
+                mov     bx, di          ; backup position
                 stosb
-                jnz     short loc_BEA6
-                call    Canonicalize
+                jnz     short UNCCpy    ; no, go copy
+                call    Canonicalize    ; wham (and set cMeta)
 
-loc_BEB9:                               ; ...
+UNCDone:                                ; ...
                 push    ss
                 pop     ds
-                retn
+                retn                    ; (return error code)
 ; ---------------------------------------------------------------------------
 
-loc_BEBC:                               ; ...
+UNCTerm:                                ; ...
                 stosb
-                jmp     short loc_BEB9
+                jmp     short UNCDone
 ; ---------------------------------------------------------------------------
 
-loc_BEBF:                               ; ...
-                pop     ax
-                cmp     byte ptr [si], 0
-                jnz     short loc_BEC9
-                mov     al, 2
+CheckDevice:                            ; ...
+                pop     ax              ; retrieve drive info
+                cmp     byte ptr [si], 0 ; check for null file
+                jnz     short CheckPath
+                mov     al, 2           ; error_file_not_found
                 stc
                 retn
 ; ---------------------------------------------------------------------------
 
-loc_BEC9:                               ; ...
+CheckPath:                              ; ...
                 push    ax
-                push    bp
-                call    j_CheckThisDevice
+                push    bp              ; save drive number
+                call    no5Dshere
                 pop     bp
                 pop     ax
-                jnb     short loc_BEF1
-                mov     ss:FSHARING, 0FFh
-                call    GETTHISDRV
+                jnb     short DoFile
+                mov     ss:FSHARING, 0FFh ; -1 ; simulate sharing dos call
+                call    GETTHISDRV      ; set ThisCDS and init DUMMYCDS
                 mov     ss:FSHARING, 0
                 call    TextFromDrive
-                mov     al, 2Fh ; '/'
+                mov     al, 2Fh ; '/'   ; path separator
                 stosb
-                call    StrCpy
-                clc
+                call    StrCpy          ; move remainder of string
+                clc                     ; everything OK.
                 push    ss
                 pop     ds
 
-locret_BEED:                            ; ...
+DoFile_retn:                            ; ...
                 retn
 TransPathSet    endp
 
-; [00000003 BYTES: COLLAPSED FUNCTION j_CheckThisDevice. PRESS CTRL-NUMPAD+ TO EXPAND]
+; ---------------------------------------------------------------------------
+
+no5Dshere:                              ; ...
+                jmp     CheckThisDevice ; snoop for device
 ; ---------------------------------------------------------------------------
 ; START OF FUNCTION CHUNK FOR TransPathSet
 
-loc_BEF1:                               ; ...
-                call    GetVisDrv
-                mov     al, 3
-                jb      short locret_BEED
+DoFile:                                 ; ...
+                call    GetVisDrv       ; get proper CDS
+                mov     al, 3           ; error_path_not_found
+                jb      short DoFile_retn ; CARRY set -> bogus drive/spliced
                 push    ds
                 push    si
                 push    es
                 push    di
-                call    ValidateCDS
+                call    ValidateCDS     ; poke CDS and make everything OK
                 pop     di
                 pop     es
                 pop     si
                 pop     ds
-                mov     al, 3
-                jb      short locret_BEED
+                mov     al, 3           ; error_path_not_found
+                jb      short DoFile_retn
                 push    ds
                 push    si
-                lds     si, ss:THISCDS
-                mov     bx, di
-                add     bx, [si+4Fh]
-                lea     bp, [di+86h]
+                lds     si, ss:THISCDS  ; point to CDS
+                mov     bx, di          ; point to destination
+                add     bx, [si+4Fh]    ; [SI+curdir.end] ; point to backup limit
+                lea     bp, [di+134]    ; [DI+TEMPLEN] ; regenerate end of buffer
                 call    FStrCpy
                 dec     di
-                mov     al, 5Ch ; '\'
+                mov     al, 5Ch ; '\'   ; Make sure that there is a path char at end.
                 cmp     es:[di-1], al
-                jz      short loc_BF24
+                jz      short GetOrig   ; get original string
                 stosb
 
-loc_BF24:                               ; ...
-                dec     di
+GetOrig:                                ; ...
+                dec     di              ; point to path char
                 pop     si
                 pop     ds
-                call    sub_BFFB
-                jnz     short loc_BF3D
-                or      al, al
-                jz      short loc_BF40
-                mov     di, bx
+                call    PathSep         ; is DS:SI a path sep?
+                jnz     short PathAssure ; no, DI is correct. Assure a path char
+                or      al, al          ; end of string?
+                jz      short DoCanon   ; yes, skip.
+                mov     di, bx          ; back up to root point.
 
-loc_BF32:                               ; ...
+SkipPath:                               ; ...
                 lodsb
                 call    PATHCHRCMP
-                jz      short loc_BF32
+                jz      short SkipPath
                 dec     si
                 or      al, al
-                jz      short loc_BF40
+                jz      short DoCanon
 
-loc_BF3D:                               ; ...
-                mov     al, 5Ch ; '\'
+PathAssure:                             ; ...
+                mov     al, 5Ch ; '\'   ; DS:SI start at some file name.
+                                        ; ES:DI points at some path char.
                 stosb
 
-loc_BF40:                               ; ...
-                call    Canonicalize
-                jb      short locret_BEED
-                push    ss
+DoCanon:                                ; ...
+                call    Canonicalize    ; ES:DI point to the correct spot
+                                        ;      for canonicalization to begin.
+                                        ; BP is the max extent to advance DI
+                                        ; BX is the backup limit for
+                jb      short DoFile_retn ; badly formatted path
+                push    ss              ; The string has been moved to ES:DI.
                 pop     ds
-                mov     di, ds:WFP_START
-                lds     si, ds:THISCDS
-                call    PathPref
-                jnz     short loc_BF68
-                mov     al, [si-1]
-                call    PATHCHRCMP
-                jz      short loc_BF68
-                cmp     byte ptr es:[di], 0
-                jz      short loc_BF68
-                inc     di
+                mov     di, ds:WFP_START ; DS:SI point to string
+                lds     si, ds:THISCDS  ; point to CDS
+                call    PathPref        ; is there a prefix?
+                jnz     short DoSplice  ; no, do splice
+                                        ; yes, we have a match
+                mov     al, [si-1]      ; last char to match
+                call    PATHCHRCMP      ; did we end on a path char? (root)
+                jz      short DoSplice  ; yes, no current dir here.
+                cmp     byte ptr es:[di], 0 ; end at NUL?
+                jz      short DoSplice  ; yes
+                inc     di              ; point to after current path char
                 mov     ss:CURR_DIR_END, di
 
-loc_BF68:                               ; ...
-                push    ss
-                pop     ds
-                mov     si, ds:WFP_START
+DoSplice:                               ; ...
+                push    ss              ; Splice the result.
+                pop     ds              ; back to DOSDATA
+                mov     si, ds:WFP_START ; point to beginning of string
                 xor     cx, cx
-                test    ds:FSPLICE, 0FFh
-                jz      short loc_BF7A
-                call    Splice
+                test    ds:FSPLICE, 0FFh ; -1
+                jz      short SkipSplice
+                call    Splice          ; replaces in place.
 
-loc_BF7A:                               ; ...
+SkipSplice:                             ; ...
                 push    ss
                 pop     ds
-                les     di, ds:THISCDS
-                test    word ptr es:[di+43h], 8000h
-                jnz     short locret_BF95
-                jcxz    short locret_BF95
+                les     di, ds:THISCDS  ; point to correct drive
+                test    word ptr es:[di+43h], 8000h ; [ES:DI+curdir.flags],
+                                        ; curdir_isnet
+                jnz     short Done      ; net, no fatread necessary (retnz)
+                jcxz    short Done
                 call    ECritDisk
                 call    FATREAD_CDS
                 call    LCritDisk
-                mov     al, 3
+                mov     al, 3           ; error_path_not_found
+                                        ; (Set up for possible bad path error)
 
-locret_BF95:                            ; ...
-                retn
+Done:                                   ; ...
+                retn                    ; (any errors in carry flag)
 ; END OF FUNCTION CHUNK FOR TransPathSet
 
 ; =============== S U B R O U T I N E =======================================
 
 
 Canonicalize    proc near               ; ...
-                lodsb
-                call    PATHCHRCMP
-                jnz     short loc_BFA3
-                cmp     di, bp
-                jnb     short loc_BFB9
+                lodsb                   ; copy a path and remove . and .. entries
+                                        ; ; DS:SI - point to ASCIZ string path
+                                        ; ; ES:DI - point to buffer
+                                        ; ; BX - backup limit (offset from ES)
+                                        ; ;      points to slash
+                                        ; ; BP - end of buffer
+                call    PATHCHRCMP      ; while (PathChr (*s))
+                jnz     short CanonDec
+                cmp     di, bp          ; if (d > dlim)
+                jnb     short CanonBad  ; goto error;
                 stosb
-                jmp     short Canonicalize
+                jmp     short Canonicalize ; *d++ = *s++;
 ; ---------------------------------------------------------------------------
 
-loc_BFA3:                               ; ...
+CanonDec:                               ; ...
                 dec     si
 
-loc_BFA4:                               ; ...
-                xor     ax, ax
-                cmp     [si], al
-                jnz     short loc_BFC4
-                cmp     byte ptr es:[di-1], 3Ah ; ':'
-                jnz     short loc_BFB6
-                mov     al, 5Ch ; '\'
+CanonLoop:                              ; ...
+                xor     ax, ax          ; 0
+                cmp     [si], al        ; if (*s == 0) {
+                jnz     short DoComponent
+                cmp     byte ptr es:[di-1], 3Ah ; ':' ;  if (d[-1] == ':')
+                jnz     short DoTerminate
+                mov     al, 5Ch ; '\'   ; *d++ = '\';
                 stosb
                 mov     al, ah
 
-loc_BFB6:                               ; ...
-                stosb
-                clc
+DoTerminate:                            ; ...
+                stosb                   ; *d++ = 0;
+                clc                     ; return (0);
                 retn
 ; ---------------------------------------------------------------------------
 
-loc_BFB9:                               ; ...
-                call    ScanPathChar
-                mov     al, 3
-                jz      short loc_BFC2
-                mov     al, 2
+CanonBad:                               ; ...
+                call    ScanPathChar    ; check for path chars in rest of string
+                mov     al, 3           ; error_path_not_found
+                                        ; (Set up for bad path error)
+                jz      short PathEnc   ; path character encountered in string
+                mov     al, 2           ; error_file_not_found
+                                        ; (Set bad file error)
 
-loc_BFC2:                               ; ...
+PathEnc:                                ; ...
                 stc
 
-locret_BFC3:                            ; ...
+CanonBad_retn:                          ; ...
                 retn
 ; ---------------------------------------------------------------------------
 
-loc_BFC4:                               ; ...
-                call    sub_C018
-                jb      short locret_BFC3
-                cmp     word ptr es:[di], 2Eh ; '.'
-                jz      short loc_BFD7
-                cmp     word ptr es:[di], 2E2Eh
-                jnz     short loc_BFE0
-                dec     di
+DoComponent:                            ; ...
+                call    CopyComponent   ; if (!CopyComponent (s, d))
+                jb      short CanonBad_retn ; return (-1);
+                cmp     word ptr es:[di], 2Eh ; '.' ; '.' + (0 SHL 8)
+                jz      short Skip1
+                cmp     word ptr es:[di], 2E2Eh ; '..'
+                jnz     short CanonNormal
+                dec     di              ; d--;
 
-loc_BFD7:                               ; ...
-                call    SkipBack
-                mov     al, 3
-                jb      short locret_BFC3
-                jmp     short loc_BFE2
+Skip1:                                  ; ...
+                call    SkipBack        ; SkipBack ();
+                mov     al, 3           ; error_path_not_found
+                jb      short CanonBad_retn
+                jmp     short CanonPath
 ; ---------------------------------------------------------------------------
 
-loc_BFE0:                               ; ...
-                add     di, cx
+CanonNormal:                            ; ...
+                add     di, cx          ; else
+                                        ;    d += ct;
 
-loc_BFE2:                               ; ...
-                call    sub_BFFB
-                jnz     short loc_BFB9
-                lodsb
-                call    PATHCHRCMP
-                jnz     short loc_BFA3
-                cmp     di, bp
-                jnb     short loc_BFB9
-                stosb
+CanonPath:                              ; ...
+                call    PathSep
+                jnz     short CanonBad  ; something else...
+                lodsb                   ; get the char
+                call    PATHCHRCMP      ; is it path char?
+                jnz     short CanonDec  ; no, go test for nul
+                cmp     di, bp          ; beyond buffer end?
+                jnb     short CanonBad  ; yep, error.
+                stosb                   ; copy the one byte
 
-loc_BFF2:                               ; ...
-                lodsb
-                call    PATHCHRCMP
-                jz      short loc_BFF2
-                dec     si
-                jmp     short loc_BFA4
+CanonPathLoop:                          ; ...
+                lodsb                   ; get next byte
+                call    PATHCHRCMP      ; path char again?
+                jz      short CanonPathLoop ; yep, grab another
+                dec     si              ; back up
+                jmp     short CanonLoop ; go copy component
 Canonicalize    endp
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
-sub_BFFB        proc near               ; ...
-                mov     al, [si]
-sub_BFFB        endp
+PathSep         proc near               ; ...
+                mov     al, [si]        ; determine if char is a path separator
+PathSep         endp
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
 PathSepGotCh    proc near               ; ...
-                or      al, al
-                jz      short locret_BFC3
-                call    PATHCHRCMP
-                retn
+                or      al, al          ; test for zero
+                jz      short CanonBad_retn ; return if equal to zero (NUL)
+                call    PATHCHRCMP      ; check for path character
+                retn                    ; and return HIS determination
 PathSepGotCh    endp
 
 
@@ -21745,19 +21902,19 @@ PathSepGotCh    endp
 
 
 SkipBack        proc near               ; ...
-                cmp     di, bx
-                jb      short loc_C014
-                dec     di
-                mov     al, es:[di]
-                call    PATHCHRCMP
+                cmp     di, bx          ; while (TRUE) {
+                jb      short SkipBad   ; if (d < dlim)
+                dec     di              ; goto err;
+                mov     al, es:[di]     ; if (pathchr (*--d))
+                call    PATHCHRCMP      ; break;
                 jnz     short SkipBack
-                clc
+                clc                     ; return (0);
                 retn
 ; ---------------------------------------------------------------------------
 
-loc_C014:                               ; ...
-                mov     al, 3
-                stc
+SkipBad:                                ; ...
+                mov     al, 3           ; error_path_not_found ; bad path error
+                stc                     ; return (-1);
                 retn
 SkipBack        endp
 
@@ -21765,8 +21922,8 @@ SkipBack        endp
 ; =============== S U B R O U T I N E =======================================
 
 
-sub_C018        proc near               ; ...
-                sub     sp, 0Eh
+CopyComponent   proc near               ; ...
+                sub     sp, 14          ; room for temp buffer
                 push    ds
                 push    si
                 push    es
@@ -21776,192 +21933,193 @@ sub_C018        proc near               ; ...
                 mov     ah, 2Eh ; '.'
                 lodsb
                 stosb
-                cmp     al, ah
-                jnz     short loc_C042
-                call    sub_BFFB
-                jz      short loc_C03A
-                lodsb
+                cmp     al, ah          ; if ((*d++=*s++) == '.') {
+                jnz     short NormalComp
+                call    PathSep         ; if (!pathsep(*s))
+                jz      short NulTerm
+                lodsb                   ; if ((*d++=*s++) != '.'
                 stosb
                 cmp     al, ah
-                jnz     short loc_C08C
-                call    sub_BFFB
-                jnz     short loc_C08C
+                jnz     short CopyBad
+                call    PathSep
+                jnz     short CopyBad   ; || !pathsep (*s))
+                                        ; return -1;
 
-loc_C03A:                               ; ...
-                xor     al, al
+NulTerm:                                ; ...
+                xor     al, al          ; *d++ = 0;
                 stosb
-                mov     [bp+6], si
-                jmp     short loc_C089
+                mov     [bp+6], si      ; CopySoff
+                jmp     short _GoodRet  ;     }
 ; ---------------------------------------------------------------------------
 
-loc_C042:                               ; ...
-                mov     si, [bp+6]
-                call    NameTrans
-                cmp     si, [bp+6]
-                jz      short loc_C08C
-                cmp     ss:FSHARING, 0
-                jnz     short loc_C065
+NormalComp:                             ; ...
+                mov     si, [bp+6]      ; CopySoff
+                                        ; else {
+                call    NameTrans       ; s = NameTrans (s, Name1);
+                cmp     si, [bp+6]      ; CopySoff
+                jz      short CopyBad   ; if (s == CopySOff)
+                                        ;    return (-1);
+                cmp     ss:FSHARING, 0  ; if (!fSharing) {
+                jnz     short DoPack
                 and     dl, 1
-                add     ss:CMETA, dl
-                jg      short loc_C08C
-                jnz     short loc_C065
-                or      dl, dl
-                jz      short loc_C094
+                add     ss:CMETA, dl    ; cMeta += fMeta;
+                jg      short CopyBad   ; if (cMeta > 0)
+                                        ;   return (-1);
+                jnz     short DoPack
+                or      dl, dl          ; else
+                                        ;   if (cMeta == 0 && fMeta == 0
+                jz      short CopyBadPath ; return (-1);
 
-loc_C065:                               ; ...
-                mov     [bp+6], si
+DoPack:                                 ; ...
+                mov     [bp+6], si      ; CopySoff
                 push    ss
                 pop     ds
                 mov     si, offset NAME1
-                lea     di, [bp+0Ah]
+                lea     di, [bp+10]     ; CopyTemp
                 push    di
-                call    PackName
+                call    PackName        ; PackName (Name1, temp);
                 pop     di
-                call    StrLen
+                call    StrLen          ; if (strlen(temp)+d > bp)
                 dec     cx
-                add     cx, [bp+2]
-                cmp     cx, [bp+0]
-                jnb     short loc_C08C
-                mov     si, di
-                les     di, [bp+2]
-                call    FStrCpy
+                add     cx, [bp+2]      ; CopyDoff
+                cmp     cx, [bp+0]      ; CopyB
+                jnb     short CopyBad   ; return (-1);
+                mov     si, di          ; strcpy (d, temp);
+                les     di, [bp+2]      ; CopyD
+                call    FStrCpy         ;   }
 
-loc_C089:                               ; ...
+_GoodRet:                               ; ...
                 clc
-                jmp     short loc_C097
+                jmp     short CopyEnd   ; return 0;
 ; ---------------------------------------------------------------------------
 
-loc_C08C:                               ; ...
+CopyBad:                                ; ...
                 stc
-                call    ScanPathChar
-                mov     al, 2
-                jnz     short loc_C097
+                call    ScanPathChar    ; check for path chars in rest of string
+                mov     al, 2           ; error_file_not_found
+                jnz     short CopyEnd
 
-loc_C094:                               ; ...
+CopyBadPath:                            ; ...
                 stc
-                mov     al, 3
+                mov     al, 3           ; error_path_not_found
 
-loc_C097:                               ; ...
+CopyEnd:                                ; ...
                 pop     bp
                 pop     di
                 pop     es
                 pop     si
                 pop     ds
                 lahf
-                add     sp, 0Eh
+                add     sp, 14          ; reclaim temp buffer
                 call    StrLen
                 dec     cx
                 sahf
                 retn
-sub_C018        endp
+CopyComponent   endp
 
 
 ; =============== S U B R O U T I N E =======================================
 
 
 Splice          proc near               ; ...
-                test    ss:SPLICES, 0FFh
+                test    ss:SPLICES, 0FFh ; pseudo mount by string substitution
                 jz      short AllDone
                 push    word ptr ss:THISCDS
-                push    word ptr ss:THISCDS+2
+                push    word ptr ss:THISCDS+2 ; TmpCDS = ThisCDS
                 push    ds
                 push    si
                 pop     di
                 pop     es
-                xor     ax, ax
+                xor     ax, ax          ; for (i=1; s = GetCDSFromDrv (i); i++)
 
 SpliceScan:                             ; ...
                 call    GetCDSFromDrv
                 jb      short SpliceDone
                 inc     al
-                test    word ptr [si+43h], 2000h
+                test    word ptr [si+43h], 2000h ; [SI+curdir.flags],curdir_splice
                 jz      short SpliceScan
-                push    di
-                call    PathPref
+                push    di              ; if ( Spliced (i) ) {
+                call    PathPref        ; if (!PathPref (s, d))
                 jz      short SpliceFound
 
 SpliceSkip:                             ; ...
                 pop     di
-                jmp     short SpliceScan
+                jmp     short SpliceScan ; continue;
 ; ---------------------------------------------------------------------------
 
 SpliceFound:                            ; ...
-                cmp     byte ptr es:[di], 0
+                cmp     byte ptr es:[di], 0 ; if (*s || NoSetDir) {
                 jnz     short SpliceDo
                 test    ss:NoSetDir, 0FFh
                 jnz     short SpliceSkip
 
 SpliceDo:                               ; ...
-                mov     si, di
+                mov     si, di          ; p = src + strlen (p);
                 push    es
                 pop     ds
                 pop     di
-                call    TextFromDrive1
+                call    TextFromDrive1  ; src = TextFromDrive1(src,i);
                 mov     ax, ss:CURR_DIR_END
                 or      ax, ax
                 js      short NoPoke
-                add     ax, di
+                add     ax, di          ; curdirend += src-p;
                 sub     ax, si
                 mov     ss:CURR_DIR_END, ax
 
 NoPoke:                                 ; ...
-                cmp     byte ptr [si], 0
-                jnz     short SpliceCopy
+                cmp     byte ptr [si], 0 ; if (*p)
+                jnz     short SpliceCopy ; *src++ = '\\';
                 mov     al, 5Ch ; '\'
                 stosb
 
 SpliceCopy:                             ; ...
-                call    FStrCpy
-                add     sp, 4
-                or      cl, 1
-                jmp     short DoSet
+                call    FStrCpy         ; strcpy (src, p);
+                add     sp, 4           ; throw away saved stuff
+                or      cl, 1           ; signal splice done.
+                jmp     short DoSet     ; return;
 ; ---------------------------------------------------------------------------
 
 SpliceDone:                             ; ...
-                pop     word ptr ss:THISCDS+2
-                pop     word ptr ss:THISCDS
+                pop     word ptr ss:THISCDS+2 ;  }
+                pop     word ptr ss:THISCDS ; ThisCDS = TmpCDS;
 
 AllDone:                                ; ...
                 xor     cx, cx
 
 DoSet:                                  ; ...
-                lds     si, ss:THISCDS
-                les     di, [si+45h]
+                lds     si, ss:THISCDS  ; ThisDPB = ThisCDS->devptr;
+                les     di, [si+45h]    ; [SI+curdir.devptr]
                 mov     word ptr ss:THISDPB, di
                 mov     word ptr ss:THISDPB+2, es
-Splice          endp
 
-
-; =============== S U B R O U T I N E =======================================
-
-
-DrvFromTxt_ret  proc near               ; ...
+Splice_retn:                            ; ...
                 retn
-DrvFromTxt_ret  endp
+Splice          endp
 
 ; ---------------------------------------------------------------------------
 
 $NameTrans:                             ; ...
-                push    ds
+                push    ds              ; partially process a name
                 push    si
                 push    es
-                push    di
+                push    di              ; DS:SI - source string for translation
+                                        ; ES:DI - pointer to buffer
                 push    cx
                 mov     ch, 16h
-                call    SetAttrib
-                mov     di, 3BEh
-                call    TransPath
+                call    SetAttrib       ; attr_hidden+attr_system+attr_directory
+                mov     di, offset OPENBUF
+                call    TransPath       ; to translation (everything)
                 pop     cx
                 pop     di
                 pop     es
                 pop     si
                 pop     ds
-                jnb     short loc_C147
+                jnb     short TransOK
                 jmp     SYS_RET_ERR
 ; ---------------------------------------------------------------------------
 
-loc_C147:                               ; ...
-                mov     si, 3BEh
+TransOK:                                ; ...
+                mov     si, offset OPENBUF
                 push    ss
                 pop     ds
                 call    FStrCpy
@@ -21971,17 +22129,17 @@ loc_C147:                               ; ...
 
 
 DriveFromText   proc near               ; ...
-                xor     al, al          ; 0
+                xor     al, al          ; 0 ; return drive number from a text string
                 cmp     byte ptr [si], 0
-                jz      short DrvFromTxt_ret
+                jz      short Splice_retn
                 cmp     byte ptr [si+1], 3Ah ; ':'
-                jnz     short DrvFromTxt_ret
+                jnz     short Splice_retn
                 lodsw
-                or      al, 20h         ; to lowercase
-                sub     al, 60h
-                jnz     short DrvFromTxt_ret ; al = drv number
-                mov     al, 0FFh
-                retn
+                or      al, 20h         ; convert to lowercase
+                sub     al, 60h         ; 'a'-1
+                jnz     short Splice_retn ; al = drv number
+                mov     al, 0FFh        ; nuke AL...
+                retn                    ; AL has drive number
 DriveFromText   endp
 
 
@@ -21989,11 +22147,11 @@ DriveFromText   endp
 
 
 TextFromDrive   proc near               ; ...
-                inc     al
+                inc     al              ; convert a drive number to a text string
 
 TextFromDrive1:                         ; ...
-                add     al, 40h ; '@'   ; 'A'-1
-                mov     ah, 3Ah ; ':'
+                add     al, 40h ; '@'   ; 'A'-1 ; *d++ = drive-1+'A';
+                mov     ah, 3Ah ; ':'   ; strcat (d, ":");
                 stosw
 
 PathPref_retn:                          ; ...
@@ -22005,20 +22163,21 @@ TextFromDrive   endp
 
 
 PathPref        proc near               ; ...
-                call    DStrLen
-                dec     cx
-                repe cmpsb
-                jnz     short PathPref_retn
+                call    DStrLen         ; see if one path is a prefix of another
+                dec     cx              ; get length
+                                        ; do not include nul byte
+                repe cmpsb              ; compare
+                jnz     short PathPref_retn ; return NZ
                 push    ax
-                mov     al, [si-1]
-                call    PATHCHRCMP
-                jz      short Prefix
-                mov     al, es:[di]
-                call    PathSepGotCh
+                mov     al, [si-1]      ; get last byte to match
+                call    PATHCHRCMP      ; is it a path char (Root!)
+                jz      short Prefix    ; yes, match root (I hope)
+                mov     al, es:[di]     ; get next char to match
+                call    PathSepGotCh    ; was it a pathchar?
 
 Prefix:                                 ; ...
                 pop     ax
-                retn
+                retn                    ; (if) Zero flag set => prefix found
 PathPref        endp
 
 
@@ -22026,10 +22185,10 @@ PathPref        endp
 
 
 ScanPathChar    proc near               ; ...
-                lodsb
+                lodsb                   ; fetch a character
                 call    PathSepGotCh
-                jnz     short ScanPathChar
-                call    PATHCHRCMP
+                jnz     short ScanPathChar ; not \, / or NUL => go back for more
+                call    PATHCHRCMP      ; path separator?
                 retn
 ScanPathChar    endp
 
@@ -22038,7 +22197,7 @@ ScanPathChar    endp
 
 
 $OPEN           proc near               ; ...
-                xor     ah, ah
+                xor     ah, ah          ; General file open/create code
 
 $Open2:                                 ; ...
                 mov     ch, 16h         ; attr_hidden+attr_system+attr_directory
@@ -22047,62 +22206,65 @@ $Open2:                                 ; ...
                 push    ax
 
 AccessFile:                             ; ...
-                call    ECritDisk
-                call    SFNFree
-                call    LCritDisk
-                jb      short OpenFailJ
+                call    ECritDisk       ; call ECritSFT
+                call    SFNFree         ; get a free sfn
+                call    LCritDisk       ; call LCritSFT
+                jb      short OpenFailJ ; oops, no free sft's
                 mov     ss:SFN, bx
                 mov     word ptr ss:THISSFT, di
                 mov     word ptr ss:THISSFT+2, es
-                call    JFNFree
+                call    JFNFree         ; get a free jfn
 
 OpenFailJ:                              ; ...
                 jb      short OpenFail
 
-SaveJFN:
+SaveJFN:                                ; there were free JFNs... try SFN
                 mov     word ptr ss:PJFN, di
                 mov     word ptr ss:PJFN+2, es
                 mov     ss:JFN, bx
                 mov     bx, ss:SFN
-                mov     si, dx
-                mov     es:[di], bl
+                mov     si, dx          ; get name in appropriate place
+                mov     es:[di], bl     ; assign the JFN
                 mov     di, offset OPENBUF
                 push    cx
-                call    TransPath
+                call    TransPath       ; convert the path
                 pop     bx
                 lds     si, ss:THISSFT
-                jb      short OpenCleanJ
+                jb      short OpenClean
                 cmp     ss:CMETA, 0FFh
-                jz      short loc_C1F6
-                mov     al, 2
-                jmp     short OpenCleanJ
+                jz      short SetSearch ; no error, go and open file
+                mov     al, 2           ; error_file_not_found
+                                        ; no meta chars allowed
+                jmp     short OpenClean
 ; ---------------------------------------------------------------------------
 
 OpenFail:                               ; ...
                 sti
-                pop     cx
+                pop     cx              ; Clean stack
                 jmp     short OpenCritLeave
 ; ---------------------------------------------------------------------------
 
-loc_C1F6:                               ; ...
-                pop     ax
-                xor     cx, cx
+SetSearch:                              ; ...
+                pop     ax              ; Mode (Open), Attributes (Create)
+                xor     cx, cx          ; 0
                 cmp     bx, offset DOS_OPEN
-                mov     [si+2], cx
-                mov     [si+33h], cx
-                jnz     short loc_C20E
-                test    al, 80h
-                jz      short loc_C20E
-                and     al, 7Fh
-                mov     cx, 1000h       ; bit 15 = 1 -> remote file
+                mov     [si+2], cx      ; [SI+SF_ENTRY.sf_mode],0
+                                        ; initialize mode field to 0
+                mov     [si+33h], cx    ; [SI+SF_ENTRY.sf_MFT],0
+                                        ; clean out sharing info
+                jnz     short _DoOper
+                test    al, 80h         ; SHARING_NO_INHERIT
+                jz      short _DoOper
+                and     al, 7Fh         ; mask off inherit bit
+                mov     cx, 1000h       ; sf_no_inherit
 
-loc_C20E:                               ; ...
+_DoOper:                                ; ...
                 push    di
                 push    es
                 push    ds
                 pop     es
                 push    si
-                pop     di
+                pop     di              ; (es:di) = SFT address
                 call    Set_EXT_mode
                 pop     es
                 pop     di
@@ -22112,7 +22274,7 @@ loc_C20E:                               ; ...
                 call    bx              ; DOS_OPEN (or DOS_CREATE)
                 pop     cx
                 lds     si, ds:THISSFT
-                jb      short OpenE2
+                jb      short OpenE2    ; check extended open hooks first
                 mov     word ptr [si], 1 ; SF_ENTRY.sf_ref_count
                 or      [si+5], cx      ; SF_ENTRY.sf_flags
                 push    ds
@@ -22123,26 +22285,28 @@ loc_C20E:                               ; ...
                                         ; (used for FCB calls only!)
                 mov     ax, ss:JFN
                 call    ss:ShCol        ; Call far [ss:JShare+(12*4)] ; 12 = ShCol
-                mov     ss:SFN, 0FFFFh
-                jmp     SYS_RET_OK
+                mov     ss:SFN, 0FFFFh  ; -1 ; clear out sfn pointer
+                jmp     SYS_RET_OK      ; bye with no errors
 ; ---------------------------------------------------------------------------
 
 OpenE2:                                 ; ...
                 cmp     ax, 87          ; error_invalid_parameter
-                jnz     short OpenE
-                jmp     short OpenCritLeave
+                                        ; (Extended Open hooks check)
+                jnz     short OpenE     ; (not IFS extended open)
+                jmp     short OpenCritLeave ; keep handle
 ; ---------------------------------------------------------------------------
 
-OpenCleanJ:                             ; ...
-                pop     bx
+OpenClean:                              ; ...
+                pop     bx              ; clean off stack
 
 OpenE:                                  ; ...
-                mov     word ptr [si], 0
+                mov     word ptr [si], 0 ; [SI+SF_ENTRY.sf_ref_count],0
+                                        ; release SFT
                 lds     si, ss:PJFN
-                mov     byte ptr [si], 0FFh
+                mov     byte ptr [si], 0FFh ; free the SFN...
 
 OpenCritLeave:                          ; ...
-                mov     ss:SFN, 0FFFFh
+                mov     ss:SFN, 0FFFFh  ; -1 ; remove mark.
                 cmp     ss:EXTERR, 37   ; error_Code_Page_Mismatched
                 jnz     short NORERR
                 jmp     From_GetSet
@@ -22157,14 +22321,14 @@ $OPEN           endp
 
 
 $CREAT          proc near               ; ...
-                push    cx
+                push    cx              ; create a new file and open him for input
                 mov     cx, offset DOS_CREATE
 $CREAT          endp
 
 ; START OF FUNCTION CHUNK FOR $CreateNewFile
 
 AccessSet:                              ; ...
-                mov     ss:SATTRIB, 6
+                mov     ss:SATTRIB, 6   ; attr_hidden+attr_system
                 jmp     AccessFile
 ; END OF FUNCTION CHUNK FOR $CreateNewFile
 ; ---------------------------------------------------------------------------
@@ -22205,123 +22369,125 @@ std_chmod:                              ; ...
                 push    ax
                 push    cx
                 mov     si, dx
-                call    TransPathSet
+                call    TransPathSet    ; get correct path
                 pop     cx
                 pop     ax
                 jb      short NotFound
-                push    ss
+                push    ss              ; ChModErr
                 pop     ds
-                cmp     ds:CMETA, 0FFh
+                cmp     ds:CMETA, 0FFh  ; -1
                 jnz     short NotFound
-                mov     ds:SATTRIB, 16h
-                sub     al, 1
-                jb      short loc_C2C9
-                jz      short loc_C2D7
+                mov     ds:SATTRIB, 16h ; attr_hidden+attr_system+attr_directory
+                sub     al, 1           ; fast way to discriminate
+                jb      short ChModGet  ; 0 -> go get value
+                jz      short ChModSet  ; 1 -> go set value
                 call    set_exerr_locus_unk
-                mov     al, 1
+                mov     al, 1           ; error_invalid_function ; bad value
 
-loc_C2C7:                               ; ...
+chmod_errj:                             ; ...
                 jmp     short NORERR
 ; ---------------------------------------------------------------------------
 
-loc_C2C9:                               ; ...
-                call    GET_FILE_INFO
-                jb      short loc_C2E2
+ChModGet:                               ; ...
+                call    GET_FILE_INFO   ; suck out the ol' info
+                jb      short ChModE    ; error codes are already set for ret
                 call    Get_User_Stack
-                mov     [si+4], ax
+                mov     [si+4], ax      ; [SI+user_env.user_CX]
+                                        ; return the attributes
 
-loc_C2D4:                               ; ...
+OpenOkj:                                ; ...
                 jmp     SYS_RET_OK
 ; ---------------------------------------------------------------------------
 
-loc_C2D7:                               ; ...
-                mov     ax, cx
+ChModSet:                               ; ...
+                mov     ax, cx          ; get attrs in position
                 call    SET_FILE_ATTRIBUTE
-                jb      short loc_C2E2
+                jb      short ChModE
                 jmp     short UnLinkOK
 ; ---------------------------------------------------------------------------
 
 NotFound:                               ; ...
-                mov     al, 3
+                mov     al, 3           ; error_path_not_found
 
-loc_C2E2:                               ; ...
-                jmp     short loc_C2C7
+ChModE:                                 ; ...
+                jmp     short chmod_errj
 ; ---------------------------------------------------------------------------
 
 $UNLINK:                                ; ...
-                push    cx
-                mov     si, dx
-                mov     di, offset OPENBUF
-                call    TransPathSet
-                pop     cx
-                jb      short NotFound
-                cmp     ss:CMETA, 0FFh
+                push    cx              ; Delete a File
+                mov     si, dx          ; Point at input string
+                mov     di, offset OPENBUF ; temp spot for path
+                call    TransPathSet    ; go get normalized path
+                pop     cx              ; search attributes
+                jb      short NotFound  ; badly formed path
+                cmp     ss:CMETA, 0FFh  ; -1 ; meta chars?
                 jnz     short NotFound
                 push    ss
                 pop     ds
-                mov     ch, 6
+                mov     ch, 6           ; attr_hidden+attr_system
+                                        ; unlink appropriate files
                 call    SetAttrib
-                call    DOS_DELETE
+                call    DOS_DELETE      ; remove that file
 
 UnlinkE:                                ; ...
-                jb      short loc_C2E2
+                jb      short ChModE
 
 UnLinkOK:                               ; ...
-                jmp     short loc_C2D4
+                jmp     short OpenOkj
 ; ---------------------------------------------------------------------------
 
 $RENAME:                                ; ...
                 mov     ss:PATHNAMELEN, 67
 
 rename_x:                               ; ...
-                push    cx
+                push    cx              ; cx = search attributes
                 push    ds
-                push    dx
+                push    dx              ; DS:DX = source
                 push    es
-                pop     ds
-                mov     si, di
+                pop     ds              ; ES:DI = destination
+                mov     si, di          ; move dest to source
                 mov     di, offset RENBUF
-                call    TransPathSet
-                push    ss:WFP_START
-                pop     ss:REN_WFP
+                call    TransPathSet    ; munge the paths
+                push    ss:WFP_START    ; get pointer
+                pop     ss:REN_WFP      ; stash it
                 pop     si
                 pop     ds
                 pop     cx
 
 epjc2:                                  ; ...
-                jb      short NotFound
-                cmp     ss:CMETA, 0FFh
+                jb      short NotFound  ; get old error
+                cmp     ss:CMETA, 0FFh  ; -1
                 jnz     short NotFound
                 push    cx
-                mov     di, offset OPENBUF
+                mov     di, offset OPENBUF ; appropriate buffer
                 call    TransPathSet
                 pop     cx
                 jb      short epjc2
                 push    ss
                 pop     ds
-                cmp     ds:CMETA, 0FFh
+                cmp     ds:CMETA, 0FFh  ; -1
                 jb      short NotFound
                 les     di, ds:THISCDS
                 push    di
                 push    es
                 mov     di, offset OPENBUF
                 push    ss
-                pop     es
-                xor     al, al
+                pop     es              ; es:di-> source
+                xor     al, al          ; scan all CDS
 
 rnloop:                                 ; ...
                 call    GetCDSFromDrv
-                jb      short dorn
-                call    StrCmp
-                jz      short rnerr
-                inc     al
+                jb      short dorn      ; end of CDS
+                call    StrCmp          ; current dir ?
+                jz      short rnerr     ; yes
+                inc     al              ; next
                 jmp     short rnloop
 ; ---------------------------------------------------------------------------
 
 rnerr:                                  ; ...
+                pop     ax              ; ADD SP,4
                 pop     ax
-                pop     ax
-                mov     al, 10h
+                mov     al, 16          ; error_current_directory
                 jmp     SYS_RET_ERR
 ; ---------------------------------------------------------------------------
 
@@ -22330,9 +22496,9 @@ dorn:                                   ; ...
                 pop     word ptr ss:THISCDS
                 push    ss
                 pop     ds
-                mov     ch, 16h
+                mov     ch, 16h         ; attr_directory+attr_hidden+attr_system
                 call    SetAttrib
-                call    DOS_RENAME
+                call    DOS_RENAME      ; do the deed
                 jb      short UnlinkE
                 jmp     short UnLinkOK
 
@@ -22343,9 +22509,9 @@ $CreateNewFile  proc near               ; ...
 
 ; FUNCTION CHUNK AT C273 SIZE 00000009 BYTES
 
-                push    cx
-                mov     cx, offset DOS_Create_New
-                jmp     AccessSet
+                push    cx              ; Save attributes on stack
+                mov     cx, offset DOS_Create_New ; routine to call
+                jmp     AccessSet       ; use good ol' open
 $CreateNewFile  endp
 
 
@@ -22353,14 +22519,16 @@ $CreateNewFile  endp
 
 
 BinToAscii      proc near               ; ...
-                push    ax
+                push    ax              ; convert a number to a string
+                                        ; (in order to generate temp file names)
+                                        ; ax = value
                 xchg    ah, al
-                aam     10h
+                aam     10h             ; AH = AL / 16 and AL = remainder
                 add     ax, 4141h       ; 'AA'
                 stosw
                 pop     ax
-                aam     10h
-                add     ax, 4141h
+                aam     10h             ; db 0D4h,10h
+                add     ax, 4141h       ; add ax,'AA'
                 stosw
                 retn
 BinToAscii      endp
@@ -22368,86 +22536,86 @@ BinToAscii      endp
 ; ---------------------------------------------------------------------------
 
 $CreateTempFile:                        ; ...
-                push    bp
+                push    bp              ; create a unique name
                 mov     bp, sp
                 sub     sp, 10
-                test    cx, 0FFD8h
-                jz      short OKatts
-                mov     ax, 5
+                test    cx, 0FFD8h      ; ~attr_changeable
+                jz      short OKatts    ; Ok if no non-changeable bits set
+                mov     ax, 5           ; error_access_denied
                 jmp     short SETTMPERR
 ; ---------------------------------------------------------------------------
 
 OKatts:                                 ; ...
-                mov     [bp-0Ah], cx
-                mov     [bp-8], dx
-                mov     word ptr [bp-6], ds
-                mov     word ptr [bp-2], ds
+                mov     [bp-10], cx     ; attr
+                mov     [bp-8], dx      ; FilPtrL ; pointer to file
+                mov     word ptr [bp-6], ds ; FilPtrH
+                mov     word ptr [bp-2], ds ; EndPtrH ; seg pointer to end of dir
                 push    ds
-                pop     es
+                pop     es              ; destination for nul search
                 mov     di, dx
                 mov     cx, di
-                neg     cx
+                neg     cx              ; number of bytes remaining in segment
                 or      cx, cx
-                jnz     short loc_C3C0
-                dec     cx
+                jnz     short okok
+                dec     cx              ; -1
 
-loc_C3C0:                               ; ...
+okok:                                   ; ...
                 xor     ax, ax
                 repne scasb
-                dec     di
-                mov     al, es:[di-1]
-                call    PATHCHRCMP
-                jz      short loc_C3D1
+                dec     di              ; point back to the null
+                mov     al, es:[di-1]   ; Get char before the NUL
+                call    PATHCHRCMP      ; Is it a path separator?
+                jz      short SETENDPTR ; Yes
                 mov     al, 5Ch ; '\'
-                stosb
+                stosb                   ; Add a path separator (and INC DI)
 
-loc_C3D1:                               ; ...
-                mov     [bp-4], di
+SETENDPTR:                              ; ...
+                mov     [bp-4], di      ; EndPtrL ; pointer to the tail
 
-loc_C3D4:                               ; ...
-                push    ss
+CreateLoop:                             ; ...
+                push    ss              ; let ReadTime see variables
                 pop     ds
                 push    bp
-                call    READTIME
+                call    READTIME        ; go get time
                 pop     bp
-                les     di, [bp-4]
+                les     di, [bp-4]      ; EndPtr ; point to the string
                 mov     ax, cx
-                call    BinToAscii
+                call    BinToAscii      ; store upper word
                 mov     ax, dx
-                call    BinToAscii
+                call    BinToAscii      ; store lower word
                 xor     al, al
-                stosb
-                lds     dx, [bp-8]
-                mov     cx, [bp-0Ah]
+                stosb                   ; nul terminate
+                lds     dx, [bp-8]      ; FilPtr ; get name
+                mov     cx, [bp-10]     ; Attr ; get attr
                 push    bp
-                call    $CreateNewFile
+                call    $CreateNewFile  ; try to create a new file
                 pop     bp
-                jnb     short loc_C423
-                cmp     al, 50h ; 'P'
-                jz      short loc_C3D4
-                cmp     al, 5
+                jnb     short CreateDone ; failed, go try again
+                cmp     al, 50h         ; error_file_exists
+                jz      short CreateLoop
+                cmp     al, 5           ; error_access_denied
                 jnz     short SETTMPERR
-                mov     al, ss:324h
-                cmp     al, 41h ; 'A'
+                mov     al, byte ptr ss:EXTERR
+                cmp     al, 41h         ; error_net_access_denied
                 jz      short SETTMPERR
-                cmp     al, 53h ; 'S'
+                cmp     al, 53h         ; error_FAIL_I24
                 jz      short SETTMPERR
-                cmp     al, 50h ; 'P'
-                jz      short loc_C3D4
-                les     di, ss:5A2h
+                cmp     al, 50h         ; error_file_exists
+                jz      short CreateLoop
+                les     di, ss:THISCDS
                 cmp     di, 0FFFFh
-                jz      short loc_C3D4
+                jz      short CreateLoop
                 test    word ptr es:[di+43h], 8000h
-                jnz     short loc_C3D4
+                jnz     short CreateLoop
 
 SETTMPERR:                              ; ...
                 stc
 
-loc_C423:                               ; ...
+CreateDone:                             ; ...
                 mov     sp, bp
                 pop     bp
                 jb      short CreateFail
-                jmp     SYS_RET_OK
+                jmp     SYS_RET_OK      ; success!
 ; ---------------------------------------------------------------------------
 
 CreateFail:                             ; ...
@@ -22457,32 +22625,34 @@ CreateFail:                             ; ...
 
 
 SetAttrib       proc near               ; ...
-                cmp     byte ptr ss:572h, 0
-                jnz     short loc_C438
+                cmp     ss:FSHARING, 0  ; fSharing == FALSE => set sattrib to CH
+                                        ; fSharing == TRUE => set sattrib to CL
+                jnz     short Set
                 mov     cl, ch
 
-loc_C438:                               ; ...
-                mov     ss:56Dh, cl
+Set:                                    ; ...
+                mov     ss:SATTRIB, cl
                 retn
 SetAttrib       endp
 
 ; ---------------------------------------------------------------------------
 
 $Extended_Open:                         ; ...
-                mov     ss:EXTOPEN_FLAG, dx
-                mov     ss:EXTOPEN_IO_MODE, 0
-                test    dh, 0FEh
-                jnz     short ext_inval2
+                mov     ss:EXTOPEN_FLAG, dx ; save ext. open flag
+                mov     ss:EXTOPEN_IO_MODE, 0 ; initialize IO mode
+                test    dh, 0FEh        ; RESERVED_BITS_MASK>>8
+                                        ; reserved bits 0 ?
+                jnz     short ext_inval2 ; no
                 mov     ah, dl
-                cmp     dl, 0
-                jz      short ext_inval2
-                and     dl, 0Fh
+                cmp     dl, 0           ; all fail ?
+                jz      short ext_inval2 ; yes, error
+                and     dl, 0Fh         ; EXISTS_MASK ; get exists action byte
                 cmp     dl, 2
                 ja      short ext_inval2
-                and     ah, 0F0h
+                and     ah, 0F0h        ; NOT_EXISTS_MASK ; get no exists action byte
                 cmp     ah, 10h
                 ja      short ext_inval2
-                mov     ss:SAVE_ES, es
+                mov     ss:SAVE_ES, es  ; save API parms
                 mov     ss:SAVE_DI, di
                 push    ss:EXTOPEN_FLAG
                 pop     ss:SAVE_DX
@@ -22490,182 +22660,182 @@ $Extended_Open:                         ; ...
                 mov     ss:SAVE_BX, bx
                 mov     ss:SAVE_DS, ds
                 mov     ss:SAVE_SI, si
-                mov     dx, si
-                mov     ax, bx
+                mov     dx, si          ; ds:dx points to file name
+                mov     ax, bx          ; ax= mode
                 jmp     short goopen2
 ; ---------------------------------------------------------------------------
 
 ext_inval2:                             ; ...
-                mov     al, 1
+                mov     al, 1           ; error_invalid_function ; invalid function
                 jmp     short CreateFail
 ; ---------------------------------------------------------------------------
 
 goopen2:                                ; ...
-                test    bh, 20h
-                jz      short loc_C4A3
-                or      byte ptr ss:5F6h, 2
+                test    bh, 20h         ; INT_24_ERROR>>8
+                jz      short goopen
+                or      ss:EXTOPEN_ON, 2 ; EXT_OPEN_I24_OFF ; set bit to disable
 
-loc_C4A3:                               ; ...
-                or      byte ptr ss:5F6h, 1
-                mov     byte ptr ss:5F5h, 0
-                cmp     byte ptr ss:5F4h, 10h
-                jnz     short loc_C4D1
+goopen:                                 ; ...
+                or      ss:EXTOPEN_ON, 1 ; EXT_OPEN_ON ; set Extended Open active
+                mov     byte ptr ss:EXTOPEN_FLAG+1, 0
+                cmp     byte ptr ss:EXTOPEN_FLAG, 10h ; EXT_EXISTS_FAIL+EXT_NEXISTS_CREATE
+                jnz     short chknext
                 call    $CreateNewFile
-                jb      short locret_C4FF
-                cmp     byte ptr ss:5F6h, 0
-                jz      short loc_C4CE
-                mov     word ptr ss:5F4h, 2
-                jmp     loc_C551
+                jb      short error_return
+                cmp     ss:EXTOPEN_ON, 0
+                jz      short ok_return2
+                mov     ss:EXTOPEN_FLAG, 2 ; ACTION_CREATED_OPENED
+                jmp     setXAttr
 ; ---------------------------------------------------------------------------
 
-loc_C4CE:                               ; ...
+ok_return2:                             ; ...
                 jmp     SYS_RET_OK
 ; ---------------------------------------------------------------------------
 
-loc_C4D1:                               ; ...
-                test    byte ptr ss:5F4h, 1
-                jnz     short loc_C500
+chknext:                                ; ...
+                test    byte ptr ss:EXTOPEN_FLAG, 1 ; EXT_EXISTS_OPEN
+                jnz     short exist_open ; must be replace open
                 call    $CREAT
-                jb      short locret_C4FF
-                cmp     byte ptr ss:5F6h, 0
-                jz      short loc_C4CE
-                mov     word ptr ss:5F4h, 2
-                test    byte ptr ss:5F6h, 4
-                jnz     short loc_C551
-                mov     word ptr ss:5F4h, 3
-                jmp     short loc_C551
+                jb      short error_return
+                cmp     ss:EXTOPEN_ON, 0
+                jz      short ok_return2
+                mov     ss:EXTOPEN_FLAG, 2 ; ACTION_CREATED_OPENED
+                test    ss:EXTOPEN_ON, 4 ; EXT_FILE_NOT_EXISTS
+                jnz     short setXAttr
+                mov     ss:EXTOPEN_FLAG, 3 ; ACTION_REPLACED_OPENED
+                jmp     short setXAttr
 ; ---------------------------------------------------------------------------
 
-loc_C4FE:                               ; ...
+error_return2:                          ; ...
                 stc
 
-locret_C4FF:                            ; ...
+error_return:                           ; ...
                 retn
 ; ---------------------------------------------------------------------------
 
-loc_C500:                               ; ...
-                cmp     byte ptr ss:572h, 0
-                jz      short loc_C50A
-                mov     cl, ch
+exist_open:                             ; ...
+                cmp     ss:FSHARING, 0  ; server doscall?
+                jz      short noserver  ; no
+                mov     cl, ch          ; cl=search attribute
 
-loc_C50A:                               ; ...
+noserver:                               ; ...
                 call    $Open2
-                jnb     short loc_C542
-                cmp     byte ptr ss:5F6h, 0
-                jz      short loc_C4FE
-                cmp     ax, 2
-                jnz     short loc_C4FE
-                test    word ptr ss:5F4h, 10h
-                jnz     short loc_C528
+                jnb     short ext_ok
+                cmp     ss:EXTOPEN_ON, 0
+                jz      short error_return2
+                cmp     ax, 2           ; error_file_not_found
+                jnz     short error_return2
+                test    ss:EXTOPEN_FLAG, 10h ; EXT_NEXISTS_CREATE
+                jnz     short do_creat
 
-loc_C525:                               ; ...
+extexit:                                ; ...
                 jmp     SYS_RET_ERR
 ; ---------------------------------------------------------------------------
 
-loc_C528:                               ; ...
-                mov     cx, ss:5FFh
-                lds     si, ss:603h
+do_creat:                               ; ...
+                mov     cx, ss:SAVE_CX  ; get ds:dx for file name
+                lds     si, dword ptr ss:SAVE_SI ; cx = attribute;
                 mov     dx, si
-                call    $CREAT
-                jb      short loc_C525
-                mov     word ptr ss:5F4h, 2
-                jmp     short loc_C551
+                call    $CREAT          ; do create
+                jb      short extexit
+                mov     ss:EXTOPEN_FLAG, 2 ; ACTION_CREATED_OPENED
+                jmp     short setXAttr  ; set XAs
 ; ---------------------------------------------------------------------------
 
-loc_C542:                               ; ...
-                cmp     byte ptr ss:5F6h, 0
-                jz      short loc_C55F
-                mov     word ptr ss:5F4h, 1
+ext_ok:                                 ; ...
+                cmp     ss:EXTOPEN_ON, 0 ; IFS call ?
+                jz      short ok_return ; yes
+                mov     ss:EXTOPEN_FLAG, 1 ; ACTION_OPENED
 
-loc_C551:                               ; ...
+setXAttr:                               ; ...
                 push    ax
                 call    Get_User_Stack
-                mov     ax, ss:5F4h
-                mov     [si+4], ax
+                mov     ax, ss:EXTOPEN_FLAG
+                mov     [si+4], ax      ; [SI+user_env.user_CX] ; set action code for cx
                 pop     ax
-                mov     [si], ax
+                mov     [si], ax        ; [SI+user_env.user_AX] ; set handle for ax
 
-loc_C55F:                               ; ...
+ok_return:                              ; ...
                 jmp     SYS_RET_OK
 ; ---------------------------------------------------------------------------
 
 $LockOper:                              ; ...
-                cmp     al, 1
-                ja      short loc_C572
+                cmp     al, 1           ; Lock Calls
+                ja      short lock_bad_func
                 push    di
                 call    SFFromHandle
-                jnb     short loc_C579
+                jnb     short lock_do
                 pop     di
-                mov     al, 6
+                mov     al, 6           ; error_invalid_handle
 
-loc_C56F:                               ; ...
+lockoperr:                              ; ...
                 jmp     SYS_RET_ERR
 ; ---------------------------------------------------------------------------
 
-loc_C572:                               ; ...
-                call    set_exerr_locus_unk
-                mov     al, 1
+lock_bad_func:                          ; ...
+                call    set_exerr_locus_unk ; mov byte [SS:EXTERR_LOCUS],errLOC_Unk
+                mov     al, 1           ; error_invalid_function
 
-loc_C577:                               ; ...
-                jmp     short loc_C56F
+lockoperrj:                             ; ...
+                jmp     short lockoperr
 ; ---------------------------------------------------------------------------
 
-loc_C579:                               ; ...
+lock_do:                                ; ...
                 mov     bx, ax
                 mov     bp, offset Lock_Buffer
-                mov     [bp+0], dx
-                mov     [bp+2], cx
-                pop     word ptr [bp+4]
-                mov     [bp+6], si
-                mov     cx, 1
+                mov     [bp+0], dx      ; [bp+LockBuf.Lock_position] ; set low offset
+                mov     [bp+2], cx      ; [bp+LockBuf.Lock_position+2] ; set high offset
+                pop     word ptr [bp+4] ; [bp+LockBuf.Lock_length] ; set low length
+                mov     [bp+6], si      ; [bp+LockBuf.Lock_length+2] ; set high length
+                mov     cx, 1           ; one range
                 push    ss
                 pop     ds
                 mov     dx, bp
-                test    al, 1
-                jnz     short loc_C597
-                jmp     short loc_C5B3
+                test    al, 1           ; UNLOCK_ALL ; function 1 ?
+                jnz     short DOS_Unlock ; yes
+                jmp     short DOS_Lock  ; function 0
 ; ---------------------------------------------------------------------------
 
-loc_C597:                               ; ...
-                test    byte ptr es:[di+6], 80h
-                jz      short loc_C5A5
+DOS_Unlock:                             ; ...
+                test    byte ptr es:[di+6], 80h ; [ES:DI+SF_ENTRY.sf_flags+1],(sf_isnet>>8)
+                jz      short LOCAL_UNLOCK
                 mov     ax, 110Ah
                 int     2Fh             ; Multiplex - NETWORK REDIRECTOR - LOCK REGION OF FILE
                                         ; BX = file handle, CX:DX = starting offset, SI = high word of size
                                         ; STACK: WORD low word of size, ES:DI -> SFT
                                         ; SFT DPB field -> DPB of drive containing file, SS = DOS CS
                                         ; Return: CF set error
-                jmp     short loc_C5A9
+                jmp     short ValChk
 ; ---------------------------------------------------------------------------
 
-loc_C5A5:                               ; ...
-                call    ds:clr_block
+LOCAL_UNLOCK:                           ; ...
+                call    ds:clr_block    ; Call far [JShare+(7*4)] ; 7 = clr_block
 
-loc_C5A9:                               ; ...
-                jnb     short loc_C5AD
-                jmp     short loc_C577
+ValChk:                                 ; ...
+                jnb     short Lock_OK
+                jmp     short lockoperrj
 ; ---------------------------------------------------------------------------
 
-loc_C5AD:                               ; ...
+Lock_OK:                                ; ...
                 mov     ax, ds:TEMP_VAR
                 jmp     SYS_RET_OK
 ; ---------------------------------------------------------------------------
 
-loc_C5B3:                               ; ...
-                test    byte ptr es:[di+6], 80h
-                jz      short loc_C5C1
+DOS_Lock:                               ; ...
+                test    byte ptr es:[di+6], 80h ; [ES:DI+SF_ENTRY.sf_flags+1],(sf_isnet>>8)
+                jz      short LOCAL_LOCK
                 mov     ax, 110Ah
                 int     2Fh             ; Multiplex - NETWORK REDIRECTOR - LOCK REGION OF FILE
                                         ; BX = file handle, CX:DX = starting offset, SI = high word of size
                                         ; STACK: WORD low word of size, ES:DI -> SFT
                                         ; SFT DPB field -> DPB of drive containing file, SS = DOS CS
                                         ; Return: CF set error
-                jmp     short loc_C5A9
+                jmp     short ValChk
 ; ---------------------------------------------------------------------------
 
-loc_C5C1:                               ; ...
-                call    ds:set_block
-                jmp     short loc_C5A9
+LOCAL_LOCK:                             ; ...
+                call    ds:set_block    ; Call far [JShare+(6*4)] ; 6 = Set_Block
+                jmp     short ValChk
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -22705,10 +22875,10 @@ LOCK_VIOLATION  proc near               ; ...
                 mov     cx, di
                 xor     dx, dx          ; 0
                 cmp     es:[bp+0Fh], dx ; cmp [es:bp+DPB.FAT_SIZE],dx
-                jnz     short lockv_1
-                mov     dx, es:[bp+2Bh] ; [es:bp+DPB.LAST_CLUSTER+2]
+                jnz     short lockv_1   ; not FAT32
+                mov     dx, es:[bp+2Bh] ; [es:bp+DPB.FCLUS_FSECTOR+2]
                 mov     ds:HIGH_SECTOR, dx
-                mov     dx, es:[bp+29h] ; [es:bp+DPB.LAST_CLUSTER]
+                mov     dx, es:[bp+29h] ; [es:bp+DPB.FCLUS_FSECTOR]
                 jmp     short lockv_2
 ; ---------------------------------------------------------------------------
 
@@ -22759,30 +22929,30 @@ SHARE_VIOLATION proc near               ; ...
                 push    ds
                 push    es
                 push    di
-                mov     ds:READOP, 0
-                mov     ds:ALLOWED, 18h
+                mov     ds:READOP, 0    ; All share errors are reading
+                mov     ds:ALLOWED, 18h ; Allowed_FAIL+Allowed_RETRY
                 les     bp, ds:THISDPB
-                mov     di, 1
+                mov     di, 1           ; Fake some registers
                 mov     cx, di
-                cmp     word ptr es:[bp+0Fh], 0
-                jz      short loc_C658
+                cmp     word ptr es:[bp+0Fh], 0 ; [es:bp+DPB.FAT_SIZE]
+                jz      short sharev_1  ; FAT32
                 mov     ds:HIGH_SECTOR, 0
-                mov     dx, es:[bp+11h]
-                jmp     short loc_C664
+                mov     dx, es:[bp+11h] ; [ES:BP+DPB.DIR_SECTOR]
+                jmp     short sharev_2
 ; ---------------------------------------------------------------------------
 
-loc_C658:                               ; ...
-                mov     dx, es:[bp+2Bh]
+sharev_1:                               ; ...
+                mov     dx, es:[bp+2Bh] ; [es:bp+DPB.FCLUS_FSECTOR+2]
                 mov     ds:HIGH_SECTOR, dx
-                mov     dx, es:[bp+29h]
+                mov     dx, es:[bp+29h] ; [es:bp+DPB.FCLUS_FSECTOR]
 
-loc_C664:                               ; ...
+sharev_2:                               ; ...
                 call    HARDERR
                 pop     di
                 pop     es
                 pop     ds
                 cmp     al, 1
-                jz      short shchk_retn
+                jz      short shchk_retn ; 1 = retry, carry clear
                 stc
                 retn
 SHARE_VIOLATION endp
@@ -22792,7 +22962,7 @@ SHARE_VIOLATION endp
 
 
 ShareEnd        proc near               ; ...
-                call    ds:MFTClose
+                call    ds:MFTClose     ; call far [JShare+(2*4)] ; 2 = MFTClose
                 retn
 ShareEnd        endp
 
@@ -22803,23 +22973,23 @@ ShareEnd        endp
 ShareEnter      proc near               ; ...
                 push    cx
 
-loc_C676:                               ; ...
-                mov     cx, ds:1Ah
+retry:                                  ; ...
+                mov     cx, ds:RetryCount
 
-loc_C67A:                               ; ...
-                les     di, ds:59Eh
+attempt:                                ; ...
+                les     di, ds:THISSFT
                 xor     ax, ax
                 push    cx
-                mov     es:[di+33h], ax
-                call    SHARE_CHECK
+                mov     es:[di+33h], ax ; [ES:DI+SF_ENTRY.sf_MFT],0 ; indicate free SFT
+                call    SHARE_CHECK     ; attempt to enter into the sharing set
                 pop     cx
-                jnb     short loc_C695
-                call    Idle
-                loop    loc_C67A
-                call    SHARE_VIOLATION
-                jnb     short loc_C676
+                jnb     short done      ; success, let the user see this
+                call    Idle            ; wait a while
+                loop    attempt         ; go back for another attempt
+                call    SHARE_VIOLATION ; signal the problem to the user
+                jnb     short retry     ; user said to retry, go do it
 
-loc_C695:                               ; ...
+done:                                   ; ...
                 pop     cx
                 retn
 ShareEnter      endp
@@ -22828,182 +22998,193 @@ ShareEnter      endp
 ; =============== S U B R O U T I N E =======================================
 
 
-sub_C697        proc near               ; ...
+ExecReady       proc near               ; ...
                 mov     si, dx
-                test    word ptr [si+2], 1
-                jz      short loc_C6B8
-                mov     ax, [si+8]
+                test    word ptr [si+2], 1 ; [si+ERStruc.ER_Flags],ER_EXE
+                jz      short er_setver
+                mov     ax, [si+8]      ; [si+ERStruc.ER_PSP]
                 add     ax, 10h
                 mov     es, ax
-                mov     cx, [si+0Ah]
-                mov     ax, [si+0Ch]
-                call    word ptr ss:0D67h
-                call    word ptr ss:133Eh
+                mov     cx, [si+0Ah]    ; [si+ERStruc.ER_StartAddr]
+                mov     ax, [si+0Ch]    ; [si+ERStruc.ER_StartAddr+2]
+                call    ss:FixExePatch
+                call    ss:Rational386PatchPtr
 
-loc_C6B8:                               ; ...
-                test    word ptr [si+2], 2
-                jnz     short loc_C6D7
+er_setver:                              ; ...
+                test    word ptr [si+2], 2 ; [si+ERStruc.ER_Flags],ER_OVERLAY
+                jnz     short er_chkdoshi ; Y: set A20OFF_COUNT if DOS high
+                                        ; N: set up lie version first
                 push    ds
                 push    si
-                lds     si, [si+4]
-                call    sub_B35C
-                call    sub_B370
+                lds     si, [si+4]      ; [si+ERStruc.ER_ProgName]
+                call    Scan_Execname1
+                call    Scan_Special_Entries
                 pop     si
                 pop     ds
-                mov     es, word ptr [si+8]
-                mov     ax, ss:0EBBh
-                mov     es:40h, ax
+                mov     es, word ptr [si+8] ; [si+ERStruc.ER_PSP]
+                mov     ax, ss:SPECIAL_VERSION
+                mov     es:40h, ax      ; [es:PDB.Version]
 
-loc_C6D7:                               ; ...
-                cmp     byte ptr ss:0D66h, 0
-                jz      short loc_C6FF
-                mov     ax, [si+8]
-                or      byte ptr ss:86h, 4
-                test    word ptr [si+2], 1
-                jnz     short loc_C6F6
+er_chkdoshi:                            ; ...
+                cmp     ss:DosHasHMA, 0
+                jz      short er_done
+                mov     ax, [si+8]      ; [si+ERStruc.ER_PSP] ; ax = PSP
+                or      ss:DOS_FLAG, 4  ; EXECA20OFF
+                test    word ptr [si+2], 1 ; [si+ERStruc.ER_Flags],ER_EXE
+                                        ; Q: COM file
+                jnz     short er_setA2  ; N: inc a20off_count,
+                                        ; set a20off_psp and ret
                 push    ds
-                mov     ds, ax
-                call    IsCopyProt
+                mov     ds, ax          ; DS = load segment of com file
+                call    IsCopyProt      ; check if copy protected
                 pop     ds
 
-loc_C6F6:                               ; ...
-                inc     byte ptr ss:85h
-                mov     ss:63h, ax
+er_setA2:                               ; ...
+                inc     ss:A20OFF_COUNT
+                mov     ss:A20OFF_PSP, ax ; set the PSP for which A20 is to be
+                                        ; turned OFF.
 
-loc_C6FF:                               ; ...
+er_done:                                ; ...
                 xor     ax, ax
                 retn
-sub_C697        endp
+ExecReady       endp
 
 ; ---------------------------------------------------------------------------
-                db 0FAh
-                db 0E4h
-                db  21h ; !
-                db  60h ; `
-                db  33h ; 3
-                db 0C0h
-                db 0E6h
-                db  43h ; C
-                db  8Bh
-                db  16h
-                db 0B0h
-                db  0Eh
-                db 0E6h
-                db  37h ; 7
-                db  33h ; 3
-                db 0C0h
-                db 0E6h
-                db 0F2h
-                db  0Fh
-                db  20h
-                db 0C0h
-                db  0Fh
-                db  22h ; "
-                db 0C0h
-                db 0EAh
-                db  66h ; f
-                db  50h ; P
-                db  51h ; Q
-                db  0Fh
-                db  20h
-                db 0C0h
-                db  8Eh
-                db 0D3h
-                db  59h ; Y
-                db  66h ; f
-                db  58h ; X
-                db  93h
-                db  58h ; X
-                db  8Bh
-                db 0CCh
-                db 0B8h
-                db  0Ch
-                db 0DEh
-                db 0CDh
-                db  67h ; g
-                db  8Bh
-                db 0E1h
-                db 0FFh
-                db 0E3h
-                db  93h
-                db  58h ; X
-                db  8Bh
-                db 0CCh
-                db  2Eh ; .
-                db  66h ; f
-                db 0A3h
-                db    0
-                db    0
-                db  2Eh ; .
-                db  66h ; f
-                db  89h
-                db  36h ; 6
-                db    0
-                db    0
-                db  8Bh
-                db 0E1h
-                db  2Eh ; .
-                db  66h ; f
-                db 0A1h
-                db    0
-                db    0
-                db  2Eh ; .
-                db  66h ; f
-                db  8Bh
-                db  36h ; 6
-                db    0
-                db    0
-                db 0FFh
-                db 0E3h
-                db 0FAh, 52h, 51h
-                db 0B8h, 0Ch, 0DEh, 66h, 26h, 0FFh, 1Eh
-                db 59h, 5Ah, 5Bh
-                db 0FAh, 66h, 50h, 66h, 53h, 66h, 51h, 66h, 52h
-                db 66h, 5Ah, 66h, 59h, 66h, 5Bh, 66h, 58h, 5Bh
-                db 60h, 6, 1Eh, 0B8h, 0, 0, 8Eh, 0D8h
-                db 1Fh, 7, 61h
-                db 66h, 60h, 6, 1Eh
-                db 1Fh, 7, 66h, 61h, 0C3h
-                dw 0C714h
-                dw 3
-                dw 0C717h
-                dw 4
+rpFind1         db 0FAh, 0E4h, 21h, 60h, 33h, 0C0h, 0E6h, 43h, 8Bh, 16h ; ...
+                                        ; cli
+                                        ; in  al, 21h
+                                        ; pusha
+                                        ; xor ax, ax
+                                        ; out 43h, al
+                                        ; mov dx, ...
+rpFind1a        db 0B0h, 0Eh, 0E6h, 37h, 33h, 0C0h, 0E6h, 0F2h ; ...
+                                        ; mov al, 0Eh
+                                        ; out 37h, al
+                                        ; xor ax, ax
+                                        ; out 0F2h, al
+rpFind2         db 0Fh, 20h, 0C0h       ; ...
+                                        ; mov eax, cr0
+rpFind3         db 0Fh, 22h, 0C0h, 0EAh ; ...
+                                        ; mov cr0, eax
+                                        ; jmp far ptr xxx
+                                        ; mov ss, bx
+rpRepl2         db 66h, 50h, 51h, 0Fh, 20h, 0C0h ; ...
+                                        ; push eax
+                                        ; push cx
+                                        ; mov eax, cr0
+rpRepl3         db 8Eh, 0D3h, 59h, 66h, 58h ; ...
+                                        ; mov ss, bx
+                                        ; pop cx
+                                        ; pop eax
+rpFind4         db 93h, 58h, 8Bh, 0CCh  ; ...
+                                        ; xchg bx, ax
+                                        ; pop ax
+                                        ; mov cx, sp
+rpFind5         db 0B8h, 0Ch, 0DEh, 0CDh, 67h, 8Bh, 0E1h, 0FFh, 0E3h ; ...
+                                        ; mov ax, DE0Ch
+                                        ; int 67h
+                                        ; mov sp, cx
+                                        ; jmp bx
+rpRepl4         db 93h, 58h, 8Bh, 0CCh  ; ...
+                db 2Eh, 66h, 0A3h
+                db 0, 0
+                db 2Eh, 66h, 89h, 36h
+                db 0, 0                 ; xchg bx, ax
+                                        ; pop ax
+                                        ; mov cx, sp
+                                        ; mov dword ptr cs:[xxxx], eax
+                                        ; mov dword ptr cs:[xxxx], esi
+rpRepl5         db 8Bh, 0E1h            ; ...
+                db 2Eh, 66h, 0A1h
+                db 0, 0
+                db 2Eh, 66h, 8Bh, 36h
+                db 0, 0
+                db 0FFh, 0E3h           ; mov sp, cx
+                                        ; mov eax, dword ptr cs:[xxxx]
+                                        ; mov esi, dword ptr cs:[xxxx]
+                                        ; jmp bx
+rpFind6         db 0FAh, 52h, 51h       ; ...
+                                        ; cli
+                                        ; push dx
+                                        ; push cx
+rpFind7a        db 0B8h, 0Ch, 0DEh, 66h, 26h, 0FFh, 1Eh ; ...
+                                        ; mov ax, 0DE0Ch
+                                        ; call fword ptr es:[xxxx]
+rpFind7b        db 59h, 5Ah, 5Bh        ; ...
+                                        ; pop cx
+                                        ; pop dx
+                                        ; pop bx
+rpRepl6         db 0FAh, 66h, 50h, 66h, 53h, 66h, 51h, 66h, 52h ; ...
+                                        ; cli
+                                        ; push eax
+                                        ; push ebx
+                                        ; push ecx
+                                        ; push edx
+rpRepl7         db 66h, 5Ah, 66h, 59h, 66h, 5Bh, 66h, 58h, 5Bh ; ...
+                                        ; pop edx
+                                        ; pop ecx
+                                        ; pop ebx
+                                        ; pop eax
+                                        ; pop bx
+rpFind8         db 60h, 6, 1Eh, 0B8h, 0, 0, 8Eh, 0D8h ; ...
+                                        ; pusha
+                                        ; push es
+                                        ; push ds
+                                        ; mov ax, dgroup ; jump back to here from replace8
+                                        ; mov ds, ax
+rpFind9         db 1Fh, 7, 61h          ; ...
+                                        ; pop ds
+                                        ; pop es
+                                        ; popa
+rpRepl8         db 66h, 60h, 6, 1Eh     ; ...
+                                        ; pushad
+                                        ; push es
+                                        ; push ds
+rpRepl9         db 1Fh, 7, 66h, 61h, 0C3h ; ...
+                                        ; pop ds
+                                        ; pop es
+                                        ; popad
+                                        ; retn ; no need to jmp back to main-line
+rpBug1Strs      dw offset rpFind2       ; ...
+                dw 3                    ; rpFind2Len
+                dw offset rpFind3
+                dw 4                    ; rpFind3Len
                 dw 20h
-                dw 0C726h
-                dw 4
-                dw 0C72Ah
-                dw 9
+rpBug2Strs      dw offset rpFind4       ; ...
+                dw 4                    ; rpFind4Len
+                dw offset rpFind5
+                dw 9                    ; rpFind5Len
                 dw 80h
-                dw 0C751h
-                dw 3
-                dw 0C754h
-                dw 7
+rpBug3Strs      dw offset rpFind6       ; ...
+                dw 3                    ; rpFind6Len
+                dw offset rpFind7a
+                dw 7                    ; rpFind7aLen
                 dw 80h
-                dw 0C770h
-                dw 4
-                dw 0C778h
-                dw 3
+rpBug4Strs      dw offset rpFind8       ; ...
+                dw 4                    ; rpRepl8Len
+                dw offset rpFind9
+                dw 3                    ; rpFind9Len
                 dw 80h
 ; ---------------------------------------------------------------------------
 
 Rational386Patch:                       ; ...
-                cmp     word ptr es:0, 395
-                jnb     short locret_C7D7
-                cmp     word ptr es:0Ch, 20h ; ' '
-                jnz     short locret_C7D7
+                cmp     word ptr es:0, 395 ; version number goes here - versions
+                jnb     short rp3QuickOut ; 3.95+ don't need patching
+                cmp     word ptr es:0Ch, 20h ; ' ' ;  always has this value here
+                jnz     short rp3QuickOut
                 push    ax
-                mov     ax, 18h
-                cmp     es:18h, ax
-                jnz     short loc_C7D6
-                cmp     es:1Ch, ax
-                jnz     short loc_C7D6
-                cmp     es:24h, ax
+                mov     ax, 18h         ; extender has 18h at
+                cmp     es:24, ax       ; offsets 24, 28, & 36
+                jnz     short rp3QO_ax
+                cmp     es:28, ax
+                jnz     short rp3QO_ax
+                cmp     es:36, ax
                 jz      short rp3Maybe
 
-loc_C7D6:                               ; ...
+rp3QO_ax:                               ; ...
                 pop     ax
 
-locret_C7D7:                            ; ...
+rp3QuickOut:                            ; ...
                 retn
 ; ---------------------------------------------------------------------------
 
@@ -23012,140 +23193,147 @@ rp3Maybe:                               ; ...
                 pusha
                 push    es
                 push    ds
-                sub     sp, 6
+                sub     sp, 6           ; StackVars.size ; make space for stack variables
                 mov     bp, sp
                 push    cs
                 pop     ds
                 assume ds:DOSCODE
                 mov     ax, es:0
-                mov     [bp+0], ax
-                call    VerifyVersion
-                jnz     short loc_C810
-                mov     cx, 4500h
-                mov     [bp+2], cx
-                mov     es, word ptr es:20h
-                mov     si, 0C702h
-                mov     dx, 0Ah
+                mov     [bp+0], ax      ; [bp+StackVars.sv_wVersion]
+                call    VerifyVersion   ; check that binary version # matches
+                                        ; ascii string
+                jnz     short rp3Exit_j
+                mov     cx, 4500h       ; force search len to 4700h
+                                        ; (searches start at offset 200h)
+                mov     [bp+2], cx      ; [bp+StackVars.sv_cbCodeSeg]
+                mov     es, word ptr es:20h ; es=code segment
+                mov     si, offset rpFind1 ; string to find
+                mov     dx, 10          ; rpFind1Len ; length to match
+                call    ScanCodeSeq     ; look for code seq
+                jz      short rpGotPatch
+                mov     si, offset rpFind1a
+                mov     dx, 8           ; rpFind1Len
                 call    ScanCodeSeq
-                jz      short loc_C813
-                mov     si, 0C70Ch
-                mov     dx, 8
-                call    ScanCodeSeq
-                jz      short loc_C813
+                jz      short rpGotPatch
 
-loc_C810:                               ; ...
-                jmp     loc_C911
+rp3Exit_j:                              ; ...
+                jmp     rp3Exit
 ; ---------------------------------------------------------------------------
 
-loc_C813:                               ; ...
-                mov     [bp+4], di
-                cmp     word ptr [bp+0], 17Dh
-                jnb     short loc_C865
-                mov     bx, 0C784h
+rpGotPatch:                             ; ...
+                mov     [bp+4], di      ; [bp-StackVars.sv_pPatch] ; save patch pointer
+                cmp     word ptr [bp+0], 381 ; BUG 1, [bp+StackVars.sv_wVersion],381
+                                        ; only need bug 1 if version
+                jnb     short rpBug2    ; < 3.81
+                mov     bx, offset rpBug1Strs ; locate find2 & find3 code
                 call    FindBadCode
-                jb      short loc_C865
-                push    di
-                mov     di, si
-                mov     dx, 3
-                cmp     byte ptr es:[di-1], 51h ; 'Q'
-                jnz     short loc_C834
-                dec     di
+                jb      short rpBug2
+                push    di              ; rpFind3 offset
+                mov     di, si          ; rpFind2 offset
+                mov     dx, 3           ; rpFind2Len
+                cmp     byte ptr es:[di-1], 51h ; find2 preceeded by push cx?
+                jnz     short rp_no_cx
+                dec     di              ; yes, gobble up push cx too
                 inc     dx
 
-loc_C834:                               ; ...
-                mov     si, 0C71Bh
-                mov     cx, 6
+rp_no_cx:                               ; ...
+                mov     si, offset rpRepl2 ; patch out find2 sequence
+                mov     cx, 6           ; rpRepl2Len
                 call    GenPatch
-                pop     di
-                cmp     byte ptr es:[di-1], 59h ; 'Y'
-                jnz     short loc_C84A
-                mov     byte ptr es:[di-1], 90h
+                pop     di              ; rpFind3 offset
+                cmp     byte ptr es:[di-1], 59h ; find3 preceeded by pop cx?
+                jnz     short rp_no_cx2
+                mov     byte ptr es:[di-1], 90h ; yes, no-op it
 
-loc_C84A:                               ; ...
-                mov     ax, [bp+4]
-                mov     es:[di+4], ax
+rp_no_cx2:                              ; ...
+                mov     ax, [bp+4]      ; [bp+StackVars.sv_pPatch] ; change offset of far jmp
+                mov     es:[di+4], ax   ; [es:di+rpFind3Len] ; to go to patch code
                 push    di
-                mov     si, 0C721h
-                mov     cx, 5
+                mov     si, offset rpRepl3 ; copy repl3 to patch area
+                mov     cx, 5           ; rpRepl3Len
                 call    CopyPatch
                 pop     bx
-                add     bx, 8
-                call    GenJump
-                mov     [bp+4], di
+                add     bx, 8           ; rpFind3Len+4 ; skip over find3 and far jmp
+                call    GenJump         ; jmp back from patch area
+                mov     [bp+4], di      ; [bp+StackVars.sv_pPatch]
+                                        ; to main-line, update patch area pointer
 
-loc_C865:                               ; ...
-                mov     bx, 0C78Eh
+rpBug2:                                 ; ...
+                mov     bx, offset rpBug2Strs ; BUG 2, locate find4 & find5 code
                 call    FindBadCode
-                jb      short loc_C8AF
-                push    word ptr [bp+4]
-                push    di
-                mov     di, si
-                mov     dx, 4
-                mov     si, 0C733h
-                mov     cx, 0Fh
-                call    GenPatch
-                pop     di
-                add     di, 5
-                mov     bx, [bp+4]
-                push    bx
+                jb      short rpBug3
+                push    word ptr [bp+4] ; [bp+StackVars.sv_pPatch] ; save current patch pointer
+                push    di              ; save find5 offset
+                mov     di, si          ; rpFind4 offset
+                mov     dx, 4           ; rpFind4Len
+                mov     si, offset rpRepl4
+                mov     cx, 15          ; rpRepl4Len
+                call    GenPatch        ; patch out find4 code
+                pop     di              ; find5 offset
+                add     di, 5           ; keep 5 bytes of find5 code
+                mov     bx, [bp+4]      ; [bp+StackVars.sv_pPatch] ; jump to patch area
+                push    bx              ; save repl5 location
                 call    GenJump
-                mov     si, 0C742h
-                mov     cx, 0Fh
-                call    CopyPatch
-                pop     di
-                pop     si
-                mov     ax, [bp+4]
-                mov     es:[si+7], ax
-                mov     es:[di+5], ax
+                mov     si, offset rpRepl5 ; copy repl5 code to patch
+                mov     cx, 15          ; rpRepl5Len ; area -- it has a jmp bx
+                call    CopyPatch       ; so no need to jmp back to
+                                        ; main-line code
+                pop     di              ; repl5 location
+                pop     si              ; repl4 location
+                mov     ax, [bp+4]      ; [bp+StackVars.sv_pPatch] ; (where dwords go)
+                mov     es:[si+7], ax   ; [es:si+rpRepl4o1Len] ; offset for EAX
+                mov     es:[di+5], ax   ; [es:di+rpRepl5o1Len]
                 add     ax, 4
-                mov     es:[si+0Dh], ax
-                mov     es:[di+0Bh], ax
-                add     word ptr [bp+4], 8
+                mov     es:[si+0Dh], ax ; [es:si+rpRepl4o2Len] ; offset for ESI
+                mov     es:[di+0Bh], ax ; [es:di+rpRepl5o2Len]
+                add     word ptr [bp+4], 8 ; [bp+StackVars.sv_pPatch]
+                                        ; reserve space for 2 dwords in patch area
 
-loc_C8AF:                               ; ...
-                mov     bx, 0C798h
+rpBug3:                                 ; ...
+                mov     bx, offset rpBug3Strs ; BUG 3, locate find6 & find7a code
                 call    FindBadCode
-                jb      short loc_C8E3
-                add     di, 9
-                push    si
-                mov     si, 0C75Bh
-                mov     dx, 3
+                jb      short rpBug4
+                add     di, 9           ; rpFind7aLen + 2 ; skip over offset in find7a
+                push    si              ; code and locate find7b sequence
+                mov     si, offset rpFind7b
+                mov     dx, 3           ; rpFind7bLen
                 call    ScanCodeSeq_di
                 pop     si
-                jnz     short loc_C8E3
-                push    di
+                jnz     short rpBug4
+                push    di              ; save find7b code offset
                 mov     di, si
-                mov     dx, 3
-                mov     si, 0C75Eh
-                mov     cx, 9
-                call    GenPatch
+                mov     dx, 3           ; rpFind6Len
+                mov     si, offset rpRepl6
+                mov     cx, 9           ; rpRepl6Len
+                call    GenPatch        ; patch out find6 code
                 pop     di
-                mov     dx, 3
-                mov     si, 0C767h
-                mov     cx, 9
-                call    GenPatch
+                mov     dx, 3           ; rpFind7bLen
+                mov     si, offset rpRepl7
+                mov     cx, 9           ; rpRepl7Len
+                call    GenPatch        ; patch out find7b code
 
-loc_C8E3:                               ; ...
-                cmp     word ptr [bp+0], 168h
-                jbe     short loc_C911
-                mov     bx, 0C7A2h
+rpBug4:                                 ; ...
+                cmp     word ptr [bp+0], 360 ; BUG 4, only applies if version > 3.60
+                jbe     short rp3Exit   ; and < 3.95
+                mov     bx, offset rpBug4Strs ; locate find8 & find9 code
                 call    FindBadCode
-                jb      short loc_C911
-                push    di
+                jb      short rp3Exit
+                push    di              ; save find9 code offset
                 mov     di, si
                 mov     dx, 3
-                mov     si, 0C77Bh
-                mov     cx, 4
-                call    GenPatch
+                mov     si, offset rpRepl8
+                mov     cx, 4           ; rpRepl8Len
+                call    GenPatch        ; patch out find8 code
                 pop     di
-                mov     bx, [bp+4]
+                mov     bx, [bp+4]      ; [bp+StackVars.sv_pPatch]
+                                        ; patch find9 to jmp to patch area
                 call    GenJump
-                mov     si, 0C77Fh
-                mov     cx, 5
-                call    CopyPatch
+                mov     si, offset rpRepl9 ; copy replacement code to patch area
+                mov     cx, 5           ; rpRepl9Len
+                call    CopyPatch       ; --it does a RET, so no jmp back to main-line
 
-loc_C911:                               ; ...
-                add     sp, 6
+rp3Exit:                                ; ...
+                add     sp, 6           ; StackVars.size
                 pop     ds
                 assume ds:nothing
                 pop     es
@@ -23157,21 +23345,21 @@ loc_C911:                               ; ...
 
 
 FindBadCode     proc near               ; ...
-                mov     cx, [bp+2]
-                mov     si, [bx]
-                mov     dx, [bx+2]
+                mov     cx, [bp+2]      ; [bp+StackVars.sv_cbCodeSeg] ; search length
+                mov     si, [bx]        ; [bx+Searchpair.sp_off1] ; ds:si -> search string
+                mov     dx, [bx+2]      ; [bx+SearchPair.sp_len1] ; dx = search len
                 call    ScanCodeSeq
-                jnz     short fbc_error
-                push    di
-                mov     si, [bx+4]
-                mov     dx, [bx+6]
-                call    ScanCodeSeq_di
-                pop     si
+                jnz     short fbc_error ; done if 1st not found
+                push    di              ; save 1st string offset
+                mov     si, [bx+4]      ; [bx+SearchPair.sp_off2]
+                mov     dx, [bx+6]      ; [bx+SearchPair.sp_len2]
+                call    ScanCodeSeq_di  ; don't change flags after this!
+                pop     si              ; restore 1st string offset
                 jnz     short fbc_error
                 mov     ax, di
-                sub     ax, si
-                jb      short fbc_error
-                cmp     ax, [bx+8]
+                sub     ax, si          ; sanity check that
+                jb      short fbc_error ; si < di && di - si <= allowed diff
+                cmp     ax, [bx+8]      ; [bx+SearchPair.sp_diff]
                 ja      short fbc_error
                 clc
                 retn
@@ -23187,14 +23375,14 @@ FindBadCode     endp
 
 
 GenPatch        proc near               ; ...
-                push    di
-                mov     bx, [bp+4]
-                call    GenJump
-                call    CopyPatch
-                pop     bx
-                add     bx, dx
-                call    GenJump
-                mov     [bp+4], di
+                push    di              ; save offset of buggy code
+                mov     bx, [bp+4]      ; [bp+StackVars.sv_pPatch]
+                call    GenJump         ; jump from buggy code to patch area
+                call    CopyPatch       ; copy replacement code to patch area
+                pop     bx              ; offset of buggy code + buggy code length
+                add     bx, dx          ; = return from patch offset
+                call    GenJump         ; jump from patch area back to main-line code,
+                mov     [bp+4], di      ; [bp+StackVars.sv_pPatch] ; update patch pointer
                 retn
 GenPatch        endp
 
@@ -23204,11 +23392,13 @@ GenPatch        endp
 
 CopyPatch       proc near               ; ...
                 push    cx
-                mov     di, [bp+4]
+                mov     di, [bp+4]      ; [bp+StackVars.sv_pPatch]
+                                        ; patch pointer is the dest offset
                 cld
                 rep movsb
                 pop     cx
-                mov     [bp+4], di
+                mov     [bp+4], di      ; [bp+StackVars.sv_pPatch]
+                                        ; update net pointer location
                 retn
 CopyPatch       endp
 
@@ -23217,12 +23407,12 @@ CopyPatch       endp
 
 
 GenJump         proc near               ; ...
-                mov     al, 0E9h
+                mov     al, 0E9h        ; jmp rel16 opcode
                 stosb
-                mov     ax, bx
+                mov     ax, bx          ; calc offset to 'to' location
                 sub     ax, di
                 sub     ax, 2
-                stosw
+                stosw                   ; output offset
                 retn
 GenJump         endp
 
@@ -23231,7 +23421,8 @@ GenJump         endp
 
 
 ScanCodeSeq     proc near               ; ...
-                mov     di, 200h
+                mov     di, 200h        ; Looks for a pattern pointed to by DS:SI
+                                        ; & len DX in ES:200 to ES:200+CX-1
 
 ScanCodeSeq_di:                         ; ...
                 push    cx
@@ -23261,9 +23452,9 @@ ScanCodeSeq     endp
 
 
 VerifyVersion   proc near               ; ...
-                mov     si, es:2Ah
-                mov     bl, 0Ah
-                add     si, 3
+                mov     si, es:2Ah      ; offset of version number in ascii
+                mov     bl, 10
+                add     si, 3           ; point to last digit
                 call    VVDigit
                 jnz     short vvexit
                 call    VVDigit
@@ -23283,236 +23474,186 @@ VerifyVersion   endp
 
 VVDigit         proc near               ; ...
                 div     bl
-                add     ah, 30h ; '0'
+                add     ah, '0'         ; 30h
                 dec     si
                 cmp     es:[si+1], ah
-                mov     ah, 0
+                mov     ah, 0           ; do not xor or sub we need Z
                 retn
 VVDigit         endp
 
 ; ---------------------------------------------------------------------------
-
-exepatch_start:                         ; ...
-                push    es
-                mov     ax, ds
-                sub     ax, dx
-                mov     ds, ax
-                mov     es, ax
-                mov     di, 0Fh
-                push    di
-                mov     cx, 10h
-                mov     al, 0FFh
-                repe scasb
-                inc     di
-                mov     si, di
-                pop     di
-                pop     ax
-                sub     ax, dx
-                mov     es, ax
-
-loc_C9CF:                               ; ...
-                mov     cx, 204h
-
-loc_C9D2:                               ; ...
-                mov     ax, si
-                not     ax
-                shr     ax, cl
-                jz      short loc_C9ED
-                mov     dx, ds
-                or      si, 0FFF0h
-                sub     dx, ax
-                jnb     short loc_C9EB
-                neg     dx
-                shl     dx, cl
-                sub     si, dx
-                xor     dx, dx
-
-loc_C9EB:                               ; ...
-                mov     ds, dx
-                assume ds:DOSCODE
-
-loc_C9ED:                               ; ...
-                xchg    si, di
-                push    ds
-                push    es
-                pop     ds
-                assume ds:nothing
-                pop     es
-                dec     ch
-                jnz     short loc_C9D2
-                lodsb
-                xchg    ax, dx
-                dec     si
-                lodsw
-                mov     cx, ax
-                inc     si
-                mov     al, dl
-                and     al, 0FEh
-                cmp     al, 0B0h
-                jnz     short loc_CA0B
-                lodsb
-                rep stosb
-                jmp     short loc_CA11
+exepatch_start  db 6                    ; ...
+                db 8Ch, 0D8h
+                db 2Bh, 0C2h
+                db 8Eh, 0D8h
+                db 8Eh, 0C0h
+                db 0BFh, 0Fh, 0
+                db 57h
+                db 0B9h, 10h, 0
+                db 0B0h, 0FFh
+                db 0F3h, 0AEh
+                db 47h
+                db 8Bh, 0F7h
+                db 5Fh
+                db 58h
+                db 2Bh, 0C2h
+                db 8Eh, 0C0h
+                db 0B9h, 4, 2
+                db 8Bh, 0C6h
+                db 0F7h, 0D0h
+                db 0D3h, 0E8h
+                db 74h, 13h
+                db 8Ch, 0DAh
+                db 83h, 0CEh, 0F0h
+                db 2Bh, 0D0h
+                db 73h, 8
+                db 0F7h, 0DAh
+                db 0D3h, 0E2h
+                db 2Bh, 0F2h
+                db 33h, 0D2h
+                db 8Eh, 0DAh
+                db 87h, 0F7h
+                db 1Eh
+                db 6
+                db 1Fh
+                db 7
+                db 0FEh, 0CDh
+                db 75h, 0DBh
+                db 0ACh
+                db 92h
+                db 4Eh
+                db 0ADh
+                db 8Bh, 0C8h
+                db 46h
+                db 8Ah, 0C2h
+                db 24h, 0FEh
+                db 3Ch, 0B0h
+                db 75h, 5
+                db 0ACh
+                db 0F3h, 0AAh
+                db 0EBh, 6
+                db 3Ch, 0B2h
+                db 75h, 6Ch
+                db 0F3h, 0A4h
+                db 92h
+                db 0A8h, 1
+                db 74h, 0B9h
+                db 90h, 90h
+scan_patch1     db 8Ch, 0C3h            ; ...
+                db 8Ch, 0D8h
+                db 2Bh, 0C2h
+                db 8Eh, 0D8h
+                db 8Eh, 0C0h
+                db 0BFh, 0Fh, 0
+                db 0B9h, 10h, 0
+                db 0B0h, 0FFh
+                db 0F3h, 0AEh
+                db 47h
+                db 8Bh, 0F7h
+                db 8Bh, 0C3h
+                db 2Bh, 0C2h
+                db 8Eh, 0C0h
+                db 0BFh, 0Fh, 0
+                db 0B1h, 4
+                db 8Bh, 0C6h
+                db 0F7h, 0D0h
+                db 0D3h, 0E8h
+                db 74h, 9
+                db 8Ch, 0DAh
+                db 2Bh, 0D0h
+                db 8Eh, 0DAh
+                db 83h, 0CEh, 0F0h
+                db 8Bh, 0C7h
+                db 0F7h, 0D0h
+                db 0D3h, 0E8h
+                db 74h, 9
+                db 8Ch, 0C2h
+                db 2Bh, 0D0h
+                db 8Eh, 0C2h
+                db 83h, 0CFh, 0F0h
+scan_patch2     db 8Ch, 0C3h            ; ...
+                db 8Ch, 0D8h
+                db 48h
+                db 8Eh, 0D8h
+                db 8Eh, 0C0h
+                db 0BFh, 0Fh, 0
+                db 0B9h, 10h, 0
+                db 0B0h, 0FFh
+                db 0F3h, 0AEh
+                db 47h
+                db 8Bh, 0F7h
+                db 8Bh, 0C3h
+                db 48h
+                db 8Eh, 0C0h
+                db 0BFh, 0Fh, 0
+                db 0B1h, 4
+                db 8Bh, 0C6h
+                db 0F7h, 0D0h
+                db 0D3h, 0E8h
+                db 74h, 0Ah
+                db 8Ch, 0DAh
+                db 2Bh, 0D0h
+                db 8Eh, 0DAh
+                db 81h, 0CEh, 0F0h, 0FFh
+                db 8Bh, 0C7h
+                db 0F7h, 0D0h
+                db 0D3h, 0E8h
+                db 74h, 0Ah
+                db 8Ch, 0C2h
+                db 2Bh, 0D0h
+                db 8Eh, 0C2h
+                db 81h, 0CFh, 0F0h, 0FFh
+scan_patch3     db 8Ch, 0C3h            ; ...
+                db 8Ch, 0D8h
+                db 48h
+                db 8Eh, 0D8h
+                db 8Eh, 0C0h
+                db 0BFh, 0Fh, 0
+                db 0B9h, 10h, 0
+                db 0B0h, 0FFh
+                db 0F3h, 0AEh
+                db 47h
+                db 8Bh, 0F7h
+                db 8Bh, 0C3h
+                db 48h
+                db 8Eh, 0C0h
+                db 0BFh, 0Fh, 0
+                db 0B1h, 4
+                db 8Bh, 0C6h
+                db 0F7h, 0D0h
+                db 0D3h, 0E8h
+                db 74h, 9
+                db 8Ch, 0DAh
+                db 2Bh, 0D0h
+                db 8Eh, 0DAh
+                db 83h, 0CEh, 0F0h
+                db 8Bh, 0C7h
+                db 0F7h, 0D0h
+                db 0D3h, 0E8h
+                db 74h, 9
+                db 8Ch, 0C2h
+                db 2Bh, 0D0h
+                db 8Eh, 0C2h
+                db 83h, 0CFh, 0F0h
+scan_com        db 0ACh                 ; ...
+                db 8Ah, 0D0h
+                db 4Eh
+                db 0ADh
+                db 8Bh, 0C8h
+                db 46h
+                db 8Ah, 0C2h
+                db 24h, 0FEh
+                db 3Ch, 0B0h
+                db 75h, 6
+                db 0ACh
+                db 0F3h, 0AAh
+                db 0EBh, 7, 90h
+                db 3Ch, 0B2h
+                db 75h, 6Bh
+                db 0F3h, 0A4h
+                db 8Ah, 0C2h
+                db 0A8h, 1
 ; ---------------------------------------------------------------------------
-
-loc_CA0B:                               ; ...
-                cmp     al, 0B2h
-                jnz     short near ptr loc_CA7A+1
-                rep movsb
-
-loc_CA11:                               ; ...
-                xchg    ax, dx
-                test    al, 1
-                jz      short loc_C9CF
-                nop
-                nop
-
-scan_patch1:                            ; ...
-                mov     bx, es
-                mov     ax, ds
-                sub     ax, dx
-                mov     ds, ax
-                mov     es, ax
-                mov     di, 0Fh
-                mov     cx, 10h
-                mov     al, 0FFh
-                repe scasb
-                inc     di
-                mov     si, di
-                mov     ax, bx
-                sub     ax, dx
-                mov     es, ax
-                mov     di, 0Fh
-                mov     cl, 4
-                mov     ax, si
-                not     ax
-                shr     ax, cl
-                jz      short loc_CA4B
-                mov     dx, ds
-                sub     dx, ax
-                mov     ds, dx
-                assume ds:nothing
-                or      si, 0FFF0h
-
-loc_CA4B:                               ; ...
-                mov     ax, di
-                not     ax
-                shr     ax, cl
-                jz      short scan_patch2
-                mov     dx, es
-                sub     dx, ax
-                mov     es, dx
-                assume es:nothing
-                or      di, 0FFF0h
-
-scan_patch2:                            ; ...
-                mov     bx, es
-                mov     ax, ds
-                dec     ax
-                mov     ds, ax
-                assume ds:nothing
-                mov     es, ax
-                mov     di, 0Fh
-                mov     cx, 10h
-                mov     al, 0FFh
-                repe scasb
-                inc     di
-                mov     si, di
-                mov     ax, bx
-                dec     ax
-                mov     es, ax
-                assume es:nothing
-                mov     di, 0Fh
-
-loc_CA7A:                               ; ...
-                mov     cl, 4
-                mov     ax, si
-                not     ax
-                shr     ax, cl
-                jz      short loc_CA8E
-                mov     dx, ds
-                sub     dx, ax
-                mov     ds, dx
-                assume ds:nothing
-                or      si, 0FFF0h
-
-loc_CA8E:                               ; ...
-                mov     ax, di
-                not     ax
-                shr     ax, cl
-                jz      short loc_CAA0
-                mov     dx, es
-                sub     dx, ax
-                mov     es, dx
-                assume es:nothing
-                or      di, 0FFF0h
-
-loc_CAA0:                               ; ...
-                mov     bx, es
-                mov     ax, ds
-                dec     ax
-                mov     ds, ax
-                assume ds:nothing
-                mov     es, ax
-                assume es:nothing
-                mov     di, 0Fh
-                mov     cx, 10h
-                mov     al, 0FFh
-                repe scasb
-                inc     di
-                mov     si, di
-                mov     ax, bx
-                dec     ax
-                mov     es, ax
-                assume es:nothing
-                mov     di, 0Fh
-                mov     cl, 4
-                mov     ax, si
-                not     ax
-                shr     ax, cl
-                jz      short loc_CAD1
-                mov     dx, ds
-                sub     dx, ax
-                mov     ds, dx
-                assume ds:nothing
-                or      si, 0FFF0h
-
-loc_CAD1:                               ; ...
-                mov     ax, di
-                not     ax
-                shr     ax, cl
-                jz      short scan_com
-                mov     dx, es
-                sub     dx, ax
-                mov     es, dx
-                assume es:nothing
-                or      di, 0FFF0h
-
-scan_com:                               ; ...
-                lodsb
-                mov     dl, al
-                dec     si
-                lodsw
-                mov     cx, ax
-                inc     si
-                mov     al, dl
-                and     al, 0FEh
-                cmp     al, 0B0h
-                jnz     short loc_CAF8
-                lodsb
-                rep stosb
-                jmp     short loc_CAFE
-; ---------------------------------------------------------------------------
-                nop
-
-loc_CAF8:                               ; ...
-                cmp     al, 0B2h
-                jnz     short near ptr loc_CB66+1
-                rep movsb
-
-loc_CAFE:                               ; ...
-                mov     al, dl
-                test    al, 1
 
 ExePatch:                               ; ...
                 call    ExePackPatch
@@ -23524,10 +23665,10 @@ ExePatch:                               ; ...
 
 ExePackPatch    proc near               ; ...
                 push    bx
-                mov     bx, es
-                cmp     bx, 0FFFh
-                jbe     short ep_contep_cont
-                pop     bx
+                mov     bx, es          ; bx has load segment
+                cmp     bx, 0FFFh       ; Q: is the load segment > 64K
+                jbe     short ep_contep_cont ; N:
+                pop     bx              ; Y: no need to patch
                 retn
 ; ---------------------------------------------------------------------------
 
@@ -23538,17 +23679,17 @@ ep_contep_cont:                         ; ...
                 push    cx
                 push    si
                 push    di
-                sub     cx, 2
-                jnb     short epp_1
-                jmp     ep_notpacked
+                sub     cx, 2           ; Q: is IP >=2
+                jnb     short epp_1     ; N: exit
+                jmp     ep_notpacked    ; ax:cx now points to location of
+                                        ; 'RB' if this is an exepacked file.
 ; ---------------------------------------------------------------------------
 
 epp_1:                                  ; ...
                 mov     di, cx
                 mov     es, ax
-                assume es:nothing
-                mov     ss:UNPACK_OFFSET, di
-                cmp     word ptr es:[di], 4252h
+                mov     ss:UNPACK_OFFSET, di ; save pointer to 'RB' in unpack_offset
+                cmp     word ptr es:[di], 4252h ; 'RB'
                 jz      short epp_2
                 jmp     ep_notpacked
 ; ---------------------------------------------------------------------------
@@ -23557,88 +23698,110 @@ epp_2:                                  ; ...
                 push    cs
                 pop     ds
                 assume ds:DOSCODE
-                add     di, 6Ch
-                call    chk_common_str
-                jnz     short ep_chkpatch2
-                mov     si, offset scan_patch1
-                mov     di, ss:UNPACK_OFFSET
-                add     di, 28h
-                mov     cl, 68
-                mov     bx, 142
-                mov     ax, 0EF4Eh
-                call    chk_patchsum
-                jb      short ep_done1
-                mov     si, offset exepatch_start
-                mov     cl, 102
+                add     di, 6Ch         ; PATCH1_COM_OFFSET
+                                        ; es:di -> points to place in packed file
+                                        ; where we hope to find scan string.
+                call    chk_common_str  ; check for match
+                jnz     short ep_chkpatch2 ; Q: does the patch match
+                                        ; N: check at patch2_offset
+                                        ; Y: check for rest of patch string
+                mov     si, offset scan_patch1 ; ds:si -> scan string
+                mov     di, ss:UNPACK_OFFSET ; restore di to point to 'RB'
+                add     di, 28h         ; PATCH1_OFFSET
+                                        ; es:di -> points to place in packed file
+                                        ; where we hope to find scan string.
+                mov     cl, 68          ; size_scan_patch1
+                mov     bx, 142         ; CHKSUM1_LEN
+                mov     ax, 0EF4Eh      ; PATCH1_CHKSUM
+                call    chk_patchsum    ; check if patch and chk sum compare
+                jb      short ep_done1  ; Q: did we pass the test
+                                        ; N: exit
+                                        ; Y: overlay code with new
+                mov     si, offset exepatch_start ; str1
+                mov     cl, 102         ; size_str1
                 rep movsb
 
 ep_done1:                               ; ...
-                jmp     short ep_notpacked
+                jmp     short ep_notpacked ; ep_done
 ; ---------------------------------------------------------------------------
                 nop
 
 ep_chkpatch2:                           ; ...
-                mov     di, 76h
-
-loc_CB66:                               ; ...
-                call    chk_common_str
-                jnz     short ep_chkpatch3
-                mov     si, offset scan_patch2
-                mov     di, 32h
-                mov     cl, 68
-                mov     bx, 8Ch
-                mov     ax, 78B2h
-                call    chk_patchsum
-                jnb     short ep_patchcode2
-                mov     si, offset scan_patch2
-                mov     cl, 68
-                mov     bx, 129
-                mov     ax, 1C47h
-                call    chk_patchsum
+                mov     di, 76h         ; PATCH2_COM_OFFSET
+                                        ; es:di -> possible location of patch
+                                        ; in another version of unpack
+                call    chk_common_str  ; check for match
+                jnz     short ep_chkpatch3 ; Q: does the patch match
+                                        ; N: check for patch3_offset
+                                        ; Y: check for rest of patch string
+                mov     si, offset scan_patch2 ; ds:si -> scan string
+                mov     di, 32h         ; PATCH2_OFFSET
+                                        ; es:di -> points to place in packed file
+                                        ; where we hope to find scan string.
+                mov     cl, 68          ; size_scan_patch2
+                mov     bx, 140         ; CHKSUM2_LEN
+                mov     ax, 78B2h       ; PATCH2_CHKSUM
+                call    chk_patchsum    ; check if patch and chk sum compare
+                jnb     short ep_patchcode2 ; Q: did we pass the test
+                                        ; Y: overlay code with new
+                                        ; N: try with a different chksum
+                mov     si, offset scan_patch2 ; ds:si -> scan string
+                mov     cl, 68          ; size_scan_patch2
+                mov     bx, 129         ; CHKSUM2A_LEN
+                mov     ax, 1C47h       ; PATCH2A_CHKSUM
+                call    chk_patchsum    ; check if patch and chk sum compare
                 jb      short ep_notpacked
 
 ep_patchcode2:                          ; ...
                 mov     si, offset exepatch_start ; str1
-                mov     cl, 3
+                mov     cl, 3           ; first_stop
                 rep movsb
-                mov     ax, 4890h
+                mov     ax, 4890h       ; ax = opcodes for dec ax, nop
                 stosw
                 inc     si
                 inc     si
-                mov     cl, 20
+                mov     cl, 20          ; second_stop
                 rep movsb
-                stosw
+                stosw                   ; put in dec ax and nop
                 inc     si
                 inc     si
                 mov     cl, 75
                 rep movsb
-                jmp     short ep_notpacked
+                jmp     short ep_notpacked ; ep_done
 ; ---------------------------------------------------------------------------
 
 ep_chkpatch3:                           ; ...
-                mov     di, 74h
-                call    chk_common_str
-                jnz     short ep_notpacked
-                mov     si, 0CAA0h
-                mov     di, 32h
-                mov     cl, 66
-                mov     bx, 139
-                mov     ax, 4EDEh
-                call    chk_patchsum
-                jb      short ep_notpacked
+                mov     di, 74h         ; PATCH3_COM_OFFSET
+                                        ; es:di -> possible location of patch
+                                        ; in another version of unpack
+                call    chk_common_str  ; check for match
+                jnz     short ep_notpacked ; Q: does the patch match
+                                        ; N: exit
+                                        ; Y: check for rest of patch string
+                mov     si, offset scan_patch3 ; ds:si -> scan string
+                mov     di, 32h         ; PATCH3_OFFSET
+                                        ; es:di -> points to place in packed file
+                                        ; where we hope to find scan string.
+                mov     cl, 66          ; size_scan_patch3
+                mov     bx, 139         ; CHKSUM3_LEN
+                mov     ax, 4EDEh       ; PATCH3_CHKSUM
+                call    chk_patchsum    ; check if patch and chk sum compare
+                jb      short ep_notpacked ; Q: did we pass the test
+                                        ; N: exit
+                                        ; Y: overlay code with new
                 mov     si, offset exepatch_start ; str1
-                mov     cl, 3
+                mov     cl, 3           ; first_stop
                 rep movsb
-                mov     al, 48h
+                mov     al, 48h         ; al = opcode for dec ax
                 stosb
+                inc     si              ; add si,2
                 inc     si
-                inc     si
-                mov     cl, 20
+                mov     cl, 20          ; second_stop
                 rep movsb
-                stosb
+                stosb                   ; put in dec ax
                 inc     si
                 inc     si
-                mov     cl, 75
+                mov     cl, 75          ; last_stop
                 rep movsb
 
 ep_notpacked:                           ; ...
@@ -23659,10 +23822,10 @@ ExePackPatch    endp
 
 chk_common_str  proc near               ; ...
                 mov     si, offset scan_com
-                mov     cx, 32
+                mov     cx, 32          ; size_scan_com
                 repe cmpsb
                 jz      short ccs_done
-                cmp     byte ptr es:[di-1], 56h ; 'V'
+                cmp     byte ptr es:[di-1], 56h
                 jnz     short ccs_done
                 repe cmpsb
 
@@ -23677,25 +23840,28 @@ chk_common_str  endp
 chk_patchsum    proc near               ; ...
                 push    di
                 repe cmpsb
-                jnz     short loc_CC14
-                mov     di, ss:87h
-                mov     cx, bx
-                mov     bx, ax
+                jnz     short cp_fail   ; Q: does the patch match
+                                        ; N: exit
+                                        ; Y:
+                mov     di, ss:UNPACK_OFFSET ; di -> start of unpack code
+                mov     cx, bx          ; cx = length of check sum
+                mov     bx, ax          ; save check sum passed to us in bx
                 xor     ax, ax
 
-loc_CC06:                               ; ...
+ep_chksum:                              ; ...
                 add     ax, es:[di]
                 inc     di
                 inc     di
-                loop    loc_CC06
+                loop    ep_chksum
                 pop     di
-                cmp     ax, bx
-                jnz     short loc_CC14
+                cmp     ax, bx          ; Q: does the check sum match
+                jnz     short cp_fail   ; N: exit
+                                        ; Y:
                 clc
                 retn
 ; ---------------------------------------------------------------------------
 
-loc_CC14:                               ; ...
+cp_fail:                                ; ...
                 stc
                 retn
 chk_patchsum    endp
@@ -23712,31 +23878,32 @@ RationalPatch:                          ; ...
                 pusha
                 push    es
                 push    ds
-                mov     di, 0Ah
+                mov     di, 0Ah         ; look for pat1 at offset 0Ah
                 push    cs
                 pop     ds
                 assume ds:DOSCODE
                 mov     si, offset RScanPattern1
                 mov     cx, 10
-                repe cmpsb
-                jnz     short rpexit
+                repe cmpsb              ; do we have the pattern ?
+                jnz     short rpexit    ; no
                 mov     ax, es:0
-                cmp     ax, 348
+                cmp     ax, 348         ; is it a buggy version ?
                 jb      short rpexit
-                cmp     ax, 383
+                cmp     ax, 383         ; is it a buggy version ?
                 ja      short rpexit
                 call    VerifyVersion
                 jnz     short rpexit
-                mov     cx, es:16h
-                sub     cx, 200h
-                mov     es, word ptr es:20h
+                mov     cx, es:16h      ; Length of buggy code seg
+                sub     cx, 200h        ; Length we search
+                                        ; (we start at offset 200h)
+                mov     es, word ptr es:20h ; es=buggy code segment
                 mov     si, offset RScanPattern2
-                mov     dx, 8
-                call    ScanCodeSeq
+                mov     dx, 8           ; RLen2
+                call    ScanCodeSeq     ; look for code seq with nop
                 jz      short rpfound
                 mov     si, offset RScanPattern3
-                mov     dx, 0Fh
-                call    ScanCodeSeq
+                mov     dx, 15          ; RLen3
+                call    ScanCodeSeq     ; look for code seq w/o nop
                 jnz     short rpexit
 
 rpfound:                                ; ...
@@ -23817,29 +23984,33 @@ ParaRound       endp
 WhatCPUType     proc near               ; ...
                 pushf
                 push    bx
-                xor     bx, bx
-                xor     ax, ax
+                xor     bx, bx          ; 0
+                xor     ax, ax          ; 0
+                push    ax              ; AX = 0 ; put it on the stack
+                popf                    ; shove it into the flags
+                pushf                   ; it back out of the flags
+                pop     ax              ; and into ax
+                and     ax, 0F000h      ; mask off high four bits
+                cmp     ax, 0F000h      ; was it all 1's?
+                jz      short cpu_8086  ; yes ; it's an 8086 or 8088
+                mov     ax, 0F000h      ; now try to set the high four bit
                 push    ax
                 popf
                 pushf
-                pop     ax
-                and     ax, 0F000h
-                cmp     ax, 0F000h
-                jz      short loc_CD0D
-                mov     ax, 0F000h
-                push    ax
-                popf
-                pushf
-                pop     ax
-                and     ax, 0F000h
-                jz      short loc_CD0C
+                pop     ax              ; and see what happens
+                and     ax, 0F000h      ; any high bits set ?
+                jz      short cpu_286   ; no ; it's an 80286
+
+cpu_386:
                 inc     bx
 
-loc_CD0C:                               ; ...
+cpu_286:                                ; ...
                 inc     bx
 
-loc_CD0D:                               ; ...
-                mov     ax, bx
+cpu_8086:                               ; ...
+                mov     ax, bx          ; AX = 0 if 8086 or 8088
+                                        ;    = 1 if 80286
+                                        ;    = 2 if 80386
                 pop     bx
                 popf
                 retn
@@ -23879,8 +24050,8 @@ DOSINIT:                                ; ...
                 pop     es
                 assume es:nothing
                 pop     ds
-                mov     ds:BiosComBlockPtr, di ; CURRENT_DOS_LOCATION (offset = 0)
-                mov     ds:BiosComBlockPtr+2, bx ; CURRENT_DOS_LOCATION (segment)
+                mov     ds:BiosDataPtr, di ; CURRENT_DOS_LOCATION (offset = 0)
+                mov     ds:BiosDataPtr+2, bx ; CURRENT_DOS_LOCATION (segment)
                 mov     cs:DosDSeg, ds
                 mov     cs:LowInt23_SEG, ds
                 mov     cs:LowInt24_SEG, ds
@@ -23895,11 +24066,11 @@ DOSINIT:                                ; ...
                 mov     ds:FixExePatch, ax
                 mov     ds:RationalPatchPtr, ax
                 mov     ds:ChkCopyProt, ax
-                call    WhatCPUType
-                cmp     al, 2
-                mov     ax, offset Rational386Patch
+                call    WhatCPUType     ; get cpu type (0 < 286,1==286,2 >= 386)
+                cmp     al, 2           ; 386 or later?
+                mov     ax, offset Rational386Patch ; yes
                 jnb     short di_set_patch
-                mov     ax, offset RetExePatch
+                mov     ax, offset RetExePatch ; < 386, don't need this patch
 
 di_set_patch:                           ; ...
                 mov     ds:Rational386PatchPtr, ax
@@ -23907,92 +24078,93 @@ di_set_patch:                           ; ...
                 mov     ds:TEMP_DOSLOC, ax
                 mov     ds:NULDEV+2, es
                 mov     ds:NULDEV, si
-                mov     ds:word_EF1, ds
+                mov     ds:Win386_Info_16, ds ; [Win386_Info+14+2]
+                                        ; [Win386_Info+Win386_SIS.Instance_Data_Ptr+2]
                 push    si
                 mov     cx, 7
-                mov     si, offset InsTBL_CONTPOS_seg
+                mov     si, offset InsTBL_CONTPOS_seg ; Instance_Table+2
 
 Instance_init_loop:                     ; ...
-                mov     word ptr [si], ds
-                add     si, 6
+                mov     word ptr [si], ds ; set offset in instance entry
+                add     si, 6           ; size_of_Win386_IIS ; move on to next entry
                 loop    Instance_init_loop
-                mov     cx, 5
-                mov     si, offset OldInstanceJunk_6
+                mov     cx, 5           ; five entries in the instance table
+                mov     si, offset OldInstanceJunk_6 ; OldInstanceJunk+6
 
 OldInstance_init_loop:                  ; ...
-                mov     word ptr [si], ds
-                add     si, 6
+                mov     word ptr [si], ds ; set offset in instance entry
+                add     si, 6           ; move on to next entry
                 loop    OldInstance_init_loop
-                pop     si
+                pop     si              ; restore pointer to device chain
                 push    es
                 pop     ds
                 push    ds
-                xor     ax, ax
-                mov     ds, ax
+                xor     ax, ax          ; 0
+                mov     ds, ax          ; point DS to int vector table
                 assume ds:DOSCODE
-                mov     ax, 0CCDEh
-                mov     word ptr 0:0A8h, ax
+                mov     ax, offset initiret
+                mov     word ptr 0:0A8h, ax ; [2Ah*4]
                 mov     ax, cs
-                mov     word ptr 0:0A8+2, ax
-                pop     ds
+                mov     word ptr 0:0A8+2, ax ; [(2Ah*4)+2]
+                pop     ds              ; restore segment of device chain
                 assume ds:nothing
-                call    CHARINIT
-                push    si
-                push    ss
+                call    CHARINIT        ; initialize console driver
+                push    si              ; save pointer to header
+                push    ss              ; move pointer to dos data...
                 pop     es
-                mov     di, offset SFT0_SFTable
-                mov     ax, 3
+                mov     di, offset SFT0_SFTable ; SFTABL+SFT.SFTable ; Point to sft 0
+                mov     ax, 3           ; Refcount
                 stosw                   ; SF_ENTRY.sf_ref_count
-                dec     al
+                dec     al              ; ax = 2 ; Access rd/wr, compatibility
                 stosw                   ; .sf_mode
-                xor     al, al
+                xor     al, al          ; 0
                 stosb                   ; .sf_attr
-                mov     al, 0C3h
+                mov     al, 0C3h        ; devid_device_EOF|devid_device|ISCIN|ISCOUT
                 stosw                   ; .sf_flags
-                mov     ax, si
+                mov     ax, si          ; device pointer in devptr
                 stosw                   ; .sf_devptr
                 mov     ax, ds
                 stosw                   ; SFT0_SFTable + 9 ; .sf_devptr_hw
                 xor     ax, ax          ; 0
-                add     di, 32
-                stosw                   ; SFT0_SFTable + 43 ; .sf_position
-                stosw                   ; .sf_position_hw
-                add     di, -34         ; 0FFDEh
-                stosw                   ; SFT0_SFTable + 13 ; .sf_firclus
-                stosw                   ; .sf_firclus_hw
-                dec     ax              ; -1
-                stosw                   ; SFT0_SFTable + 17 ; .sf_time
+                add     di, 32          ; SFTABL+SFT.SFTable + 43
+                stosw                   ; SFT0_SFTable + 43 ; SF_ENTRY.sf_fclus32
+                stosw                   ; .sf_fclus32 + 2
+                add     di, -34         ; 0FFDEh ; SFTABL+SFT.SFTable + 13
+                stosw                   ; SFT0_SFTable + 13 ; SF_ENTRY.sf_time
                 stosw                   ; .sf_date
+                dec     ax              ; -1
+                stosw                   ; SFT0_SFTable + 17 ; .sf_size
+                stosw                   ; .sf_size + 2
                 inc     ax              ; 0
-                stosw                   ; SFT0_SFTable + 21 ; .sf_size
-                stosw                   ; .sf_size_hw
+                stosw                   ; SFT0_SFTable + 21 ; .sf_position
+                stosw                   ; .sf_position + 2
                 add     di, 7           ; SF_ENTRY.sf_name-SF_ENTRY.sf_cluspos
                                         ; SFT0_SFTable + 32
                 add     si, 10          ; SYSDEV.NAME
                 mov     cx, 4
-                rep movsw
+                rep movsw               ; name
                 mov     cl, 3
-                mov     al, 20h ; ' '
+                mov     al, 20h ; ' '   ; extension
                 rep stosb               ; SFT0_SFTable + 40
-                pop     si
+                pop     si              ; get back pointer to header
                 or      byte ptr [si+4], 3 ; ISCIN|ISCOUT
                 mov     word ptr ss:BCON, si
                 mov     word ptr ss:BCON+2, ds
 
 CHAR_INIT_LOOP:                         ; ...
-                lds     si, [si]
+                lds     si, [si]        ; AUX device
                 call    CHARINIT
-                test    byte ptr [si+4], 8
+                test    byte ptr [si+4], 8 ; [SI+SYSDEV.ATT],ISCLOCK
                 jz      short CHAR_INIT_LOOP
                 mov     word ptr ss:BCLOCK, si
                 mov     word ptr ss:BCLOCK+2, ds
-                mov     bp, 1346h       ; MEMSTRT ; ES:BP points to DPB
-                mov     word ptr ss:DPBHEAD, bp
+                mov     bp, 1346h       ; MSDAT001E ; ES:BP points to DPB
+                mov     word ptr ss:DPBHEAD, bp ; pointer to DPB's
                 mov     word ptr ss:DPBHEAD+2, es
 
 PERDRV:                                 ; ...
-                lds     si, [si]
-                cmp     si, 0FFFFh
+                lds     si, [si]        ; [SI+SYSDEV.NEXT] ; Next device
+                cmp     si, 0FFFFh      ; -1
                 jnz     short PERDRV2
                 jmp     CONTINIT
 ; ---------------------------------------------------------------------------
@@ -24000,12 +24172,12 @@ PERDRV:                                 ; ...
 PERDRV2:                                ; ...
                 call    CHARINIT
                 test    word ptr [si+4], 8000h ; [SI+SYSDEV.ATT],DEVTYP
-                jnz     short PERDRV
+                jnz     short PERDRV    ; Skip any other character devs
                 mov     cl, ss:CALLUNIT
                 xor     ch, ch
                 mov     [si+10], cl     ; [si+SYSDEV.NAME]
                 mov     dl, ss:NUMIO
-                xor     dh, dh
+                xor     dh, dh          ; 0
                 add     ss:NUMIO, cl
                 push    ds
                 push    si
@@ -24014,7 +24186,7 @@ PERDRV2:                                ; ...
 PERUNIT:                                ; ...
                 mov     si, [bx]        ; DS:SI Points to BPB
                 inc     bx
-                inc     bx
+                inc     bx              ; On to next BPB
                 mov     es:[bp+0], dl   ; DPB.DRIVE
                 mov     es:[bp+1], dh   ; DPB.UNIT
                 push    bx
@@ -24022,22 +24194,23 @@ PERUNIT:                                ; ...
                 push    dx
                 mov     dx, 4152h       ; 'RA'
                 xor     cx, cx          ; 0
-                mov     es:[bp+29], cx
-                cmp     [si+11], cx     ; BPB_FATSz16
+                mov     es:[bp+29], cx  ; [es:bp+DPB.NEXT_FREE]
+                cmp     [si+11], cx     ; BPB_FATSz16 ; [si+A_BPB.SECTORSPERFAT]
                 jnz     short PERUNIT2  ; FAT (FAT12 or FAT16) -old DPB-
-                mov     es:[bp+57], cx  ; FAT32 -new- DPB
-                mov     es:[bp+59], cx
-                dec     cx
-                mov     es:[bp+31], cx
-                mov     es:[bp+33], cx
+                                        ; FAT32 -new- DPB
+                mov     es:[bp+57], cx  ; [es:bp+DPB.FAT32_NXTFREE]
+                mov     es:[bp+59], cx  ; [es:bp+DPB.FAT32_NXTFREE+2]
+                dec     cx              ; 0FFFFh  ; -1
+                mov     es:[bp+31], cx  ; [es:bp+DPB.FREE_CNT]
+                mov     es:[bp+33], cx  ; [es:bp+DPB.FREE_CNT_HW]
                 mov     cx, 4558h       ; 'XE'
 
 PERUNIT2:                               ; ...
-                call    $SETDPB
-                mov     ax, es:[bp+2]
-                cmp     ax, ss:MAXSEC
-                jbe     short NOTMAX
-                mov     ss:MAXSEC, ax
+                call    $SETDPB         ; build DPB!
+                mov     ax, es:[bp+2]   ; [ES:BP+DPB.SECTOR_SIZE]
+                cmp     ax, ss:MAXSEC   ; Q:is this the largest sector so far
+                jbe     short NOTMAX    ; N:
+                mov     ss:MAXSEC, ax   ; Y: save it in maxsec
 
 NOTMAX:                                 ; ...
                 mov     ax, bp
@@ -24048,7 +24221,7 @@ NOTMAX:                                 ; ...
                 pop     dx
                 pop     cx
                 pop     bx
-                mov     ax, ds
+                mov     ax, ds          ; save segment of bpb array
                 pop     si
                 pop     ds
                 mov     es:[bp+19], si  ; DPB.DRIVER_ADDR offset
@@ -24060,7 +24233,7 @@ NOTMAX:                                 ; ...
                 mov     ds, ax
                 add     bp, 61          ; DPBSIZ
                 loop    PERUNIT
-                pop     si
+                pop     si              ; restore pointer to device header
                 pop     ds
                 jmp     PERDRV
 ; ---------------------------------------------------------------------------
@@ -24069,27 +24242,29 @@ CONTINIT:                               ; ...
                 sub     bp, 61          ; sub bp,DPBSIZ ; back up to last dpb
                 mov     ax, 0FFFFh
                 mov     [bp+25], ax     ; [bp+DPB.NEXT_DPB],-1
-                mov     [bp+27], ax
-                add     bp, 61
+                mov     [bp+27], ax     ; [bp+DPB.NEXT_DPB+2],-1
+                add     bp, 61          ; DPBSIZ ; advance to free memory again
+                                        ; the DPB chain is done.
                 push    ss
                 pop     ds
                 mov     ax, bp
-                call    ParaRound
-                mov     dx, ds
-                add     dx, ax
+                call    ParaRound       ; round up to segment
+                mov     dx, ds          ; dx = dosdata segment
+                add     dx, ax          ; dx = ds+ax first free segment
                 mov     bx, 0Fh
                 mov     cx, ds:ENDMEM
                 mov     ds:DOSSEG_INIT, ds ; [DSKCHRET+3]
-                push    dx
-                mov     ax, ds:TEMP_DOSLOC
-                mov     es, ax
-                mov     ds:TEMP_DOSLOC, 0FFFFh
-                call    patch_vec_segments
-                call    patch_misc_segments
-                mov     ds:TEMP_DOSLOC, es
-                pop     dx
+                push    dx              ; preserve first free segment
+                mov     ax, ds:TEMP_DOSLOC ; ax = segment to patch in
+                mov     es, ax          ; es = segment of DOS
+                mov     ds:TEMP_DOSLOC, 0FFFFh ; -1 means first call to patch_misc_segments
+                call    patch_vec_segments ; uses AX as doscode segment
+                call    patch_misc_segments ; patch in segments for sharer and
+                                        ; other tables with seg in ES.
+                mov     ds:TEMP_DOSLOC, es ; put back segment of dos code
+                pop     dx              ; restore first free segment
                 xor     ax, ax
-                mov     ds, ax
+                mov     ds, ax          ; 0
                 assume ds:DOSCODE
                 mov     es, ax          ; 0
                 assume es:DOSCODE
@@ -24101,23 +24276,23 @@ CONTINIT:                               ; ...
                 mov     word ptr 0, offset DIVOV
                 mov     di, 80h         ; INTBASE
                 mov     ax, offset irett
-                mov     cx, 9
+                mov     cx, 9           ; sets offsets for ints 20h-28h
 
 iset1:                                  ; ...
                 stosw
                 inc     di
                 inc     di
                 loop    iset1
-                add     di, 4
-                mov     cx, 6
+                add     di, 4           ; skip vector 29h
+                mov     cx, 6           ; sets offsets for ints 2Ah-2Fh
 
 iset2:                                  ; ...
                 stosw
                 inc     di
                 inc     di
                 loop    iset2
-                add     di, 8
-                mov     cx, 14
+                add     di, 8           ; skip vector 30h & 31h
+                mov     cx, 14          ; sets offsets for ints 32h-3Fh
 
 iset3:                                  ; ...
                 stosw
@@ -24142,35 +24317,36 @@ iset3:                                  ; ...
                 push    ss
                 pop     es
                 assume es:nothing
-                push    dx
-                inc     dx
-                mov     ds:CurrentPDB, dx
-                xor     di, di
-                mov     es, dx
+                push    dx              ; remember address of arena
+                inc     dx              ; leave room for arena header
+                mov     ds:CurrentPDB, dx ; set current pdb
+                xor     di, di          ; 0
+                mov     es, dx          ; point es:di at end of memory where psp will be
                 xor     ax, ax
-                mov     cx, 128
-                rep stosw
+                mov     cx, 128         ; psp is 128 words
+                rep stosw               ; zero out psp area
                 mov     ax, ds:ENDMEM
-                call    SETMEM
+                call    SETMEM          ; build psp at dx; ax is memory size
                 push    ss
                 pop     ds
                 mov     di, 24          ; PDB.JFN_TABLE
-                xor     ax, ax
-                stosw
-                stosb
+                xor     ax, ax          ; es:di -> pdb_jfn_table in psp
+                stosw                   ; 0
+                stosb                   ; 0,1 and 2 are con device
                 mov     al, 0FFh
                 mov     cx, 17          ; FILPERPROC-3
-                rep stosb
+                rep stosb               ; rest are unused
                 push    ss
                 pop     es
                 mov     word ptr ds:SFT_ADDR+2, ds
-                mov     si, offset SysInitTable
+                mov     si, offset SysInitTable ; Fill in the segment addresses of sysinitvar
+                                        ; and country_cdpg in sysinittable
                 mov     word ptr es:[si+6], es ; [es:si+SYSI_EXT.Country_Tab+2]
                 mov     word ptr es:[si+2], es ; [es:si+SYSI_EXT.SysInitVars+2]
                 mov     word ptr es:BUFFHEAD+2, es
-                mov     si, offset BufferQueue
+                mov     si, offset BufferQueue ; HASHINITVAR
                 mov     word ptr es:BUFFHEAD, si
-                pop     dx
+                pop     dx              ; restore address of arena
                 mov     word ptr ds:DMAADD+2, dx
                 mov     es:arena_head, dx
                 mov     ds, dx
@@ -24179,13 +24355,13 @@ iset3:                                  ; ...
                 mov     ax, ss:ENDMEM
                 sub     ax, dx
                 dec     ax
-                mov     ds:3, ax
+                mov     ds:3, ax        ; [ARENA.SIZE]
                 mov     di, offset SFT0_SFTable ; SFTABL+SFT.SFTable
                 mov     ax, 3
-                stosw
+                stosw                   ; adjust refcount
                 mov     di, offset SysInitTable
-                inc     dx
-                mov     ds, dx
+                inc     dx              ; advance dx from arena to psp
+                mov     ds, dx          ; point ds to psp
                 mov     dx, offset _seg_reinit
                 mov     cx, offset exepatch_start
                 sub     cx, offset $STARTCODE ; sub cx, 3F10h
@@ -24264,17 +24440,19 @@ num_entry       db 0                    ; ...
 _seg_reinit:                            ; ...
                 push    ds
                 mov     ds, cs:DosDSeg
-                call    patch_misc_segments
+                call    patch_misc_segments ; patch in segments for sharer and
+                                        ; other tables with seg in ES.
                 or      ax, ax
-                jnz     short patch_vec_seg
-                cmp     cs:num_entry, al
-                jnz     short second_entry
+                jnz     short patch_vec_seg ; patch vectors with segment in es
+                cmp     cs:num_entry, al ; Q: is it the first call to this
+                jnz     short second_entry ; N: just patch the stub with segment in ES
+                                        ; Y: patch the vectors with stub
                 mov     ax, ds
-                call    patch_vec_segments
-                call    patch_offset
+                call    patch_vec_segments ; patch the segment of vectors
+                call    patch_offset    ; patch the offsets of vectors
 
 second_entry:                           ; ...
-                mov     ax, es
+                mov     ax, es          ; patch the stub with segment in es
                 mov     di, offset DOSINTTABLE
                 mov     cx, 8
                 push    ds
@@ -24285,29 +24463,32 @@ dosinttabloop:                          ; ...
                 inc     di
                 stosw
                 loop    dosinttabloop
-                cmp     ax, 0F000h
-                jb      short sr_done
-                call    check_XMM
-                jb      short sr_done
-                call    patch_in_nops
-                mov     ds:DosHasHMA, 1
-                mov     ds:FixExePatch, offset ExePatch
-                mov     ds:ChkCopyProt, offset IsCopyProt
+                cmp     ax, 0F000h      ; Q: is the DOS running in the HMA
+                jb      short sr_done   ; N: done
+                call    check_XMM       ; Y: set up the XMS entry point
+                jb      short sr_done   ; failed to set up XMS do not do
+                                        ; A20 toggling in the stub.
+                call    patch_in_nops   ; enable the stub to check A20 state
+                mov     ds:DosHasHMA, 1 ; set flag telling DOS control of HMA
+                mov     ds:FixExePatch, offset ExePatch ; set pointer to the routine that
+                                        ; patches buggy exepacked code.
+                mov     ds:ChkCopyProt, offset IsCopyProt ; set pointer to the routine
+                                        ; that detects copy protected apps
                 call    WhatCPUType
                 cmp     al, 1
-                jnz     short sr_done
+                jnz     short sr_done   ; we need Rational Patch only on 286 systems
                 mov     ds:RationalPatchPtr, offset RationalPatch
                 jmp     short sr_done
 ; ---------------------------------------------------------------------------
 
 patch_vec_seg:                          ; ...
-                mov     ax, es
-                call    patch_vec_segments
+                mov     ax, es          ; patch vectors with segment in es
+                call    patch_vec_segments ; patch in DOSCODE for the segments
 
 sr_done:                                ; ...
                 mov     cs:num_entry, 1
                 pop     ds
-                retf
+                retf                    ; ! far return !
 
 ; =============== S U B R O U T I N E =======================================
 
@@ -24317,36 +24498,36 @@ patch_vec_segments proc near            ; ...
                 xor     cx, cx
                 mov     es, cx
                 assume es:DOSCODE
-                mov     di, 82h         ; INTBASE+2
-                mov     word ptr es:2, ax
+                mov     di, 82h         ; INTBASE+2 ; di -> segment of int 20h vector
+                mov     word ptr es:2, ax ; segment of default divide trap handler
                 inc     cx
-                inc     cx
+                inc     cx              ; cx = 2
 
 ps_set1:                                ; ...
                 stosw
                 inc     di
                 inc     di
                 loop    ps_set1
-                add     di, 4
-                stosw
-                add     di, 6
-                mov     cx, 4
+                add     di, 4           ; skip int 22h vector
+                stosw                   ; set int 23h
+                add     di, 6           ; skip int 24h
+                mov     cx, 4           ; set vectors 25h-28h
 
 ps_set2:                                ; ...
                 stosw
                 inc     di
                 inc     di
                 loop    ps_set2
-                add     di, 4
-                mov     cx, 6
+                add     di, 4           ; skip int 29h
+                mov     cx, 6           ; set vectors 2Ah-2Fh
 
 ps_set3:                                ; ...
                 stosw
                 inc     di
                 inc     di
                 loop    ps_set3
-                add     di, 8
-                mov     cx, 14
+                add     di, 8           ; skip vector 30h & 31h
+                mov     cx, 14          ; sets segs for ints 32h-3Fh
 
 ps_set4:                                ; ...
                 stosw
@@ -24367,42 +24548,46 @@ patch_misc_segments proc near           ; ...
                 push    bx
                 push    es
                 push    ax
-                mov     ax, es
+                mov     ax, es          ; ax - > DOS segment
                 push    ds
-                pop     es
-                mov     di, offset JShare
-                mov     bx, ds:TEMP_DOSLOC
+                pop     es              ; es -> DOSDATA
+                mov     di, offset JShare ; initialize the jump table for the sharer
+                mov     bx, ds:TEMP_DOSLOC ; bx = location to which the share
+                                        ; table was patched during the first
+                                        ; call to this routine
                 mov     cx, 15
 
 jumptabloop:                            ; ...
                 inc     di
-                inc     di
-                cmp     bx, 0FFFFh
-                jz      short share_patch
-                cmp     bx, es:[di]
-                jnz     short no_share_patch
+                inc     di              ; skip offset
+                cmp     bx, 0FFFFh      ; Q: is this called for the 1st time
+                jz      short share_patch ; Y: patch in sharer table
+                                        ; N:
+                cmp     bx, es:[di]     ; Q: has share been installed
+                jnz     short no_share_patch ; Y: don't patch in sharer table
 
 share_patch:                            ; ...
-                stosw
+                stosw                   ; drop in segment
 
 no_share_patch:                         ; ...
                 loop    jumptabloop
                 mov     si, offset COUNTRY_CDPG
-                mov     word ptr [si+4Fh], ds
-                mov     word ptr [si+54h], ds
-                mov     word ptr [si+59h], ds
-                mov     word ptr [si+5Eh], ds
-                mov     word ptr [si+80h], ds
-                mov     word ptr [si+63h], ds
-                mov     si, offset FastOpenTable
-                cmp     ds:TEMP_DOSLOC, 0FFFFh
-                jz      short fast_patch
-                mov     cx, ds:TEMP_DOSLOC
-                cmp     cx, [si+4]
-                jnz     short no_fast_patch
+                mov     word ptr [si+4Fh], ds ; [si+DOS_CCDPG.ccUcase_ptr+2]
+                mov     word ptr [si+54h], ds ; [si+DOS_CCDPG.ccFileUcase_ptr+2]
+                mov     word ptr [si+59h], ds ; [si+DOS_CCDPG.ccFileChar_ptr+2]
+                mov     word ptr [si+5Eh], ds ; [si+DOS_CCDPG.ccCollate_ptr+2]
+                mov     word ptr [si+80h], ds ; [si+DOS_CCDPG.ccMono_ptr+2]
+                mov     word ptr [si+63h], ds ; [si+DOS_CCDPG.ccDBCS_ptr+2]
+                mov     si, offset FastOpenTable ; fastopen routines are in doscode
+                                        ; so patch with doscode seg in ax
+                cmp     ds:TEMP_DOSLOC, 0FFFFh ; Q: first time
+                jz      short fast_patch ; Y: patch segment
+                mov     cx, ds:TEMP_DOSLOC ; Q: has fastopen patched in it's segment
+                cmp     cx, [si+4]      ; [si+fastopen_entry.name_caching+2]
+                jnz     short no_fast_patch ; Y: don't patch in doscode seg
 
 fast_patch:                             ; ...
-                mov     [si+4], ax
+                mov     [si+4], ax      ; [si+fastopen_entry.name_caching+2]
 
 no_fast_patch:                          ; ...
                 pop     ax
@@ -24417,53 +24602,53 @@ patch_misc_segments endp
 
 patch_offset    proc near               ; ...
                 push    es
-                xor     ax, ax
-                mov     es, ax
+                xor     ax, ax          ; 0
+                mov     es, ax          ; set default divide trap address
                 assume es:DOSCODE
-                mov     word ptr es:byte_0, offset ldivov
-                mov     di, 80h
+                mov     word ptr es:0, offset ldivov
+                mov     di, 80h         ; INTBASE ; di-> offset of int 20 handler
                 mov     ax, offset lirett
-                mov     cx, 2
+                mov     cx, 2           ; set vectors 20h & 21h to point to iret
 
 po_iset1:                               ; ...
                 stosw
                 inc     di
                 inc     di
                 loop    po_iset1
-                add     di, 4
-                stosw
-                add     di, 6
-                mov     cx, 4
+                add     di, 4           ; skip vector 22h
+                stosw                   ; set offset of 23h
+                add     di, 6           ; skip 24h
+                mov     cx, 4           ; sets offsets for ints 25h-28h
 
 po_iset2:                               ; ...
                 stosw
                 inc     di
                 inc     di
                 loop    po_iset2
-                add     di, 4
-                mov     cx, 6
+                add     di, 4           ; skip vector 29h
+                mov     cx, 6           ; sets offsets for ints 2Ah-2Fh
 
 po_iset3:                               ; ...
                 stosw
                 inc     di
                 inc     di
                 loop    po_iset3
-                add     di, 8
-                mov     cx, 14
+                add     di, 8           ; skip vector 30h & 31h
+                mov     cx, 14          ; sets offsets for ints 32h-3Fh
 
 po_iset4:                               ; ...
                 stosw
                 inc     di
                 inc     di
                 loop    po_iset4
-                mov     word ptr es:0BCh, offset lint2f
-                mov     byte ptr es:0C0h, 0EAh
-                mov     word ptr es:0C1h, offset lcall_entry
-                mov     word ptr es:80h, offset lquit
-                mov     word ptr es:84h, offset lcommand
-                mov     word ptr es:94h, offset labsdrd
-                mov     word ptr es:98h, offset labsdwrt
-                mov     word ptr es:9Ch, offset lstay_resident
+                mov     word ptr es:0BCh, offset lint2f ; INT 2Fh
+                mov     byte ptr es:0C0h, 0EAh ; [es:ENTRYPOINT],mi_long_jmp
+                mov     word ptr es:0C1h, offset lcall_entry ; [es:ENTRYPOINT+1],lcall_entry
+                mov     word ptr es:80h, offset lquit ; [es:addr_int_abort] ; INT 20h
+                mov     word ptr es:84h, offset lcommand ; [es:addr_int_command] ; INT 21h
+                mov     word ptr es:94h, offset labsdrd ; [es:addr_int_disk_read] ; INT 25h
+                mov     word ptr es:98h, offset labsdwrt ; [es:addr_int_disk_write] ; INT 26h
+                mov     word ptr es:9Ch, offset lstay_resident ; [es:addr_int_keep_process] ; INT 27h
                 pop     es
                 assume es:nothing
                 retn
@@ -24471,13 +24656,14 @@ patch_offset    endp
 
 ; ---------------------------------------------------------------------------
 patch_table     dw offset ldivov        ; ...
-                dw offset lquit
-                dw offset lcommand
-                dw offset labsdrd
-                dw offset labsdwrt
-                dw offset lstay_resident
-                dw offset lint2f
-                dw offset lcall_entry
+                                        ; i0patch
+                dw offset lquit         ; i20patch
+                dw offset lcommand      ; i21patch
+                dw offset labsdrd       ; i25patch
+                dw offset labsdwrt      ; i26patch
+                dw offset lstay_resident ; i27patch
+                dw offset lint2f        ; i2fpatch
+                dw offset lcall_entry   ; cpmpatch
 
 ; =============== S U B R O U T I N E =======================================
 

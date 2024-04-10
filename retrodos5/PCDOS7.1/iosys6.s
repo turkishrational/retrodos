@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; IOSYS6.S (MSDOS 6.0 IO.SYS) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 30/12/2023 - Retro DOS v4.2 (Modified MSDOS 6.22)
+; Last Update: 09/04/2024 - Retro DOS v4.2 (Modified MSDOS 6.22)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -12019,13 +12019,19 @@ iosetup:
 		push	ds
 		lds	si, [dpt]	; get pointer to disk base table
 		mov	[si+4],	al
-		; 23/12/2023
-		mov	ah, al
-		mov	al, [si+10]	; [si+DISK_PARMS.DISK_MOTOR_STRT]
-		;mov	ah, [si+4]	; [si+DISK_PARMS.DISK_EOT]
+		
+		;; 23/12/2023
+		;mov	ah, al
+		;mov	al, [si+10]	; [si+DISK_PARMS.DISK_MOTOR_STRT]
+		;;mov	ah, [si+4]	; [si+DISK_PARMS.DISK_EOT]
+		;pop	ds
+		;mov	[motorstartup], al
+		;mov	[save_eot], ah
+		; 07/04/2024
+		mov	ah,[si+10]
 		pop	ds
-		mov	[motorstartup], al
-		mov	[save_eot], ah
+		mov	[motorstartup], ah
+		mov	[save_eot], al
 
 ; for 3.5" drives, both external as well as on the k09, we need to set the
 ; motor start time to 4. this checking for every i/o is going to affect
@@ -17607,6 +17613,8 @@ curdir_local	EQU	0001000000000000B
 ; ----------------------------------------------------------------------
 ; 25/03/2019 - Retro DOS v4.0
 
+; 09/04/2024 - Retro DOS v4.2 (BugFix)
+
 ; system file table
 
 ;**	System File Table SuperStructure
@@ -17668,7 +17676,7 @@ struc	SF_ENTRY
 ; ID
 ;
 .sf_cluspos:	resw	1		; Position of last cluster accessed
-.sf_dirsec:	resw	1		; Sector number of directory sector for this file
+.sf_dirsec:	resd	1 ; 09/04/2024	; Sector number of directory sector for this file
 .sf_dirpos:	resb	1		; Offset of this entry in the above
 ;
 ; End of 7 bytes of file-system specific info.
@@ -20363,20 +20371,25 @@ comerr:
 ;;endif
 
 	; 30/12/2022 - Retro DOS v4.2
-	push	cs
-	pop	ds
+	;push	cs
+	;pop	ds
+	; 07/04/2024
+	; ds = cs
+
 	cmp	byte [commnd4],0
 	je	short comerr2	; all defaults exhausted, print err msg
 	cmp	byte [newcmd],0
 	je	short continue	; don't print err msg for defaults just yet
 comerr2:
-	push	dx ; 30/12/2022
+	; 07/04/2024
+	;push	dx ; 30/12/2022
 
 	; 23/10/2022
         mov     dx,badcom	; want to print command error
 	call	badfil
 	
-	pop	dx  ; 30/12/2022
+	; 07/04/2024
+	;pop	dx  ; 30/12/2022
 continue:
 	; 23/10/2022
 	;pop	dx
@@ -22011,8 +22024,9 @@ multrk_flag_done:
 	mov	word [es:di],-1		; 0FFFFh
 	;mov	[es:di+SF.SFCount],ax
 	mov	[es:di+4],ax
-	;mov	bl,SF_ENTRY.size ; 59
-	mov	bl,59
+	; 09/04/2024
+	mov	bl,SF_ENTRY.size ; 59
+	;mov	bl,59
 	mul	bl			;ax = number of bytes to clear
 	mov	cx,ax
 	; 11/12/2022
@@ -39998,7 +40012,8 @@ BOOTMES:
 	db 	"Retro DOS v4.2 (Modified MSDOS 6.22) "
 	
 	db	13,10
-	db	"by Erdogan Tan [2023] "
+	;db	"by Erdogan Tan [2023] "
+	db	"by Erdogan Tan [2024] " ; 07/04/2024
 	db	13,10
 	db	13,10,"$",0
 
