@@ -1034,9 +1034,8 @@
  00000533:000007CD       wfk2s_4
  00000533:000007CF       wfk2s_5
  00000533:000007D7       wfk2s_6
- 00000533:000007DD       wfk2s_7
  00000533:000007E1       PreloadFailed
- 00000533:000007EC       wfk2s_8
+ 00000533:000007EC       wfk2s_7
  00000533:00000820       ProcessConfig
  00000533:00000839       dont_install_stub
  00000533:0000084B       do_multi_pass
@@ -1585,6 +1584,7 @@
  00000533:0000555B       devp_devtype
  00000533:0000555C       devp_devattr
  00000533:0000555E       devp_cylinders
+ 00000533:00005560       devp_mediatype
  00000533:00005561       devp_bps
  00000533:00005563       devp_secperclus
  00000533:00005569       devp_totalsecs

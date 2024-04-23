@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RETRODOS.SYS (MSDOS 6.0 Kernel) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 09/04/2024 - Retro DOS v4.2 (Modified MSDOS 6.22)
+; Last Update: 21/04/2024 - Retro DOS v4.2 (Modified MSDOS 6.22)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0), 28/12/2022 (Retro DOS 4.1, MSDOS 5.0)
 ; ----------------------------------------------------------------------------
@@ -7621,7 +7621,7 @@ cmosck:					; check and reset rtc rate bits
 		cmp	byte [model_byte], 0FCh
 		;cmp	byte [cs:model_byte], 0FCh
 		jnz	short cmosck9	; Exit if not an AT model
-		cmp	byte [cs:secondary_model_byte], 6
+		cmp	byte [secondary_model_byte], 6 ; 21/04/2024
 		;cmp	byte [cs:secondary_model_byte], 6
 					; Is it 06 for the industral AT ?
 		jz	short cmosck4	; Go reset CMOS periodic rate if 06
@@ -11455,6 +11455,7 @@ dskerr_brdg:
 ; [verify] = 0 for normal, 1 for verify after write
 ;--------------------------------------------------------------
 
+		; 18/04/2024
 		; 23/12/2023
 		; 19/10/2022
 Disk:
@@ -11464,10 +11465,11 @@ Disk:
 
 		mov	bp, 5		; MAXERR
 					; set up retry count
-		; 23/12/2023
-		mov	cl, [es:di+23h]
-		and	cx, 1
-		;test	byte [es:di+23h], 1
+		;; 23/12/2023
+		;mov	cl, [es:di+23h]
+		;and	cx, 1
+		; 18/04/2024
+		test	byte [es:di+23h], 1
 					; [es:di+BDS.flags], fnon_removable
 		jz	short GetRdWrInd
 		cmp	ah, 4		; romverify ; Is this a	track verify?
@@ -11483,10 +11485,11 @@ _retry:
 		push	ax
 		mov	dx, [curtrk]
 		
-		; 23/12/2023
-		jcxz	disk_not_mini
-		;test	byte [es:di+23h], 1
-		;jz	short disk_not_mini
+		;; 23/12/2023
+		;jcxz	disk_not_mini
+		; 18/04/2024
+		test	byte [es:di+23h], 1
+		jz	short disk_not_mini
 		
 		cmp	word [es:di+47h], 1 ; [es:di+BDS.bdsm_ismini]
 					; is this a mini disk? ((logical dos partition))
@@ -19137,18 +19140,23 @@ ProcessConfig:
 	;mov	es,[cs:CURRENT_DOS_LOCATION] ; MSDOS 6.21 (& MSDOS 6.0)
 	; 11/12/2022
 	; ds = cs
+; 13/04/2024
+%if 0
 	mov	es,[CURRENT_DOS_LOCATION]
-
-	;mov	es,[cs:FINAL_DOS_LOCATION]   ; Retro DOS v4.0
+%endif
+	;mov	es,[cs:FINAL_DOS_LOCATION] ; Retro DOS v4.0
 	; 27/03/2019
 	;;mov	es,[FINAL_DOS_LOCATION]
 
 	xor	ax,ax			; ax = 0 ---> install stub
+
+; 13/04/2024
+%if 0	
 	; 11/12/2022
 	; ds = cs
 	;call	far [cs:dos_segreinit]	; call dos segreinit
 	call	far [dos_segreinit]
-
+%endif
 	jmp	short do_multi_pass
 
 ;------ User chose to load dos low
@@ -19160,6 +19168,11 @@ dont_install_stub:
 	call	MovDOSLo		; move it !
 
 	mov	ax,1			; dont install stub
+
+; 13/04/2024
+%if 1
+do_multi_pass:
+%endif
 	; 11/12/2022
 	; ds = cs
 	mov	es,[CURRENT_DOS_LOCATION]
@@ -19170,10 +19183,15 @@ dont_install_stub:
 	;;mov	es,[FINAL_DOS_LOCATION] 
 
 	; 11/12/2022
-	; ds = cs
+	; ds =cs
 	;call	far [cs:dos_segreinit]	; inform dos about new seg
 	call	far [dos_segreinit]
+
+; 13/04/2024
+%if 0
 do_multi_pass:
+%endif
+
 	call	AllocFreeMem		; allocate all the free mem
 					; & update [memhi] & [area]
 					; start of free memory.
@@ -19433,7 +19451,6 @@ _@_loop:
 	mov     al,0Dh
 	stosb			; cr-terminate command line
 	mov     [command_line],cl ; command line length (except CR)
-
 %endif
 
 ; ----------------------------------------------------------------------------
@@ -19675,8 +19692,9 @@ no_envdata:
 	;push	cs
 	;pop	ds
 
+	; 13/04/2024
 	; 23/10/2022
-	;push	dx		; push to balance fall-through pop
+	push	dx		; push to balance fall-through pop
 
 ; note fall through if exec returns (an error)
 comerr:
@@ -19710,8 +19728,9 @@ comerr2:
 	; 07/04/2024
 	;pop	dx  ; 30/12/2022
 continue:
+	; 13/04/2024
 	; 23/10/2022
-	;pop	dx
+	pop	dx
 
 ; 30/12/2022
 %if 0
@@ -21439,13 +21458,13 @@ fillloop:
 	rep	stosb			; filled
 
 	;mov	word [es:di-(SF_ENTRY.size)+SF_ENTRY.sf_ref_count],0  ; [es:di-59]
-	;mov	word [es:di-(SF_ENTRY.size)+SF_ENTRY.sf_position],0   ; [es:di-38]	
+	;mov	word [es:di-(SF_ENTRY.size)+SF_ENTRY.sf_position],0   ; [es:di-38]
 	;mov	word [es:di-(SF_ENTRY.size)+SF_ENTRY.sf_position+2],0 ; [es:di-36]
 
 	; 18/12/2022
 	;cx = 0
 	mov	[es:di-(SF_ENTRY.size)+SF_ENTRY.sf_ref_count],cx ;0  ; [es:di-59]
-	mov	[es:di-(SF_ENTRY.size)+SF_ENTRY.sf_position],cx ;0   ; [es:di-38]	
+	mov	[es:di-(SF_ENTRY.size)+SF_ENTRY.sf_position],cx ;0   ; [es:di-38]
 	mov	[es:di-(SF_ENTRY.size)+SF_ENTRY.sf_position+2],cx ;0 ; [es:di-36]
 	
 	; 23/10/2022	
@@ -21471,9 +21490,11 @@ fillloop:
 dodefaultbuff:
 	; 18/12/2022
 	mov	[h_buffers],cx ; 0
-	inc	cx
-	inc	cx
-	mov	[buffers],cx ; 2	
+	;inc	cx
+	;inc	cx
+	;mov	[buffers],cx ; 2
+	; 10/04/2024
+	mov	word [buffers],2
 	
 	;mov	word [h_buffers],0	; default is no heuristic buffers.
 	;mov	word [buffers],2	; default to 2 buffers
@@ -22175,8 +22196,10 @@ installfilename:			; skip the file name
 	; 05/09/2023
 	or	al,al
 	;cmp	al,0
-	je	short got_installparm
-	jmp	short installfilename
+	;je	short got_installparm
+	;jmp	short installfilename
+	; 10/04/2024
+	jnz	short installfilename
 got_installparm:			; copy the parameters to ldexec_parm
 	lodsb
 	mov	[es:di],al
@@ -22195,9 +22218,9 @@ done_installparm:
 					; starts with cr.
 install_seg_set:
 	; 05/09/2023 - Retro DOS v4.2 IO.SYS (Optimization)
-	xor	bx, bx
+	xor	bx,bx
 	;mov	word [cs:0],0		; make a null environment segment
-	mov	[cs:bx], bx ; 05/09/2023
+	mov	[cs:bx],bx ; 05/09/2023
 	mov	ax,cs			; by overlap jmp instruction of sysinitseg.
 
 ;---------------------------------------------------M067----------------
@@ -22369,7 +22392,7 @@ sysinit_base:
 	pop	ds
 	; 30/12/2022
 	; (MSDOS 6.21 IO.SYS, SYSINIT:12B8h)
-	;mov	dx, 102
+	;mov	dx,102
 	mov	dx,mem_alloc_err_msgx-sysinit_base ; 65h (for MSDOS 5.0 SYSINIT)
 					; 66h (for MSDOS 6.21 SYSINIT)
 	int	21h
@@ -22451,14 +22474,14 @@ sysinit_base_ss equ $-sysinit_base  ; = 61 (MSDOS 5.0 IO.SYS, SYSINIT:115Ch)
 ;SYSINIT:11BDh:			    ; = 62 (MSDOS 6.21 IO.SYS, SYSINIT:1290h) 	
 	dw	0
 sysinit_base_sp equ $-sysinit_base  ; = 63 (MSDOS 5.0 IO.SYS, SYSINIT:1161h)
-;SYSINIT:11BFh:			    ; = 64 (MSDOS 6.21 IO.SYS, SYSINIT:1292h)
+;SYSINIT:11BFh:			    ; = 64 (MSDOS 6.21 IO.SYS, SYSINIT:1295h)
 	dw	0	
 
 mem_alloc_err_msgx:
 
        ;include msbio.cl4		; memory allocation error message
 
-;SYSINIT:12F6:  ; MSDOS 6.21 IO.SYS SYSINIT:12F6h
+;SYSINIT:12F6h:	; MSDOS 6.21 IO.SYS
 	db	0Dh,0Ah
 	db 	'Memory allocation error $'
 
@@ -22567,7 +22590,17 @@ GetBufferAddr:
 	mov	bx,ax
 	mov	ax,4A02h
 	;mov	ax,((multMULT<<8)+multMULTALLOCHMA)
-	int	2Fh
+	int	2Fh	; DOS 5+ - ALLOCATE HMA SPACE
+			;     AX = 4A02h
+			;     BX = number of bytes
+			; Return:
+			;     ES:DI -> start of allocated HMA block or FFFFh:FFFFh
+			;     BX = number of bytes actually allocated
+			;	   (rounded up to next paragraph)
+			; Notes:
+			;     this call is not valid unless DOS is loaded in the HMA
+			;     (DOS=HIGH)
+
 	cmp	di,0FFFFh
 	jne	short got_hma
 
@@ -23527,6 +23560,9 @@ int_xx_first:
 ; 25/10/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS, SYSINIT)
 ; (SYSINIT:1610h)
 
+; 13/04/2024 - Retro DOS v4.2 (Modified MSDOS 6.22 IO.SYS, SYSINIT)
+; (SYSINIT:1745h)
+
 new_init_loop:
 
 ;input: si=ofset into vector table of the particular int vector being adjusted
@@ -23536,6 +23572,8 @@ new_init_loop:
 ;	es=zero, segid of vector table
 ;	ds=relocated stack code segment
 
+; 13/04/2024
+%if 0
 	mov	ax,[es:si]		;remember offset in vector
 	mov	[bx],ax			; to original owner in ds
 	mov	ax,[es:si+2]		;remember segid in vector
@@ -23552,10 +23590,27 @@ new_init_loop:
 	mov	ax,[es:si+2]
 	mov	[di+2],ax
 	pop	ds
-
+%else
+	; 13/04/2024 - Retro DOS v4.2
+	push	ds
+	mov	ax,[es:si+2]		;remember segid in vector
+	mov	[bx+2],ax		; to original owner in ds
+	push	ax
+	mov	ax,[es:si]		;remember offset in vector
+	mov	[bx],ax			; to original owner in ds
+	push	ax
+	mov	ax,DOSBIODATASEG ; 0070h
+	mov	ds,ax			;set int19oldxx value in bios for
+	pop	ax			;int 19 handler
+	mov	[di],ax
+	pop	ax
+	mov	[di+2],ax
+	pop	ds
+%endif
 	mov	[es:si],dx  	;set vector to point to new int handler
 	mov	[es:si+2],ds
 	retn
+
 
 ; End of STACK initialization routine
 ; ----------------------------------------------------------------------
@@ -24385,16 +24440,19 @@ SysParse:
 ;is made to it in psdata.inc, a corresponding change needs to be made here.
 
 ;IF FileSW + DrvSW
-	;mov	word [cs:_$P_FileSp_Char], ']['
-	;mov	word [cs:_$P_FileSp_Char+2], '<|'
-	;mov	word [cs:_$P_FileSp_Char+4], '+>'
-	;mov 	word [cs:_$P_FileSp_Char+6], ';='
+	; 14/04/2024 (NASM syntax BugFix) .. '][' (MASM) -> '[]' (NASM)
+	
+	;mov	word [cs:_$P_FileSp_Char], '[]'
+	;mov	word [cs:_$P_FileSp_Char+2], '|<'
+	;mov	word [cs:_$P_FileSp_Char+4], '>+'
+	;mov 	word [cs:_$P_FileSp_Char+6], '=;'
 
+	; 14/04/2024
 	; 06/09/2023
-	mov	word [_$P_FileSp_Char], ']['
-	mov	word [_$P_FileSp_Char+2], '<|'
-	mov	word [_$P_FileSp_Char+4], '+>'
-	mov 	word [_$P_FileSp_Char+6], ';='
+	mov	word [_$P_FileSp_Char], '[]'	; mov word [_$P_FileSp_Char],5D5Bh
+	mov	word [_$P_FileSp_Char+2], '|<'	; 3C7Ch
+	mov	word [_$P_FileSp_Char+4], '>+'	; 2B3Eh
+	mov 	word [_$P_FileSp_Char+6], '=;'	; 3B3Dh
 ;ENDIF
 	; 06/09/2023
 	pop	ds ; *!*
@@ -25376,8 +25434,10 @@ _$P_Value_Loop:				;AN000;
 ; 08/07/2023 - Retro DOS v4.2 IO.SYS (optimization)
 	; (PCDOS 7.1 IBMBIO.COM - SYSINIT:2130h)
 
-	xor	ah,ah
-	mov	bp,ax			; save binary number
+	; 14/04/2024
+	;xor	ah,ah
+	;mov	bp,ax			; save binary number
+
 	call	_$P_Value_2x_OVF 	; multiply cx:dx by 2 and then check overflow
 	mov	bx,dx			; ax:bx = 2*(cx:dx)
 	mov	ax,cx
@@ -25401,6 +25461,7 @@ _$P_Value_Chk_Add_OVF:
 	call	_$P_Check_OVF		; check overflow (for the last shift or add)
 	jc	short _$P_Value_OVF
 	retn
+
 _$P_Value_OVF:
 	inc	sp 			; skip "call" return address to the caller
 	inc	sp
@@ -30606,12 +30667,16 @@ SetInt12Mem:
 	mov	bx,40h
 	mov	ds,bx			; ROM BIOS Data Segment
 	mov	bx,[13h]		; INT 12 memory variable
-	mov	[cs:OldInt12Mem],bx	; save it
+	;mov	[cs:OldInt12Mem],bx	; save it
 	mov	cl,6
 	shr	ax,cl			; convert paras into Ks
 	mov	[13h],ax		; Lie
-	mov	byte [cs:Int12Lied],0FFh ; mark that we are lying
+	;mov	byte [cs:Int12Lied],0FFh ; mark that we are lying
 	pop	ds
+	; 14/04/2024
+	; ds = cs
+	mov	[OldInt12Mem],bx
+	mov	byte [Int12Lied],0FFh
 ;limx:
 	retn
 
@@ -39888,6 +39953,7 @@ MSDOS_BIN_OFFSET: ; this offset must be paragraph aligned
 		; 29/12/2022
 		;incbin	'MSDOS51.BIN' ; Retro DOS 4.1 - MSDOS 5.0+ KERNEL
 
+		; 12/04/2024
 		; 25/03/2024
 		; 10/03/2024
 		; 29/02/2024

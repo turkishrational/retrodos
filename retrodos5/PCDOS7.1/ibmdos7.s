@@ -1,7 +1,7 @@
 ;*****************************************************************************
 ; IBMDOS7.S (PCDOS 7.1 Kernel) - RETRO DOS v5.0 by ERDOGAN TAN - 01/01/2024
 ; ----------------------------------------------------------------------------
-; Last Update: 25/03/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
+; Last Update: 14/04/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
 ; ----------------------------------------------------------------------------
 ; Beginning: 22/04/2019 (Retro DOS 4.0), 03/11/2022 (Retro DOS 4.2)
 ; ----------------------------------------------------------------------------
@@ -442,7 +442,8 @@ endstruc
 
 %else
 
-; 01/01/2024 - Retro DOS v5.0	
+; 14/04/2024
+; 01/01/2024 - Retro DOS v5.0
 
 struc A_BPB
 .BYTESPERSECTOR:    resw 1
@@ -465,6 +466,8 @@ struc A_BPB
 .FSINFOSECTOR:	    resw 1  ; (offset from FAT32 bs)
 .BACKUPBOOTSECTOR:  resw 1  ; (offset from FAT32 bs)
 .RESERVEDBYTES:	    resb 12 ; (zero bytes)
+		; 14/04/2024
+		    resb 6  ; A_BPB.size must be 59
 .size:
 endstruc
 
@@ -2027,7 +2030,9 @@ STECODE EQU     00FFH           ;Error code
 WRECODE EQU     0
 
 ;Function codes
-DINITHL EQU     26              ;Size of init header
+;DINITHL EQU    26              ;Size of init header
+; 11/04/2024 - Retro DOS 5.0
+DINITHL EQU     25 ; PCDOS 7.1  ;Size of init header
 DMEDHL  EQU     15              ;Size of media check header
 DBPBHL  EQU     22              ;Size of Get BPB header
 DRDWRHL EQU     22              ;Size of RD/WR header
@@ -9930,6 +9935,7 @@ word3:	dw	3			; M008 -- word value for divides
 
 ;procedure   $SETDPB,NEAR
 
+	; 12/04/2024
 _$SETDPB:
 	MOV	DI,BP
 	;ADD	DI,2			; Skip over dpb_drive and dpb_UNIT
@@ -10339,12 +10345,10 @@ setend:
 	; 13/01/2024 (PCDOS 7.1 IBMDOS.COM)
 	pop	cx		; (*) 0 = not 32 bit fat sectors
 	push	cx		; (*)
-	
-	; 13/01/2024
-	; (PCDOS 7.1 IBMDOS.COM BUGfix)
-	xor	dx,dx ; 0
+
 	; si = BIOS Parameter Block + 13
-	
+		
+	; 12/04/2024
 	; 13/01/2024 (PCDOS 7.1 IBMDOS.COM)
 	add	ax,1
 	adc	dx,0			; calculated # clusters HW
@@ -10369,11 +10373,12 @@ setend1:
 	add	dx,cx			; dx:ax = FAT size in bytes
 	pop	cx	; (**)		; calculated # clusters HW
 	or	cx,cx
-	jnz	short setend2		; FAT32
+	;jnz	short setend2		; FAT32
+	jnz	short setend3 ; 12/04/2024 (BugFix)
 	cmp	bx,0FF6h
 	jb	short setend_fat12	; FAT12
 setend2:
-	; (PCDOS 7.1 IBMDOS.COM BUGfix)
+	; (PCDOS 7.1 IBMDOS.COM)
 	;or	cx,cx			; HW of calculated cluster count
 	;jnz	short setend3
 	cmp	bx,0FFF6h
@@ -12271,7 +12276,6 @@ noscan:
 ;
 
 _$STD_CON_STRING_OUTPUT:	;System call 9
-
 	mov	si,dx
 STRING_OUT1:	
 	lodsb
@@ -13002,7 +13006,14 @@ RAWOUT:
 	POP	DS
 	JZ	SHORT RAWNORM		; if not, do normally
 
+	; 15/01/2024
 	;INT	int_fastcon  ; int 29h	; quickly output the char
+
+	; 12/04/2024 - Retro DOS v5.0
+	; (PCDOS 7.1 IBMBOS.COM)
+	xor	bx,bx
+	mov	ds,bx ; 0	
+
 	; 15/01/2024
 	pushf			; simulate INT 29h
 	call    far [29h*4]	; call far [00A4h]
@@ -26064,7 +26075,7 @@ RDLP:
 	; NOTE: Secondary Buffer Cache is not used in PCDOS 7.1 IBMDOS.COM.
 
 	;call	nul_sub		; PCDOS 7.1 (nul_sub: retn)
-	;			; 'nul-sub:' at DOSCODE:AD57
+	;			; 'nul_sub:' at DOSCODE:AD57h
 	
 	; MSDOS 6.0 (& Windows ME)
 	;call	SET_RQ_SC_PARMS		;LB. do this for SC ;AN000;
@@ -48446,7 +48457,7 @@ ExecReady:
 
 	;mov	cx,[si+10]
 	mov	cx,[si+ERStruc.ER_StartAddr]   ; M030
-	;mov	cx,[si+12]
+	;mov	ax,[si+12]	; 11/04/2024
 	mov	ax,[si+ERStruc.ER_StartAddr+2] ; M030
 
 	;call	[ss:FixExePatch]
@@ -48474,6 +48485,7 @@ er_setver:
 	;mov	es,[si+8]
 	mov	es,[si+ERStruc.ER_PSP]
 	mov	ax,[ss:SPECIAL_VERSION]
+	;mov	[es:40h],ax ; 11/04/2024
 	mov	[es:PDB.Version],ax
 
 er_chkdoshi:
@@ -50447,7 +50459,9 @@ DOSINIT:
 
 	; 05/12/2022 (MSDOS 5.0 MSDOS.SYS compatibility)
 	add	ax,15			; round to nearest paragraph
-	and	ax,~15	; 0FFF0h	; boundary
+	;and	ax,~15	; 0FFF0h	; boundary
+	; 12/04/2024
+	and	al,0F0h
 
 	mov	si,ax			; si = offset of DOSDATA in current
 					; code segment
@@ -50861,7 +50875,7 @@ PERUNIT2:
 	CMP	AX,[SS:MAXSEC]		; Q:is this the largest sector so far
 	JBE     SHORT NOTMAX		; N:
 	MOV	[SS:MAXSEC],AX		; Y: save it in maxsec
-NOTMAX:					
+NOTMAX:	
 	; set the next dpb field in the currently built bpb
 	; and mark as never accessed
         
@@ -50950,7 +50964,7 @@ CONTINIT:
 	; 17/12/2022
 	;mov	cx,[ENDMEM]
 					; set seg inpacketto dosdata
-	mov	[DSKCHRET+3],ds ; mov [DOSSEG_INIT],ds 
+	mov	[DSKCHRET+3],ds ; mov [DOSSEG_INIT],ds
 
 ; Patch in the segments of the interrupt vectors with current code segment.
 ; Also patch in the segment of the pointers in the dosdata area.
@@ -51022,7 +51036,7 @@ CONTINIT:
 	; set default divide trap offset
 
 	;mov	word ptr ds:[0],offset doscode:divov
-	mov	word [0],DIVOV	
+	mov	word [0],DIVOV
 
 	; set vectors 20-28 and 2a-3f to point to iret.
 
@@ -51292,11 +51306,12 @@ iset3:
 ;--------------------------------------------------------------------------
 
 CHARINIT:
+	; 11/04/2024
 	; 23/03/2024 - Retro DOS v5.0
 	; 24/04/2019 - Retro DOS v4.0
 	; 07/07/2018 - Retro DOS v3.0
-	;mov	byte [ss:035Ah],26 ; 1Ah
-        MOV	BYTE [SS:DEVCALL_REQLEN],DINITHL
+	;mov	byte [ss:035Ah],26 ; 1Ah ; MSDOS 6.22
+        MOV	BYTE [SS:DEVCALL_REQLEN],DINITHL ; 25 ; PCDOS 7.1
 	;mov	byte [ss:035Bh],0
         MOV	BYTE [SS:DEVCALL_REQUNIT],0
 	;mov	byte [ss:035Ch],0
@@ -51693,12 +51708,12 @@ no_share_patch:
 	;mov	[si+5Eh],ds
 	;mov	[si+80h],ds
 	;mov	[si+63h],ds
-	mov	[si+DOS_CCDPG.ccUcase_ptr+2],ds    
-	mov	[si+DOS_CCDPG.ccFileUcase_ptr+2],ds 
+	mov	[si+DOS_CCDPG.ccUcase_ptr+2],ds
+	mov	[si+DOS_CCDPG.ccFileUcase_ptr+2],ds
 	mov	[si+DOS_CCDPG.ccFileChar_ptr+2],ds
 	mov	[si+DOS_CCDPG.ccCollate_ptr+2],ds
 	mov	[si+DOS_CCDPG.ccMono_ptr+2],ds
-	mov	[si+DOS_CCDPG.ccDBCS_ptr+2],ds	
+	mov	[si+DOS_CCDPG.ccDBCS_ptr+2],ds
 
 					; fastopen routines are in doscode
 					; so patch with doscode seg in ax

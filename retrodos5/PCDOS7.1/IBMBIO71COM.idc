@@ -3040,7 +3040,7 @@ static Bytes_1(void) {
 	set_name	(0X2A42,	"eofbig");
 	set_name	(0X2A45,	"iseofx");
 	set_cmt	(0X2A47,	"(*) restore fbigfat flags\n(after loading DOS kernel)",	0);
-	set_cmt	(0X2A4F,	"SYSNIT:_SYSINIT",	0);
+	set_cmt	(0X2A4F,	"SYSINITSEG:_SYSINIT",	0);
 	create_insn	(x=0X2A4F);
 	set_cmt	(0X2A54,	"get first bds",	0);
 	create_insn	(x=0X2A54);
@@ -3328,7 +3328,7 @@ static Bytes_1(void) {
 	set_cmt	(0X2E19,	"BPB.fatsecs",	0);
 	set_cmt	(0X2E1D,	"[di+BDS.fatsecs]",	0);
 	set_cmt	(0X2E25,	"FAT32 file system (BUG!)\nBPB.FATSz32",	0);
-	set_cmt	(0X2E29,	"BPB.FATSz32+2 (BUG!)",	0);
+	set_cmt	(0X2E29,	"BPB.FATSz32+2 (BUG!)\n(number of FATs !?)",	0);
 	set_cmt	(0X2E2D,	"BPB.FATSz32",	0);
 	set_cmt	(0X2E31,	"[di+BDS.fatsecs32]",	0);
 	set_cmt	(0X2E34,	"BPB.FATSz32+2",	0);
@@ -5513,8 +5513,6 @@ static Bytes_1(void) {
 	set_cmt	(0X3F38,	"-1  ; end of list?",	0);
 	set_cmt	(0X3F3B,	"continue until hit end of list",	0);
 	set_cmt	(0X3F3E,	"restore current bds",	0);
-	set_cmt	(0X3F43,	"sector not found",	0);
-	create_insn	(0X3F43);
 }
 
 //------------------------------------------------------------------------
@@ -5524,6 +5522,8 @@ static Bytes_2(void) {
         auto x;
 #define id x
 
+	set_cmt	(0X3F43,	"sector not found",	0);
+	create_insn	(0X3F43);
 	set_cmt	(0X3F47,	"unknown media",	0);
 	create_insn	(0X3F47);
 	set_name	(0X3F4A,	"ioret");
@@ -8085,10 +8085,6 @@ static Bytes_2(void) {
 	op_plain_offset	(x,	128,	0X5330);
 	create_insn	(0X5416);
 	set_name	(0X5416,	"intret_72");
-	create_insn	(0X5417);
-	set_name	(0X5417,	"int73");
-	create_dword	(0X5419);
-	set_name	(0X5419,	"old73");
 }
 
 //------------------------------------------------------------------------
@@ -8098,6 +8094,10 @@ static Bytes_3(void) {
         auto x;
 #define id x
 
+	create_insn	(0X5417);
+	set_name	(0X5417,	"int73");
+	create_dword	(0X5419);
+	set_name	(0X5419,	"old73");
 	create_word	(0X541D);
 	create_byte	(0X541F);
 	set_name	(0X541F,	"firstflag73");
@@ -8802,8 +8802,10 @@ static Bytes_3(void) {
 	op_plain_offset	(x,	129,	0X5330);
 	set_name	(0X5A7E,	"set_drvspc_size");
 	set_name	(0X5A81,	"set_dblspc_size");
+	set_cmt	(0X5A86,	"\"C:\\STACKER.BIN\"",	0);
 	create_insn	(x=0X5A86);
 	op_chr		(x,	1);
+	set_cmt	(0X5A94,	"\"C:\\DBLSPACE.BIN\"",	0);
 	create_insn	(x=0X5A99);
 	op_chr		(x,	1);
 	set_name	(0X5A99,	"set_drvspc_name");
@@ -8867,7 +8869,6 @@ static Bytes_3(void) {
 	set_name	(0X5B07,	"wfk2s_6");
 	set_cmt	(0X5B0A,	"**** PRE-LOAD MAGICDRV!!! ****",	0);
 	set_cmt	(0X5B0D,	"error?",	0);
-	set_name	(0X5B0D,	"wfk2s_7");
 	set_cmt	(0X5B11,	"Dealloc ; free the block if no load",	0);
 	create_insn	(x=0X5B11);
 	op_hex		(x,	1);
@@ -8876,7 +8877,7 @@ static Bytes_3(void) {
 	create_insn	(x=0X5B18);
 	op_hex		(x,	0);
 	create_insn	(0X5B1C);
-	set_name	(0X5B1C,	"wfk2s_8");
+	set_name	(0X5B1C,	"wfk2s_7");
 	set_cmt	(0X5B26,	"get desired block size in paras",	0);
 	create_insn	(x=0X5B2B);
 	op_hex		(x,	1);
@@ -8957,7 +8958,6 @@ static Bytes_3(void) {
 	set_name	(0X5C43,	"_@@@_");
 	set_cmt	(0X5C45,	"set special code for query_user",	0);
 	set_cmt	(0X5C4A,	"to issue the AUTOEXEC prompt",	0);
-	set_cmt	(0X5C4E,	"Note: This flag is useless because it is not set before \nE.TAN 04/07/2023",	0);
 	create_insn	(x=0X5C4E);
 	op_hex		(x,	1);
 	set_cmt	(0X5C53,	"F5 clean/interactive boot option (has been) disabled",	0);
@@ -9058,6 +9058,8 @@ static Bytes_3(void) {
 	set_cmt	(0X5D16,	"[bx+EXEC0.COM_LINE+2],cs",	0);
 	set_cmt	(0X5D19,	"[bx+EXEC0.5C_FCB+2],cs",	0);
 	set_cmt	(0X5D1C,	"[bx+EXEC0.6C_FCB+2],cs",	0);
+	create_insn	(x=0X5D1C);
+	op_dec		(x,	0);
 	set_cmt	(0X5D1F,	"(EXEC<<8)",	0);
 	set_cmt	(0X5D23,	"DOS - 2+ - LOAD OR EXECUTE (EXEC)\nDS:DX -> ASCIZ filename\nES:BX -> parameter block\nAL = subfunc: load & execute program",	0);
 	create_insn	(x=0X5D23);
@@ -9117,7 +9119,7 @@ static Bytes_3(void) {
 	set_cmt	(0X5D78,	"DOS - ",	0);
 	create_insn	(x=0X5D78);
 	op_hex		(x,	0);
-	set_cmt	(0X5D7A,	"[tmplate] = max. chars buffer can hold = 64",	0);
+	set_cmt	(0X5D7A,	"[tmplate] = max. chars buffer can hold = 64\n[tmplate+1] = 12",	0);
 	create_insn	(x=0X5D80);
 	op_plain_offset	(x,	0,	0X5330);
 	op_plain_offset	(x,	128,	0X5330);
@@ -9470,7 +9472,7 @@ static Bytes_3(void) {
 	set_cmt	(0X60EE,	"No, go do block move",	0);
 	set_cmt	(0X60F0,	"check for TORTUGA models",	0);
 	set_cmt	(0X60F7,	"do not use INT 15h block move code\n(while 8042 is disabled)",	0);
-	set_cmt	(0X60F9,	"Check for PS/2 30-286 model",	0);
+	set_cmt	(0X60F9,	"check for PS/2 30-286 model",	0);
 	create_insn	(0X6103);
 	create_insn	(x=0X6108);
 	op_dec		(x,	1);
@@ -9684,6 +9686,7 @@ static Bytes_3(void) {
 	set_cmt	(0X6376,	"ax is nonzero if disk is nonremoveable",	0);
 	set_cmt	(0X6378,	"get parameters of (removable) drive",	0);
 	set_cmt	(0X637A,	"[es:bp+DPB.drive]",	0);
+	set_cmt	(0X6380,	"offset deviceparameters",	0);
 	create_insn	(x=0X6380);
 	op_plain_offset	(x,	1,	0X5330);
 	op_plain_offset	(x,	129,	0X5330);
@@ -9729,6 +9732,8 @@ static Bytes_3(void) {
 	set_cmt	(0X641C,	"[bx+BUFFINF.Cache_ptr]",	0);
 	set_cmt	(0X6424,	"[bx+BUFFINF.Cache_ptr+2]",	0);
 	set_cmt	(0X642C,	"[bx+BUFFINF.Cache_count]",	0);
+	create_insn	(x=0X642C);
+	op_dec		(x,	0);
 	set_cmt	(0X642F,	"512 bytes",	0);
 	create_insn	(x=0X642F);
 	op_dec		(x,	1);
@@ -10485,7 +10490,7 @@ static Bytes_3(void) {
 	create_word	(0X6CB7);
 	set_cmt	(0X6CB9,	"mark as character device for MEM display",	0);
 	create_word	(0X6CB9);
-	set_cmt	(0X6CBB,	"strat and irpt",	0);
+	set_cmt	(0X6CBB,	"strategy and interrupt",	0);
 	create_word	(0X6CBB);
 	make_array	(0X6CBB,	0X2);
 	set_cmt	(0X6CBF,	"magic default load\n(tiny_stub_end-tiny_stub_start = 18)",	0);
@@ -10506,11 +10511,6 @@ static Bytes_3(void) {
 	op_hex		(x,	1);
 	set_cmt	(0X6D06,	"save the backdoor entry.\n(initial IP -EXE header offset 20-)",	0);
 	create_insn	(x=0X6D06);
-	create_insn	(x=0X6D0D);
-	create_insn	(x=0X6D14);
-	op_plain_offset	(x,	1,	0X5330);
-	op_plain_offset	(x,	129,	0X5330);
-	set_cmt	(0X6D26,	"pass drive number to DBLSPACE as if",	0);
 }
 
 //------------------------------------------------------------------------
@@ -10520,6 +10520,11 @@ static Bytes_4(void) {
         auto x;
 #define id x
 
+	create_insn	(x=0X6D0D);
+	create_insn	(x=0X6D14);
+	op_plain_offset	(x,	1,	0X5330);
+	op_plain_offset	(x,	129,	0X5330);
+	set_cmt	(0X6D26,	"pass drive number to DBLSPACE as if",	0);
 	set_cmt	(0X6D2A,	"it is a normal block device driver",	0);
 	set_cmt	(0X6D2E,	"DS_INTERNAL_REVISION\ntell it what revision we expect",	0);
 	create_insn	(x=0X6D2E);
@@ -12313,7 +12318,7 @@ static Bytes_4(void) {
 	create_byte	(0X7A83);
 	set_cmt	(0X7A84,	"no numeric values choice",	0);
 	create_byte	(0X7A84);
-	set_cmt	(0X7A85,	"4 strings for choice",	0);
+	set_cmt	(0X7A85,	"2 strings for choice",	0);
 	create_byte	(0X7A85);
 	set_cmt	(0X7A86,	"the 1st string tag",	0);
 	create_byte	(0X7A86);
@@ -12790,9 +12795,6 @@ static Bytes_4(void) {
 	set_cmt	(0X7F99,	"calldev (sdevstrat);",	0);
 	set_cmt	(0X7F9C,	"SYSDEV.INT",	0);
 	set_cmt	(0X7F9F,	"calldev (sdevint);",	0);
-	set_cmt	(0X7FA2,	"get real sysi_numio value",	0);
-	set_cmt	(0X7FA4,	"ds:bx -> sys_var",	0);
-	set_cmt	(0X7FA9,	"[bx+SYSI_NUMIO]\nrestore previous/real value",	0);
 }
 
 //------------------------------------------------------------------------
@@ -12802,6 +12804,9 @@ static Bytes_5(void) {
         auto x;
 #define id x
 
+	set_cmt	(0X7FA2,	"get real sysi_numio value",	0);
+	set_cmt	(0X7FA4,	"ds:bx -> sys_var",	0);
+	set_cmt	(0X7FA9,	"[bx+SYSI_NUMIO]\nrestore previous/real value",	0);
 	set_cmt	(0X7FB0,	"move break addr from the req packet",	0);
 	set_cmt	(0X7FC0,	"There we go... all done.",	0);
 	set_cmt	(0X7FD6,	"move DOS into HMA if requsted",	0);
@@ -12875,10 +12880,10 @@ static Bytes_5(void) {
 	op_hex		(x,	1);
 	set_cmt	(0X80D9,	"0",	0);
 	set_cmt	(0X80DB,	"DPB.NEXT_FREE ; last allocated cluster #",	0);
-	set_cmt	(0X80DF,	"BPB.fatsecs16 ; [si+A_BPB.BPB_SECTORSPERFAT]",	0);
+	set_cmt	(0X80DF,	"BPB.fatsecs16 ; [si+A_BPB.SECTORSPERFAT]",	0);
 	set_cmt	(0X80E2,	"FAT DPB (33 bytes)   -jnz-\nFAT32 DPB (61 bytes) -jz-",	0);
-	set_cmt	(0X80E4,	"DPB.RESERVED = 0",	0);
-	set_cmt	(0X80E8,	"DPB.RESERVED+2 = 0",	0);
+	set_cmt	(0X80E4,	"DPB.FAT32_NXTFREE = 0",	0);
+	set_cmt	(0X80E8,	"DPB.FAT32_NXTFREE+2 = 0",	0);
 	set_cmt	(0X80EC,	"0FFFFh ; -1",	0);
 	set_cmt	(0X80ED,	"DPB.FREE_CNT (-1 = unknown)",	0);
 	set_cmt	(0X80F1,	"DPB.FREE_CNT+2 (-1 = unknown)",	0);
@@ -13198,6 +13203,7 @@ static Bytes_5(void) {
 	create_insn	(x=0X854B);
 	op_plain_offset	(x,	0,	0X5F0);
 	op_plain_offset	(x,	128,	0X5F0);
+	set_cmt	(0X8554,	"BIOSDATA:048Bh",	0);
 	create_insn	(x=0X8554);
 	op_plain_offset	(x,	0,	0X5F0);
 	op_plain_offset	(x,	128,	0X5F0);
@@ -14822,12 +14828,6 @@ static Bytes_5(void) {
 	set_cmt	(0X9853,	"system timer, lw",	0);
 	create_insn	(x=0X9853);
 	set_cmt	(0X9856,	"get difference",	0);
-	set_cmt	(0X985B,	"reached limit? ; (2 seconds)",	0);
-	create_insn	(x=0X985B);
-	op_dec		(x,	1);
-	set_cmt	(0X9860,	"delay complete!",	0);
-	set_cmt	(0X9861,	"assume clean boot",	0);
-	set_cmt	(0X9863,	"peek the shift states",	0);
 }
 
 //------------------------------------------------------------------------
@@ -14837,6 +14837,12 @@ static Bytes_6(void) {
         auto x;
 #define id x
 
+	set_cmt	(0X985B,	"reached limit? ; (2 seconds)",	0);
+	create_insn	(x=0X985B);
+	op_dec		(x,	1);
+	set_cmt	(0X9860,	"delay complete!",	0);
+	set_cmt	(0X9861,	"assume clean boot",	0);
+	set_cmt	(0X9863,	"peek the shift states",	0);
 	set_cmt	(0X9865,	"KEYBOARD - GET SHIFT STATUS\nAL = shift status bits",	0);
 	create_insn	(x=0X9865);
 	op_hex		(x,	0);
@@ -16663,6 +16669,7 @@ static Bytes_6(void) {
 	op_dec		(x,	0);
 	set_name	(0XA88E,	"devp_cylinders");
 	create_byte	(0XA890);
+	set_name	(0XA890,	"devp_mediatype");
 	set_cmt	(0XA891,	"A_DEVICEPARAMETERS.DP_BPB\nbytes per sectors",	0);
 	create_word	(0XA891);
 	set_name	(0XA891,	"devp_bps");
@@ -18286,8 +18293,8 @@ static Functions_0(void) {
 	add_func    (0X8980,0X89B4);
 	set_func_flags(0X8980,0x4400);
 	set_frame_size(0X8980, 0, 0, 0);
-	set_name(0X8996, "td20", SN_LOCAL);
-	set_name(0X89A4, "td10", SN_LOCAL);
+	set_name(0X8996, "td10", SN_LOCAL);
+	set_name(0X89A4, "td20", SN_LOCAL);
 	set_name(0X89B2, "tdE", SN_LOCAL);
 	add_func    (0X89B4,0X8A09);
 	set_func_flags(0X89B4,0x4400);
