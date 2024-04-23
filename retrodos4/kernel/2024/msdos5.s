@@ -1,7 +1,7 @@
 ;*****************************************************************************
 ; MSDOS5.BIN (MSDOS 5.0 Kernel) - RETRO DOS v4.0 by ERDOGAN TAN - 03/11/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 24/03/2024	((Previous: 27/09/2023))
+; Last Update: 11/04/2024	((Previous: 24/03/2024))
 ; ----------------------------------------------------------------------------
 ; Beginning: 07/07/2018 (Retro DOS 3.0), 22/04/2019 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -39795,7 +39795,7 @@ ExecReady:
 
 	;mov	cx,[si+10]
 	mov	cx,[si+ERStruc.ER_StartAddr]   ; M030
-	;mov	cx,[si+12]
+	;mov	ax,[si+12]	; 11/04/2024
 	mov	ax,[si+ERStruc.ER_StartAddr+2] ; M030
 
 	call	[ss:FixExePatch]
@@ -42027,7 +42027,7 @@ CONTINIT:
 	; 17/12/2022
 	;mov	cx,[ENDMEM] 
 					; set seg inpacketto dosdata
-	mov	[DSKCHRET+3],ds ; mov [DOSSEG_INIT],ds 
+	mov	[DSKCHRET+3],ds ; mov [DOSSEG_INIT],ds
 
 ; Patch in the segments of the interrupt vectors with current code segment.
 ; Also patch in the segment of the pointers in the dosdata area.
@@ -42099,7 +42099,7 @@ CONTINIT:
 	; set default divide trap offset
 
 	;mov	word ptr ds:[0],offset doscode:divov
-	mov	word [0],DIVOV	
+	mov	word [0],DIVOV
 
 	; set vectors 20-28 and 2a-3f to point to iret.
 

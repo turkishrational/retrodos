@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RETRODOS.SYS (MSDOS 5.0 Kernel) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 09/04/2024 (Previous: 24/12/2023)
+; Last Update: 21/04/2024 (Previous: 24/12/2023)
 ; ----------------------------------------------------------------------------
 ; Beginning: 25/05/2018 (Retro DOS 3.0), 26/12/2018 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -6994,7 +6994,7 @@ cmosck:					; check and reset rtc rate bits
 		cmp	byte [model_byte], 0FCh
 		;cmp	byte [cs:model_byte], 0FCh
 		jnz	short cmosck9	; Exit if not an AT model
-		cmp	byte [cs:secondary_model_byte], 6
+		cmp	byte [secondary_model_byte], 6 ; 21/04/2024
 		;cmp	byte [cs:secondary_model_byte], 6
 					; Is it 06 for the industral AT ?
 		jz	short cmosck4	; Go reset CMOS periodic rate if 06
@@ -17842,18 +17842,23 @@ ProcessConfig:
 	;mov	es,[cs:CURRENT_DOS_LOCATION] ; MSDOS 6.21 (& MSDOS 6.0)
 	; 11/12/2022
 	; ds = cs
+; 13/04/2024
+%if 0
 	mov	es,[CURRENT_DOS_LOCATION]
-
-	;mov	es,[cs:FINAL_DOS_LOCATION]   ; Retro DOS v4.0
+%endif
+	;mov	es,[cs:FINAL_DOS_LOCATION] ; Retro DOS v4.0
 	; 27/03/2019
 	;;mov	es,[FINAL_DOS_LOCATION]
 
 	xor	ax,ax			; ax = 0 ---> install stub
+
+; 13/04/2024
+%if 0	
 	; 11/12/2022
 	; ds = cs
 	;call	far [cs:dos_segreinit]	; call dos segreinit
 	call	far [dos_segreinit]
-
+%endif
 	jmp	short do_multi_pass
 
 ;------ User chose to load dos low
@@ -17865,6 +17870,11 @@ dont_install_stub:
 	call	MovDOSLo		; move it !
 
 	mov	ax,1			; dont install stub
+
+; 13/04/2024
+%if 1
+do_multi_pass:
+%endif
 	; 11/12/2022
 	; ds = cs
 	mov	es,[CURRENT_DOS_LOCATION]
@@ -17878,7 +17888,12 @@ dont_install_stub:
 	; ds =cs
 	;call	far [cs:dos_segreinit]	; inform dos about new seg
 	call	far [dos_segreinit]
+
+; 13/04/2024
+%if 0
 do_multi_pass:
+%endif
+
 	call	AllocFreeMem		; allocate all the free mem
 					; & update [memhi] & [area]
 					; start of free memory.
@@ -19951,13 +19966,13 @@ fillloop:
 	rep	stosb			; filled
 
 	;mov	word [es:di-(SF_ENTRY.size)+SF_ENTRY.sf_ref_count],0  ; [es:di-59]
-	;mov	word [es:di-(SF_ENTRY.size)+SF_ENTRY.sf_position],0   ; [es:di-38]	
+	;mov	word [es:di-(SF_ENTRY.size)+SF_ENTRY.sf_position],0   ; [es:di-38]
 	;mov	word [es:di-(SF_ENTRY.size)+SF_ENTRY.sf_position+2],0 ; [es:di-36]
 
 	; 18/12/2022
 	;cx = 0
 	mov	[es:di-(SF_ENTRY.size)+SF_ENTRY.sf_ref_count],cx ;0  ; [es:di-59]
-	mov	[es:di-(SF_ENTRY.size)+SF_ENTRY.sf_position],cx ;0   ; [es:di-38]	
+	mov	[es:di-(SF_ENTRY.size)+SF_ENTRY.sf_position],cx ;0   ; [es:di-38]
 	mov	[es:di-(SF_ENTRY.size)+SF_ENTRY.sf_position+2],cx ;0 ; [es:di-36]
 	
 	; 23/10/2022	
@@ -19983,9 +19998,11 @@ fillloop:
 dodefaultbuff:
 	; 18/12/2022
 	mov	[h_buffers],cx ; 0
-	inc	cx
-	inc	cx
-	mov	[buffers],cx ; 2	
+	;inc	cx
+	;inc	cx
+	;mov	[buffers],cx ; 2
+	; 10/04/2024
+	mov	word [buffers],2	
 	
 	;mov	word [h_buffers],0	; default is no heuristic buffers.
 	;mov	word [buffers],2	; default to 2 buffers
@@ -20671,8 +20688,10 @@ do_install_exec:			; now,handles install= command.
 installfilename:			; skip the file name
 	lodsb				; al = ds:si; si++
 	cmp	al,0
-	je	short got_installparm
-	jmp	short installfilename
+	;je	short got_installparm
+	;jmp	short installfilename
+	; 10/04/2024
+	jne	short installfilename
 got_installparm:			; copy the parameters to ldexec_parm
 	lodsb
 	mov	[es:di],al
@@ -20922,7 +20941,7 @@ mem_alloc_err_msgx:
 
        ;include msbio.cl4		; memory allocation error message
 
-;SYSINIT:12F6:  ; MSDOS 6.21 IO.SYS SYSINIT:12F6h
+;SYSINIT:12F6h:	; MSDOS 6.21 IO.SYS
 	db	0Dh,0Ah
 	db 	'Memory allocation error $'
 
@@ -22804,11 +22823,12 @@ SysParse:
 ;is made to it in psdata.inc, a corresponding change needs to be made here.
 
 ;IF FileSW + DrvSW
-	mov	word [cs:_$P_FileSp_Char], ']['
-	mov	word [cs:_$P_FileSp_Char+2], '<|'
-	mov	word [cs:_$P_FileSp_Char+4], '+>'
-	mov 	word [cs:_$P_FileSp_Char+6], ';='
-;ENDIFtHHH
+	; 14/04/2024 (NASM syntax BugFix) .. '][' (MASM) -> '[]' (NASM) 
+	mov	word [cs:_$P_FileSp_Char], '[]'   ; 5D5Bh
+	mov	word [cs:_$P_FileSp_Char+2], '|<' ; 3C7Ch
+	mov	word [cs:_$P_FileSp_Char+4], '>+' ; 2B3Eh
+	mov 	word [cs:_$P_FileSp_Char+6], '=;' ; 3B3Dh
+;ENDIF
 
 ;M029 -- End of changes
 
@@ -23588,11 +23608,13 @@ _$P_DCC00:				;AN000;
 _$P_DCC01:				;AN000;
 
 ;In this next section, ES will be used as the base of the XLAT table, provided
-; by the previous GET COUNTRY INFO DOS call.  This usage of ES is made
+; by the previous GET COUNTRY INFO DOS call. This usage of ES is made
 ; regardless of which base reg is currently the cs reg.
 
-	mov	bx,[cs:di+_$P_DOS_TBL.Off] ;AN000; get offset of table
-	mov	es,[cs:di+_$P_DOS_TBL.Seg] ;AN000; get segment of table
+	;mov	bx,[cs:di+_$P_DOS_TBL.Off] ;AN000; get offset of table
+	;mov	es,[cs:di+_$P_DOS_TBL.Seg] ;AN000; get segment of table
+	; 14/04/2024
+	les	bx,[cs:di+_$P_DOS_TBL.Off]
 	inc	bx			;AC035; add '2' to
 	inc	bx			;AC035;  BX reg
 					;AN000; skip length field
@@ -27985,7 +28007,7 @@ sr110:
 ;;------------------------------------------------------------------------
 ;tryn:
 ;       cmp     ah,CONFIG_NUMLOCK  ;'N'
-;       jne	short tryy            ;
+;       jne	short tryy
 ;       call    query_user      ; query thye user if config_cmd
 ;       jc	short tryy	; has the CONFIG_OPTION_QUERY bit set
 ;       call    set_numlock
@@ -36690,6 +36712,7 @@ MSDOS_BIN_OFFSET: ; this offset must be paragraph aligned
 		;; 28/06/2019 ('msdos6.s') 
 		;incbin	'MSDOS6.BIN' ; Retro DOS 4.0 - MSDOS 6.21 KERNEL
 		
+		; 11/04/2024
 		; 24/03/2024
 		; 16/03/2024
 		; 10/03/2024
