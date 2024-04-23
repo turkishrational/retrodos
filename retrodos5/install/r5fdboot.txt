@@ -1,0 +1,504 @@
+     1                                  ; ****************************************************************************
+     2                                  ; R5FDBOOT.ASM (R5FDBOOT.COM) - Retro DOS v5 Floppy Disk Boot Sector Utility
+     3                                  ;						 	 (for MSDOS/WINDOWS)
+     4                                  ; ----------------------------------------------------------------------------
+     5                                  ; Last Update: 20/04/2024
+     6                                  ; ----------------------------------------------------------------------------
+     7                                  ; Beginning: 25/10/2023
+     8                                  ; ----------------------------------------------------------------------------
+     9                                  ; Assembler: NASM version 2.15 (rdfdboot.s)
+    10                                  ; ----------------------------------------------------------------------------
+    11                                  ; Modified from 'rdfdboot.s'(RDFDBOOT.COM) source code by Erdogan Tan
+    12                                  ; (25/10/2023) - RETRODOS v4 floopy disk boot sector modification utility -
+    13                                  ; ****************************************************************************
+    14                                  ; assembling: nasm r5fdboot.s -l r5fdboot.lst -o R5FDBOOT.COM -Z error.txt
+    15                                  
+    16                                  ; ----------------------------------------------------------------------------
+    17                                  ; equations
+    18                                  ; ----------------------------------------------------------------------------
+    19                                  
+    20                                  ; boot sector parameters
+    21                                  
+    22                                  bsOemName	equ 3
+    23                                  bsBytesPerSec	equ 11 ; 512 (word)
+    24                                  bsSecPerClust	equ 13
+    25                                  bsResSectors	equ 14
+    26                                  bsFATs		equ 16
+    27                                  bsRootDirEnts	equ 17
+    28                                  bsSectors	equ 19
+    29                                  bsMedia		equ 21
+    30                                  bsFATsecs	equ 22
+    31                                  bsSecPerTrack	equ 24 ; 18 (word)
+    32                                  bsHeads		equ 26 ; 2 (word)
+    33                                  bsHidden1	equ 28
+    34                                  bsHidden2	equ 30
+    35                                  bsHugeSectors	equ 32
+    36                                  bsDriveNumber	equ 36
+    37                                  bsReserved1	equ 37
+    38                                  bsBpbSignature	equ 38 ; 29h (byte)
+    39                                  bsVolumeID	equ 39
+    40                                  bsVolumeLabel	equ 43
+    41                                  bsFileSysType	equ 54 ; 'FAT12   '  (8 bytes)
+    42                                  bsReserved2	equ 62
+    43                                  ; TRDOS 386 v2.0 2018 Extensions
+    44                                  bsDataStart	equ 64
+    45                                  bsRootDirStart	equ 66
+    46                                  bsRootDirSects	equ 68
+    47                                  bsDirEntsPerSec equ 70
+    48                                  
+    49                                  ; ----------------------------------------------------------------------------
+    50                                  ; code
+    51                                  ; ----------------------------------------------------------------------------
+    52                                  
+    53                                  [BITS 16]
+    54                                  [ORG 100h]
+    55                                  
+    56 00000000 FA                      	cli
+    57 00000001 FC                      	cld
+    58 00000002 0E                      	push	cs
+    59 00000003 17                      	pop	ss
+    60 00000004 BCFEFF                  	mov	sp, 0FFFEh
+    61 00000007 FB                      	sti
+    62                                  
+    63                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    64                                  ; see if drive specified
+    65                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    66                                  
+    67 00000008 BE8000                  	mov	si, 80h			; PSP command tail
+    68 0000000B 8A0C                    	mov	cl, [si]
+    69 0000000D 08C9                    	or	cl, cl
+    70 0000000F 7436                    	jz	short T_05		; jump if zero
+    71                                  
+    72                                  T_01:
+    73 00000011 46                      	inc	si
+    74                                  
+    75 00000012 8A04                    	mov	al, [si]
+    76 00000014 3C20                    	cmp	al, ' '			; is it SPACE ?
+    77 00000016 7506                    	jne	short T_02
+    78                                  
+    79 00000018 FEC9                    	dec	cl
+    80 0000001A 75F5                    	jnz	short T_01
+    81 0000001C EB29                    	jmp	short T_05
+    82                                  
+    83                                  T_02:
+    84 0000001E 3C41                    	cmp	al, 'A'
+    85 00000020 7225                    	jb	short T_05
+    86 00000022 7414                    	je	short T_03
+    87 00000024 3C42                    	cmp	al, 'B'
+    88 00000026 7610                    	jna	short T_03
+    89 00000028 3C5A                    	cmp	al, 'Z'
+    90 0000002A 761B                    	jna	short T_05
+    91                                  T_18:
+    92 0000002C 3C61                    	cmp	al, 'a'			; a - z
+    93 0000002E 7217                    	jb	short T_05
+    94 00000030 7404                    	je	short T_19
+    95 00000032 3C62                    	cmp	al, 'b'
+    96 00000034 7711                    	ja	short T_05
+    97                                  T_19:
+    98 00000036 2C20                    	sub	al, 'a'-'A'		; to upper case
+    99                                  
+   100                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   101                                  ; get drive code
+   102                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   103                                  
+   104                                  T_03:
+   105 00000038 A2[6702]                	mov	[RD_Drive], al
+   106 0000003B EB10                    	jmp	short T_09
+   107                                  
+   108                                  T_04:
+   109 0000003D 0411                    	add	al, 'A'-'0'		; 0 based -> A based
+   110 0000003F EBF7                    	jmp	short T_03
+   111                                  
+   112                                  T_24:
+   113 00000041 46                      	inc	si
+   114 00000042 803C20                  	cmp	byte [si], ' '
+   115 00000045 76F6                    	jna	short T_04
+   116                                  
+   117                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   118                                  ; Write message
+   119                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   120                                  
+   121                                  T_05:
+   122 00000047 BE[A301]                	mov	si, RetroDOS_Welcome
+   123 0000004A E9BB00                  	jmp	T_20
+   124                                  
+   125                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   126                                  ; get drive parameters
+   127                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   128                                  
+   129                                  T_09:
+   130 0000004D B408                    	mov	ah, 08h
+   131 0000004F 8A16[6702]              	mov	dl, [RD_Drive]	; drive
+   132 00000053 80EA41                  	sub	dl, 'A'			; make it zero based
+   133 00000056 8816[4707]              	mov	[DriveNumber], dl 
+   134 0000005A CD13                    	int	13h			; return disk parameters
+   135 0000005C 725E                    	jc	short R_15   ; Drive not ready error
+   136                                  
+   137 0000005E 0E                      	push	cs
+   138 0000005F 07                      	pop	es			; restore es
+   139                                  
+   140 00000060 80FB05                  	cmp	bl, 5			; Drive Type
+   141 00000063 7726                    	ja	short T_25   ; unknown diskette drive
+   142 00000065 08DB                    	or	bl, bl
+   143 00000067 7422                    	jz	short T_25   ; invalid
+   144                                  
+   145 00000069 881E[4807]              	mov	[drive_type], bl
+   146                                  
+   147                                  	; check for valid FAT12 BS
+   148 0000006D C606[4607]05            	mov	byte [RetryCount], 5
+   149                                  
+   150                                  	;mov	ax, 0201h		; read disk
+   151 00000072 BB[6807]                	mov	bx, bootsector		; location of boot code
+   152                                  
+   153 00000075 B90100                  	mov	cx, 1			; cylinder = 0
+   154                                  					; sector = 1
+   155 00000078 B600                    	mov	dh, 0			; head = 0
+   156                                  	;mov	dl, [RD_Drive]	; drive 
+   157                                  	;sub	dl, 'A'			; make it zero based
+   158                                  	;;mov	[RD_FAT12_fd_bs+bsDriveNumber], dl
+   159                                  	;mov	[DriveNumber], dl
+   160 0000007A 8A16[4707]              	mov	dl, [DriveNumber]
+   161                                  T_21:
+   162 0000007E B80102                  	mov	ax, 0201h
+   163 00000081 CD13                    	int	13h
+   164                                  	;jc	short T_14
+   165 00000083 730B                    	jnc	short T_06		; read boot sector, OK
+   166                                  
+   167 00000085 FE0E[4607]              	dec	byte [RetryCount]
+   168 00000089 75F3                    	jnz	short T_21
+   169                                  T_25:
+   170                                  R_16:
+   171 0000008B BE[8B02]                	mov	si, msg_disk_read_err
+   172 0000008E EB2F                    	jmp	short R_14
+   173                                  T_06:
+   174 00000090 813E[7307]0002          	cmp	word [bootsector+bsBytesPerSec], 512
+   175 00000096 757E                    	jne	short T_22
+   176 00000098 803E[8E07]29            	cmp	byte [bootsector+bsBpbSignature], 29h
+   177 0000009D 7577                    	jne	short T_22
+   178                                  	; 25/10/2023
+   179                                  	; check parameters depending on diskette size (total sectors)
+   180 0000009F 8B36[4807]              	mov	si, [drive_type]
+   181 000000A3 4E                      	dec	si  ; 1 -> 0
+   182 000000A4 D1E6                    	shl	si, 1
+   183 000000A6 81C6[4A07]              	add	si, capacities
+   184 000000AA 8B16[7B07]              	mov	dx, [bootsector+bsSectors]
+   185 000000AE B90500                  	mov	cx, 5
+   186 000000B1 89CB                    	mov	bx, cx
+   187                                  chk_cap_loop:
+   188 000000B3 AD                      	lodsw
+   189 000000B4 39D0                    	cmp	ax, dx
+   190 000000B6 740C                    	je	short chk_cap_ok
+   191 000000B8 E2F9                    	loop	chk_cap_loop
+   192 000000BA EB5A                    	jmp	short T_22
+   193                                  
+   194                                  R_15:
+   195 000000BC BE[7502]                	mov	si, msg_drv_not_ready_err
+   196                                  R_14:
+   197 000000BF E8D200                  	call	print_msg
+   198 000000C2 CD20                    	int	20h
+   199                                  
+   200                                  chk_cap_ok:
+   201                                  	;mov	bx, 5
+   202 000000C4 29CB                    	sub	bx, cx ; cx > 0 & <= 5
+   203 000000C6 D1E3                    	shl	bx, 1
+   204 000000C8 8B87[5407]              	mov	ax, [bx+drive_compat]
+   205 000000CC 3A06[4807]              	cmp	al, [drive_type]
+   206 000000D0 7406                    	je	short chk_parms
+   207 000000D2 3A26[4807]              	cmp	ah, [drive_type]
+   208 000000D6 753E                    	jne	short T_22 ; not compatible
+   209                                  chk_parms:
+   210 000000D8 8DB7[5E07]              	lea	si, [bx+parameters]
+   211 000000DC AD                      	lodsw
+   212 000000DD 3A06[7D07]              	cmp	al, [bootsector+bsMedia]
+   213 000000E1 7533                    	jne	short T_22 ; invalid
+   214 000000E3 3A26[7507]              	cmp	ah, [bootsector+bsSecPerClust]
+   215 000000E7 752D                    	jne	short T_22 ; invalid
+   216                                  
+   217                                  	; Overwrite question
+   218                                  
+   219 000000E9 BE[2802]                	mov	si, msg_overwrite_question
+   220 000000EC E8A500                  	call	print_msg
+   221                                  
+   222                                  	; get answer
+   223                                  R_09:
+   224 000000EF 31C0                    	xor	ax, ax
+   225 000000F1 CD16                    	int	16h			; wait for keyboard command
+   226 000000F3 3C03                    	cmp	al, 'C'-40h
+   227 000000F5 7414                    	je	short R_10 ; Exit
+   228 000000F7 3C1B                    	cmp	al, 27
+   229 000000F9 7410                    	je	short R_10 ; Exit
+   230 000000FB 24DF                    	and	al, 0DFh
+   231 000000FD 3C59                    	cmp	al, 'Y'			; Yes?
+   232 000000FF 741F                    	je	short R_12		; write
+   233 00000101 3C4E                    	cmp	al, 'N'			; No?
+   234 00000103 75EA                    	jne	short R_09
+   235                                  					; no write (exit)
+   236 00000105 BE[FA02]                	mov	si, msg_NO
+   237                                  T_20:
+   238 00000108 E88900                  	call	print_msg
+   239                                  
+   240                                  	; Next line and Exit
+   241                                  R_10:
+   242                                  T_12:
+   243 0000010B BE[4103]                	mov	si, RD_CRLF
+   244                                  R_21:
+   245 0000010E E88300                  	call	print_msg
+   246 00000111 B8004C                  	mov	ax, 4C00h		; terminate
+   247 00000114 CD21                    	int	21h 
+   248                                  
+   249                                  T_22:
+   250 00000116 BE[B802]                	mov	si, RD_invalid_bootsector
+   251 00000119 EBA4                    	jmp	short R_14
+   252                                  
+   253                                  R_20:
+   254 0000011B BE[A102]                	mov	si, msg_disk_write_err
+   255 0000011E EB9F                    	jmp	short R_14
+   256                                  
+   257                                  R_12:
+   258 00000120 BE[0303]                	mov	si, msg_YES
+   259 00000123 E86E00                  	call	print_msg
+   260                                  
+   261 00000126 BB[4603]                	mov	bx, RD_FAT12_fd_bs
+   262                                  
+   263                                  	; check drive type 5 (2.88MB)
+   264 00000129 803E[4807]05            	cmp	byte [drive_type], 5
+   265 0000012E 7504                    	jne	short copy_bpb
+   266                                  
+   267 00000130 81C30002                	add	bx, 512 ; 2.88 MB RDBS
+   268                                  
+   269                                  copy_bpb:
+   270                                  	; move/copy drive number to RDBS
+   271 00000134 A0[4707]                	mov	al, [DriveNumber]
+   272 00000137 884724                  	mov	[bx+bsDriveNumber], al
+   273                                  
+   274                                  	; copy the disk's BPB to the new Retrodos v4 boot sector
+   275 0000013A 8D36[6B07]              	lea	si, [bootsector+bsOemName] 
+   276 0000013E 8D7F03                  	lea	di, [bx+bsOemName]
+   277 00000141 B93300                  	mov	cx, bsFileSysType - bsOemName
+   278 00000144 F3A4                    	rep	movsb
+   279                                  R_13:
+   280                                  	; Calculate Retro DOS v4 extended BS parameters
+   281 00000146 8B4716                  	mov	ax, [bx+bsFATsecs]
+   282 00000149 8A4F10                  	mov	cl, [bx+bsFATs]
+   283                                  	;mul	cx
+   284 0000014C FEC9                    	dec	cl
+   285 0000014E D3E0                    	shl	ax, cl ; * 2
+   286 00000150 03470E                  	add	ax, [bx+bsResSectors]
+   287 00000153 894742                  	mov	[bx+bsRootDirStart], ax
+   288 00000156 8B4F11                  	mov	cx, [bx+bsRootDirEnts]
+   289                                  
+   290 00000159 BA0F00                  	mov	dx, 15
+   291                                  	;add	cx, 15
+   292 0000015C 01D1                    	add	cx, dx
+   293                                  	
+   294 0000015E C1E904                  	shr	cx, 4 ; 16 entries per sector
+   295 00000161 894F44                  	mov	[bx+bsRootDirSects], cx
+   296                                  
+   297 00000164 42                      	inc	dx ; dx = 16
+   298 00000165 895746                  	mov	[bx+bsDirEntsPerSec], dx
+   299                                  
+   300 00000168 01C8                    	add	ax, cx
+   301 0000016A 894740                  	mov	[bx+bsDataStart], ax
+   302                                  
+   303                                  	; "Updating boot sector to .." message
+   304                                  
+   305 0000016D BE[0D03]                	mov	si, msg_writing_boot_sector
+   306 00000170 E82100                  	call	print_msg
+   307                                  
+   308                                  	; write boot sector
+   309 00000173 8A16[4707]              	mov	dl, [DriveNumber]
+   310 00000177 B600                    	mov	dh, 0 ; head 0
+   311                                  	; ch = 0      ; track 0 (cylinder 0)
+   312 00000179 B101                    	mov	cl, 1 ; sector 1
+   313                                  
+   314 0000017B B80103                  	mov	ax, 0301h ; write disk sector
+   315                                  	
+   316 0000017E BB[4603]                	mov	bx, RD_FAT12_fd_bs
+   317 00000181 CD13                    	int	13h
+   318 00000183 7296                    	jc	short R_20
+   319                                  ;R_20:
+   320 00000185 BE[3D03]                	mov	si, msg_OK
+   321 00000188 E80900                  	call	print_msg
+   322                                  	
+   323 0000018B B8FFFF                  	mov	ax, 65535
+   324                                  wloop:
+   325 0000018E 48                      	dec	ax
+   326 0000018F 75FD                    	jnz	short wloop
+   327 00000191 E977FF                  	jmp	T_12
+   328                                  
+   329                                  	; print/write messages (on console screen)
+   330                                  print_msg:
+   331                                  print_msg_LOOP:
+   332 00000194 AC                      	lodsb                           ; Load byte at DS:SI to AL
+   333 00000195 20C0                    	and     al, al
+   334 00000197 7409                    	jz      short print_msg_OK
+   335 00000199 B40E                    	mov	ah, 0Eh
+   336 0000019B BB0700                  	mov     bx, 07h
+   337 0000019E CD10                    	int	10h			; BIOS Service func ( ah ) = 0Eh
+   338                                  					; Write char as TTY
+   339                                  					; AL-char BH-page BL-color
+   340 000001A0 EBF2                    	jmp     short print_msg_LOOP
+   341                                  
+   342                                  print_msg_OK:
+   343 000001A2 C3                      	retn   
+   344                                  
+   345                                  ; ----------------------------------------------------------------------------
+   346                                  ; initialized data
+   347                                  ; ----------------------------------------------------------------------------
+   348                                  
+   349                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   350                                  ;  messages
+   351                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   352                                  
+   353                                  RetroDOS_Welcome:
+   354 000001A3 0D0A                    	db	0Dh, 0Ah
+   355 000001A5 526574726F20444F53-     	db	'Retro DOS v5 Floppy Disk Boot Sector Update Utility'
+   355 000001AE 20763520466C6F7070-
+   355 000001B7 79204469736B20426F-
+   355 000001C0 6F7420536563746F72-
+   355 000001C9 205570646174652055-
+   355 000001D2 74696C697479       
+   356 000001D8 0D0A                    	db	0Dh, 0Ah
+   357                                  	;db	"v1.0.231025  (c) Erdogan TAN 2023"
+   358 000001DA 52444644424F4F5420-     	db	"RDFDBOOT v3.0.240420  (c) Erdogan TAN 2023-2024"
+   358 000001E3 76332E302E32343034-
+   358 000001EC 323020202863292045-
+   358 000001F5 72646F67616E205441-
+   358 000001FE 4E20323032332D3230-
+   358 00000207 3234               
+   359 00000209 0D0A                    	db	0Dh,0Ah
+   360 0000020B 0D0A                    	db	0Dh,0Ah
+   361 0000020D 55736167653A207235-     	db	'Usage: r5fdboot a: (or b:)'
+   361 00000216 6664626F6F7420613A-
+   361 0000021F 20286F7220623A29   
+   362 00000227 00                      	db	0
+   363                                  
+   364                                  msg_overwrite_question:
+   365 00000228 0D0A                    	db	0Dh, 0Ah
+   366 0000022A 5741524E494E472021-     	db	'WARNING !', 0Dh, 0Ah
+   366 00000233 0D0A               
+   367 00000235 446F20796F75207761-     	db	'Do you want to overwrite the boot sector of drive '
+   367 0000023E 6E7420746F206F7665-
+   367 00000247 727772697465207468-
+   367 00000250 6520626F6F74207365-
+   367 00000259 63746F72206F662064-
+   367 00000262 7269766520         
+   368                                  RD_Drive:
+   369 00000267 413A20285965732F4E-     	db	'A: (Yes/No)? ', 0
+   369 00000270 6F293F2000         
+   370                                  
+   371                                  msg_drv_not_ready_err: 
+   372 00000275 0D0A                    	db	0Dh, 0Ah
+   373 00000277 4472697665206E6F74-     	db	"Drive not ready !"
+   373 00000280 2072656164792021   
+   374 00000288 0D0A00                  	db	0Dh, 0Ah, 0
+   375                                  
+   376                                  msg_disk_read_err: 
+   377 0000028B 0D0A                    	db	0Dh, 0Ah
+   378 0000028D 4469736B2072656164-     	db	"Disk read error !"
+   378 00000296 206572726F722021   
+   379 0000029E 0D0A00                  	db	0Dh, 0Ah, 0
+   380                                  
+   381                                  msg_disk_write_err: 
+   382 000002A1 0D0A                    	db	0Dh, 0Ah
+   383 000002A3 4469736B2077726974-     	db	"Disk write error !"
+   383 000002AC 65206572726F722021 
+   384 000002B5 0D0A00                  	db	0Dh, 0Ah, 0
+   385                                  
+   386                                  RD_invalid_bootsector:
+   387 000002B8 0D0A                    	db	0Dh, 0Ah
+   388 000002BA 496E76616C69642062-     	db	'Invalid boot sector!'
+   388 000002C3 6F6F7420736563746F-
+   388 000002CC 7221               
+   389 000002CE 0D0A                    	db	0Dh,0Ah
+   390 000002D0 2821206E6F74206120-     	db	'(! not a valid FAT12 -DOS- floppy disk !)'
+   390 000002D9 76616C696420464154-
+   390 000002E2 3132202D444F532D20-
+   390 000002EB 666C6F707079206469-
+   390 000002F4 736B202129         
+   391 000002F9 00                      	db	0
+   392                                  msg_NO:
+   393 000002FA 204E4F202E2E0D0A00      	db	' NO ..', 0Dh, 0Ah, 0
+   394                                  msg_YES:
+   395 00000303 20594553202E2E0D0A-     	db	' YES ..', 0Dh, 0Ah, 0
+   395 0000030C 00                 
+   396                                  
+   397                                  msg_writing_boot_sector:
+   398                                  	;db	"Updating boot sector to Retro DOS v4 (v2 compatible) format ...", 0
+   399                                  	; 20/04/2024
+   400 0000030D 5570646174696E6720-     	db	"Updating boot sector to Retro DOS v5 format ...", 0
+   400 00000316 626F6F742073656374-
+   400 0000031F 6F7220746F20526574-
+   400 00000328 726F20444F53207635-
+   400 00000331 20666F726D6174202E-
+   400 0000033A 2E2E00             
+   401                                  
+   402                                  msg_OK:
+   403 0000033D 204F4B2E                	db	' OK.'
+   404                                  RD_CRLF:
+   405 00000341 0D0A00                  	db	0Dh, 0Ah, 0
+   406                                  
+   407                                  align 2
+   408 00000344 A101                    	dw	417
+   409                                  
+   410                                  RD_FAT12_fd_bs:	; Boot Sector code
+   411                                  
+   412                                  ; Boot Sector Last Update: 25/10/2023
+   413                                  ;incbin	"FDBS1440.BIN"	; Kernel file: 'MSDOS.SYS' ; common bs except 2.88 MB 
+   414                                  ;incbin	"FDBS2880.BIN"	; Kernel file: 'MSDOS.SYS' ; only for 2.88 MB
+   415                                  ; 20/04/2024
+   416 00000346 <bin 200h>              incbin	"FDBS5A0H.BIN"	; Kernel file: 'PCDOS.SYS' ; common bs except 2.88 MB 
+   417 00000546 <bin 200h>              incbin	"FDBSB40H.BIN"	; Kernel file: 'PCDOS.SYS' ; only for 2.88 MB
+   418                                  
+   419                                  RetryCount:
+   420 00000746 00                      	db	0
+   421                                  
+   422                                  ; structures for common (multiple format) parameters
+   423                                  ; 25/10/2023 
+   424                                  
+   425                                  DriveNumber:
+   426 00000747 00                      	db	0
+   427                                  
+   428                                  drive_type:
+   429 00000748 0000                    	dw	0
+   430                                  
+   431                                  capacities:
+   432 0000074A D002                    	dw	720
+   433 0000074C 6009                    	dw	2400
+   434 0000074E A005                    	dw	1440
+   435 00000750 400B                    	dw	2880
+   436 00000752 8016                    	dw	5760
+   437                                  
+   438                                  drive_compat:
+   439 00000754 0100                    	db	1, 0
+   440 00000756 0102                    	db	1, 2
+   441 00000758 0304                    	db	3, 4
+   442 0000075A 0405                    	db	4, 5
+   443 0000075C 0500                    	db	5, 0
+   444                                  
+   445                                  parameters:
+   446 0000075E FD                      	db	0FDh
+   447 0000075F 02                      	db	2
+   448 00000760 F9                      	db	0F9h
+   449 00000761 01                      	db	1
+   450 00000762 F9                      	db	0F9h
+   451 00000763 02                      	db	2
+   452 00000764 F0                      	db	0F0h
+   453 00000765 01                      	db	1
+   454 00000766 F0                      	db	0F0h
+   455 00000767 02                      	db	2
+   456                                  	
+   457                                  ; ----------------------------------------------------------------------------
+   458                                  ; uninitialized data
+   459                                  ; ----------------------------------------------------------------------------
+   460                                  
+   461                                  bss_start:
+   462                                  
+   463                                  ABSOLUTE bss_start
+   464                                  
+   465                                  alignb 2
+   466                                  
+   467                                  bootsector:
+   468 00000768 <res 200h>              	resb	512
+   469                                  
+   470                                  end_bss:
