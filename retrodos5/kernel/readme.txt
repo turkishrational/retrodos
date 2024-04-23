@@ -1,12 +1,12 @@
 Retro DOS v5.0 (Modified PCDOS 7.1) Source Code (Not ready yet...) 15/12/2023 - Erdogan Tan
 
-Files: (last status in 10/04/2024)
+Files: (last status in 21/04/2024)
 
 (Modified) PCDOS 7.10 IBMDOS.COM source = ibmdos7.s (kernel) -100% completed but it needs to be verified-
-(Modified) PCDOS 7.10 IBMBIO.COM source = ibmbio7.s (bios) -currently at SYSINIT stage, 75% completed-
-Combined Kernel (Modified PCDOS 7.1) source = retrodos5.s -waiting at SYSINIT stage, 60% & 100% completed-
-Retro DOS v5 kernel name: PCDOS.SYS (Final Retro DOS version with FAT32 fs support) < 77KB
-Retro DOS v4.2 kernel name: MSDOS.SYS (Modified MSDOS 6.22 without DRVPACE or DOUBLESPACE) < 70KB
+(Modified) PCDOS 7.10 IBMBIO.COM source = ibmbio7.s (bios) -100% completed but it needs to be verified-
+Combined Kernel (Modified PCDOS 7.1) source = retrodos5.s -100% completed but it needs to be verified-
+Retro DOS v5 kernel name: PCDOS.SYS (Final Retro DOS version with FAT32 fs support) < 82KB
+Retro DOS v4.2 kernel name: MSDOS.SYS (Modified MSDOS 6.22 without DRVPACE or DOUBLESPACE) < 71KB
 
 Development method:
 Upgrading (Modifying) MSDOS 6.22 (Retro DOS v4.2) source code by using (comparing with) disassembled
