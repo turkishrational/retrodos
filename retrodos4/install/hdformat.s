@@ -3,7 +3,7 @@
 ; ----------------------------------------------------------------------------
 ; Primary DOS Partition (FAT File System) Format Utility for TRDOS 386 v2 OS.
 ; ----------------------------------------------------------------------------
-; Last Update: 28/10/2023
+; Last Update: 03/05/2024 (Previous: 28/10/2023)
 ; ----------------------------------------------------------------------------
 ; Beginning: 11/09/2020
 ; ----------------------------------------------------------------------------
@@ -24,7 +24,7 @@
 ;
 ; Copyright (C) 2020  Erdogan TAN 
 ; ****************************************************************************
-; assembling: nasm hdformat.s -l hdformat.lst -o HDFORMAT.COM -Z error.txt
+; assembling: nasm hdformat.s -l hdformat.txt -o HDFORMAT.COM -Z error.txt
 
 ; Note: Logical DOS drives in extended DOS partitions are excluded.
 
@@ -375,7 +375,8 @@ T_22:
 	cmp	word [bootsector+bsBytesPerSec], 512
 	jne	short T_23
 
-	mov	byte [bootsector+bsMedia], 0F8h
+	; 03/05/2024 (BugFix)
+	cmp	byte [bootsector+bsMedia], 0F8h
 	jne	short T_23
 
 	cmp	byte [fattype], 2
@@ -2121,11 +2122,11 @@ trdos386fc:
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 TRDOS_FAT32_hd_bs:
-	incbin	'FAT32_BS.BIN'
+	incbin	'FAT32_BS.BIN' ; 27/04/2024
 TRDOS_FAT16_hd_bs: 
-	incbin	'FAT16_BS.BIN'
+	incbin	'FAT16_BS.BIN' ; 26/12/2017
 TRDOS_FAT12_hd_bs: 
-	incbin	'FAT12_BS.BIN'
+	incbin	'FAT12_BS.BIN' ; 26/12/2017
 
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ;  messages
@@ -2145,7 +2146,7 @@ TrDOS_Welcome:
 	db 0Dh, 0Ah
 	db 'TR-DOS 386 v2 Hard Disk Partition Formatting Utility '
 	db 0Dh, 0Ah
-	db '(c) Erdogan TAN 2020-2023'
+	db '(c) Erdogan TAN 2020-2024'
 	db 0Dh,0Ah
 	db 0Dh,0Ah
 	db 'Usage: hdformat <drive> '
@@ -2161,7 +2162,7 @@ TrDOS_Welcome:
 	db ' hd3       ..for primary dos partition on 4th disk '
 	db 0Dh, 0Ah, 0
 
-	db '25/09/2020'
+	db '03/05/2024'
 	db 0
 
 TrDOS_Format_warning:
