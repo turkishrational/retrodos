@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RETRODOS.SYS (PCDOS 7.1 Kernel) - RETRO DOS v5.0 by ERDOGAN TAN - 12/09/2023
 ; ----------------------------------------------------------------------------
-; Last Update: 21/04/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
+; Last Update: 07/05/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0), 01/10/2022 (Retro DOS 4.2)
 ; ----------------------------------------------------------------------------
@@ -9528,7 +9528,10 @@ fmpgot2:
 		xchg	ax, cx
 		;div	bx
 		div	si
-		mov	bx, [di+15h]	; [di+BDS.heads]
+		;mov	bx, [di+15h]	; [di+BDS.heads]
+		; 07/05/2024
+		; 17/04/2024 (BugFix)
+		mov	si, [di+15h]	; [di+BDS.heads]
 		xchg	ax, cx
 		xor	dx, dx
 		;div	bx
