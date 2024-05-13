@@ -5,7 +5,7 @@
 ;
 ; 18/02/2017
 ;
-; [ Last Modification: 12/05/2024 ]
+; [ Last Modification: 13/05/2024 ]
 ;
 ; Derived from source code of 'PLAYWAV.COM' ('PLAYWAV.ASM') by Erdogan Tan
 ;							      (17/02/2017)
@@ -72,6 +72,12 @@ PrintMesg:
 	;lea	dx, [Credits]
 	mov	dx, Credits
 	int	21h
+
+	; 13/05/2024
+	call	write_ac97_dev_info
+	mov	ax, 0900h		; Prints the Credits Text.
+	mov	dx, CRLF
+	int	21h
 LoadMod:  
 	; es:di = Filename address
 	push	es
@@ -88,7 +94,7 @@ LoadMod:
 	jmp     Exit
 
 init_codec:
-	call	write_ac97_dev_info 
+	call	write_ac97_dev_info
 
 	; 08/05/2024
 	; 17/02/2017
@@ -105,7 +111,7 @@ init_codec:
 	; ((or frequency converting code would be needed))
 	;mov	word [sample_rate], 48000	; Mixing at 48 kHz
 
-; setup the Codec (actually mixer registers) 
+; setup the Codec (actually mixer registers)
         call    codecConfig			; unmute codec, set rates.
 	jnc	short PlayNow
 
@@ -1047,7 +1053,7 @@ BUP                     equ     BIT30   ; Buffer Underrun Policy.
 ; entry: ax = desired sample rate
 ;
 
-; 08/04/2024
+; 08/05/2024
 %if 0
 
 codecConfig:
@@ -3441,9 +3447,10 @@ msg_2017:
 		db	'Tiny MOD Player by Erdogan Tan. May 2024.',10,13
 		db	'usage: playmod2 filename.mod', 10, 13, '$'
 		db	'18/02/2017',0
-		db	'08/05/2024',0
+		db	'13/05/2024',0
 
 Credits:	db	'Tiny MOD Player v0.1b by Carlos Hasan. July 1993.'
+CRLF:		; 13/05/2024
 		db	10,13,'$'
 ErrorMesg:	db	'Error loading Module file.',10,13,'$'
 
@@ -3513,12 +3520,13 @@ msgFncNo	db "00h"
 msgIOBaseAddr	db "0000h IRQ: "
 msgIRQ		dw 3030h
 		db 0Dh, 0Ah, "$"
-msgSampleRate	db "Sample Rate: "
-msgHertz	db "00000 Hz ", "$" 
-msg8Bits	db "8 bits ", "$" 
-msgMono		db "Mono", 0Dh, 0Ah, "$"
-msg16Bits	db "16 bits ", "$" 
-msgStereo	db "Stereo", 0Dh, 0Ah, "$"
+
+;msgSampleRate	db "Sample Rate: "
+;msgHertz	db "00000 Hz ", "$" 
+;msg8Bits	db "8 bits ", "$" 
+;msgMono	db "Mono", 0Dh, 0Ah, "$"
+;msg16Bits	db "16 bits ", "$" 
+;msgStereo	db "Stereo", 0Dh, 0Ah, "$"
 
 ;; 13/11/2016 - Erdogan Tan (Ref: KolibriOS, codec.inc)
 ;codec_id	dd 0
