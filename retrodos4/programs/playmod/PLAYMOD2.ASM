@@ -5,7 +5,7 @@
 ;
 ; 18/02/2017
 ;
-; [ Last Modification: 13/05/2024 ]
+; [ Last Modification: 15/05/2024 ]
 ;
 ; Derived from source code of 'PLAYWAV.COM' ('PLAYWAV.ASM') by Erdogan Tan
 ;							      (17/02/2017)
@@ -94,7 +94,8 @@ LoadMod:
 	jmp     Exit
 
 init_codec:
-	call	write_ac97_dev_info
+	; 13/05/2024
+	;call	write_ac97_dev_info
 
 	; 08/05/2024
 	; 17/02/2017
@@ -103,7 +104,9 @@ init_codec:
         ;call	pciRegWrite16 ; pciRegWrite8
 
 	; 18/02/2017
-	mov	word [sample_rate], 22050	; Mixing at 22.050 kHz
+	;mov	word [sample_rate], 22050	; Mixing at 22.050 kHz
+	; 14/05/2024
+	mov	word [sample_rate], 24000
 
 	; 08/05/2024
 	; (48 kHZ mixing is necessary 
@@ -111,7 +114,7 @@ init_codec:
 	; ((or frequency converting code would be needed))
 	;mov	word [sample_rate], 48000	; Mixing at 48 kHz
 
-; setup the Codec (actually mixer registers)
+; setup the Codec (actually mixer registers) 
         call    codecConfig			; unmute codec, set rates.
 	jnc	short PlayNow
 
@@ -162,9 +165,9 @@ MakeOfs:
 ;       samples played by the Sound Blaster. Note that some samples are
 ;       discarded in the next code, just for fun!
 
-	;in     al, 21h			; disable irq 0!
-	;or     al, 00000001b
-	;out    21h, al
+	;in	al, 21h			; disable irq 0!
+	;or	al, 00000001b
+	;out	21h, al
 		
 	call	ModPlay ; 13/02/2017
 
@@ -221,13 +224,17 @@ _1:
 
         mov     al, NAMBAR_REG
         call    pciRegRead16			; read PCI registers 10-11
-        and     dx, IO_ADDR_MASK 		; mask off BIT0
+        ;and    dx, IO_ADDR_MASK 		; mask off BIT0
+	; 14/05/2024
+	and	dl, 0FEh
 
         mov     [NAMBAR], dx			; save audio mixer base addr
 
 	mov     al, NABMBAR_REG
         call    pciRegRead16
-        and     dx, IO_ADDR_MASK
+        ;and    dx, IO_ADDR_MASK
+	;/14/05/2024
+	and	dl, 0C0h
 
         mov     [NABMBAR], dx			; save bus master base addr
 
@@ -1053,7 +1060,7 @@ BUP                     equ     BIT30   ; Buffer Underrun Policy.
 ; entry: ax = desired sample rate
 ;
 
-; 08/05/2024
+; 08/04/2024
 %if 0
 
 codecConfig:
@@ -1183,18 +1190,21 @@ init_ac97_controller:
 	or      dl, IO_ENA+BM_ENA	; enable IO and bus master
 	call	pciRegWrite16
 
-; 02/12/2023
-	;call	delay_100ms ; 29/05/2017
+	; 14/05/2024
+	; 02/12/2023
+	call	delay_100ms ; 29/05/2017
 
 	; 02/12/2023
-	call	delay1_4ms
-	call	delay1_4ms
-	call	delay1_4ms
-	call	delay1_4ms
+	;call	delay1_4ms
+	;call	delay1_4ms
+	;call	delay1_4ms
+	;call	delay1_4ms
 
 init_ac97_codec:
 	; 18/11/2023
 	mov	bp, 40
+	; 14/05/2024
+	;mov	bp, 100
 _initc_1:
 	; 11/11/2023
 	; (TRDOS 386 v2.0.5, 'audio.s')
@@ -1202,6 +1212,7 @@ _initc_1:
 	add	dx, [NABMBAR]
 	in	eax, dx
 
+	; 14/05/2024
 	; 02/12/2023
 	call	delay1_4ms
 
@@ -1214,6 +1225,7 @@ _initc_1:
 	add	dx, [NABMBAR]
 	in	eax, dx
 
+	; 14/05/2024
 	; 02/12/2023
 	call	delay1_4ms
 
@@ -1260,17 +1272,24 @@ _ac97_codec_ready:
 	
 	; 19/11/2023
 	; wait for 1 second
-	;mov	ecx, 1000 ; 1000*4*0.25ms = 1s
-	mov	cx, 10
+	; 14/05/2024
+	mov	ecx, 1000 ; 1000*4*0.25ms = 1s
+	;mov	cx, 10
 _ac97_codec_rloop:
 	;call	delay1_4ms
 	;call	delay1_4ms
 	;call	delay1_4ms
 	;call	delay1_4ms
 	call	delay_100ms
-	;mov	dx, [NAMBAR]
-	;add	dx, CODEC_REG_POWERDOWN
-	in	ax, dx	
+	
+	mov	dx, [NAMBAR]
+	add	dx, CODEC_REG_POWERDOWN
+	in	ax, dx
+
+	; 14/05/2024
+	; 02/12/2023
+	call	delay1_4ms
+	
 	and	ax, 0Fh
 	cmp	al, 0Fh
 	je	short _ac97_codec_init_ok
@@ -1295,7 +1314,7 @@ _ac97_codec_init_ok:
 	call 	reset_ac97_controller
 
 	; 11/11/2023
-	call	delay1_4ms
+	;call	delay1_4ms
 	; 21/11/2023 - temporary
 	call	delay_100ms
 
@@ -1318,8 +1337,13 @@ setup_ac97_codec:
 	add    	dx, CODEC_EXT_AUDIO_CTRL_REG  	; 2Ah  	  
 	in     	ax, dx
 
+	; 14/05/2024
 	; 02/12/2023
 	call	delay1_4ms
+
+	; 14/05/2024
+	test	al, 1 ; BIT0 ; Variable Rate Audio bit
+	jz	short vra_not_supported
 
 	and	al, ~BIT1 ; Clear DRA
 	or	al, AC97_EA_VRA ; 1 ; 04/11/2023
@@ -1339,6 +1363,8 @@ check_vra:
 
 	; 13/11/2023
 	;mov	byte [VRA], 0
+	; 14/05/2024
+vra_not_supported:
 	; 08/05/2024
 	mov	word [sample_rate], 48000
 	jmp	short skip_rate	
@@ -1409,26 +1435,31 @@ skip_rate:
   	;add	dx, CODEC_PCBEEP_VOL_REG	;0Ah 
   	;out	dx, ax
 
+	; 14/05/2024	
 	; 20/11/2023
-        ;call	delay1_4ms
-        ;call	delay1_4ms
-        ;call	delay1_4ms
-        ;call	delay1_4ms
+        call	delay1_4ms
+        call	delay1_4ms
+        call	delay1_4ms
+        call	delay1_4ms
+
 	; 21/11/2023 temporary
-	call	delay_100ms
+	;call	delay_100ms
 
 	;mov	ax, 0202h
   	mov     dx, [NAMBAR]
   	add     dx, CODEC_PCM_OUT_REG		;18h 
   	out     dx, ax
 
+	; 14/05/2024
 	; 20/11/2023
-        ;call	delay1_4ms
-        ;call	delay1_4ms
-        ;call	delay1_4ms
-        ;call	delay1_4ms
+        call	delay1_4ms
+        call	delay1_4ms
+        call	delay1_4ms
+        call	delay1_4ms
+
+	; 14/05/2024
 	; 21/11/2023 - temporary
-	call	delay_100ms
+	;call	delay_100ms
 
 	; 11/11/2023
 	;mov	ax, 8008h ; Mute
@@ -1465,6 +1496,12 @@ skip_rate:
         ;call	delay1_4ms
 	;call	delay1_4ms
 
+	; 14/05/2024
+	;call	delay_100ms
+
+	; 14/05/2024
+	clc
+
 ;detect_ac97_codec:
         retn
 
@@ -1479,26 +1516,44 @@ reset_ac97_controller:
 	add	dx, [NABMBAR]
 	out     dx, al
 
+	; 14/05/2024
+	call	delay1_4ms
+
         mov     dx, PO_CR_REG
 	add	dx, [NABMBAR]
 	out     dx, al
 
+	; 14/05/2024
+	call	delay1_4ms
+
         mov     dx, MC_CR_REG
 	add	dx, [NABMBAR]
 	out     dx, al
+
+	; 14/05/2024
+	call	delay1_4ms
 
         mov     al, RR
         mov     dx, PI_CR_REG
 	add	dx, [NABMBAR]
 	out     dx, al
 
+	; 14/05/2024
+	call	delay1_4ms
+
         mov     dx, PO_CR_REG
 	add	dx, [NABMBAR]
 	out     dx, al
 
+	; 14/05/2024
+	call	delay1_4ms
+
         mov     dx, MC_CR_REG
 	add	dx, [NABMBAR]
 	out     dx, al
+
+	; 14/05/2024
+	call	delay1_4ms
 
 	retn
 
@@ -1620,7 +1675,9 @@ _delay_x_ms:
 ; ICHWAV.ASM
 ; PLAYMOD.ASM
 ; player internal variables and other equates.
-BUFFERSIZE	equ	2048*4		; 8K half buffer size. 18/02/2017
+;BUFFERSIZE	equ	2048*4		; 8K half buffer size. 18/02/2017
+; 14/05/2024
+BUFFERSIZE	equ	2560*4		
 ENDOFFILE	equ	BIT0		; flag for knowing end of file
 
 ;===========================================================================
@@ -1635,8 +1692,16 @@ ModPlay: ; 13/02/2017  ; ModPlay Polling!
 	;sub	ax, ax
 	;mov	cx, (BUFFERSIZE/2)
 	;rep	stosw
+
+	; 15/05/2024
+	mov	di, MOD_BUFFER
+	mov	cx, 320
+	mov	ax, 8080h
+	rep	stosw
+	;
+	call	ScopeLoop
 	
-       ; load 2048 bytes into buffer 1
+        ; load 2048 bytes into buffer 1
 	mov	si, [DMA_BUFFER1]
 	; 11/05/2024
 	;mov	cx, BUFFERSIZE
@@ -1645,7 +1710,7 @@ ModPlay: ; 13/02/2017  ; ModPlay Polling!
 	;push	cx ; count
 	call    GetSamples_ICH ; 18/02/2017
 
-       ; load 2048 bytes into buffer  2
+        ; load 2048 bytes into buffer  2
 	mov	si, [DMA_BUFFER2]
 	; 11/05/2024
 	;mov	cx, BUFFERSIZE
@@ -1870,7 +1935,9 @@ q_loop:
 	xchg	al, [tBuff] ; AL = [tBuff], [tBuff] = 0
 	cmp	al, 1
 	ja	short r_loop
-	jb	short ScopeLoop
+	;jb	short ScopeLoop
+	; 15/05/2024
+	jb	short x_loop
 	;
      	mov	si, [DMA_BUFFER1] ; [tBuff]=1 (from tuneLoop)
        	jmp	short s_loop 
@@ -1886,7 +1953,11 @@ s_loop:
 	;push	si ; offset
 	;push	cx ; count
 	call    GetSamples_ICH ; 18/02/2017
-	;
+x_loop:
+	; 15/05/2024
+	call	ScopeLoop
+	jmp	short p_loop
+
 ScopeLoop:
 	;mov    si, bp			; get current samples
 	mov	si, MOD_BUFFER ; 18/02/2017
@@ -1896,7 +1967,9 @@ DrawLoop:
 	mov     bx, dx			; (save Index)
 	mov     di, [Scope+bx]		; get old SCOPE pixel address
 	mov     byte [es:di], 0		; erase it!
-	lodsb				; get a sample (8-bit)
+	;lodsb				; get a sample (8-bit)
+	; 15/05/2024
+	lodsw
 	mov     bl, al			; calc new pixel address...
 	xor     bh, bh
 	shl     bx, 1
@@ -1909,7 +1982,9 @@ DrawLoop:
 	inc     cx
 	cmp     cx, 320			; 320 pixels drawed?
 	jb      short DrawLoop
-	jmp	short p_loop
+	; 15/05/2024
+	;jmp	short p_loop
+	retn
 
 tuneLoop:
 	; 11/05/2024
@@ -2040,7 +2115,7 @@ tL1:
 	call    updateLVI	; /set LVI != CIV/
 	;call   check4keyboardstop
 	;jc	short _exit_
-	;call   getCurrentIndex
+	call   getCurrentIndex
 	test	al, BIT0
 	jz	short tL1	; loop if buffer 2 is not playing
 
@@ -2052,7 +2127,7 @@ tL2:
 	call    updateLVI
 	;call   check4keyboardstop
 	;jc	short _exit_
-	;call   getCurrentIndex
+	call   getCurrentIndex
 	test	al, BIT0
 	jnz	short tL2	; loop if buffer 1 is not playing
 
@@ -2072,7 +2147,7 @@ DrawLoop:
 	mov     di, [Scope+bx]		; get old SCOPE pixel address
 	mov     byte [es:di], 0		; erase it!
 	;lodsb				; get a sample (8-bit)
-	; 12/05/2024
+	; 14/05/2024
 	lodsw
 	mov     bl, al			; calc new pixel address...
 	xor     bh, bh
@@ -3395,6 +3470,7 @@ _pmi:
         mov	dx, msgAC97Info
         mov     ah, 9
         int     21h
+
         retn
 
 	; 08/05/2024
@@ -3447,7 +3523,7 @@ msg_2017:
 		db	'Tiny MOD Player by Erdogan Tan. May 2024.',10,13
 		db	'usage: playmod2 filename.mod', 10, 13, '$'
 		db	'18/02/2017',0
-		db	'13/05/2024',0
+		db	'15/05/2024',0
 
 Credits:	db	'Tiny MOD Player v0.1b by Carlos Hasan. July 1993.'
 CRLF:		; 13/05/2024
@@ -3569,7 +3645,7 @@ IRQ_vector:	resd 1  ; Previous interrupt handler address
 ; 256 byte buffer for descriptor list
 BDL_BUFFER:	resw	1		; segment of our 256byte BDL buffer
 DMA_BUFFER1:	resw 	1		; Pointer to 1st half of DMA Buffer
-DMA_BUFFER2:	resw	1		; Pointer to 1st half of DMA Buffer
+DMA_BUFFER2:	resw	1		; Pointer to 2nd half of DMA Buffer
 
 ; 12/11/2016 - Erdogan Tan
 
