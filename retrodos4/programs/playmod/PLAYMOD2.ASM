@@ -1694,13 +1694,18 @@ ModPlay: ; 13/02/2017  ; ModPlay Polling!
 	;rep	stosw
 
 	; 15/05/2024
-	mov	di, MOD_BUFFER
+	push	es
+	push	ds
+	pop	es
 	mov	cx, 320
+	mov	di, MOD_BUFFER
 	mov	ax, 8080h
 	rep	stosw
-	;
+	mov	cx, 0A000h
+	mov	es, cx
 	call	ScopeLoop
-	
+	pop	es
+
         ; load 2048 bytes into buffer 1
 	mov	si, [DMA_BUFFER1]
 	; 11/05/2024
@@ -1935,9 +1940,7 @@ q_loop:
 	xchg	al, [tBuff] ; AL = [tBuff], [tBuff] = 0
 	cmp	al, 1
 	ja	short r_loop
-	;jb	short ScopeLoop
-	; 15/05/2024
-	jb	short x_loop
+	jb	short ScopeLoop
 	;
      	mov	si, [DMA_BUFFER1] ; [tBuff]=1 (from tuneLoop)
        	jmp	short s_loop 
@@ -1953,11 +1956,7 @@ s_loop:
 	;push	si ; offset
 	;push	cx ; count
 	call    GetSamples_ICH ; 18/02/2017
-x_loop:
-	; 15/05/2024
-	call	ScopeLoop
-	jmp	short p_loop
-
+	;
 ScopeLoop:
 	;mov    si, bp			; get current samples
 	mov	si, MOD_BUFFER ; 18/02/2017
@@ -1967,9 +1966,7 @@ DrawLoop:
 	mov     bx, dx			; (save Index)
 	mov     di, [Scope+bx]		; get old SCOPE pixel address
 	mov     byte [es:di], 0		; erase it!
-	;lodsb				; get a sample (8-bit)
-	; 15/05/2024
-	lodsw
+	lodsb				; get a sample (8-bit)
 	mov     bl, al			; calc new pixel address...
 	xor     bh, bh
 	shl     bx, 1
@@ -1982,9 +1979,7 @@ DrawLoop:
 	inc     cx
 	cmp     cx, 320			; 320 pixels drawed?
 	jb      short DrawLoop
-	; 15/05/2024
-	;jmp	short p_loop
-	retn
+	jmp	short p_loop
 
 tuneLoop:
 	; 11/05/2024
