@@ -9,5 +9,5 @@ Floppy Disk and Hard Disk format utilities... etc. (all of these are MSDOS stand
 
 (FDISK3.COM and FDISK4.COM -2TB disk access- is used for PARTITIONING... And for changing active partition for TEST.)
 
-(MSDOS/PCDOS/RETRODOS bootable floppy disk and bootable USB disk is -with a DOS OS- needed for using these DOS utilities..)
-((Retro DOS v5 intallation utilities/programs may be copied into \RETRODOS directory of the bootable DOS disk.))
+(MSDOS/PCDOS/RETRODOS bootable floppy disk and bootable USB disk is -with a DOS OS- needed for using these DOS utilities.)
+((Retro DOS v5 installation utilities/programs may be copied into \RETRODOS directory of the bootable DOS disk.))
