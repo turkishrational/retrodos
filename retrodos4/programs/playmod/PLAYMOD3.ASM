@@ -300,12 +300,12 @@ _1:
 	;out	0A1h, al
 
 	; 15/05/2024
-	;;and	ax, bx   ; unmask
- 	;btr	ax, dx	 ; unmask
-	;out	21h, al  ; enable interrupt (if irq <= 7)
-	;mov	al, ah
-	;out	0A1h, al ; enable interrupt (if irq > 7)
-	;;not	bx
+	;and	ax, bx   ; unmask
+ 	btr	ax, dx	 ; unmask
+	out	21h, al  ; enable interrupt (if irq <= 7)
+	mov	al, ah
+	out	0A1h, al ; enable interrupt (if irq > 7)
+	;not	bx
 
 	; 08/05/2024
 	;mov	dx, 4D1h			;8259 ELCR1
