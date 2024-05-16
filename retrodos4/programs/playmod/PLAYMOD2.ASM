@@ -5,7 +5,7 @@
 ;
 ; 18/02/2017
 ;
-; [ Last Modification: 15/05/2024 ]
+; [ Last Modification: 16/05/2024 ]
 ;
 ; Derived from source code of 'PLAYWAV.COM' ('PLAYWAV.ASM') by Erdogan Tan
 ;							      (17/02/2017)
@@ -114,7 +114,7 @@ init_codec:
 	; ((or frequency converting code would be needed))
 	;mov	word [sample_rate], 48000	; Mixing at 48 kHz
 
-; setup the Codec (actually mixer registers) 
+; setup the Codec (actually mixer registers)
         call    codecConfig			; unmute codec, set rates.
 	jnc	short PlayNow
 
@@ -277,7 +277,7 @@ _1:
 	;not	bx
 	in	al, 0A1h ; irq 8-15
         mov	ah, al
-        in	al, 21h  ; irq 0-7 
+        in	al, 21h  ; irq 0-7
 
 	; 04/11/2023
 	; save IRQ status
@@ -832,7 +832,7 @@ ICH2_DID        equ     2445h           ; ICH2 I think there are more ICHes.
 ; 17/02/2017 (Erdogan Tan, ref: ALSA Device IDs, ALSA project)
 ICH3_DID	equ     2485h           ; ICH3
 ICH4_DID        equ     24C5h           ; ICH4
-ICH5_DID	equ     24D5h           ; ICH5 
+ICH5_DID	equ     24D5h           ; ICH5
 ICH6_DID	equ     266Eh           ; ICH6
 ESB6300_DID	equ     25A6h           ; 6300ESB
 ESB631X_DID	equ     2698h           ; 631XESB
@@ -1069,7 +1069,7 @@ codecConfig:
 	PORT_NABM_GLB_CTRL_STAT equ 60h
 
 	;mov    dx, [NAMBAR]               	; mixer base address
-	;add	dx, CODEC_EXT_AUDIO_REG	       	; 28h  	  
+	;add	dx, CODEC_EXT_AUDIO_REG	       	; 28h
 	;in	ax, dx
 	;and	ax, 1
 	;jnz	short _ssr
@@ -1077,8 +1077,8 @@ codecConfig:
 	;jmp	short cconf_1
 
 _ssr:
-	mov    	dx, [NAMBAR]               	
-	add    	dx, CODEC_EXT_AUDIO_CTRL_REG  	; 2Ah  	  
+	mov    	dx, [NAMBAR]
+	add    	dx, CODEC_EXT_AUDIO_CTRL_REG  	; 2Ah
 	in     	ax, dx
 	or	ax, 1
 	out	dx, ax 				; Enable variable rate audio
@@ -1091,11 +1091,11 @@ _ssr:
 	mov	ax, [sample_rate] ; 17/02/2017 (Erdogan Tan)
 
 	mov    	dx, [NAMBAR]               	
-	add    	dx, CODEC_PCM_FRONT_DACRATE_REG	; 2Ch  	  
+	add    	dx, CODEC_PCM_FRONT_DACRATE_REG	; 2Ch
 	out	dx, ax 				; out sample rate
 		
 	;mov    dx, [NAMBAR]               	
-	;add    dx, CODEC_LR_ADCRATE_REG 	; 32h  	  
+	;add    dx, CODEC_LR_ADCRATE_REG 	; 32h
 	;out	dx, ax 
 
         call    delay1_4ms
@@ -1125,22 +1125,22 @@ _100ms:
 	loop	_100ms	
 	
   	mov     dx, [NAMBAR]
-  	add     dx, CODEC_MASTER_VOL_REG        ;02h 
+  	add     dx, CODEC_MASTER_VOL_REG        ;02h
   	xor     ax, ax ; ; volume attenuation = 0 (max. volume)
   	out     dx, ax
  
   	mov     dx, [NAMBAR]
-  	add     dx, CODEC_MASTER_MONO_VOL_REG   ;06h 
+  	add     dx, CODEC_MASTER_MONO_VOL_REG   ;06h
   	;xor    ax, ax
   	out     dx, ax
 
   	mov     dx, [NAMBAR]
-  	add     dx, CODEC_PCBEEP_VOL_REG        ;0Ah 
+  	add     dx, CODEC_PCBEEP_VOL_REG        ;0Ah
   	;xor    ax, ax
   	out     dx, ax
 
   	mov     dx, [NAMBAR]
-  	add     dx, CODEC_PCM_OUT_REG		;18h 
+  	add     dx, CODEC_PCM_OUT_REG		;18h
   	;xor    ax, ax
   	out     dx, ax
 
@@ -1154,7 +1154,7 @@ _100ms:
 %else
 	; 12/05/2024
 	; 08/05/2024
-	; (ac97_vra.asm, 19/11/2023, Erdogan Tan, playwav3.asm) 
+	; (ac97_vra.asm, 19/11/2023, Erdogan Tan, playwav3.asm)
 codecConfig:
 	; 02/12/2023
 	; 26/11/2023
@@ -1332,18 +1332,26 @@ setup_ac97_codec:
 ;%if 1
 	AC97_EA_VRA equ BIT0 ; 11/11/2023
 
-	; 11/11/2023
-	mov    	dx, [NAMBAR]               	
-	add    	dx, CODEC_EXT_AUDIO_CTRL_REG  	; 2Ah  	  
-	in     	ax, dx
+	; 16/05/2024
+	mov	dx, [NAMBAR]
+	add	dx, CODEC_EXT_AUDIO_REG	; 28h
+	in	ax, dx
 
-	; 14/05/2024
-	; 02/12/2023
+	; 16/05/2024
 	call	delay1_4ms
 
 	; 14/05/2024
 	test	al, 1 ; BIT0 ; Variable Rate Audio bit
 	jz	short vra_not_supported
+
+	; 11/11/2023
+	mov    	dx, [NAMBAR]
+	add    	dx, CODEC_EXT_AUDIO_CTRL_REG ; 2Ah
+	in     	ax, dx
+
+	; 14/05/2024
+	; 02/12/2023
+	call	delay1_4ms
 
 	and	al, ~BIT1 ; Clear DRA
 	or	al, AC97_EA_VRA ; 1 ; 04/11/2023
@@ -1380,7 +1388,7 @@ set_rate:
 	; ax = 22050 (Hz)
 
 	mov    	dx, [NAMBAR]               	
-	add    	dx, CODEC_PCM_FRONT_DACRATE_REG	; 2Ch  	  
+	add    	dx, CODEC_PCM_FRONT_DACRATE_REG	; 2Ch
 	out	dx, ax 			; PCM Front/Center Output Sample Rate
 
 	call	delay_100ms
@@ -1390,20 +1398,20 @@ skip_rate:
 	; 11/11/2023 (temporary)
 
 	;mov   	dx, [NAMBAR]               	
-	;add   	dx, CODEC_PCM_SURND_DACRATE_REG	; 2Eh  	  
+	;add   	dx, CODEC_PCM_SURND_DACRATE_REG	; 2Eh
 	;out	dx, ax 			; PCM Surround Output Sample Rate
 
 	;call	delay_100ms
 
 	;mov   	dx, [NAMBAR]               	
-	;add   	dx, CODEC_PCM_LFE_DACRATE_REG	; 30h  	  
+	;add   	dx, CODEC_PCM_LFE_DACRATE_REG	; 30h
 	;out	dx, ax 			; PCM LFE Output Sample Rate
 
 	;call	delay_100ms
 
 	; 05/11/2023 (temporary)
 	;mov	dx, [NAMBAR]               	
-	;add	dx, CODEC_LR_ADCRATE_REG 	; 32h  	  
+	;add	dx, CODEC_LR_ADCRATE_REG 	; 32h
 	;out	dx, ax 			; PCM Input Sample Rate
 	;
 	;call	delay_100ms
@@ -1411,7 +1419,7 @@ skip_rate:
 	mov	ax, 0202h
 	mov	[volume], al ; 29
 	mov     dx, [NAMBAR]
-  	add     dx, CODEC_MASTER_VOL_REG	;02h 
+  	add     dx, CODEC_MASTER_VOL_REG	; 02h
 	out     dx, ax
 
 	; 11/11/2023
@@ -1421,7 +1429,7 @@ skip_rate:
         ;call	delay1_4ms
  	;
   	;mov	dx, [NAMBAR]
-  	;add	dx, CODEC_MASTER_MONO_VOL_REG	;06h 
+  	;add	dx, CODEC_MASTER_MONO_VOL_REG	; 06h
   	;out	dx, ax
 
 	; 11/11/2023
@@ -1432,7 +1440,7 @@ skip_rate:
 	;
 	;mov	ax, 02h
   	;mov	dx, [NAMBAR]
-  	;add	dx, CODEC_PCBEEP_VOL_REG	;0Ah 
+  	;add	dx, CODEC_PCBEEP_VOL_REG	; 0Ah
   	;out	dx, ax
 
 	; 14/05/2024	
@@ -1447,7 +1455,7 @@ skip_rate:
 
 	;mov	ax, 0202h
   	mov     dx, [NAMBAR]
-  	add     dx, CODEC_PCM_OUT_REG		;18h 
+  	add     dx, CODEC_PCM_OUT_REG		; 18h
   	out     dx, ax
 
 	; 14/05/2024
@@ -1464,7 +1472,7 @@ skip_rate:
 	; 11/11/2023
 	;mov	ax, 8008h ; Mute
   	;mov	dx, [NAMBAR]
-	;add	dx, CODEC_PHONE_VOL_REG		;0Ch
+	;add	dx, CODEC_PHONE_VOL_REG		; 0Ch
 	;			 ; AC97_PHONE_VOL ; TAD Input (Mono)
   	;out	dx, ax
 	;
@@ -1567,7 +1575,7 @@ reset_ac97_codec:
 	;test	eax, 2
 	; 06/08/2022
 	test	al, 2
-	jz	short _r_ac97codec_cold	
+	jz	short _r_ac97codec_cold
 
 	call	warm_ac97codec_reset
 	jnc	short _r_ac97codec_ok
@@ -1677,7 +1685,7 @@ _delay_x_ms:
 ; player internal variables and other equates.
 ;BUFFERSIZE	equ	2048*4		; 8K half buffer size. 18/02/2017
 ; 14/05/2024
-BUFFERSIZE	equ	2560*4		
+BUFFERSIZE	equ	2560*4
 ENDOFFILE	equ	BIT0		; flag for knowing end of file
 
 ;===========================================================================
@@ -1738,7 +1746,7 @@ ModPlay: ; 13/02/2017  ; ModPlay Polling!
 ; The Last Valid Index register tells the DMA engine when to stop playing.
 ; 
 ; As we progress through the song we change the last valid index to always be
-; something other than the index we're currently playing.  
+; something other than the index we're currently playing.
 ;
         ;;mov   al, 1
         ;mov	al, 31
@@ -2165,7 +2173,7 @@ DrawLoop:
 	; 12/05/2024
 updateLVI:
 	; 06/11/2023
-	mov	dx, [NABMBAR]      		
+	mov	dx, [NABMBAR]
 	add	dx, PO_CIV_REG
 	; (Current Index Value and Last Valid Index value)
 	in	ax, dx
@@ -3309,10 +3317,10 @@ bytetohex:
 	xor	bh, bh
 	mov	bl, al
 	shr	bl, 4
-	mov	bl, [bx+hex_chars] 	 	
+	mov	bl, [bx+hex_chars]
 	xchg	bl, al
 	and	bl, 0Fh
-	mov	ah, [bx+hex_chars] 
+	mov	ah, [bx+hex_chars]
 	pop	bx	
 	retn
 
@@ -3328,7 +3336,7 @@ wordtohex:
 	push	ax
 	mov	bl, ah
 	shr	bl, 4
-	mov	al, [bx+hex_chars] 	 	
+	mov	al, [bx+hex_chars]
 	mov	bl, ah
 	and	bl, 0Fh
 	mov	ah, [bx+hex_chars]
@@ -3518,7 +3526,7 @@ msg_2017:
 		db	'Tiny MOD Player by Erdogan Tan. May 2024.',10,13
 		db	'usage: playmod2 filename.mod', 10, 13, '$'
 		db	'18/02/2017',0
-		db	'15/05/2024',0
+		db	'16/05/2024',0
 
 Credits:	db	'Tiny MOD Player v0.1b by Carlos Hasan. July 1993.'
 CRLF:		; 13/05/2024
@@ -3630,12 +3638,12 @@ tBuff:		resb	1
 ;irq_status:	resb 	1
 pcm_irq_status:	resb	1 ; 08/05/2024
 
-inside:		resb	1 
+inside:		resb	1
 tLoop:		resb 	1
 
 ; 08/05/2024
 IRQ_status:	resw 1	; IRQ status before enabling audio interrupt
-IRQ_vector:	resd 1  ; Previous interrupt handler address	
+IRQ_vector:	resd 1  ; Previous interrupt handler address
 
 ; 256 byte buffer for descriptor list
 BDL_BUFFER:	resw	1		; segment of our 256byte BDL buffer
