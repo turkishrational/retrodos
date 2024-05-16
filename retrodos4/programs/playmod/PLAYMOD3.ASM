@@ -5,7 +5,7 @@
 ;
 ; 18/02/2017
 ;
-; [ Last Modification: 15/05/2024 ]
+; [ Last Modification: 16/05/2024 ]
 ;
 ; Derived from source code of 'PLAYWAV.COM' ('PLAYWAV.ASM') by Erdogan Tan
 ;							      (17/02/2017)
@@ -115,6 +115,8 @@ init_codec:
 	;mov	word [sample_rate], 22050	; Mixing at 22.050 kHz
 	; 15/05/2024
 	mov	word [sample_rate], 24000
+	; 16/05/2024
+	;mov	word [sample_rate], 16000
 
 	; 08/05/2024
 	; (48 kHZ mixing is necessary 
@@ -186,7 +188,8 @@ MakeOfs:
 	mov     ax, 0003h		; Set Text Mode 80x25x16
 	int     10h
 
-	call	StopPlaying		; STOP!
+	; 16/05/2024
+	;call	StopPlaying		; STOP!
 Exit:           
 	;call   FreeModule		; Free MODule core.
 error_exit:
@@ -358,6 +361,8 @@ _1:
 
 	retn
 
+; 16/05/2024
+%if 0
 	; 15/05/2024
 ac97_int_handler:
 	; 13/05/2024
@@ -406,7 +411,7 @@ _ih_0:
 	; 12/05/2024
 	;test	al, 40h		; PCM Out Interrupt
 	; 15/05/2024
-	test	al, PCM_OUT_IRQ+BCIS
+	test	al, PCM_OUT_IRQ
 	jnz	short _ih_1
 
 	; 15/05/2024
@@ -414,7 +419,7 @@ _ih_0:
 	;jz	short _ih_3
 
 	; 12/05/2024
-	;test	ax, PCM_OUT_IRQ+BCIS
+	;test	ax, PCM_OUT_IRQ
 	;jnz	short _ih_1
 
  	;mov	dx, GLOB_STS_REG
@@ -514,6 +519,130 @@ _ih_3:
 	pop	dx
 	pop	eax ; 11/11/2023
 	iret
+%else
+	; 16/05/2024
+	; 15/05/2024
+ac97_int_handler:
+	; 13/05/2024
+	; 12/05/2024
+	; 11/05/2024
+	; 11/11/2023
+	; 10/11/2023
+	; 17/02/2016
+	push	ax ; +	; 16/05/2024 		
+	;push	eax ; *	; 11/11/2023
+	push	dx ; **
+	; 05/11/2023
+	;push	cx
+	;push	bx
+	;push	si
+	;push	di
+
+	; 16/05/2024
+	; 10/11/2023
+	; EOI at first
+	mov	al, 20h
+	test	byte [ac97_int_ln_reg], 8
+	jz	short _ih_0
+	out 	0A0h, al ; 20h	; EOI
+_ih_0:
+	out	20h, al  ; 20h	; EOI
+
+	; 16/05/2024
+;	mov	dx, GLOB_STS_REG
+;	add	dx, [NABMBAR]
+;	in	eax, dx
+;
+;	inc	eax	; 0FFFFFFFFh
+;	jz	short _ih_3
+;	dec	eax	; 0
+;	;jz	short _ih_3
+;_ih_3:
+;	; 16/05/2024
+;	push	eax ; ***
+
+	; 16/05/2024
+	; 24/11/2023 (TRDOS386 'audio.s')
+        mov	dx, [NABMBAR]
+	add	dx, PO_SR_REG
+	in	ax, dx
+
+	test	al, BCIS ; bit 3, 8
+	jz	short _ih_2
+
+	; 15/05/2024
+	cmp	byte [tLoop], 1
+	jb	short _ih_2
+_ih_1:
+	; 16/05/2024
+	; 13/05/2024
+	;mov	ax, 1Ch ; FIFOE(=16)+BCIS(=8)+LVBCI(=4)
+	;add	dx, PO_SR_REG
+        ;add	dx, [NABMBAR]
+	;out	dx, ax
+
+	; 16/05/2024
+	push	ax ; ****	
+
+	; 13/05/2024
+	mov	dx, PO_CIV_REG
+        add	dx, [NABMBAR]
+	in	al, dx
+	mov	ah, al
+	dec	al
+	and	al, 1Fh
+        mov     dx, PO_LVI_REG
+        add	dx, [NABMBAR]
+        out	dx, al
+	and	ah, 1
+	; 13/05/2024
+	inc	ah
+	mov	[tBuff], ah ; 1 = Buffer 1, 2 = Buffer 2
+
+	; 13/05/2024
+	; 10/11/2023
+	; 28/11/2016 - Erdogan Tan
+	;call	tuneLoop
+
+	; 16/05/2024
+	pop	ax ; ****
+
+	; 16/05/2024
+_ih_2:
+	;mov	ax, 1Ch ; FIFOE(=16)+BCIS(=8)+LVBCI(=4)
+	mov	dx, [NABMBAR]
+	add	dx, PO_SR_REG
+	out	dx, ax
+
+;	; 16/05/2024
+;	pop	eax ; ***
+;	
+;	or	eax, eax
+;	jz	short _ih_4
+;	
+;	mov	dx, GLOB_STS_REG
+;	add	dx, [NABMBAR]
+;	out	dx, eax
+
+	; 16/05/2024
+_ih_4:
+	; 10/11/2023
+	;mov	al, 20h
+	;test	byte [ac97_int_ln_reg], 8
+	;jz	short _ih_5
+	;out 	0A0h, al ; 20h	; EOI
+;_ih_5:
+	;out	20h, al  ; 20h	; EOI
+;_ih_6:
+	;pop	di
+	;pop	si
+	;pop	bx
+	;pop	cx
+	pop	dx ; **
+	;pop	eax ; *	; 11/11/2023	
+	pop	ax ; + ; 16/05/2024
+	iret
+%endif
 
 ;=============================================================================
 ;               PCI.ASM
@@ -1649,7 +1778,9 @@ _delay_x_ms:
 ; player internal variables and other equates.
 ;BUFFERSIZE	equ	2048*4		; 8K half buffer size. 18/02/2017
 ; 15/05/2024
-BUFFERSIZE	equ	2560*4
+;BUFFERSIZE	equ	2560*4
+; 16/05/2024
+BUFFERSIZE	equ	3840*4
 ;ENDOFFILE	equ	BIT0		; flag for knowing end of file
 
 ;===========================================================================
@@ -1952,6 +2083,8 @@ p_2:
 
 p_return:
 	mov	byte [tLoop], 0	; 13/02/2017
+	; 16/05/2024
+	call	StopPlaying
 	pop	es
 	retn
 
@@ -3369,7 +3502,7 @@ msg_2017:
 		db	'Tiny MOD Player by Erdogan Tan. May 2024.',10,13
 		db	'usage: playmod2 filename.mod', 10, 13, '$'
 		db	'18/02/2017',0
-		db	'15/05/2024',0
+		db	'16/05/2024',0
 
 Credits:	db	'Tiny MOD Player v0.1b by Carlos Hasan. July 1993.'
 CRLF:		; 13/05/2024
