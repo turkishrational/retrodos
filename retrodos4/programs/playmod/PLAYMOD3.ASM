@@ -5,7 +5,7 @@
 ;
 ; 18/02/2017
 ;
-; [ Last Modification: 16/05/2024 ]
+; [ Last Modification: 18/05/2024 ]
 ;
 ; Derived from source code of 'PLAYWAV.COM' ('PLAYWAV.ASM') by Erdogan Tan
 ;							      (17/02/2017)
@@ -1437,13 +1437,24 @@ setup_ac97_codec:
 ;%if 1
 	AC97_EA_VRA equ BIT0 ; 11/11/2023
 
+	; 18/05/2024
+	call	delay1_4ms
+
 	; 16/05/2024
 	mov	dx, [NAMBAR]
 	add	dx, CODEC_EXT_AUDIO_REG	; 28h
 	in	ax, dx
 
+	; 18/05/2024
 	; 16/05/2024
 	call	delay1_4ms
+	; 17/05/2024
+	;call	delay1_4ms
+	;call	delay1_4ms
+	;call	delay1_4ms
+
+	; 17/05/2024
+	;call	delay_100ms
 
 	; 14/05/2024
 	test	al, 1 ; BIT0 ; Variable Rate Audio bit
@@ -3509,9 +3520,9 @@ ac97_po_cmd:
 
 msg_2017:
 		db	'Tiny MOD Player by Erdogan Tan. May 2024.',10,13
-		db	'usage: playmod2 filename.mod', 10, 13, '$'
+		db	'usage: playmod3 filename.mod', 10, 13, '$'
 		db	'18/02/2017',0
-		db	'16/05/2024',0
+		db	'18/05/2024',0
 
 Credits:	db	'Tiny MOD Player v0.1b by Carlos Hasan. July 1993.'
 CRLF:		; 13/05/2024
