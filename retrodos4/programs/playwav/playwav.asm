@@ -1,11 +1,11 @@
 ; ****************************************************************************
 ; PLAYWAV.ASM - ICH AC97 .wav player for DOS.			   PLAYWAV.COM
 ; ----------------------------------------------------------------------------
-; Last Update: 17/02/2017
+; Last Update: 13/05/2024
 ; ----------------------------------------------------------------------------
 ; Beginning: 17/02/2017
 ; ----------------------------------------------------------------------------
-; Assembler: NASM version 2.11
+; Assembler: NASM version 2.15
 ;	     nasm playwav.asm -l playwav.lst -o PLAYWAV.COM	
 ; ----------------------------------------------------------------------------
 ; Derived from '.wav file player for DOS' Jeff Leyda, Sep 02, 2002 
@@ -208,6 +208,10 @@ _gsr_2:
 
 ; setup the Codec (actually mixer registers) 
         call    codecConfig                     ; unmute codec, set rates.
+	
+	; 13/05/2024
+	; 11/11/2023
+	jc	short init_err
 
 ;
 ; position file pointer to start in actual wav data
@@ -227,6 +231,7 @@ _gsr_2:
 
 ; close the .wav file and exit.
 
+close_exit:	; 13/05/2024
         call    closeFile
 
 exit:
@@ -235,6 +240,17 @@ exit:
 
 here:
 	jmp	short here
+
+	; 13/05/2024
+init_err:
+	mov	dx, msg_init_err
+
+	; 13/05/2024
+vra_err: ; 12/11/2023
+	;mov	dx, msg_no_vra
+        mov	ah, 9
+        int	21h
+	jmp	short close_exit
 
 ; MEMALLOC.ASM
 ;-- SETFREE: Release memory not used  ----------------
@@ -794,17 +810,30 @@ irq_int		db 08h,09h,0Ah,0Bh,0Ch,0Dh,0Eh,0Fh,70h,71h,72h,73h,74h,75h,76h,77h
 ; Valid ICH device IDs
 
 valid_ids:
-dd	(ICH_DID << 16) + INTEL_VID  ; 8086h:2415h 
-dd	(ICH0_DID << 16) + INTEL_VID ; 8086h:2425h 
-dd	(ICH2_DID << 16) + INTEL_VID ; 8086h:2445h 
-dd	(ICH3_DID << 16) + INTEL_VID ; 8086h:2485h 
-dd	(ICH4_DID << 16) + INTEL_VID ; 8086h:24C5h
-dd	(ICH5_DID << 16) + INTEL_VID ; 8086h:24D5h
-dd	(ICH6_DID << 16) + INTEL_VID ; 8086h:266Eh
-dd	(ESB6300_DID << 16) + INTEL_VID ; 8086h:25A6h
-dd	(ESB631X_DID << 16) + INTEL_VID ; 8086h:2698h
-dd	(ICH7_DID << 16) + INTEL_VID ; 8086h:27DEh
-valid_id_count:	equ $ - valid_ids 
+dd	(ICH_DID << 16) + INTEL_VID  	 ; 8086h:2415h 
+dd	(ICH0_DID << 16) + INTEL_VID 	 ; 8086h:2425h 
+dd	(ICH2_DID << 16) + INTEL_VID 	 ; 8086h:2445h 
+dd	(ICH3_DID << 16) + INTEL_VID 	 ; 8086h:2485h 
+dd	(ICH4_DID << 16) + INTEL_VID 	 ; 8086h:24C5h
+dd	(ICH5_DID << 16) + INTEL_VID 	 ; 8086h:24D5h
+dd	(ICH6_DID << 16) + INTEL_VID 	 ; 8086h:266Eh
+dd	(ESB6300_DID << 16) + INTEL_VID  ; 8086h:25A6h
+dd	(ESB631X_DID << 16) + INTEL_VID  ; 8086h:2698h
+dd	(ICH7_DID << 16) + INTEL_VID 	 ; 8086h:27DEh
+; 03/11/2023 - Erdogan Tan
+dd	(MX82440_DID << 16) + INTEL_VID  ; 8086h:7195h
+dd	(SI7012_DID << 16)  + SIS_VID	 ; 1039h:7012h
+dd 	(NFORCE_DID << 16)  + NVIDIA_VID ; 10DEh:01B1h
+dd 	(NFORCE2_DID << 16) + NVIDIA_VID ; 10DEh:006Ah
+dd 	(AMD8111_DID << 16) + AMD_VID 	 ; 1022h:746Dh
+dd 	(AMD768_DID << 16)  + AMD_VID 	 ; 1022h:7445h
+dd 	(CK804_DID << 16) + NVIDIA_VID	 ; 10DEh:0059h
+dd 	(MCP04_DID << 16) + NVIDIA_VID	 ; 10DEh:003Ah
+dd 	(CK8_DID << 16) + NVIDIA_VID	 ; 1022h:008Ah
+dd 	(NFORCE3_DID << 16) + NVIDIA_VID ; 10DEh:00DAh
+dd 	(CK8S_DID << 16) + NVIDIA_VID	 ; 10DEh:00EAh
+
+valid_id_count:	equ ($ - valid_ids)>>2 ; 05/11/2023
 
 ; 13/11/2016
 hex_chars	db "0123456789ABCDEF", 0
@@ -902,6 +931,18 @@ dword_str	 dd 30303030h, 30303030h
 
 ;VIA
 ;chip_VIA1612A   db 'VIA1612A',13,10,0
+
+; 11/11/2023
+msg_init_err:
+	db	CR, LF
+	db	"AC97 Controller/Codec initialization error !"
+	db	CR, LF, "$"
+
+; 12/11/2023
+msg_no_vra:
+	db	CR, LF
+	db	"No VRA support ! Only 48 kHZ sample rate supported !"
+	db	CR, LF, "$"
 
 ; 17/02/2017
 bss_start:

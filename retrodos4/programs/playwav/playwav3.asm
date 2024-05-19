@@ -1,11 +1,11 @@
 ; ****************************************************************************
 ; PLAYWAV.ASM - ICH AC97 .wav player for DOS.			   PLAYWAV.COM
 ; ----------------------------------------------------------------------------
-; Last Update: 19/11/2023 (Previous: 18/11/2023)
+; Last Update: 19/05/2024 (Previous: 08/05/2024)
 ; ----------------------------------------------------------------------------
 ; Beginning: 17/02/2017
 ; ----------------------------------------------------------------------------
-; Assembler: NASM version 2.11 (2.15)
+; Assembler: NASM version 2.15
 ;	     nasm playwav.asm -l playwav.lst -o PLAYWAV.COM	
 ; ----------------------------------------------------------------------------
 ; Derived from '.wav file player for DOS' Jeff Leyda, Sep 02, 2002 
@@ -81,15 +81,19 @@ _1:
 
         mov     al, NAMBAR_REG
         call    pciRegRead16			; read PCI registers 10-11
-        and     dx, IO_ADDR_MASK 		; mask off BIT0
+        ;and    dx, IO_ADDR_MASK 		; mask off BIT0
+	; 19/05/2024
+	and	dl, 0FEh
 
-        mov     [NAMBAR], dx			; save audio mixer base addy
+        mov     [NAMBAR], dx			; save audio mixer base addr
 
 	mov     al, NABMBAR_REG
         call    pciRegRead16
-        and     dx, IO_ADDR_MASK
+        ;and    dx, IO_ADDR_MASK
+	; 19/05/2024
+	and	dl, 0C0h
 
-        mov     [NABMBAR], dx			; save bus master base addy
+        mov     [NABMBAR], dx			; save bus master base addr
 
 	; 06/11/2023
 	;; init controller
@@ -118,8 +122,8 @@ _1:
 ; 05/11/2023
 %if 1
 	; 28/11/2016
-	mov	bx, 1
-	xor	dh, dh 	 ; 17/02/2017
+	;mov	bx, 1	; 08/05/2024
+	xor	dh, dh	; 17/02/2017
 	; 10/11/2023
 	;mov	cx, dx
 	;shl	bx, cl
@@ -587,25 +591,26 @@ write_ac97_dev_info:
 	mov	al, [bx+hex_chars]
 	mov	[msgNamBar], al
 
+	; 08/05/2024 (ebx->bx)
 	; 05/11/2023
 	mov	ax, [NABMBAR]
 	mov	bl, al
 	mov	dl, bl
 	and	bl, 0Fh
-	mov	al, [ebx+hex_chars]
+	mov	al, [bx+hex_chars]
 	mov	[msgNabmBar+3], al
 	mov	bl, dl
 	shr	bl, 4
-	mov	al, [ebx+hex_chars]
+	mov	al, [bx+hex_chars]
 	mov	[msgNabmBar+2], al
 	mov	bl, ah
 	mov	dl, bl
 	and	bl, 0Fh
-	mov	al, [ebx+hex_chars]
+	mov	al, [bx+hex_chars]
 	mov	[msgNabmBar+1], al
 	mov	bl, dl
 	shr	bl, 4
-	mov	al, [ebx+hex_chars]
+	mov	al, [bx+hex_chars]
 	mov	[msgNabmBar], al
 
 	; 24/11/2016
@@ -741,10 +746,111 @@ wsr_2:
 ;       call	print_msg
 ;       retn
 
+; 19/05/2024
 ; 10/11/2023
 ; 09/11/2023
 ; 06/11/2023
 %if 1
+
+ac97_int_handler:
+	; 19/05/2024
+	; 16/05/2024 ('PLAYMOD3.ASM', 18/05/2024, Erdogan Tan)
+	; 11/11/2023
+	; 10/11/2023
+	; 17/02/2016
+	push	ax ; +	; 16/05/2024
+	;push	eax ; *	; 11/11/2023
+	push	dx ; **
+	; 05/11/2023
+	;push	cx
+	;push	bx
+	;push	si
+	;push	di
+
+	; 10/11/2023
+	; EOI at first
+	mov	al, 20h
+	test	byte [ac97_int_ln_reg], 8
+	jz	short _ih_0
+	out 	0A0h, al ; 20h	; EOI
+_ih_0:
+	out	20h, al  ; 20h	; EOI
+
+	; 16/05/2024
+;	mov	dx, GLOB_STS_REG
+;	add	dx, [NABMBAR]
+;	in	eax, dx
+;
+;	inc	eax	; 0FFFFFFFFh
+;	jz	short _ih_3
+;	dec	eax	; 0
+;	;jz	short _ih_3
+;_ih_3:
+;	; 16/05/2024
+;	push	eax ; ***
+
+	; 16/05/2024
+	; 24/11/2023 (TRDOS386 'audio.s')
+        mov	dx, [NABMBAR]
+	add	dx, PO_SR_REG
+	in	ax, dx
+
+	test	al, BCIS ; bit 3, 8
+	jz	short _ih_2
+
+	; 19/05/2024
+	; 15/05/2024
+	;cmp	byte [tLoop], 1
+	;jb	short _ih_2
+
+_ih_1:
+	; 19/05/2024
+	push	ax ; ****
+
+	; 10/11/2023
+	; 28/11/2016 - Erdogan Tan
+	call	tuneLoop
+
+	; 19/05/2024
+	pop	ax ; ****
+
+	; 16/05/2024
+_ih_2:
+	;mov	ax, 1Ch ; FIFOE(=16)+BCIS(=8)+LVBCI(=4)
+	mov	dx, [NABMBAR]
+	add	dx, PO_SR_REG
+	out	dx, ax
+
+;	; 16/05/2024
+;	pop	eax ; ***
+;	
+;	or	eax, eax
+;	jz	short _ih_4
+;	
+;	mov	dx, GLOB_STS_REG
+;	add	dx, [NABMBAR]
+;	out	dx, eax
+
+	; 16/05/2024
+_ih_4:
+	; 10/11/2023
+	;mov	al, 20h
+	;test	byte [ac97_int_ln_reg], 8
+	;jz	short _ih_5
+	;out 	0A0h, al ; 20h	; EOI
+;_ih_5:
+	;out	20h, al  ; 20h	; EOI
+;_ih_6:
+	;pop	di
+	;pop	si
+	;pop	bx
+	;pop	cx
+	pop	dx ; **
+	;pop	eax ; *	; 11/11/2023
+	pop	ax ; + ; 16/05/2024
+	iret
+
+%else
 
 ac97_int_handler:
 	; 11/11/2023
@@ -752,7 +858,7 @@ ac97_int_handler:
 	; 17/02/2016
 	push	eax	; 11/11/2023
 	push	dx
-	; 05/11/2023	
+	; 05/11/2023
 	;push	cx
 	;push	bx
 	;push	si

@@ -1,3 +1,4 @@
+; 19/05/2024
 ; 11/11/2023
 ; 08/11/2023
 ; 06/11/2023
@@ -164,8 +165,8 @@ _0:
 ;
 
 ; ICHWAV.ASM
-
-	mov	eax, BUFFERSIZE / 2 ; size of half buffer (32K)
+				    ; 19/05/2024
+	mov	eax, BUFFERSIZE / 2 ; size of buffer (32K) in (16bit) words
 	;or	eax, IOC + BUP
 	; 06/11/2023 (TUNELOOP version, without interrupt)
 	or	eax, BUP
@@ -201,6 +202,9 @@ _0:
         add     dx, PO_BDBAR_REG                ; set pointer to BDL
         out     dx, eax                         ; write to AC97 controller
 
+	; 19/05/2024
+	call	delay1_4ms
+
 ;
 ; All set. Let's play some music.
 ;
@@ -222,6 +226,9 @@ _0:
 	; 06/11/2023
 	;mov	byte [tLoop], 1 ; 30/11/2016
 
+	; 19/05/2024
+	call	delay1_4ms
+
 	; 17/02/2017
         mov     dx, [NABMBAR]
         add     dx, PO_CR_REG                   ; PCM out Control Register
@@ -231,11 +238,12 @@ _0:
 	mov	al, RPBM
 	out     dx, al                          ; Start bus master operation.
 
+	; 19/05/2024
 	; 06/11/2023
-	;call	delay1_4ms
-	;call	delay1_4ms
-	;call	delay1_4ms
-	;call	delay1_4ms
+	call	delay1_4ms
+	call	delay1_4ms
+	call	delay1_4ms
+	call	delay1_4ms
 
 ; while DMA engine is running, examine current index and wait until it hits 1
 ; as soon as it's 1, we need to refresh the data in wavbuffer1 with another
@@ -247,7 +255,7 @@ _0:
 	; 28/11/2016
 p_loop:
 	call    check4keyboardstop      ; keyboard halt?
-        jc	short r_loop 	; no ; 05/11/2023
+        jc	short r_loop		; no ; 05/11/2023
 
 	;mov	byte [tLoop], 0
 	; 04/11/2023
@@ -986,16 +994,60 @@ check4keyboardstop:
 
 ; 06/11/2023
 %if 1
+	; 19/05/2024
 	; 08/11/2023
 	; 04/11/2023
 	mov	ah, 1
 	int	16h
 	jz	short _cksr
+
 	xor	ah, ah
 	int	16h
+
+	;;;
+	; 19/05/2024 (change PCM out volume)
+	cmp	al, '+'
+	jne	short p_1
+	
+	mov	al, [volume]
+	cmp	al, 0
+	jna	short p_3
+	dec	al
+	jmp	short p_2
+p_1:
+	cmp	al, '-'
+	jne	short p_4
+
+	mov	al, [volume]
+	cmp	al, 31
+	jnb	short p_3
+	inc	al
+p_2:
+	mov	[volume], al
+	mov	ah, al
+	mov     dx, [NAMBAR]
+  	;add    dx, CODEC_MASTER_VOL_REG
+	add	dx, CODEC_PCM_OUT_REG
+	out     dx, ax
+
+	call    delay1_4ms
+        call    delay1_4ms
+        call    delay1_4ms
+        call    delay1_4ms
+
+	clc
+p_3:
+	retn
+p_4:
+	;;;
+	
 	stc
 _cksr:
 	retn
+
+; 19/05/2024
+volume:	db 0
+
 %endif
 
 ; 06/11/2023

@@ -1,3 +1,4 @@
+; 19/05/2024
 ; 18/11/2023
 ; 17/11/2023
 ; 16/11/2023
@@ -366,8 +367,8 @@ _0:
 ;
 
 ; ICHWAV.ASM
-
-	;mov	eax, BUFFERSIZE / 2 ; size of half buffer (32K)
+				    ; 19/05/2024
+	;mov	eax, BUFFERSIZE / 2 ; size of buffer (32K) in (16bit) words
 	; 13/11/2023
 	mov	eax, [buffersize]
 
@@ -411,6 +412,9 @@ _0:
         add     dx, PO_BDBAR_REG                ; set pointer to BDL
         out     dx, eax                         ; write to AC97 controller
 
+	; 19/05/2024
+	call	delay1_4ms
+
 ;
 ; All set. Let's play some music.
 ;
@@ -434,6 +438,9 @@ _0:
 	; 06/11/2023
 	;mov	byte [tLoop], 1 ; 30/11/2016
 
+	; 19/05/2024
+	call	delay1_4ms
+
 	; 17/02/2017
         mov     dx, [NABMBAR]
         add     dx, PO_CR_REG                   ; PCM out Control Register
@@ -447,11 +454,12 @@ _0:
 	; 09/11/2023
 	mov	byte [b_indicator], '?'	
 
+	; 19/05/2024
 	; 06/11/2023
-	;call	delay1_4ms
-	;call	delay1_4ms
-	;call	delay1_4ms
-	;call	delay1_4ms
+	call	delay1_4ms
+	call	delay1_4ms
+	call	delay1_4ms
+	call	delay1_4ms
 
 	; 10/11/2023
 	;mov	byte [tloop], 1
@@ -472,6 +480,8 @@ p_loop:
 	; 09/11/2023
 	;or	byte [flags], ENDOFFILE
 	;mov	byte [b_indicator], '0'
+x_loop:
+	mov	al, '0' ; 19/05/2024
 q_loop:
 	;mov	al, '0'
 	call	tL0
@@ -503,10 +513,11 @@ irq_restore:
 	retn
 
 r_loop:
+	; 19/05/2024
 	; 10/11/2023
-	;nop
-	;nop
-	;nop
+	nop
+	nop
+	nop
 
 	; 11/11/2023	
 	mov	al, '0'
@@ -525,9 +536,11 @@ u_loop:
 	;call	loadFromFile
 	; 13/11/2023
 	call	[loadfromwavfile]
-	jnc	short v_loop
-	mov	al, '0'
-	jmp	short q_loop
+	;jnc	short v_loop
+	;mov	al, '0'
+	;jmp	short q_loop
+	; 19/05/2024
+	jc	short x_loop
 v_loop:
 	; 09/11/2023 - Erdogan Tan
 	; (print buffer number on top left of the screen)
@@ -1131,33 +1144,60 @@ check4keyboardstop:
 
 ; 06/11/2023
 %if 1
+	; 19/05/2024
 	; 08/11/2023
 	; 04/11/2023
 	mov	ah, 1
 	int	16h
-	clc
+	;clc
 	jz	short _cksr
+
 	xor	ah, ah
 	int	16h
-	stc
-_cksr:
-	retn
-%endif
 
-; 06/11/2023
-; 04/11/2023
-%if 0	
-        push    ds
-        push    0
-        pop     ds		       ; examine BDA for keyboard flags
-        test    byte [417h], (BIT0 | BIT1)
-        pop     ds
-        stc
-        jnz	short _cksr ; 07/11/2023
-	;jz	short _cksr ; 06/11/2023
-        clc
-_cksr:
-        retn
+	;;;
+	; 19/05/2024 (change PCM out volume)
+	cmp	al, '+'
+	jne	short p_1
+	
+	mov	al, [volume]
+	cmp	al, 0
+	jna	short p_3
+	dec	al
+	jmp	short p_2
+p_1:
+	cmp	al, '-'
+	jne	short p_4
+
+	mov	al, [volume]
+	cmp	al, 31
+	jnb	short p_3
+	inc	al
+p_2:
+	mov	[volume], al
+	mov	ah, al
+	mov     dx, [NAMBAR]
+  	;add    dx, CODEC_MASTER_VOL_REG
+	add	dx, CODEC_PCM_OUT_REG
+	out     dx, ax
+
+	call    delay1_4ms
+        call    delay1_4ms
+        call    delay1_4ms
+        call    delay1_4ms
+_cksr:		; 19/05/2024
+	clc
+p_3:
+	retn
+p_4:
+	;;;
+;_cskr:	
+	stc
+	retn
+
+; 19/05/2024
+volume:	db 02h
+
 %endif
 
 ; 15/11/2023

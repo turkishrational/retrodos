@@ -1,3 +1,4 @@
+; 19/05/2024
 ; 19/11/2023 
 ;	(ready status optimization -in order to prevent wrong init error- )
 ; 18/11/2023
@@ -216,6 +217,7 @@ PCIScanExit:
 ; enable codec, unmute stuff, set output rate to 44.1
 ; entry: ax = desired sample rate
 
+; 19/05/2024
 ; 19/11/2023
 ; 11/11/2023
 ; 06/11/2023
@@ -231,6 +233,7 @@ PCIScanExit:
 VRA:	db 1	
 
 codecConfig:
+	; 19/05/2024
 	; 19/11/2023
 	; 15/11/2023
 	; 04/11/2023
@@ -258,6 +261,9 @@ init_ac97_controller:
 
 	call	delay_100ms
 
+	; 19/05/2024
+	; ('PLAYMOD3.ASM', Erdogan Tan, 18/05/2024)
+
 init_ac97_codec:
 	; 18/11/2023
 	mov	bp, 40
@@ -267,18 +273,19 @@ _initc_1:
 	mov	dx, GLOB_CNT_REG ; 2Ch
 	add	dx, [NABMBAR]
 	in	eax, dx
+
+	; 19/05/2024
+	call	delay1_4ms
+
 	; ?
-	;; 15/11/2023
-	;;mov	cx, 40
-	;mov	bp, 40 ; 18/11/2023
-;_initc_1:
 	mov	dx, GLOB_STS_REG ; 30h
 	add	dx, [NABMBAR]
 	in	eax, dx
 
+	; 19/05/2024
+	call	delay1_4ms
+
 	cmp	eax, 0FFFFFFFFh ; -1
-	;je	short init_ac97_codec_err1
-	; 15/11/2023
 	jne	short _initc_3
 _initc_2:
 	;dec	cx
@@ -294,10 +301,10 @@ _initc_3:
 	jnz	short _ac97_codec_ready
 
 	call	reset_ac97_codec
-	; 11/11/2023
-	;jc	short init_ac97_codec_err2
 	; 15/11/2023
-	jc	short _initc_2
+	;jc	short _initc_2
+	; 19/05/2024
+	jmp	short _initc_2
 
 _ac97_codec_ready:
 	mov	dx, [NAMBAR]
@@ -317,24 +324,29 @@ _ac97_codec_ready:
 	
 	; 19/11/2023
 	; wait for 1 second
-	;mov	ecx, 1000 ; 1000*4*0.25ms = 1s
-	mov	cx, 10
+	; 19/05/2024
+	mov	ecx, 1000 ; 1000*4*0.25ms = 1s
+	;mov	cx, 10
 _ac97_codec_rloop:
 	;call	delay1_4ms
 	;call	delay1_4ms
 	;call	delay1_4ms
 	;call	delay1_4ms
 	call	delay_100ms
+
 	;mov	dx, [NAMBAR]
 	;add	dx, CODEC_REG_POWERDOWN
-	in	ax, dx	
+	in	ax, dx
+
+	call	delay1_4ms
+	
 	and	ax, 0Fh
 	cmp	al, 0Fh
 	je	short _ac97_codec_init_ok
 	loop	_ac97_codec_rloop 
 
 init_ac97_codec_err1:
-	stc
+	;stc	; cf = 1 ; 19/05/2024
 init_ac97_codec_err2:
 	retn
 
@@ -350,7 +362,9 @@ _ac97_codec_init_ok:
 	call 	reset_ac97_controller
 
 	; 11/11/2023
-	call	delay1_4ms
+	;call	delay1_4ms
+	; 19/05/2024
+	call	delay_100ms
 
 	;call 	setup_ac97_codec
 
@@ -364,10 +378,29 @@ setup_ac97_codec:
 ;%if 1
 	AC97_EA_VRA equ BIT0 ; 11/11/2023
 
+	; 19/05/2024
+	call	delay1_4ms
+
+	;; 19/05/2024
+	;;mov	dx, [NAMBAR]
+	;;add	dx, CODEC_EXT_AUDIO_REG	; 28h
+	;;in	ax, dx
+	;
+	;; 19/05/2024
+	;;test	al, 1 ; BIT0 ; Variable Rate Audio bit
+	;;jz	short vra_not_supported
+	;
+	;; 19/05/2024
+	;;call	delay1_4ms
+
 	; 11/11/2023
-	mov    	dx, [NAMBAR]               	
-	add    	dx, CODEC_EXT_AUDIO_CTRL_REG  	; 2Ah  	  
+	mov    	dx, [NAMBAR]
+	add    	dx, CODEC_EXT_AUDIO_CTRL_REG  	; 2Ah
 	in     	ax, dx
+
+	; 19/05/2024
+	call	delay1_4ms
+	
 	and	al, ~BIT1 ; Clear DRA
 	or	al, AC97_EA_VRA ; 1 ; 04/11/2023
 	out	dx, ax			; Enable variable rate audio
@@ -384,10 +417,13 @@ check_vra:
 	; 11/11/2023
 	loop	check_vra
 
+;vra_not_supported:	; 19/05/2024
 	; 13/11/2023
 	mov	byte [VRA], 0
 	jmp	short skip_rate	
 
+	; 19/05/2024
+;;vra_not_supported:
 	; 12/11/2023
 	;pop	ax ; discard return address to the caller
 	;mov	dx, msg_no_vra
@@ -501,10 +537,14 @@ skip_rate:
         ;call	delay1_4ms
 	;call	delay1_4ms
 
+	; 19/05/2024
+	clc
+
 ;detect_ac97_codec:
         retn
 
 reset_ac97_controller:
+	; 19/05/2024
 	; 11/11/2023
 	; 10/06/2017
 	; 29/05/2017
@@ -515,26 +555,44 @@ reset_ac97_controller:
 	add	dx, [NABMBAR]
 	out     dx, al
 
+	; 19/05/2024
+	call	delay1_4ms
+
         mov     dx, PO_CR_REG
 	add	dx, [NABMBAR]
 	out     dx, al
 
+	; 19/05/2024
+	call	delay1_4ms
+
         mov     dx, MC_CR_REG
 	add	dx, [NABMBAR]
 	out     dx, al
+
+	; 19/05/2024
+	call	delay1_4ms
 
         mov     al, RR
         mov     dx, PI_CR_REG
 	add	dx, [NABMBAR]
 	out     dx, al
 
+	; 19/05/2024
+	call	delay1_4ms
+
         mov     dx, PO_CR_REG
 	add	dx, [NABMBAR]
 	out     dx, al
 
+	; 19/05/2024
+	call	delay1_4ms
+
         mov     dx, MC_CR_REG
 	add	dx, [NABMBAR]
 	out     dx, al
+
+	; 19/05/2024
+	call	delay1_4ms
 
 	retn
 

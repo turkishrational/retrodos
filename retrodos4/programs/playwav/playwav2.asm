@@ -1,11 +1,11 @@
 ; ****************************************************************************
 ; PLAYWAV.ASM - ICH AC97 .wav player for DOS.			   PLAYWAV.COM
 ; ----------------------------------------------------------------------------
-; Last Update: 11/11/2023 (Previous: 17/02/2017)
+; Last Update: 19/05/2024 (Previous: 08/05/2024)
 ; ----------------------------------------------------------------------------
 ; Beginning: 17/02/2017
 ; ----------------------------------------------------------------------------
-; Assembler: NASM version 2.11 (2.15)
+; Assembler: NASM version 2.15
 ;	     nasm playwav.asm -l playwav.lst -o PLAYWAV.COM	
 ; ----------------------------------------------------------------------------
 ; Derived from '.wav file player for DOS' Jeff Leyda, Sep 02, 2002 
@@ -80,15 +80,19 @@ _1:
 
         mov     al, NAMBAR_REG
         call    pciRegRead16			; read PCI registers 10-11
-        and     dx, IO_ADDR_MASK 		; mask off BIT0
+        ;and    dx, IO_ADDR_MASK 		; mask off BIT0
+	; 19/05/2024
+	and	dl, 0FEh
 
-        mov     [NAMBAR], dx			; save audio mixer base addy
+        mov     [NAMBAR], dx			; save audio mixer base addr
 
 	mov     al, NABMBAR_REG
         call    pciRegRead16
-        and     dx, IO_ADDR_MASK
+        ;and    dx, IO_ADDR_MASK
+	; 19/05/2024
+	and	dl, 0C0h
 
-        mov     [NABMBAR], dx			; save bus master base addy
+        mov     [NABMBAR], dx			; save bus master base addr
 
 	; 06/11/2023
 	;; init controller
@@ -133,6 +137,16 @@ _1:
 	; save IRQ status
 	mov	[IRQ_status], ax
 
+	; 12/05/2024 (enable AC97 IRQ)
+	;mov	cl, dl
+	;mov	bx, 1
+	;shl	bx, cl
+	;not	bx
+	;and	ax, bx
+	;out	21h, al
+	;mov	al, ah
+	;out	0A1h, al
+
 	;and	ax, bx   ; unmask
  	btr	ax, dx	 ; unmask
 	out	21h, al  ; enable interrupt (if irq <= 7)
@@ -146,7 +160,7 @@ _1:
 	;mov	ah, al
 	;mov	dx, 4D0h 
         ;in	al, dx
-	;;or	ax, bx        
+	;;or	ax, bx
 	;bts	ax, cx
 	;mov	dx, 4D0h
 	;out	dx, al                          ;set level-triggered mode
@@ -167,20 +181,29 @@ _1:
 	mov	es, ax
 	; 04/11/2023
 	; save interrupt vector
-	mov	ax, [es:bx]
+	;mov	ax, [es:bx]
+	; 13/05/2024
+	mov	ax, ac97_int_handler
+	xchg	ax, [es:bx]
 	mov	[IRQ_vector], ax
-	mov	ax, [es:bx+2]
+	;mov	ax, [es:bx+2]
+	; 13/05/2024
+	mov	ax, cs
+	xchg	ax, [es:bx+2]
 	mov	[IRQ_vector+2], ax
 
-	mov	word [es:bx], ac97_int_handler
-	mov	ax, cs
-	mov	[es:bx+2], ax
+	; 13/05/2024
+	;mov	word [es:bx], ac97_int_handler
+	;mov	ax, cs
+	;mov	[es:bx+2], ax
+	
 	pop	es
 
 	; 04/11/2023
 	sti
 
 %endif
+
 	call	write_ac97_dev_info 
 
 ; check the command line for a file to play
@@ -221,7 +244,7 @@ _gsr:
 	mov	byte [fbs_shift], 0 ; 0 = stereo and 16 bit 
 	dec	cl
 	jnz	short _gsr_1 ; stereo
-	inc	byte [fbs_shift] ; 1 = mono or 8 bit		
+	inc	byte [fbs_shift] ; 1 = mono or 8 bit
 _gsr_1:	
 	cmp	dl, 8 
 	ja	short _gsr_2 ; 16 bit samples
@@ -243,14 +266,15 @@ _2:
         ;or	dl, IO_ENA+BM_ENA               ; enable IO and bus master
 	;call	pciRegWrite16 ; pciRegWrite8
 
+	; 19/05/2024
 	; 06/11/2023
-	mov	eax, [bus_dev_fn]
-        mov     al, PCI_CMD_REG
-        call    pciRegRead8                     ; read PCI command register
-        or      dl, IO_ENA+BM_ENA               ; enable IO and bus master
-        call    pciRegWrite8
+	;mov	eax, [bus_dev_fn]
+	;mov	al, PCI_CMD_REG
+	;call	pciRegRead8			; read PCI command register
+	;or	dl, IO_ENA+BM_ENA		; enable IO and bus master
+	;call	pciRegWrite8
 
-; setup the Codec (actually mixer registers) 
+; setup the Codec (actually mixer registers)
         call    codecConfig                     ; unmute codec, set rates.
 	; 11/11/2023
 	jc	short init_err
@@ -303,9 +327,9 @@ vra_err: ; 12/11/2023
 ; assigned to it by DOS.
 
 setFree:
-	  mov	bx, 65536/16	; 4K paragraphs ; 17/02/2017 (Erdogan Tan)		
+	  mov	bx, 65536/16	; 4K paragraphs ; 17/02/2017 (Erdogan Tan)
 
-          mov	ah, 4ah		;pass new length to DOS
+          mov	ah, 4ah		; pass new length to DOS
           int	21h
 
           retn			; back to caller 
@@ -389,7 +413,7 @@ closeFile:
 	push	bx
 	cmp	word [filehandle], -1
 	jz	short _cf1
-	mov     bx, [filehandle]  
+	mov     bx, [filehandle]
 	mov     ax,3e00h
         int     21h              ;close file
 _cf1:
@@ -580,25 +604,26 @@ write_ac97_dev_info:
 	mov	al, [bx+hex_chars]
 	mov	[msgNamBar], al
 
+	; 08/05/2024 (ebx->bx)
 	; 05/11/2023
 	mov	ax, [NABMBAR]
 	mov	bl, al
 	mov	dl, bl
 	and	bl, 0Fh
-	mov	al, [ebx+hex_chars]
+	mov	al, [bx+hex_chars]
 	mov	[msgNabmBar+3], al
 	mov	bl, dl
 	shr	bl, 4
-	mov	al, [ebx+hex_chars]
+	mov	al, [bx+hex_chars]
 	mov	[msgNabmBar+2], al
 	mov	bl, ah
 	mov	dl, bl
 	and	bl, 0Fh
-	mov	al, [ebx+hex_chars]
+	mov	al, [bx+hex_chars]
 	mov	[msgNabmBar+1], al
 	mov	bl, dl
 	shr	bl, 4
-	mov	al, [ebx+hex_chars]
+	mov	al, [bx+hex_chars]
 	mov	[msgNabmBar], al
 
 	; 24/11/2016
@@ -652,7 +677,7 @@ wsr_1:
 	mov	dx, msgMono
 	cmp	byte [stmo], 1
 	je	short wsr_2
-	mov	dx, msgStereo		
+	mov	dx, msgStereo
 wsr_2:
         mov     ah, 9
         int     21h
@@ -734,90 +759,131 @@ wsr_2:
 ;       call	print_msg
 ;       retn
 
-; 06/11/2023
+; 19/05/2024
+; 16/05/2024
 %if 0
-
+	; 16/05/2024
+	; 15/05/2024
 ac97_int_handler:
+	; 13/05/2024
+	; 12/05/2024
+	; 11/05/2024
+	; 11/11/2023
+	; 10/11/2023
 	; 17/02/2016
-	push	ax
-	push	dx
-	; 05/11/2023	
+	push	ax ; +	; 16/05/2024
+	;push	eax ; *	; 11/11/2023
+	push	dx ; **
+	; 05/11/2023
 	;push	cx
 	;push	bx
 	;push	si
 	;push	di
 
-	cmp	byte [inside], 1
-	jnb	short _busy
-
-	mov	byte [inside], 1
-
-        mov     dx, [NABMBAR]
-        add     dx, PO_SR_REG	; set pointer to Status reg
-	in	al, dx
-	mov	[pcm_irq_status], al ; 05/11/2023
-	test	al, BCIS ; Buffer Completion Interrupt Status (Bit 3)
-	jz	short _ih_3
-
-	; 28/11/2016 - Erdogan Tan
-	call	tuneLoop
-_ih0:
-	mov	byte [inside], 0
-_busy:
+	; 16/05/2024
+	; 10/11/2023
+	; EOI at first
 	mov	al, 20h
 	test	byte [ac97_int_ln_reg], 8
-	jz	short _ih_1
-	out 	0A0h, al ; 20h ; EOI
+	jz	short _ih_0
+	out 	0A0h, al ; 20h	; EOI
+_ih_0:
+	out	20h, al  ; 20h	; EOI
+
+	; 16/05/2024
+;	mov	dx, GLOB_STS_REG
+;	add	dx, [NABMBAR]
+;	in	eax, dx
+;
+;	inc	eax	; 0FFFFFFFFh
+;	jz	short _ih_3
+;	dec	eax	; 0
+;	;jz	short _ih_3
+;_ih_3:
+;	; 16/05/2024
+;	push	eax ; ***
+
+	; 16/05/2024
+	; 24/11/2023 (TRDOS386 'audio.s')
+        mov	dx, [NABMBAR]
+	add	dx, PO_SR_REG
+	in	ax, dx
+
+	test	al, BCIS ; bit 3, 8
+	jz	short _ih_2
+
+	; 15/05/2024
+	cmp	byte [tLoop], 1
+	jb	short _ih_2
 _ih_1:
-	out	20h, al  ; 20h ; EOI
+	; 16/05/2024
+	; 13/05/2024
+	;mov	ax, 1Ch ; FIFOE(=16)+BCIS(=8)+LVBCI(=4)
+	;add	dx, PO_SR_REG
+        ;add	dx, [NABMBAR]
+	;out	dx, ax
+
+	; 16/05/2024
+	push	ax ; ****
+
+	; 13/05/2024
+	mov	dx, PO_CIV_REG
+        add	dx, [NABMBAR]
+	in	al, dx
+	mov	ah, al
+	dec	al
+	and	al, 1Fh
+        mov     dx, PO_LVI_REG
+        add	dx, [NABMBAR]
+        out	dx, al
+	and	ah, 1
+	; 13/05/2024
+	inc	ah
+	mov	[tBuff], ah ; 1 = Buffer 1, 2 = Buffer 2
+
+	; 13/05/2024
+	; 10/11/2023
+	; 28/11/2016 - Erdogan Tan
+	;call	tuneLoop
+
+	; 16/05/2024
+	pop	ax ; ****
+
+	; 16/05/2024
 _ih_2:
+	;mov	ax, 1Ch ; FIFOE(=16)+BCIS(=8)+LVBCI(=4)
+	mov	dx, [NABMBAR]
+	add	dx, PO_SR_REG
+	out	dx, ax
+
+;	; 16/05/2024
+;	pop	eax ; ***
+;	
+;	or	eax, eax
+;	jz	short _ih_4
+;	
+;	mov	dx, GLOB_STS_REG
+;	add	dx, [NABMBAR]
+;	out	dx, eax
+
+	; 16/05/2024
+_ih_4:
+	; 10/11/2023
+	;mov	al, 20h
+	;test	byte [ac97_int_ln_reg], 8
+	;jz	short _ih_5
+	;out 	0A0h, al ; 20h	; EOI
+;_ih_5:
+	;out	20h, al  ; 20h	; EOI
+;_ih_6:
 	;pop	di
 	;pop	si
 	;pop	bx
 	;pop	cx
-	pop	dx
-	pop	ax
+	pop	dx ; **
+	;pop	eax ; *	; 11/11/2023
+	pop	ax ; + ; 16/05/2024
 	iret
-_ih_3:
-	; 17/02/2017
-	out	dx, al ; clear interrupt event (by writing 1 to same bits)
-	jmp	short _ih0
-
-ac97_stop:
-	; 11/11/2023
-	; 05/11/2023
-	; 04/11/2023 
-	; 28/05/2017 (TRDOS 386 v2, 'audio.s')
-	mov	byte [tLoop], 0 ; stop ! ; 05/11/2023
-;_ac97_stop:
-	; 11/11/2023
-	mov	dx, [NAMBAR]
-	;add	dx, 0 ; ac_reg_0 ; reset register
-	out	dx, ax
-
-	; 04/11/2023
-	; 09/10/2017 (TRDOS 386 v2, 'audio.s')
-	; 11/06/2017
-	xor	al, al ; 0
-	call	ac97_po_cmd
-
-	; (Ref: KolibriOS, intelac97.asm, 'stop:')
-	; Clear FIFOE, BCIS, LVBCI (Ref: Intel ICH hub manual)
-	mov     ax, 1Ch
-	mov     dx, [NABMBAR]
-	add     dx, PO_SR_REG
-	out     dx, ax
-
-	; 11/06/2017
-	mov     al, RR
-ac97_po_cmd:
-	 ;11/06/2017
-	; 29/05/2017
-	mov     dx, [NABMBAR]
-        add     dx, PO_CR_REG		; PCM out control register
-	out	dx, al
-	retn
-
 %endif
 
 print_msg:
@@ -837,7 +903,7 @@ pm_retn:
 
 ; 06/11/2023
 ;dword2str:
-;	; 13/11/2016 - Erdogan Tan 
+;	; 13/11/2016 - Erdogan Tan
 ;	; eax = dword value
 ;	;
 ;	call	dwordtohex
@@ -859,10 +925,10 @@ bytetohex:
 	xor	bh, bh
 	mov	bl, al
 	shr	bl, 4
-	mov	bl, [bx+hex_chars] 	 	
+	mov	bl, [bx+hex_chars]
 	xchg	bl, al
 	and	bl, 0Fh
-	mov	ah, [bx+hex_chars] 
+	mov	ah, [bx+hex_chars]
 	pop	bx	
 	retn
 
@@ -878,7 +944,7 @@ wordtohex:
 	push	ax
 	mov	bl, ah
 	shr	bl, 4
-	mov	al, [bx+hex_chars] 	 	
+	mov	al, [bx+hex_chars]
 	mov	bl, ah
 	and	bl, 0Fh
 	mov	ah, [bx+hex_chars]
@@ -912,10 +978,10 @@ irq_int	 db 08h,09h,0Ah,0Bh,0Ch,0Dh,0Eh,0Fh,70h,71h,72h,73h,74h,75h,76h,77h
 ; Valid ICH device IDs
 
 valid_ids:
-dd	(ICH_DID << 16) + INTEL_VID  	 ; 8086h:2415h 
-dd	(ICH0_DID << 16) + INTEL_VID 	 ; 8086h:2425h 
-dd	(ICH2_DID << 16) + INTEL_VID 	 ; 8086h:2445h 
-dd	(ICH3_DID << 16) + INTEL_VID 	 ; 8086h:2485h 
+dd	(ICH_DID << 16) + INTEL_VID  	 ; 8086h:2415h
+dd	(ICH0_DID << 16) + INTEL_VID 	 ; 8086h:2425h
+dd	(ICH2_DID << 16) + INTEL_VID 	 ; 8086h:2445h
+dd	(ICH3_DID << 16) + INTEL_VID 	 ; 8086h:2485h
 dd	(ICH4_DID << 16) + INTEL_VID 	 ; 8086h:24C5h
 dd	(ICH5_DID << 16) + INTEL_VID 	 ; 8086h:24D5h
 dd	(ICH6_DID << 16) + INTEL_VID 	 ; 8086h:266Eh
