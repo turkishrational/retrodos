@@ -5,7 +5,7 @@
 ;
 ; 18/02/2017
 ;
-; [ Last Modification: 18/05/2024 ]
+; [ Last Modification: 19/05/2024 ]
 ;
 ; Derived from source code of 'PLAYWAV.COM' ('PLAYWAV.ASM') by Erdogan Tan
 ;							      (17/02/2017)
@@ -1273,8 +1273,10 @@ _ac97_codec_ready:
 	; 19/11/2023
 	; wait for 1 second
 	; 14/05/2024
-	mov	ecx, 1000 ; 1000*4*0.25ms = 1s
+	;mov	ecx, 1000 ; 1000*4*0.25ms = 1s
 	;mov	cx, 10
+	; 19/05/2024
+	mov	cx, 40
 _ac97_codec_rloop:
 	;call	delay1_4ms
 	;call	delay1_4ms
@@ -3537,7 +3539,7 @@ msg_2017:
 		db	'Tiny MOD Player by Erdogan Tan. May 2024.',10,13
 		db	'usage: playmod2 filename.mod', 10, 13, '$'
 		db	'18/02/2017',0
-		db	'18/05/2024',0
+		db	'19/05/2024',0
 
 Credits:	db	'Tiny MOD Player v0.1b by Carlos Hasan. July 1993.'
 CRLF:		; 13/05/2024
