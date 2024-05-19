@@ -442,24 +442,24 @@
     31                                  	; Clear BSS (uninitialized data) area
     32 00000003 31C0                    	xor	ax, ax ; 0
     33 00000005 B91D40                  	mov	cx, (EOF - bss_start)/2
-    34 00000008 BF[730A]                	mov	di, bss_start
+    34 00000008 BF[700A]                	mov	di, bss_start
     35 0000000B F3AB                    	rep	stosw
     36                                  
     37                                  ; allocate 256 bytes of data for DCM_OUT Buffer Descriptor List. (BDL)
     38                                  
     39 0000000D B81000                          mov     ax, BDL_SIZE / 16
     40 00000010 E81501                          call    memAlloc
-    41 00000013 A3[980A]                        mov     [BDL_BUFFER], ax		; segment 
+    41 00000013 A3[940A]                        mov     [BDL_BUFFER], ax		; segment 
     42                                  
     43                                  ; allocate 2 buffers, 64k each for now.
     44                                  
     45 00000016 B80010                          mov     ax, BUFFERSIZE / 16		; 64k for .WAV file
     46 00000019 E80C01                          call    memAlloc
-    47 0000001C A3[9A0A]                        mov     [WAV_BUFFER1], ax		; segment
+    47 0000001C A3[960A]                        mov     [WAV_BUFFER1], ax		; segment
     48                                  
     49 0000001F B80010                  	mov	ax, BUFFERSIZE / 16
     50 00000022 E80301                  	call	memAlloc
-    51 00000025 A3[9C0A]                	mov	[WAV_BUFFER2], ax
+    51 00000025 A3[980A]                	mov	[WAV_BUFFER2], ax
     52                                  
     53                                  ; Detect/reset AC97 
     54                                  
@@ -489,8 +489,8 @@
     73                                  	; edx = DEV/VENDOR
     74                                  	;	DDDDDDDDDDDDDDDDVVVVVVVVVVVVVVVV
     75                                  
-    76 0000006F 66A3[9E0A]              	mov	[bus_dev_fn], eax
-    77 00000073 668916[A20A]            	mov	[dev_vendor], edx
+    76 0000006F 66A3[9A0A]              	mov	[bus_dev_fn], eax
+    77 00000073 668916[9E0A]            	mov	[dev_vendor], edx
     78                                  
     79                                  	; get ICH base address regs for mixer and bus master
     80                                  
@@ -500,7 +500,7 @@
     84                                  	; 19/05/2024
     85 0000007D 80E2FE                  	and	dl, 0FEh
     86                                  
-    87 00000080 8916[940A]                      mov     [NAMBAR], dx			; save audio mixer base addr
+    87 00000080 8916[900A]                      mov     [NAMBAR], dx			; save audio mixer base addr
     88                                  
     89 00000084 B014                    	mov     al, NABMBAR_REG
     90 00000086 E88401                          call    pciRegRead16
@@ -508,7 +508,7 @@
     92                                  	; 19/05/2024
     93 00000089 80E2C0                  	and	dl, 0C0h
     94                                  
-    95 0000008C 8916[960A]                      mov     [NABMBAR], dx			; save bus master base addr
+    95 0000008C 8916[920A]                      mov     [NABMBAR], dx			; save bus master base addr
     96                                  
     97                                  	; 06/11/2023
     98                                  	;; init controller
@@ -531,7 +531,7 @@
    115 00000090 B03C                    	mov	al, AC97_INT_LINE ; Interrupt line register (3Ch)
    116 00000092 E87001                  	call	pciRegRead8 ; 17/02/2017
    117                                  
-   118 00000095 8816[930A]              	mov     [ac97_int_ln_reg], dl
+   118 00000095 8816[8F0A]              	mov     [ac97_int_ln_reg], dl
    119                                  
    120                                  ; 05/11/2023
    121                                  %if 0
@@ -620,7 +620,7 @@
    204                                  
    205                                  %endif
    206                                  
-   207 00000099 E83506                  	call	write_ac97_dev_info 
+   207 00000099 E83206                  	call	write_ac97_dev_info 
    208                                  
    209                                  ; check the command line for a file to play
    210                                  
@@ -652,27 +652,27 @@
    234                                                                                  ; pass it onto codec.
    235 000000CB 7243                    	jc	short exit ; 19/11/2016 - nothing to do
    236                                  
-   237 000000CD A3[A60A]                	mov	[sample_rate], ax
+   237 000000CD A3[A20A]                	mov	[sample_rate], ax
    238                                  	
    239                                  	; 19/11/2016
-   240 000000D0 880E[A80A]              	mov	[stmo], cl
-   241 000000D4 8816[AA0A]              	mov	[bps], dl
+   240 000000D0 880E[A40A]              	mov	[stmo], cl
+   241 000000D4 8816[A60A]              	mov	[bps], dl
    242                                  	
    243                                  	; 17/02/2017
-   244 000000D8 C606[AC0A]00            	mov	byte [fbs_shift], 0 ; 0 = stereo and 16 bit 
+   244 000000D8 C606[A80A]00            	mov	byte [fbs_shift], 0 ; 0 = stereo and 16 bit 
    245 000000DD FEC9                    	dec	cl
    246 000000DF 7504                    	jnz	short _gsr_1 ; stereo
-   247 000000E1 FE06[AC0A]              	inc	byte [fbs_shift] ; 1 = mono or 8 bit
+   247 000000E1 FE06[A80A]              	inc	byte [fbs_shift] ; 1 = mono or 8 bit
    248                                  _gsr_1:	
    249 000000E5 80FA08                  	cmp	dl, 8 
    250 000000E8 7704                    	ja	short _gsr_2 ; 16 bit samples
-   251 000000EA FE06[AC0A]              	inc	byte [fbs_shift] ; 2 = mono and 8 bit
+   251 000000EA FE06[A80A]              	inc	byte [fbs_shift] ; 2 = mono and 8 bit
    252                                  _gsr_2:	
-   253 000000EE E83607                  	call	write_sample_rate
+   253 000000EE E83307                  	call	write_sample_rate
    254                                  
    255                                  	; 05/11/2023
    256                                  _2:
-   257 000000F1 E87905                  	call	check4keyboardstop  ; flush keyboard buffer
+   257 000000F1 E87605                  	call	check4keyboardstop  ; flush keyboard buffer
    258 000000F4 72FB                    	jc	short _2 	; 07/11/2023
    259                                  
    260                                  	; 05/11/2023
@@ -703,14 +703,14 @@
    285                                  ;
    286 000000FB B442                            mov     ah, 42h
    287 000000FD B000                            mov     al, 0                           ; from start of file
-   288 000000FF 8B1E[900A]                      mov     bx, [filehandle]
+   288 000000FF 8B1E[8C0A]                      mov     bx, [filehandle]
    289 00000103 31C9                            xor     cx, cx
    290 00000105 BA2C00                          mov     dx, 44                          ; jump past .wav/riff header
    291 00000108 CD21                            int     21h
    292                                  
    293                                  ; play the .wav file. Most of the good stuff is in here.
    294                                  
-   295 0000010A E88703                          call    playWav
+   295 0000010A E88403                          call    playWav
    296                                  
    297                                  ; close the .wav file and exit.
    298                                  
@@ -726,7 +726,7 @@
    308                                  
    309                                  	; 11/11/2023
    310                                  init_err:
-   311 00000117 BA[090A]                	mov	dx, msg_init_err
+   311 00000117 BA[060A]                	mov	dx, msg_init_err
    312                                  vra_err: ; 12/11/2023
    313 0000011A B409                            mov	ah, 9
    314 0000011C CD21                            int	21h
@@ -818,7 +818,7 @@
    400 00000159 CD21                    	int	21h
    401 0000015B 7203                    	jc	short _of1
    402                                  	;mov	[cs:filehandle], ax
-   403 0000015D A3[900A]                	mov	[filehandle], ax
+   403 0000015D A3[8C0A]                	mov	[filehandle], ax
    404                                  _of1:
    405 00000160 59                      	pop	cx
    406 00000161 58                      	pop	ax
@@ -829,9 +829,9 @@
    411                                  closeFile:
    412 00000163 50                      	push	ax
    413 00000164 53                      	push	bx
-   414 00000165 833E[900A]FF            	cmp	word [filehandle], -1
+   414 00000165 833E[8C0A]FF            	cmp	word [filehandle], -1
    415 0000016A 7409                    	jz	short _cf1
-   416 0000016C 8B1E[900A]              	mov     bx, [filehandle]
+   416 0000016C 8B1E[8C0A]              	mov     bx, [filehandle]
    417 00000170 B8003E                  	mov     ax,3e00h
    418 00000173 CD21                            int     21h              ;close file
    419                                  _cf1:
@@ -852,29 +852,29 @@
    434                                  
    435 00000179 B442                            mov     ah, 42h
    436 0000017B B000                            mov     al, 0				; from start of file
-   437 0000017D 8B1E[900A]                      mov     bx, [filehandle]
+   437 0000017D 8B1E[8C0A]                      mov     bx, [filehandle]
    438 00000181 31C9                            xor     cx, cx
    439 00000183 BA0800                          mov     dx, 08h				; "WAVE"
    440 00000186 CD21                            int     21h
    441                                  
-   442 00000188 BA[740A]                        mov     dx, smpRBuff
+   442 00000188 BA[700A]                        mov     dx, smpRBuff
    443 0000018B B91C00                          mov     cx, 28				; 28 bytes
    444 0000018E B43F                    	mov	ah, 3fh
    445 00000190 CD21                            int     21h
    446                                  
-   447 00000192 813E[740A]5741          	cmp	word [smpRBuff], 'WA'
+   447 00000192 813E[700A]5741          	cmp	word [smpRBuff], 'WA'
    448 00000198 751C                    	jne	short gsr_stc
    449                                  
-   450 0000019A 813E[760A]5645          	cmp	word [smpRBuff+2], 'VE'
+   450 0000019A 813E[720A]5645          	cmp	word [smpRBuff+2], 'VE'
    451 000001A0 7514                    	jne	short gsr_stc
    452                                  
-   453 000001A2 833E[800A]01            	cmp	word [smpRBuff+12], 1	; Offset 20, must be 1 (= PCM)
+   453 000001A2 833E[7C0A]01            	cmp	word [smpRBuff+12], 1	; Offset 20, must be 1 (= PCM)
    454 000001A7 750D                    	jne	short gsr_stc
    455                                  
    456                                  
-   457 000001A9 8B0E[820A]              	mov	cx, [smpRBuff+14]	; return num of channels in CX
-   458 000001AD A1[840A]                        mov     ax, [smpRBuff+16]	; return sample rate in AX
-   459 000001B0 8B16[8E0A]              	mov	dx, [smpRBuff+26]	; return bits per sample value in DX
+   457 000001A9 8B0E[7E0A]              	mov	cx, [smpRBuff+14]	; return num of channels in CX
+   458 000001AD A1[800A]                        mov     ax, [smpRBuff+16]	; return sample rate in AX
+   459 000001B0 8B16[8A0A]              	mov	dx, [smpRBuff+26]	; return bits per sample value in DX
    460                                  gsr_retn:
    461 000001B4 5B                              pop     bx
    462 000001B5 C3                              retn
@@ -1055,7 +1055,7 @@
    169                              <1>  	;mov     esi, eax                ; save off vend+device ID
    170                              <1> 
    171                              <1> 	; 17/02/2017
-   172 0000029B BE[CE08]            <1> 	mov	si, valid_ids	; address of Valid ICH (AC97) Device IDs
+   172 0000029B BE[CB08]            <1> 	mov	si, valid_ids	; address of Valid ICH (AC97) Device IDs
    173 0000029E B91500              <1> 	mov	cx, valid_id_count
    174                              <1> pfd_0:
    175 000002A1 66BF00FFFF7F        <1>        	mov     edi, (80000000h - 100h) ; start with bus 0, dev 0 func 0
@@ -1125,13 +1125,13 @@
    239                              <1> 
    240                              <1> 	; 04/11/2023
    241                              <1> init_ac97_controller:
-   242 000002DC 66A1[9E0A]          <1> 	mov	eax, [bus_dev_fn]
+   242 000002DC 66A1[9A0A]          <1> 	mov	eax, [bus_dev_fn]
    243 000002E0 B004                <1> 	mov	al, PCI_CMD_REG
    244 000002E2 E828FF              <1> 	call	pciRegRead16		; read PCI command register
    245 000002E5 80CA05              <1> 	or      dl, IO_ENA+BM_ENA	; enable IO and bus master
    246 000002E8 E894FF              <1> 	call	pciRegWrite16
    247                              <1> 
-   248 000002EB E89B01              <1> 	call	delay_100ms
+   248 000002EB E89801              <1> 	call	delay_100ms
    249                              <1> 
    250                              <1> 	; 19/05/2024
    251                              <1> 	; ('PLAYMOD3.ASM', Erdogan Tan, 18/05/2024)
@@ -1143,19 +1143,19 @@
    257                              <1> 	; 11/11/2023
    258                              <1> 	; (TRDOS 386 v2.0.5, 'audio.s')
    259 000002F1 BA2C00              <1> 	mov	dx, GLOB_CNT_REG ; 2Ch
-   260 000002F4 0316[960A]          <1> 	add	dx, [NABMBAR]
+   260 000002F4 0316[920A]          <1> 	add	dx, [NABMBAR]
    261 000002F8 66ED                <1> 	in	eax, dx
    262                              <1> 
    263                              <1> 	; 19/05/2024
-   264 000002FA E8B403              <1> 	call	delay1_4ms
+   264 000002FA E8B103              <1> 	call	delay1_4ms
    265                              <1> 
    266                              <1> 	; ?
    267 000002FD BA3000              <1> 	mov	dx, GLOB_STS_REG ; 30h
-   268 00000300 0316[960A]          <1> 	add	dx, [NABMBAR]
+   268 00000300 0316[920A]          <1> 	add	dx, [NABMBAR]
    269 00000304 66ED                <1> 	in	eax, dx
    270                              <1> 
    271                              <1> 	; 19/05/2024
-   272 00000306 E8A803              <1> 	call	delay1_4ms
+   272 00000306 E8A503              <1> 	call	delay1_4ms
    273                              <1> 
    274 00000309 6683F8FF            <1> 	cmp	eax, 0FFFFFFFFh ; -1
    275 0000030D 7508                <1> 	jne	short _initc_3
@@ -1163,7 +1163,7 @@
    277 0000030F 4D                  <1> 	dec	bp
    278 00000310 7412                <1> 	jz	short _ac97_codec_ready
    279                              <1> 
-   280 00000312 E87401              <1> 	call	delay_100ms
+   280 00000312 E87101              <1> 	call	delay_100ms
    281 00000315 EBDA                <1> 	jmp	short _initc_1
    282                              <1> 
    283                              <1> _initc_3:
@@ -1171,468 +1171,470 @@
    285 00000317 66A900030010        <1> 	test	eax, CTRL_ST_CREADY
    286 0000031D 7505                <1> 	jnz	short _ac97_codec_ready
    287                              <1> 
-   288 0000031F E8E700              <1> 	call	reset_ac97_codec
+   288 0000031F E8E400              <1> 	call	reset_ac97_codec
    289 00000322 EBEB                <1> 	jmp	short _initc_2
    290                              <1> 
    291                              <1> _ac97_codec_ready:
-   292 00000324 8B16[940A]          <1> 	mov	dx, [NAMBAR]
+   292 00000324 8B16[900A]          <1> 	mov	dx, [NAMBAR]
    293                              <1> 	;add	dx, 0 ; ac_reg_0 ; reset register
    294 00000328 EF                  <1> 	out	dx, ax
    295                              <1> 
-   296 00000329 E85D01              <1> 	call	delay_100ms
+   296 00000329 E85A01              <1> 	call	delay_100ms
    297                              <1> 
    298                              <1> 	; 19/05/2024
    299 0000032C 09ED                <1> 	or	bp, bp
-   300 0000032E 7522                <1> 	jnz	short _ac97_codec_init_ok
+   300 0000032E 751F                <1> 	jnz	short _ac97_codec_init_ok
    301                              <1> 
    302 00000330 6631C0              <1> 	xor	eax, eax ; 0
-   303 00000333 8B16[940A]          <1> 	mov	dx, [NAMBAR]
+   303 00000333 8B16[900A]          <1> 	mov	dx, [NAMBAR]
    304 00000337 83C226              <1> 	add	dx, CODEC_REG_POWERDOWN
    305 0000033A EF                  <1> 	out	dx, ax
    306                              <1> 
    307                              <1> 	; wait for 1 second
-   308 0000033B 66B9E8030000        <1> 	mov	ecx, 1000 ; 1000*0.25ms = 1s
-   309                              <1> _ac97_codec_rloop:
-   310                              <1> 	;call	delay1_4ms
-   311                              <1> 	;call	delay1_4ms
+   308                              <1> 	;mov	ecx, 1000 ; 1000*0.25ms = 1s
+   309                              <1> 	; 19/05/2024
+   310 0000033B B92800              <1> 	mov	cx, 40
+   311                              <1> _ac97_codec_rloop:
    312                              <1> 	;call	delay1_4ms
    313                              <1> 	;call	delay1_4ms
-   314 00000341 E84501              <1> 	call	delay_100ms
-   315                              <1> 
-   316                              <1> 	;mov	dx, [NAMBAR]
-   317                              <1> 	;add	dx, CODEC_REG_POWERDOWN
-   318 00000344 ED                  <1> 	in	ax, dx
-   319                              <1> 
-   320 00000345 E86903              <1> 	call	delay1_4ms
+   314                              <1> 	;call	delay1_4ms
+   315                              <1> 	;call	delay1_4ms
+   316 0000033E E84501              <1> 	call	delay_100ms
+   317                              <1> 
+   318                              <1> 	;mov	dx, [NAMBAR]
+   319                              <1> 	;add	dx, CODEC_REG_POWERDOWN
+   320 00000341 ED                  <1> 	in	ax, dx
    321                              <1> 
-   322 00000348 83E00F              <1> 	and	ax, 0Fh
-   323 0000034B 3C0F                <1> 	cmp	al, 0Fh
-   324 0000034D 7403                <1> 	je	short _ac97_codec_init_ok
-   325 0000034F E2F0                <1> 	loop	_ac97_codec_rloop
-   326                              <1> 
-   327                              <1> init_ac97_codec_err1:
-   328                              <1> 	;stc	; cf = 1 ; 19/05/2024
-   329                              <1> 
-   330                              <1> init_ac97_codec_err2:
-   331 00000351 C3                  <1> 	retn
-   332                              <1> 
-   333                              <1> _ac97_codec_init_ok:
-   334                              <1>         ; 11/11/2023
-   335                              <1> 	;mov	al, 2 ; force set 16-bit 2-channel PCM
-   336                              <1> 	;mov	dx, GLOB_CNT_REG ; 2Ch
-   337                              <1> 	;add	dx, [NABMBAR]
-   338                              <1> 	;out	dx, eax
-   339                              <1> 
-   340                              <1> 	;;call	delay1_4ms
+   322 00000342 E86903              <1> 	call	delay1_4ms
+   323                              <1> 
+   324 00000345 83E00F              <1> 	and	ax, 0Fh
+   325 00000348 3C0F                <1> 	cmp	al, 0Fh
+   326 0000034A 7403                <1> 	je	short _ac97_codec_init_ok
+   327 0000034C E2F0                <1> 	loop	_ac97_codec_rloop
+   328                              <1> 
+   329                              <1> init_ac97_codec_err1:
+   330                              <1> 	;stc	; cf = 1 ; 19/05/2024
+   331                              <1> 
+   332                              <1> init_ac97_codec_err2:
+   333 0000034E C3                  <1> 	retn
+   334                              <1> 
+   335                              <1> _ac97_codec_init_ok:
+   336                              <1>         ; 11/11/2023
+   337                              <1> 	;mov	al, 2 ; force set 16-bit 2-channel PCM
+   338                              <1> 	;mov	dx, GLOB_CNT_REG ; 2Ch
+   339                              <1> 	;add	dx, [NABMBAR]
+   340                              <1> 	;out	dx, eax
    341                              <1> 
-   342 00000352 E86D00              <1> 	call 	reset_ac97_controller
+   342                              <1> 	;;call	delay1_4ms
    343                              <1> 
-   344                              <1> 	; 11/11/2023
-   345                              <1> 	;call	delay1_4ms
-   346                              <1> 	; 19/05/2024
-   347 00000355 E83101              <1> 	call	delay_100ms
-   348                              <1> 
-   349                              <1> 	;call 	setup_ac97_codec
+   344 0000034F E86D00              <1> 	call 	reset_ac97_controller
+   345                              <1> 
+   346                              <1> 	; 11/11/2023
+   347                              <1> 	;call	delay1_4ms
+   348                              <1> 	; 19/05/2024
+   349 00000352 E83101              <1> 	call	delay_100ms
    350                              <1> 
-   351                              <1> setup_ac97_codec:
-   352                              <1> 	; 12/11/2023
-   353 00000358 813E[A60A]80BB      <1> 	cmp	word [sample_rate], 48000
-   354 0000035E 7435                <1> 	je	short skip_rate
-   355                              <1> 
-   356                              <1> ; 11/11/2023
-   357                              <1> ; 05/11/2023
-   358                              <1> ;%if 1
-   359                              <1> 	AC97_EA_VRA equ BIT0 ; 11/11/2023
-   360                              <1> 
-   361                              <1> 	; 19/05/2024
-   362 00000360 E84E03              <1> 	call	delay1_4ms
-   363                              <1> 
-   364                              <1> 	;; 19/05/2024
-   365                              <1> 	;;mov	dx, [NAMBAR]
-   366                              <1> 	;;add	dx, CODEC_EXT_AUDIO_REG	; 28h
-   367                              <1> 	;;in	ax, dx
-   368                              <1> 	;
-   369                              <1> 	;; 19/05/2024
-   370                              <1> 	;;test	al, 1 ; BIT0 ; Variable Rate Audio bit
-   371                              <1> 	;;jz	short vra_not_supported
-   372                              <1> 	;
-   373                              <1> 	;; 19/05/2024
-   374                              <1> 	;;call	delay1_4ms
-   375                              <1> 
-   376                              <1> 	; 11/11/2023
-   377 00000363 8B16[940A]          <1> 	mov    	dx, [NAMBAR]
-   378 00000367 83C22A              <1> 	add    	dx, CODEC_EXT_AUDIO_CTRL_REG  	; 2Ah
-   379 0000036A ED                  <1> 	in     	ax, dx
-   380                              <1> 
-   381                              <1> 	; 19/05/2024
-   382 0000036B E84303              <1> 	call	delay1_4ms
-   383                              <1> 	
-   384 0000036E 24FD                <1> 	and	al, ~BIT1 ; Clear DRA
-   385 00000370 0C01                <1> 	or	al, AC97_EA_VRA ; 1 ; 04/11/2023
-   386 00000372 EF                  <1> 	out	dx, ax			; Enable variable rate audio
-   387                              <1> 	
-   388 00000373 B90A00              <1> 	mov	cx, 10
-   389                              <1> check_vra:
-   390 00000376 E81001              <1> 	call	delay_100ms
-   391                              <1> 
-   392                              <1> 	; 11/11/2023
-   393 00000379 ED                  <1> 	in	ax, dx
-   394 0000037A A801                <1> 	test	al, AC97_EA_VRA ; 1
-   395 0000037C 7509                <1> 	jnz	short set_rate
-   396                              <1> 
-   397                              <1> 	; 11/11/2023
-   398 0000037E E2F6                <1> 	loop	check_vra
-   399                              <1> 
-   400                              <1> 	; 19/05/2024
-   401                              <1> vra_not_supported:
-   402                              <1> 	; 12/11/2023
-   403 00000380 58                  <1> 	pop	ax ; discard return address to the caller
-   404 00000381 BA[3A0A]            <1> 	mov	dx, msg_no_vra
-   405 00000384 E993FD              <1> 	jmp	vra_err
-   406                              <1> 
-   407                              <1> set_rate:
-   408 00000387 A1[A60A]            <1> 	mov	ax, [sample_rate] ; 17/02/2017 (Erdogan Tan)
-   409                              <1> 
-   410 0000038A 8B16[940A]          <1> 	mov    	dx, [NAMBAR]               	
-   411 0000038E 83C22C              <1> 	add    	dx, CODEC_PCM_FRONT_DACRATE_REG	; 2Ch  	  
-   412 00000391 EF                  <1> 	out	dx, ax 			; PCM Front/Center Output Sample Rate
-   413                              <1> 
-   414 00000392 E8F400              <1> 	call	delay_100ms
+   351                              <1> 	;call 	setup_ac97_codec
+   352                              <1> 
+   353                              <1> setup_ac97_codec:
+   354                              <1> 	; 12/11/2023
+   355 00000355 813E[A20A]80BB      <1> 	cmp	word [sample_rate], 48000
+   356 0000035B 7435                <1> 	je	short skip_rate
+   357                              <1> 
+   358                              <1> ; 11/11/2023
+   359                              <1> ; 05/11/2023
+   360                              <1> ;%if 1
+   361                              <1> 	AC97_EA_VRA equ BIT0 ; 11/11/2023
+   362                              <1> 
+   363                              <1> 	; 19/05/2024
+   364 0000035D E84E03              <1> 	call	delay1_4ms
+   365                              <1> 
+   366                              <1> 	;; 19/05/2024
+   367                              <1> 	;;mov	dx, [NAMBAR]
+   368                              <1> 	;;add	dx, CODEC_EXT_AUDIO_REG	; 28h
+   369                              <1> 	;;in	ax, dx
+   370                              <1> 	;
+   371                              <1> 	;; 19/05/2024
+   372                              <1> 	;;test	al, 1 ; BIT0 ; Variable Rate Audio bit
+   373                              <1> 	;;jz	short vra_not_supported
+   374                              <1> 	;
+   375                              <1> 	;; 19/05/2024
+   376                              <1> 	;;call	delay1_4ms
+   377                              <1> 
+   378                              <1> 	; 11/11/2023
+   379 00000360 8B16[900A]          <1> 	mov    	dx, [NAMBAR]
+   380 00000364 83C22A              <1> 	add    	dx, CODEC_EXT_AUDIO_CTRL_REG  	; 2Ah
+   381 00000367 ED                  <1> 	in     	ax, dx
+   382                              <1> 
+   383                              <1> 	; 19/05/2024
+   384 00000368 E84303              <1> 	call	delay1_4ms
+   385                              <1> 	
+   386 0000036B 24FD                <1> 	and	al, ~BIT1 ; Clear DRA
+   387 0000036D 0C01                <1> 	or	al, AC97_EA_VRA ; 1 ; 04/11/2023
+   388 0000036F EF                  <1> 	out	dx, ax			; Enable variable rate audio
+   389                              <1> 	
+   390 00000370 B90A00              <1> 	mov	cx, 10
+   391                              <1> check_vra:
+   392 00000373 E81001              <1> 	call	delay_100ms
+   393                              <1> 
+   394                              <1> 	; 11/11/2023
+   395 00000376 ED                  <1> 	in	ax, dx
+   396 00000377 A801                <1> 	test	al, AC97_EA_VRA ; 1
+   397 00000379 7509                <1> 	jnz	short set_rate
+   398                              <1> 
+   399                              <1> 	; 11/11/2023
+   400 0000037B E2F6                <1> 	loop	check_vra
+   401                              <1> 
+   402                              <1> 	; 19/05/2024
+   403                              <1> vra_not_supported:
+   404                              <1> 	; 12/11/2023
+   405 0000037D 58                  <1> 	pop	ax ; discard return address to the caller
+   406 0000037E BA[370A]            <1> 	mov	dx, msg_no_vra
+   407 00000381 E996FD              <1> 	jmp	vra_err
+   408                              <1> 
+   409                              <1> set_rate:
+   410 00000384 A1[A20A]            <1> 	mov	ax, [sample_rate] ; 17/02/2017 (Erdogan Tan)
+   411                              <1> 
+   412 00000387 8B16[900A]          <1> 	mov    	dx, [NAMBAR]               	
+   413 0000038B 83C22C              <1> 	add    	dx, CODEC_PCM_FRONT_DACRATE_REG	; 2Ch  	  
+   414 0000038E EF                  <1> 	out	dx, ax 			; PCM Front/Center Output Sample Rate
    415                              <1> 
-   416                              <1> 	; 12/11/2023
-   417                              <1> skip_rate:
-   418                              <1> 	; 11/11/2023 (temporary)
-   419                              <1> 
-   420                              <1> 	;mov   	dx, [NAMBAR]               	
-   421                              <1> 	;add   	dx, CODEC_PCM_SURND_DACRATE_REG	; 2Eh  	  
-   422                              <1> 	;out	dx, ax 			; PCM Surround Output Sample Rate
-   423                              <1> 
-   424                              <1> 	;call	delay_100ms
+   416 0000038F E8F400              <1> 	call	delay_100ms
+   417                              <1> 
+   418                              <1> 	; 12/11/2023
+   419                              <1> skip_rate:
+   420                              <1> 	; 11/11/2023 (temporary)
+   421                              <1> 
+   422                              <1> 	;mov   	dx, [NAMBAR]               	
+   423                              <1> 	;add   	dx, CODEC_PCM_SURND_DACRATE_REG	; 2Eh  	  
+   424                              <1> 	;out	dx, ax 			; PCM Surround Output Sample Rate
    425                              <1> 
-   426                              <1> 	;mov   	dx, [NAMBAR]               	
-   427                              <1> 	;add   	dx, CODEC_PCM_LFE_DACRATE_REG	; 30h  	  
-   428                              <1> 	;out	dx, ax 			; PCM LFE Output Sample Rate
-   429                              <1> 
-   430                              <1> 	;call	delay_100ms
+   426                              <1> 	;call	delay_100ms
+   427                              <1> 
+   428                              <1> 	;mov   	dx, [NAMBAR]               	
+   429                              <1> 	;add   	dx, CODEC_PCM_LFE_DACRATE_REG	; 30h  	  
+   430                              <1> 	;out	dx, ax 			; PCM LFE Output Sample Rate
    431                              <1> 
-   432                              <1> 	; 05/11/2023 (temporary)
-   433                              <1> 	;mov	dx, [NAMBAR]               	
-   434                              <1> 	;add	dx, CODEC_LR_ADCRATE_REG 	; 32h  	  
-   435                              <1> 	;out	dx, ax 			; PCM Input Sample Rate
-   436                              <1> 	;
-   437                              <1> 	;call	delay_100ms
-   438                              <1> 
-   439 00000395 B80202              <1> 	mov	ax, 0202h
-   440 00000398 8B16[940A]          <1>   	mov     dx, [NAMBAR]
-   441 0000039C 83C202              <1>   	add     dx, CODEC_MASTER_VOL_REG	;02h 
-   442 0000039F EF                  <1> 	out     dx, ax
-   443                              <1> 
-   444                              <1> 	; 11/11/2023
-   445                              <1>         ;call	delay1_4ms
-   446                              <1>         ;call	delay1_4ms
+   432                              <1> 	;call	delay_100ms
+   433                              <1> 
+   434                              <1> 	; 05/11/2023 (temporary)
+   435                              <1> 	;mov	dx, [NAMBAR]               	
+   436                              <1> 	;add	dx, CODEC_LR_ADCRATE_REG 	; 32h  	  
+   437                              <1> 	;out	dx, ax 			; PCM Input Sample Rate
+   438                              <1> 	;
+   439                              <1> 	;call	delay_100ms
+   440                              <1> 
+   441 00000392 B80202              <1> 	mov	ax, 0202h
+   442 00000395 8B16[900A]          <1>   	mov     dx, [NAMBAR]
+   443 00000399 83C202              <1>   	add     dx, CODEC_MASTER_VOL_REG	;02h 
+   444 0000039C EF                  <1> 	out     dx, ax
+   445                              <1> 
+   446                              <1> 	; 11/11/2023
    447                              <1>         ;call	delay1_4ms
    448                              <1>         ;call	delay1_4ms
-   449                              <1>  	;
-   450                              <1>   	;mov	dx, [NAMBAR]
-   451                              <1>   	;add	dx, CODEC_MASTER_MONO_VOL_REG	;06h 
-   452                              <1>   	;out	dx, ax
-   453                              <1> 
-   454                              <1> 	; 11/11/2023
-   455                              <1>         ;call	delay1_4ms
-   456                              <1>         ;call	delay1_4ms
+   449                              <1>         ;call	delay1_4ms
+   450                              <1>         ;call	delay1_4ms
+   451                              <1>  	;
+   452                              <1>   	;mov	dx, [NAMBAR]
+   453                              <1>   	;add	dx, CODEC_MASTER_MONO_VOL_REG	;06h 
+   454                              <1>   	;out	dx, ax
+   455                              <1> 
+   456                              <1> 	; 11/11/2023
    457                              <1>         ;call	delay1_4ms
    458                              <1>         ;call	delay1_4ms
-   459                              <1> 	;
-   460                              <1> 	;mov	ax, 02h
-   461                              <1>   	;mov	dx, [NAMBAR]
-   462                              <1>   	;add	dx, CODEC_PCBEEP_VOL_REG	;0Ah 
-   463                              <1>   	;out	dx, ax
-   464                              <1> 
-   465 000003A0 E80E03              <1>         call    delay1_4ms
-   466 000003A3 E80B03              <1>         call    delay1_4ms
-   467 000003A6 E80803              <1>         call    delay1_4ms
-   468 000003A9 E80503              <1>         call    delay1_4ms
-   469                              <1> 
-   470                              <1> 	;mov	ax, 0202h
-   471 000003AC 8B16[940A]          <1>   	mov     dx, [NAMBAR]
-   472 000003B0 83C218              <1>   	add     dx, CODEC_PCM_OUT_REG		;18h 
-   473 000003B3 EF                  <1>   	out     dx, ax
-   474                              <1> 
-   475 000003B4 E8FA02              <1>         call    delay1_4ms
-   476 000003B7 E8F702              <1>         call    delay1_4ms
-   477 000003BA E8F402              <1>         call    delay1_4ms
-   478 000003BD E8F102              <1>         call    delay1_4ms
-   479                              <1> 
-   480                              <1> 	; 11/11/2023
-   481                              <1> 	;mov	ax, 8008h ; Mute
-   482                              <1>   	;mov	dx, [NAMBAR]
-   483                              <1> 	;add	dx, CODEC_PHONE_VOL_REG		;0Ch
-   484                              <1> 	;			 ; AC97_PHONE_VOL ; TAD Input (Mono)
-   485                              <1>   	;out	dx, ax
-   486                              <1> 	;
-   487                              <1>         ;call	delay1_4ms
-   488                              <1>         ;call	delay1_4ms
+   459                              <1>         ;call	delay1_4ms
+   460                              <1>         ;call	delay1_4ms
+   461                              <1> 	;
+   462                              <1> 	;mov	ax, 02h
+   463                              <1>   	;mov	dx, [NAMBAR]
+   464                              <1>   	;add	dx, CODEC_PCBEEP_VOL_REG	;0Ah 
+   465                              <1>   	;out	dx, ax
+   466                              <1> 
+   467 0000039D E80E03              <1>         call    delay1_4ms
+   468 000003A0 E80B03              <1>         call    delay1_4ms
+   469 000003A3 E80803              <1>         call    delay1_4ms
+   470 000003A6 E80503              <1>         call    delay1_4ms
+   471                              <1> 
+   472                              <1> 	;mov	ax, 0202h
+   473 000003A9 8B16[900A]          <1>   	mov     dx, [NAMBAR]
+   474 000003AD 83C218              <1>   	add     dx, CODEC_PCM_OUT_REG		;18h 
+   475 000003B0 EF                  <1>   	out     dx, ax
+   476                              <1> 
+   477 000003B1 E8FA02              <1>         call    delay1_4ms
+   478 000003B4 E8F702              <1>         call    delay1_4ms
+   479 000003B7 E8F402              <1>         call    delay1_4ms
+   480 000003BA E8F102              <1>         call    delay1_4ms
+   481                              <1> 
+   482                              <1> 	; 11/11/2023
+   483                              <1> 	;mov	ax, 8008h ; Mute
+   484                              <1>   	;mov	dx, [NAMBAR]
+   485                              <1> 	;add	dx, CODEC_PHONE_VOL_REG		;0Ch
+   486                              <1> 	;			 ; AC97_PHONE_VOL ; TAD Input (Mono)
+   487                              <1>   	;out	dx, ax
+   488                              <1> 	;
    489                              <1>         ;call	delay1_4ms
-   490                              <1> 	;call	delay1_4ms
-   491                              <1> 
-   492                              <1> 	;mov	ax, 0808h
-   493                              <1> 	;mov	dx, [NAMBAR]
-   494                              <1> 	;add	dx, CODEC_LINE_IN_VOL_REG ;10h ; Line Input (Stereo)
-   495                              <1> 	;out	dx, ax
-   496                              <1> 	;
-   497                              <1>         ;call	delay1_4ms
-   498                              <1>         ;call	delay1_4ms
+   490                              <1>         ;call	delay1_4ms
+   491                              <1>         ;call	delay1_4ms
+   492                              <1> 	;call	delay1_4ms
+   493                              <1> 
+   494                              <1> 	;mov	ax, 0808h
+   495                              <1> 	;mov	dx, [NAMBAR]
+   496                              <1> 	;add	dx, CODEC_LINE_IN_VOL_REG ;10h ; Line Input (Stereo)
+   497                              <1> 	;out	dx, ax
+   498                              <1> 	;
    499                              <1>         ;call	delay1_4ms
-   500                              <1> 	;call	delay1_4ms
-   501                              <1> 
-   502                              <1>   	;mov	dx, [NAMBAR]
-   503                              <1>         ;add	dx, CODEC_CD_VOL_REG ;12h ; CD Input (Stereo)
-   504                              <1>   	;out	dx, ax
-   505                              <1> 	;
-   506                              <1>   	;mov	dx, [NAMBAR]
-   507                              <1>         ;add	dx, CODEC_AUX_VOL_REG ;16h ; Aux Input (Stereo)
-   508                              <1>   	;out	dx, ax
-   509                              <1> 	;
-   510                              <1>         ;call	delay1_4ms
-   511                              <1>         ;call	delay1_4ms
+   500                              <1>         ;call	delay1_4ms
+   501                              <1>         ;call	delay1_4ms
+   502                              <1> 	;call	delay1_4ms
+   503                              <1> 
+   504                              <1>   	;mov	dx, [NAMBAR]
+   505                              <1>         ;add	dx, CODEC_CD_VOL_REG ;12h ; CD Input (Stereo)
+   506                              <1>   	;out	dx, ax
+   507                              <1> 	;
+   508                              <1>   	;mov	dx, [NAMBAR]
+   509                              <1>         ;add	dx, CODEC_AUX_VOL_REG ;16h ; Aux Input (Stereo)
+   510                              <1>   	;out	dx, ax
+   511                              <1> 	;
    512                              <1>         ;call	delay1_4ms
-   513                              <1> 	;call	delay1_4ms
-   514                              <1> 
-   515                              <1> 	; 19/05/2024
-   516 000003C0 F8                  <1> 	clc
-   517                              <1> 
-   518                              <1> ;detect_ac97_codec:
-   519 000003C1 C3                  <1>         retn
-   520                              <1> 
-   521                              <1> reset_ac97_controller:
-   522                              <1> 	; 19/05/2024
-   523                              <1> 	; 11/11/2023
-   524                              <1> 	; 10/06/2017
-   525                              <1> 	; 29/05/2017
-   526                              <1> 	; 28/05/2017
-   527                              <1> 	; reset AC97 audio controller registers
-   528 000003C2 31C0                <1> 	xor     ax, ax
-   529 000003C4 BA0B00              <1>         mov	dx, PI_CR_REG
-   530 000003C7 0316[960A]          <1> 	add	dx, [NABMBAR]
-   531 000003CB EE                  <1> 	out     dx, al
-   532                              <1> 
-   533                              <1> 	; 19/05/2024
-   534 000003CC E8E202              <1> 	call	delay1_4ms
-   535                              <1> 
-   536 000003CF BA1B00              <1>         mov     dx, PO_CR_REG
-   537 000003D2 0316[960A]          <1> 	add	dx, [NABMBAR]
-   538 000003D6 EE                  <1> 	out     dx, al
-   539                              <1> 
-   540                              <1> 	; 19/05/2024
-   541 000003D7 E8D702              <1> 	call	delay1_4ms
-   542                              <1> 
-   543 000003DA BA2B00              <1>         mov     dx, MC_CR_REG
-   544 000003DD 0316[960A]          <1> 	add	dx, [NABMBAR]
-   545 000003E1 EE                  <1> 	out     dx, al
-   546                              <1> 
-   547                              <1> 	; 19/05/2024
-   548 000003E2 E8CC02              <1> 	call	delay1_4ms
-   549                              <1> 
-   550 000003E5 B002                <1>         mov     al, RR
-   551 000003E7 BA0B00              <1>         mov     dx, PI_CR_REG
-   552 000003EA 0316[960A]          <1> 	add	dx, [NABMBAR]
-   553 000003EE EE                  <1> 	out     dx, al
-   554                              <1> 
-   555                              <1> 	; 19/05/2024
-   556 000003EF E8BF02              <1> 	call	delay1_4ms
-   557                              <1> 
-   558 000003F2 BA1B00              <1>         mov     dx, PO_CR_REG
-   559 000003F5 0316[960A]          <1> 	add	dx, [NABMBAR]
-   560 000003F9 EE                  <1> 	out     dx, al
-   561                              <1> 
-   562                              <1> 	; 19/05/2024
-   563 000003FA E8B402              <1> 	call	delay1_4ms
-   564                              <1> 
-   565 000003FD BA2B00              <1>         mov     dx, MC_CR_REG
-   566 00000400 0316[960A]          <1> 	add	dx, [NABMBAR]
-   567 00000404 EE                  <1> 	out     dx, al
-   568                              <1> 
-   569                              <1> 	; 19/05/2024
-   570 00000405 E8A902              <1> 	call	delay1_4ms
-   571                              <1> 
-   572 00000408 C3                  <1> 	retn
+   513                              <1>         ;call	delay1_4ms
+   514                              <1>         ;call	delay1_4ms
+   515                              <1> 	;call	delay1_4ms
+   516                              <1> 
+   517                              <1> 	; 19/05/2024
+   518 000003BD F8                  <1> 	clc
+   519                              <1> 
+   520                              <1> ;detect_ac97_codec:
+   521 000003BE C3                  <1>         retn
+   522                              <1> 
+   523                              <1> reset_ac97_controller:
+   524                              <1> 	; 19/05/2024
+   525                              <1> 	; 11/11/2023
+   526                              <1> 	; 10/06/2017
+   527                              <1> 	; 29/05/2017
+   528                              <1> 	; 28/05/2017
+   529                              <1> 	; reset AC97 audio controller registers
+   530 000003BF 31C0                <1> 	xor     ax, ax
+   531 000003C1 BA0B00              <1>         mov	dx, PI_CR_REG
+   532 000003C4 0316[920A]          <1> 	add	dx, [NABMBAR]
+   533 000003C8 EE                  <1> 	out     dx, al
+   534                              <1> 
+   535                              <1> 	; 19/05/2024
+   536 000003C9 E8E202              <1> 	call	delay1_4ms
+   537                              <1> 
+   538 000003CC BA1B00              <1>         mov     dx, PO_CR_REG
+   539 000003CF 0316[920A]          <1> 	add	dx, [NABMBAR]
+   540 000003D3 EE                  <1> 	out     dx, al
+   541                              <1> 
+   542                              <1> 	; 19/05/2024
+   543 000003D4 E8D702              <1> 	call	delay1_4ms
+   544                              <1> 
+   545 000003D7 BA2B00              <1>         mov     dx, MC_CR_REG
+   546 000003DA 0316[920A]          <1> 	add	dx, [NABMBAR]
+   547 000003DE EE                  <1> 	out     dx, al
+   548                              <1> 
+   549                              <1> 	; 19/05/2024
+   550 000003DF E8CC02              <1> 	call	delay1_4ms
+   551                              <1> 
+   552 000003E2 B002                <1>         mov     al, RR
+   553 000003E4 BA0B00              <1>         mov     dx, PI_CR_REG
+   554 000003E7 0316[920A]          <1> 	add	dx, [NABMBAR]
+   555 000003EB EE                  <1> 	out     dx, al
+   556                              <1> 
+   557                              <1> 	; 19/05/2024
+   558 000003EC E8BF02              <1> 	call	delay1_4ms
+   559                              <1> 
+   560 000003EF BA1B00              <1>         mov     dx, PO_CR_REG
+   561 000003F2 0316[920A]          <1> 	add	dx, [NABMBAR]
+   562 000003F6 EE                  <1> 	out     dx, al
+   563                              <1> 
+   564                              <1> 	; 19/05/2024
+   565 000003F7 E8B402              <1> 	call	delay1_4ms
+   566                              <1> 
+   567 000003FA BA2B00              <1>         mov     dx, MC_CR_REG
+   568 000003FD 0316[920A]          <1> 	add	dx, [NABMBAR]
+   569 00000401 EE                  <1> 	out     dx, al
+   570                              <1> 
+   571                              <1> 	; 19/05/2024
+   572 00000402 E8A902              <1> 	call	delay1_4ms
    573                              <1> 
-   574                              <1> reset_ac97_codec:
-   575                              <1> 	; 11/11/2023
-   576                              <1> 	; 28/05/2017 - Erdogan Tan (Ref: KolibriOS, intelac97.asm)
-   577 00000409 BA2C00              <1> 	mov	dx, GLOB_CNT_REG ; 2Ch
-   578 0000040C 0316[960A]          <1> 	add	dx, [NABMBAR]
-   579 00000410 66ED                <1> 	in	eax, dx
-   580                              <1> 
-   581                              <1> 	;test	eax, 2
-   582                              <1> 	; 06/08/2022
-   583 00000412 A802                <1> 	test	al, 2
-   584 00000414 7405                <1> 	jz	short _r_ac97codec_cold	
-   585                              <1> 
-   586 00000416 E80E00              <1> 	call	warm_ac97codec_reset
-   587 00000419 7306                <1> 	jnc	short _r_ac97codec_ok
-   588                              <1> _r_ac97codec_cold:
-   589 0000041B E83400              <1>         call    cold_ac97codec_reset
-   590 0000041E 7301                <1>         jnc     short _r_ac97codec_ok
-   591                              <1> 	
-   592                              <1> 	; 16/04/2017
-   593                              <1>         ;xor	eax, eax	; timeout error
-   594                              <1>        	;stc
-   595 00000420 C3                  <1> 	retn
-   596                              <1> 
-   597                              <1> _r_ac97codec_ok:
-   598 00000421 6631C0              <1>         xor     eax, eax
-   599                              <1>         ;mov	al, VIA_ACLINK_C00_READY ; 1
-   600 00000424 FEC0                <1>         inc	al
-   601 00000426 C3                  <1> 	retn
-   602                              <1> 
-   603                              <1> warm_ac97codec_reset:
-   604                              <1> 	; 11/11/2023
-   605                              <1> 	; 06/08/2022 - TRDOS 386 v2.0.5
-   606                              <1> 	; 28/05/2017 - Erdogan Tan (Ref: KolibriOS, intelac97.asm)
-   607 00000427 66B806000000        <1> 	mov	eax, 6
-   608 0000042D BA2C00              <1> 	mov	dx, GLOB_CNT_REG ; 2Ch
-   609 00000430 0316[960A]          <1> 	add	dx, [NABMBAR]
-   610 00000434 66EF                <1> 	out	dx, eax
-   611                              <1> 
-   612 00000436 B90A00              <1> 	mov	cx, 10	; total 1s
-   613                              <1> _warm_ac97c_rst_wait:
-   614 00000439 E84D00              <1> 	call	delay_100ms
-   615                              <1> 
-   616 0000043C BA3000              <1> 	mov	dx, GLOB_STS_REG ; 30h
-   617 0000043F 0316[960A]          <1> 	add	dx, [NABMBAR]
-   618 00000443 66ED                <1> 	in	eax, dx
-   619                              <1> 
-   620 00000445 66A900030010        <1> 	test	eax, CTRL_ST_CREADY
-   621 0000044B 7504                <1> 	jnz	short _warm_ac97c_rst_ok
-   622                              <1> 
-   623 0000044D 49                  <1>         dec     cx
-   624 0000044E 75E9                <1>         jnz     short _warm_ac97c_rst_wait
-   625                              <1> 
-   626                              <1> _warm_ac97c_rst_fail:
-   627 00000450 F9                  <1>         stc
-   628                              <1> _warm_ac97c_rst_ok:
-   629 00000451 C3                  <1> 	retn
-   630                              <1> 
-   631                              <1> cold_ac97codec_reset:
-   632                              <1> 	; 11/11/2023
-   633                              <1> 	; 06/08/2022 - TRDOS 386 v2.0.5
-   634                              <1> 	; 28/05/2017 - Erdogan Tan (Ref: KolibriOS, intelac97.asm)
-   635 00000452 66B802000000        <1>         mov	eax, 2
-   636 00000458 BA2C00              <1> 	mov	dx, GLOB_CNT_REG ; 2Ch
-   637 0000045B 0316[960A]          <1> 	add	dx, [NABMBAR]
-   638 0000045F 66EF                <1> 	out	dx, eax
-   639                              <1> 
-   640 00000461 E82500              <1> 	call	delay_100ms 	; wait 100 ms
-   641 00000464 E82200              <1> 	call	delay_100ms 	; wait 100 ms
-   642 00000467 E81F00              <1> 	call	delay_100ms 	; wait 100 ms
-   643 0000046A E81C00              <1> 	call	delay_100ms 	; wait 100 ms
-   644                              <1> 
-   645 0000046D B91000              <1> 	mov	cx, 16	; total 20*100 ms = 2s
+   574 00000405 C3                  <1> 	retn
+   575                              <1> 
+   576                              <1> reset_ac97_codec:
+   577                              <1> 	; 11/11/2023
+   578                              <1> 	; 28/05/2017 - Erdogan Tan (Ref: KolibriOS, intelac97.asm)
+   579 00000406 BA2C00              <1> 	mov	dx, GLOB_CNT_REG ; 2Ch
+   580 00000409 0316[920A]          <1> 	add	dx, [NABMBAR]
+   581 0000040D 66ED                <1> 	in	eax, dx
+   582                              <1> 
+   583                              <1> 	;test	eax, 2
+   584                              <1> 	; 06/08/2022
+   585 0000040F A802                <1> 	test	al, 2
+   586 00000411 7405                <1> 	jz	short _r_ac97codec_cold	
+   587                              <1> 
+   588 00000413 E80E00              <1> 	call	warm_ac97codec_reset
+   589 00000416 7306                <1> 	jnc	short _r_ac97codec_ok
+   590                              <1> _r_ac97codec_cold:
+   591 00000418 E83400              <1>         call    cold_ac97codec_reset
+   592 0000041B 7301                <1>         jnc     short _r_ac97codec_ok
+   593                              <1> 	
+   594                              <1> 	; 16/04/2017
+   595                              <1>         ;xor	eax, eax	; timeout error
+   596                              <1>        	;stc
+   597 0000041D C3                  <1> 	retn
+   598                              <1> 
+   599                              <1> _r_ac97codec_ok:
+   600 0000041E 6631C0              <1>         xor     eax, eax
+   601                              <1>         ;mov	al, VIA_ACLINK_C00_READY ; 1
+   602 00000421 FEC0                <1>         inc	al
+   603 00000423 C3                  <1> 	retn
+   604                              <1> 
+   605                              <1> warm_ac97codec_reset:
+   606                              <1> 	; 11/11/2023
+   607                              <1> 	; 06/08/2022 - TRDOS 386 v2.0.5
+   608                              <1> 	; 28/05/2017 - Erdogan Tan (Ref: KolibriOS, intelac97.asm)
+   609 00000424 66B806000000        <1> 	mov	eax, 6
+   610 0000042A BA2C00              <1> 	mov	dx, GLOB_CNT_REG ; 2Ch
+   611 0000042D 0316[920A]          <1> 	add	dx, [NABMBAR]
+   612 00000431 66EF                <1> 	out	dx, eax
+   613                              <1> 
+   614 00000433 B90A00              <1> 	mov	cx, 10	; total 1s
+   615                              <1> _warm_ac97c_rst_wait:
+   616 00000436 E84D00              <1> 	call	delay_100ms
+   617                              <1> 
+   618 00000439 BA3000              <1> 	mov	dx, GLOB_STS_REG ; 30h
+   619 0000043C 0316[920A]          <1> 	add	dx, [NABMBAR]
+   620 00000440 66ED                <1> 	in	eax, dx
+   621                              <1> 
+   622 00000442 66A900030010        <1> 	test	eax, CTRL_ST_CREADY
+   623 00000448 7504                <1> 	jnz	short _warm_ac97c_rst_ok
+   624                              <1> 
+   625 0000044A 49                  <1>         dec     cx
+   626 0000044B 75E9                <1>         jnz     short _warm_ac97c_rst_wait
+   627                              <1> 
+   628                              <1> _warm_ac97c_rst_fail:
+   629 0000044D F9                  <1>         stc
+   630                              <1> _warm_ac97c_rst_ok:
+   631 0000044E C3                  <1> 	retn
+   632                              <1> 
+   633                              <1> cold_ac97codec_reset:
+   634                              <1> 	; 11/11/2023
+   635                              <1> 	; 06/08/2022 - TRDOS 386 v2.0.5
+   636                              <1> 	; 28/05/2017 - Erdogan Tan (Ref: KolibriOS, intelac97.asm)
+   637 0000044F 66B802000000        <1>         mov	eax, 2
+   638 00000455 BA2C00              <1> 	mov	dx, GLOB_CNT_REG ; 2Ch
+   639 00000458 0316[920A]          <1> 	add	dx, [NABMBAR]
+   640 0000045C 66EF                <1> 	out	dx, eax
+   641                              <1> 
+   642 0000045E E82500              <1> 	call	delay_100ms 	; wait 100 ms
+   643 00000461 E82200              <1> 	call	delay_100ms 	; wait 100 ms
+   644 00000464 E81F00              <1> 	call	delay_100ms 	; wait 100 ms
+   645 00000467 E81C00              <1> 	call	delay_100ms 	; wait 100 ms
    646                              <1> 
-   647                              <1> _cold_ac97c_rst_wait:
-   648 00000470 BA3000              <1> 	mov	dx, GLOB_STS_REG ; 30h
-   649 00000473 0316[960A]          <1> 	add	dx, [NABMBAR]
-   650 00000477 66ED                <1> 	in	eax, dx
-   651                              <1> 
-   652 00000479 66A900030010        <1> 	test	eax, CTRL_ST_CREADY
-   653 0000047F 7507                <1> 	jnz	short _cold_ac97c_rst_ok
-   654                              <1> 
-   655 00000481 E80500              <1> 	call	delay_100ms
+   647 0000046A B91000              <1> 	mov	cx, 16	; total 20*100 ms = 2s
+   648                              <1> 
+   649                              <1> _cold_ac97c_rst_wait:
+   650 0000046D BA3000              <1> 	mov	dx, GLOB_STS_REG ; 30h
+   651 00000470 0316[920A]          <1> 	add	dx, [NABMBAR]
+   652 00000474 66ED                <1> 	in	eax, dx
+   653                              <1> 
+   654 00000476 66A900030010        <1> 	test	eax, CTRL_ST_CREADY
+   655 0000047C 7507                <1> 	jnz	short _cold_ac97c_rst_ok
    656                              <1> 
-   657 00000484 49                  <1>         dec     cx
-   658 00000485 75E9                <1>         jnz     short _cold_ac97c_rst_wait
-   659                              <1> 
-   660                              <1> _cold_ac97c_rst_fail:
-   661 00000487 F9                  <1>         stc
-   662                              <1> _cold_ac97c_rst_ok:
-   663 00000488 C3                  <1> 	retn
-   664                              <1> 
-   665                              <1> delay_100ms:
-   666                              <1> 	; 11/11/2023
-   667                              <1> 	; 29/05/2017
-   668                              <1> 	; 24/03/2017 ('codec.asm')
-   669                              <1> 	; wait 100 ms
-   670 00000489 51                  <1> 	push	cx
-   671 0000048A B99001              <1> 	mov	cx, 400  ; 400*0.25ms
-   672                              <1> _delay_x_ms:
-   673 0000048D E82102              <1> 	call	delay1_4ms
-   674 00000490 E2FB                <1>         loop	_delay_x_ms
-   675 00000492 59                  <1> 	pop	cx
-   676 00000493 C3                  <1> 	retn
-   677                              <1> 
-   678                              <1> %endif
+   657 0000047E E80500              <1> 	call	delay_100ms
+   658                              <1> 
+   659 00000481 49                  <1>         dec     cx
+   660 00000482 75E9                <1>         jnz     short _cold_ac97c_rst_wait
+   661                              <1> 
+   662                              <1> _cold_ac97c_rst_fail:
+   663 00000484 F9                  <1>         stc
+   664                              <1> _cold_ac97c_rst_ok:
+   665 00000485 C3                  <1> 	retn
+   666                              <1> 
+   667                              <1> delay_100ms:
+   668                              <1> 	; 11/11/2023
+   669                              <1> 	; 29/05/2017
+   670                              <1> 	; 24/03/2017 ('codec.asm')
+   671                              <1> 	; wait 100 ms
+   672 00000486 51                  <1> 	push	cx
+   673 00000487 B99001              <1> 	mov	cx, 400  ; 400*0.25ms
+   674                              <1> _delay_x_ms:
+   675 0000048A E82102              <1> 	call	delay1_4ms
+   676 0000048D E2FB                <1>         loop	_delay_x_ms
+   677 0000048F 59                  <1> 	pop	cx
+   678 00000490 C3                  <1> 	retn
    679                              <1> 
-   680                              <1> ; 11/11/2023
-   681                              <1> %if 0
-   682                              <1> 
-   683                              <1> codecConfig:
-   684                              <1> 	; 06/11/2023
-   685                              <1> 	; TUNELOOP version (playing without interrupt)
-   686                              <1> 	; 04/11/2023
-   687                              <1> 	; 17/02/2017 
-   688                              <1> 	; 07/11/2016 (Erdogan Tan)
-   689                              <1> 
-   690                              <1> 	mov	ax, [sample_rate] ; 17/02/2017 (Erdogan Tan)
+   680                              <1> %endif
+   681                              <1> 
+   682                              <1> ; 11/11/2023
+   683                              <1> %if 0
+   684                              <1> 
+   685                              <1> codecConfig:
+   686                              <1> 	; 06/11/2023
+   687                              <1> 	; TUNELOOP version (playing without interrupt)
+   688                              <1> 	; 04/11/2023
+   689                              <1> 	; 17/02/2017 
+   690                              <1> 	; 07/11/2016 (Erdogan Tan)
    691                              <1> 
-   692                              <1> 	mov    	dx, [NAMBAR]               	
-   693                              <1> 	add    	dx, CODEC_PCM_FRONT_DACRATE_REG	; 2Ch  	  
-   694                              <1> 	out	dx, ax 				; out sample rate
-   695                              <1> 		
-   696                              <1> 	; 05/11/2023 temp
-   697                              <1> 	;mov	dx, [NAMBAR]               	
-   698                              <1> 	;add	dx, CODEC_LR_ADCRATE_REG 	; 32h  	  
-   699                              <1> 	;out	dx, ax 
-   700                              <1> 
-   701                              <1>         call    delay1_4ms
-   702                              <1>         call    delay1_4ms
+   692                              <1> 	mov	ax, [sample_rate] ; 17/02/2017 (Erdogan Tan)
+   693                              <1> 
+   694                              <1> 	mov    	dx, [NAMBAR]               	
+   695                              <1> 	add    	dx, CODEC_PCM_FRONT_DACRATE_REG	; 2Ch  	  
+   696                              <1> 	out	dx, ax 				; out sample rate
+   697                              <1> 		
+   698                              <1> 	; 05/11/2023 temp
+   699                              <1> 	;mov	dx, [NAMBAR]               	
+   700                              <1> 	;add	dx, CODEC_LR_ADCRATE_REG 	; 32h  	  
+   701                              <1> 	;out	dx, ax 
+   702                              <1> 
    703                              <1>         call    delay1_4ms
    704                              <1>         call    delay1_4ms
-   705                              <1> 
-   706                              <1> 	mov	eax, [dev_vendor]
-   707                              <1>         cmp	eax, (SI7012_DID<<16)+SIS_VID
-   708                              <1>         jne	short cConfig1
-   709                              <1> 
-   710                              <1> 	; Unmute quirk specifically for the SiS7012
+   705                              <1>         call    delay1_4ms
+   706                              <1>         call    delay1_4ms
+   707                              <1> 
+   708                              <1> 	mov	eax, [dev_vendor]
+   709                              <1>         cmp	eax, (SI7012_DID<<16)+SIS_VID
+   710                              <1>         jne	short cConfig1
    711                              <1> 
-   712                              <1> 	CUSTOM_SIS_7012_REG equ 4Ch ; SiS7012-specific register
-   713                              <1> 	
-   714                              <1>         mov     dx, [NABMBAR]
-   715                              <1>         add     dx, CUSTOM_SIS_7012_REG
-   716                              <1>         in      ax, dx
-   717                              <1>         or	al, 1
-   718                              <1>         out     dx, ax
-   719                              <1> 
-   720                              <1> cConfig1:
-   721                              <1> 	; 03/11/2023 (MPXPLAY, 'SC_ICH.C', ac97_init)
-   722                              <1> 	; initial ac97 volumes (and clear mute flag)
-   723                              <1> 		
-   724                              <1>   	mov     dx, [NAMBAR]
-   725                              <1>   	add     dx, CODEC_MASTER_VOL_REG        ;02h ; STEREO
-   726                              <1>   	;xor	ax, ax ; volume attenuation = 0 (max. volume)
-   727                              <1>   	; 03/11/2023
-   728                              <1> 	mov	ax, 0202h
-   729                              <1> 	out     dx, ax
-   730                              <1> 
-   731                              <1>         call    delay1_4ms	; delays because codecs are slow
-   732                              <1>         call    delay1_4ms
-   733                              <1>         call    delay1_4ms
+   712                              <1> 	; Unmute quirk specifically for the SiS7012
+   713                              <1> 
+   714                              <1> 	CUSTOM_SIS_7012_REG equ 4Ch ; SiS7012-specific register
+   715                              <1> 	
+   716                              <1>         mov     dx, [NABMBAR]
+   717                              <1>         add     dx, CUSTOM_SIS_7012_REG
+   718                              <1>         in      ax, dx
+   719                              <1>         or	al, 1
+   720                              <1>         out     dx, ax
+   721                              <1> 
+   722                              <1> cConfig1:
+   723                              <1> 	; 03/11/2023 (MPXPLAY, 'SC_ICH.C', ac97_init)
+   724                              <1> 	; initial ac97 volumes (and clear mute flag)
+   725                              <1> 		
+   726                              <1>   	mov     dx, [NAMBAR]
+   727                              <1>   	add     dx, CODEC_MASTER_VOL_REG        ;02h ; STEREO
+   728                              <1>   	;xor	ax, ax ; volume attenuation = 0 (max. volume)
+   729                              <1>   	; 03/11/2023
+   730                              <1> 	mov	ax, 0202h
+   731                              <1> 	out     dx, ax
+   732                              <1> 
+   733                              <1>         call    delay1_4ms	; delays because codecs are slow
    734                              <1>         call    delay1_4ms
-   735                              <1>  
-   736                              <1>   	mov     dx, [NAMBAR]
-   737                              <1>   	add     dx, CODEC_PCM_OUT_REG		;18h
-   738                              <1>   	;;xor	ax, ax
-   739                              <1> 	;mov	ax, 0202h
-   740                              <1>   	out     dx, ax
-   741                              <1> 
-   742                              <1>         call    delay1_4ms
-   743                              <1>         call    delay1_4ms
+   735                              <1>         call    delay1_4ms
+   736                              <1>         call    delay1_4ms
+   737                              <1>  
+   738                              <1>   	mov     dx, [NAMBAR]
+   739                              <1>   	add     dx, CODEC_PCM_OUT_REG		;18h
+   740                              <1>   	;;xor	ax, ax
+   741                              <1> 	;mov	ax, 0202h
+   742                              <1>   	out     dx, ax
+   743                              <1> 
    744                              <1>         call    delay1_4ms
    745                              <1>         call    delay1_4ms
-   746                              <1>  
-   747                              <1> 	retn
-   748                              <1> 
-   749                              <1> %endif
+   746                              <1>         call    delay1_4ms
+   747                              <1>         call    delay1_4ms
+   748                              <1>  
+   749                              <1> 	retn
+   750                              <1> 
+   751                              <1> %endif
    469                                  %include 'ich_wav.asm' ; 17/02/2017 (ICH AC97 wav playing functions)
      1                              <1> ; 19/05/2024
      2                              <1> ; 11/11/2023
@@ -1671,12 +1673,12 @@
     35                              <1> 	;pop	es	     
     36                              <1> 	
     37                              <1> 	; load 64k into buffer 1
-    38 00000494 A1[9A0A]            <1>         mov     ax, [WAV_BUFFER1]
-    39 00000497 E8D200              <1>         call    loadFromFile
+    38 00000491 A1[960A]            <1>         mov     ax, [WAV_BUFFER1]
+    39 00000494 E8D200              <1>         call    loadFromFile
     40                              <1> 
     41                              <1> 	; and 64k into buffer 2
-    42 0000049A A1[9C0A]            <1> 	mov     ax, [WAV_BUFFER2]
-    43 0000049D E8CC00              <1>        	call    loadFromFile
+    42 00000497 A1[980A]            <1> 	mov     ax, [WAV_BUFFER2]
+    43 0000049A E8CC00              <1>        	call    loadFromFile
     44                              <1> 
     45                              <1> ; register reset the DMA engine. This may cause a pop noise on the output
     46                              <1> ; lines when the device is reset. Prolly a better idea to mute output, then
@@ -1716,18 +1718,18 @@
     80                              <1> ; I set the BUP bit, which tells the DMA engine to just play 0's (silence)
     81                              <1> ; if it ever runs out of data to play. Good for safety.
     82                              <1> ;
-    83 000004A0 06                  <1>         push    es
-    84 000004A1 A1[980A]            <1>         mov     ax, [BDL_BUFFER]		; get segment # for BDL
-    85 000004A4 8EC0                <1>         mov     es, ax
+    83 0000049D 06                  <1>         push    es
+    84 0000049E A1[940A]            <1>         mov     ax, [BDL_BUFFER]		; get segment # for BDL
+    85 000004A1 8EC0                <1>         mov     es, ax
     86                              <1> 
-    87 000004A6 B91000              <1>         mov     cx, 32 / 2                      ; make 32 entries in BDL
-    88 000004A9 31FF                <1>         xor     di, di                          
+    87 000004A3 B91000              <1>         mov     cx, 32 / 2                      ; make 32 entries in BDL
+    88 000004A6 31FF                <1>         xor     di, di                          
     89                              <1> _0:
     90                              <1> 
     91                              <1> ; set buffer descriptor 0 to start of data file in memory
-    92 000004AB 660FB706[9A0A]      <1>         movzx   eax, word [WAV_BUFFER1]
-    93 000004B1 66C1E004            <1>         shl     eax, 4                          ; convert seg:off ->0:offset
-    94 000004B5 66AB                <1>         stosd                                   ; store pointer to wavbuffer1
+    92 000004A8 660FB706[960A]      <1>         movzx   eax, word [WAV_BUFFER1]
+    93 000004AE 66C1E004            <1>         shl     eax, 4                          ; convert seg:off ->0:offset
+    94 000004B2 66AB                <1>         stosd                                   ; store pointer to wavbuffer1
     95                              <1> 
     96                              <1> ;
     97                              <1> ; set length to 32k samples. 1 sample is 16bits or 2bytes.
@@ -1802,29 +1804,29 @@
    166                              <1> 
    167                              <1> ; ICHWAV.ASM
    168                              <1> 				    ; 19/05/2024
-   169 000004B7 66B800800000        <1> 	mov	eax, BUFFERSIZE / 2 ; size of buffer (32K) in (16bit) words
+   169 000004B4 66B800800000        <1> 	mov	eax, BUFFERSIZE / 2 ; size of buffer (32K) in (16bit) words
    170                              <1> 	;or	eax, IOC + BUP
    171                              <1> 	; 06/11/2023 (TUNELOOP version, without interrupt)
-   172 000004BD 660D00000040        <1> 	or	eax, BUP
-   173 000004C3 66AB                <1> 	stosd
+   172 000004BA 660D00000040        <1> 	or	eax, BUP
+   173 000004C0 66AB                <1> 	stosd
    174                              <1> 
    175                              <1> ; 2nd buffer:
    176                              <1> 
-   177 000004C5 660FB706[9C0A]      <1>         movzx   eax, word [WAV_BUFFER2]
-   178 000004CB 66C1E004            <1>         shl     eax, 4                          ; convert seg:off ->0:offset
-   179 000004CF 66AB                <1>         stosd                                   ; store pointer to wavbuffer2
+   177 000004C2 660FB706[980A]      <1>         movzx   eax, word [WAV_BUFFER2]
+   178 000004C8 66C1E004            <1>         shl     eax, 4                          ; convert seg:off ->0:offset
+   179 000004CC 66AB                <1>         stosd                                   ; store pointer to wavbuffer2
    180                              <1> 
    181                              <1> ; set length to 64k (32k of two 16 bit samples)
    182                              <1> ; Set control (bits 31:16) to BUP, bits 15:0=number of samples
    183                              <1> ; 
-   184 000004D1 66B800800000        <1> 	mov	eax, BUFFERSIZE / 2
+   184 000004CE 66B800800000        <1> 	mov	eax, BUFFERSIZE / 2
    185                              <1> 	;or	eax, IOC + BUP
    186                              <1> 	; 06/11/2023 (TUNELOOP version, without interrupt)
-   187 000004D7 660D00000040        <1> 	or	eax, BUP
-   188 000004DD 66AB                <1> 	stosd
+   187 000004D4 660D00000040        <1> 	or	eax, BUP
+   188 000004DA 66AB                <1> 	stosd
    189                              <1> 
-   190 000004DF E2CA                <1>         loop    _0
-   191 000004E1 07                  <1>         pop     es
+   190 000004DC E2CA                <1>         loop    _0
+   191 000004DE 07                  <1>         pop     es
    192                              <1> 
    193                              <1> ;
    194                              <1> ; tell the DMA engine where to find our list of Buffer Descriptors.
@@ -1832,14 +1834,14 @@
    196                              <1> ;
    197                              <1> ; write NABMBAR+10h with offset of buffer descriptor list
    198                              <1> ;
-   199 000004E2 660FB706[980A]      <1>         movzx   eax, word [BDL_BUFFER]
-   200 000004E8 66C1E004            <1> 	shl     eax, 4                          ; convert seg:off to 0:off
-   201 000004EC 8B16[960A]          <1>         mov     dx, [NABMBAR]
-   202 000004F0 83C210              <1>         add     dx, PO_BDBAR_REG                ; set pointer to BDL
-   203 000004F3 66EF                <1>         out     dx, eax                         ; write to AC97 controller
+   199 000004DF 660FB706[940A]      <1>         movzx   eax, word [BDL_BUFFER]
+   200 000004E5 66C1E004            <1> 	shl     eax, 4                          ; convert seg:off to 0:off
+   201 000004E9 8B16[920A]          <1>         mov     dx, [NABMBAR]
+   202 000004ED 83C210              <1>         add     dx, PO_BDBAR_REG                ; set pointer to BDL
+   203 000004F0 66EF                <1>         out     dx, eax                         ; write to AC97 controller
    204                              <1> 
    205                              <1> 	; 19/05/2024
-   206 000004F5 E8B901              <1> 	call	delay1_4ms
+   206 000004F2 E8B901              <1> 	call	delay1_4ms
    207                              <1> 
    208                              <1> ;
    209                              <1> ; All set. Let's play some music.
@@ -1850,8 +1852,8 @@
    214                              <1> 	; 08/12/2016
    215                              <1> 	; 07/10/2016
    216                              <1>         ;mov	al, 1
-   217 000004F8 B01F                <1>         mov	al, 31
-   218 000004FA E86701              <1> 	call	setLastValidIndex
+   217 000004F5 B01F                <1>         mov	al, 31
+   218 000004F7 E86701              <1> 	call	setLastValidIndex
    219                              <1> 
    220                              <1> 	; 06/11/2023 (not neccessary)
    221                              <1> 	;; 05/11/2023
@@ -1863,23 +1865,23 @@
    227                              <1> 	;mov	byte [tLoop], 1 ; 30/11/2016
    228                              <1> 
    229                              <1> 	; 19/05/2024
-   230 000004FD E8B101              <1> 	call	delay1_4ms
+   230 000004FA E8B101              <1> 	call	delay1_4ms
    231                              <1> 
    232                              <1> 	; 17/02/2017
-   233 00000500 8B16[960A]          <1>         mov     dx, [NABMBAR]
-   234 00000504 83C21B              <1>         add     dx, PO_CR_REG                   ; PCM out Control Register
+   233 000004FD 8B16[920A]          <1>         mov     dx, [NABMBAR]
+   234 00000501 83C21B              <1>         add     dx, PO_CR_REG                   ; PCM out Control Register
    235                              <1>         ;mov	al, IOCE + RPBM	; Enable 'Interrupt On Completion' + run
    236                              <1> 	;			; (LVBI interrupt will not be enabled)
    237                              <1> 	; 06/11/2023 (TUNELOOP version, without interrupt)
-   238 00000507 B001                <1> 	mov	al, RPBM
-   239 00000509 EE                  <1> 	out     dx, al                          ; Start bus master operation.
+   238 00000504 B001                <1> 	mov	al, RPBM
+   239 00000506 EE                  <1> 	out     dx, al                          ; Start bus master operation.
    240                              <1> 
    241                              <1> 	; 19/05/2024
    242                              <1> 	; 06/11/2023
-   243 0000050A E8A401              <1> 	call	delay1_4ms
-   244 0000050D E8A101              <1> 	call	delay1_4ms
-   245 00000510 E89E01              <1> 	call	delay1_4ms
-   246 00000513 E89B01              <1> 	call	delay1_4ms
+   243 00000507 E8A401              <1> 	call	delay1_4ms
+   244 0000050A E8A101              <1> 	call	delay1_4ms
+   245 0000050D E89E01              <1> 	call	delay1_4ms
+   246 00000510 E89B01              <1> 	call	delay1_4ms
    247                              <1> 
    248                              <1> ; while DMA engine is running, examine current index and wait until it hits 1
    249                              <1> ; as soon as it's 1, we need to refresh the data in wavbuffer1 with another
@@ -2059,44 +2061,44 @@
    423                              <1> tuneLoop:
    424                              <1> 	; 08/11/2023
    425                              <1> 	; 06/11/2023
-   426 00000516 B031                <1> 	mov	al, '1'
-   427 00000518 E84300              <1> 	call	tL0
+   426 00000513 B031                <1> 	mov	al, '1'
+   427 00000515 E84300              <1> 	call	tL0
    428                              <1> tL1:
-   429 0000051B E81B01              <1> 	call    updateLVI	; /set LVI != CIV/
-   430 0000051E 7432                <1> 	jz	short _exit_	; 08/11/2023
-   431 00000520 E84A01              <1> 	call    check4keyboardstop
-   432 00000523 722D                <1> 	jc	short _exit_
-   433 00000525 E80801              <1> 	call    getCurrentIndex
-   434 00000528 A801                <1> 	test	al, BIT0
-   435 0000052A 74EF                <1> 	jz	short tL1	; loop if buffer 2 is not playing
+   429 00000518 E81B01              <1> 	call    updateLVI	; /set LVI != CIV/
+   430 0000051B 7432                <1> 	jz	short _exit_	; 08/11/2023
+   431 0000051D E84A01              <1> 	call    check4keyboardstop
+   432 00000520 722D                <1> 	jc	short _exit_
+   433 00000522 E80801              <1> 	call    getCurrentIndex
+   434 00000525 A801                <1> 	test	al, BIT0
+   435 00000527 74EF                <1> 	jz	short tL1	; loop if buffer 2 is not playing
    436                              <1> 
    437                              <1> 	; load buffer 1
-   438 0000052C A1[9A0A]            <1> 	mov     ax, [WAV_BUFFER1]
-   439 0000052F E83A00              <1> 	call	loadFromFile
-   440 00000532 721E                <1> 	jc	short _exit_	; end of file
+   438 00000529 A1[960A]            <1> 	mov     ax, [WAV_BUFFER1]
+   439 0000052C E83A00              <1> 	call	loadFromFile
+   440 0000052F 721E                <1> 	jc	short _exit_	; end of file
    441                              <1> 
-   442 00000534 B032                <1> 	mov	al, '2'
-   443 00000536 E82500              <1> 	call	tL0
+   442 00000531 B032                <1> 	mov	al, '2'
+   443 00000533 E82500              <1> 	call	tL0
    444                              <1> tL2:
-   445 00000539 E8FD00              <1> 	call    updateLVI
-   446 0000053C 7414                <1> 	jz	short _exit_	; 08/11/2023
-   447 0000053E E82C01              <1> 	call    check4keyboardstop
-   448 00000541 720F                <1> 	jc	short _exit_
-   449 00000543 E8EA00              <1> 	call    getCurrentIndex
-   450 00000546 A801                <1> 	test	al, BIT0
-   451 00000548 75EF                <1> 	jnz	short tL2	; loop if buffer 1 is not playing
+   445 00000536 E8FD00              <1> 	call    updateLVI
+   446 00000539 7414                <1> 	jz	short _exit_	; 08/11/2023
+   447 0000053B E82C01              <1> 	call    check4keyboardstop
+   448 0000053E 720F                <1> 	jc	short _exit_
+   449 00000540 E8EA00              <1> 	call    getCurrentIndex
+   450 00000543 A801                <1> 	test	al, BIT0
+   451 00000545 75EF                <1> 	jnz	short tL2	; loop if buffer 1 is not playing
    452                              <1> 
    453                              <1> 	; load buffer 2
-   454 0000054A A1[9C0A]            <1> 	mov     ax, [WAV_BUFFER2]
-   455 0000054D E81C00              <1> 	call	loadFromFile
-   456 00000550 73C4                <1> 	jnc	short tuneLoop
+   454 00000547 A1[980A]            <1> 	mov     ax, [WAV_BUFFER2]
+   455 0000054A E81C00              <1> 	call	loadFromFile
+   456 0000054D 73C4                <1> 	jnc	short tuneLoop
    457                              <1> _exit_:
-   458 00000552 8B16[960A]          <1> 	mov	dx, [NABMBAR]		
-   459 00000556 83C21B              <1> 	add	dx, PO_CR_REG	; PCM out Control Register
-   460 00000559 B000                <1> 	mov	al, 0
-   461 0000055B EE                  <1> 	out	dx, al		; stop player
+   458 0000054F 8B16[920A]          <1> 	mov	dx, [NABMBAR]		
+   459 00000553 83C21B              <1> 	add	dx, PO_CR_REG	; PCM out Control Register
+   460 00000556 B000                <1> 	mov	al, 0
+   461 00000558 EE                  <1> 	out	dx, al		; stop player
    462                              <1> 
-   463 0000055C 0430                <1> 	add	al, '0'
+   463 00000559 0430                <1> 	add	al, '0'
    464                              <1> 	;call	tL0
    465                              <1> 	;
    466                              <1> 	;retn
@@ -2111,16 +2113,16 @@
    475                              <1> 	; 17/02/2017 - Buffer switch test (temporary)
    476                              <1> 	; 06/11/2023
    477                              <1> 	; al = buffer indicator ('1', '2' or '0' -stop- )
-   478 0000055E 1E                  <1> 	push	ds
+   478 0000055B 1E                  <1> 	push	ds
    479                              <1> 	;push	bx 
-   480 0000055F BB00B8              <1> 	mov	bx, 0B800h ; video display page segment
-   481 00000562 8EDB                <1> 	mov	ds, bx
-   482 00000564 29DB                <1> 	sub	bx, bx ; 0
-   483 00000566 B44E                <1> 	mov	ah, 4Eh
-   484 00000568 8907                <1> 	mov	[bx], ax ; show current play buffer (1, 2)
+   480 0000055C BB00B8              <1> 	mov	bx, 0B800h ; video display page segment
+   481 0000055F 8EDB                <1> 	mov	ds, bx
+   482 00000561 29DB                <1> 	sub	bx, bx ; 0
+   483 00000563 B44E                <1> 	mov	ah, 4Eh
+   484 00000565 8907                <1> 	mov	[bx], ax ; show current play buffer (1, 2)
    485                              <1> 	;pop	bx
-   486 0000056A 1F                  <1> 	pop	ds
-   487 0000056B C3                  <1> 	retn
+   486 00000567 1F                  <1> 	pop	ds
+   487 00000568 C3                  <1> 	retn
    488                              <1> 
    489                              <1> %endif
    490                              <1> 
@@ -2336,145 +2338,145 @@
    700                              <1> loadFromFile:
    701                              <1> 	; 07/11/2023
    702                              <1> 
-   703 0000056C F606[920A]01        <1>         test    byte [flags], ENDOFFILE	; have we already read the
+   703 00000569 F606[8E0A]01        <1>         test    byte [flags], ENDOFFILE	; have we already read the
    704                              <1> 					; last of the file?
-   705 00000571 7402                <1> 	jz	short lff_0		; no
-   706 00000573 F9                  <1> 	stc
-   707 00000574 C3                  <1> 	retn
+   705 0000056E 7402                <1> 	jz	short lff_0		; no
+   706 00000570 F9                  <1> 	stc
+   707 00000571 C3                  <1> 	retn
    708                              <1> 
    709                              <1> lff_0:
    710                              <1> 	; 08/11/2023
-   711 00000575 89C5                <1> 	mov	bp, ax ; save buffer segment	
+   711 00000572 89C5                <1> 	mov	bp, ax ; save buffer segment	
    712                              <1> 
-   713 00000577 8A0E[AC0A]          <1> 	mov	cl, [fbs_shift]   
-   714 0000057B 20C9                <1> 	and	cl, cl
-   715 0000057D 7467                <1> 	jz	short lff_1 ; stereo, 16 bit	
+   713 00000574 8A0E[A80A]          <1> 	mov	cl, [fbs_shift]   
+   714 00000578 20C9                <1> 	and	cl, cl
+   715 0000057A 7467                <1> 	jz	short lff_1 ; stereo, 16 bit	
    716                              <1> 
-   717 0000057F BFFFFF              <1> 	mov	di, BUFFERSIZE - 1 ; 65535
+   717 0000057C BFFFFF              <1> 	mov	di, BUFFERSIZE - 1 ; 65535
    718                              <1> 
    719                              <1> 	; fbs_shift =
    720                              <1> 	;	2 for mono and 8 bit sample (multiplier = 4)
    721                              <1> 	;	1 for mono or 8 bit sample (multiplier = 2)
-   722 00000582 D3EF                <1> 	shr	di, cl
-   723 00000584 47                  <1> 	inc	di ; 16384 for 8 bit and mono	
+   722 0000057F D3EF                <1> 	shr	di, cl
+   723 00000581 47                  <1> 	inc	di ; 16384 for 8 bit and mono	
    724                              <1> 		   ; 32768 for 8 bit or mono	
    725                              <1> 
-   726 00000585 8CC8                <1> 	mov	ax, cs
-   727 00000587 BA[AE0A]            <1> 	mov	dx, temp_buffer ; temporary buffer for wav data
+   726 00000582 8CC8                <1> 	mov	ax, cs
+   727 00000584 BA[AA0A]            <1> 	mov	dx, temp_buffer ; temporary buffer for wav data
    728                              <1> 
    729                              <1> 	; 17/02/2017 (stereo/mono, 8bit/16bit corrections)
    730                              <1> 	; load file into memory
-   731 0000058A 89F9                <1>         mov	cx, di                       
-   732 0000058C 8B1E[900A]          <1> 	mov	bx, [filehandle]
-   733 00000590 8ED8                <1> 	mov     ds, ax
-   734 00000592 B43F                <1>        	mov	ah, 3Fh
-   735 00000594 CD21                <1> 	int	21h
+   731 00000587 89F9                <1>         mov	cx, di                       
+   732 00000589 8B1E[8C0A]          <1> 	mov	bx, [filehandle]
+   733 0000058D 8ED8                <1> 	mov     ds, ax
+   734 0000058F B43F                <1>        	mov	ah, 3Fh
+   735 00000591 CD21                <1> 	int	21h
    736                              <1> 
-   737 00000596 8CCB                <1> 	mov	bx, cs
-   738 00000598 8EDB                <1> 	mov	ds, bx
+   737 00000593 8CCB                <1> 	mov	bx, cs
+   738 00000595 8EDB                <1> 	mov	ds, bx
    739                              <1> 
-   740 0000059A 727C                <1> 	jc	short lff_4 ; error !
+   740 00000597 727C                <1> 	jc	short lff_4 ; error !
    741                              <1> 
    742                              <1> 	; 08/11/2023
-   743 0000059C 31D2                <1> 	xor	dx, dx ; 0
+   743 00000599 31D2                <1> 	xor	dx, dx ; 0
    744                              <1> 
-   745 0000059E 21C0                <1> 	and	ax, ax
-   746 000005A0 746D                <1> 	jz	short lff_3
+   745 0000059B 21C0                <1> 	and	ax, ax
+   746 0000059D 746D                <1> 	jz	short lff_3
    747                              <1> 
-   748 000005A2 8A1E[AC0A]          <1> 	mov	bl, [fbs_shift]
+   748 0000059F 8A1E[A80A]          <1> 	mov	bl, [fbs_shift]
    749                              <1> 
-   750 000005A6 06                  <1> 	push	es
-   751 000005A7 89D7                <1> 	mov	di, dx ; 0 ; [fbs_off]
+   750 000005A3 06                  <1> 	push	es
+   751 000005A4 89D7                <1> 	mov	di, dx ; 0 ; [fbs_off]
    752                              <1> 	;mov	bp, [fbs_seg] ; buffer segment
-   753 000005A9 8EC5                <1> 	mov	es, bp
-   754 000005AB BE[AE0A]            <1> 	mov	si, temp_buffer ; temporary buffer address
-   755 000005AE 89C1                <1> 	mov	cx, ax ; byte count
-   756 000005B0 803E[AA0A]08        <1> 	cmp	byte [bps], 8 ; bits per sample (8 or 16)
-   757 000005B5 751B                <1> 	jne	short lff_7 ; 16 bit samples
+   753 000005A6 8EC5                <1> 	mov	es, bp
+   754 000005A8 BE[AA0A]            <1> 	mov	si, temp_buffer ; temporary buffer address
+   755 000005AB 89C1                <1> 	mov	cx, ax ; byte count
+   756 000005AD 803E[A60A]08        <1> 	cmp	byte [bps], 8 ; bits per sample (8 or 16)
+   757 000005B2 751B                <1> 	jne	short lff_7 ; 16 bit samples
    758                              <1> 	; 8 bit samples
-   759 000005B7 FECB                <1> 	dec	bl  ; shift count, 1 = stereo, 2 = mono
-   760 000005B9 740C                <1> 	jz	short lff_6 ; 8 bit, stereo
+   759 000005B4 FECB                <1> 	dec	bl  ; shift count, 1 = stereo, 2 = mono
+   760 000005B6 740C                <1> 	jz	short lff_6 ; 8 bit, stereo
    761                              <1> lff_5:
    762                              <1> 	; mono & 8 bit
-   763 000005BB AC                  <1> 	lodsb
-   764 000005BC 2C80                <1> 	sub	al, 80h ; 08/11/2023
-   765 000005BE C1E008              <1> 	shl	ax, 8 ; convert 8 bit sample to 16 bit sample
-   766 000005C1 AB                  <1> 	stosw	; left channel
-   767 000005C2 AB                  <1> 	stosw	; right channel
-   768 000005C3 E2F6                <1> 	loop	lff_5
-   769 000005C5 EB12                <1> 	jmp	short lff_9	
+   763 000005B8 AC                  <1> 	lodsb
+   764 000005B9 2C80                <1> 	sub	al, 80h ; 08/11/2023
+   765 000005BB C1E008              <1> 	shl	ax, 8 ; convert 8 bit sample to 16 bit sample
+   766 000005BE AB                  <1> 	stosw	; left channel
+   767 000005BF AB                  <1> 	stosw	; right channel
+   768 000005C0 E2F6                <1> 	loop	lff_5
+   769 000005C2 EB12                <1> 	jmp	short lff_9	
    770                              <1> lff_6:
    771                              <1> 	; stereo & 8 bit
-   772 000005C7 AC                  <1> 	lodsb
-   773 000005C8 2C80                <1> 	sub	al, 80h ; 08/11/2023
-   774 000005CA C1E008              <1> 	shl	ax, 8 ; convert 8 bit sample to 16 bit sample
-   775 000005CD AB                  <1> 	stosw
-   776 000005CE E2F7                <1> 	loop	lff_6			
-   777 000005D0 EB07                <1> 	jmp	short lff_9
+   772 000005C4 AC                  <1> 	lodsb
+   773 000005C5 2C80                <1> 	sub	al, 80h ; 08/11/2023
+   774 000005C7 C1E008              <1> 	shl	ax, 8 ; convert 8 bit sample to 16 bit sample
+   775 000005CA AB                  <1> 	stosw
+   776 000005CB E2F7                <1> 	loop	lff_6			
+   777 000005CD EB07                <1> 	jmp	short lff_9
    778                              <1> lff_7:
-   779 000005D2 D1E9                <1> 	shr	cx, 1 ; word count
+   779 000005CF D1E9                <1> 	shr	cx, 1 ; word count
    780                              <1> lff_8:
-   781 000005D4 AD                  <1> 	lodsw
-   782 000005D5 AB                  <1> 	stosw	; left channel
-   783 000005D6 AB                  <1> 	stosw	; right channel
-   784 000005D7 E2FB                <1> 	loop	lff_8
+   781 000005D1 AD                  <1> 	lodsw
+   782 000005D2 AB                  <1> 	stosw	; left channel
+   783 000005D3 AB                  <1> 	stosw	; right channel
+   784 000005D4 E2FB                <1> 	loop	lff_8
    785                              <1> lff_9:
-   786 000005D9 07                  <1> 	pop	es
-   787 000005DA 09FF                <1> 	or	di, di
-   788 000005DC 7439                <1> 	jz	short endLFF ; 64KB ok 
+   786 000005D6 07                  <1> 	pop	es
+   787 000005D7 09FF                <1> 	or	di, di
+   788 000005D9 7439                <1> 	jz	short endLFF ; 64KB ok 
    789                              <1> 	
-   790 000005DE 89F8                <1> 	mov	ax, di ; [fbs_off]
-   791 000005E0 48                  <1> 	dec	ax
-   792 000005E1 B9FFFF              <1> 	mov	cx, BUFFERSIZE - 1 ; 65535
-   793 000005E4 EB29                <1> 	jmp	short lff_3
+   790 000005DB 89F8                <1> 	mov	ax, di ; [fbs_off]
+   791 000005DD 48                  <1> 	dec	ax
+   792 000005DE B9FFFF              <1> 	mov	cx, BUFFERSIZE - 1 ; 65535
+   793 000005E1 EB29                <1> 	jmp	short lff_3
    794                              <1> 	
    795                              <1> lff_1:  
    796                              <1> 	;mov	bp, ax ; save buffer segment
-   797 000005E6 31D2                <1> 	xor	dx, dx
+   797 000005E3 31D2                <1> 	xor	dx, dx
    798                              <1> 	; load file into memory
-   799 000005E8 B90080              <1>         mov	cx, (BUFFERSIZE / 2)	; 32k chunk
-   800 000005EB 8B1E[900A]          <1> 	mov	bx, [filehandle]
-   801 000005EF 8ED8                <1> 	mov     ds, ax
-   802 000005F1 B43F                <1>        	mov	ah, 3Fh
-   803 000005F3 CD21                <1> 	int	21h
+   799 000005E5 B90080              <1>         mov	cx, (BUFFERSIZE / 2)	; 32k chunk
+   800 000005E8 8B1E[8C0A]          <1> 	mov	bx, [filehandle]
+   801 000005EC 8ED8                <1> 	mov     ds, ax
+   802 000005EE B43F                <1>        	mov	ah, 3Fh
+   803 000005F0 CD21                <1> 	int	21h
    804                              <1> 
-   805 000005F5 8CCF                <1> 	mov	di, cs
-   806 000005F7 8EDF                <1> 	mov	ds, di
+   805 000005F2 8CCF                <1> 	mov	di, cs
+   806 000005F4 8EDF                <1> 	mov	ds, di
    807                              <1> 
    808                              <1> 	; 07/11/2023
-   809 000005F9 721D                <1> 	jc	short lff_4 ; error !
+   809 000005F6 721D                <1> 	jc	short lff_4 ; error !
    810                              <1> 	
-   811 000005FB 39C8                <1> 	cmp	ax, cx
-   812 000005FD 7510                <1> 	jne	short lff_3
+   811 000005F8 39C8                <1> 	cmp	ax, cx
+   812 000005FA 7510                <1> 	jne	short lff_3
    813                              <1> lff_2:
    814                              <1> 	; 08/11/2023
-   815 000005FF 01C2                <1> 	add	dx, ax
+   815 000005FC 01C2                <1> 	add	dx, ax
    816                              <1> 	;mov	cx, (BUFFERSIZE / 2)	; 32k chunk
    817                              <1> 	;mov	bx, [filehandle]
-   818 00000601 8EDD                <1> 	mov     ds, bp
-   819 00000603 B43F                <1>        	mov	ah, 3Fh
-   820 00000605 CD21                <1> 	int	21h
+   818 000005FE 8EDD                <1> 	mov     ds, bp
+   819 00000600 B43F                <1>        	mov	ah, 3Fh
+   820 00000602 CD21                <1> 	int	21h
    821                              <1> 
    822                              <1> 	;mov	di, cs
-   823 00000607 8EDF                <1> 	mov	ds, di
+   823 00000604 8EDF                <1> 	mov	ds, di
    824                              <1> 
-   825 00000609 720D                <1> 	jc	short lff_4 ; error !
+   825 00000606 720D                <1> 	jc	short lff_4 ; error !
    826                              <1> 
-   827 0000060B 39C8                <1> 	cmp	ax, cx
-   828 0000060D 7408                <1> 	je	short endLFF
+   827 00000608 39C8                <1> 	cmp	ax, cx
+   828 0000060A 7408                <1> 	je	short endLFF
    829                              <1> lff_3:
-   830 0000060F E80F00              <1> 	call    padfill			; blank pad the remainder
+   830 0000060C E80F00              <1> 	call    padfill			; blank pad the remainder
    831                              <1>         ;clc				; don't exit with CY yet.
-   832 00000612 800E[920A]01        <1>         or	byte [flags], ENDOFFILE	; end of file flag
+   832 0000060F 800E[8E0A]01        <1>         or	byte [flags], ENDOFFILE	; end of file flag
    833                              <1> endLFF:
-   834 00000617 C3                  <1>         retn
+   834 00000614 C3                  <1>         retn
    835                              <1> lff_4:
    836                              <1> 	; 08/11/2023
-   837 00000618 B021                <1> 	mov	al, '!'  ; error
-   838 0000061A E841FF              <1> 	call	tL0
+   837 00000615 B021                <1> 	mov	al, '!'  ; error
+   838 00000617 E841FF              <1> 	call	tL0
    839                              <1> 
-   840 0000061D 31C0                <1> 	xor	ax, ax
-   841 0000061F EBEE                <1> 	jmp	short lff_3
+   840 0000061A 31C0                <1> 	xor	ax, ax
+   841 0000061C EBEE                <1> 	jmp	short lff_3
    842                              <1> 
    843                              <1> %endif
    844                              <1> 
@@ -2487,35 +2489,35 @@
    851                              <1> 	; 07/11/2023
    852                              <1> 	; 06/11/2023
    853                              <1> 	; 17/02/2017
-   854 00000621 06                  <1> 	push	es
+   854 0000061E 06                  <1> 	push	es
    855                              <1>         ;push	di
    856                              <1> 	;mov	di, [fbs_seg]
    857                              <1> 	;mov	es, di
-   858 00000622 8EC5                <1>         mov	es, bp
-   859 00000624 29C1                <1> 	sub	cx, ax
+   858 0000061F 8EC5                <1>         mov	es, bp
+   859 00000621 29C1                <1> 	sub	cx, ax
    860                              <1> 	; 08/11/2023
    861                              <1> 	;mov	di, ax ; (wrong)
-   862 00000626 89D7                <1> 	mov	di, dx ; buffer offset
-   863 00000628 01C7                <1> 	add	di, ax       	
+   862 00000623 89D7                <1> 	mov	di, dx ; buffer offset
+   863 00000625 01C7                <1> 	add	di, ax       	
    864                              <1> 	; 07/11/2023
    865                              <1> 	;add	di, [fbs_off]
-   866 0000062A 30C0                <1>         xor	al, al
-   867 0000062C F3AA                <1> 	rep	stosb
+   866 00000627 30C0                <1>         xor	al, al
+   867 00000629 F3AA                <1> 	rep	stosb
    868                              <1> 	;mov	[fbs_off], di
    869                              <1> 	;pop	di
-   870 0000062E 07                  <1>         pop	es
-   871 0000062F C3                  <1> 	retn
+   870 0000062B 07                  <1>         pop	es
+   871 0000062C C3                  <1> 	retn
    872                              <1> 
    873                              <1> ; returns AL = current index value
    874                              <1> getCurrentIndex:
    875                              <1> 	; 08/11/2023
    876                              <1> 	;push	dx
-   877 00000630 8B16[960A]          <1> 	mov	dx, [NABMBAR]      		
-   878 00000634 83C214              <1> 	add	dx, PO_CIV_REG
-   879 00000637 EC                  <1> 	in	al, dx
+   877 0000062D 8B16[920A]          <1> 	mov	dx, [NABMBAR]      		
+   878 00000631 83C214              <1> 	add	dx, PO_CIV_REG
+   879 00000634 EC                  <1> 	in	al, dx
    880                              <1> 	;pop	dx
    881                              <1> uLVI2:	;	06/11/2023
-   882 00000638 C3                  <1> 	retn
+   882 00000635 C3                  <1> 	retn
    883                              <1> 
    884                              <1> ; examines the CIV and the LVI. When they're the same, we set LVI <> CIV
    885                              <1> ; that way, we never run out of buffers to play
@@ -2563,40 +2565,40 @@
    927                              <1> ;%if 1
    928                              <1> updateLVI:
    929                              <1> 	; 06/11/2023
-   930 00000639 8B16[960A]          <1> 	mov	dx, [NABMBAR]      		
-   931 0000063D 83C214              <1> 	add	dx, PO_CIV_REG
+   930 00000636 8B16[920A]          <1> 	mov	dx, [NABMBAR]      		
+   931 0000063A 83C214              <1> 	add	dx, PO_CIV_REG
    932                              <1> 	; (Current Index Value and Last Valid Index value)
-   933 00000640 ED                  <1> 	in	ax, dx
+   933 0000063D ED                  <1> 	in	ax, dx
    934                              <1> 
-   935 00000641 38E0                <1> 	cmp	al, ah ; is current index = last index ?
-   936 00000643 75F3                <1> 	jne	short uLVI2
+   935 0000063E 38E0                <1> 	cmp	al, ah ; is current index = last index ?
+   936 00000640 75F3                <1> 	jne	short uLVI2
    937                              <1> 
    938                              <1> 	; 08/11/2023	
-   939 00000645 E8E8FF              <1> 	call	getCurrentIndex
+   939 00000642 E8E8FF              <1> 	call	getCurrentIndex
    940                              <1>  
-   941 00000648 F606[920A]01        <1> 	test	byte [flags], ENDOFFILE
+   941 00000645 F606[8E0A]01        <1> 	test	byte [flags], ENDOFFILE
    942                              <1> 	;jnz	short uLVI1
-   943 0000064D 7411                <1> 	jz	short uLVI0  ; 08/11/2023
+   943 0000064A 7411                <1> 	jz	short uLVI0  ; 08/11/2023
    944                              <1> 
    945                              <1> 	; 08/11/2023
-   946 0000064F 50                  <1> 	push	ax
-   947 00000650 8B16[960A]          <1> 	mov	dx, [NABMBAR]
-   948 00000654 83C216              <1> 	add	dx, PO_SR_REG  ; PCM out status register
-   949 00000657 ED                  <1> 	in	ax, dx
+   946 0000064C 50                  <1> 	push	ax
+   947 0000064D 8B16[920A]          <1> 	mov	dx, [NABMBAR]
+   948 00000651 83C216              <1> 	add	dx, PO_SR_REG  ; PCM out status register
+   949 00000654 ED                  <1> 	in	ax, dx
    950                              <1> 
-   951 00000658 A803                <1> 	test	al, 3 ; bit 1 = Current Equals Last Valid (CELV)
+   951 00000655 A803                <1> 	test	al, 3 ; bit 1 = Current Equals Last Valid (CELV)
    952                              <1> 		      ; (has been processed)
    953                              <1> 		      ; bit 0 = 1 -> DMA Controller Halted (DCH)
-   954 0000065A 58                  <1> 	pop	ax
-   955 0000065B 7407                <1> 	jz	short uLVI1
+   954 00000657 58                  <1> 	pop	ax
+   955 00000658 7407                <1> 	jz	short uLVI1
    956                              <1> uLVI3:
-   957 0000065D 31C0                <1> 	xor	ax, ax
+   957 0000065A 31C0                <1> 	xor	ax, ax
    958                              <1> 	; zf = 1
-   959 0000065F C3                  <1> 	retn
+   959 0000065C C3                  <1> 	retn
    960                              <1> uLVI0:
    961                              <1>         ; not at the end of the file yet.
-   962 00000660 FEC8                <1> 	dec	al
-   963 00000662 241F                <1> 	and	al, 1Fh
+   962 0000065D FEC8                <1> 	dec	al
+   963 0000065F 241F                <1> 	and	al, 1Fh
    964                              <1> uLVI1:
    965                              <1> 	;call	setLastValidIndex
    966                              <1> ;uLVI2:
@@ -2608,11 +2610,11 @@
    972                              <1> setLastValidIndex:
    973                              <1> 	; 08/11/2023
    974                              <1> 	;push	dx
-   975 00000664 8B16[960A]          <1> 	mov	dx, [NABMBAR]
-   976 00000668 83C215              <1> 	add	dx, PO_LVI_REG
-   977 0000066B EE                  <1>         out     dx, al
+   975 00000661 8B16[920A]          <1> 	mov	dx, [NABMBAR]
+   976 00000665 83C215              <1> 	add	dx, PO_LVI_REG
+   977 00000668 EE                  <1>         out     dx, al
    978                              <1> 	;pop	dx
-   979 0000066C C3                  <1> 	retn
+   979 00000669 C3                  <1> 	retn
    980                              <1> 
    981                              <1> ; 06/11/2023
    982                              <1> ;	; 05/11/2023
@@ -2633,56 +2635,56 @@
    997                              <1> 	; 19/05/2024
    998                              <1> 	; 08/11/2023
    999                              <1> 	; 04/11/2023
-  1000 0000066D B401                <1> 	mov	ah, 1
-  1001 0000066F CD16                <1> 	int	16h
-  1002 00000671 743C                <1> 	jz	short _cksr
-  1003                              <1> 
-  1004 00000673 30E4                <1> 	xor	ah, ah
-  1005 00000675 CD16                <1> 	int	16h
-  1006                              <1> 
-  1007                              <1> 	;;;
-  1008                              <1> 	; 19/05/2024 (change PCM out volume)
-  1009 00000677 3C2B                <1> 	cmp	al, '+'
-  1010 00000679 750B                <1> 	jne	short p_1
-  1011                              <1> 	
-  1012 0000067B A0[B006]            <1> 	mov	al, [volume]
-  1013 0000067E 3C00                <1> 	cmp	al, 0
-  1014 00000680 762B                <1> 	jna	short p_3
-  1015 00000682 FEC8                <1> 	dec	al
-  1016 00000684 EB0D                <1> 	jmp	short p_2
-  1017                              <1> p_1:
-  1018 00000686 3C2D                <1> 	cmp	al, '-'
-  1019 00000688 7524                <1> 	jne	short p_4
-  1020                              <1> 
-  1021 0000068A A0[B006]            <1> 	mov	al, [volume]
-  1022 0000068D 3C1F                <1> 	cmp	al, 31
-  1023 0000068F 731C                <1> 	jnb	short p_3
-  1024 00000691 FEC0                <1> 	inc	al
-  1025                              <1> p_2:
-  1026 00000693 A2[B006]            <1> 	mov	[volume], al
-  1027 00000696 88C4                <1> 	mov	ah, al
-  1028 00000698 8B16[940A]          <1> 	mov     dx, [NAMBAR]
-  1029                              <1>   	;add    dx, CODEC_MASTER_VOL_REG
-  1030 0000069C 83C218              <1> 	add	dx, CODEC_PCM_OUT_REG
-  1031 0000069F EF                  <1> 	out     dx, ax
-  1032                              <1> 
-  1033 000006A0 E80E00              <1> 	call    delay1_4ms
-  1034 000006A3 E80B00              <1>         call    delay1_4ms
-  1035 000006A6 E80800              <1>         call    delay1_4ms
-  1036 000006A9 E80500              <1>         call    delay1_4ms
-  1037                              <1> 
-  1038 000006AC F8                  <1> 	clc
-  1039                              <1> p_3:
-  1040 000006AD C3                  <1> 	retn
-  1041                              <1> p_4:
-  1042                              <1> 	;;;
-  1043                              <1> 	
-  1044 000006AE F9                  <1> 	stc
-  1045                              <1> _cksr:
-  1046 000006AF C3                  <1> 	retn
+  1000 0000066A B401                <1> 	mov	ah, 1
+  1001 0000066C CD16                <1> 	int	16h
+  1002                              <1> 	;clc
+  1003 0000066E 7439                <1> 	jz	short _cksr
+  1004                              <1> 
+  1005 00000670 30E4                <1> 	xor	ah, ah
+  1006 00000672 CD16                <1> 	int	16h
+  1007                              <1> 
+  1008                              <1> 	;;;
+  1009                              <1> 	; 19/05/2024 (change PCM out volume)
+  1010 00000674 3C2B                <1> 	cmp	al, '+'
+  1011 00000676 750B                <1> 	jne	short p_1
+  1012                              <1> 	
+  1013 00000678 A0[AD06]            <1> 	mov	al, [volume]
+  1014 0000067B 3C00                <1> 	cmp	al, 0
+  1015 0000067D 762B                <1> 	jna	short p_3
+  1016 0000067F FEC8                <1> 	dec	al
+  1017 00000681 EB0D                <1> 	jmp	short p_2
+  1018                              <1> p_1:
+  1019 00000683 3C2D                <1> 	cmp	al, '-'
+  1020 00000685 7524                <1> 	jne	short p_4
+  1021                              <1> 
+  1022 00000687 A0[AD06]            <1> 	mov	al, [volume]
+  1023 0000068A 3C1F                <1> 	cmp	al, 31
+  1024 0000068C 731C                <1> 	jnb	short p_3
+  1025 0000068E FEC0                <1> 	inc	al
+  1026                              <1> p_2:
+  1027 00000690 A2[AD06]            <1> 	mov	[volume], al
+  1028 00000693 88C4                <1> 	mov	ah, al
+  1029 00000695 8B16[900A]          <1> 	mov     dx, [NAMBAR]
+  1030                              <1>   	;add    dx, CODEC_MASTER_VOL_REG
+  1031 00000699 83C218              <1> 	add	dx, CODEC_PCM_OUT_REG
+  1032 0000069C EF                  <1> 	out     dx, ax
+  1033                              <1> 
+  1034 0000069D E80E00              <1> 	call    delay1_4ms
+  1035 000006A0 E80B00              <1>         call    delay1_4ms
+  1036 000006A3 E80800              <1>         call    delay1_4ms
+  1037 000006A6 E80500              <1>         call    delay1_4ms
+  1038                              <1> _cksr:		; 19/05/2024
+  1039 000006A9 F8                  <1> 	clc
+  1040                              <1> p_3:
+  1041 000006AA C3                  <1> 	retn
+  1042                              <1> p_4:
+  1043                              <1> 	;;;
+  1044                              <1> ;_cskr:	
+  1045 000006AB F9                  <1> 	stc
+  1046 000006AC C3                  <1> 	retn
   1047                              <1> 
   1048                              <1> ; 19/05/2024
-  1049 000006B0 00                  <1> volume:	db 0
+  1049 000006AD 02                  <1> volume:	db 02h
   1050                              <1> 
   1051                              <1> %endif
   1052                              <1> 
@@ -2718,28 +2720,28 @@
    484                                    REFRESH_STATUS	EQU	010h		; Refresh signal status
    485                                  
    486                                  delay1_4ms:
-   487 000006B1 50                              push    ax 
-   488 000006B2 51                              push    cx
-   489 000006B3 B91000                          mov     cx, 16			; close enough.
-   490 000006B6 E461                    	in	al,PORTB
-   491 000006B8 2410                    	and	al,REFRESH_STATUS
-   492 000006BA 88C4                    	mov	ah,al			; Start toggle state
-   493 000006BC 09C9                    	or	cx, cx
-   494 000006BE 7401                    	jz	short _d4ms1
-   495 000006C0 41                      	inc	cx			; Throwaway first toggle
+   487 000006AE 50                              push    ax 
+   488 000006AF 51                              push    cx
+   489 000006B0 B91000                          mov     cx, 16			; close enough.
+   490 000006B3 E461                    	in	al,PORTB
+   491 000006B5 2410                    	and	al,REFRESH_STATUS
+   492 000006B7 88C4                    	mov	ah,al			; Start toggle state
+   493 000006B9 09C9                    	or	cx, cx
+   494 000006BB 7401                    	jz	short _d4ms1
+   495 000006BD 41                      	inc	cx			; Throwaway first toggle
    496                                  _d4ms1:	
-   497 000006C1 E461                    	in	al,PORTB		; Read system control port
-   498 000006C3 2410                    	and	al,REFRESH_STATUS	; Refresh toggles 15.085 microseconds
-   499 000006C5 38C4                    	cmp	ah,al
-   500 000006C7 74F8                    	je	short _d4ms1		; Wait for state change
+   497 000006BE E461                    	in	al,PORTB		; Read system control port
+   498 000006C0 2410                    	and	al,REFRESH_STATUS	; Refresh toggles 15.085 microseconds
+   499 000006C2 38C4                    	cmp	ah,al
+   500 000006C4 74F8                    	je	short _d4ms1		; Wait for state change
    501                                  
-   502 000006C9 88C4                    	mov	ah,al			; Update with new state
-   503 000006CB 49                      	dec	cx
-   504 000006CC 75F3                    	jnz	short _d4ms1
+   502 000006C6 88C4                    	mov	ah,al			; Update with new state
+   503 000006C8 49                      	dec	cx
+   504 000006C9 75F3                    	jnz	short _d4ms1
    505                                  
-   506 000006CE 59                              pop     cx
-   507 000006CF 58                              pop     ax
-   508 000006D0 C3                              retn
+   506 000006CB 59                              pop     cx
+   507 000006CC 58                              pop     ax
+   508 000006CD C3                              retn
    509                                  
    510                                  	; 13/11/2016 - Erdogan Tan
    511                                  write_ac97_dev_info:
@@ -2748,175 +2750,175 @@
    514                                  	; DEV/VENDOR
    515                                  	;	DDDDDDDDDDDDDDDDVVVVVVVVVVVVVVVV
    516                                  
-   517 000006D1 30FF                    	xor	bh, bh
-   518 000006D3 668B36[A20A]            	mov	esi, [dev_vendor]
-   519 000006D8 89F0                    	mov	ax, si
-   520 000006DA 88C3                    	mov	bl, al
-   521 000006DC 88DA                    	mov	dl, bl
-   522 000006DE 80E30F                  	and	bl, 0Fh
-   523 000006E1 8A87[2209]              	mov	al, [bx+hex_chars]
-   524 000006E5 A2[6509]                	mov	[msgVendorId+3], al
-   525 000006E8 88D3                    	mov	bl, dl
-   526 000006EA C0EB04                  	shr	bl, 4
-   527 000006ED 8A87[2209]              	mov	al, [bx+hex_chars]
-   528 000006F1 A2[6409]                	mov	[msgVendorId+2], al
-   529 000006F4 88E3                    	mov	bl, ah
-   530 000006F6 88DA                    	mov	dl, bl
-   531 000006F8 80E30F                  	and	bl, 0Fh
-   532 000006FB 8A87[2209]              	mov	al, [bx+hex_chars]
-   533 000006FF A2[6309]                	mov	[msgVendorId+1], al
-   534 00000702 88D3                    	mov	bl, dl
-   535 00000704 C0EB04                  	shr	bl, 4
-   536 00000707 8A87[2209]              	mov	al, [bx+hex_chars]
-   537 0000070B A2[6209]                	mov	[msgVendorId], al
-   538 0000070E 66C1EE10                	shr	esi, 16
-   539 00000712 89F0                    	mov	ax, si
-   540 00000714 88C3                    	mov	bl, al
-   541 00000716 88DA                    	mov	dl, bl
-   542 00000718 80E30F                  	and	bl, 0Fh
-   543 0000071B 8A87[2209]              	mov	al, [bx+hex_chars]
-   544 0000071F A2[7609]                	mov	[msgDevId+3], al
-   545 00000722 88D3                    	mov	bl, dl
-   546 00000724 C0EB04                  	shr	bl, 4
-   547 00000727 8A87[2209]              	mov	al, [bx+hex_chars]
-   548 0000072B A2[7509]                	mov	[msgDevId+2], al
-   549 0000072E 88E3                    	mov	bl, ah
-   550 00000730 88DA                    	mov	dl, bl
-   551 00000732 80E30F                  	and	bl, 0Fh
-   552 00000735 8A87[2209]              	mov	al, [bx+hex_chars]
-   553 00000739 A2[7409]                	mov	[msgDevId+1], al
-   554 0000073C 88D3                    	mov	bl, dl
-   555 0000073E C0EB04                  	shr	bl, 4
-   556 00000741 8A87[2209]              	mov	al, [bx+hex_chars]
-   557 00000745 A2[7309]                	mov	[msgDevId], al
+   517 000006CE 30FF                    	xor	bh, bh
+   518 000006D0 668B36[9E0A]            	mov	esi, [dev_vendor]
+   519 000006D5 89F0                    	mov	ax, si
+   520 000006D7 88C3                    	mov	bl, al
+   521 000006D9 88DA                    	mov	dl, bl
+   522 000006DB 80E30F                  	and	bl, 0Fh
+   523 000006DE 8A87[1F09]              	mov	al, [bx+hex_chars]
+   524 000006E2 A2[6209]                	mov	[msgVendorId+3], al
+   525 000006E5 88D3                    	mov	bl, dl
+   526 000006E7 C0EB04                  	shr	bl, 4
+   527 000006EA 8A87[1F09]              	mov	al, [bx+hex_chars]
+   528 000006EE A2[6109]                	mov	[msgVendorId+2], al
+   529 000006F1 88E3                    	mov	bl, ah
+   530 000006F3 88DA                    	mov	dl, bl
+   531 000006F5 80E30F                  	and	bl, 0Fh
+   532 000006F8 8A87[1F09]              	mov	al, [bx+hex_chars]
+   533 000006FC A2[6009]                	mov	[msgVendorId+1], al
+   534 000006FF 88D3                    	mov	bl, dl
+   535 00000701 C0EB04                  	shr	bl, 4
+   536 00000704 8A87[1F09]              	mov	al, [bx+hex_chars]
+   537 00000708 A2[5F09]                	mov	[msgVendorId], al
+   538 0000070B 66C1EE10                	shr	esi, 16
+   539 0000070F 89F0                    	mov	ax, si
+   540 00000711 88C3                    	mov	bl, al
+   541 00000713 88DA                    	mov	dl, bl
+   542 00000715 80E30F                  	and	bl, 0Fh
+   543 00000718 8A87[1F09]              	mov	al, [bx+hex_chars]
+   544 0000071C A2[7309]                	mov	[msgDevId+3], al
+   545 0000071F 88D3                    	mov	bl, dl
+   546 00000721 C0EB04                  	shr	bl, 4
+   547 00000724 8A87[1F09]              	mov	al, [bx+hex_chars]
+   548 00000728 A2[7209]                	mov	[msgDevId+2], al
+   549 0000072B 88E3                    	mov	bl, ah
+   550 0000072D 88DA                    	mov	dl, bl
+   551 0000072F 80E30F                  	and	bl, 0Fh
+   552 00000732 8A87[1F09]              	mov	al, [bx+hex_chars]
+   553 00000736 A2[7109]                	mov	[msgDevId+1], al
+   554 00000739 88D3                    	mov	bl, dl
+   555 0000073B C0EB04                  	shr	bl, 4
+   556 0000073E 8A87[1F09]              	mov	al, [bx+hex_chars]
+   557 00000742 A2[7009]                	mov	[msgDevId], al
    558                                  
-   559 00000748 668B36[9E0A]            	mov	esi, [bus_dev_fn]
-   560 0000074D 66C1EE08                	shr	esi, 8
-   561 00000751 89F0                    	mov	ax, si
-   562 00000753 88C3                    	mov	bl, al
-   563 00000755 88DA                    	mov	dl, bl
-   564 00000757 80E307                  	and	bl, 7 ; bit 0,1,2
-   565 0000075A 8A87[2209]              	mov	al, [bx+hex_chars]
-   566 0000075E A2[9A09]                	mov	[msgFncNo+1], al
-   567 00000761 88D3                    	mov	bl, dl
-   568 00000763 C0EB03                  	shr	bl, 3
-   569 00000766 88DA                    	mov	dl, bl
-   570 00000768 80E30F                  	and	bl, 0Fh
-   571 0000076B 8A87[2209]              	mov	al, [bx+hex_chars]
-   572 0000076F A2[8C09]                	mov	[msgDevNo+1], al
-   573 00000772 88D3                    	mov	bl, dl
-   574 00000774 C0EB04                  	shr	bl, 4
-   575 00000777 8A87[2209]              	mov	al, [bx+hex_chars]
-   576 0000077B A2[8B09]                	mov	[msgDevNo], al
-   577 0000077E 88E3                    	mov	bl, ah
-   578 00000780 88DA                    	mov	dl, bl
-   579 00000782 80E30F                  	and	bl, 0Fh
-   580 00000785 8A87[2209]              	mov	al, [bx+hex_chars]
-   581 00000789 A2[8009]                	mov	[msgBusNo+1], al
-   582 0000078C 88D3                    	mov	bl, dl
-   583 0000078E C0EB04                  	shr	bl, 4
-   584 00000791 8A87[2209]              	mov	al, [bx+hex_chars]
-   585 00000795 A2[7F09]                	mov	[msgBusNo], al
+   559 00000745 668B36[9A0A]            	mov	esi, [bus_dev_fn]
+   560 0000074A 66C1EE08                	shr	esi, 8
+   561 0000074E 89F0                    	mov	ax, si
+   562 00000750 88C3                    	mov	bl, al
+   563 00000752 88DA                    	mov	dl, bl
+   564 00000754 80E307                  	and	bl, 7 ; bit 0,1,2
+   565 00000757 8A87[1F09]              	mov	al, [bx+hex_chars]
+   566 0000075B A2[9709]                	mov	[msgFncNo+1], al
+   567 0000075E 88D3                    	mov	bl, dl
+   568 00000760 C0EB03                  	shr	bl, 3
+   569 00000763 88DA                    	mov	dl, bl
+   570 00000765 80E30F                  	and	bl, 0Fh
+   571 00000768 8A87[1F09]              	mov	al, [bx+hex_chars]
+   572 0000076C A2[8909]                	mov	[msgDevNo+1], al
+   573 0000076F 88D3                    	mov	bl, dl
+   574 00000771 C0EB04                  	shr	bl, 4
+   575 00000774 8A87[1F09]              	mov	al, [bx+hex_chars]
+   576 00000778 A2[8809]                	mov	[msgDevNo], al
+   577 0000077B 88E3                    	mov	bl, ah
+   578 0000077D 88DA                    	mov	dl, bl
+   579 0000077F 80E30F                  	and	bl, 0Fh
+   580 00000782 8A87[1F09]              	mov	al, [bx+hex_chars]
+   581 00000786 A2[7D09]                	mov	[msgBusNo+1], al
+   582 00000789 88D3                    	mov	bl, dl
+   583 0000078B C0EB04                  	shr	bl, 4
+   584 0000078E 8A87[1F09]              	mov	al, [bx+hex_chars]
+   585 00000792 A2[7C09]                	mov	[msgBusNo], al
    586                                  
-   587 00000798 A1[940A]                	mov	ax, [NAMBAR]
-   588 0000079B 88C3                    	mov	bl, al
-   589 0000079D 88DA                    	mov	dl, bl
-   590 0000079F 80E30F                  	and	bl, 0Fh
-   591 000007A2 8A87[2209]              	mov	al, [bx+hex_chars]
-   592 000007A6 A2[A909]                	mov	[msgNamBar+3], al
-   593 000007A9 88D3                    	mov	bl, dl
-   594 000007AB C0EB04                  	shr	bl, 4
-   595 000007AE 8A87[2209]              	mov	al, [bx+hex_chars]
-   596 000007B2 A2[A809]                	mov	[msgNamBar+2], al
-   597 000007B5 88E3                    	mov	bl, ah
-   598 000007B7 88DA                    	mov	dl, bl
-   599 000007B9 80E30F                  	and	bl, 0Fh
-   600 000007BC 8A87[2209]              	mov	al, [bx+hex_chars]
-   601 000007C0 A2[A709]                	mov	[msgNamBar+1], al
-   602 000007C3 88D3                    	mov	bl, dl
-   603 000007C5 C0EB04                  	shr	bl, 4
-   604 000007C8 8A87[2209]              	mov	al, [bx+hex_chars]
-   605 000007CC A2[A609]                	mov	[msgNamBar], al
+   587 00000795 A1[900A]                	mov	ax, [NAMBAR]
+   588 00000798 88C3                    	mov	bl, al
+   589 0000079A 88DA                    	mov	dl, bl
+   590 0000079C 80E30F                  	and	bl, 0Fh
+   591 0000079F 8A87[1F09]              	mov	al, [bx+hex_chars]
+   592 000007A3 A2[A609]                	mov	[msgNamBar+3], al
+   593 000007A6 88D3                    	mov	bl, dl
+   594 000007A8 C0EB04                  	shr	bl, 4
+   595 000007AB 8A87[1F09]              	mov	al, [bx+hex_chars]
+   596 000007AF A2[A509]                	mov	[msgNamBar+2], al
+   597 000007B2 88E3                    	mov	bl, ah
+   598 000007B4 88DA                    	mov	dl, bl
+   599 000007B6 80E30F                  	and	bl, 0Fh
+   600 000007B9 8A87[1F09]              	mov	al, [bx+hex_chars]
+   601 000007BD A2[A409]                	mov	[msgNamBar+1], al
+   602 000007C0 88D3                    	mov	bl, dl
+   603 000007C2 C0EB04                  	shr	bl, 4
+   604 000007C5 8A87[1F09]              	mov	al, [bx+hex_chars]
+   605 000007C9 A2[A309]                	mov	[msgNamBar], al
    606                                  
    607                                  	; 08/05/2024 (ebx->bx)
    608                                  	; 05/11/2023
-   609 000007CF A1[960A]                	mov	ax, [NABMBAR]
-   610 000007D2 88C3                    	mov	bl, al
-   611 000007D4 88DA                    	mov	dl, bl
-   612 000007D6 80E30F                  	and	bl, 0Fh
-   613 000007D9 8A87[2209]              	mov	al, [bx+hex_chars]
-   614 000007DD A2[B809]                	mov	[msgNabmBar+3], al
-   615 000007E0 88D3                    	mov	bl, dl
-   616 000007E2 C0EB04                  	shr	bl, 4
-   617 000007E5 8A87[2209]              	mov	al, [bx+hex_chars]
-   618 000007E9 A2[B709]                	mov	[msgNabmBar+2], al
-   619 000007EC 88E3                    	mov	bl, ah
-   620 000007EE 88DA                    	mov	dl, bl
-   621 000007F0 80E30F                  	and	bl, 0Fh
-   622 000007F3 8A87[2209]              	mov	al, [bx+hex_chars]
-   623 000007F7 A2[B609]                	mov	[msgNabmBar+1], al
-   624 000007FA 88D3                    	mov	bl, dl
-   625 000007FC C0EB04                  	shr	bl, 4
-   626 000007FF 8A87[2209]              	mov	al, [bx+hex_chars]
-   627 00000803 A2[B509]                	mov	[msgNabmBar], al
+   609 000007CC A1[920A]                	mov	ax, [NABMBAR]
+   610 000007CF 88C3                    	mov	bl, al
+   611 000007D1 88DA                    	mov	dl, bl
+   612 000007D3 80E30F                  	and	bl, 0Fh
+   613 000007D6 8A87[1F09]              	mov	al, [bx+hex_chars]
+   614 000007DA A2[B509]                	mov	[msgNabmBar+3], al
+   615 000007DD 88D3                    	mov	bl, dl
+   616 000007DF C0EB04                  	shr	bl, 4
+   617 000007E2 8A87[1F09]              	mov	al, [bx+hex_chars]
+   618 000007E6 A2[B409]                	mov	[msgNabmBar+2], al
+   619 000007E9 88E3                    	mov	bl, ah
+   620 000007EB 88DA                    	mov	dl, bl
+   621 000007ED 80E30F                  	and	bl, 0Fh
+   622 000007F0 8A87[1F09]              	mov	al, [bx+hex_chars]
+   623 000007F4 A2[B309]                	mov	[msgNabmBar+1], al
+   624 000007F7 88D3                    	mov	bl, dl
+   625 000007F9 C0EB04                  	shr	bl, 4
+   626 000007FC 8A87[1F09]              	mov	al, [bx+hex_chars]
+   627 00000800 A2[B209]                	mov	[msgNabmBar], al
    628                                  
    629                                  	; 24/11/2016
-   630 00000806 30E4                    	xor	ah, ah
-   631 00000808 A0[930A]                	mov	al, [ac97_int_ln_reg]
-   632 0000080B B10A                    	mov	cl, 10
-   633 0000080D F6F1                    	div	cl
-   634 0000080F 0106[C009]              	add	[msgIRQ], ax
-   635 00000813 20C0                    	and	al, al
-   636 00000815 7508                    	jnz	short _pmi
-   637 00000817 A0[C109]                	mov	al, [msgIRQ+1]
-   638 0000081A B420                    	mov	ah, ' '
-   639 0000081C A3[C009]                	mov	[msgIRQ], ax
+   630 00000803 30E4                    	xor	ah, ah
+   631 00000805 A0[8F0A]                	mov	al, [ac97_int_ln_reg]
+   632 00000808 B10A                    	mov	cl, 10
+   633 0000080A F6F1                    	div	cl
+   634 0000080C 0106[BD09]              	add	[msgIRQ], ax
+   635 00000810 20C0                    	and	al, al
+   636 00000812 7508                    	jnz	short _pmi
+   637 00000814 A0[BE09]                	mov	al, [msgIRQ+1]
+   638 00000817 B420                    	mov	ah, ' '
+   639 00000819 A3[BD09]                	mov	[msgIRQ], ax
    640                                  _pmi:
-   641 0000081F BA[3309]                        mov	dx, msgAC97Info
-   642 00000822 B409                            mov     ah, 9
-   643 00000824 CD21                            int     21h
-   644 00000826 C3                              retn
+   641 0000081C BA[3009]                        mov	dx, msgAC97Info
+   642 0000081F B409                            mov     ah, 9
+   643 00000821 CD21                            int     21h
+   644 00000823 C3                              retn
    645                                  
    646                                  write_sample_rate:
    647                                  	; ax = sample rate (hertz)
    648                                  
-   649 00000827 31D2                    	xor	dx, dx
-   650 00000829 B90A00                  	mov	cx, 10
-   651 0000082C F7F1                    	div	cx
-   652 0000082E 0016[D609]              	add	[msgHertz+4], dl
-   653 00000832 29D2                    	sub	dx, dx
-   654 00000834 F7F1                    	div	cx
-   655 00000836 0016[D509]              	add	[msgHertz+3], dl
-   656 0000083A 29D2                    	sub	dx, dx
-   657 0000083C F7F1                    	div	cx
-   658 0000083E 0016[D409]              	add	[msgHertz+2], dl
-   659 00000842 29D2                    	sub	dx, dx
-   660 00000844 F7F1                    	div	cx
-   661 00000846 0016[D309]              	add	[msgHertz+1], dl
-   662 0000084A 0006[D209]              	add	[msgHertz], al
+   649 00000824 31D2                    	xor	dx, dx
+   650 00000826 B90A00                  	mov	cx, 10
+   651 00000829 F7F1                    	div	cx
+   652 0000082B 0016[D309]              	add	[msgHertz+4], dl
+   653 0000082F 29D2                    	sub	dx, dx
+   654 00000831 F7F1                    	div	cx
+   655 00000833 0016[D209]              	add	[msgHertz+3], dl
+   656 00000837 29D2                    	sub	dx, dx
+   657 00000839 F7F1                    	div	cx
+   658 0000083B 0016[D109]              	add	[msgHertz+2], dl
+   659 0000083F 29D2                    	sub	dx, dx
+   660 00000841 F7F1                    	div	cx
+   661 00000843 0016[D009]              	add	[msgHertz+1], dl
+   662 00000847 0006[CF09]              	add	[msgHertz], al
    663                                  	
-   664 0000084E BA[C509]                        mov     dx, msgSampleRate
-   665 00000851 B409                            mov     ah, 9
-   666 00000853 CD21                            int     21h
+   664 0000084B BA[C209]                        mov     dx, msgSampleRate
+   665 0000084E B409                            mov     ah, 9
+   666 00000850 CD21                            int     21h
    667                                  
    668                                  	; 19/11/2016
-   669 00000855 BA[EB09]                	mov	dx, msg16Bits
-   670 00000858 803E[AA0A]10            	cmp	byte [bps], 16
-   671 0000085D 7403                    	je	short wsr_1
-   672 0000085F BA[DC09]                	mov	dx, msg8Bits
+   669 00000852 BA[E809]                	mov	dx, msg16Bits
+   670 00000855 803E[A60A]10            	cmp	byte [bps], 16
+   671 0000085A 7403                    	je	short wsr_1
+   672 0000085C BA[D909]                	mov	dx, msg8Bits
    673                                  wsr_1:
-   674 00000862 B409                            mov     ah, 9
-   675 00000864 CD21                            int     21h
+   674 0000085F B409                            mov     ah, 9
+   675 00000861 CD21                            int     21h
    676                                  
-   677 00000866 BA[E409]                	mov	dx, msgMono
-   678 00000869 803E[A80A]01            	cmp	byte [stmo], 1
-   679 0000086E 7403                    	je	short wsr_2
-   680 00000870 BA[F409]                	mov	dx, msgStereo
+   677 00000863 BA[E109]                	mov	dx, msgMono
+   678 00000866 803E[A40A]01            	cmp	byte [stmo], 1
+   679 0000086B 7403                    	je	short wsr_2
+   680 0000086D BA[F109]                	mov	dx, msgStereo
    681                                  wsr_2:
-   682 00000873 B409                            mov     ah, 9
-   683 00000875 CD21                            int     21h
+   682 00000870 B409                            mov     ah, 9
+   683 00000872 CD21                            int     21h
    684                                  
-   685 00000877 C3                              retn
+   685 00000874 C3                              retn
    686                                  
    687                                  ;detect_codec:
    688                                  ;	; 13/11/2016 - Erdogan Tan (Ref: KolibriOS, codec.inc)
@@ -3124,16 +3126,16 @@
    890                                  	; 13/11/2016 - Erdogan Tan 
    891                                  	; esi = ASCIIZ text address
    892                                  	;
-   893 00000878 BB0700                  	mov	bx, 7h
-   894 0000087B B40E                    	mov	ah, 0Eh 
+   893 00000875 BB0700                  	mov	bx, 7h
+   894 00000878 B40E                    	mov	ah, 0Eh 
    895                                  pm_next_char:
-   896 0000087D AC                      	lodsb
-   897 0000087E 20C0                    	and	al, al
-   898 00000880 7404                    	jz	short pm_retn
-   899 00000882 CD10                    	int	10h
-   900 00000884 EBF7                    	jmp	short pm_next_char
+   896 0000087A AC                      	lodsb
+   897 0000087B 20C0                    	and	al, al
+   898 0000087D 7404                    	jz	short pm_retn
+   899 0000087F CD10                    	int	10h
+   900 00000881 EBF7                    	jmp	short pm_next_char
    901                                  pm_retn:
-   902 00000886 C3                      	retn
+   902 00000883 C3                      	retn
    903                                  
    904                                  ; 06/11/2023
    905                                  ;dword2str:
@@ -3155,16 +3157,16 @@
    921                                  	; OUTPUT ->
    922                                  	;	AX = hexadecimal string
    923                                  	;
-   924 00000887 53                      	push	bx
-   925 00000888 30FF                    	xor	bh, bh
-   926 0000088A 88C3                    	mov	bl, al
-   927 0000088C C0EB04                  	shr	bl, 4
-   928 0000088F 8A9F[2209]              	mov	bl, [bx+hex_chars]
-   929 00000893 86D8                    	xchg	bl, al
-   930 00000895 80E30F                  	and	bl, 0Fh
-   931 00000898 8AA7[2209]              	mov	ah, [bx+hex_chars]
-   932 0000089C 5B                      	pop	bx	
-   933 0000089D C3                      	retn
+   924 00000884 53                      	push	bx
+   925 00000885 30FF                    	xor	bh, bh
+   926 00000887 88C3                    	mov	bl, al
+   927 00000889 C0EB04                  	shr	bl, 4
+   928 0000088C 8A9F[1F09]              	mov	bl, [bx+hex_chars]
+   929 00000890 86D8                    	xchg	bl, al
+   930 00000892 80E30F                  	and	bl, 0Fh
+   931 00000895 8AA7[1F09]              	mov	ah, [bx+hex_chars]
+   932 00000899 5B                      	pop	bx	
+   933 0000089A C3                      	retn
    934                                  
    935                                  wordtohex:
    936                                  	; INPUT ->
@@ -3172,20 +3174,20 @@
    938                                  	; OUTPUT ->
    939                                  	;	EAX = hexadecimal string
    940                                  	;
-   941 0000089E 53                      	push	bx
-   942 0000089F 30FF                    	xor	bh, bh
-   943 000008A1 86E0                    	xchg	ah, al
-   944 000008A3 50                      	push	ax
-   945 000008A4 88E3                    	mov	bl, ah
-   946 000008A6 C0EB04                  	shr	bl, 4
-   947 000008A9 8A87[2209]              	mov	al, [bx+hex_chars]
-   948 000008AD 88E3                    	mov	bl, ah
-   949 000008AF 80E30F                  	and	bl, 0Fh
-   950 000008B2 8AA7[2209]              	mov	ah, [bx+hex_chars]
-   951 000008B6 66C1E010                	shl	eax, 16
-   952 000008BA 58                      	pop	ax
-   953 000008BB 5B                      	pop	bx
-   954 000008BC EBC9                    	jmp	short bytetohex
+   941 0000089B 53                      	push	bx
+   942 0000089C 30FF                    	xor	bh, bh
+   943 0000089E 86E0                    	xchg	ah, al
+   944 000008A0 50                      	push	ax
+   945 000008A1 88E3                    	mov	bl, ah
+   946 000008A3 C0EB04                  	shr	bl, 4
+   947 000008A6 8A87[1F09]              	mov	al, [bx+hex_chars]
+   948 000008AA 88E3                    	mov	bl, ah
+   949 000008AC 80E30F                  	and	bl, 0Fh
+   950 000008AF 8AA7[1F09]              	mov	ah, [bx+hex_chars]
+   951 000008B3 66C1E010                	shl	eax, 16
+   952 000008B7 58                      	pop	ax
+   953 000008B8 5B                      	pop	bx
+   954 000008B9 EBC9                    	jmp	short bytetohex
    955                                  
    956                                  ; 06/11/2023
    957                                  ;dwordtohex:
@@ -3206,73 +3208,73 @@
    972                                  
    973                                  ; 24/11/2016
    974                                  ;	IRQ  0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15 
-   975 000008BE 08090A0B0C0D0E0F70-     irq_int	 db 08h,09h,0Ah,0Bh,0Ch,0Dh,0Eh,0Fh,70h,71h,72h,73h,74h,75h,76h,77h
-   975 000008C7 71727374757677     
+   975 000008BB 08090A0B0C0D0E0F70-     irq_int	 db 08h,09h,0Ah,0Bh,0Ch,0Dh,0Eh,0Fh,70h,71h,72h,73h,74h,75h,76h,77h
+   975 000008C4 71727374757677     
    976                                  
    977                                  ; 17/02/2017
    978                                  ; Valid ICH device IDs
    979                                  
    980                                  valid_ids:
-   981 000008CE 86801524                dd	(ICH_DID << 16) + INTEL_VID  	 ; 8086h:2415h
-   982 000008D2 86802524                dd	(ICH0_DID << 16) + INTEL_VID 	 ; 8086h:2425h
-   983 000008D6 86804524                dd	(ICH2_DID << 16) + INTEL_VID 	 ; 8086h:2445h
-   984 000008DA 86808524                dd	(ICH3_DID << 16) + INTEL_VID 	 ; 8086h:2485h
-   985 000008DE 8680C524                dd	(ICH4_DID << 16) + INTEL_VID 	 ; 8086h:24C5h
-   986 000008E2 8680D524                dd	(ICH5_DID << 16) + INTEL_VID 	 ; 8086h:24D5h
-   987 000008E6 86806E26                dd	(ICH6_DID << 16) + INTEL_VID 	 ; 8086h:266Eh
-   988 000008EA 8680A625                dd	(ESB6300_DID << 16) + INTEL_VID  ; 8086h:25A6h
-   989 000008EE 86809826                dd	(ESB631X_DID << 16) + INTEL_VID  ; 8086h:2698h
-   990 000008F2 8680DE27                dd	(ICH7_DID << 16) + INTEL_VID 	 ; 8086h:27DEh
+   981 000008CB 86801524                dd	(ICH_DID << 16) + INTEL_VID  	 ; 8086h:2415h
+   982 000008CF 86802524                dd	(ICH0_DID << 16) + INTEL_VID 	 ; 8086h:2425h
+   983 000008D3 86804524                dd	(ICH2_DID << 16) + INTEL_VID 	 ; 8086h:2445h
+   984 000008D7 86808524                dd	(ICH3_DID << 16) + INTEL_VID 	 ; 8086h:2485h
+   985 000008DB 8680C524                dd	(ICH4_DID << 16) + INTEL_VID 	 ; 8086h:24C5h
+   986 000008DF 8680D524                dd	(ICH5_DID << 16) + INTEL_VID 	 ; 8086h:24D5h
+   987 000008E3 86806E26                dd	(ICH6_DID << 16) + INTEL_VID 	 ; 8086h:266Eh
+   988 000008E7 8680A625                dd	(ESB6300_DID << 16) + INTEL_VID  ; 8086h:25A6h
+   989 000008EB 86809826                dd	(ESB631X_DID << 16) + INTEL_VID  ; 8086h:2698h
+   990 000008EF 8680DE27                dd	(ICH7_DID << 16) + INTEL_VID 	 ; 8086h:27DEh
    991                                  ; 03/11/2023 - Erdogan Tan
-   992 000008F6 86809571                dd	(MX82440_DID << 16) + INTEL_VID  ; 8086h:7195h
-   993 000008FA 39101270                dd	(SI7012_DID << 16)  + SIS_VID	 ; 1039h:7012h
-   994 000008FE DE10B101                dd 	(NFORCE_DID << 16)  + NVIDIA_VID ; 10DEh:01B1h
-   995 00000902 DE106A00                dd 	(NFORCE2_DID << 16) + NVIDIA_VID ; 10DEh:006Ah
-   996 00000906 22106D74                dd 	(AMD8111_DID << 16) + AMD_VID 	 ; 1022h:746Dh
-   997 0000090A 22104574                dd 	(AMD768_DID << 16)  + AMD_VID 	 ; 1022h:7445h
-   998 0000090E DE105900                dd 	(CK804_DID << 16) + NVIDIA_VID	 ; 10DEh:0059h
-   999 00000912 DE103A00                dd 	(MCP04_DID << 16) + NVIDIA_VID	 ; 10DEh:003Ah
-  1000 00000916 DE108A00                dd 	(CK8_DID << 16) + NVIDIA_VID	 ; 1022h:008Ah
-  1001 0000091A DE10DA00                dd 	(NFORCE3_DID << 16) + NVIDIA_VID ; 10DEh:00DAh
-  1002 0000091E DE10EA00                dd 	(CK8S_DID << 16) + NVIDIA_VID	 ; 10DEh:00EAh
+   992 000008F3 86809571                dd	(MX82440_DID << 16) + INTEL_VID  ; 8086h:7195h
+   993 000008F7 39101270                dd	(SI7012_DID << 16)  + SIS_VID	 ; 1039h:7012h
+   994 000008FB DE10B101                dd 	(NFORCE_DID << 16)  + NVIDIA_VID ; 10DEh:01B1h
+   995 000008FF DE106A00                dd 	(NFORCE2_DID << 16) + NVIDIA_VID ; 10DEh:006Ah
+   996 00000903 22106D74                dd 	(AMD8111_DID << 16) + AMD_VID 	 ; 1022h:746Dh
+   997 00000907 22104574                dd 	(AMD768_DID << 16)  + AMD_VID 	 ; 1022h:7445h
+   998 0000090B DE105900                dd 	(CK804_DID << 16) + NVIDIA_VID	 ; 10DEh:0059h
+   999 0000090F DE103A00                dd 	(MCP04_DID << 16) + NVIDIA_VID	 ; 10DEh:003Ah
+  1000 00000913 DE108A00                dd 	(CK8_DID << 16) + NVIDIA_VID	 ; 1022h:008Ah
+  1001 00000917 DE10DA00                dd 	(NFORCE3_DID << 16) + NVIDIA_VID ; 10DEh:00DAh
+  1002 0000091B DE10EA00                dd 	(CK8S_DID << 16) + NVIDIA_VID	 ; 10DEh:00EAh
   1003                                  
   1004                                  valid_id_count:	equ ($ - valid_ids)>>2 ; 05/11/2023
   1005                                  
   1006                                  ; 13/11/2016
-  1007 00000922 303132333435363738-     hex_chars	db "0123456789ABCDEF", 0
-  1007 0000092B 3941424344454600   
-  1008 00000933 414339372041756469-     msgAC97Info	db "AC97 Audio Controller & Codec Info", 0Dh, 0Ah 
-  1008 0000093C 6F20436F6E74726F6C-
-  1008 00000945 6C6572202620436F64-
-  1008 0000094E 656320496E666F0D0A 
-  1009 00000957 56656E646F72204944-     		db "Vendor ID: "
-  1009 00000960 3A20               
-  1010 00000962 303030306820446576-     msgVendorId	db "0000h Device ID: "
-  1010 0000096B 6963652049443A20   
-  1011 00000973 30303030680D0A          msgDevId	db "0000h", 0Dh, 0Ah
-  1012 0000097A 4275733A20              		db "Bus: "
-  1013 0000097F 303068204465766963-     msgBusNo	db "00h Device: "
-  1013 00000988 653A20             
-  1014 0000098B 3030682046756E6374-     msgDevNo	db "00h Function: "
-  1014 00000994 696F6E3A20         
-  1015 00000999 303068                  msgFncNo	db "00h"
-  1016 0000099C 0D0A                    		db 0Dh, 0Ah
+  1007 0000091F 303132333435363738-     hex_chars	db "0123456789ABCDEF", 0
+  1007 00000928 3941424344454600   
+  1008 00000930 414339372041756469-     msgAC97Info	db "AC97 Audio Controller & Codec Info", 0Dh, 0Ah 
+  1008 00000939 6F20436F6E74726F6C-
+  1008 00000942 6C6572202620436F64-
+  1008 0000094B 656320496E666F0D0A 
+  1009 00000954 56656E646F72204944-     		db "Vendor ID: "
+  1009 0000095D 3A20               
+  1010 0000095F 303030306820446576-     msgVendorId	db "0000h Device ID: "
+  1010 00000968 6963652049443A20   
+  1011 00000970 30303030680D0A          msgDevId	db "0000h", 0Dh, 0Ah
+  1012 00000977 4275733A20              		db "Bus: "
+  1013 0000097C 303068204465766963-     msgBusNo	db "00h Device: "
+  1013 00000985 653A20             
+  1014 00000988 3030682046756E6374-     msgDevNo	db "00h Function: "
+  1014 00000991 696F6E3A20         
+  1015 00000996 303068                  msgFncNo	db "00h"
+  1016 00000999 0D0A                    		db 0Dh, 0Ah
   1017                                  ; 05/11/2023	
-  1018 0000099E 4E414D4241523A20        		db "NAMBAR: "
-  1019 000009A6 303030306820            msgNamBar	db "0000h "
-  1020 000009AC 4E41424D4241523A20      		db "NABMBAR: "
-  1021 000009B5 303030306820495251-     msgNabmBar	db "0000h IRQ: "
-  1021 000009BE 3A20               
-  1022 000009C0 3030                    msgIRQ		dw 3030h
-  1023 000009C2 0D0A24                  		db 0Dh, 0Ah, "$"
-  1024 000009C5 53616D706C65205261-     msgSampleRate	db "Sample Rate: "
-  1024 000009CE 74653A20           
-  1025 000009D2 303030303020487A20-     msgHertz	db "00000 Hz ", "$" 
-  1025 000009DB 24                 
-  1026 000009DC 3820626974732024        msg8Bits	db "8 bits ", "$" 
-  1027 000009E4 4D6F6E6F0D0A24          msgMono		db "Mono", 0Dh, 0Ah, "$"
-  1028 000009EB 313620626974732024      msg16Bits	db "16 bits ", "$" 
-  1029 000009F4 53746572656F0D0A24      msgStereo	db "Stereo", 0Dh, 0Ah, "$"
+  1018 0000099B 4E414D4241523A20        		db "NAMBAR: "
+  1019 000009A3 303030306820            msgNamBar	db "0000h "
+  1020 000009A9 4E41424D4241523A20      		db "NABMBAR: "
+  1021 000009B2 303030306820495251-     msgNabmBar	db "0000h IRQ: "
+  1021 000009BB 3A20               
+  1022 000009BD 3030                    msgIRQ		dw 3030h
+  1023 000009BF 0D0A24                  		db 0Dh, 0Ah, "$"
+  1024 000009C2 53616D706C65205261-     msgSampleRate	db "Sample Rate: "
+  1024 000009CB 74653A20           
+  1025 000009CF 303030303020487A20-     msgHertz	db "00000 Hz ", "$" 
+  1025 000009D8 24                 
+  1026 000009D9 3820626974732024        msg8Bits	db "8 bits ", "$" 
+  1027 000009E1 4D6F6E6F0D0A24          msgMono		db "Mono", 0Dh, 0Ah, "$"
+  1028 000009E8 313620626974732024      msg16Bits	db "16 bits ", "$" 
+  1029 000009F1 53746572656F0D0A24      msgStereo	db "Stereo", 0Dh, 0Ah, "$"
   1030                                  
   1031                                  ;; 13/11/2016 - Erdogan Tan (Ref: KolibriOS, codec.inc)
   1032                                  ;codec_id	dd 0
@@ -3280,8 +3282,8 @@
   1034                                  ;codec_vendor_ids dw 0
   1035                                  ;codec_chip_ids	dw 0
   1036                                  
-  1037 000009FD 3030303030303030        dword_str	 dd 30303030h, 30303030h
-  1038 00000A05 680D0A00                		 db 'h', 0Dh, 0Ah, 0
+  1037 000009FA 3030303030303030        dword_str	 dd 30303030h, 30303030h
+  1038 00000A02 680D0A00                		 db 'h', 0Dh, 0Ah, 0
   1039                                  
   1040                                  ;ac_unknown     db 'unknown manufacturer',13,10,0
   1041                                  ;ac_Realtek     db 'Realtek Semiconductor',13,10,0
@@ -3351,41 +3353,41 @@
   1105                                  
   1106                                  ; 11/11/2023
   1107                                  msg_init_err:
-  1108 00000A09 0D0A                    	db	CR, LF
-  1109 00000A0B 4143393720436F6E74-     	db	"AC97 Controller/Codec initialization error !"
-  1109 00000A14 726F6C6C65722F436F-
-  1109 00000A1D 64656320696E697469-
-  1109 00000A26 616C697A6174696F6E-
-  1109 00000A2F 206572726F722021   
-  1110 00000A37 0D0A24                  	db	CR, LF, "$"
+  1108 00000A06 0D0A                    	db	CR, LF
+  1109 00000A08 4143393720436F6E74-     	db	"AC97 Controller/Codec initialization error !"
+  1109 00000A11 726F6C6C65722F436F-
+  1109 00000A1A 64656320696E697469-
+  1109 00000A23 616C697A6174696F6E-
+  1109 00000A2C 206572726F722021   
+  1110 00000A34 0D0A24                  	db	CR, LF, "$"
   1111                                  
   1112                                  ; 12/11/2023
   1113                                  msg_no_vra:
-  1114 00000A3A 0D0A                    	db	CR, LF
-  1115 00000A3C 4E6F20565241207375-     	db	"No VRA support ! Only 48 kHZ sample rate supported !"
-  1115 00000A45 70706F72742021204F-
-  1115 00000A4E 6E6C79203438206B48-
-  1115 00000A57 5A2073616D706C6520-
-  1115 00000A60 726174652073757070-
-  1115 00000A69 6F727465642021     
-  1116 00000A70 0D0A24                  	db	CR, LF, "$"
+  1114 00000A37 0D0A                    	db	CR, LF
+  1115 00000A39 4E6F20565241207375-     	db	"No VRA support ! Only 48 kHZ sample rate supported !"
+  1115 00000A42 70706F72742021204F-
+  1115 00000A4B 6E6C79203438206B48-
+  1115 00000A54 5A2073616D706C6520-
+  1115 00000A5D 726174652073757070-
+  1115 00000A66 6F727465642021     
+  1116 00000A6D 0D0A24                  	db	CR, LF, "$"
   1117                                  
   1118                                  ; 17/02/2017
   1119                                  bss_start:
   1120                                  
   1121                                  ABSOLUTE bss_start
   1122                                  
-  1123 00000A73 ??                      alignb 2
+  1123                                  alignb 2
   1124                                  
   1125                                  ; 28/11/2016
   1126                                  
-  1127 00000A74 <res 1Ch>               smpRBuff:	resw 14 ; 19/11/2016 - Erdogan Tan
+  1127 00000A70 <res 1Ch>               smpRBuff:	resw 14 ; 19/11/2016 - Erdogan Tan
   1128                                  
-  1129 00000A90 ????                    filehandle:	resw 1
+  1129 00000A8C ????                    filehandle:	resw 1
   1130                                  
-  1131 00000A92 ??                      flags:		resb 1
+  1131 00000A8E ??                      flags:		resb 1
   1132                                  ; 06/11/2023
-  1133 00000A93 ??                      ac97_int_ln_reg: resb 1
+  1133 00000A8F ??                      ac97_int_ln_reg: resb 1
   1134                                  
   1135                                  ; 06/11/2023
   1136                                  ;pcm_irq_status: resb 1	; 05/11/2023
@@ -3404,14 +3406,14 @@
   1149                                  ;    (ICH, Audio D31:F5, PCI Config Space) Address offset: 10h-13h
   1150                                  ; NABMBAR: Native Audio Bus Mastering Base Address register
   1151                                  ;    (ICH, Audio D31:F5, PCI Config Space) Address offset: 14h-17h
-  1152 00000A94 ????                    NAMBAR:		resw 1			; BAR for mixer
-  1153 00000A96 ????                    NABMBAR:	resw 1			; BAR for bus master regs
+  1152 00000A90 ????                    NAMBAR:		resw 1			; BAR for mixer
+  1153 00000A92 ????                    NABMBAR:	resw 1			; BAR for bus master regs
   1154                                  
   1155                                  ; 256 byte buffer for descriptor list
-  1156 00000A98 ????                    BDL_BUFFER:	resw 1			; segment of our 256byte BDL buffer
-  1157 00000A9A ????                    WAV_BUFFER1:	resw 1			; segment of our WAV storage
+  1156 00000A94 ????                    BDL_BUFFER:	resw 1			; segment of our 256byte BDL buffer
+  1157 00000A96 ????                    WAV_BUFFER1:	resw 1			; segment of our WAV storage
   1158                                  ; 64k buffers for wav file storage
-  1159 00000A9C ????                    WAV_BUFFER2:	resw 1			; segment of 2nd wav buffer
+  1159 00000A98 ????                    WAV_BUFFER2:	resw 1			; segment of 2nd wav buffer
   1160                                  
   1161                                  ; 06/11/2023
   1162                                  ;tBuff:		resb 1
@@ -3419,22 +3421,22 @@
   1164                                  
   1165                                  ; 12/11/2016 - Erdogan Tan
   1166                                  
-  1167 00000A9E ????????                bus_dev_fn:	resd 1
-  1168 00000AA2 ????????                dev_vendor:	resd 1
+  1167 00000A9A ????????                bus_dev_fn:	resd 1
+  1168 00000A9E ????????                dev_vendor:	resd 1
   1169                                  ; 06/11/2023
   1170                                  ;stats_cmd:	resw 1 ; 17/02/2017
   1171                                  ; 05/11/2023
   1172                                  ;ac97_io_base:	resw 1
-  1173 00000AA6 ????                    sample_rate:	resw 1
+  1173 00000AA2 ????                    sample_rate:	resw 1
   1174                                  
   1175                                  ; 19/11/2016
-  1176 00000AA8 ????                    stmo:		resw 1 
-  1177 00000AAA ????                    bps:		resw 1
+  1176 00000AA4 ????                    stmo:		resw 1 
+  1177 00000AA6 ????                    bps:		resw 1
   1178                                  
   1179                                  ; 08/11/2023
   1180                                  ; 07/11/2023
-  1181 00000AAC ??                      fbs_shift:	resb 1
-  1182 00000AAD ??                      		resb 1 ; 08/11/2023
+  1181 00000AA8 ??                      fbs_shift:	resb 1
+  1182 00000AA9 ??                      		resb 1 ; 08/11/2023
   1183                                  
   1184                                  ;fbs_seg:	resw 1
   1185                                  ;fbs_off:	resw 1
@@ -3443,7 +3445,7 @@
   1188                                  
   1189                                  ; 32 kilo bytes for temporay buffer
   1190                                  ; (for stereo-mono, 8bit/16bit corrections)
-  1191 00000AAE <res 8000h>             temp_buffer:	resb 32768
+  1191 00000AAA <res 8000h>             temp_buffer:	resb 32768
   1192                                  
   1193                                  ;alignb 16
   1194                                  EOF:

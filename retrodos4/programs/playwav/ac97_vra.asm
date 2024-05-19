@@ -325,8 +325,9 @@ _ac97_codec_ready:
 	; 19/11/2023
 	; wait for 1 second
 	; 19/05/2024
-	mov	ecx, 1000 ; 1000*4*0.25ms = 1s
+	;mov	ecx, 1000 ; 1000*4*0.25ms = 1s
 	;mov	cx, 10
+	mov	cx, 40
 _ac97_codec_rloop:
 	;call	delay1_4ms
 	;call	delay1_4ms

@@ -305,7 +305,9 @@ _ac97_codec_ready:
 	out	dx, ax
 
 	; wait for 1 second
-	mov	ecx, 1000 ; 1000*0.25ms = 1s
+	;mov	ecx, 1000 ; 1000*0.25ms = 1s
+	; 19/05/2024
+	mov	cx, 40
 _ac97_codec_rloop:
 	;call	delay1_4ms
 	;call	delay1_4ms
