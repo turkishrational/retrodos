@@ -1,7 +1,7 @@
      1                                  ; ****************************************************************************
      2                                  ; PLAYWAV.ASM - ICH AC97 .wav player for DOS.			   PLAYWAV.COM
      3                                  ; ----------------------------------------------------------------------------
-     4                                  ; Last Update: 19/05/2024 (Previous: 08/05/2024)
+     4                                  ; Last Update: 20/05/2024 (Previous: 08/05/2024)
      5                                  ; ----------------------------------------------------------------------------
      6                                  ; Beginning: 17/02/2017
      7                                  ; ----------------------------------------------------------------------------
@@ -5993,512 +5993,513 @@
    740 00001BA8 83C216                  	add	dx, PO_SR_REG
    741 00001BAB ED                      	in	ax, dx
    742                                  
-   743 00001BAC A808                    	test	al, BCIS ; bit 3, 8
-   744 00001BAE 7405                    	jz	short _ih_2
-   745                                  
-   746                                  	; 19/05/2024
-   747                                  	; 15/05/2024
-   748                                  	;cmp	byte [tLoop], 1
-   749                                  	;jb	short _ih_2
-   750                                  
-   751                                  _ih_1:
-   752                                  	; 19/05/2024
-   753 00001BB0 50                      	push	ax ; ****
-   754                                  
-   755                                  	; 10/11/2023
-   756                                  	; 28/11/2016 - Erdogan Tan
-   757 00001BB1 E8BDEB                  	call	tuneLoop
-   758                                  
-   759                                  	; 19/05/2024
-   760 00001BB4 58                      	pop	ax ; ****
-   761                                  
-   762                                  	; 16/05/2024
-   763                                  _ih_2:
-   764                                  	;mov	ax, 1Ch ; FIFOE(=16)+BCIS(=8)+LVBCI(=4)
-   765 00001BB5 8B16[061E]              	mov	dx, [NABMBAR]
-   766 00001BB9 83C216                  	add	dx, PO_SR_REG
-   767 00001BBC EF                      	out	dx, ax
-   768                                  
-   769                                  ;	; 16/05/2024
-   770                                  ;	pop	eax ; ***
-   771                                  ;	
-   772                                  ;	or	eax, eax
-   773                                  ;	jz	short _ih_4
-   774                                  ;	
-   775                                  ;	mov	dx, GLOB_STS_REG
-   776                                  ;	add	dx, [NABMBAR]
-   777                                  ;	out	dx, eax
-   778                                  
-   779                                  	; 16/05/2024
-   780                                  _ih_4:
-   781                                  	; 10/11/2023
-   782                                  	;mov	al, 20h
-   783                                  	;test	byte [ac97_int_ln_reg], 8
-   784                                  	;jz	short _ih_5
-   785                                  	;out 	0A0h, al ; 20h	; EOI
-   786                                  ;_ih_5:
-   787                                  	;out	20h, al  ; 20h	; EOI
-   788                                  ;_ih_6:
-   789                                  	;pop	di
-   790                                  	;pop	si
-   791                                  	;pop	bx
-   792                                  	;pop	cx
-   793 00001BBD 5A                      	pop	dx ; **
-   794                                  	;pop	eax ; *	; 11/11/2023
-   795 00001BBE 58                      	pop	ax ; + ; 16/05/2024
-   796 00001BBF CF                      	iret
-   797                                  
-   798                                  %else
-   799                                  
-   800                                  ac97_int_handler:
-   801                                  	; 19/11/2023
-   802                                  	; 18/11/2023
-   803                                  	; 11/11/2023
-   804                                  	; 10/11/2023
-   805                                  	; 17/02/2016
-   806                                  	push	eax	; 11/11/2023
-   807                                  	push	dx
-   808                                  	; 05/11/2023
-   809                                  	;push	cx
-   810                                  	;push	bx
-   811                                  	;push	si
-   812                                  	;push	di
-   813                                  
-   814                                  ;	; 10/11/2023
-   815                                  ;	; EOI at first
-   816                                  ;	mov	al, 20h
-   817                                  ;	test	byte [ac97_int_ln_reg], 8
-   818                                  ;	jz	short _ih_0
-   819                                  ;	out 	0A0h, al ; 20h	; EOI
-   820                                  ;_ih_0:
-   821                                  ;	out	20h, al  ; 20h	; EOI
-   822                                  
-   823                                  	; 11/11/2023
-   824                                  	; 09/11/2023
-   825                                  	mov	dx, GLOB_STS_REG
-   826                                          add	dx, [NABMBAR]
-   827                                  	in	eax, dx
-   828                                  	
-   829                                  	; 09/11/2023,
-   830                                          cmp	eax, 0FFFFFFFFh ; -1
-   831                                  	je	short _ih_2
-   832                                  	
-   833                                  	test	al, 40h		; PCM Out Interrupt
-   834                                  	jnz	short _ih_1
-   835                                  
-   836                                  	test	eax, eax
-   837                                  	jz	short _ih_2
-   838                                  
-   839                                   	;mov	dx, GLOB_STS_REG
-   840                                          ;add	dx, [NABMBAR]
-   841                                  	out	dx, eax
-   842                                  	jmp	short _ih_2
-   843                                  _ih_1:
-   844                                  	; 11/11/2023
-   845                                  	push	eax
-   846                                  
-   847                                  	;mov	ax, 1Ch ; FIFOE(=16)+BCIS(=8)+LVBCI(=4)
-   848                                  	;mov	dx, PO_SR_REG
-   849                                          ;add	dx, [NABMBAR]
-   850                                  	;out	dx, ax
-   851                                  
-   852                                  	; 10/11/2023
-   853                                  	; 28/11/2016 - Erdogan Tan
-   854                                  	call	tuneLoop
-   855                                  
-   856                                  	; 11/11/2023
-   857                                  	pop	eax
-   858                                  	
-   859                                  	mov	dx, GLOB_STS_REG
-   860                                          add	dx, [NABMBAR]
-   861                                  	out	dx, eax
-   862                                  _ih_2:
-   863                                  	; 11/11/2023
-   864                                  	mov	dx, [NABMBAR]
-   865                                  	add	dx, PO_SR_REG	; set pointer to Status reg
-   866                                  	mov	ax, 1Ch ; clear FIFOE, BCIS, LVBCI
-   867                                  	out	dx, ax
-   868                                  
-   869                                  _ih_3:	; 19/11/2023
-   870                                  	mov	al, 20h
-   871                                  	test	byte [ac97_int_ln_reg], 8
-   872                                  	jz	short _ih_0
-   873                                  	out 	0A0h, al ; 20h	; EOI
-   874                                  _ih_0:
-   875                                  	out	20h, al  ; 20h	; EOI
-   876                                  
-   877                                  	pop	dx
-   878                                  	pop	eax
-   879                                  	iret
-   880                                  
-   881                                  %endif
-   882                                  
-   883                                  ac97_stop:
-   884                                  	; 11/11/2023
-   885                                  	; 09/11/2023
-   886                                  	; 05/11/2023
-   887                                  	; 04/11/2023 
-   888                                  	; 28/05/2017 (TRDOS 386 v2, 'audio.s')
-   889                                  	;mov	byte [tLoop], 0 ; stop ! ; 05/11/2023
-   890                                  ;_ac97_stop:
-   891                                  
-   892                                  	; 11/11/2023
-   893 00001BC0 8B16[041E]              	mov	dx, [NAMBAR]
-   894                                  	;add	dx, 0 ; ac_reg_0 ; reset register
-   895 00001BC4 EF                      	out	dx, ax
-   896                                  
-   897                                  	; 04/11/2023
-   898                                  	; 09/10/2017 (TRDOS 386 v2, 'audio.s')
-   899                                  	; 11/06/2017
-   900 00001BC5 30C0                    	xor	al, al ; 0
-   901 00001BC7 E80D00                  	call	ac97_po_cmd
-   902                                  
-   903                                  	; (Ref: KolibriOS, intelac97.asm, 'stop:')
-   904                                  	; Clear FIFOE, BCIS, LVBCI (Ref: Intel ICH hub manual)
-   905 00001BCA B81C00                  	mov     ax, 1Ch
-   906 00001BCD 8B16[061E]              	mov     dx, [NABMBAR]
-   907 00001BD1 83C216                  	add     dx, PO_SR_REG
-   908 00001BD4 EF                      	out     dx, ax
-   909                                  
-   910                                  	; 11/06/2017
-   911 00001BD5 B002                    	mov     al, RR
-   912                                  ac97_po_cmd:
-   913                                  	; 11/06/2017
-   914                                  	; 29/05/2017
-   915 00001BD7 8B16[061E]              	mov     dx, [NABMBAR]
-   916 00001BDB 83C21B                          add     dx, PO_CR_REG		; PCM out control register
-   917 00001BDE EE                      	out	dx, al
-   918 00001BDF C3                      	retn
-   919                                  
-   920                                  print_msg:
-   921                                  	; 13/11/2016 - Erdogan Tan 
-   922                                  	; esi = ASCIIZ text address
-   923                                  	;
-   924 00001BE0 BB0700                  	mov	bx, 7h
-   925 00001BE3 B40E                    	mov	ah, 0Eh 
-   926                                  pm_next_char:
-   927 00001BE5 AC                      	lodsb
-   928 00001BE6 20C0                    	and	al, al
-   929 00001BE8 7404                    	jz	short pm_retn
-   930 00001BEA CD10                    	int	10h
-   931 00001BEC EBF7                    	jmp	short pm_next_char
-   932                                  pm_retn:
-   933 00001BEE C3                      	retn
-   934                                  
-   935                                  ; 06/11/2023
-   936                                  ;dword2str:
-   937                                  ;	; 13/11/2016 - Erdogan Tan
-   938                                  ;	; eax = dword value
-   939                                  ;	;
-   940                                  ;	call	dwordtohex
-   941                                  ;	mov	[dword_str], edx
-   942                                  ;	mov	[dword_str+4], eax
-   943                                  ;	mov	si, dword_str
-   944                                  ;	retn
-   945                                  
-   946                                  	; trdos386.s (unix386.s) - 10/05/2015
-   947                                  	; Convert binary number to hexadecimal string
-   948                                  
-   949                                  bytetohex:
-   950                                  	; INPUT ->
-   951                                  	; 	AL = byte (binary number)
-   952                                  	; OUTPUT ->
-   953                                  	;	AX = hexadecimal string
-   954                                  	;
-   955 00001BEF 53                      	push	bx
-   956 00001BF0 30FF                    	xor	bh, bh
-   957 00001BF2 88C3                    	mov	bl, al
-   958 00001BF4 C0EB04                  	shr	bl, 4
-   959 00001BF7 8A9F[8A1C]              	mov	bl, [bx+hex_chars]
-   960 00001BFB 86D8                    	xchg	bl, al
-   961 00001BFD 80E30F                  	and	bl, 0Fh
-   962 00001C00 8AA7[8A1C]              	mov	ah, [bx+hex_chars]
-   963 00001C04 5B                      	pop	bx	
-   964 00001C05 C3                      	retn
-   965                                  
-   966                                  wordtohex:
-   967                                  	; INPUT ->
-   968                                  	; 	AX = word (binary number)
-   969                                  	; OUTPUT ->
-   970                                  	;	EAX = hexadecimal string
-   971                                  	;
-   972 00001C06 53                      	push	bx
-   973 00001C07 30FF                    	xor	bh, bh
-   974 00001C09 86E0                    	xchg	ah, al
-   975 00001C0B 50                      	push	ax
-   976 00001C0C 88E3                    	mov	bl, ah
-   977 00001C0E C0EB04                  	shr	bl, 4
-   978 00001C11 8A87[8A1C]              	mov	al, [bx+hex_chars]
-   979 00001C15 88E3                    	mov	bl, ah
-   980 00001C17 80E30F                  	and	bl, 0Fh
-   981 00001C1A 8AA7[8A1C]              	mov	ah, [bx+hex_chars]
-   982 00001C1E 66C1E010                	shl	eax, 16
-   983 00001C22 58                      	pop	ax
-   984 00001C23 5B                      	pop	bx
-   985 00001C24 EBC9                    	jmp	short bytetohex
-   986                                  
-   987                                  ; 06/11/2023
-   988                                  ;dwordtohex:
-   989                                  ;	; INPUT ->
-   990                                  ;	; 	EAX = dword (binary number)
-   991                                  ;	; OUTPUT ->
-   992                                  ;	;	EDX:EAX = hexadecimal string
-   993                                  ;	;
-   994                                  ;	push	eax
-   995                                  ;	shr	eax, 16
-   996                                  ;	call	wordtohex
-   997                                  ;	mov	edx, eax
-   998                                  ;	pop	eax
-   999                                  ;	call	wordtohex
-  1000                                  ;	retn
-  1001                                  
-  1002                                  _DATA:
-  1003                                  
-  1004                                  ; 24/11/2016
-  1005                                  ;	IRQ  0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15 
-  1006 00001C26 08090A0B0C0D0E0F70-     irq_int	 db 08h,09h,0Ah,0Bh,0Ch,0Dh,0Eh,0Fh,70h,71h,72h,73h,74h,75h,76h,77h
-  1006 00001C2F 71727374757677     
-  1007                                  
-  1008                                  ; 17/02/2017
-  1009                                  ; Valid ICH device IDs
-  1010                                  
-  1011                                  valid_ids:
-  1012 00001C36 86801524                dd	(ICH_DID << 16) + INTEL_VID  	 ; 8086h:2415h
-  1013 00001C3A 86802524                dd	(ICH0_DID << 16) + INTEL_VID 	 ; 8086h:2425h
-  1014 00001C3E 86804524                dd	(ICH2_DID << 16) + INTEL_VID 	 ; 8086h:2445h
-  1015 00001C42 86808524                dd	(ICH3_DID << 16) + INTEL_VID 	 ; 8086h:2485h
-  1016 00001C46 8680C524                dd	(ICH4_DID << 16) + INTEL_VID 	 ; 8086h:24C5h
-  1017 00001C4A 8680D524                dd	(ICH5_DID << 16) + INTEL_VID 	 ; 8086h:24D5h
-  1018 00001C4E 86806E26                dd	(ICH6_DID << 16) + INTEL_VID 	 ; 8086h:266Eh
-  1019 00001C52 8680A625                dd	(ESB6300_DID << 16) + INTEL_VID  ; 8086h:25A6h
-  1020 00001C56 86809826                dd	(ESB631X_DID << 16) + INTEL_VID  ; 8086h:2698h
-  1021 00001C5A 8680DE27                dd	(ICH7_DID << 16) + INTEL_VID 	 ; 8086h:27DEh
-  1022                                  ; 03/11/2023 - Erdogan Tan
-  1023 00001C5E 86809571                dd	(MX82440_DID << 16) + INTEL_VID  ; 8086h:7195h
-  1024 00001C62 39101270                dd	(SI7012_DID << 16)  + SIS_VID	 ; 1039h:7012h
-  1025 00001C66 DE10B101                dd 	(NFORCE_DID << 16)  + NVIDIA_VID ; 10DEh:01B1h
-  1026 00001C6A DE106A00                dd 	(NFORCE2_DID << 16) + NVIDIA_VID ; 10DEh:006Ah
-  1027 00001C6E 22106D74                dd 	(AMD8111_DID << 16) + AMD_VID 	 ; 1022h:746Dh
-  1028 00001C72 22104574                dd 	(AMD768_DID << 16)  + AMD_VID 	 ; 1022h:7445h
-  1029 00001C76 DE105900                dd 	(CK804_DID << 16) + NVIDIA_VID	 ; 10DEh:0059h
-  1030 00001C7A DE103A00                dd 	(MCP04_DID << 16) + NVIDIA_VID	 ; 10DEh:003Ah
-  1031 00001C7E DE108A00                dd 	(CK8_DID << 16) + NVIDIA_VID	 ; 1022h:008Ah
-  1032 00001C82 DE10DA00                dd 	(NFORCE3_DID << 16) + NVIDIA_VID ; 10DEh:00DAh
-  1033 00001C86 DE10EA00                dd 	(CK8S_DID << 16) + NVIDIA_VID	 ; 10DEh:00EAh
-  1034                                  
-  1035                                  valid_id_count:	equ ($ - valid_ids)>>2 ; 05/11/2023
-  1036                                  
-  1037                                  ; 13/11/2016
-  1038 00001C8A 303132333435363738-     hex_chars	db "0123456789ABCDEF", 0
-  1038 00001C93 3941424344454600   
-  1039 00001C9B 414339372041756469-     msgAC97Info	db "AC97 Audio Controller & Codec Info", 0Dh, 0Ah 
-  1039 00001CA4 6F20436F6E74726F6C-
-  1039 00001CAD 6C6572202620436F64-
-  1039 00001CB6 656320496E666F0D0A 
-  1040 00001CBF 56656E646F72204944-     		db "Vendor ID: "
-  1040 00001CC8 3A20               
-  1041 00001CCA 303030306820446576-     msgVendorId	db "0000h Device ID: "
-  1041 00001CD3 6963652049443A20   
-  1042 00001CDB 30303030680D0A          msgDevId	db "0000h", 0Dh, 0Ah
-  1043 00001CE2 4275733A20              		db "Bus: "
-  1044 00001CE7 303068204465766963-     msgBusNo	db "00h Device: "
-  1044 00001CF0 653A20             
-  1045 00001CF3 3030682046756E6374-     msgDevNo	db "00h Function: "
-  1045 00001CFC 696F6E3A20         
-  1046 00001D01 303068                  msgFncNo	db "00h"
-  1047 00001D04 0D0A                    		db 0Dh, 0Ah
-  1048                                  ; 05/11/2023	
-  1049 00001D06 4E414D4241523A20        		db "NAMBAR: "
-  1050 00001D0E 303030306820            msgNamBar	db "0000h "
-  1051 00001D14 4E41424D4241523A20      		db "NABMBAR: "
-  1052 00001D1D 303030306820495251-     msgNabmBar	db "0000h IRQ: "
-  1052 00001D26 3A20               
-  1053 00001D28 3030                    msgIRQ		dw 3030h
-  1054 00001D2A 0D0A24                  		db 0Dh, 0Ah, "$"
-  1055 00001D2D 53616D706C65205261-     msgSampleRate	db "Sample Rate: "
-  1055 00001D36 74653A20           
-  1056 00001D3A 303030303020487A20-     msgHertz	db "00000 Hz ", "$" 
-  1056 00001D43 24                 
-  1057 00001D44 3820626974732024        msg8Bits	db "8 bits ", "$" 
-  1058 00001D4C 4D6F6E6F0D0A24          msgMono		db "Mono", 0Dh, 0Ah, "$"
-  1059 00001D53 313620626974732024      msg16Bits	db "16 bits ", "$" 
-  1060 00001D5C 53746572656F0D0A24      msgStereo	db "Stereo", 0Dh, 0Ah, "$"
-  1061                                  
-  1062                                  ;; 13/11/2016 - Erdogan Tan (Ref: KolibriOS, codec.inc)
-  1063                                  ;codec_id	dd 0
-  1064                                  ;codec_chip_id	dd 0
-  1065                                  ;codec_vendor_ids dw 0
-  1066                                  ;codec_chip_ids	dw 0
-  1067                                  
-  1068 00001D65 3030303030303030        dword_str	 dd 30303030h, 30303030h
-  1069 00001D6D 680D0A00                		 db 'h', 0Dh, 0Ah, 0
-  1070                                  
-  1071                                  ;ac_unknown     db 'unknown manufacturer',13,10,0
-  1072                                  ;ac_Realtek     db 'Realtek Semiconductor',13,10,0
-  1073                                  ;ac_Analog      db 'Analog Devices',13,10,0
-  1074                                  ;ac_CMedia      db 'C-Media Electronics',13,10,0
-  1075                                  ;ac_Cirrus      db 'Cirrus Logic',13,10,0
-  1076                                  ;ac_Wolfson     db 'Wolfson Microelectronics',13,10,0
-  1077                                  ;ac_VIA         db 'VIA Technologies',13,10,0
-  1078                                  ;ac_SigmaTel    db 'SigmaTel',13,10,0
-  1079                                  ;ac_eMicro      db 'eMicro',13,10,0
-  1080                                  ;
-  1081                                  ;chip_unknown   db 'unknown codec id ', 0
-  1082                                  
-  1083                                  ;CHIP_REALTEK   equ 414C4700h
-  1084                                  ;CHIP_CMEDIA    equ 434D4900h
-  1085                                  ;CHIP_VIA       equ 56494100h
-  1086                                  
-  1087                                  ;codecs        dd CHIP_CMEDIA
-  1088                                  ;	       dw ac_CMedia, chips_CMedia
-  1089                                  ;              dd CHIP_REALTEK
-  1090                                  ;	       dw ac_Realtek, chips_Realtek
-  1091                                  ;              dd CHIP_VIA
-  1092                                  ;	       dw ac_VIA, chips_VIA
-  1093                                  ;              dd 0
-  1094                                  
-  1095                                  ;chips_Realtek dw 10h, chip_ALC201a
-  1096                                  ;              dw 20h, chip_ALC650
-  1097                                  ;              dw 21h, chip_ALC650D
-  1098                                  ;              dw 22h, chip_ALC650E
-  1099                                  ;              dw 23h, chip_ALC650F
-  1100                                  ;              dw 60h, chip_ALC655
-  1101                                  ;              dw 80h, chip_ALC658
-  1102                                  ;              dw 81h, chip_ALC658D
-  1103                                  ;              dw 90h, chip_ALC850
-  1104                                  ;              dw 0FFh
-  1105                                  
-  1106                                  ;chips_CMedia  dw 41h, chip_CM9738
-  1107                                  ;              dw 61h, chip_CM9739
-  1108                                  ;              dw 69h, chip_CM9780
-  1109                                  ;              dw 78h, chip_CM9761
-  1110                                  ;              dw 82h, chip_CM9761
-  1111                                  ;              dw 83h, chip_CM9761
-  1112                                  ;              dw 0FFh
-  1113                                  
-  1114                                  ;chips_VIA     dw 61h, chip_VIA1612A
-  1115                                  ;              dw 0FFh
-  1116                                  
-  1117                                  ;Realtek
-  1118                                  ;chip_ALC201a    db 'ALC201a',0dh,0ah,00h
-  1119                                  ;chip_ALC650     db 'ALC650 ',0dh,0ah,00h
-  1120                                  ;chip_ALC650D    db 'ALC650D',0dh,0ah,00h
-  1121                                  ;chip_ALC650E    db 'ALC650E',0dh,0ah,00h
-  1122                                  ;chip_ALC650F    db 'ALC650F',0dh,0ah,00h
-  1123                                  ;chip_ALC655     db 'ALC655 ',0dh,0ah,00h
-  1124                                  ;chip_ALC658     db 'ALC658 ',0dh,0ah,00h
-  1125                                  ;chip_ALC658D    db 'ALC658D',0dh,0ah,00h
-  1126                                  ;chip_ALC850     db 'ALC850 ',0dh,0ah,00h
-  1127                                  
-  1128                                  ;CMedia
-  1129                                  ;chip_CM9738     db 'CMI9738', 0dh,0ah,0
-  1130                                  ;chip_CM9739     db 'CMI9739', 0dh,0ah,0
-  1131                                  ;chip_CM9780     db 'CMI9780', 0dh,0ah,0
-  1132                                  ;chip_CM9761     db 'CMI9761', 0dh,0ah,0
-  1133                                  
-  1134                                  ;VIA
-  1135                                  ;chip_VIA1612A   db 'VIA1612A',13,10,0
-  1136                                  
-  1137                                  ; 11/11/2023
-  1138                                  msg_init_err:
-  1139 00001D71 0D0A                    	db	CR, LF
-  1140 00001D73 4143393720436F6E74-     	db	"AC97 Controller/Codec initialization error !"
-  1140 00001D7C 726F6C6C65722F436F-
-  1140 00001D85 64656320696E697469-
-  1140 00001D8E 616C697A6174696F6E-
-  1140 00001D97 206572726F722021   
-  1141 00001D9F 0D0A24                  	db	CR, LF, "$"
-  1142                                  
-  1143                                  ; 12/11/2023
-  1144                                  msg_no_vra:
-  1145 00001DA2 0D0A                    	db	CR, LF
-  1146 00001DA4 4E6F20565241207375-     	db	"No VRA support ! Only 48 kHZ sample rate supported !"
-  1146 00001DAD 70706F72742021204F-
-  1146 00001DB6 6E6C79203438206B48-
-  1146 00001DBF 5A2073616D706C6520-
-  1146 00001DC8 726174652073757070-
-  1146 00001DD1 6F727465642021     
-  1147 00001DD8 0D0A24                  	db	CR, LF, "$"
-  1148                                  
-  1149                                  ; 17/02/2017
-  1150                                  bss_start:
-  1151                                  
-  1152                                  ABSOLUTE bss_start
-  1153                                  
-  1154 00001DDB ??                      alignb 2
-  1155                                  
-  1156                                  ; 28/11/2016
-  1157                                  
-  1158 00001DDC <res 1Ch>               smpRBuff:	resw 14 ; 19/11/2016 - Erdogan Tan
-  1159                                  
-  1160 00001DF8 ????                    filehandle:	resw 1
-  1161                                  
-  1162 00001DFA ??                      flags:		resb 1
-  1163                                  ; 06/11/2023
-  1164 00001DFB ??                      ac97_int_ln_reg: resb 1
-  1165                                  
-  1166                                  ; 09/11/2023
-  1167                                  ; 06/11/2023
-  1168                                  ;pcm_irq_status: resb 1	; 05/11/2023
-  1169 00001DFC ??                      inside:		resb 1
-  1170 00001DFD ??                      tloop:		resb 1	; 10/11/2023
-  1171                                  
-  1172                                  ; 09/11/2023
-  1173                                  ; 04/11/2023 - 06/11/2023
-  1174 00001DFE ????                    IRQ_status:	resw 1	; IRQ status before enabling audio interrupt
-  1175 00001E00 ????????                IRQ_vector:	resd 1  ; Previous interrupt handler address
-  1176                                  
-  1177                                  ; 17/02/2017
-  1178                                  ; NAMBAR:  Native Audio Mixer Base Address Register
-  1179                                  ;    (ICH, Audio D31:F5, PCI Config Space) Address offset: 10h-13h
-  1180                                  ; NABMBAR: Native Audio Bus Mastering Base Address register
-  1181                                  ;    (ICH, Audio D31:F5, PCI Config Space) Address offset: 14h-17h
-  1182 00001E04 ????                    NAMBAR:		resw 1			; BAR for mixer
-  1183 00001E06 ????                    NABMBAR:	resw 1			; BAR for bus master regs
-  1184                                  
-  1185                                  ; 256 byte buffer for descriptor list
-  1186 00001E08 ????                    BDL_BUFFER:	resw 1			; segment of our 256byte BDL buffer
-  1187 00001E0A ????                    WAV_BUFFER1:	resw 1			; segment of our WAV storage
-  1188                                  ; 64k buffers for wav file storage
-  1189 00001E0C ????                    WAV_BUFFER2:	resw 1			; segment of 2nd wav buffer
-  1190                                  
-  1191                                  ; 06/11/2023
-  1192                                  ;tBuff:		resb 1
-  1193                                  ;ac97_int_ln_reg: resb 1
-  1194                                  
-  1195                                  ; 12/11/2016 - Erdogan Tan
-  1196                                  
-  1197 00001E0E ????????                bus_dev_fn:	resd 1
-  1198 00001E12 ????????                dev_vendor:	resd 1
-  1199                                  ; 06/11/2023
-  1200                                  ;stats_cmd:	resw 1 ; 17/02/2017
-  1201                                  ; 05/11/2023
-  1202                                  ;ac97_io_base:	resw 1
-  1203 00001E16 ????                    sample_rate:	resw 1
-  1204                                  
-  1205                                  ; 19/11/2016
-  1206 00001E18 ????                    stmo:		resw 1
-  1207 00001E1A ????                    bps:		resw 1
-  1208                                  
-  1209                                  ; 08/11/2023
-  1210                                  ; 07/11/2023
-  1211 00001E1C ??                      fbs_shift:	resb 1
-  1212                                  ; 09/11/2023
-  1213 00001E1D ??                      b_indicator:	resb 1
-  1214                                  ; 10/11/2023
-  1215 00001E1E ??                      LVI:		resb 1
-  1216 00001E1F ??                      		resb 1 ; 10/11/2023 
-  1217                                  
-  1218                                  ;fbs_seg:	resw 1
-  1219                                  ;fbs_off:	resw 1
-  1220                                  
-  1221                                  ;alignb 2
-  1222                                  
-  1223                                  ; 32 kilo bytes for temporay buffer
-  1224                                  ; (for stereo-mono, 8bit/16bit corrections)
-  1225                                  ;temp_buffer:	resb 32768
-  1226                                  ; 18/11/2023
-  1227 00001E20 <res DBF0h>             temp_buffer:	resb 56304  ; (44.1 kHZ stereo 14076 samples)
-  1228                                  
-  1229                                  ;alignb 16
-  1230                                  EOF:
+   743                                  	; 20/05/2024
+   744 00001BAC A804                    	test	al, LVBCI ; bit 2, 4
+   745 00001BAE 7405                    	jz	short _ih_2
+   746                                  
+   747                                  	; 19/05/2024
+   748                                  	; 15/05/2024
+   749                                  	;cmp	byte [tLoop], 1
+   750                                  	;jb	short _ih_2
+   751                                  
+   752                                  _ih_1:
+   753                                  	; 19/05/2024
+   754 00001BB0 50                      	push	ax ; ****
+   755                                  
+   756                                  	; 10/11/2023
+   757                                  	; 28/11/2016 - Erdogan Tan
+   758 00001BB1 E8BDEB                  	call	tuneLoop
+   759                                  
+   760                                  	; 19/05/2024
+   761 00001BB4 58                      	pop	ax ; ****
+   762                                  
+   763                                  	; 16/05/2024
+   764                                  _ih_2:
+   765                                  	;mov	ax, 1Ch ; FIFOE(=16)+BCIS(=8)+LVBCI(=4)
+   766 00001BB5 8B16[061E]              	mov	dx, [NABMBAR]
+   767 00001BB9 83C216                  	add	dx, PO_SR_REG
+   768 00001BBC EF                      	out	dx, ax
+   769                                  
+   770                                  ;	; 16/05/2024
+   771                                  ;	pop	eax ; ***
+   772                                  ;	
+   773                                  ;	or	eax, eax
+   774                                  ;	jz	short _ih_4
+   775                                  ;	
+   776                                  ;	mov	dx, GLOB_STS_REG
+   777                                  ;	add	dx, [NABMBAR]
+   778                                  ;	out	dx, eax
+   779                                  
+   780                                  	; 16/05/2024
+   781                                  _ih_4:
+   782                                  	; 10/11/2023
+   783                                  	;mov	al, 20h
+   784                                  	;test	byte [ac97_int_ln_reg], 8
+   785                                  	;jz	short _ih_5
+   786                                  	;out 	0A0h, al ; 20h	; EOI
+   787                                  ;_ih_5:
+   788                                  	;out	20h, al  ; 20h	; EOI
+   789                                  ;_ih_6:
+   790                                  	;pop	di
+   791                                  	;pop	si
+   792                                  	;pop	bx
+   793                                  	;pop	cx
+   794 00001BBD 5A                      	pop	dx ; **
+   795                                  	;pop	eax ; *	; 11/11/2023
+   796 00001BBE 58                      	pop	ax ; + ; 16/05/2024
+   797 00001BBF CF                      	iret
+   798                                  
+   799                                  %else
+   800                                  
+   801                                  ac97_int_handler:
+   802                                  	; 19/11/2023
+   803                                  	; 18/11/2023
+   804                                  	; 11/11/2023
+   805                                  	; 10/11/2023
+   806                                  	; 17/02/2016
+   807                                  	push	eax	; 11/11/2023
+   808                                  	push	dx
+   809                                  	; 05/11/2023
+   810                                  	;push	cx
+   811                                  	;push	bx
+   812                                  	;push	si
+   813                                  	;push	di
+   814                                  
+   815                                  ;	; 10/11/2023
+   816                                  ;	; EOI at first
+   817                                  ;	mov	al, 20h
+   818                                  ;	test	byte [ac97_int_ln_reg], 8
+   819                                  ;	jz	short _ih_0
+   820                                  ;	out 	0A0h, al ; 20h	; EOI
+   821                                  ;_ih_0:
+   822                                  ;	out	20h, al  ; 20h	; EOI
+   823                                  
+   824                                  	; 11/11/2023
+   825                                  	; 09/11/2023
+   826                                  	mov	dx, GLOB_STS_REG
+   827                                          add	dx, [NABMBAR]
+   828                                  	in	eax, dx
+   829                                  	
+   830                                  	; 09/11/2023,
+   831                                          cmp	eax, 0FFFFFFFFh ; -1
+   832                                  	je	short _ih_2
+   833                                  	
+   834                                  	test	al, 40h		; PCM Out Interrupt
+   835                                  	jnz	short _ih_1
+   836                                  
+   837                                  	test	eax, eax
+   838                                  	jz	short _ih_2
+   839                                  
+   840                                   	;mov	dx, GLOB_STS_REG
+   841                                          ;add	dx, [NABMBAR]
+   842                                  	out	dx, eax
+   843                                  	jmp	short _ih_2
+   844                                  _ih_1:
+   845                                  	; 11/11/2023
+   846                                  	push	eax
+   847                                  
+   848                                  	;mov	ax, 1Ch ; FIFOE(=16)+BCIS(=8)+LVBCI(=4)
+   849                                  	;mov	dx, PO_SR_REG
+   850                                          ;add	dx, [NABMBAR]
+   851                                  	;out	dx, ax
+   852                                  
+   853                                  	; 10/11/2023
+   854                                  	; 28/11/2016 - Erdogan Tan
+   855                                  	call	tuneLoop
+   856                                  
+   857                                  	; 11/11/2023
+   858                                  	pop	eax
+   859                                  	
+   860                                  	mov	dx, GLOB_STS_REG
+   861                                          add	dx, [NABMBAR]
+   862                                  	out	dx, eax
+   863                                  _ih_2:
+   864                                  	; 11/11/2023
+   865                                  	mov	dx, [NABMBAR]
+   866                                  	add	dx, PO_SR_REG	; set pointer to Status reg
+   867                                  	mov	ax, 1Ch ; clear FIFOE, BCIS, LVBCI
+   868                                  	out	dx, ax
+   869                                  
+   870                                  _ih_3:	; 19/11/2023
+   871                                  	mov	al, 20h
+   872                                  	test	byte [ac97_int_ln_reg], 8
+   873                                  	jz	short _ih_0
+   874                                  	out 	0A0h, al ; 20h	; EOI
+   875                                  _ih_0:
+   876                                  	out	20h, al  ; 20h	; EOI
+   877                                  
+   878                                  	pop	dx
+   879                                  	pop	eax
+   880                                  	iret
+   881                                  
+   882                                  %endif
+   883                                  
+   884                                  ac97_stop:
+   885                                  	; 11/11/2023
+   886                                  	; 09/11/2023
+   887                                  	; 05/11/2023
+   888                                  	; 04/11/2023 
+   889                                  	; 28/05/2017 (TRDOS 386 v2, 'audio.s')
+   890                                  	;mov	byte [tLoop], 0 ; stop ! ; 05/11/2023
+   891                                  ;_ac97_stop:
+   892                                  
+   893                                  	; 11/11/2023
+   894 00001BC0 8B16[041E]              	mov	dx, [NAMBAR]
+   895                                  	;add	dx, 0 ; ac_reg_0 ; reset register
+   896 00001BC4 EF                      	out	dx, ax
+   897                                  
+   898                                  	; 04/11/2023
+   899                                  	; 09/10/2017 (TRDOS 386 v2, 'audio.s')
+   900                                  	; 11/06/2017
+   901 00001BC5 30C0                    	xor	al, al ; 0
+   902 00001BC7 E80D00                  	call	ac97_po_cmd
+   903                                  
+   904                                  	; (Ref: KolibriOS, intelac97.asm, 'stop:')
+   905                                  	; Clear FIFOE, BCIS, LVBCI (Ref: Intel ICH hub manual)
+   906 00001BCA B81C00                  	mov     ax, 1Ch
+   907 00001BCD 8B16[061E]              	mov     dx, [NABMBAR]
+   908 00001BD1 83C216                  	add     dx, PO_SR_REG
+   909 00001BD4 EF                      	out     dx, ax
+   910                                  
+   911                                  	; 11/06/2017
+   912 00001BD5 B002                    	mov     al, RR
+   913                                  ac97_po_cmd:
+   914                                  	; 11/06/2017
+   915                                  	; 29/05/2017
+   916 00001BD7 8B16[061E]              	mov     dx, [NABMBAR]
+   917 00001BDB 83C21B                          add     dx, PO_CR_REG		; PCM out control register
+   918 00001BDE EE                      	out	dx, al
+   919 00001BDF C3                      	retn
+   920                                  
+   921                                  print_msg:
+   922                                  	; 13/11/2016 - Erdogan Tan 
+   923                                  	; esi = ASCIIZ text address
+   924                                  	;
+   925 00001BE0 BB0700                  	mov	bx, 7h
+   926 00001BE3 B40E                    	mov	ah, 0Eh 
+   927                                  pm_next_char:
+   928 00001BE5 AC                      	lodsb
+   929 00001BE6 20C0                    	and	al, al
+   930 00001BE8 7404                    	jz	short pm_retn
+   931 00001BEA CD10                    	int	10h
+   932 00001BEC EBF7                    	jmp	short pm_next_char
+   933                                  pm_retn:
+   934 00001BEE C3                      	retn
+   935                                  
+   936                                  ; 06/11/2023
+   937                                  ;dword2str:
+   938                                  ;	; 13/11/2016 - Erdogan Tan
+   939                                  ;	; eax = dword value
+   940                                  ;	;
+   941                                  ;	call	dwordtohex
+   942                                  ;	mov	[dword_str], edx
+   943                                  ;	mov	[dword_str+4], eax
+   944                                  ;	mov	si, dword_str
+   945                                  ;	retn
+   946                                  
+   947                                  	; trdos386.s (unix386.s) - 10/05/2015
+   948                                  	; Convert binary number to hexadecimal string
+   949                                  
+   950                                  bytetohex:
+   951                                  	; INPUT ->
+   952                                  	; 	AL = byte (binary number)
+   953                                  	; OUTPUT ->
+   954                                  	;	AX = hexadecimal string
+   955                                  	;
+   956 00001BEF 53                      	push	bx
+   957 00001BF0 30FF                    	xor	bh, bh
+   958 00001BF2 88C3                    	mov	bl, al
+   959 00001BF4 C0EB04                  	shr	bl, 4
+   960 00001BF7 8A9F[8A1C]              	mov	bl, [bx+hex_chars]
+   961 00001BFB 86D8                    	xchg	bl, al
+   962 00001BFD 80E30F                  	and	bl, 0Fh
+   963 00001C00 8AA7[8A1C]              	mov	ah, [bx+hex_chars]
+   964 00001C04 5B                      	pop	bx	
+   965 00001C05 C3                      	retn
+   966                                  
+   967                                  wordtohex:
+   968                                  	; INPUT ->
+   969                                  	; 	AX = word (binary number)
+   970                                  	; OUTPUT ->
+   971                                  	;	EAX = hexadecimal string
+   972                                  	;
+   973 00001C06 53                      	push	bx
+   974 00001C07 30FF                    	xor	bh, bh
+   975 00001C09 86E0                    	xchg	ah, al
+   976 00001C0B 50                      	push	ax
+   977 00001C0C 88E3                    	mov	bl, ah
+   978 00001C0E C0EB04                  	shr	bl, 4
+   979 00001C11 8A87[8A1C]              	mov	al, [bx+hex_chars]
+   980 00001C15 88E3                    	mov	bl, ah
+   981 00001C17 80E30F                  	and	bl, 0Fh
+   982 00001C1A 8AA7[8A1C]              	mov	ah, [bx+hex_chars]
+   983 00001C1E 66C1E010                	shl	eax, 16
+   984 00001C22 58                      	pop	ax
+   985 00001C23 5B                      	pop	bx
+   986 00001C24 EBC9                    	jmp	short bytetohex
+   987                                  
+   988                                  ; 06/11/2023
+   989                                  ;dwordtohex:
+   990                                  ;	; INPUT ->
+   991                                  ;	; 	EAX = dword (binary number)
+   992                                  ;	; OUTPUT ->
+   993                                  ;	;	EDX:EAX = hexadecimal string
+   994                                  ;	;
+   995                                  ;	push	eax
+   996                                  ;	shr	eax, 16
+   997                                  ;	call	wordtohex
+   998                                  ;	mov	edx, eax
+   999                                  ;	pop	eax
+  1000                                  ;	call	wordtohex
+  1001                                  ;	retn
+  1002                                  
+  1003                                  _DATA:
+  1004                                  
+  1005                                  ; 24/11/2016
+  1006                                  ;	IRQ  0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15 
+  1007 00001C26 08090A0B0C0D0E0F70-     irq_int	 db 08h,09h,0Ah,0Bh,0Ch,0Dh,0Eh,0Fh,70h,71h,72h,73h,74h,75h,76h,77h
+  1007 00001C2F 71727374757677     
+  1008                                  
+  1009                                  ; 17/02/2017
+  1010                                  ; Valid ICH device IDs
+  1011                                  
+  1012                                  valid_ids:
+  1013 00001C36 86801524                dd	(ICH_DID << 16) + INTEL_VID  	 ; 8086h:2415h
+  1014 00001C3A 86802524                dd	(ICH0_DID << 16) + INTEL_VID 	 ; 8086h:2425h
+  1015 00001C3E 86804524                dd	(ICH2_DID << 16) + INTEL_VID 	 ; 8086h:2445h
+  1016 00001C42 86808524                dd	(ICH3_DID << 16) + INTEL_VID 	 ; 8086h:2485h
+  1017 00001C46 8680C524                dd	(ICH4_DID << 16) + INTEL_VID 	 ; 8086h:24C5h
+  1018 00001C4A 8680D524                dd	(ICH5_DID << 16) + INTEL_VID 	 ; 8086h:24D5h
+  1019 00001C4E 86806E26                dd	(ICH6_DID << 16) + INTEL_VID 	 ; 8086h:266Eh
+  1020 00001C52 8680A625                dd	(ESB6300_DID << 16) + INTEL_VID  ; 8086h:25A6h
+  1021 00001C56 86809826                dd	(ESB631X_DID << 16) + INTEL_VID  ; 8086h:2698h
+  1022 00001C5A 8680DE27                dd	(ICH7_DID << 16) + INTEL_VID 	 ; 8086h:27DEh
+  1023                                  ; 03/11/2023 - Erdogan Tan
+  1024 00001C5E 86809571                dd	(MX82440_DID << 16) + INTEL_VID  ; 8086h:7195h
+  1025 00001C62 39101270                dd	(SI7012_DID << 16)  + SIS_VID	 ; 1039h:7012h
+  1026 00001C66 DE10B101                dd 	(NFORCE_DID << 16)  + NVIDIA_VID ; 10DEh:01B1h
+  1027 00001C6A DE106A00                dd 	(NFORCE2_DID << 16) + NVIDIA_VID ; 10DEh:006Ah
+  1028 00001C6E 22106D74                dd 	(AMD8111_DID << 16) + AMD_VID 	 ; 1022h:746Dh
+  1029 00001C72 22104574                dd 	(AMD768_DID << 16)  + AMD_VID 	 ; 1022h:7445h
+  1030 00001C76 DE105900                dd 	(CK804_DID << 16) + NVIDIA_VID	 ; 10DEh:0059h
+  1031 00001C7A DE103A00                dd 	(MCP04_DID << 16) + NVIDIA_VID	 ; 10DEh:003Ah
+  1032 00001C7E DE108A00                dd 	(CK8_DID << 16) + NVIDIA_VID	 ; 1022h:008Ah
+  1033 00001C82 DE10DA00                dd 	(NFORCE3_DID << 16) + NVIDIA_VID ; 10DEh:00DAh
+  1034 00001C86 DE10EA00                dd 	(CK8S_DID << 16) + NVIDIA_VID	 ; 10DEh:00EAh
+  1035                                  
+  1036                                  valid_id_count:	equ ($ - valid_ids)>>2 ; 05/11/2023
+  1037                                  
+  1038                                  ; 13/11/2016
+  1039 00001C8A 303132333435363738-     hex_chars	db "0123456789ABCDEF", 0
+  1039 00001C93 3941424344454600   
+  1040 00001C9B 414339372041756469-     msgAC97Info	db "AC97 Audio Controller & Codec Info", 0Dh, 0Ah 
+  1040 00001CA4 6F20436F6E74726F6C-
+  1040 00001CAD 6C6572202620436F64-
+  1040 00001CB6 656320496E666F0D0A 
+  1041 00001CBF 56656E646F72204944-     		db "Vendor ID: "
+  1041 00001CC8 3A20               
+  1042 00001CCA 303030306820446576-     msgVendorId	db "0000h Device ID: "
+  1042 00001CD3 6963652049443A20   
+  1043 00001CDB 30303030680D0A          msgDevId	db "0000h", 0Dh, 0Ah
+  1044 00001CE2 4275733A20              		db "Bus: "
+  1045 00001CE7 303068204465766963-     msgBusNo	db "00h Device: "
+  1045 00001CF0 653A20             
+  1046 00001CF3 3030682046756E6374-     msgDevNo	db "00h Function: "
+  1046 00001CFC 696F6E3A20         
+  1047 00001D01 303068                  msgFncNo	db "00h"
+  1048 00001D04 0D0A                    		db 0Dh, 0Ah
+  1049                                  ; 05/11/2023	
+  1050 00001D06 4E414D4241523A20        		db "NAMBAR: "
+  1051 00001D0E 303030306820            msgNamBar	db "0000h "
+  1052 00001D14 4E41424D4241523A20      		db "NABMBAR: "
+  1053 00001D1D 303030306820495251-     msgNabmBar	db "0000h IRQ: "
+  1053 00001D26 3A20               
+  1054 00001D28 3030                    msgIRQ		dw 3030h
+  1055 00001D2A 0D0A24                  		db 0Dh, 0Ah, "$"
+  1056 00001D2D 53616D706C65205261-     msgSampleRate	db "Sample Rate: "
+  1056 00001D36 74653A20           
+  1057 00001D3A 303030303020487A20-     msgHertz	db "00000 Hz ", "$" 
+  1057 00001D43 24                 
+  1058 00001D44 3820626974732024        msg8Bits	db "8 bits ", "$" 
+  1059 00001D4C 4D6F6E6F0D0A24          msgMono		db "Mono", 0Dh, 0Ah, "$"
+  1060 00001D53 313620626974732024      msg16Bits	db "16 bits ", "$" 
+  1061 00001D5C 53746572656F0D0A24      msgStereo	db "Stereo", 0Dh, 0Ah, "$"
+  1062                                  
+  1063                                  ;; 13/11/2016 - Erdogan Tan (Ref: KolibriOS, codec.inc)
+  1064                                  ;codec_id	dd 0
+  1065                                  ;codec_chip_id	dd 0
+  1066                                  ;codec_vendor_ids dw 0
+  1067                                  ;codec_chip_ids	dw 0
+  1068                                  
+  1069 00001D65 3030303030303030        dword_str	 dd 30303030h, 30303030h
+  1070 00001D6D 680D0A00                		 db 'h', 0Dh, 0Ah, 0
+  1071                                  
+  1072                                  ;ac_unknown     db 'unknown manufacturer',13,10,0
+  1073                                  ;ac_Realtek     db 'Realtek Semiconductor',13,10,0
+  1074                                  ;ac_Analog      db 'Analog Devices',13,10,0
+  1075                                  ;ac_CMedia      db 'C-Media Electronics',13,10,0
+  1076                                  ;ac_Cirrus      db 'Cirrus Logic',13,10,0
+  1077                                  ;ac_Wolfson     db 'Wolfson Microelectronics',13,10,0
+  1078                                  ;ac_VIA         db 'VIA Technologies',13,10,0
+  1079                                  ;ac_SigmaTel    db 'SigmaTel',13,10,0
+  1080                                  ;ac_eMicro      db 'eMicro',13,10,0
+  1081                                  ;
+  1082                                  ;chip_unknown   db 'unknown codec id ', 0
+  1083                                  
+  1084                                  ;CHIP_REALTEK   equ 414C4700h
+  1085                                  ;CHIP_CMEDIA    equ 434D4900h
+  1086                                  ;CHIP_VIA       equ 56494100h
+  1087                                  
+  1088                                  ;codecs        dd CHIP_CMEDIA
+  1089                                  ;	       dw ac_CMedia, chips_CMedia
+  1090                                  ;              dd CHIP_REALTEK
+  1091                                  ;	       dw ac_Realtek, chips_Realtek
+  1092                                  ;              dd CHIP_VIA
+  1093                                  ;	       dw ac_VIA, chips_VIA
+  1094                                  ;              dd 0
+  1095                                  
+  1096                                  ;chips_Realtek dw 10h, chip_ALC201a
+  1097                                  ;              dw 20h, chip_ALC650
+  1098                                  ;              dw 21h, chip_ALC650D
+  1099                                  ;              dw 22h, chip_ALC650E
+  1100                                  ;              dw 23h, chip_ALC650F
+  1101                                  ;              dw 60h, chip_ALC655
+  1102                                  ;              dw 80h, chip_ALC658
+  1103                                  ;              dw 81h, chip_ALC658D
+  1104                                  ;              dw 90h, chip_ALC850
+  1105                                  ;              dw 0FFh
+  1106                                  
+  1107                                  ;chips_CMedia  dw 41h, chip_CM9738
+  1108                                  ;              dw 61h, chip_CM9739
+  1109                                  ;              dw 69h, chip_CM9780
+  1110                                  ;              dw 78h, chip_CM9761
+  1111                                  ;              dw 82h, chip_CM9761
+  1112                                  ;              dw 83h, chip_CM9761
+  1113                                  ;              dw 0FFh
+  1114                                  
+  1115                                  ;chips_VIA     dw 61h, chip_VIA1612A
+  1116                                  ;              dw 0FFh
+  1117                                  
+  1118                                  ;Realtek
+  1119                                  ;chip_ALC201a    db 'ALC201a',0dh,0ah,00h
+  1120                                  ;chip_ALC650     db 'ALC650 ',0dh,0ah,00h
+  1121                                  ;chip_ALC650D    db 'ALC650D',0dh,0ah,00h
+  1122                                  ;chip_ALC650E    db 'ALC650E',0dh,0ah,00h
+  1123                                  ;chip_ALC650F    db 'ALC650F',0dh,0ah,00h
+  1124                                  ;chip_ALC655     db 'ALC655 ',0dh,0ah,00h
+  1125                                  ;chip_ALC658     db 'ALC658 ',0dh,0ah,00h
+  1126                                  ;chip_ALC658D    db 'ALC658D',0dh,0ah,00h
+  1127                                  ;chip_ALC850     db 'ALC850 ',0dh,0ah,00h
+  1128                                  
+  1129                                  ;CMedia
+  1130                                  ;chip_CM9738     db 'CMI9738', 0dh,0ah,0
+  1131                                  ;chip_CM9739     db 'CMI9739', 0dh,0ah,0
+  1132                                  ;chip_CM9780     db 'CMI9780', 0dh,0ah,0
+  1133                                  ;chip_CM9761     db 'CMI9761', 0dh,0ah,0
+  1134                                  
+  1135                                  ;VIA
+  1136                                  ;chip_VIA1612A   db 'VIA1612A',13,10,0
+  1137                                  
+  1138                                  ; 11/11/2023
+  1139                                  msg_init_err:
+  1140 00001D71 0D0A                    	db	CR, LF
+  1141 00001D73 4143393720436F6E74-     	db	"AC97 Controller/Codec initialization error !"
+  1141 00001D7C 726F6C6C65722F436F-
+  1141 00001D85 64656320696E697469-
+  1141 00001D8E 616C697A6174696F6E-
+  1141 00001D97 206572726F722021   
+  1142 00001D9F 0D0A24                  	db	CR, LF, "$"
+  1143                                  
+  1144                                  ; 12/11/2023
+  1145                                  msg_no_vra:
+  1146 00001DA2 0D0A                    	db	CR, LF
+  1147 00001DA4 4E6F20565241207375-     	db	"No VRA support ! Only 48 kHZ sample rate supported !"
+  1147 00001DAD 70706F72742021204F-
+  1147 00001DB6 6E6C79203438206B48-
+  1147 00001DBF 5A2073616D706C6520-
+  1147 00001DC8 726174652073757070-
+  1147 00001DD1 6F727465642021     
+  1148 00001DD8 0D0A24                  	db	CR, LF, "$"
+  1149                                  
+  1150                                  ; 17/02/2017
+  1151                                  bss_start:
+  1152                                  
+  1153                                  ABSOLUTE bss_start
+  1154                                  
+  1155 00001DDB ??                      alignb 2
+  1156                                  
+  1157                                  ; 28/11/2016
+  1158                                  
+  1159 00001DDC <res 1Ch>               smpRBuff:	resw 14 ; 19/11/2016 - Erdogan Tan
+  1160                                  
+  1161 00001DF8 ????                    filehandle:	resw 1
+  1162                                  
+  1163 00001DFA ??                      flags:		resb 1
+  1164                                  ; 06/11/2023
+  1165 00001DFB ??                      ac97_int_ln_reg: resb 1
+  1166                                  
+  1167                                  ; 09/11/2023
+  1168                                  ; 06/11/2023
+  1169                                  ;pcm_irq_status: resb 1	; 05/11/2023
+  1170 00001DFC ??                      inside:		resb 1
+  1171 00001DFD ??                      tloop:		resb 1	; 10/11/2023
+  1172                                  
+  1173                                  ; 09/11/2023
+  1174                                  ; 04/11/2023 - 06/11/2023
+  1175 00001DFE ????                    IRQ_status:	resw 1	; IRQ status before enabling audio interrupt
+  1176 00001E00 ????????                IRQ_vector:	resd 1  ; Previous interrupt handler address
+  1177                                  
+  1178                                  ; 17/02/2017
+  1179                                  ; NAMBAR:  Native Audio Mixer Base Address Register
+  1180                                  ;    (ICH, Audio D31:F5, PCI Config Space) Address offset: 10h-13h
+  1181                                  ; NABMBAR: Native Audio Bus Mastering Base Address register
+  1182                                  ;    (ICH, Audio D31:F5, PCI Config Space) Address offset: 14h-17h
+  1183 00001E04 ????                    NAMBAR:		resw 1			; BAR for mixer
+  1184 00001E06 ????                    NABMBAR:	resw 1			; BAR for bus master regs
+  1185                                  
+  1186                                  ; 256 byte buffer for descriptor list
+  1187 00001E08 ????                    BDL_BUFFER:	resw 1			; segment of our 256byte BDL buffer
+  1188 00001E0A ????                    WAV_BUFFER1:	resw 1			; segment of our WAV storage
+  1189                                  ; 64k buffers for wav file storage
+  1190 00001E0C ????                    WAV_BUFFER2:	resw 1			; segment of 2nd wav buffer
+  1191                                  
+  1192                                  ; 06/11/2023
+  1193                                  ;tBuff:		resb 1
+  1194                                  ;ac97_int_ln_reg: resb 1
+  1195                                  
+  1196                                  ; 12/11/2016 - Erdogan Tan
+  1197                                  
+  1198 00001E0E ????????                bus_dev_fn:	resd 1
+  1199 00001E12 ????????                dev_vendor:	resd 1
+  1200                                  ; 06/11/2023
+  1201                                  ;stats_cmd:	resw 1 ; 17/02/2017
+  1202                                  ; 05/11/2023
+  1203                                  ;ac97_io_base:	resw 1
+  1204 00001E16 ????                    sample_rate:	resw 1
+  1205                                  
+  1206                                  ; 19/11/2016
+  1207 00001E18 ????                    stmo:		resw 1
+  1208 00001E1A ????                    bps:		resw 1
+  1209                                  
+  1210                                  ; 08/11/2023
+  1211                                  ; 07/11/2023
+  1212 00001E1C ??                      fbs_shift:	resb 1
+  1213                                  ; 09/11/2023
+  1214 00001E1D ??                      b_indicator:	resb 1
+  1215                                  ; 10/11/2023
+  1216 00001E1E ??                      LVI:		resb 1
+  1217 00001E1F ??                      		resb 1 ; 10/11/2023 
+  1218                                  
+  1219                                  ;fbs_seg:	resw 1
+  1220                                  ;fbs_off:	resw 1
+  1221                                  
+  1222                                  ;alignb 2
+  1223                                  
+  1224                                  ; 32 kilo bytes for temporay buffer
+  1225                                  ; (for stereo-mono, 8bit/16bit corrections)
+  1226                                  ;temp_buffer:	resb 32768
+  1227                                  ; 18/11/2023
+  1228 00001E20 <res DBF0h>             temp_buffer:	resb 56304  ; (44.1 kHZ stereo 14076 samples)
+  1229                                  
+  1230                                  ;alignb 16
+  1231                                  EOF:
