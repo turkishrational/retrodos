@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RETRODOS.SYS (PCDOS 7.1 Kernel) - RETRO DOS v5.0 by ERDOGAN TAN - 12/09/2023
 ; ----------------------------------------------------------------------------
-; Last Update: 27/06/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
+; Last Update: 28/06/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0), 01/10/2022 (Retro DOS 4.2)
 ; ----------------------------------------------------------------------------
@@ -45050,7 +45050,7 @@ IBMDOS_BIN_OFFSET: ; this offset must be paragraph aligned
 		; 04/01/2023
 		;incbin	'MSDOS6.BIN' ; Retro DOS 4.2 - MSDOS 6.21+ KERNEL		
 		
-		; 27/06/2024
+		; 28/06/2024
 		; 14/04/2024
 		; 02/10/2023 - Retro DOS v5.0 - PCDOS 7.1 KERNEL		 
 		incbin	'IBMDOS7.BIN'

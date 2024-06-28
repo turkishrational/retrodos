@@ -1,7 +1,7 @@
 ;*****************************************************************************
 ; IBMDOS7.S (PCDOS 7.1 Kernel) - RETRO DOS v5.0 by ERDOGAN TAN - 01/01/2024
 ; ----------------------------------------------------------------------------
-; Last Update: 27/06/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
+; Last Update: 28/06/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
 ; ----------------------------------------------------------------------------
 ; Beginning: 22/04/2019 (Retro DOS 4.0), 03/11/2022 (Retro DOS 4.2)
 ; ----------------------------------------------------------------------------
@@ -33765,8 +33765,6 @@ figrec_retn:
 ; 30/07/2018 - Retro DOS v3.0
 ; IBMDOS.COM (MSDOS 3.3, 1987) - Offset
 
-; Burada Kaldým... 28/06/2024 
-
 ;Break   <ALLOCATE -- Assign disk space>
 ;---------------------------------------------------------------------------
 ;
@@ -34149,6 +34147,7 @@ ads8:
 	
 	push	bx
 	push	word [CLUSTNUM_HW]
+	
 	push	dx
 	push	word [CLUSDATA_HW]
 
@@ -34450,7 +34449,7 @@ RESTFATBYT:
 	;;;
 	;push	word [CLUSTNUM_HW]
 	;push	word [CLUSDATA_HW]
-	;push	word [CCONTENT_HW]  ; (not necessary ?)
+	;push	word [CCONTENT_HW]  ; (*) (not necessary ?)
 	mov	[CLUSTNUM_HW],bx ; 0
 	mov	dx,[FATBYT_HW]
 	mov	[CLUSDATA_HW],dx
@@ -34463,9 +34462,10 @@ RESTFATBYT:
 	; 27/02/2024 - Retro DOS v5.0
 	; (PCDOS 7.1 IBMDOS.COM)
 	;;;
-	pop	word [CCONTENT_HW]
-	pop	word [CLUSDATA_HW]
-	pop	word [CLUSTNUM_HW]
+	; 28/06/2024 ; (*)
+	;pop	word [CCONTENT_HW]
+	;pop	word [CLUSDATA_HW]
+	;pop	word [CLUSTNUM_HW]
 	;;;
 
         POP     DI
@@ -34750,6 +34750,8 @@ EXTBIT		EQU	8
 
 	; (MSDOS 6.22 MSDOS.SYS - DOSCODE:8ED3h)
 	; (Windows ME IO.SYS - BIOSCODE:8D92h)
+
+; Burada Kaldým - 28/06/2024
 
 MAKEFCB:
 ;hkn; SS override
