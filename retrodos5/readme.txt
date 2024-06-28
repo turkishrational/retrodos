@@ -1,7 +1,7 @@
 Retro DOS v5.0 (Modified PCDOS 7.1) Source Code (Not ready yet...) 27/12/2023 - Erdogan Tan
-Last Update: 27/6/2024 (PCDOS 7.1 COMMAND.COM is running with Retro DOS v5 PCDOS.SYS -includes the new IBMDOS7.BIN as part of Retro DOS v5-)
+Last Update: 28/6/2024 (PCDOS 7.1 COMMAND.COM is running with Retro DOS v5 PCDOS.SYS -includes the new IBMDOS7.BIN as part of Retro DOS v5-)
         ((But original IBMDOS.COM is needed for now... because 'ibmdos7.s' source code has defects and 3/4 of it has been verified-corrected.))
-        (((Recent test diskette image: rd5fd_27_6_2024.zip))) (((Usable diskette image: R5.IMG, 8/5/2024 -original IBMDOS.COM-)))
+        (((Recent test diskette image: R5.IMG))) (((Usable diskette image: R50.IMG, 8/5/2024 -original IBMDOS.COM-)))
 Previous Update: 4/5/2024 (bootable disk image, IBMBIO.COM and IBMDOS.COM source code, retrodos5.s, PCDOS.SYS, boot sectors, installation/format programs) 
 
 *** Tested on a Real Computer (runs Windows 7) with a disk contains FAT32 and FAT16 logical drives in extended dos partition) ****
