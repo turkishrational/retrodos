@@ -4,7 +4,7 @@
      4                                  ; ----------------------------------------------------------------------------
      5                                  ; Only for 1.44MB (3.5") Floppy Disks
      6                                  ; ****************************************************************************
-     7                                  ; Last Update: 20/04/2024
+     7                                  ; Last Update: 10/07/2024
      8                                  ; ----------------------------------------------------------------------------
      9                                  ; Beginning: 11/02/2018
     10                                  ; ----------------------------------------------------------------------------
@@ -41,7 +41,7 @@
     41                                  	;mov	sp, 0FFFEh
     42                                  	;sti
     43                                  	
-    44 00000000 BB[730B]                	mov	bx, SizeOfFile+100
+    44 00000000 BB[750B]                	mov	bx, SizeOfFile+100
     45 00000003 83C30F                          add	bx, 15
     46 00000006 D1EB                            shr	bx, 1
     47 00000008 D1EB                            shr	bx, 1
@@ -68,7 +68,7 @@
     68                                  	
     69                                  	; check fd image file name
     70                                  R_02:
-    71 00000025 BF[660B]                       	mov	di, img_file_name
+    71 00000025 BF[680B]                       	mov	di, img_file_name
     72 00000028 AA                      	stosb
     73                                  R_03:
     74 00000029 AC                      	lodsb
@@ -76,7 +76,7 @@
     76 0000002A 3C20                    	cmp	al, 20h ; ' '
     77 0000002C 760C                    	jna	short R_04
     78 0000002E AA                      	stosb
-    79 0000002F 81FF[720B]              	cmp	di, img_file_name + 12
+    79 0000002F 81FF[740B]              	cmp	di, img_file_name + 12
     80 00000033 72F4                    	jb	short R_03
     81 00000035 803C20                  	cmp	byte [si], 20h 
     82 00000038 773F                    	ja	short R_11
@@ -88,7 +88,7 @@
     88                                  ; File name capitalization
     89                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     90                                  
-    91 0000003A BE[660B]                	mov	si, img_file_name
+    91 0000003A BE[680B]                	mov	si, img_file_name
     92 0000003D 89F7                    	mov	di, si
     93 0000003F 89F3                    	mov	bx, si
     94                                  R_05:
@@ -115,7 +115,7 @@
    115 0000005F 39FB                    	cmp	bx, di
    116 00000061 7316                    	jnb	short R_11
    117 00000063 29DF                    	sub	di, bx
-   118 00000065 81EB[660B]              	sub	bx, img_file_name
+   118 00000065 81EB[680B]              	sub	bx, img_file_name
    119 00000069 83FF03                  	cmp	di, 3
    120 0000006C 7606                    	jna	short R_09
    121 0000006E 21DB                    	and	bx, bx
@@ -125,7 +125,7 @@
    125 00000074 83FB08                  	cmp	bx, 8
    126 00000077 7608                    	jna	short R_10
    127                                  R_11:
-   128 00000079 BE[DA05]                	mov	si, msg_inv_file_name
+   128 00000079 BE[DC05]                	mov	si, msg_inv_file_name
    129                                  R_12:	
    130 0000007C E8B201                  	call	print_msg
    131 0000007F EB57                    	jmp	short R_16
@@ -135,7 +135,7 @@
    135                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    136                                  	
    137                                  R_10:
-   138 00000081 BA[660B]                	mov	dx, img_file_name
+   138 00000081 BA[680B]                	mov	dx, img_file_name
    139 00000084 B93F00                  	mov	cx, 3Fh ; File Attributes
    140 00000087 B44E                    	mov	ah, 4Eh ; MS-DOS Function = Find First File
    141 00000089 CD21                    	int	21h
@@ -161,13 +161,13 @@
    161                                  ; Overwrite question
    162                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    163                                  
-   164 000000A4 BE[6606]                	mov	si, msg_overwrite_question1
+   164 000000A4 BE[6806]                	mov	si, msg_overwrite_question1
    165 000000A7 E88701                  	call	print_msg
    166 000000AA BE9E00                  	mov	si, DTA_FileName
    167 000000AD E88101                  	call	print_msg
-   168 000000B0 BE[8306]                	mov	si, msg_overwrite_question2
+   168 000000B0 BE[8506]                	mov	si, msg_overwrite_question2
    169 000000B3 E87B01                  	call	print_msg
-   170 000000B6 BE[8B06]                	mov	si, msg_yes_no
+   170 000000B6 BE[8D06]                	mov	si, msg_yes_no
    171 000000B9 E87501                  	call	print_msg
    172                                  
    173                                  	; get answer
@@ -184,7 +184,7 @@
    184 000000CE 3C4E                    	cmp	al, 'N'			; No?
    185 000000D0 75EA                    	jne	short R_15
    186                                  					; no write (exit)  
-   187 000000D2 BE[3507]                	mov	si, Msg_NO
+   187 000000D2 BE[3707]                	mov	si, Msg_NO
    188 000000D5 E85901                  	call	print_msg
    189                                  
    190                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -192,7 +192,7 @@
    192                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    193                                  
    194                                  R_16:
-   195 000000D8 BE[2D07]                	mov	si, CRLF
+   195 000000D8 BE[2F07]                	mov	si, CRLF
    196 000000DB E85301                  	call	print_msg
    197 000000DE B8004C                  	mov	ax, 4C00h		; terminate
    198 000000E1 CD21                    	int	21h
@@ -203,12 +203,12 @@
    203 000000E9 EBED                    	jmp	short R_16 ; Exit
    204                                  
    205                                  R_18:
-   206 000000EB BE[3007]                	mov	si, Msg_YES
+   206 000000EB BE[3207]                	mov	si, Msg_YES
    207 000000EE E84001                  	call	print_msg
    208 000000F1 EB10                    	jmp	short R_21
    209                                  
    210                                  R_19:
-   211 000000F3 BE[1C06]                	mov	si, msg_inv_image_file
+   211 000000F3 BE[1E06]                	mov	si, msg_inv_image_file
    212 000000F6 EB84                    	jmp	short R_12
    213                                  
    214                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -228,7 +228,7 @@
    228                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    229                                  
    230                                  R_21:
-   231 00000103 BE[2D07]                	mov	si, CRLF
+   231 00000103 BE[2F07]                	mov	si, CRLF
    232 00000106 E82801                  	call	print_msg
    233                                  
    234                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -243,11 +243,11 @@
    243                                  
    244 00000113 A3[4505]                	mov	[img_file_handle], ax
    245                                  
-   246 00000116 BE[B606]                	mov	si, Msg_Writing_Root_Dir
+   246 00000116 BE[B806]                	mov	si, Msg_Writing_Root_Dir
    247 00000119 E81501                  	call	print_msg
    248                                  
    249 0000011C B81300                  	mov	ax, 19  ; Root Directory Address
-   250 0000011F BB[4D09]                	mov	bx, FDFORMAT_FATBUFFER_S9
+   250 0000011F BB[4F09]                	mov	bx, FDFORMAT_FATBUFFER_S9
    251                                  R_22:
    252 00000122 E81B01                  	call	write_fd_sector
    253 00000125 0F82E500                	jc	R_29
@@ -255,32 +255,32 @@
    255 0000012A 83F820                   	cmp	ax, 32 ; 19+14 = 33 (14 sectors, 224 entries)
    256 0000012D 76F3                    	jna	short R_22
    257                                  
-   258 0000012F BE[2907]                	mov	si, Msg_OK
+   258 0000012F BE[2B07]                	mov	si, Msg_OK
    259 00000132 E8FC00                  	call	print_msg
    260                                  
    261                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    262                                  ; writing data sectors
    263                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    264                                  
-   265 00000135 BE[D806]                	mov	si, Msg_Writing_Data_Sectors
+   265 00000135 BE[DA06]                	mov	si, Msg_Writing_Data_Sectors
    266 00000138 E8F600                  	call	print_msg
    267 0000013B B403                    	mov	ah, 3
    268 0000013D BB0700                  	mov	bx, 7
    269 00000140 CD10                    	int	10h ; Return Cursor Position
    270                                  	; DL = Column, DH= Line
-   271 00000142 8916[F306]              	mov	[Cursor_Pos], dx
+   271 00000142 8916[F506]              	mov	[Cursor_Pos], dx
    272 00000146 B82100                  	mov	ax, 33  ; First Data Sector
    273                                  R_23:
    274 00000149 50                      	push	ax
    275 0000014A 40                      	inc	ax ; 1 based printing of 0 based sectors
-   276 0000014B BE[F106]                	mov	si, Sector_Str + 3
+   276 0000014B BE[F306]                	mov	si, Sector_Str + 3
    277 0000014E E81401                  	call	bin_to_decimal
-   278 00000151 8B16[F306]              	mov	dx, [Cursor_Pos]
+   278 00000151 8B16[F506]              	mov	dx, [Cursor_Pos]
    279 00000155 B402                    	mov	ah, 2
    280 00000157 CD10                    	int	10h  ; Set Cursor Position
    281 00000159 E8D500                  	call	print_msg
    282 0000015C 58                      	pop	ax
-   283 0000015D BB[4A07]                	mov	bx, FDFORMAT_SECBUFFER
+   283 0000015D BB[4C07]                	mov	bx, FDFORMAT_SECBUFFER
    284 00000160 E8DD00                  	call	write_fd_sector
    285 00000163 0F82A700                	jc	R_29
    286                                  
@@ -289,31 +289,31 @@
    289 0000016B 3D400B                  	cmp	ax, 2880
    290 0000016E 72D9                    	jb	short R_23
    291                                  
-   292 00000170 BE[2607]                	mov	si, Msg_3dot_OK
+   292 00000170 BE[2807]                	mov	si, Msg_3dot_OK
    293 00000173 E8BB00                  	call	print_msg
    294                                  
    295                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    296                                  ; writing FAT sectors
    297                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    298                                  
-   299 00000176 BE[F506]                	mov	si, Msg_Writing_FAT_Sectors
+   299 00000176 BE[F706]                	mov	si, Msg_Writing_FAT_Sectors
    300 00000179 E8B500                  	call	print_msg
    301 0000017C B80100                  	mov	ax, 1  ; FAT Beginning Address
-   302 0000017F BB[4A09]                	mov	bx, FDFORMAT_FATBUFFER
+   302 0000017F BB[4C09]                	mov	bx, FDFORMAT_FATBUFFER
    303 00000182 E8BB00                  	call	write_fd_sector
    304 00000185 0F828500                	jc	R_29
-   305 00000189 BB[4D09]                	mov	bx, FDFORMAT_FATBUFFER_S9
+   305 00000189 BB[4F09]                	mov	bx, FDFORMAT_FATBUFFER_S9
    306                                  R_24:
    307 0000018C 40                      	inc	ax
    308 0000018D E8B000                  	call	write_fd_sector
    309 00000190 727C                     	jc	short R_29
    310 00000192 83F809                  	cmp	ax, 9
    311 00000195 72F5                    	jb	short R_24
-   312 00000197 BB[4A09]                	mov	bx, FDFORMAT_FATBUFFER
+   312 00000197 BB[4C09]                	mov	bx, FDFORMAT_FATBUFFER
    313 0000019A 40                      	inc	ax
    314 0000019B E8A200                  	call	write_fd_sector
    315 0000019E 726E                    	jc	short R_29
-   316 000001A0 BB[4D09]                	mov	bx, FDFORMAT_FATBUFFER_S9
+   316 000001A0 BB[4F09]                	mov	bx, FDFORMAT_FATBUFFER_S9
    317                                  R_25:
    318 000001A3 40                      	inc	ax 
    319 000001A4 E89900                          call	write_fd_sector
@@ -321,10 +321,10 @@
    321 000001A9 83F812                  	cmp	ax, 18
    322 000001AC 72F5                    	jb	short R_25
    323                                  
-   324 000001AE BE[2907]                	mov	si, Msg_OK
+   324 000001AE BE[2B07]                	mov	si, Msg_OK
    325 000001B1 E87D00                  	call	print_msg
    326                                  
-   327 000001B4 BE[1807]                	mov	si, Msg_Volume_Name
+   327 000001B4 BE[1A07]                	mov	si, Msg_Volume_Name
    328 000001B7 E87700                  	call	print_msg
    329 000001BA E8DD00                  	call	rw_char
    330 000001BD 7219                    	jc	short R_28
@@ -346,7 +346,7 @@
    346 000001D6 E2F6                    	loop	R_26
    347                                  
    348                                  R_28:
-   349 000001D8 BE[9606]                	mov	si, Msg_Writing_Boot_Sector
+   349 000001D8 BE[9806]                	mov	si, Msg_Writing_Boot_Sector
    350 000001DB E85300                  	call	print_msg
    351                                  
    352 000001DE BE[5B03]                	mov	si, bsVolumeID
@@ -380,16 +380,16 @@
    380                                  R_29:
    381 0000020E 88E0                    	mov	al, ah ;  error code
    382 00000210 E86700                  	call	bin_to_hex
-   383 00000213 A3[4407]                	mov 	[error_code], ax
+   383 00000213 A3[4607]                	mov 	[error_code], ax
    384                                  
-   385 00000216 BE[2D07]                	mov	si, CRLF
+   385 00000216 BE[2F07]                	mov	si, CRLF
    386 00000219 E81500                  	call	print_msg
    387                                  
-   388 0000021C BE[3907]                	mov	si, Msg_Error
+   388 0000021C BE[3B07]                	mov	si, Msg_Error
    389 0000021F EB03                    	jmp	short R_31
    390                                  
    391                                  R_30:
-   392 00000221 BE[2907]                	mov	si, Msg_OK
+   392 00000221 BE[2B07]                	mov	si, Msg_OK
    393                                  R_31:
    394 00000224 E80A00                  	call	print_msg
    395                                  
@@ -510,11 +510,11 @@
    510                                  
    511                                  rw_char:
    512                                  	; OUTPUT -> DS:SI = Entered String (ASCIIZ)
-   513 0000029A BE[0C07]                	mov     si, StrVolumeName
+   513 0000029A BE[0E07]                	mov     si, StrVolumeName
    514 0000029D BB0700                  	mov     bx, 7
    515 000002A0 B403                    	mov     ah, 3
    516 000002A2 CD10                    	int     10h
-   517 000002A4 8916[F306]              	mov     [Cursor_Pos], dx
+   517 000002A4 8916[F506]              	mov     [Cursor_Pos], dx
    518                                  read_next_char:
    519 000002A8 30E4                    	xor     ah, ah
    520 000002AA CD16                    	int     16h
@@ -527,7 +527,7 @@
    527                                  loc_back:
    528 000002B8 B403                    	mov     ah, 3
    529 000002BA CD10                    	int     10h
-   530 000002BC 3A16[F306]              	cmp     dl, byte [Cursor_Pos]
+   530 000002BC 3A16[F506]              	cmp     dl, byte [Cursor_Pos]
    531 000002C0 761F                    	jna     short loc_beep
    532                                  prev_column:
    533 000002C2 FECA                    	dec     dl
@@ -535,7 +535,7 @@
    535 000002C4 B402                    	mov     ah, 2
    536 000002C6 CD10                    	int     10h
    537 000002C8 88D3                    	mov     bl, dl
-   538 000002CA 2A1E[F306]              	sub     bl, byte [Cursor_Pos]
+   538 000002CA 2A1E[F506]              	sub     bl, byte [Cursor_Pos]
    539 000002CE B90100                  	mov     cx,1
    540 000002D1 B409                    	mov     ah, 9
    541 000002D3 B020                    	mov     al, 20h
@@ -543,7 +543,7 @@
    543                                  loc_write_it:
    544 000002D7 B307                    	mov     bl, 7
    545 000002D9 CD10                    	int     10h
-   546 000002DB 8B16[F306]              	mov     dx, [Cursor_Pos]
+   546 000002DB 8B16[F506]              	mov     dx, [Cursor_Pos]
    547 000002DF EBC7                    	jmp     short read_next_char
    548                                  loc_beep:
    549 000002E1 B40E                    	mov     ah, 0Eh
@@ -563,7 +563,7 @@
    563 000002F9 3C20                    	cmp     al, 20h
    564 000002FB 7230                    	jb      short loc_escape
    565 000002FD 88D4                    	mov     ah, dl
-   566 000002FF 2A26[F306]              	sub     ah, byte [Cursor_Pos]
+   566 000002FF 2A26[F506]              	sub     ah, byte [Cursor_Pos]
    567 00000303 80FC0A                  	cmp     ah, 10
    568 00000306 77D9                    	ja      short loc_beep
    569 00000308 3C7A                    	cmp     al, "z"
@@ -625,132 +625,133 @@
    620 0000056D 6B20496D6167652046-
    620 00000576 6F726D617420557469-
    620 0000057F 6C697479           
-   621                                  	;db	"v3.0.231025  (c) Erdogan TAN 2018-2023"
-   622 00000583 52444644494D414745-     	db	"RDFDIMAGE v4.0.240420  (c) Erdogan TAN 2018-2024"
-   622 0000058C 2076342E302E323430-
-   622 00000595 343230202028632920-
-   622 0000059E 4572646F67616E2054-
-   622 000005A7 414E20323031382D32-
-   622 000005B0 303234             
-   623 000005B3 0D0A                    	db	0Dh,0Ah
+   621 00000583 0D0A                    	db	0Dh, 0Ah ; 10/07/2024	
+   622                                  	;db	"v3.0.231025  (c) Erdogan TAN 2018-2023"
+   623 00000585 52444644494D414745-     	db	"RDFDIMAGE v4.0.240710  (c) Erdogan TAN 2018-2024"
+   623 0000058E 2076342E302E323430-
+   623 00000597 373130202028632920-
+   623 000005A0 4572646F67616E2054-
+   623 000005A9 414E20323031382D32-
+   623 000005B2 303234             
    624 000005B5 0D0A                    	db	0Dh,0Ah
-   625 000005B7 55736167653A207264-     	db	'Usage: rd5fdimg <image file name> '
-   625 000005C0 356664696D67203C69-
-   625 000005C9 6D6167652066696C65-
-   625 000005D2 206E616D653E20     
-   626 000005D9 00                      	db	0
-   627                                  
-   628                                  msg_inv_file_name: 
-   629 000005DA 0D0A                    	db	0Dh, 0Ah
-   630 000005DC 496E76616C69642066-     	db	"Invalid file name !", 0Dh, 0Ah
-   630 000005E5 696C65206E616D6520-
-   630 000005EE 210D0A             
-   631 000005F1 2846696C65206E616D-     	db	"(File name must fit to 8.3 DOS format) !"
-   631 000005FA 65206D757374206669-
-   631 00000603 7420746F20382E3320-
-   631 0000060C 444F5320666F726D61-
-   631 00000615 74292021           
-   632 00000619 0D0A00                  	db	0Dh, 0Ah, 0
-   633                                  
-   634                                  msg_inv_image_file:
-   635 0000061C 0D0A                    	db	0Dh, 0Ah
-   636 0000061E 496E76616C69642066-     	db	"Invalid floppy disk image file !", 0Dh, 0Ah
-   636 00000627 6C6F70707920646973-
-   636 00000630 6B20696D6167652066-
-   636 00000639 696C6520210D0A     
-   637 00000640 2846696C652073697A-     	db	"(File size must be 1474560 bytes) !"
-   637 00000649 65206D757374206265-
-   637 00000652 203134373435363020-
-   637 0000065B 6279746573292021   
-   638 00000663 0D0A00                  	db	0Dh, 0Ah, 0  
-   639                                  
-   640                                  msg_overwrite_question1:
-   641 00000666 0D0A                    	db	0Dh, 0Ah
-   642 00000668 446F20796F75207761-     	db	'Do you want to overwrite '
-   642 00000671 6E7420746F206F7665-
-   642 0000067A 72777269746520     
-   643 00000681 27                      	db	27h
-   644 00000682 00                      	db	0
-   645                                  
-   646                                  msg_overwrite_question2:
-   647 00000683 27                      	db	27h
-   648 00000684 2066696C6520            	db	' file '
-   649 0000068A 00                      	db	0
-   650                                  
-   651                                  msg_yes_no:
-   652 0000068B 285965732F4E6F293F-     	db	'(Yes/No)? ', 0
-   652 00000694 2000               
-   653                                  
-   654                                  Msg_Writing_Boot_Sector:
-   655 00000696 57726974696E672072-     	db	"Writing retrodos boot sector...", 0
-   655 0000069F 6574726F646F732062-
-   655 000006A8 6F6F7420736563746F-
-   655 000006B1 722E2E2E00         
-   656                                  
-   657                                  Msg_Writing_Root_Dir:
-   658 000006B6 57726974696E672072-     	db	"Writing root directory sectors...", 0
-   658 000006BF 6F6F74206469726563-
-   658 000006C8 746F72792073656374-
-   658 000006D1 6F72732E2E2E00     
-   659                                  
-   660                                  Msg_Writing_Data_Sectors:
-   661 000006D8 57726974696E672064-     	db	"Writing data sector: ", 0
-   661 000006E1 61746120736563746F-
-   661 000006EA 723A2000           
-   662                                  
-   663                                  Sector_Str:
-   664 000006EE 3030303000              	db	"0000", 0
-   665                                  Cursor_Pos:
-   666 000006F3 0000                    	dw	0
-   667                                  
-   668                                  Msg_Writing_FAT_Sectors:
-   669 000006F5 57726974696E672046-     	db	"Writing FAT sectors...", 0
-   669 000006FE 415420736563746F72-
-   669 00000707 732E2E2E00         
-   670                                  
-   671                                  StrVolumeName:
-   672 0000070C 00<rep Ch>              	times 	12 db  0
-   673                                  
-   674                                  Msg_Volume_Name:
-   675 00000718 566F6C756D65204E61-     	db	"Volume Name: ", 0
-   675 00000721 6D653A2000         
-   676                                  
-   677                                  Msg_3dot_OK:
-   678 00000726 2E2E2E                  	db	"..."
-   679                                  Msg_OK:
-   680 00000729 204F4B2E                	db	' OK.'
-   681                                  CRLF:
-   682 0000072D 0D0A00                  	db	0Dh, 0Ah, 0
-   683                                  Msg_YES:
-   684 00000730 2059455300              	db	' YES', 0
-   685                                  Msg_NO:
-   686 00000735 204E4F00                	db	' NO', 0
-   687                                  
-   688                                  Msg_Error:
-   689 00000739 0D0A                    	db	0Dh, 0Ah
-   690 0000073B 4572726F72202120        	db	'Error ! '
-   691 00000743 28                      	db	'('
-   692                                  error_code:
-   693 00000744 3030                    	dw	3030h
-   694 00000746 68                      	db	'h'
-   695 00000747 2920                    	db	') '
-   696 00000749 00                      	db	0
-   697                                  
-   698                                  FDFORMAT_SECBUFFER:
-   699 0000074A F6<rep 200h>            	times	512 db 0F6h
-   700                                  FDFORMAT_FATBUFFER:
-   701 0000094A F0                      	db	0F0h
-   702 0000094B FF                      	db	0FFh
-   703 0000094C FF                      	db	0FFh
-   704                                  FDFORMAT_FATBUFFER_S9:
-   705 0000094D 00<rep 200h>            	times	512 db 0
-   706                                  
-   707                                  	;db	'(c) Erdogan TAN 2018-2023'
-   708 00000B4D 286329204572646F67-     	db	'(c) Erdogan TAN 2018-2024'
-   708 00000B56 616E2054414E203230-
-   708 00000B5F 31382D32303234     
-   709                                  
-   710                                  img_file_name:  
-   711 00000B66 00<rep Dh>              	times	13 db 0
-   712                                  
-   713                                  SizeOfFile equ $-100
+   625 000005B7 0D0A                    	db	0Dh,0Ah
+   626 000005B9 55736167653A207264-     	db	'Usage: rd5fdimg <image file name> '
+   626 000005C2 356664696D67203C69-
+   626 000005CB 6D6167652066696C65-
+   626 000005D4 206E616D653E20     
+   627 000005DB 00                      	db	0
+   628                                  
+   629                                  msg_inv_file_name: 
+   630 000005DC 0D0A                    	db	0Dh, 0Ah
+   631 000005DE 496E76616C69642066-     	db	"Invalid file name !", 0Dh, 0Ah
+   631 000005E7 696C65206E616D6520-
+   631 000005F0 210D0A             
+   632 000005F3 2846696C65206E616D-     	db	"(File name must fit to 8.3 DOS format) !"
+   632 000005FC 65206D757374206669-
+   632 00000605 7420746F20382E3320-
+   632 0000060E 444F5320666F726D61-
+   632 00000617 74292021           
+   633 0000061B 0D0A00                  	db	0Dh, 0Ah, 0
+   634                                  
+   635                                  msg_inv_image_file:
+   636 0000061E 0D0A                    	db	0Dh, 0Ah
+   637 00000620 496E76616C69642066-     	db	"Invalid floppy disk image file !", 0Dh, 0Ah
+   637 00000629 6C6F70707920646973-
+   637 00000632 6B20696D6167652066-
+   637 0000063B 696C6520210D0A     
+   638 00000642 2846696C652073697A-     	db	"(File size must be 1474560 bytes) !"
+   638 0000064B 65206D757374206265-
+   638 00000654 203134373435363020-
+   638 0000065D 6279746573292021   
+   639 00000665 0D0A00                  	db	0Dh, 0Ah, 0  
+   640                                  
+   641                                  msg_overwrite_question1:
+   642 00000668 0D0A                    	db	0Dh, 0Ah
+   643 0000066A 446F20796F75207761-     	db	'Do you want to overwrite '
+   643 00000673 6E7420746F206F7665-
+   643 0000067C 72777269746520     
+   644 00000683 27                      	db	27h
+   645 00000684 00                      	db	0
+   646                                  
+   647                                  msg_overwrite_question2:
+   648 00000685 27                      	db	27h
+   649 00000686 2066696C6520            	db	' file '
+   650 0000068C 00                      	db	0
+   651                                  
+   652                                  msg_yes_no:
+   653 0000068D 285965732F4E6F293F-     	db	'(Yes/No)? ', 0
+   653 00000696 2000               
+   654                                  
+   655                                  Msg_Writing_Boot_Sector:
+   656 00000698 57726974696E672072-     	db	"Writing retrodos boot sector...", 0
+   656 000006A1 6574726F646F732062-
+   656 000006AA 6F6F7420736563746F-
+   656 000006B3 722E2E2E00         
+   657                                  
+   658                                  Msg_Writing_Root_Dir:
+   659 000006B8 57726974696E672072-     	db	"Writing root directory sectors...", 0
+   659 000006C1 6F6F74206469726563-
+   659 000006CA 746F72792073656374-
+   659 000006D3 6F72732E2E2E00     
+   660                                  
+   661                                  Msg_Writing_Data_Sectors:
+   662 000006DA 57726974696E672064-     	db	"Writing data sector: ", 0
+   662 000006E3 61746120736563746F-
+   662 000006EC 723A2000           
+   663                                  
+   664                                  Sector_Str:
+   665 000006F0 3030303000              	db	"0000", 0
+   666                                  Cursor_Pos:
+   667 000006F5 0000                    	dw	0
+   668                                  
+   669                                  Msg_Writing_FAT_Sectors:
+   670 000006F7 57726974696E672046-     	db	"Writing FAT sectors...", 0
+   670 00000700 415420736563746F72-
+   670 00000709 732E2E2E00         
+   671                                  
+   672                                  StrVolumeName:
+   673 0000070E 00<rep Ch>              	times 	12 db  0
+   674                                  
+   675                                  Msg_Volume_Name:
+   676 0000071A 566F6C756D65204E61-     	db	"Volume Name: ", 0
+   676 00000723 6D653A2000         
+   677                                  
+   678                                  Msg_3dot_OK:
+   679 00000728 2E2E2E                  	db	"..."
+   680                                  Msg_OK:
+   681 0000072B 204F4B2E                	db	' OK.'
+   682                                  CRLF:
+   683 0000072F 0D0A00                  	db	0Dh, 0Ah, 0
+   684                                  Msg_YES:
+   685 00000732 2059455300              	db	' YES', 0
+   686                                  Msg_NO:
+   687 00000737 204E4F00                	db	' NO', 0
+   688                                  
+   689                                  Msg_Error:
+   690 0000073B 0D0A                    	db	0Dh, 0Ah
+   691 0000073D 4572726F72202120        	db	'Error ! '
+   692 00000745 28                      	db	'('
+   693                                  error_code:
+   694 00000746 3030                    	dw	3030h
+   695 00000748 68                      	db	'h'
+   696 00000749 2920                    	db	') '
+   697 0000074B 00                      	db	0
+   698                                  
+   699                                  FDFORMAT_SECBUFFER:
+   700 0000074C F6<rep 200h>            	times	512 db 0F6h
+   701                                  FDFORMAT_FATBUFFER:
+   702 0000094C F0                      	db	0F0h
+   703 0000094D FF                      	db	0FFh
+   704 0000094E FF                      	db	0FFh
+   705                                  FDFORMAT_FATBUFFER_S9:
+   706 0000094F 00<rep 200h>            	times	512 db 0
+   707                                  
+   708                                  	;db	'(c) Erdogan TAN 2018-2023'
+   709 00000B4F 286329204572646F67-     	db	'(c) Erdogan TAN 2018-2024'
+   709 00000B58 616E2054414E203230-
+   709 00000B61 31382D32303234     
+   710                                  
+   711                                  img_file_name:  
+   712 00000B68 00<rep Dh>              	times	13 db 0
+   713                                  
+   714                                  SizeOfFile equ $-100

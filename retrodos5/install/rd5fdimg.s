@@ -4,7 +4,7 @@
 ; ----------------------------------------------------------------------------
 ; Only for 1.44MB (3.5") Floppy Disks
 ; ****************************************************************************
-; Last Update: 20/04/2024
+; Last Update: 10/07/2024
 ; ----------------------------------------------------------------------------
 ; Beginning: 11/02/2018
 ; ----------------------------------------------------------------------------
@@ -618,8 +618,9 @@ img_file_handle:
 RetroDOS_Welcome:
 	db	0Dh, 0Ah
 	db	'RETRO DOS v5 1.44MB FAT12 Floppy Disk Image Format Utility'
+	db	0Dh, 0Ah ; 10/07/2024	
 	;db	"v3.0.231025  (c) Erdogan TAN 2018-2023"
-	db	"RDFDIMAGE v4.0.240420  (c) Erdogan TAN 2018-2024"
+	db	"RDFDIMAGE v4.0.240710  (c) Erdogan TAN 2018-2024"
 	db	0Dh,0Ah
 	db	0Dh,0Ah
 	db	'Usage: rd5fdimg <image file name> '
