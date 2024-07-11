@@ -1,5 +1,3 @@
-Retro DOS v5.0 (Modified PCDOS 7.1) Source Code (Not ready yet...) 15/12/2023 - Erdogan Tan
-
 **Retro DOS v5 Installation Utilities**
 Last Update: 4/5/2024
 
@@ -11,3 +9,5 @@ Floppy Disk and Hard Disk format utilities... etc. (all of these are MSDOS stand
 
 (MSDOS/PCDOS/RETRODOS bootable floppy disk and bootable USB disk is -with a DOS OS- needed for using these DOS utilities.)
 ((Retro DOS v5 installation utilities/programs may be copied into \RETRODOS directory of the bootable DOS disk.))
+
+Erdogan Tan - 12/07/2024
