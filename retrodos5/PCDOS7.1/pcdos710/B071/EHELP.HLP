@@ -1,0 +1,399 @@
+ษออออออออออออออออออออออหอออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+บ  E Editor Help       บ  Directory of Help Panels                             บ
+ฬอออออออออัออออออออออออสอออออออออออออออออออออออออออออออออออออออออออออออออออออออน
+บ  Page   ณ                                                                    บ
+วฤฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤถ
+บ  1-2    ณ  Cursor Movement and Mouse Actions                                 บ
+บ  3-4    ณ  Function Key Summary                                              บ
+บ  5-6    ณ  Alt+Key Summary                                                   บ
+บ  7-8    ณ  Ctrl+Key Summary                                                  บ
+บ  9-13   ณ  Command Summary                                                   บ
+บ  14     ณ  Edit Commands                                                     บ
+บ  15     ณ  Termination Commands                                              บ
+บ  16     ณ  Copying, Moving, and Deleting text                                บ
+บ  17-18  ณ  ASCII conversion table                                            บ
+บ         ณ                                                                    บ
+บ         ณ                                                                    บ
+บ         ณ                                                                    บ
+บ         ณ                                                                    บ
+บ         ณ                                                                    บ
+ศอออออออออฯออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+
+ษออออออออออออออออออออออหอออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+บ  E Editor Help       บ  Cursor Movement Keys                          Page 1 บ
+ฬออออออออออออออออออออออสอออออออออออออออออออออออออออออออออออออออออออออออออออออออน
+บ  ESC                 Moves between the edit area and the command line.       บ
+บ  Enter               (user defined in E.INI initialization file)             บ
+บ  Up,Down Arrows      Moves one line up/down.                                 บ
+บ  Left,Right Arrows   Moves one character to the left/right.                  บ
+บ  Home                Moves to column 1 of the current line.                  บ
+บ  End                 Moves to the end of the current line.                   บ
+บ  Page Up             Displays text above current page.                       บ
+บ  Page Down           Displays text below current page.                       บ
+บ  Ctrl+Home           Moves to top line of file.                              บ
+บ  Ctrl+End            Moves to bottom line of file.                           บ
+บ  Tab,Shift+Tab       Moves to next and previous tab stops.                   บ
+บ  Ctrl+PgUp           Moves to top of screen.                                 บ
+บ  Ctrl+PgDn           Moves to bottom of screen.                              บ
+บ  Ctrl+Left Arrow     Moves to beginning of word left of cursor.              บ
+บ  Ctrl+Right Arrow    Moves to beginning of word to right of cursor.          บ
+บ                                                                              บ
+ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+
+ษออออออออออออออออออออออหอออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+บ  E Editor Help       บ  Mouse Actions                                 Page 2 บ
+ฬออออออออออออออออออออออสอออออออออออออออออออออออออออออออออออออออออออออออออออออออน
+บ  Mouse Button 1                                                              บ
+บ   Single Click:      Positions the cursor within the active window.          บ
+บ                      Or activates a window if multiple windows.              บ
+บ   Double Click:      Deselects (unmarks) marked text.                        บ
+บ          Drag*:      Scroll Lock Off - Marks irregular block of TEXT.        บ
+บ                      Scroll Lock On  - Marks a rectangular BLOCK of text.    บ
+วฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤถ
+บ  Mouse Button 2                                                              บ
+บ   Single Click:      Marks a WORD within the active window.                  บ
+บ                      Or activates a window if multiple windows.              บ
+บ   Double Click:      Displays the next active file.                          บ
+บ          Drag*:      Marks a LINE of text.                                   บ
+วฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤถ
+บ                                                                              บ
+บ * dragging is the process of selecting text by moving the mouse pointer over บ
+บ   the desired text while pressing a mouse button                             บ
+ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+
+ษออออออออออออออออออออออหอออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+บ  E Editor Help       บ  Function and Alt+ Function Keys               Page 3 บ
+ฬออออออัอออออออออออออออสออออออออออออออออออออัออออออออออออออออออออออออออออออออออน
+บ      ณ                                    ณ Alt +                            บ
+วฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤถ
+บ  F1  ณ Display help text                  ณ Box characters                   บ
+บ  F2  ณ Save file and continue             ณ                                  บ
+บ  F3  ณ Close file without saving          ณ                                  บ
+บ  F4  ณ Save file and quit                 ณ Exit editor                      บ
+บ  F5  ณ Print file or marked area          ณ                                  บ
+บ  F6  ณ Show draw options                  ณ                                  บ
+บ  F7  ณ Rename file                        ณ Shift mark left                  บ
+บ  F8  ณ Open file to edit                  ณ Shift mark right                 บ
+บ  F9  ณ Undo current line                  ณ                                  บ
+บ  F10 ณ Activate/Deactivate action-bar     ณ                                  บ
+บ  F11*ณ Previous file                      ณ                                  บ
+บ  F12*ณ Next file                          ณ                                  บ
+วฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤถ
+บ                           * enhanced keyboard only                           บ
+ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+
+ษออออออออออออออออออออออหอออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+บ  E Editor Help       บ  Shift+ and Ctrl+ Function Keys                Page 4 บ
+ฬออออออัอออออออออออออออสออออออออออออออออัออออออออออออออออออออออออออออออออออออออน
+บ      ณ Shift +                        ณ Ctrl +                               บ
+วฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤลฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤถ
+บ  F1  ณ Scroll left                    ณ Uppercase word                       บ
+บ  F2  ณ Scroll right                   ณ Lowercase word                       บ
+บ  F3  ณ Scroll up                      ณ Uppercase mark                       บ
+บ  F4  ณ Scroll down                    ณ Lowercase mark                       บ
+บ  F5  ณ Center line vertical           ณ Cursor to beginning of word          บ
+บ  F6  ณ                                ณ Cursor to end of word                บ
+บ  F7  ณ                                ณ                                      บ
+บ  F8  ณ                                ณ                                      บ
+บ  F9  ณ                                ณ                                      บ
+บ  F10 ณ                                ณ                                      บ
+บ  F11*ณ                                ณ                                      บ
+บ  F12*ณ                                ณ                                      บ
+วฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤมฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤถ
+บ                           * enhanced keyboard only                           บ
+ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+
+ษออออออออออออออออออออออหอออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+บ  E Editor Help       บ  Alt+Keys (Alt+A - Alt+O)                      Page 5 บ
+ฬออออออออออออออออออออออสอออออออออออออออออออออออออออออออออออออออออออออออออออออออน
+บ  Alt+A : ADJUST marked area, blank old                                       บ
+บ  Alt+B : mark rectangular BLOCK                                              บ
+บ  Alt+C : COPY mark                                                           บ
+บ  Alt+D : DELETE marked area                                                  บ
+บ  Alt+E : cursor to END of marked area                                        บ
+บ  Alt+F : FILL marked area                                                    บ
+บ  Alt+G :                                                                     บ
+บ  Alt+H :                                                                     บ
+บ  Alt+I :                                                                     บ
+บ  Alt+J : JOIN (with following line)                                          บ
+บ  Alt+K :                                                                     บ
+บ  Alt+L : mark LINE                                                           บ
+บ  Alt+M : MOVE marked area                                                    บ
+บ  Alt+N : key in file NAME at cursor                                          บ
+บ  Alt+O : OVERLAY blocked area                                                บ
+บ                                                                              บ
+ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+
+ษออออออออออออออออออออออหอออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+บ  E Editor Help       บ  Alt+Keys (Alt+P - Alt+=)                      Page 6 บ
+ฬออออออออออออออออออออออสอออออออออออออออออออออออออออออออออออออออออออออออออออออออน
+บ  Alt+P : reformat blocked text or following PARAGRAPH                        บ
+บ  Alt+Q :                                                                     บ
+บ  Alt+R : REFLOW marked area                                                  บ
+บ  Alt+S : SPLIT line at cursor                                                บ
+บ  Alt+T : CENTER text in marked block                                         บ
+บ  Alt+U : UNMARK                                                              บ
+บ  Alt+V : toggle VIEW of '.Deleted' file                                      บ
+บ  Alt+W : mark WORD                                                           บ
+บ  Alt+X : ESCAPE (allow special characters)                                   บ
+บ  Alt+Y : cursor to beginning of mark                                         บ
+บ  Alt+Z : mark irregular block of text                                        บ
+บ                                                                              บ
+บ  Alt+1 : open file named on current line                                     บ
+บ  Alt+4 : split screen into 4 windows                                         บ
+บ  Alt+= : execute the current line or marked set of lines as commands         บ
+บ                                                                              บ
+ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+
+ษออออออออออออออออออออออหอออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+บ  E Editor Help       บ  Ctrl+Keys (Ctrl+A - Ctrl+O)                   Page 7 บ
+ฬออออออออออออออออออออออสอออออออออออออออออออออออออออออออออออออออออออออออออออออออน
+บ  Ctrl+A : change window style                                                บ
+บ  Ctrl+B :                                                                    บ
+บ  Ctrl+C : duplicate a line                                                   บ
+บ  Ctrl+D : DELETE word                                                        บ
+บ  Ctrl+E : ERASE to end of line                                               บ
+บ  Ctrl+F : repeat previous FIND command                                       บ
+บ  Ctrl+G : repeat previous find command on all files (GLOBAL search)          บ
+บ  Ctrl+H : split screen HORIZONTALLY                                          บ
+บ  Ctrl+I :                                                                    บ
+บ  Ctrl+J :                                                                    บ
+บ  Ctrl+K :                                                                    บ
+บ  Ctrl+L : copy text LINE to command line                                     บ
+บ  Ctrl+M : insert a new line                                                  บ
+บ  Ctrl+N : NEXT file                                                          บ
+บ  Ctrl+O :                                                                    บ
+บ                                                                              บ
+ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+
+ษออออออออออออออออออออออหอออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+บ  E Editor Help       บ  Ctrl+Keys (Ctrl+P - Ctrl+Enter)               Page 8 บ
+ฬออออออออออออออออออออออสอออออออออออออออออออออออออออออออออออออออออออออออออออออออน
+บ  Ctrl+P : PREVIOUS file                                                      บ
+บ  Ctrl+Q : swap to/from .ALL file  (see ALL command)                          บ
+บ  Ctrl+R : RECORD key sequence                                                บ
+บ  Ctrl+S :                                                                    บ
+บ  Ctrl+T : play recorded key sequence                                         บ
+บ  Ctrl+U : UNDELETE deleted record                                            บ
+บ  Ctrl+V : split screen VERTICALLY                                            บ
+บ  Ctrl+W : move to next WINDOW                                                บ
+บ  Ctrl+X : force syntax expansion                                             บ
+บ  Ctrl+Y :                                                                    บ
+บ  Ctrl+Z : ZOOM window to full screen                                         บ
+บ                                                                              บ
+บ  Ctrl+Backspace : delete a line                                              บ
+บ  Ctrl+Enter     : (user defined in E.INI initialization file)                บ
+บ                                                                              บ
+บ                                                                              บ
+ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+
+ษออออออออออออออออออออออหอออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+บ  E Editor Help       บ  Command Summary (1 of 5)                      Page 9 บ
+ฬออออออออออออออออออออออสอออออออออออออออออออออออออออออออออออออออออออออออออออออออน
+บ  ####                   - goes to line number ####                           บ
+บ  +[####]                - down #### lines (or End of file)                   บ
+บ  -[####]                - up #### lines (or Top of file)                     บ
+บ  ADD                    - adds marked column of numbers                      บ
+บ  ALL /pattern[/[e]]     - creates a new file called .ALL showing all         บ
+บ                           occurrences of the specified pattern               บ
+บ                             e = match case exactly                           บ
+บ  APPEND,APP filespec    - saves marked area or entire file to filespec       บ
+บ  ASC [char]             - gives ASCII value of character. If no argument     บ
+บ                           is specified, uses the current text character      บ
+บ  AUTOSAVE [####]        - autosaves file after #### presses of Enter         บ
+บ  AUTOSHELL [ON | OFF]   - sets automatic pass-command-to-DOS feature         บ
+บ                           on or off                                          บ
+บ  BOTTOM,BOT             - moves to bottom of file                            บ
+บ  BOX [1|2|3|4|5|6|B|C|P|A|E|R|S]    - draws box around marked text           บ
+บ                                                                              บ
+ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+
+ษออออออออออออออออออออออหอออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+บ  E Editor Help       บ  Command Summary (2 of 5)                     Page 10 บ
+ฬออออออออออออออออออออออสอออออออออออออออออออออออออออออออออออออออออออออออออออออออน
+บ  BROWSE,B filespec      - open a file in browse (read-only) mode             บ
+บ  CHANGE,C /old/new/[c|e] [m|a][-|+] [r|f] [*] - changes string               บ
+บ                             c = ignore case          e = match case exactly  บ
+บ                             m = within marked area   a = all file            บ
+บ                             - = backwards in file    + = forward in file     บ
+บ                             r = right to left        f = left to right       บ
+บ                             * = change all occurences                        บ
+บ  CD [path]              - changes current directory to path                  บ
+บ  CENTER                 - center marked area                                 บ
+บ  CHR ####               - shows character corresponding to ASCII ####        บ
+บ  DIR [filespec]         - executes DOS DIR command and redirects the         บ
+บ                           output into the editor                             บ
+บ  [DOS] [command]        - any DOS command can be typed on the editor command บ
+บ                           line if AUTOSHELL is on or if the DOS command is   บ
+บ                           prefixed with the word DOS                         บ
+บ                                                                              บ
+ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+
+ษออออออออออออออออออออออหอออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+บ  E Editor Help       บ  Command Summary (3 of 5)                     Page 11 บ
+ฬออออออออออออออออออออออสอออออออออออออออออออออออออออออออออออออออออออออออออออออออน
+บ  DRAG                   - moves a messy window                               บ
+บ  DRAW [1|2|3|4|5|6|B|/any character]  - allows text drawing                  บ
+บ  EXPAND [ON | OFF]      - sets syntax expansion on or off                    บ
+บ  FILL character         - fills marked block with character                  บ
+บ  FINDFILE [filespec]    - loads a list of files                              บ
+บ  GET filespec           - inserts filespec into current file                 บ
+บ  HELP                   - displays this help file                            บ
+บ  KEY #### [character]   - repeats key horizontally                           บ
+บ  [L] /pattern/[c|e] [m|a][-|+] [r|f]  - locates string                       บ
+บ                             (see CHANGE command for parameter summary)       บ
+บ  LIST [filespec]        - loads a list of files                              บ
+บ  LOOPKEY ####|ALL [character]  - repeats key vertically                      บ
+บ  LOWERCASE              - lowercase marked block                             บ
+บ  MARGINS,MA # # #       - left, right margin, new-paragraph                  บ
+บ  MARKALL                - marks entire file                                  บ
+บ                                                                              บ
+ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+
+ษออออออออออออออออออออออหอออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+บ  E Editor Help       บ  Command Summary (4 of 5)                     Page 12 บ
+ฬออออออออออออออออออออออสอออออออออออออออออออออออออออออออออออออออออออออออออออออออน
+บ  MATCHTAB [ON | OFF]    - sets matchtab feature on or off                    บ
+บ  MATH  expression       - computes expression, results shown in decimal      บ
+บ  MATHB expression       - same as math, result shown in binary               บ
+บ  MATHO expression       - same as math, result shown in octal                บ
+บ  MATHX expression       - same as math, result shown in hex                  บ
+บ  MULT                   - multiplies marked column of numbers                บ
+บ  NAME,N [filespec]      - renames current file                               บ
+บ  NEW                    - creates and loads a new file                       บ
+บ  PATH                   - executes DOS PATH command and redirects the        บ
+บ                           output into the editor                             บ
+บ  PRINT                  - prints current file or marked block                บ
+บ  PUT filespec           - saves marked area to file                          บ
+บ  RENAME [filespec]      - renames current file                               บ
+บ  SAVE,S [filespec]      - save file and continue                             บ
+บ  SAVEAS filespec        - renames then saves current file                    บ
+บ                                                                              บ
+ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+
+ษออออออออออออออออออออออหอออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+บ  E Editor Help       บ  Command Summary (5 of 5)                     Page 13 บ
+ฬออออออออออออออออออออออสอออออออออออออออออออออออออออออออออออออออออออออออออออออออน
+บ  SET                    - executes DOS SET command and redirects the         บ
+บ                           output into the editor                             บ
+บ  SIZE                   - changes messy window size                          บ
+บ  SORT [r]               - sorts current file or marked area                  บ
+บ                             r = reverse the sort order                       บ
+บ  TABS [n1 n2 ... n20]   - sets tab at column listed                          บ
+บ  TOP                    - moves to the top of the current file               บ
+บ  UPPERCASE              - uppercase marked block                             บ
+บ  VOL [drive]            - executes DOS VOL command and redirects the         บ
+บ                           output into the editor                             บ
+บ                                                                              บ
+บ                                                                              บ
+บ                                                                              บ
+บ                                                                              บ
+บ                                                                              บ
+บ                                                                              บ
+ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+
+ษออออออออออออออออออออออหอออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+บ  E Editor Help       บ  Edit Commands                                Page 14 บ
+ฬออออออออออออออออออออออสอออออออออออออออออออออออออออออออออออออออออออออออออออออออน
+บ  How to open additional files during one edit session:                       บ
+บ  ฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤ                       บ
+บ  OPEN,O,EDIT,ED,E [/B] [d:][\path\]filename.ext                              บ
+บ                                                                              บ
+บ    Opens the file if it is not already opened.                               บ
+บ                                                                              บ
+บ    The option /B, opens the file in browse (read-only) mode.                 บ
+บ                                                                              บ
+บ    Typing the OPEN command without the file specification switches           บ
+บ    you to the next loaded file in the ring (works the same as                บ
+บ    pressing Ctrl+N)  After the last file, you are returned to the first      บ
+บ    file in the ring of loaded files.                                         บ
+บ                                                                              บ
+บ                                                                              บ
+บ                                                                              บ
+บ                                                                              บ
+ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+
+ษออออออออออออออออออออออหอออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+บ  E Editor Help       บ  Editor Termination Commands                  Page 15 บ
+ฬออออออออออออออออออออออสอออออออออออออออออออออออออออออออออออออออออออออออออออออออน
+บ  How to get out of the E Editor                                              บ
+บ  ฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤ                                              บ
+บ  FILE,F command (F4) saves and then removes file from memory.                บ
+บ                                                                              บ
+บ  CLOSE,QUIT,Q command (F3) removes file from memory without saving.          บ
+บ                                                                              บ
+บ        If CLOSE is entered after file has been altered, the message:         บ
+บ                                                                              บ
+บ             "Close without saving?  Press Y or N or F4 to file."             บ
+บ                                                                              บ
+บ        is displayed on the bottom line. Typing N cancels the CLOSE,          บ
+บ        typing Y discards all changes since the last SAVE or FILE.            บ
+บ                                                                              บ
+บ  EXIT command (Alt+F4) closes all files without saving and exits the editor. บ
+บ                                                                              บ
+บ                                                                              บ
+ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+
+ษออออออออออออออออออออออหอออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+บ  E Editor Help       บ  Copying, Moving, Deleting Text               Page 16 บ
+ฬออออออออออออออออออออออสอออออออออออออออออออออออออออออออออออออออออออออออออออออออน
+บ  1.  Press a Mark key (see list on left) once at the beginning of the text   บ
+บ      and again at the end of the text to highlight the text to be copied,    บ
+บ      moved, or deleted.                                                      บ
+บ  2.  To copy or move, move the cursor to the desired destination.            บ
+บ  3.  Press the operator keys (see list on right).                            บ
+บ                                                                              บ
+วฤฤฤฤฤฤTEXT MARKERS:ฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤยฤฤฤฤฤฤMARKED TEXT OPERATORS:ฤฤฤฤฤฤฤฤฤฤฤฤฤฤถ
+บ  Alt+L:  LINE mark for one        ณ  Alt+C:  COPY mark                       บ
+บ          line or paragraph        ณ  Alt+M:  MOVE mark                       บ
+บ  Alt+Z:  mark text                ณ  Alt+D:  DELETE mark                     บ
+บ  Alt+B:  BLOCK mark rectangles    ณ  Alt+O:  OVERLAY mark                    บ
+บ  Alt+U:  UNMARK any area          ณ  Alt+A:  ADJUST mark (Alt+O with fill)   บ
+บ  Alt+W:  WORD mark                ณ                                          บ
+บ  Shift+Arrows: mark text          ณ                                          บ
+บ                                   ณ                                          บ
+บ                                   ณ                                          บ
+ศอออออออออออออออออออออออออออออออออออฯออออออออออออออออออออออออออออออออออออออออออผ
+
+ษออออออออออออออออออออออหอออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+บ  E Editor Help       บ  ASCII Character Table (1 of 2)               Page 17 บ
+ฬออออออออออัอออออออัอออสอออัอออออออัอออออออัอออออออัอออออออัอออออออัอออออออออออน
+บ    000NULณ 016  ณ 032   ณ 048 0 ณ 064 @ ณ 080 P ณ 096 ` ณ 112 p ณ 128 €     บ
+บ    001  ณ 017  ณ 033 ! ณ 049 1 ณ 065 A ณ 081 Q ณ 097 a ณ 113 q ณ 129      บ
+บ    002  ณ 018  ณ 034 " ณ 050 2 ณ 066 B ณ 082 R ณ 098 b ณ 114 r ณ 130      บ
+บ    003  ณ 019  ณ 035 # ณ 051 3 ณ 067 C ณ 083 S ณ 099 c ณ 115 s ณ 131      บ
+บ    004  ณ 020  ณ 036 $ ณ 052 4 ณ 068 D ณ 084 T ณ 100 d ณ 116 t ณ 132      บ
+บ    005  ณ 021  ณ 037 % ณ 053 5 ณ 069 E ณ 085 U ณ 101 e ณ 117 u ณ 133 …     บ
+บ    006  ณ 022  ณ 038 & ณ 054 6 ณ 070 F ณ 086 V ณ 102 f ณ 118 v ณ 134      บ
+บ    007  ณ 023  ณ 039 ' ณ 055 7 ณ 071 G ณ 087 W ณ 103 g ณ 119 w ณ 135      บ
+บ    008  ณ 024  ณ 040 ( ณ 056 8 ณ 072 H ณ 088 X ณ 104 h ณ 120 x ณ 136      บ
+บ    009   ณ 025  ณ 041 ) ณ 057 9 ณ 073 I ณ 089 Y ณ 105 i ณ 121 y ณ 137      บ
+บ    010   ณ 026   ณ 042 * ณ 058 : ณ 074 J ณ 090 Z ณ 106 j ณ 122 z ณ 138      บ
+บ    011  ณ 027  ณ 043 + ณ 059 ; ณ 075 K ณ 091 [ ณ 107 k ณ 123 { ณ 139      บ
+บ    012  ณ 028  ณ 044 , ณ 060 < ณ 076 L ณ 092 \ ณ 108 l ณ 124 | ณ 140      บ
+บ    013   ณ 029  ณ 045 - ณ 061 = ณ 077 M ณ 093 ] ณ 109 m ณ 125 } ณ 141      บ
+บ    014  ณ 030  ณ 046 . ณ 062 > ณ 078 N ณ 094 ^ ณ 110 n ณ 126 ~ ณ 142      บ
+บ    015  ณ 031  ณ 047 / ณ 063 ? ณ 079 O ณ 095 _ ณ 111 o ณ 127  ณ 143      บ
+ศออออออออออฯอออออออฯอออออออฯอออออออฯอออออออฯอออออออฯอออออออฯอออออออฯอออออออออออผ
+
+ษออออออออออออออออออออออหอออออออออออออออออออออออออออออออออออออออออออออออออออออออป
+บ  E Editor Help       บ  ASCII Character Table (2 of 2)               Page 18 บ
+ฬออออออออออัอออออออัอออสอออัอออออออัอออออออัอออออออัออออออออัออออออออออออออออออน
+บ    144  ณ 160   ณ 176 ฐ ณ 192 ภ ณ 208 ะ ณ 224 เ ณ 240 ๐  ณ                  บ
+บ    145 ‘ ณ 161 ก ณ 177 ฑ ณ 193 ม ณ 209 ั ณ 225 แ ณ 241 ๑  ณ                  บ
+บ    146 ’ ณ 162 ข ณ 178 ฒ ณ 194 ย ณ 210 า ณ 226 โ ณ 242 ๒  ณ                  บ
+บ    147 “ ณ 163 ฃ ณ 179 ณ ณ 195 ร ณ 211 ำ ณ 227 ใ ณ 243 ๓  ณ                  บ
+บ    148 ” ณ 164 ค ณ 180 ด ณ 196 ฤ ณ 212 ิ ณ 228 ไ ณ 244 ๔  ณ                  บ
+บ    149 • ณ 165 ฅ ณ 181 ต ณ 197 ล ณ 213 ี ณ 229 ๅ ณ 245 ๕  ณ                  บ
+บ    150 – ณ 166 ฆ ณ 182 ถ ณ 198 ฦ ณ 214 ึ ณ 230 ๆ ณ 246 ๖  ณ                  บ
+บ    151 — ณ 167 ง ณ 183 ท ณ 199 ว ณ 215 ื ณ 231 ็ ณ 247 ๗  ณ                  บ
+บ    152  ณ 168 จ ณ 184 ธ ณ 200 ศ ณ 216 ุ ณ 232 ่ ณ 248 ๘  ณ                  บ
+บ    153  ณ 169 ฉ ณ 185 น ณ 201 ษ ณ 217 ู ณ 233 ้ ณ 249 ๙  ณ                  บ
+บ    154  ณ 170 ช ณ 186 บ ณ 202 ส ณ 218 ฺ ณ 234 ๊ ณ 250 ๚  ณ                  บ
+บ    155  ณ 171 ซ ณ 187 ป ณ 203 ห ณ 219 Û ณ 235 ๋ ณ 251 ๛  ณ Note:            บ
+บ    156  ณ 172 ฌ ณ 188 ผ ณ 204 ฬ ณ 220 Ü ณ 236 ์ ณ 252 ü  ณ   9, 10, 13,     บ
+บ    157  ณ 173 ญ ณ 189 ฝ ณ 205 อ ณ 221 Ý ณ 237 ํ ณ 253 ý  ณ   and 26 cannot  บ
+บ    158  ณ 174 ฎ ณ 190 พ ณ 206 ฮ ณ 222 Þ ณ 238 ๎ ณ 254 þ  ณ   be displayed   บ
+บ    159  ณ 175 ฏ ณ 191 ฟ ณ 207 ฯ ณ 223 ฿ ณ 239 ๏ ณ 255 NULณ   correctly.     บ
+ศออออออออออฯอออออออฯอออออออฯอออออออฯอออออออฯอออออออฯออออออออฯออออออออออออออออออผ
+
