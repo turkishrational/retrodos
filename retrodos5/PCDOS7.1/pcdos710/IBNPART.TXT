@@ -1,0 +1,265 @@
+SEE SPECIAL BOOTPART 2.60 INFO AT THE END OF THIS DOCUMENT
+
+
+This zipfile contain:
+32bits\bootpart.exe: 32 bits executable, for 32 bits Windows x86
+ia64\bootpart.exe: 64 bits executable, for 64 bits Windows for Intel Itanium
+x64\bootpart.exe: 64 bits executable, for 64 bits Windows extended (for
+       AMD64 and Intel EM64T : 64 bits Windows on AMD Athlon 64, Opteron,
+       Intel Pentium 4, Xeon or Celeron with EM64T)
+
+
+Boot Partition 2.60 for WinNT/2K/XP (c)1995-2002 G. Vollant (info@winimage.com)
+WEB : http://www.winimage.com and http://www.winimage.com/bootpart.htm
+Add partition in the Windows NT/2000/XP Multi-boot loader
+Usage : When running under Windows NT/2000/XP or MS-Dos
+       BOOTPART
+          List all partition, with number
+       BOOTPART <part_number> [LBA] <filename> [<name_of_system>]
+          where : part_number : a number of a partition (or A: for floppy)
+                  LBA : force LBA addressing for loading partition bootsector
+                  filename : the file name of the bootfile to create
+                  name_of_system : the name to be added in the BOOT.INI
+              Create a boot file for the partition, and if name_of_system
+                 is specified, register it in the BOOT.INI
+          You can also replace <part_number> by DOS622 or WIN95 to them.
+      BOOTPART LIST
+         List entry in BOOT.INI (you can remove them after with BOOTPART)
+Under MS-Dos (MS-Dos 6.22 or the "MS-Dos 7.0" from Windows 95) only:
+      BOOTPART <part_type> BOOT:C:
+         where <part_type> is DOS622, WIN95 or WINNT, rewrite the boot sector
+             of C: for boot under MS-Dos 6.22, Win95 or the NT Boot loader
+      BOOTPART REWRITEROOT:C:
+         Put the IO.SYS and MSDOS.SYS file from MS-Dos 6.22 at the beginning
+             of the boot sector
+
+------------------------------------
+
+BOOTPART lets you add partitions to the Windows NT Multiboot menu. Usually,
+the only partitions on the Windows NT multiboot are the one or more installations of
+Windows NT.
+
+With BOOTPART, you can add any partition to the menu. You can add OS/2
+Multiboot or Linux Partitions (with Lilo) to the menu.
+
+It seems it's actually impossible to add an HPFS partition with OS/2 boot.
+If you find a workaround, please let me know.
+
+BOOTPART creates a 512 byte file that contains an image of a boot sector
+that loads the boot sector of the partition. That is, it creates a small program
+that loads and executes the specified partition's boot sector.  
+Thereafter, this file is
+declared in C:\BOOT.INI (a text file used by the Windows NT boot menu). The
+boot sector comes from FDFormat and WinImage.
+
+Note that under Windows NT, BOOTPART must be run from the Administrator account.
+
+FDFormat can be downloaded from my web page http://www.winimage.com/othertl.htm
+The FTP link is ftp://ftp.simtel.net/pub/simtelnet/msdos/diskutil/fdfrm18.zip 
+This tool, written by C.H. Hochstatter, formats floppies under MSDOS in
+normal (1.44 MB) or special (1.68 MB) capacity. It will also write a boot sector that
+boots the harddisk.
+
+WinImage, a Windows (Windows 3.1, 95/98/Me and NT/2000/XP) shareware I've written, can
+read, write, and format floppies in any capacity (including 1.68 MB), and
+build an image file of a floppy. It can extract from, or inject files into
+an image, and change the image size. The WinImage web site is :
+
+  http://www.winimage.com/winimage.htm
+
+
+
+Example :
+ You create and move to a directory for the boot file, and display the
+ list of partitions :
+C:\>MD BOOTFILE
+C:\>CD BOOTFILE
+C:\BOOTFILE>BOOTPART
+Boot Partition 2.60 for WinNT/2K/XP (c)1995-2002 G. Vollant (info@winimage.com)
+WEB : http://www.winimage.com and http://www.winimage.com/bootpart.htm
+Add partition in the Windows NT/2000/XP Multi-boot loader
+Run "bootpart /?" for more information
+
+ 0 : C:* type=6 (BIGDOS Fat16), size = 1044193 KB
+ 1 : C:  type=a (OS/2 Boot Manag.), size = 8032 KB
+ 2 : C:  type=5 (Extended), size = 8032 KB
+ 3 : C:  type=7  (HPFS/NTFS), size = 8001 KB
+ 4 : D:  type=6 (BIGDOS Fat16), size = 261104 KB
+ 5 : D:  type=5 (Extended), size = 769024 KB
+ 6 : D:  type=7  (HPFS/NTFS), size = 102384 KB
+ 7 : D:  type=5  (Extended), size = 369664 KB
+ 8 : D:  type=7   (HPFS/NTFS), size = 369648 KB
+ 9 : D:  type=83  (Linux native), size = 296944 KB
+
+Note : Extended partitions (type 5) are the only partitions that can contain
+other partitions. It's not useful to add extended partitions to the NT boot
+menu !
+The * after C: means that partition 0: is the active partition.
+
+Now, you add some partitions :
+C:\BOOTFILE>BOOTPART 9 BOOTLINX.BIN Linux
+C:\BOOTFILE>BOOTPART 1 BOOTLINX.BIN Boot Manager OS/2
+C:\BOOTFILE>BOOTPART a: BOOTLINX.BIN Boot floppy A:
+
+The last line (A:) is special, and is designed for a BIOS configured for
+booting from C: before reading from the floppy (A:) .
+
+The next time you boot, the Windows NT menu will show Linux, OS/2 Boot
+Manager, and the floppy !
+
+BOOTPART is a Win32 console application written in C++ and compiled with Visual C++ 2.2
+bootpa32.mak is the Visual C++ Makefile, bootpart.cpp is the source file,
+bootpart.exe is the executable, and bootpart.txt is this documentation.
+
+-----------------------------------------------------------------------------
+
+Fast tips :
+
+To repair the Windows NT boot sector
+====================================
+Windows NT installs a boot sector that lauches NTLDR and displays the
+Windows NT boot menu. If you lose this boot sector, Bootpart can restore
+it.
+Boot under MS-Dos (this can be MS-Dos 6.22 on your hard disk, on an MS-Dos
+bootable floppy, or the "MS-Dos 7.0" included in Windows 95 (you can obtain it
+by pressing Shift+F5 when Win95 loads). Then, enter the command :
+BOOTPART WINNT BOOT:C:
+
+If you want to remove the WinNT boot sector, you can replace it with the
+command "BOOTPART DOS622 BOOT:C:" or "BOOTPART WIN95 BOOT:C:"
+
+To have both MS-Dos 6.22 and Windows 95 in the NT menu (forgot F4 !)
+=======================================================================
+The standard situation for a computer that multiboots to Windows NT,
+Windows 95, or MS-Dos 6.22 is : the user selects a "Windows 95" entry
+in NT menu, and, then must press F4 if he wants to  boot MS-Dos 6.22.
+If you don't have this situation (i.e. : you don't have both Win95 and
+MS-Dos 6.22 on your system, but want to have both), see the next section.
+
+Just enter these bootpart command :
+BOOTPART DOS622 C:\BOOTSECT.622 "MS-Dos 6.22"
+BOOTPART WIN95 C:\BOOTSECT.W95 "Windows 95"
+BOOTPART REWRITEROOT:C:
+
+The last line (REWRITEROOT:C:) MUST BE EXECUTED UNDER MSDOS, and moves the
+MS-Dos IO.* and MSDOS.* files to the beginning of the root directory.
+
+You can visit the page : http://www.bcpl.lib.md.us/~dbryan/directboot.html
+for more information on booting WinNT/Win95/DOS.
+
+If you have WinNT & Win95 and you only want to add MS-Dos
+=========================================================
+Take an MSDos 6.22 floppy, copy the files IO.SYS, MSDOS.SYS, and
+COMMAND.COM to C:\ as IO.DOS, MSDOS.DOS, and COMMAND.DOS (warning :
+these files can be hidden, but you can ask File Manager or Explorer to
+display hidden files). Then go to the section "To have both MS-Dos
+6.22 and Windows 95 in the NT menu"
+
+If you have WinNT & MS-Dos and you only want to add Win95
+=========================================================
+Install Win95 in a new directory (start the install under MS-Dos 6.22
+or Windows 3.1) and go to the section "To have both MS-Dos 6.22 and
+Windows 95 in the NT menu"
+
+To add OS/2
+===========
+Unfortunatelly, I can't directly add an OS/2 partition by itself (if you
+have a workaround or fix, I'd be happy to hear about it !).
+Install the OS/2 Boot Manager (you need 1 MB free on your first hard disk),
+add the OS/2 partition in the boot menu with automatic start (0 sec.
+waiting), and then add the OS/2 Boot Manager partition on your NT menu with
+BootPart.  Sometimes, when you install OS/2 Boot Manager, it becomes the active 
+partition of your first hard disk.  You can use FDISK to set the
+partition with NT boot manager as the active partition later.
+
+To add Linux
+============
+For Linux, you must install Lilo at the beginning of the Linux partition
+(as with OS/2 boot manager) and then add the Linux partition with Bootpart:
+
+When you install Linux or run liloconfig, select "Superblock of the root
+linux partition" as location of Lilo. In my sample, this adds the line
+"boot=/dev/sdb4" on the file /etc/lilo.conf
+
+
+---------------------------------------------------------------------------------
+
+Bootpart is cardware.
+If you like it, please send me a postcard from your city to:
+Gilles Vollant
+4, rue de Morsang
+F-91600 Savigny
+France
+
+If Bootpart help you, please try my two shareware WinImage and SmartVersion
+
+
+---------------------------------------------
+
+WinImage is a powerful disk utility that enables users to create disk images
+from flopp disks, extract files from image files, create empty image files,
+write the image files on blank floppy disks, and more! WinImage also supports
+many different standard and non-standard image formats, including the Microsoft
+DMF format.
+WinImage also open ISO CD Rom image file (in read-only mode)
+
+Get more info and try if from :
+  http://www.winimage.com/winimage.htm 
+
+---------------------------------------------
+
+SmartVersion is a multi-version incremental file archivist, it provides a powerful
+and easy way to store unlimited file versions (or document versions: Word, Excel,
+HTML, etc...) in a single location. By means of state-of-the-art compression,
+SmartVersion  stores only file's differences between last version's file
+(or document) and the previous one.
+
+For some file's types (such as text file, HTML files, Word Processing files...),
+it takes a significant smaller disk space than compressing each version individually.
+
+SmartVersion also enables you to create "patch" files with only differences
+concerning a particular or specific files' set. These "patch" files (smaller than the
+equivalent classic archive of the new version) can be made available to anyone which
+already has a version of the files' set and needs either to upgrade to a latest
+version or downgrade to a previous one!!!.
+
+Get more info and try if from :
+ http://www.smartVersion
+
+---------------------------------------------------------------------------------
+
+This program comes without any warranty either implied or expressed. In no
+case shall the author be liable for any damage or unwanted behavior of any
+computer hardware and/or software.
+You can send me question at info@winimage.com
+If you ask help, please send your boot.ini and the result of BOOTPART without
+parameters (the list of partition on the system).
+
+I want thank a lot Matthew Gardiner and Dave Bryan for review of this
+documentation.
+
+---------------------------------------------------------------------------------
+NEW IN VERSION 2.12 beta
+
+This version is now :
+- compatible with disk over 4 GB
+- can restore Win95 OEMSR2 (or Win98) and WinNT BootLoader (for NTLDR of WinNT 5.0) 
+    in FAT32 partition
+
+---------------------------------------------------------------------------------
+NEW IN VERSION 2.14 beta
+- add "BOOTPART Win95SR2 xxx" and "BOOTPART Win98 xxx" option for Win95 OEMSR2 and
+Win98 bootsector
+
+---------------------------------------------------------------------------------
+NEW IN VERSION 2.20
+- Released version, not a beta
+- fix bug in writting the WinNT and Win95/98 bootsector in FAT32 partition
+
+---------------------------------------------------------------------------------
+NEW IN VERSION 2.50
+- Support using of LBA for large disk (>8 GB)
+---------------------------------------------------------------------------------
+NEW IN VERSION 2.60
+- 64 bits executables
+- option "bootpart vista boot:c:" to rebuild Windows Vista Bootmgr on FAT partition

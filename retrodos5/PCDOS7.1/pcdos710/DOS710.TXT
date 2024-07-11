@@ -1,0 +1,27 @@
+
+ 101                 Symmantic boot disk              B
+ 110  2000.08.01     ult release unknowm              B
+ 111  2001.01.12     Ghost 08.00 bootsrv.sys          B
+ 119  2002.07.15     Ghost 08.00 general              B
+ 126  2003.03.20     thinkpad secure disposal disk    B H
+ 128  2003.07.22     rnr31_rr disk                    B H F
+ 129  2003.09.11     Ghost 11.50 cddvdimg.bin         B
+ 130  2003.09.26     Ghost 11,50 general              B
+ 132  2003.12.01     sgtk v 1.101 and 1.307           B H F A
+ 134  2004.02.27     sgtk v 1.101 and 1.307           J
+
+
+    B  IBMBIO.COM       101 110 111 119 129 130
+       IBMDOS.COM
+       COMMAND.COM
+    H  HIMEM.SYS        126 + B
+    F  FDISK32.COM      128 + B H
+    A  BLDLEVEL.COM     132 + B H F
+       DEBUG.COM
+       DYNALOAD.COM
+       FORMAT.COM
+       FORMAT32.COM
+       MSCDEX.EXE
+       NOINT25.COM
+   J   IBMCDET.SYS      134
+
