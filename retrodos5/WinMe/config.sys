@@ -1,0 +1,39 @@
+[menu]
+menuitem=SETUP_CD, Start Windows Setup from CD-ROM.
+menuitem=CD, Start computer with CD-ROM support.
+menuitem=NOCD, Start computer without CD-ROM support.
+menudefault=SETUP_CD,30
+menucolor=7,0
+
+[SETUP_CD]
+device=oakcdrom.sys /D:oemcd001 
+device=btdosm.sys 
+device=flashpt.sys
+device=btcdrom.sys /D:oemcd001
+device=aspi2dos.sys
+device=aspi8dos.sys
+device=aspi4dos.sys
+device=aspi8u2.sys
+device=aspicd.sys /D:oemcd001
+
+[CD]
+device=oakcdrom.sys /D:oemcd001 
+device=btdosm.sys 
+device=flashpt.sys
+device=btcdrom.sys /D:oemcd001
+device=aspi2dos.sys
+device=aspi8dos.sys
+device=aspi4dos.sys
+device=aspi8u2.sys
+device=aspicd.sys /D:oemcd001
+
+[NOCD]
+
+
+[COMMON]
+files=60
+buffers=20
+dos=high,umb
+stacks=9,256
+lastdrive=z
+
