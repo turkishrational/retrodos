@@ -6,5 +6,5 @@ Retro DOS v5.0 (Modified PCDOS 7.1) Disk Images
 Note: Hard disk images are needed for (proper) configured/menu startup. (I mean startup with the sample configuration.)
 ((see "qemu_link.txt" file for QEMU demo of Retro DOS v5.))
 
-(Retro DOS v4 hard disk images can be used in addition to the sample Redtro DOS v5 hard disk image.)
+(Retro DOS v4 hard disk images can be used in addition to the sample Retro DOS v5 hard disk image.)
 ((they are in 'retrodos4/disks' section.))
