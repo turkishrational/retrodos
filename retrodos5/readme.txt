@@ -1,10 +1,70 @@
-Retro DOS v5.0 (Modified PCDOS 7.1) Source Code (Ready!) //// 12/07/2024 - Erdogan Tan
-Last Update: 10/07/2024 (PCDOS 7.1 COMMAND.COM with Retro DOS v5 kernel PCDOS.SYS.)
+Retro DOS 5.0 - Modified PCDOS 7.1 Kernel by Erdogan Tan
+--------------------------------------------------------
+JULY 2024 - Istanbul
 
-*** Tested on a Real Computer (runs Windows 7) with a disk contains FAT32 and FAT16 logical drives in extended dos partition) ****
-((Retro DOS v5 recognizes all of logical -FAT12, FAT16 and FAT32- DOS drives in an extended dos partition and on USB -external- disks.. in addition to primary FAT32, FAT16, FAT12 dos partitions))
-Windows 3.1 (on FAT16 fs) and AutoCAD R12 (on FAT32 or FAT16 fs) are running on Retro DOS v5 (on the Real Computer) without a problem.
-(Windows 3.1 must be run with 'win.com /s' switch in standard mode. Windows can run in enhanced mode but after return to DOS, directory listing gives
-FAT error, changing to root directory corrects this fault.)
+Retro DOS v5.0 Kernel (PCDOS.SYS) is based on disassembled source code
+of IBM PCDOS 7.1 IBMBIO.COM and IBMDOS.COM.
 
-NOTE: Windows 3.1 File Manager recognizes FAT32 disks and read/write is OK for FAT32 fs.. But Windows 3.1 FAT32 startup fails, so.. Windows 3.1 must be installed on a FAT16 fs. (I don't know the reason. Perhaps, Windows 3.1 startup code is bypassing PCDOS 7.1 kernel or it uses the old DEVICE IO funcs.) 
+(But Retro DOS v5 kernel source code reference/construction is based on
+on Retro DOS v4.2 kernel source code which is derived from 
+original MSDOS 6.0 source code and disassembled MSDOS 6.22 kernel code.)
+
+Retro DOS v5 boot sector(s) is different (original code) 
+than IBM PCDOS 7.1 boot sector(s). It loads combined 'PCDOS.SYS' kernel
+at once. (While IBM PCDOS 7.1 boot sector loads the 1st 4 sectors of
+IBMBIO.COM -this is same with MSLOAD section of MSDOS IO.SYS-.)
+
+****
+
+Retro DOS v5 Kernel is as a compact and modified PCDOS 7.1 kernel.
+(Kernel File Name: PCDOS.SYS -for using/loading by Retro DOS v5 boot sector-)
+It is as an update of PCDOS 7.1 kernel with impontant bugfixes.
+
+(NOTE: There are also -Retro DOS v5- IBMBIO.COM and IBMDOS.COM kernel files
+usable with IBM PCDOS boot sector.)
+
+((Original PCDOS 7.1 COMMAND.COM is needed for now.))
+(((I will write/develop Retro DOS v5 COMMAND.COM later, in 2024.)))
+
+****
+
+Retro DOS v5.0 combined kernel PCDOS.SYS (10/07/2024)
+                               file size is 81366 bytes ..
+               PCDOS 7.1 IBMBIO.COM + IBMDOS.COM total file size is 87222 bytes.
+
+There are not any PCDOS 7.1 features removed...
+Retro DOS v5 = PCDOS 7.1+. (Only optimized and bugfixed code.)
+
+(9 PCDOS 7.1 kernel bugs -not exist in MSDOS kernel- are fixed in Retro DOS v5.
+Also 1 MSDOS/PCDOS bug is fixed.)
+
+****
+
+Retro DOS v5 PCDOS.SYS (10/07/2024)
+             runs Windows with "win /s" switch and on FAT16 fs 
+
+(but Windows File Manager recognises FAT32 fs disk 
+even if it can not started on FAT32 fs.)
+
+AutoCAD R12 runs on Retro DOS v5 kernel (on FAT32 or FAT16 disk whatever)
+	(after running mouse.com or mouse driver).
+
+STACKER and DRVSPACE (disk compression) is usable with Retro DOS v5 kernel.
+	(Just as PCDOS 7.1)
+
+Retro DOS v5 PCDOS.SYS is almost a PCDOS 7.1 kernel
+       (+ more compact and really bugfixed update of PCDOS 7.1 kernel)
+
+****
+
+Retro DOS v1 to v5 web pages (and more source):
+https://www.singlix.com/trdos/retrodos/index.html
+
+QEMU demo link: 
+https://www.singlix.com/trdos/retrodos/retrodos5/qemu/
+https://www.singlix.com/trdos/retrodos/retrodos5/qemu/retrodos5_pcdos71_qemu_fat32_test_2024.zip
+https://www.singlix.com/trdos/retrodos/retrodos5/qemu/retrodos5_pcdos71_qemu_test_2024.zip
+
+****
+
+12/07/2024
