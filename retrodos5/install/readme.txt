@@ -1,5 +1,5 @@
 **Retro DOS v5 Installation Utilities**
-Last Update: 04/05/2024
+Last Update: 15/07/2024
 
 Retro DOS v5 FAT12, FAT16, FAT32 boot sectors... (Kernel File Name: PCDOS.SYS)
 Boot sector update/change utilities... Floppy Disk and Hard Disk image creation and update utilities...
