@@ -4,7 +4,7 @@
 ; ****************************************************************************
 ; 32 bit cylinder numbers modification on fdisk3.s (2TB hardisk partitioning)
 ; ----------------------------------------------------------------------------
-; Last Update: 04/05/2024
+; Last Update: 15/07/2024
 ; ----------------------------------------------------------------------------
 ; Beginning: 05/11/2020
 ; ----------------------------------------------------------------------------
@@ -4999,7 +4999,7 @@ FAT16_f_x:
 	;and	dx, dx
 	;jnz	short FAT16_f_0
 	; 17/03/2021
-	mov	eax,[ppn_Sectors]
+	mov	eax, [ppn_Sectors]
 	cmp	eax, 65536
 	jnb	short FAT16_f_0
 
@@ -5141,11 +5141,27 @@ FAT16_f_10:
 	; 17/03/2021
 	mov	dx, [bp+0Eh]	; [BPB_RsvdSecCnt] ; 1
 	add	dx, ax
-	; CX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
+
+	; 15/07/2024 (bugfix)
+	mov	[bp+42h], dx	; bsRootDirStart
+	mov	ax, [root_dir_secs]
+	mov	[bp+44h], ax	; bsRootDirSects
+	;mov	word [bp+46h], 16 ; bsDirEntsPerSec	
+
+	; EDX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
+	;; CX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
 	;add	cx, [root_dir_secs] ; + RootDirsectors
 	;sub	bx, bx ; BX = 0
-	add	dx, [root_dir_secs] ; + RootDirsectors
-	; BX_CX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
+	; 15/07/2024
+	;add	dx, [root_dir_secs] ; + RootDirsectors
+	add	dx, ax
+
+	; 15/07/2024 (bugfix)
+	mov	 [bp+40h], dx	; bsDataStart
+
+	; EDX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
+	;	+ RootDirSectors
+	;; BX_CX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
 	;	  + RootDirSectors
 	mov	ax, [bp+13h]	; [BPB_TotSec16]
 	;sub	dx, dx 
@@ -5456,9 +5472,22 @@ FAT12_f_1:
 	; 11/02/2019
 	;mov	cx, 33
 	mov	cx, [root_dir_secs]
-	add	cx, [bp+0Eh]	; [BPB_RsvdSecCnt] ; 1
+
+	; 15/07/2024 (bugfix)
+	; ax = 2 * FAT size (in sectors)
+	add	ax, [bp+0Eh] ; total FAT sectors + reserved sectors
+	mov	[bp+42h], ax	; bsRootDirStart
+	mov	[bp+44h], cx	; bsRootDirSects
+	;mov	word [bp+46h], 16 ; bsDirEntsPerSec
+
+	; 15/07/2024
+	;add	cx, [bp+0Eh]	; [BPB_RsvdSecCnt] ; 1
 		; cx = root directory sectors + reserved sectors
 	add	cx, ax
+
+	; 15/07/2024 (bugfix)
+	mov	 [bp+40h], cx	; bsDataStart
+
 	; CX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
 	;	  + RootDirSectors
 
@@ -11770,7 +11799,7 @@ TrDOS_Welcome:
 	db	'Retro DOS v5 Fixed Disk Partitioning Utility'
 	db	0Dh, 0Ah
 	;db	"v2.1.240504 (c) Erdogan TAN 2021-2024"
-	db	"FDISK4 v2.0.240504 (c) Erdogan TAN 2021-2024"
+	db	"FDISK4 v2.0.240715 (c) Erdogan TAN 2021-2024"
 	db	0Dh,0Ah
 	db	0Dh,0Ah
 	db	0

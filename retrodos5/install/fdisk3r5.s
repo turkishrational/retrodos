@@ -2,7 +2,7 @@
 ; FDISK3R5.ASM (FDISK3R5.COM) - Retro DOS v5 Hard Disk Partitioning Utility
 ; fdisk3.s						(for MSDOS/WINDOWS)
 ; ****************************************************************************
-; Last Update: 04/05/2024
+; Last Update: 15/07/2024
 ; ----------------------------------------------------------------------------
 ; Beginning: 11/10/2020
 ; ----------------------------------------------------------------------------
@@ -4311,8 +4311,17 @@ FAT16_f_10:
 	; AX = [BPB_NumFATs] * [BPB_FATSz16]
 	mov	cx, [bp+0Eh]	; [BPB_RsvdSecCnt] ; 1
 	add	cx, ax
+	
+	; 15/07/2024 (bugfix)
+	mov	[bp+42h], cx	; bsRootDirStart
+	mov	bx, [root_dir_secs]
+	mov	[bp+44h], bx	; bsRootDirSects
+	;mov	word [bp+46h], 16 ; bsDirEntsPerSec
+
 	; CX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
-	add	cx, [root_dir_secs] ; + RootDirsectors
+	;add	cx, [root_dir_secs] ; + RootDirsectors
+	; 15/07/2024
+	add	cx, bx
 	sub	bx, bx ; BX = 0
 	; BX_CX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
 	;	  + RootDirSectors
@@ -4328,6 +4337,10 @@ FAT16_f_11:
 	sbb	dx, bx
 	mov	[data_start], cx
 	mov	[data_start+2], bx
+
+	; 15/07/2024 (bugfix)
+	mov	 [bp+40h], cx	; bsDataStart
+
 	; DX_AX = Data sectors
 	mov	[data_sectors], ax
 	mov	[data_sectors+2], dx
@@ -4564,9 +4577,20 @@ FAT12_f_1:
 	; 11/02/2019
 	;mov	cx, 33
 	mov	cx, [root_dir_secs]
-	add	cx, [bp+0Eh]	; [BPB_RsvdSecCnt] ; 1
+
+	; 15/07/2024 (bugfix)
+	; ax = 2 * FAT size (in sectors)
+	add	ax, [bp+0Eh] ; total FAT sectors + reserved sectors
+	mov	[bp+42h], ax	; bsRootDirStart
+	mov	[bp+44h], cx	; bsRootDirSects
+	;mov	word [bp+46h], 16 ; bsDirEntsPerSec
+
+	; 15/07/2024
+	;add	cx, [bp+0Eh]	; [BPB_RsvdSecCnt] ; 1
 		; cx = root directory sectors + reserved sectors
 	add	cx, ax
+		; cx = root dir sects + rsvd sects + total FAT sects
+
 	; CX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
 	;	  + RootDirSectors
 	mov	ax, [bp+13h]	; [BPB_TotSec16]
@@ -4585,6 +4609,10 @@ FAT12_f_9:
 	xor	dx, dx
 	mov	[data_start], cx
 	mov	[data_start+2], dx ; 0
+	
+	; 15/07/2024 (bugfix)
+	mov	 [bp+40h], cx	; bsDataStart
+
 	; DX_AX = Data sectors
 	mov	[data_sectors], ax
 	mov	[data_sectors+2], dx ; 0
@@ -9764,7 +9792,7 @@ TrDOS_Welcome:
 	db	'Retro DOS v5 Fixed Disk Partitioning Utility'
 	db	0Dh, 0Ah
 	;db	"v1.1.240504 (c) Erdogan TAN 2021-2024"
-	db	"FDISK3 v2.0.240504 (c) Erdogan TAN 2021-2024"
+	db	"FDISK3 v2.0.240715 (c) Erdogan TAN 2021-2024"
 	db	0Dh,0Ah
 	db	0Dh,0Ah
 	db	0
