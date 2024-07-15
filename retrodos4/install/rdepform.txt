@@ -4,7 +4,7 @@
      4                                  ; ----------------------------------------------------------------------------
      5                                  ; Extended DOS Partition (FAT File System) Format Utility for Retro DOS v4 OS.
      6                                  ; ----------------------------------------------------------------------------
-     7                                  ; Last Update: 04/05/2024 (Previous: 28/10/2023)
+     7                                  ; Last Update: 15/07/2024 (Previous: 04/05/2024)
      8                                  ; ----------------------------------------------------------------------------
      9                                  ; Beginning: 28/10/2023
     10                                  ; ----------------------------------------------------------------------------
@@ -137,7 +137,7 @@
    137                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    138                                  
    139                                  T_3:
-   140 00000035 BE[5C15]                	mov	si, RD_Welcome
+   140 00000035 BE[7015]                	mov	si, RD_Welcome
    141 00000038 E85B03                  	call	print_msg
    142                                  	;cmp	cl, 0
    143                                          ;ja	short T_44
@@ -156,14 +156,14 @@
    156                                  ; get drive parameters
    157                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    158                                  
-   159 00000044 A2[DA17]                	mov	[RD_Drive], al	; '0' .. '3'
+   159 00000044 A2[EE17]                	mov	[RD_Drive], al	; '0' .. '3'
    160                                  
-   161 00000047 A2[0B19]                	mov	[drv_str], al
+   161 00000047 A2[1F19]                	mov	[drv_str], al
    162                                  
    163 0000004A B408                    	mov	ah, 08h
    164 0000004C 88C2                    	mov	dl, al
    165 0000004E 80C250                  	add	dl, 80h -'0'		; make it 80h based 
-   166 00000051 8816[5515]              	mov	[drv], dl
+   166 00000051 8816[6915]              	mov	[drv], dl
    167 00000055 CD13                    	int	13h			; return disk parameters
    168                                  
    169 00000057 0E                      	push	cs
@@ -174,20 +174,20 @@
    174                                  	
    175 0000005D 88C8                    	mov	al, cl
    176 0000005F 243F                    	and	al, 63
-   177 00000061 A2[5615]                	mov	[sectors], al
+   177 00000061 A2[6A15]                	mov	[sectors], al
    178 00000064 C0E906                  	shr	cl, 6 
    179 00000067 86E9                    	xchg	ch, cl
    180 00000069 41                      	inc	cx
-   181 0000006A 890E[5A15]              	mov	[cylinders], cx
+   181 0000006A 890E[6E15]              	mov	[cylinders], cx
    182 0000006E FEC6                    	inc	dh
-   183 00000070 8836[5815]              	mov	[heads], dh
+   183 00000070 8836[6C15]              	mov	[heads], dh
    184 00000074 F6E6                    	mul	dh
    185                                  		; ax = heads * spt
-   186 00000076 A3[0A20]                	mov	[csize], ax
+   186 00000076 A3[1E20]                	mov	[csize], ax
    187 00000079 F7E1                    	mul	cx ; * cylinders
    188                                  		; dx:ax = chs limit
-   189 0000007B A3[D418]                	mov	[CHS_limit], ax
-   190 0000007E 8916[D618]              	mov	[CHS_limit+2], dx
+   189 0000007B A3[E818]                	mov	[CHS_limit], ax
+   190 0000007E 8916[EA18]              	mov	[CHS_limit+2], dx
    191                                  
    192                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    193                                  ; read MBR
@@ -199,14 +199,14 @@
    199 00000082 BF0500                  	mov	di, 5
    200                                  
    201                                  	;mov	ax, 0201h		; read disk
-   202 00000085 BB[1420]                	mov	bx, MBR			; location of masterboot code
+   202 00000085 BB[2820]                	mov	bx, MBR			; location of masterboot code
    203                                  
    204 00000088 B90100                  	mov	cx, 1			; cylinder = 0
    205                                  					; sector = 1
    206 0000008B B600                    	mov	dh, 0			; head = 0
    207                                  	;mov	dl, [RD_Drive]	; drive 
    208                                  	;add	dl, 80h -'0'		; make it 80h based 
-   209 0000008D 8A16[5515]              	mov	dl, [drv]
+   209 0000008D 8A16[6915]              	mov	dl, [drv]
    210                                  T_5:
    211 00000091 B80102                  	mov	ax, 0201h
    212 00000094 CD13                    	int	13h
@@ -227,25 +227,25 @@
    227                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    228                                  
    229                                  T_6:
-   230 0000009F C606[0018]00            	mov	byte [zbyte], 0 ; message without (Y/N) question 
+   230 0000009F C606[1418]00            	mov	byte [zbyte], 0 ; message without (Y/N) question 
    231                                  
    232 000000A4 E8EC02                  	call	T_46			; write error message
    233 000000A7 E9D502                  	jmp	T_44 			; terminate
    234                                  
    235                                  T_7:
-   236 000000AA 813E[1222]55AA          	cmp	word [MBR+510], 0AA55h
+   236 000000AA 813E[2622]55AA          	cmp	word [MBR+510], 0AA55h
    237 000000B0 75ED                            jne	short T_6
    238                                  
-   239 000000B2 BE[D621]                	mov	si, MBR+(partition_table+ptFileSystemID)
+   239 000000B2 BE[EA21]                	mov	si, MBR+(partition_table+ptFileSystemID)
    240                                  T_8:
    241 000000B5 E80E03                  	call	validate_extended_dos_partition
    242 000000B8 730F                    	jnc	short T_10	
    243                                   
    244 000000BA 83C610                  	add	si, 16
-   245 000000BD 81FE[1622]              	cmp	si, MBR+partition_table+ptFileSystemID+64
+   245 000000BD 81FE[2A22]              	cmp	si, MBR+partition_table+ptFileSystemID+64
    246 000000C1 72F2                    	jb	short T_8
    247                                  T_9:
-   248 000000C3 BE[8F18]                	mov	si, RD_fatp_notfound
+   248 000000C3 BE[A318]                	mov	si, RD_fatp_notfound
    249                                  	;call	print_msg
    250                                  	;jmp	T_44
    251 000000C6 E95F02                  	jmp	T_40
@@ -253,48 +253,48 @@
    253                                  	; AL = EP type (05h or 0Fh)
    254 000000C9 3C0F                    	cmp	al, 0Fh
    255 000000CB 7604                    	jna	short T_11
-   256 000000CD FE06[5415]              	inc	byte [lba]
+   256 000000CD FE06[6815]              	inc	byte [lba]
    257                                  T_11: 
-   258 000000D1 A1[5422]                	mov	ax, [EP_Start]
-   259 000000D4 8B16[5622]              	mov	dx, [EP_Start+2]
+   258 000000D1 A1[6822]                	mov	ax, [EP_Start]
+   259 000000D4 8B16[6A22]              	mov	dx, [EP_Start+2]
    260                                  T_12:
-   261 000000D8 A3[5822]                	mov	[EP_Start_x], ax
-   262 000000DB 8916[5A22]              	mov	[EP_Start_x+2], dx
+   261 000000D8 A3[6C22]                	mov	[EP_Start_x], ax
+   262 000000DB 8916[6E22]              	mov	[EP_Start_x+2], dx
    263                                  T_13:
-   264 000000DF BB[1420]                	mov	bx, bootsector
+   264 000000DF BB[2820]                	mov	bx, bootsector
    265 000000E2 E8B503                  	call	read_hd_sector
    266 000000E5 7309                    	jnc	short T_14
    267                                  	
-   268 000000E7 803E[8E18]00            	cmp	byte [ldd_count], 0
+   268 000000E7 803E[A218]00            	cmp	byte [ldd_count], 0
    269 000000EC 7771                    	ja	short T_18
    270 000000EE EBAF                    	jmp	short T_6
    271                                  T_14:
-   272 000000F0 813E[1222]55AA          	cmp	word [bootsector+510], 0AA55h 
+   272 000000F0 813E[2622]55AA          	cmp	word [bootsector+510], 0AA55h 
    273 000000F6 7409                            je	short T_15
    274                                  
-   275 000000F8 803E[8E18]00            	cmp	byte [ldd_count], 0
+   275 000000F8 803E[A218]00            	cmp	byte [ldd_count], 0
    276 000000FD 7760                    	ja	short T_18	
    277 000000FF EBC2                    	jmp	short T_9 ; there is not a valid extd dos part.
    278                                  T_15:
-   279 00000101 BE[D621]                	mov	si, bootsector+(partition_table+ptFileSystemID)
+   279 00000101 BE[EA21]                	mov	si, bootsector+(partition_table+ptFileSystemID)
    280 00000104 E8DA02                  	call	validate_dos_partition
    281 00000107 730D                    	jnc	short T_16
    282                                  
-   283 00000109 803E[8E18]00            	cmp	byte [ldd_count], 0
+   283 00000109 803E[A218]00            	cmp	byte [ldd_count], 0
    284 0000010E 774F                    	ja	short T_18
    285                                  
-   286 00000110 BE[6718]                	mov	si, RD_ep_ldd_defect ; not a logical dos drive
+   286 00000110 BE[7B18]                	mov	si, RD_ep_ldd_defect ; not a logical dos drive
    287 00000113 E91202                  	jmp	T_40
    288                                  
    289                                  T_16:
-   290 00000116 FE06[8E18]              	inc	byte [ldd_count]
+   290 00000116 FE06[A218]              	inc	byte [ldd_count]
    291 0000011A 83EE04                  	sub	si, ptFileSystemID
-   292 0000011D A1[5822]                	mov	ax, [EP_Start_x]
-   293 00000120 8B16[5A22]              	mov	dx, [EP_Start_x+2]
+   292 0000011D A1[6C22]                	mov	ax, [EP_Start_x]
+   293 00000120 8B16[6E22]              	mov	dx, [EP_Start_x+2]
    294 00000124 014408                  	add	[si+ptStartSector], ax
    295 00000127 11540A                  	adc	[si+ptStartSector+2], dx
    296                                  
-   297 0000012A 8B3E[0620]              	mov	di, [lddt_ptr]
+   297 0000012A 8B3E[1A20]              	mov	di, [lddt_ptr]
    298 0000012E B90800                  	mov	cx, 8
    299 00000131 F3A5                    	rep 	movsw
    300                                  
@@ -303,65 +303,65 @@
    303 00000139 7409                    	je	short T_17
    304 0000013B 80F90F                  	cmp	cl, 0Fh
    305 0000013E 751F                    	jne	short T_18 ; there is not a next logical dos drive
-   306 00000140 FE06[5415]              	inc	byte [lba] ; LBA type disk r/w
+   306 00000140 FE06[6815]              	inc	byte [lba] ; LBA type disk r/w
    307                                  T_17:
-   308 00000144 803E[8E18]03            	cmp	byte [ldd_count], 3
+   308 00000144 803E[A218]03            	cmp	byte [ldd_count], 3
    309 00000149 7714                    	ja	short T_18  ; max. 4 logical dos drive
-   310 0000014B 893E[0620]              	mov	[lddt_ptr], di
-   311 0000014F A1[5422]                	mov	ax, [EP_Start]
-   312 00000152 8B16[5622]              	mov	dx, [EP_Start+2]
+   310 0000014B 893E[1A20]              	mov	[lddt_ptr], di
+   311 0000014F A1[6822]                	mov	ax, [EP_Start]
+   312 00000152 8B16[6A22]              	mov	dx, [EP_Start+2]
    313 00000156 034408                  	add	ax, [si+ptStartSector]
    314 00000159 13540A                  	adc	dx, [si+ptStartSector+2]
    315 0000015C E979FF                  	jmp	T_12
    316                                  
    317                                  T_18:
-   318 0000015F BE[D818]                	mov	si, ldd_table
+   318 0000015F BE[EC18]                	mov	si, ldd_table
    319 00000162 E83102                  	call	print_msg
    320                                  
    321 00000165 30FF                    	xor	bh, bh
    322                                  
    323 00000167 B301                    	mov	bl, 1
    324 00000169 E89502                  	call	fill_ldd_row
-   325 0000016C BE[A819]                	mov	si, ldd_row
+   325 0000016C BE[BC19]                	mov	si, ldd_row
    326 0000016F E82402                  	call	print_msg
    327 00000172 B302                    	mov	bl, 2 
-   328 00000174 381E[8E18]              	cmp	[ldd_count], bl  ; 2
+   328 00000174 381E[A218]              	cmp	[ldd_count], bl  ; 2
    329 00000178 722B                    	jb	short T_19 ; direct question (only one ldd)
    330 0000017A E88402                  	call	fill_ldd_row
-   331 0000017D BE[A819]                	mov	si, ldd_row
+   331 0000017D BE[BC19]                	mov	si, ldd_row
    332 00000180 E81302                  	call	print_msg
    333 00000183 B303                    	mov	bl, 3 
-   334 00000185 381E[8E18]              	cmp	[ldd_count], bl  ; 3
+   334 00000185 381E[A218]              	cmp	[ldd_count], bl  ; 3
    335 00000189 721A                    	jb	short T_19 ; select menu
    336 0000018B E87302                  	call	fill_ldd_row
-   337 0000018E BE[A819]                	mov	si, ldd_row
+   337 0000018E BE[BC19]                	mov	si, ldd_row
    338 00000191 E80202                  	call	print_msg
    339 00000194 B304                    	mov	bl, 4
-   340 00000196 381E[8E18]              	cmp	[ldd_count], bl  ; 4
+   340 00000196 381E[A218]              	cmp	[ldd_count], bl  ; 4
    341 0000019A 7209                    	jb	short T_19 ; select menu
    342 0000019C E86202                  	call	fill_ldd_row
-   343 0000019F BE[A819]                	mov	si, ldd_row
+   343 0000019F BE[BC19]                	mov	si, ldd_row
    344 000001A2 E8F101                  	call	print_msg
    345                                  
    346                                  T_19:
-   347 000001A5 BE[D219]                	mov	si, ldd_dline  ; print bottom line
+   347 000001A5 BE[E619]                	mov	si, ldd_dline  ; print bottom line
    348 000001A8 E8EB01                  	call	print_msg
    349                                  
-   350 000001AB 803E[8E18]01            	cmp	byte [ldd_count], 1
+   350 000001AB 803E[A218]01            	cmp	byte [ldd_count], 1
    351 000001B0 7705                    	ja	short T_20
    352                                  
    353                                  	; the first logical dos partition in extended dos partition
-   354 000001B2 BB[1422]                	mov	bx, lddt  ; start of logical dos drives
+   354 000001B2 BB[2822]                	mov	bx, lddt  ; start of logical dos drives
    355                                  			  ; (dos partitiona) table
    356                                  	
    357 000001B5 EB4C                    	jmp	short T_25	; pass select menu
    358                                  T_20:
-   359 000001B7 A0[8E18]                	mov	al, [ldd_count]
+   359 000001B7 A0[A218]                	mov	al, [ldd_count]
    360 000001BA 0430                    	add	al, '0'
-   361 000001BC A2[261A]                	mov	[ldd_select_pn], al ; last logical dos drive number
+   361 000001BC A2[3A1A]                	mov	[ldd_select_pn], al ; last logical dos drive number
    362                                  
    363                                  T_21:
-   364 000001BF BE[FC19]                	mov	si, ldd_select_msg
+   364 000001BF BE[101A]                	mov	si, ldd_select_msg
    365 000001C2 E8D101                  	call	print_msg
    366                                  	
    367                                  T_22:
@@ -388,22 +388,22 @@
    388 000001E2 EBE1                    	jmp	short T_22
    389                                  
    390                                  T_24:
-   391 000001E4 8A26[8E18]              	mov	ah, [ldd_count]
+   391 000001E4 8A26[A218]              	mov	ah, [ldd_count]
    392 000001E8 80C430                  	add	ah, '0'
    393 000001EB 3C31                    	cmp	al, '1'
    394 000001ED 72D0                    	jb	short T_21
    395 000001EF 38E0                    	cmp	al, ah
    396 000001F1 77CC                    	ja	short T_21
    397                                  	
-   398 000001F3 A2[D317]                	mov	[RD_ldn], al
+   398 000001F3 A2[E717]                	mov	[RD_ldn], al
    399                                  
    400 000001F6 2C31                    	sub	al, '1'
    401 000001F8 C0E004                  	shl	al, 4 ; * 16
    402 000001FB 88C3                    	mov	bl, al
    403 000001FD 30FF                    	xor	bh, bh
-   404 000001FF 81C3[1422]              	add	bx, lddt ; logical dos drive (partition) table
+   404 000001FF 81C3[2822]              	add	bx, lddt ; logical dos drive (partition) table
    405                                  T_25:
-   406 00000203 891E[7C22]              	mov	[lddt_save], bx
+   406 00000203 891E[9022]              	mov	[lddt_save], bx
    407 00000207 B401                    	mov	ah, 1
    408 00000209 8A4704                  	mov	al, [bx+ptFileSystemID]  ; Partition ID
    409 0000020C 38E0                    	cmp	al, ah  ; 1 ; FAT12 file system
@@ -417,31 +417,31 @@
    417 0000021C FEC4                    	inc	ah ; 3
    418                                  	; FAT32 CHS or FAT 32 LBA file system
    419                                  T_26:
-   420 0000021E 8826[C218]              	mov	byte [fattype], ah
-   421 00000222 A2[0820]                	mov	[fsID], al
+   420 0000021E 8826[D618]              	mov	byte [fattype], ah
+   421 00000222 A2[1C20]                	mov	[fsID], al
    422                                  
    423 00000225 80FC02                  	cmp	ah, 2
    424 00000228 7421                    	je	short T_29 ; FAT16 BS (default offset addr)
    425 0000022A 7214                    	jb	short T_28
    426                                  	; set format code pointer to FAT32 format code
-   427 0000022C C706[500D][3205]        	mov	word [trdos386fc], format_FAT32_fs
+   427 0000022C C706[640D][3205]        	mov	word [trdos386fc], format_FAT32_fs
    428                                  	; set FS type string
-   429 00000232 C706[8517]3332          	mov	word [fattype_str],'32'	; 'FAT32'
+   429 00000232 C706[9917]3332          	mov	word [fattype_str],'32'	; 'FAT32'
    430                                  	; ok.. read boot sector
    431 00000238 EB11                    	jmp	short T_29
    432                                  
    433                                  T_27:
    434                                  	; Partition size defect 
    435                                  	; (less than the minimum number of sectors required)
-   436 0000023A BE[1318]                	mov	si, RD_psize_defect
+   436 0000023A BE[2718]                	mov	si, RD_psize_defect
    437                                  	;call	print_msg
    438                                  	;jmp	T_44
    439 0000023D E9E800                  	jmp	T_40
    440                                  
    441                                  T_28:
    442                                  	; set format code pointer to FAT12 format code
-   443 00000240 C706[500D][E80A]        	mov	word [trdos386fc], format_FAT12_fs
-   444 00000246 C606[8617]32            	mov	byte [fattype_str+1],'2' ; 'FAT12'
+   443 00000240 C706[640D][F30A]        	mov	word [trdos386fc], format_FAT12_fs
+   444 00000246 C606[9A17]32            	mov	byte [fattype_str+1],'2' ; 'FAT12'
    445                                  
    446                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    447                                  ; read primary dos partition's boot sector
@@ -450,25 +450,25 @@
    450                                  T_29:	
    451                                  	;mov	byte [RetryCount], 5
    452                                  
-   453 0000024B 8B36[7C22]              	mov	si, [lddt_save] ; pt row for logical dos drive
+   453 0000024B 8B36[9022]              	mov	si, [lddt_save] ; pt row for logical dos drive
    454                                  
    455 0000024F 8B4408                  	mov	ax, [si+ptStartSector]
    456 00000252 8B540A                  	mov	dx, [si+ptStartSector+2]
-   457 00000255 A3[0C20]                	mov	[dosp_start], ax
-   458 00000258 8916[0E20]              	mov	[dosp_start+2], dx
+   457 00000255 A3[2020]                	mov	[dosp_start], ax
+   458 00000258 8916[2220]              	mov	[dosp_start+2], dx
    459 0000025C 8B4C0C                  	mov	cx, [si+ptSectors]
    460 0000025F 8B5C0E                  	mov	bx, [si+ptSectors+2]
-   461 00000262 890E[1020]              	mov	[dosp_size], cx
-   462 00000266 891E[1220]              	mov	[dosp_size+2], bx
+   461 00000262 890E[2420]              	mov	[dosp_size], cx
+   462 00000266 891E[2620]              	mov	[dosp_size+2], bx
    463                                  
    464                                  	; check minimum partition size
-   465 0000026A 803E[C218]03            	cmp	byte [fattype], 3 ;  FAT32 FS
+   465 0000026A 803E[D618]03            	cmp	byte [fattype], 3 ;  FAT32 FS
    466 0000026F 730C                    	jnb	short T_31 ; yes
    467                                  T_30:
    468 00000271 09DB                    	or	bx, bx
    469 00000273 7515                    	jnz	short T_32
    470                                  
-   471 00000275 3B0E[0A20]              	cmp	cx, [csize] ; sectors per cylinder
+   471 00000275 3B0E[1E20]              	cmp	cx, [csize] ; sectors per cylinder
    472 00000279 730F                    	jnb	short T_32
    473 0000027B EBBD                    	jmp	short T_27
    474                                  T_31:
@@ -483,11 +483,11 @@
    483 0000028C 11D3                    	adc	bx, dx
    484 0000028E 0F820DFE                	jc	T_6
    485                                  
-   486 00000292 3B1E[D618]              	cmp	bx, [CHS_limit+2]
-   487 00000296 BB[1420]                	mov	bx, bootsector
+   486 00000292 3B1E[EA18]              	cmp	bx, [CHS_limit+2]
+   487 00000296 BB[2820]                	mov	bx, bootsector
    488 00000299 7711                    	ja	short T_34 ; LBA read/write
    489 0000029B 7206                    	jb	short T_33
-   490 0000029D 3B0E[D418]              	cmp	cx, [CHS_limit]
+   490 0000029D 3B0E[E818]              	cmp	cx, [CHS_limit]
    491 000002A1 7709                    	ja	short T_34
    492                                  T_33:
    493                                  	; CHS read
@@ -499,7 +499,7 @@
    499 000002A6 0F82F5FD                	jc	T_6
    500 000002AA EB0C                    	jmp	short T_35
    501                                  T_34:
-   502 000002AC C606[5415]01            	mov	byte [lba], 1 ; LBA r/w is required
+   502 000002AC C606[6815]01            	mov	byte [lba], 1 ; LBA r/w is required
    503                                  
    504                                  	;mov	ax, [dosp_start]
    505                                  	;mov	dx, [dosp_start+2]
@@ -507,26 +507,26 @@
    507 000002B1 E83B02                  	call	read_lba_sector
    508 000002B4 0F82E7FD                	jc	T_6
    509                                  T_35:
-   510 000002B8 813E[1222]55AA          	cmp	word [bootsector+510], 0AA55h
+   510 000002B8 813E[2622]55AA          	cmp	word [bootsector+510], 0AA55h
    511 000002BE 7558                    	jne	short T_38
    512                                  
-   513 000002C0 813E[1F20]0002          	cmp	word [bootsector+bsBytesPerSec], 512
+   513 000002C0 813E[3320]0002          	cmp	word [bootsector+bsBytesPerSec], 512
    514 000002C6 7550                    	jne	short T_38
    515                                  
    516                                  	; 04/05/2024 (BugFix)
-   517 000002C8 803E[2920]F8            	cmp	byte [bootsector+bsMedia], 0F8h
+   517 000002C8 803E[3D20]F8            	cmp	byte [bootsector+bsMedia], 0F8h
    518 000002CD 7549                    	jne	short T_38
    519                                  
-   520 000002CF 803E[C218]02            	cmp	byte [fattype], 2
+   520 000002CF 803E[D618]02            	cmp	byte [fattype], 2
    521 000002D4 7722                    	ja	short T_37
    522                                  
-   523 000002D6 803E[3A20]29            	cmp	byte [bootsector+bsBpbSignature], 29h
+   523 000002D6 803E[4E20]29            	cmp	byte [bootsector+bsBpbSignature], 29h
    524 000002DB 753B                    	jne	short T_38
-   525 000002DD 66813E[4A20]464154-     	cmp	dword [bootsector+bsFileSysType], 'FAT1'
+   525 000002DD 66813E[5E20]464154-     	cmp	dword [bootsector+bsFileSysType], 'FAT1'
    525 000002E5 31                 
    526 000002E6 7530                    	jne	short T_38
    527                                  
-   528 000002E8 A0[4E20]                	mov	al, [bootsector+bsFileSysType+4]
+   528 000002E8 A0[6220]                	mov	al, [bootsector+bsFileSysType+4]
    529 000002EB 3C36                    	cmp	al, '6'
    530 000002ED 7404                    	je	short T_36
    531                                  
@@ -538,22 +538,22 @@
    537                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    538                                  
    539                                  T_36:
-   540 000002F3 BE[F016]                	mov	si, RD_Format_warning ; warning is required
+   540 000002F3 BE[0417]                	mov	si, RD_Format_warning ; warning is required
    541 000002F6 EB23                    	jmp	short T_39
    542                                  T_37:
    543                                  	; 04/05/2024
-   544 000002F8 833E[2A20]00            	cmp	word [bootsector+bsFATsecs], 0
+   544 000002F8 833E[3E20]00            	cmp	word [bootsector+bsFATsecs], 0
    545 000002FD 7719                    	ja	short T_38	; not FAT32 fs
    546                                  
-   547 000002FF 803E[5620]29            	cmp	byte [bootsector+BS_BootSig], 29h
+   547 000002FF 803E[6A20]29            	cmp	byte [bootsector+BS_BootSig], 29h
    548 00000304 7512                    	jne	short T_38
-   549 00000306 66813E[6620]464154-     	cmp	dword [bootsector+BS_FilSysType], 'FAT3'
+   549 00000306 66813E[7A20]464154-     	cmp	dword [bootsector+BS_FilSysType], 'FAT3'
    549 0000030E 33                 
    550 0000030F 7507                    	jne	short T_38
-   551 00000311 803E[6A20]32            	cmp	byte [bootsector+BS_FilSysType+4], '2'
+   551 00000311 803E[7E20]32            	cmp	byte [bootsector+BS_FilSysType+4], '2'
    552 00000316 74DB                    	je	short T_36
    553                                  T_38:
-   554 00000318 BE[4617]                	mov	si, RD_Do_you_want ; no need to warning
+   554 00000318 BE[5A17]                	mov	si, RD_Do_you_want ; no need to warning
    555                                  T_39:
    556 0000031B E87800                  	call	print_msg
    557                                  
@@ -561,16 +561,16 @@
    559 00000321 3C59                    	cmp	al, 'Y'
    560 00000323 7408                    	je	short T_41
    561                                  
-   562 00000325 BE[9B17]                	mov	si, _no_str
+   562 00000325 BE[AF17]                	mov	si, _no_str
    563                                  T_40:
    564 00000328 E86B00                  	call	print_msg
    565                                  
    566 0000032B EB52                    	jmp	short T_44
    567                                  T_41:
-   568 0000032D BE[9417]                	mov	si, _yes_str
+   568 0000032D BE[A817]                	mov	si, _yes_str
    569 00000330 E86300                  	call	print_msg
    570                                  
-   571 00000333 BE[A917]                	mov	si, RD_PressKeyWhenReady
+   571 00000333 BE[BD17]                	mov	si, RD_PressKeyWhenReady
    572 00000336 E85D00                  	call	print_msg
    573                                  T_42:
    574 00000339 31C0                    	xor	ax, ax
@@ -590,40 +590,40 @@
    588                                  
    589                                  	; 28/10/2023
    590                                  T_49:
-   591 0000034B 803E[C218]03            	cmp	byte [fattype], 3 ; FAT32  ?
+   591 0000034B 803E[D618]03            	cmp	byte [fattype], 3 ; FAT32  ?
    592 00000350 750E                    	jne	short T_43
    593                                  
    594                                  	; Temporary FAT32 note for Retro DOS v4
    595                                  	; (This code will be removed when the Retro DOS v5
    596                                  	;  FAT32 boot sector code will be ready.)" ; 28/10/2023
    597                                  
-   598 00000352 BE[EC1A]                	mov	si, FAT32_note
+   598 00000352 BE[001B]                	mov	si, FAT32_note
    599 00000355 E83E00                  	call	print_msg
    600 00000358 30E4                    	xor	ah, ah
    601 0000035A CD16                    	int	16h	
    602 0000035C 3C0D                    	cmp	al, 'M'-40h ; Enter (OK) key
    603 0000035E 751F                    	jne	short T_44
    604                                  T_43:
-   605 00000360 BE[A617]                	mov	si, RD_CRLF
+   605 00000360 BE[BA17]                	mov	si, RD_CRLF
    606 00000363 E83000                  	call	print_msg
    607                                  
    608                                  	; Clear buffer in BSS 
-   609 00000366 BF[1420]                	mov	di, HDFORMAT_FATBUFFER
+   609 00000366 BF[2820]                	mov	di, HDFORMAT_FATBUFFER
    610 00000369 31C0                    	xor	ax, ax
    611 0000036B B90001                  	mov	cx, 256
    612 0000036E F3AB                    	rep	stosw
    613                                  
    614                                  	; Clear volume name field
-   615 00000370 BF[7022]                	mov	di, StrVolumeName
+   615 00000370 BF[8422]                	mov	di, StrVolumeName
    616 00000373 B10C                    	mov	cl, 12
    617 00000375 F3AA                    	rep	stosb
    618                                  
-   619 00000377 8A16[0820]              	mov	dl, [fsID] ; Partition ID
+   619 00000377 8A16[1C20]              	mov	dl, [fsID] ; Partition ID
    620                                  
-   621 0000037B FF26[500D]              	jmp	word [trdos386fc]
+   621 0000037B FF26[640D]              	jmp	word [trdos386fc]
    622                                  
    623                                  T_44:
-   624 0000037F BE[A617]                	mov	si, RD_CRLF
+   624 0000037F BE[BA17]                	mov	si, RD_CRLF
    625                                  Exit:
    626 00000382 E81100                  	call	print_msg
    627 00000385 B8004C                  	mov	ax, 4C00h		; terminate
@@ -639,7 +639,7 @@
    637                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    638                                  
    639                                  T_46:
-   640 00000393 BE[DE17]                	mov	si, RD_disk_NotReadyOrError
+   640 00000393 BE[F217]                	mov	si, RD_disk_NotReadyOrError
    641                                  	;;call	print_msg
    642                                  	;;jmp	short T_45
    643                                  	;jmp	short print_msg
@@ -721,9 +721,9 @@
    719 000003D1 C3                      	retn
    720                                  VEP_clc:
    721 000003D2 8B4C04                  	mov	cx, [si+ptStartSector-ptFileSystemID]
-   722 000003D5 890E[5422]              	mov	[EP_Start], cx
+   722 000003D5 890E[6822]              	mov	[EP_Start], cx
    723 000003D9 8B4C06                  	mov	cx, [si+2+ptStartSector-ptFileSystemID]
-   724 000003DC 890E[5622]              	mov	[EP_Start+2], cx
+   724 000003DC 890E[6A22]              	mov	[EP_Start+2], cx
    725                                  	;mov	cx, [si+2+ptSectors-ptFileSystemID]
    726                                  	;mov	[EP_Size+2], cx
    727                                  	;mov	cx, [si+ptSectors-ptFileSystemID]
@@ -779,28 +779,28 @@
    777                                  	
    778 00000401 88D8                    	mov	al, bl
    779 00000403 0430                    	add	al, '0'
-   780 00000405 A2[B919]                	mov	[ldd_row_dn], al
+   780 00000405 A2[CD19]                	mov	[ldd_row_dn], al
    781 00000408 FECB                    	dec	bl
    782 0000040A 7403                    	jz	short flddtr_0
    783 0000040C C0E304                  	shl	bl, 4 ; * 16
    784                                  flddtr_0:
-   785 0000040F 81C3[1422]              	add	bx, lddt
+   785 0000040F 81C3[2822]              	add	bx, lddt
    786 00000413 8A4704                  	mov	al, [bx+ptFileSystemID]
    787 00000416 3C01                    	cmp 	al, 1
    788 00000418 7508                    	jne	short flddtr_1
-   789 0000041A C706[C019]3132          	mov	word [ldd_row_fs], "12"
+   789 0000041A C706[D419]3132          	mov	word [ldd_row_fs], "12"
    790 00000420 EB16                    	jmp	short flddtr_4
    791                                  flddtr_1:
    792 00000422 3C06                    	cmp	al, 06h
    793 00000424 7700                    	ja	short flddtr_2
    794                                  flddtr_2:
-   795 00000426 C706[C019]3136          	mov	word [ldd_row_fs], "16"
+   795 00000426 C706[D419]3136          	mov	word [ldd_row_fs], "16"
    796 0000042C EB0A                    	jmp	short flddtr_4
    797                                  flddtr_3:
    798 0000042E 3C0E                    	cmp	al, 0Eh
    799 00000430 75F4                    	jne	short flddtr_2
    800                                  	; al = 0Bh or 0Ch
-   801 00000432 C706[C019]3332          	mov	word [ldd_row_fs], "32"
+   801 00000432 C706[D419]3332          	mov	word [ldd_row_fs], "32"
    802                                  flddtr_4:
    803 00000438 8B470C                  	mov	ax, [bx+ptSectors]
    804 0000043B 8B570E                  	mov	dx, [bx+ptSectors+2]
@@ -852,7 +852,7 @@
    850 00000489 52                      	push	dx
    851 0000048A 09C0                    	or	ax, ax
    852 0000048C 75F7                    	jnz	short cvd_loop1
-   853 0000048E BF[C719]                	mov	di, ldd_row_sz
+   853 0000048E BF[DB19]                	mov	di, ldd_row_sz
    854                                  cvd_loop2:
    855 00000491 58                      	pop	ax
    856 00000492 0430                    	add	al, '0'
@@ -868,19 +868,19 @@
    866                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    867                                  
    868                                  read_hd_sector:
-   869 0000049A 803E[5415]00            	cmp	byte [lba], 0
+   869 0000049A 803E[6815]00            	cmp	byte [lba], 0
    870 0000049F 774E                    	ja	short  read_lba_sector
    871                                  
    872                                  read_chs_sector:
    873                                  	; Derived from 'proc_write_chs_sector' in HDFORMAT.ASM (30/07/2011)
    874                                  	; (TRDOS v1, Singlix FS formatting utility)
-   875 000004A1 C606[0920]02            	mov	byte [rw], 2 ; read
+   875 000004A1 C606[1D20]02            	mov	byte [rw], 2 ; read
    876 000004A6 EB05                    	jmp	short chs_rw
    877                                  
    878                                  write_chs_sector:
    879                                  	; Derived from 'proc_write_chs_sector' in HDFORMAT.ASM (30/07/2011)
    880                                  	; (TRDOS v1, Singlix FS formatting utility)
-   881 000004A8 C606[0920]03            	mov	byte [rw], 3 ; write
+   881 000004A8 C606[1D20]03            	mov	byte [rw], 3 ; write
    882                                  	;jmp	short chs_rw
    883                                  chs_rw:
    884 000004AD 56                      	push	si
@@ -890,27 +890,27 @@
    888                                  chs_rw_1:
    889 000004B2 52                      	push	dx	; Linear sector #
    890 000004B3 50                      	push	ax	; DX_AX = Linear address (sectors)
-   891 000004B4 8B0E[5615]              	mov	cx, [sectors]
+   891 000004B4 8B0E[6A15]              	mov	cx, [sectors]
    892 000004B8 53                      	push	bx
    893                                  
-   894 000004B9 E85808                  	call    div32	; 32 bit divide
+   894 000004B9 E86C08                  	call    div32	; 32 bit divide
    895                                  
    896 000004BC 89D9                    	mov	cx, bx	; Sector (zero based)
    897 000004BE 41                      	inc	cx	; To make it 1 based
    898 000004BF 51                      	push	cx
-   899 000004C0 8B0E[5815]              	mov     cx, [heads]
-   900 000004C4 E84D08                  	call	div32	; Convert track to head & cyl
+   899 000004C0 8B0E[6C15]              	mov     cx, [heads]
+   900 000004C4 E86108                  	call	div32	; Convert track to head & cyl
    901 000004C7 88DE                    	mov	dh, bl	; BX = Head (max. FFh)
    902 000004C9 59                      	pop	cx	; AX=Cyl, DH=Head, CX=Sector
    903 000004CA 5B                      	pop     bx	; ES:BX = Buffer
    904                                  
-   905 000004CB 8A16[5515]              	mov	dl, [drv]
+   905 000004CB 8A16[6915]              	mov	dl, [drv]
    906 000004CF 88C5                    	mov	ch, al
    907 000004D1 D0CC                    	ror	ah, 1	; Rotate right
    908 000004D3 D0CC                    	ror	ah, 1
    909 000004D5 08E1                    	or	cl, ah
    910                                  chs_rw_2:
-   911 000004D7 8A26[0920]              	mov	ah, [rw] ; 02h = read, 03h = write
+   911 000004D7 8A26[1D20]              	mov	ah, [rw] ; 02h = read, 03h = write
    912 000004DB B001                    	mov	al, 01h
    913 000004DD CD13                    	int	13h	; BIOS Service func (ah) = 2/3
    914                                  			; Read/Write disk sectors
@@ -939,7 +939,7 @@
    937                                  
    938                                  read_lba_sector:
    939                                  	; trhdboot.s (2020), hdformat.asm (2011)
-   940 000004EF C606[0920]42            	mov	byte [rw], 42h
+   940 000004EF C606[1D20]42            	mov	byte [rw], 42h
    941 000004F4 EB0C                    	jmp	short lba_rw
    942                                  
    943                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -947,12 +947,12 @@
    945                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
    946                                  
    947                                  write_hd_sector:
-   948 000004F6 803E[5415]00            	cmp	byte [lba], 0
+   948 000004F6 803E[6815]00            	cmp	byte [lba], 0
    949 000004FB 76AB                    	jna	short  write_chs_sector
    950                                  
    951                                  write_lba_sector:
    952                                  	; trhdboot.s (2020), hdformat.asm (2011)
-   953 000004FD C606[0920]43            	mov	byte [rw], 43h
+   953 000004FD C606[1D20]43            	mov	byte [rw], 43h
    954                                  	;jmp	short lba_rw
    955                                  lba_rw:
    956 00000502 BF0500                  	mov	di, 5
@@ -973,10 +973,10 @@
    971 00000510 6A10                    	db	6Ah, 10h
    972                                  
    973 00000512 89E6                    	mov     si, sp
-   974 00000514 8A16[5515]              	mov     dl, [drv]
+   974 00000514 8A16[6915]              	mov     dl, [drv]
    975 00000518 30C0                    	xor	al, al	; verify off 
    976                                  lba_rw_2:
-   977 0000051A 8A26[0920]              	mov     ah, [rw] ; 42h = LBA read, 43h = LBA write
+   977 0000051A 8A26[1D20]              	mov     ah, [rw] ; 42h = LBA read, 43h = LBA write
    978                                  	;xor	al, al	; verify off 
    979 0000051E CD13                    	int     13h
    980                                  
@@ -1019,24 +1019,24 @@
   1017                                  ;FAT32_lba_format:
   1018                                  	; Put TRDOS 386 FAT32 partition magic word 
   1019                                  	; at offset 5Ah, in TRDOS386 FAT32 boot sector 0.
-  1020 00000532 BD[540D]                	mov	bp, RD_FAT32_hd_bs
+  1020 00000532 BD[680D]                	mov	bp, RD_FAT32_hd_bs
   1021 00000535 8D7E03                  	lea	di, [bp+3]
-  1022 00000538 BE[5E1A]                	mov	si, bs_oem_name
+  1022 00000538 BE[721A]                	mov	si, bs_oem_name
   1023 0000053B B90400                  	mov	cx, 4
   1024 0000053E F3A5                    	rep	movsw
   1025                                  	;mov	[bp+5Ah], ax	; [loc_5A]
   1026 00000540 C7465A0BC0              	mov	word [bp+5Ah], 0C00Bh
-  1027 00000545 A1[5615]                	mov	ax, [sectors]
+  1027 00000545 A1[6A15]                	mov	ax, [sectors]
   1028 00000548 894618                  	mov	[bp+18h], ax	; [BPB_SecPerTrk]
-  1029 0000054B A1[5815]                	mov	ax, [heads]
+  1029 0000054B A1[6C15]                	mov	ax, [heads]
   1030 0000054E 89461A                  	mov	[bp+1Ah], ax	; [BPB_NumHeads]
-  1031 00000551 A1[0C20]                	mov	ax, [dosp_start]
+  1031 00000551 A1[2020]                	mov	ax, [dosp_start]
   1032 00000554 89461C                  	mov	[bp+1Ch], ax	; [BPB_HiddSec]
-  1033 00000557 A1[0E20]                	mov	ax, [dosp_start+2]
+  1033 00000557 A1[2220]                	mov	ax, [dosp_start+2]
   1034 0000055A 89461E                  	mov	[bp+1Eh], ax	; [BPB_HiddSec+2]
-  1035 0000055D A1[1020]                	mov	ax, [dosp_size]
+  1035 0000055D A1[2420]                	mov	ax, [dosp_size]
   1036 00000560 894620                  	mov	[bp+20h], ax	; [BPB_TotSec32]
-  1037 00000563 8B16[1220]              	mov	dx, [dosp_size+2]
+  1037 00000563 8B16[2620]              	mov	dx, [dosp_size+2]
   1038 00000567 895622                  	mov	[bp+22h], dx	; [BPB_TotSec32+2]
   1039                                  	
   1040                                  	; Sectors per cluster calculation
@@ -1074,7 +1074,7 @@
   1072 00000591 4B                      	dec	bx  ; TmpVal2-1
   1073 00000592 01D8                    	add	ax, bx
   1074 00000594 83D200                  	adc	dx, 0
-  1075 00000597 E87A07                  	call	div32
+  1075 00000597 E88E07                  	call	div32
   1076                                  		; FATSz = (TmpVal1+(TmpVal2-1))/TmpVal2
   1077                                  	; DX_AX = FAT size in sectors
   1078 0000059A 894624                  	mov	[bp+24h], ax	; [BPB_FATSz32]
@@ -1092,17 +1092,17 @@
   1090 000005B1 8B5622                  	mov	dx, [bp+22h]	; [BPB_TotSec32+2]
   1091 000005B4 29C8                    	sub	ax, cx
   1092 000005B6 19DA                    	sbb	dx, bx
-  1093 000005B8 890E[5C22]              	mov	[data_start], cx
-  1094 000005BC 891E[5E22]              	mov	[data_start+2], bx
+  1093 000005B8 890E[7022]              	mov	[data_start], cx
+  1094 000005BC 891E[7222]              	mov	[data_start+2], bx
   1095                                  	; DX_AX = Data sectors
-  1096 000005C0 A3[6022]                	mov	[data_sectors], ax
-  1097 000005C3 8916[6222]              	mov	[data_sectors+2], dx
+  1096 000005C0 A3[7422]                	mov	[data_sectors], ax
+  1097 000005C3 8916[7622]              	mov	[data_sectors+2], dx
   1098 000005C7 8A4E0D                  	mov	cl, [bp+0Dh]	 ; [BPB_SecPerClus]
   1099 000005CA 30ED                    	xor	ch, ch
-  1100 000005CC E84507                  	call	div32 ; DX_AX/CX
+  1100 000005CC E85907                  	call	div32 ; DX_AX/CX
   1101                                  	; DX_AX = Count of clusters (rounded down)
-  1102 000005CF A3[6422]                	mov	[cluster_count], ax
-  1103 000005D2 8916[6622]              	mov	[cluster_count+2], dx
+  1102 000005CF A3[7822]                	mov	[cluster_count], ax
+  1103 000005D2 8916[7A22]              	mov	[cluster_count+2], dx
   1104                                  		
   1105 000005D6 8D7E47                  	lea	di, [bp+71] ; [BS_VolLab]
   1106 000005D9 E89B01                  	call	write_volume_name
@@ -1116,25 +1116,25 @@
   1114                                  
   1115 000005ED 8B461C                  	mov	ax, [bp+1Ch]	; [BPB_HiddSec]
   1116 000005F0 8B561E                  	mov	dx, [bp+1Eh]	; [BPB_HiddSec+2]
-  1117 000005F3 0106[5C22]              	add	[data_start], ax
-  1118 000005F7 1116[5E22]              	adc	[data_start+2], dx
+  1117 000005F3 0106[7022]              	add	[data_start], ax
+  1118 000005F7 1116[7222]              	adc	[data_start+2], dx
   1119                                  FAT32_f_3:
   1120                                  	; DX_AX = FAT32 Boot Sector address
-  1121 000005FB BB[540D]                	mov	bx, RD_FAT32_hd_bs
+  1121 000005FB BB[680D]                	mov	bx, RD_FAT32_hd_bs
   1122                                  	; ES:BX = Boot Sector 1 Buffer
   1123 000005FE E8F5FE                  	call	write_hd_sector
   1124 00000601 0F82BC02                	jc	formatting_error
   1125 00000605 E87902                  	call	write_format_percent
   1126 00000608 83C001                  	add	ax, 1
   1127 0000060B 83D200                  	adc	dx, 0
-  1128 0000060E BB[061E]                	mov	bx, HDFORMAT_FSINFO_BUFF
+  1128 0000060E BB[1A1E]                	mov	bx, HDFORMAT_FSINFO_BUFF
   1129                                  	; ES:BX = FS INFO Sector Buffer (= BS+1)
   1130 00000611 E8E2FE                  	call	write_hd_sector
   1131 00000614 0F82A902                	jc	formatting_error
   1132 00000618 E86602                  	call	write_format_percent
   1133 0000061B 83C001                  	add	ax, 1
   1134 0000061E 83D200                  	adc	dx, 0	
-  1135 00000621 BB[540F]                	mov	bx, RD_FAT32_hd_bs + 512
+  1135 00000621 BB[680F]                	mov	bx, RD_FAT32_hd_bs + 512
   1136                                  	; ES:BX = Boot Sector 2 Buffer
   1137 00000624 E8CFFE                  	call	write_hd_sector
   1138 00000627 0F829602                	jc	formatting_error
@@ -1144,7 +1144,7 @@
   1142 00000631 51                      	push	cx
   1143 00000632 83C001                  	add	ax, 1
   1144 00000635 83D200                  	adc	dx, 0
-  1145 00000638 BB[1420]                	mov	bx, HDFORMAT_EMPTY_BUFF
+  1145 00000638 BB[2820]                	mov	bx, HDFORMAT_EMPTY_BUFF
   1146 0000063B E8B8FE                  	call	write_hd_sector
   1147 0000063E 0F827F02                	jc	formatting_error
   1148 00000642 E83C02                  	call	write_format_percent
@@ -1169,7 +1169,7 @@
   1167 0000066A 7618                    	jna	short FAT32_f_6
   1168                                  FAT32_f_5:
   1169 0000066C 51                      	push	cx
-  1170 0000066D BB[1420]                	mov	bx, HDFORMAT_EMPTY_BUFF
+  1170 0000066D BB[2820]                	mov	bx, HDFORMAT_EMPTY_BUFF
   1171 00000670 E883FE                  	call	write_hd_sector
   1172 00000673 0F824A02                	jc	formatting_error
   1173 00000677 E80702                  	call	write_format_percent
@@ -1180,11 +1180,11 @@
   1178 00000682 75E8                    	jnz	short FAT32_f_5
   1179                                  FAT32_f_6:
   1180                                  	; write FAT sectors
-  1181 00000684 8B0E[5C22]              	mov	cx, [data_start] ; lba/abs addr
-  1182 00000688 8B1E[5E22]              	mov	bx, [data_start+2] ; lba/abs addr
+  1181 00000684 8B0E[7022]              	mov	cx, [data_start] ; lba/abs addr
+  1182 00000688 8B1E[7222]              	mov	bx, [data_start+2] ; lba/abs addr
   1183 0000068C 53                      	push	bx
   1184 0000068D 51                      	push	cx
-  1185 0000068E BB[1420]                	mov	bx, HDFORMAT_FATBUFFER
+  1185 0000068E BB[2820]                	mov	bx, HDFORMAT_FATBUFFER
   1186                                  	; ES:BX = FAT Sector Buffer
   1187 00000691 8A4E15                  	mov	cl, [bp+15h] ; [BPB_Media]
   1188 00000694 B5FF                    	mov	ch, 0FFh
@@ -1214,7 +1214,7 @@
   1212                                  FAT32_f_7:	
   1213 000006CC 53                      	push	bx
   1214 000006CD 51                      	push	cx
-  1215 000006CE BB[1420]                	mov	bx, HDFORMAT_FATBUFFER
+  1215 000006CE BB[2820]                	mov	bx, HDFORMAT_FATBUFFER
   1216 000006D1 E822FE                  	call	write_hd_sector
   1217 000006D4 0F82E901                	jc	formatting_error
   1218 000006D8 E8A601                  	call	write_format_percent
@@ -1232,11 +1232,11 @@
   1230                                  	; as empty sectors
   1231 000006EB 8A4E0D                  	mov	cl, [bp+0Dh]	 ; [BPB_SecPerClus]
   1232 000006EE 30ED                    	xor	ch, ch
-  1233 000006F0 290E[6022]              	sub	[data_sectors], cx
-  1234 000006F4 831E[6222]00            	sbb	word [data_sectors+2], 0
+  1233 000006F0 290E[7422]              	sub	[data_sectors], cx
+  1234 000006F4 831E[7622]00            	sbb	word [data_sectors+2], 0
   1235                                  FAT32_f_9:
   1236 000006F9 51                      	push	cx
-  1237 000006FA BB[1420]                	mov	bx, HDFORMAT_EMPTY_BUFF
+  1237 000006FA BB[2820]                	mov	bx, HDFORMAT_EMPTY_BUFF
   1238 000006FD E8F6FD                  	call	write_hd_sector
   1239 00000700 0F82BD01                	jc	formatting_error
   1240 00000704 E87A01                  	call	write_format_percent
@@ -1248,14 +1248,14 @@
   1246                                  
   1247                                  	; write DATA sectors 
   1248                                  	; (after root directory 1st cluster)
-  1249 00000712 8B0E[6022]              	mov	cx, [data_sectors]
-  1250 00000716 8B1E[6222]              	mov	bx, [data_sectors+2]
+  1249 00000712 8B0E[7422]              	mov	cx, [data_sectors]
+  1250 00000716 8B1E[7622]              	mov	bx, [data_sectors+2]
   1251                                  			; NOTE: Partition size must be >= 512 MB
   1252                                  			;	for FAT32 FS  ((BX >= 15))
   1253                                  FAT32_f_10:	
   1254 0000071A 53                      	push	bx
   1255 0000071B 51                      	push	cx
-  1256 0000071C BB[061C]                	mov	bx, HDFORMAT_SECBUFFER
+  1256 0000071C BB[1A1C]                	mov	bx, HDFORMAT_SECBUFFER
   1257 0000071F E8D4FD                  	call	write_hd_sector
   1258 00000722 0F829B01                	jc	formatting_error
   1259 00000726 E85801                  	call	write_format_percent
@@ -1292,7 +1292,7 @@
   1290                                  				 ; (good! FAT contains all data sectors)
   1291                                  FAT32_f_11:
   1292 0000074D 51                      	push	cx
-  1293 0000074E BB[1420]                	mov	bx, HDFORMAT_EMPTY_BUFF
+  1293 0000074E BB[2820]                	mov	bx, HDFORMAT_EMPTY_BUFF
   1294 00000751 E8A2FD                  	call	write_hd_sector
   1295 00000754 0F826901                	jc	formatting_error
   1296 00000758 E82601                  	call	write_format_percent
@@ -1309,7 +1309,7 @@
   1307 00000767 E85001                  	call	write_format_percent_x
   1308                                  	;mov	si, CRLF
   1309                                  	;call	print_msg
-  1310 0000076A BE[A117]                	mov	si, _msg_OK
+  1310 0000076A BE[B517]                	mov	si, _msg_OK
   1311                                  	;call	print_msg
   1312 0000076D E912FC                  	jmp	Exit
   1313                                  
@@ -1318,23 +1318,23 @@
   1316                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   1317                                  
   1318                                  write_fs_volume_name:
-  1319 00000770 C606[5D1A]40            	mov	byte [vname_length], 64
+  1319 00000770 C606[711A]40            	mov	byte [vname_length], 64
   1320 00000775 EB05                    	jmp	short svn_fs
   1321                                  
   1322                                  write_volume_name:
-  1323 00000777 C606[5D1A]0B            	mov	byte [vname_length], 11
+  1323 00000777 C606[711A]0B            	mov	byte [vname_length], 11
   1324                                  svn_fs:
   1325                                  	; DI = (BS) Volume Label address
-  1326 0000077C BE[741A]                	mov	si, Msg_Volume_Name
+  1326 0000077C BE[881A]                	mov	si, Msg_Volume_Name
   1327 0000077F E814FC                  	call	print_msg
   1328                                  
   1329                                  	; get cursor position
   1330                                  	; bh = 0  ; video page
   1331 00000782 B403                    	mov     ah, 3 ; get cursor pos
   1332 00000784 CD10                    	int     10h
-  1333 00000786 8916[D418]              	mov	[Cursor_Pos], dx
+  1333 00000786 8916[E818]              	mov	[Cursor_Pos], dx
   1334                                  
-  1335 0000078A E8F504                  	call	rw_char
+  1335 0000078A E80905                  	call	rw_char
   1336 0000078D 7207                    	jc	short svn_1
   1337                                  svn_0:
   1338 0000078F AC                      	lodsb
@@ -1342,14 +1342,14 @@
   1340 00000792 7706                    	ja	short svn_2
   1341 00000794 74F9                    	je	short svn_0
   1342                                  svn_1:
-  1343 00000796 BE[681A]                	mov	si, no_name
+  1343 00000796 BE[7C1A]                	mov	si, no_name
   1344 00000799 AC                      	lodsb
   1345                                  svn_2:
   1346                                  	;mov	di, [bp+47h) ; [BS_VolLab] ; FAT32
   1347                                  	;mov	di, [bp+2Bh) ; [BS_VolLab] ; FAT16 (&FAT12)
   1348 0000079A 89FB                    	mov	bx, di ; *
   1349 0000079C 30ED                    	xor	ch, ch
-  1350 0000079E 8A0E[5D1A]              	mov	cl, [vname_length] ; 11
+  1350 0000079E 8A0E[711A]              	mov	cl, [vname_length] ; 11
   1351 000007A2 EB05                    	jmp	short svn_4
   1352                                  svn_3:
   1353 000007A4 AC                      	lodsb
@@ -1359,20 +1359,20 @@
   1357 000007A9 AA                      	stosb
   1358 000007AA E2F8                    	loop	svn_3
   1359                                  svn_5:
-  1360 000007AC 8A0E[5D1A]              	mov	cl, [vname_length] ; 11
+  1360 000007AC 8A0E[711A]              	mov	cl, [vname_length] ; 11
   1361 000007B0 89DE                    	mov	si, bx ; *
-  1362 000007B2 BF[7022]                	mov	di, StrVolumeName
+  1362 000007B2 BF[8422]                	mov	di, StrVolumeName
   1363 000007B5 F3A4                    	rep	movsb
   1364                                  	;mov	byte [di], 0
   1365                                  
-  1366 000007B7 8B16[D418]              	mov	dx, [Cursor_Pos]
+  1366 000007B7 8B16[E818]              	mov	dx, [Cursor_Pos]
   1367 000007BB BB0700                  	mov	bx, 7
   1368 000007BE B402                    	mov	ah, 2
   1369 000007C0 CD10                    	int	10h  ; Set Cursor Position
   1370                                  
-  1371 000007C2 BE[7022]                	mov	si, StrVolumeName
+  1371 000007C2 BE[8422]                	mov	si, StrVolumeName
   1372 000007C5 E8CEFB                  	call	print_msg
-  1373 000007C8 BE[D61A]                	mov	si, CRLF
+  1373 000007C8 BE[EA1A]                	mov	si, CRLF
   1374 000007CB E8C8FB                  	call	print_msg
   1375 000007CE C3                      	retn
   1376                                  svn_6:
@@ -1517,19 +1517,19 @@
   1515                                  
   1516                                  	; SI = Volume serial number address (4 bytes)
   1517 00000826 8A04                    	mov	al, [si]
-  1518 00000828 E80E05                  	call	bin_to_hex
-  1519 0000082B A3[9F1A]                	mov	[Vol_Serial2+2], ax
+  1518 00000828 E82205                  	call	bin_to_hex
+  1519 0000082B A3[B31A]                	mov	[Vol_Serial2+2], ax
   1520 0000082E 8A4401                  	mov	al, [si+1]
-  1521 00000831 E80505                  	call	bin_to_hex
-  1522 00000834 A3[9D1A]                	mov	[Vol_Serial2], ax
+  1521 00000831 E81905                  	call	bin_to_hex
+  1522 00000834 A3[B11A]                	mov	[Vol_Serial2], ax
   1523 00000837 8A4402                  	mov	al, [si+2]
-  1524 0000083A E8FC04                  	call	bin_to_hex
-  1525 0000083D A3[9A1A]                	mov	[Vol_Serial1+2], ax
+  1524 0000083A E81005                  	call	bin_to_hex
+  1525 0000083D A3[AE1A]                	mov	[Vol_Serial1+2], ax
   1526 00000840 8A4403                  	mov	al, [si+3]
-  1527 00000843 E8F304                  	call	bin_to_hex
-  1528 00000846 A3[981A]                	mov	[Vol_Serial1], ax
+  1527 00000843 E80705                  	call	bin_to_hex
+  1528 00000846 A3[AC1A]                	mov	[Vol_Serial1], ax
   1529                                  
-  1530 00000849 BE[861A]                	mov	si, Msg_Volume_Serial
+  1530 00000849 BE[9A1A]                	mov	si, Msg_Volume_Serial
   1531 0000084C E847FB                  	call	print_msg
   1532                                  
   1533 0000084F C3                      	retn
@@ -1551,24 +1551,24 @@
   1549                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   1550                                  
   1551                                  write_formatting_msg:
-  1552 0000085D A1[1020]                	mov	ax, [dosp_size]
-  1553 00000860 8B16[1220]              	mov	dx, [dosp_size+2]
+  1552 0000085D A1[2420]                	mov	ax, [dosp_size]
+  1553 00000860 8B16[2620]              	mov	dx, [dosp_size+2]
   1554                                  
   1555                                  	; DX_AX = Total sectors for percentage
   1556 00000864 B96400                  	mov	cx, 100
-  1557 00000867 E8AA04                  	call	div32
-  1558 0000086A A3[6A22]                	mov	[format_percent], ax
+  1557 00000867 E8BE04                  	call	div32
+  1558 0000086A A3[7E22]                	mov	[format_percent], ax
   1559                                  
-  1560 0000086D BE[BE1A]                	mov	si, msg_formatting
+  1560 0000086D BE[D21A]                	mov	si, msg_formatting
   1561 00000870 E823FB                  	call	print_msg
   1562                                  
   1563                                  	; get cursor position
   1564                                  	; bh = 0  ; video page
   1565 00000873 B403                    	mov     ah, 3 ; get cursor pos
   1566 00000875 CD10                    	int     10h
-  1567 00000877 8916[D418]              	mov	[Cursor_Pos], dx
+  1567 00000877 8916[E818]              	mov	[Cursor_Pos], dx
   1568                                  
-  1569 0000087B C606[6C22]FF            	mov	byte [prev_percent], 255
+  1569 0000087B C606[8022]FF            	mov	byte [prev_percent], 255
   1570                                  
   1571 00000880 C3                      	retn
   1572                                  
@@ -1584,22 +1584,22 @@
   1582 00000886 2B461C                  	sub	ax, [bp+1Ch]	; [BPB_HiddSec]
   1583 00000889 1B561E                  	sbb	dx, [bp+1Eh]	; [BPB_HiddSec+2]
   1584                                  wpc_t:
-  1585 0000088C 8B0E[6A22]              	mov	cx, [format_percent]
-  1586 00000890 E88104                  	call	div32
+  1585 0000088C 8B0E[7E22]              	mov	cx, [format_percent]
+  1586 00000890 E89504                  	call	div32
   1587                                  	; AL = percentage value between 1 to 100
   1588                                  wpc_x:
-  1589 00000893 3A06[6C22]              	cmp	al, [prev_percent]
+  1589 00000893 3A06[8022]              	cmp	al, [prev_percent]
   1590 00000897 741B                    	je	short wpc_y
-  1591 00000899 A2[6C22]                	mov	[prev_percent], al
-  1592 0000089C 8B16[D418]              	mov	dx, [Cursor_Pos]
+  1591 00000899 A2[8022]                	mov	[prev_percent], al
+  1592 0000089C 8B16[E818]              	mov	dx, [Cursor_Pos]
   1593 000008A0 BB0700                  	mov	bx, 7
   1594 000008A3 B402                    	mov	ah, 2
   1595 000008A5 CD10                    	int	10h  ; Set Cursor Position
   1596 000008A7 31D2                    	xor	dx, dx
   1597 000008A9 30E4                    	xor	ah, ah
   1598                                  	;mov	al, [prev_percent]
-  1599 000008AB BE[CC1A]                	mov	si, format_percent_str + 2
-  1600 000008AE E87104                  	call	bin_to_decimal
+  1599 000008AB BE[E01A]                	mov	si, format_percent_str + 2
+  1600 000008AE E88504                  	call	bin_to_decimal
   1601 000008B1 E8E2FA                  	call	print_msg
   1602                                  wpc_y:
   1603 000008B4 5E                      	pop	si
@@ -1625,16 +1625,16 @@
   1623                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   1624                                  
   1625                                  formatting_error:
-  1626 000008C1 8B26[6E22]              	mov	sp, [old_sp]
+  1626 000008C1 8B26[8222]              	mov	sp, [old_sp]
   1627                                  
   1628 000008C5 88E0                    	mov	al, ah ;  error code
-  1629 000008C7 E86F04                  	call	bin_to_hex
-  1630 000008CA A3[E41A]                	mov 	[error_code], ax
+  1629 000008C7 E88304                  	call	bin_to_hex
+  1630 000008CA A3[F81A]                	mov 	[error_code], ax
   1631                                  
-  1632 000008CD BE[D61A]                	mov	si, CRLF
+  1632 000008CD BE[EA1A]                	mov	si, CRLF
   1633 000008D0 E8C3FA                  	call	print_msg
   1634                                  
-  1635 000008D3 BE[D91A]                	mov	si, Msg_Error
+  1635 000008D3 BE[ED1A]                	mov	si, Msg_Error
   1636                                  	;call	print_msg
   1637 000008D6 E9A9FA                  	jmp	Exit
   1638                                  
@@ -1643,12 +1643,12 @@
   1641                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   1642                                  
   1643                                  write_cluster_count:
-  1644 000008D9 BE[A41A]                	mov	si, msg_cluster_count
+  1644 000008D9 BE[B81A]                	mov	si, msg_cluster_count
   1645 000008DC E8B7FA                  	call	print_msg
-  1646 000008DF A1[6422]                	mov	ax, [cluster_count]
-  1647 000008E2 8B16[6622]              	mov	dx, [cluster_count+2]
-  1648 000008E6 BE[BA1A]                	mov	si, cluster_count_str+6
-  1649 000008E9 E83604                  	call	bin_to_decimal
+  1646 000008DF A1[7822]                	mov	ax, [cluster_count]
+  1647 000008E2 8B16[7A22]              	mov	dx, [cluster_count+2]
+  1648 000008E6 BE[CE1A]                	mov	si, cluster_count_str+6
+  1649 000008E9 E84A04                  	call	bin_to_decimal
   1650 000008EC E8A7FA                  	call	print_msg
   1651 000008EF C3                      	retn 
   1652                                  
@@ -1677,9 +1677,9 @@
   1675                                  ;FAT16_lba_format:
   1676                                  	; Put TRDOS 386 FAT16 partition magic word 
   1677                                  	; at offset 3Eh, in TRDOS386 FAT16 boot sector.
-  1678 000008F0 BD[5411]                	mov	bp, RD_FAT16_hd_bs
+  1678 000008F0 BD[6811]                	mov	bp, RD_FAT16_hd_bs
   1679 000008F3 8D7E03                  	lea	di, [bp+3]
-  1680 000008F6 BE[5E1A]                	mov	si, bs_oem_name
+  1680 000008F6 BE[721A]                	mov	si, bs_oem_name
   1681 000008F9 B90400                  	mov	cx, 4
   1682 000008FC F3A5                    	rep	movsw
   1683                                   
@@ -1691,16 +1691,16 @@
   1689 00000903 8896CE01                	mov	[bp+1CEh], dl	; Retro DOS v5 boot sect off 1CEh
   1690                                  				; (see: 'rd5hdbs.txt' for 1CEh)
   1691                                  FAT16_f_x:
-  1692 00000907 A1[5615]                	mov	ax, [sectors]
+  1692 00000907 A1[6A15]                	mov	ax, [sectors]
   1693 0000090A 894618                  	mov	[bp+18h], ax	; [BPB_SecPerTrk]
-  1694 0000090D A1[5815]                	mov	ax, [heads]
+  1694 0000090D A1[6C15]                	mov	ax, [heads]
   1695 00000910 89461A                  	mov	[bp+1Ah], ax	; [BPB_NumHeads]
-  1696 00000913 A1[0C20]                	mov	ax, [dosp_start]
+  1696 00000913 A1[2020]                	mov	ax, [dosp_start]
   1697 00000916 89461C                  	mov	[bp+1Ch], ax	; [BPB_HiddSec]
-  1698 00000919 A1[0E20]                	mov	ax, [dosp_start+2]
+  1698 00000919 A1[2220]                	mov	ax, [dosp_start+2]
   1699 0000091C 89461E                  	mov	[bp+1Eh], ax	; [BPB_HiddSec+2]
-  1700 0000091F A1[1020]                	mov	ax, [dosp_size]
-  1701 00000922 8B16[1220]              	mov	dx, [dosp_size+2]
+  1700 0000091F A1[2420]                	mov	ax, [dosp_size]
+  1701 00000922 8B16[2620]              	mov	dx, [dosp_size+2]
   1702 00000926 21D2                    	and	dx, dx
   1703 00000928 7505                    	jnz	short FAT16_f_0
   1704 0000092A 894613                  	mov	[bp+13h], ax	; [BPB_TotSec16]
@@ -1779,7 +1779,7 @@
   1777 00000982 83C30F                  	add	bx, 15 ; bx = 527
   1778 00000985 C1EB04                  	shr	bx, 4 ; /16 = 527/16 = 32
   1779                                  		; ((32*BX)+511)/512
-  1780 00000988 891E[6822]              	mov	[root_dir_secs], bx
+  1780 00000988 891E[7C22]              	mov	[root_dir_secs], bx
   1781 0000098C 035E0E                  	add	bx, [bp+0Eh]	; [BPB_RsvdSecCnt] ; 1
   1782 0000098F 29D8                    	sub	ax, bx
   1783 00000991 83DA00                  	sbb	dx, 0
@@ -1796,7 +1796,7 @@
   1794 0000099E 4B                      	dec	bx  ; TmpVal2-1
   1795 0000099F 01D8                    	add	ax, bx
   1796 000009A1 83D200                  	adc	dx, 0
-  1797 000009A4 E86D03                  	call	div32
+  1797 000009A4 E88103                  	call	div32
   1798                                  		; FATSz = (TmpVal1+(TmpVal2-1))/TmpVal2
   1799                                  	; AX = FAT size in sectors
   1800                                  	; DX = 0
@@ -1806,1057 +1806,1085 @@
   1804                                  	; AX = [BPB_NumFATs] * [BPB_FATSz16]
   1805 000009AC 8B4E0E                  	mov	cx, [bp+0Eh]	; [BPB_RsvdSecCnt] ; 1
   1806 000009AF 01C1                    	add	cx, ax
-  1807                                  	; CX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
-  1808 000009B1 030E[6822]              	add	cx, [root_dir_secs] ; + RootDirsectors
-  1809 000009B5 29DB                    	sub	bx, bx ; BX = 0
-  1810                                  	; BX_CX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
-  1811                                  	;	  + RootDirSectors
-  1812 000009B7 8B4613                  	mov	ax, [bp+13h]	; [BPB_TotSec16]
-  1813                                  	;sub	dx, dx 
-  1814                                  	; DX = 0
-  1815 000009BA 21C0                    	and	ax, ax
-  1816 000009BC 7506                    	jnz	short FAT16_f_11
-  1817 000009BE 8B4620                  	mov	ax, [bp+20h]	; [BPB_TotSec32]
-  1818 000009C1 8B5622                  	mov	dx, [bp+22h]	; [BPB_TotSec32+2]
-  1819                                  FAT16_f_11:
-  1820 000009C4 29C8                    	sub	ax, cx
-  1821 000009C6 19DA                    	sbb	dx, bx
-  1822 000009C8 890E[5C22]              	mov	[data_start], cx
-  1823 000009CC 891E[5E22]              	mov	[data_start+2], bx
-  1824                                  	; DX_AX = Data sectors
-  1825 000009D0 A3[6022]                	mov	[data_sectors], ax
-  1826 000009D3 8916[6222]              	mov	[data_sectors+2], dx
-  1827 000009D7 8A4E0D                  	mov	cl, [bp+0Dh]	 ; [BPB_SecPerClus]
-  1828 000009DA 30ED                    	xor	ch, ch
-  1829 000009DC E83503                  	call	div32 ; DX_AX/CX
-  1830                                  	; AX = Count of clusters (rounded down)
-  1831                                  	; DX = 0
-  1832 000009DF A3[6422]                	mov	[cluster_count], ax
-  1833 000009E2 8916[6622]              	mov	[cluster_count+2], dx
-  1834                                  
-  1835 000009E6 8D7E2B                  	lea	di, [bp+43] ; [BS_VolLab]
-  1836 000009E9 E88BFD                  	call	write_volume_name
-  1837 000009EC 8D7627                  	lea	si, [bp+39] ; [BS_VolID]
-  1838 000009EF E8E4FD                  	call	write_volume_serial
-  1839 000009F2 E8E4FE                  	call	write_cluster_count
-  1840                                  
-  1841 000009F5 E865FE                  	call	write_formatting_msg
-  1842 000009F8 B000                    	mov	al, 0
-  1843 000009FA E8BDFE                  	call	write_format_percent_x
-  1844                                  
-  1845 000009FD 8B461C                  	mov	ax, [bp+1Ch]	; [BPB_HiddSec]
-  1846 00000A00 8B561E                  	mov	dx, [bp+1Eh]	; [BPB_HiddSec+2]
+  1807                                  
+  1808                                  	; 15/07/2024 (bugfix)
+  1809 000009B1 894E42                  	mov	[bp+42h], cx	; bsRootDirStart
+  1810 000009B4 8B1E[7C22]              	mov	bx, [root_dir_secs]
+  1811 000009B8 895E44                  	mov	[bp+44h], bx	; bsRootDirSects
+  1812                                  	;mov	word [bp+46h], 16 ; bsDirEntsPerSec
+  1813                                  
+  1814                                  	; CX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
+  1815                                  	;add	cx, [root_dir_secs] ; + RootDirsectors
+  1816                                  	; 15/07/2024
+  1817 000009BB 01D9                    	add	cx, bx
+  1818 000009BD 29DB                    	sub	bx, bx ; BX = 0
+  1819                                  	; BX_CX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
+  1820                                  	;	  + RootDirSectors
+  1821 000009BF 8B4613                  	mov	ax, [bp+13h]	; [BPB_TotSec16]
+  1822                                  	;sub	dx, dx 
+  1823                                  	; DX = 0
+  1824 000009C2 21C0                    	and	ax, ax
+  1825 000009C4 7506                    	jnz	short FAT16_f_11
+  1826 000009C6 8B4620                  	mov	ax, [bp+20h]	; [BPB_TotSec32]
+  1827 000009C9 8B5622                  	mov	dx, [bp+22h]	; [BPB_TotSec32+2]
+  1828                                  FAT16_f_11:
+  1829 000009CC 29C8                    	sub	ax, cx
+  1830 000009CE 19DA                    	sbb	dx, bx
+  1831 000009D0 890E[7022]              	mov	[data_start], cx
+  1832 000009D4 891E[7222]              	mov	[data_start+2], bx
+  1833                                  
+  1834                                  	; 15/07/2024 (bugfix)
+  1835 000009D8 894E40                  	mov	 [bp+40h], cx	; bsDataStart
+  1836                                  
+  1837                                  	; DX_AX = Data sectors
+  1838 000009DB A3[7422]                	mov	[data_sectors], ax
+  1839 000009DE 8916[7622]              	mov	[data_sectors+2], dx
+  1840 000009E2 8A4E0D                  	mov	cl, [bp+0Dh]	 ; [BPB_SecPerClus]
+  1841 000009E5 30ED                    	xor	ch, ch
+  1842 000009E7 E83E03                  	call	div32 ; DX_AX/CX
+  1843                                  	; AX = Count of clusters (rounded down)
+  1844                                  	; DX = 0
+  1845 000009EA A3[7822]                	mov	[cluster_count], ax
+  1846 000009ED 8916[7A22]              	mov	[cluster_count+2], dx
   1847                                  
-  1848 00000A03 0106[5C22]              	add	[data_start], ax
-  1849 00000A07 1116[5E22]              	adc	[data_start+2], dx
-  1850                                  
-  1851                                  	; DX_AX = FAT16 Boot Sector address
-  1852 00000A0B BB[5411]                	mov	bx, RD_FAT16_hd_bs
-  1853                                  	; ES:BX = Boot Sector Buffer
-  1854 00000A0E E8E5FA                  	call	write_hd_sector
-  1855 00000A11 0F82ACFE                	jc	formatting_error
-  1856 00000A15 E869FE                  	call	write_format_percent
-  1857 00000A18 83C001                  	add	ax, 1
-  1858 00000A1B 83D200                  	adc	dx, 0
-  1859                                  	; write remain part of reserved sectors
-  1860 00000A1E 8B4E0E                  	mov	cx, [bp+0Eh] ; [BPB_RsvdSecCnt]
-  1861                                  	;sub	cx, 1
-  1862                                  	;jna	short FAT16_f_13
-  1863 00000A21 49                      	dec	cx
-  1864 00000A22 7418                    	jz	short FAT16_f_13
-  1865                                  FAT16_f_12:
-  1866 00000A24 51                      	push	cx
-  1867 00000A25 BB[1420]                	mov	bx, HDFORMAT_EMPTY_BUFF
-  1868 00000A28 E8CBFA                  	call	write_hd_sector
-  1869 00000A2B 0F8292FE                	jc	formatting_error
-  1870 00000A2F E84FFE                  	call	write_format_percent
-  1871 00000A32 83C001                  	add	ax, 1
-  1872 00000A35 83D200                  	adc	dx, 0
-  1873 00000A38 59                      	pop	cx
-  1874 00000A39 49                      	dec	cx ; dec cl
-  1875 00000A3A 75E8                    	jnz	short FAT16_f_12
-  1876                                  FAT16_f_13:
-  1877                                  	; write FAT sectors
-  1878 00000A3C 8B0E[5C22]              	mov	cx, [data_start] ; lba/abs addr
-  1879 00000A40 8B1E[5E22]              	mov	bx, [data_start+2] ; lba/abs addr
-  1880                                  
-  1881 00000A44 2B0E[6822]              	sub	cx, [root_dir_secs]
-  1882 00000A48 83DB00                  	sbb	bx, 0
-  1883                                  
-  1884 00000A4B 53                      	push	bx
-  1885 00000A4C 51                      	push	cx
-  1886 00000A4D BB[1420]                	mov	bx, HDFORMAT_FATBUFFER
-  1887                                  	; ES:BX = FAT Sector Buffer
-  1888 00000A50 8A4E15                  	mov	cl, [bp+15h] ; [BPB_Media]
-  1889 00000A53 B5FF                    	mov	ch, 0FFh
-  1890 00000A55 890F                    	mov	[bx], cx ; 0FFF8h
-  1891 00000A57 88E9                    	mov	cl, ch ; cx = 0FFFFh
-  1892 00000A59 894F02                  	mov	[bx+2], cx
-  1893                                  	;inc	cx
-  1894 00000A5C E897FA                  	call	write_hd_sector
-  1895 00000A5F 0F825EFE                	jc	formatting_error
-  1896 00000A63 E81BFE                  	call	write_format_percent
-  1897                                  	;mov	bx, HDFORMAT_FATBUFFER
-  1898 00000A66 B90000                  	mov	cx, 0
-  1899 00000A69 890F                    	mov	[bx], cx
-  1900 00000A6B 894F02                  	mov	[bx+2], cx
-  1901 00000A6E EB0F                    	jmp	short FAT16_f_15
-  1902                                  FAT16_f_14:	
-  1903 00000A70 53                      	push	bx
-  1904 00000A71 51                      	push	cx
-  1905 00000A72 BB[1420]                	mov	bx, HDFORMAT_FATBUFFER
-  1906 00000A75 E87EFA                  	call	write_hd_sector
-  1907 00000A78 0F8245FE                	jc	formatting_error
-  1908 00000A7C E802FE                  	call	write_format_percent
-  1909                                  FAT16_f_15:	
-  1910 00000A7F 59                      	pop	cx
-  1911 00000A80 5B                      	pop	bx
-  1912 00000A81 83C001                  	add	ax, 1
-  1913 00000A84 83D200                  	adc	dx, 0
-  1914 00000A87 39DA                    	cmp	dx, bx
-  1915 00000A89 72E5                    	jb	short FAT16_f_14
-  1916 00000A8B 39C8                    	cmp	ax, cx
-  1917 00000A8D 72E1                    	jb	short FAT16_f_14
-  1918                                  
-  1919                                  	; write	root directory sectors
-  1920                                  	; as empty sectors
-  1921 00000A8F 8B0E[6822]              	mov	cx, [root_dir_secs]
-  1922                                  FAT16_f_16:
-  1923 00000A93 51                      	push	cx
-  1924 00000A94 BB[1420]                	mov	bx, HDFORMAT_EMPTY_BUFF
-  1925 00000A97 E85CFA                  	call	write_hd_sector
-  1926 00000A9A 0F8223FE                	jc	formatting_error
-  1927 00000A9E E8E0FD                  	call	write_format_percent
-  1928 00000AA1 83C001                  	add	ax, 1
-  1929 00000AA4 83D200                  	adc	dx, 0
-  1930 00000AA7 59                      	pop	cx
-  1931 00000AA8 49                      	dec	cx
-  1932 00000AA9 75E8                    	jnz	short FAT16_f_16
-  1933                                  
-  1934                                  	; write DATA sectors 
-  1935                                  	; (after root directory sectors)
-  1936 00000AAB 8B0E[6022]              	mov	cx, [data_sectors]
-  1937 00000AAF 8B1E[6222]              	mov	bx, [data_sectors+2]
-  1938 00000AB3 43                      	inc	bx ; 0 -> 1, 1-> 2
-  1939                                  FAT16_f_17:	
-  1940 00000AB4 53                      	push	bx
-  1941 00000AB5 51                      	push	cx
-  1942 00000AB6 BB[061C]                	mov	bx, HDFORMAT_SECBUFFER
-  1943 00000AB9 E83AFA                  	call	write_hd_sector
-  1944 00000ABC 0F8201FE                	jc	formatting_error
-  1945 00000AC0 E8BEFD                  	call	write_format_percent
-  1946 00000AC3 59                      	pop	cx
-  1947 00000AC4 5B                      	pop	bx
-  1948 00000AC5 83C001                  	add	ax, 1
-  1949 00000AC8 83D200                  	adc	dx, 0
-  1950 00000ACB 49                      	dec	cx
-  1951 00000ACC 75E6                    	jnz	short FAT16_f_17
-  1952 00000ACE 4B                      	dec	bx
-  1953 00000ACF 75E3                    	jnz	short FAT16_f_17
-  1954                                  
-  1955                                  	; If there are, format remain sectors which are
-  1956                                  	; at beyond of data clusters, with zero bytes.
-  1957                                  	
-  1958 00000AD1 8B4E1C                  	mov	cx, [bp+1Ch]	; [BPB_HiddSec]
-  1959 00000AD4 8B5E1E                  	mov	bx, [bp+1Eh]	; [BPB_HiddSec+2]
-  1960                                  
-  1961 00000AD7 837E1300                	cmp	word [bp+13h], 0 ; [BPB_TotSec16]
-  1962 00000ADB 0F845EFC                	jz	FAT16_f_18
-  1963 00000ADF 034E13                  	add	cx, [bp+13h]	; [BPB_TotSec16]
-  1964 00000AE2 83D300                  	adc	bx, 0
-  1965 00000AE5 E95BFC                  	jmp	FAT16_f_19
-  1966                                  
-  1967                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  1968                                  ; FAT12 FORMATTING
-  1969                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  1970                                  
-  1971                                  ; ((TRDOS 386 criter))
-  1972                                  ; Minimum size of FAT12 FS = [heads]*[sectors]
-  1973                                  ; (1 cylinder) 
-  1974                                  
-  1975                                  format_FAT12_fs:
-  1976 00000AE8 BD[5413]                	mov	bp, RD_FAT12_hd_bs
-  1977 00000AEB 8D7E03                  	lea	di, [bp+3]
-  1978 00000AEE BE[5E1A]                	mov	si, bs_oem_name
-  1979 00000AF1 B90400                  	mov	cx, 4
-  1980 00000AF4 F3A5                    	rep	movsw 
-  1981 00000AF6 A1[5615]                	mov	ax, [sectors]
-  1982 00000AF9 894618                  	mov	[bp+18h], ax	; [BPB_SecPerTrk]
-  1983 00000AFC A1[5815]                	mov	ax, [heads]
-  1984 00000AFF 89461A                  	mov	[bp+1Ah], ax	; [BPB_NumHeads]
-  1985 00000B02 A1[0C20]                	mov	ax, [dosp_start]
-  1986 00000B05 89461C                  	mov	[bp+1Ch], ax	; [BPB_HiddSec]
-  1987 00000B08 A1[0E20]                	mov	ax, [dosp_start+2]
-  1988 00000B0B 89461E                  	mov	[bp+1Eh], ax	; [BPB_HiddSec+2]
-  1989 00000B0E A1[1020]                	mov	ax, [dosp_size]
-  1990 00000B11 894613                  	mov	[bp+13h], ax	; [BPB_TotSec16]
-  1991                                  
-  1992 00000B14 31F6                    	xor	si, si ; reset (FAT size fix) flag
-  1993 00000B16 8B4E0E                  	mov	cx, [bp+0Eh]	; [BPB_RsvdSecCnt] ; 1
-  1994 00000B19 8B5611                  	mov	dx, [bp+11h]	; [BPB_RootEntCnt] = 512
-  1995 00000B1C 83C20F                  	add	dx, 15	; (16-1) (512-1)
-  1996 00000B1F C1EA04                  	shr	dx, 4	; /16  (*32/512)
-  1997                                  	; AX = Root dir sectors
-  1998                                  	; CX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
-  1999 00000B22 01D1                    	add	cx, dx ; + RootDirsectors ; + 32
-  2000 00000B24 890E[6822]              	mov	[root_dir_secs], cx ; = 33
-  2001                                  
-  2002                                  	;sub	ax, 33  ; 1 reserved sector, 32 root dir sectors
-  2003                                  			; .. now AX has number of data sectors
-  2004                                  			;	 		+ 2* (FAT sectors)
-  2005 00000B28 29C8                    	sub	ax, cx
-  2006                                  FAT12_f_10:
-  2007                                  	; Sectors per cluster calculation
-  2008                                  	; (According to MS FAT32 FS specification.)
-  2009                                  	;mov	cx, 1  ; 1 sector per cluster
-  2010 00000B2A B101                    	mov	cl, 1  ; CH = 0
-  2011                                  	; 28/10/2023 ; (BugFix)
-  2012 00000B2C 50                      	push	ax
-  2013                                  FAT12_f_0:
-  2014 00000B2D 3DF50F                  	cmp	ax, 4085 ; Max. cluster count for FAT12
-  2015 00000B30 7206                    	jb	short FAT12_f_1
-  2016 00000B32 D0E1                    	shl	cl, 1 ; *2
-  2017 00000B34 D1E8                    	shr	ax, 1 ; /2
-  2018 00000B36 EBF5                    	jmp	short FAT12_f_0
-  2019                                  FAT12_f_1:
-  2020                                  	; 28/10/2023
-  2021 00000B38 58                      	pop	ax
-  2022 00000B39 884E0D                  	mov	[bp+0Dh], cl	 ; [BPB_SecPerClus]
-  2023                                  	;mov	byte [bp+10h], 2 ; [BPB_NumFATs] 
-  2024                                  	;mov	word [bp+0Eh], 1 ; [BPB_RsvdSecCnt] 
-  2025                                  	;mov	word [bp+11h], 512 ; [BPB_RootEntCnt]
-  2026                                  	
-  2027                                  	; Calculating FAT size in sectors
-  2028                                  	; AX = partition (volume, data) size in sectors
-  2029                                  	; CX = sectors per clusters
-  2030 00000B3C 31D2                    	xor	dx, dx
-  2031 00000B3E F7F1                    	div	cx
-  2032                                  	; AX = cluster count (only for FAT size calc)
-  2033                                  	; DX = 0
-  2034 00000B40 83C002                  	add	ax, 2  ; cluster 2 to ...
-  2035 00000B43 89C2                    	mov	dx, ax
-  2036 00000B45 D1E2                    	shl	dx, 1
-  2037 00000B47 01D0                    	add	ax, dx ; *3
-  2038 00000B49 D1E8                    	shr	ax, 1  ; /2
-  2039 00000B4B 83D000                  	adc	ax, 0  ; +0.5 -> +1
-  2040                                  
-  2041                                  	; AX = FAT bytes for 12 bit cluster numbers
-  2042                                  	
-  2043 00000B4E B90002                  	mov	cx, 512		; [BPB_BytesPerSec]
-  2044 00000B51 01C8                    	add	ax, cx		
-  2045 00000B53 48                      	dec	ax		; [BPB_BytesPerSec] - 1
-  2046 00000B54 29D2                    	sub	dx, dx
-  2047 00000B56 F7F1                    	div	cx
-  2048 00000B58 894616                  	mov	[bp+16h], ax	; [BPB_FATSz16]
-  2049                                  	; * 2
-  2050 00000B5B D1E0                    	shl	ax, 1
-  2051                                  	; AX = [BPB_NumFATs] * [BPB_FATSz16]
-  2052                                  
-  2053                                  	;mov	cx, [bp+0Eh]	; [BPB_RsvdSecCnt] ; 1
-  2054                                  	;add	cx, ax
-  2055                                  	;mov	ax, [bp+11h]	; [BPB_RootEntCnt] = 512
-  2056                                  	;add	ax, 15	; (16-1) (512-1)
-  2057                                  	;shr	ax, 4	; /16  (*32/512)
-  2058                                  	;; AX = Root dir sectors
-  2059                                  	;; CX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
-  2060                                  	;add	cx, ax ; + RootDirsectors
-  2061                                  	;mov	[root_dir_secs], ax
-  2062                                  
-  2063                                  	;mov	cx, 33
-  2064 00000B5D 8B0E[6822]              	mov	cx, [root_dir_secs]
-  2065 00000B61 034E0E                  	add	cx, [bp+0Eh]	; [BPB_RsvdSecCnt] ; 1
-  2066                                  		; cx = root directory sectors + reserved sectors
-  2067 00000B64 01C1                    	add	cx, ax
-  2068                                  	; CX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
-  2069                                  	;	  + RootDirSectors
-  2070 00000B66 8B4613                  	mov	ax, [bp+13h]	; [BPB_TotSec16]
-  2071 00000B69 29C8                    	sub	ax, cx
-  2072                                  		 ; AX = data sectors
-  2073                                  		 ; cH = 0
-  2074                                  
-  2075                                  	; fix FAT size (better method)
-  2076 00000B6B 09F6                    	or	si, si
-  2077 00000B6D 7504                    	jnz	short FAT12_f_9
+  1848 000009F1 8D7E2B                  	lea	di, [bp+43] ; [BS_VolLab]
+  1849 000009F4 E880FD                  	call	write_volume_name
+  1850 000009F7 8D7627                  	lea	si, [bp+39] ; [BS_VolID]
+  1851 000009FA E8D9FD                  	call	write_volume_serial
+  1852 000009FD E8D9FE                  	call	write_cluster_count
+  1853                                  
+  1854 00000A00 E85AFE                  	call	write_formatting_msg
+  1855 00000A03 B000                    	mov	al, 0
+  1856 00000A05 E8B2FE                  	call	write_format_percent_x
+  1857                                  
+  1858 00000A08 8B461C                  	mov	ax, [bp+1Ch]	; [BPB_HiddSec]
+  1859 00000A0B 8B561E                  	mov	dx, [bp+1Eh]	; [BPB_HiddSec+2]
+  1860                                  
+  1861 00000A0E 0106[7022]              	add	[data_start], ax
+  1862 00000A12 1116[7222]              	adc	[data_start+2], dx
+  1863                                  
+  1864                                  	; DX_AX = FAT16 Boot Sector address
+  1865 00000A16 BB[6811]                	mov	bx, RD_FAT16_hd_bs
+  1866                                  	; ES:BX = Boot Sector Buffer
+  1867 00000A19 E8DAFA                  	call	write_hd_sector
+  1868 00000A1C 0F82A1FE                	jc	formatting_error
+  1869 00000A20 E85EFE                  	call	write_format_percent
+  1870 00000A23 83C001                  	add	ax, 1
+  1871 00000A26 83D200                  	adc	dx, 0
+  1872                                  	; write remain part of reserved sectors
+  1873 00000A29 8B4E0E                  	mov	cx, [bp+0Eh] ; [BPB_RsvdSecCnt]
+  1874                                  	;sub	cx, 1
+  1875                                  	;jna	short FAT16_f_13
+  1876 00000A2C 49                      	dec	cx
+  1877 00000A2D 7418                    	jz	short FAT16_f_13
+  1878                                  FAT16_f_12:
+  1879 00000A2F 51                      	push	cx
+  1880 00000A30 BB[2820]                	mov	bx, HDFORMAT_EMPTY_BUFF
+  1881 00000A33 E8C0FA                  	call	write_hd_sector
+  1882 00000A36 0F8287FE                	jc	formatting_error
+  1883 00000A3A E844FE                  	call	write_format_percent
+  1884 00000A3D 83C001                  	add	ax, 1
+  1885 00000A40 83D200                  	adc	dx, 0
+  1886 00000A43 59                      	pop	cx
+  1887 00000A44 49                      	dec	cx ; dec cl
+  1888 00000A45 75E8                    	jnz	short FAT16_f_12
+  1889                                  FAT16_f_13:
+  1890                                  	; write FAT sectors
+  1891 00000A47 8B0E[7022]              	mov	cx, [data_start] ; lba/abs addr
+  1892 00000A4B 8B1E[7222]              	mov	bx, [data_start+2] ; lba/abs addr
+  1893                                  
+  1894 00000A4F 2B0E[7C22]              	sub	cx, [root_dir_secs]
+  1895 00000A53 83DB00                  	sbb	bx, 0
+  1896                                  
+  1897 00000A56 53                      	push	bx
+  1898 00000A57 51                      	push	cx
+  1899 00000A58 BB[2820]                	mov	bx, HDFORMAT_FATBUFFER
+  1900                                  	; ES:BX = FAT Sector Buffer
+  1901 00000A5B 8A4E15                  	mov	cl, [bp+15h] ; [BPB_Media]
+  1902 00000A5E B5FF                    	mov	ch, 0FFh
+  1903 00000A60 890F                    	mov	[bx], cx ; 0FFF8h
+  1904 00000A62 88E9                    	mov	cl, ch ; cx = 0FFFFh
+  1905 00000A64 894F02                  	mov	[bx+2], cx
+  1906                                  	;inc	cx
+  1907 00000A67 E88CFA                  	call	write_hd_sector
+  1908 00000A6A 0F8253FE                	jc	formatting_error
+  1909 00000A6E E810FE                  	call	write_format_percent
+  1910                                  	;mov	bx, HDFORMAT_FATBUFFER
+  1911 00000A71 B90000                  	mov	cx, 0
+  1912 00000A74 890F                    	mov	[bx], cx
+  1913 00000A76 894F02                  	mov	[bx+2], cx
+  1914 00000A79 EB0F                    	jmp	short FAT16_f_15
+  1915                                  FAT16_f_14:	
+  1916 00000A7B 53                      	push	bx
+  1917 00000A7C 51                      	push	cx
+  1918 00000A7D BB[2820]                	mov	bx, HDFORMAT_FATBUFFER
+  1919 00000A80 E873FA                  	call	write_hd_sector
+  1920 00000A83 0F823AFE                	jc	formatting_error
+  1921 00000A87 E8F7FD                  	call	write_format_percent
+  1922                                  FAT16_f_15:	
+  1923 00000A8A 59                      	pop	cx
+  1924 00000A8B 5B                      	pop	bx
+  1925 00000A8C 83C001                  	add	ax, 1
+  1926 00000A8F 83D200                  	adc	dx, 0
+  1927 00000A92 39DA                    	cmp	dx, bx
+  1928 00000A94 72E5                    	jb	short FAT16_f_14
+  1929 00000A96 39C8                    	cmp	ax, cx
+  1930 00000A98 72E1                    	jb	short FAT16_f_14
+  1931                                  
+  1932                                  	; write	root directory sectors
+  1933                                  	; as empty sectors
+  1934 00000A9A 8B0E[7C22]              	mov	cx, [root_dir_secs]
+  1935                                  FAT16_f_16:
+  1936 00000A9E 51                      	push	cx
+  1937 00000A9F BB[2820]                	mov	bx, HDFORMAT_EMPTY_BUFF
+  1938 00000AA2 E851FA                  	call	write_hd_sector
+  1939 00000AA5 0F8218FE                	jc	formatting_error
+  1940 00000AA9 E8D5FD                  	call	write_format_percent
+  1941 00000AAC 83C001                  	add	ax, 1
+  1942 00000AAF 83D200                  	adc	dx, 0
+  1943 00000AB2 59                      	pop	cx
+  1944 00000AB3 49                      	dec	cx
+  1945 00000AB4 75E8                    	jnz	short FAT16_f_16
+  1946                                  
+  1947                                  	; write DATA sectors 
+  1948                                  	; (after root directory sectors)
+  1949 00000AB6 8B0E[7422]              	mov	cx, [data_sectors]
+  1950 00000ABA 8B1E[7622]              	mov	bx, [data_sectors+2]
+  1951 00000ABE 43                      	inc	bx ; 0 -> 1, 1-> 2
+  1952                                  FAT16_f_17:	
+  1953 00000ABF 53                      	push	bx
+  1954 00000AC0 51                      	push	cx
+  1955 00000AC1 BB[1A1C]                	mov	bx, HDFORMAT_SECBUFFER
+  1956 00000AC4 E82FFA                  	call	write_hd_sector
+  1957 00000AC7 0F82F6FD                	jc	formatting_error
+  1958 00000ACB E8B3FD                  	call	write_format_percent
+  1959 00000ACE 59                      	pop	cx
+  1960 00000ACF 5B                      	pop	bx
+  1961 00000AD0 83C001                  	add	ax, 1
+  1962 00000AD3 83D200                  	adc	dx, 0
+  1963 00000AD6 49                      	dec	cx
+  1964 00000AD7 75E6                    	jnz	short FAT16_f_17
+  1965 00000AD9 4B                      	dec	bx
+  1966 00000ADA 75E3                    	jnz	short FAT16_f_17
+  1967                                  
+  1968                                  	; If there are, format remain sectors which are
+  1969                                  	; at beyond of data clusters, with zero bytes.
+  1970                                  	
+  1971 00000ADC 8B4E1C                  	mov	cx, [bp+1Ch]	; [BPB_HiddSec]
+  1972 00000ADF 8B5E1E                  	mov	bx, [bp+1Eh]	; [BPB_HiddSec+2]
+  1973                                  
+  1974 00000AE2 837E1300                	cmp	word [bp+13h], 0 ; [BPB_TotSec16]
+  1975 00000AE6 0F8453FC                	jz	FAT16_f_18
+  1976 00000AEA 034E13                  	add	cx, [bp+13h]	; [BPB_TotSec16]
+  1977 00000AED 83D300                  	adc	bx, 0
+  1978 00000AF0 E950FC                  	jmp	FAT16_f_19
+  1979                                  
+  1980                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  1981                                  ; FAT12 FORMATTING
+  1982                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  1983                                  
+  1984                                  ; ((TRDOS 386 criter))
+  1985                                  ; Minimum size of FAT12 FS = [heads]*[sectors]
+  1986                                  ; (1 cylinder) 
+  1987                                  
+  1988                                  format_FAT12_fs:
+  1989 00000AF3 BD[6813]                	mov	bp, RD_FAT12_hd_bs
+  1990 00000AF6 8D7E03                  	lea	di, [bp+3]
+  1991 00000AF9 BE[721A]                	mov	si, bs_oem_name
+  1992 00000AFC B90400                  	mov	cx, 4
+  1993 00000AFF F3A5                    	rep	movsw 
+  1994 00000B01 A1[6A15]                	mov	ax, [sectors]
+  1995 00000B04 894618                  	mov	[bp+18h], ax	; [BPB_SecPerTrk]
+  1996 00000B07 A1[6C15]                	mov	ax, [heads]
+  1997 00000B0A 89461A                  	mov	[bp+1Ah], ax	; [BPB_NumHeads]
+  1998 00000B0D A1[2020]                	mov	ax, [dosp_start]
+  1999 00000B10 89461C                  	mov	[bp+1Ch], ax	; [BPB_HiddSec]
+  2000 00000B13 A1[2220]                	mov	ax, [dosp_start+2]
+  2001 00000B16 89461E                  	mov	[bp+1Eh], ax	; [BPB_HiddSec+2]
+  2002 00000B19 A1[2420]                	mov	ax, [dosp_size]
+  2003 00000B1C 894613                  	mov	[bp+13h], ax	; [BPB_TotSec16]
+  2004                                  
+  2005 00000B1F 31F6                    	xor	si, si ; reset (FAT size fix) flag
+  2006 00000B21 8B4E0E                  	mov	cx, [bp+0Eh]	; [BPB_RsvdSecCnt] ; 1
+  2007 00000B24 8B5611                  	mov	dx, [bp+11h]	; [BPB_RootEntCnt] = 512
+  2008 00000B27 83C20F                  	add	dx, 15	; (16-1) (512-1)
+  2009 00000B2A C1EA04                  	shr	dx, 4	; /16  (*32/512)
+  2010                                  	; AX = Root dir sectors
+  2011                                  	; CX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
+  2012 00000B2D 01D1                    	add	cx, dx ; + RootDirsectors ; + 32
+  2013 00000B2F 890E[7C22]              	mov	[root_dir_secs], cx ; = 33
+  2014                                  
+  2015                                  	;sub	ax, 33  ; 1 reserved sector, 32 root dir sectors
+  2016                                  			; .. now AX has number of data sectors
+  2017                                  			;	 		+ 2* (FAT sectors)
+  2018 00000B33 29C8                    	sub	ax, cx
+  2019                                  FAT12_f_10:
+  2020                                  	; Sectors per cluster calculation
+  2021                                  	; (According to MS FAT32 FS specification.)
+  2022                                  	;mov	cx, 1  ; 1 sector per cluster
+  2023 00000B35 B101                    	mov	cl, 1  ; CH = 0
+  2024                                  	; 28/10/2023 ; (BugFix)
+  2025 00000B37 50                      	push	ax
+  2026                                  FAT12_f_0:
+  2027 00000B38 3DF50F                  	cmp	ax, 4085 ; Max. cluster count for FAT12
+  2028 00000B3B 7206                    	jb	short FAT12_f_1
+  2029 00000B3D D0E1                    	shl	cl, 1 ; *2
+  2030 00000B3F D1E8                    	shr	ax, 1 ; /2
+  2031 00000B41 EBF5                    	jmp	short FAT12_f_0
+  2032                                  FAT12_f_1:
+  2033                                  	; 28/10/2023
+  2034 00000B43 58                      	pop	ax
+  2035 00000B44 884E0D                  	mov	[bp+0Dh], cl	 ; [BPB_SecPerClus]
+  2036                                  	;mov	byte [bp+10h], 2 ; [BPB_NumFATs] 
+  2037                                  	;mov	word [bp+0Eh], 1 ; [BPB_RsvdSecCnt] 
+  2038                                  	;mov	word [bp+11h], 512 ; [BPB_RootEntCnt]
+  2039                                  	
+  2040                                  	; Calculating FAT size in sectors
+  2041                                  	; AX = partition (volume, data) size in sectors
+  2042                                  	; CX = sectors per clusters
+  2043 00000B47 31D2                    	xor	dx, dx
+  2044 00000B49 F7F1                    	div	cx
+  2045                                  	; AX = cluster count (only for FAT size calc)
+  2046                                  	; DX = 0
+  2047 00000B4B 83C002                  	add	ax, 2  ; cluster 2 to ...
+  2048 00000B4E 89C2                    	mov	dx, ax
+  2049 00000B50 D1E2                    	shl	dx, 1
+  2050 00000B52 01D0                    	add	ax, dx ; *3
+  2051 00000B54 D1E8                    	shr	ax, 1  ; /2
+  2052 00000B56 83D000                  	adc	ax, 0  ; +0.5 -> +1
+  2053                                  
+  2054                                  	; AX = FAT bytes for 12 bit cluster numbers
+  2055                                  	
+  2056 00000B59 B90002                  	mov	cx, 512		; [BPB_BytesPerSec]
+  2057 00000B5C 01C8                    	add	ax, cx		
+  2058 00000B5E 48                      	dec	ax		; [BPB_BytesPerSec] - 1
+  2059 00000B5F 29D2                    	sub	dx, dx
+  2060 00000B61 F7F1                    	div	cx
+  2061 00000B63 894616                  	mov	[bp+16h], ax	; [BPB_FATSz16]
+  2062                                  	; * 2
+  2063 00000B66 D1E0                    	shl	ax, 1
+  2064                                  	; AX = [BPB_NumFATs] * [BPB_FATSz16]
+  2065                                  
+  2066                                  	;mov	cx, [bp+0Eh]	; [BPB_RsvdSecCnt] ; 1
+  2067                                  	;add	cx, ax
+  2068                                  	;mov	ax, [bp+11h]	; [BPB_RootEntCnt] = 512
+  2069                                  	;add	ax, 15	; (16-1) (512-1)
+  2070                                  	;shr	ax, 4	; /16  (*32/512)
+  2071                                  	;; AX = Root dir sectors
+  2072                                  	;; CX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
+  2073                                  	;add	cx, ax ; + RootDirsectors
+  2074                                  	;mov	[root_dir_secs], ax
+  2075                                  
+  2076                                  ;mov	cx, 33
+  2077 00000B68 8B0E[7C22]              	mov	cx, [root_dir_secs]
   2078                                  
-  2079 00000B6F 89C6                    	mov	si, ax  ; ax = data sectors
-  2080 00000B71 EBB7                    	jmp	short FAT12_f_10
-  2081                                  
-  2082                                  FAT12_f_9:
-  2083 00000B73 31D2                    	xor	dx, dx
-  2084 00000B75 890E[5C22]              	mov	[data_start], cx
-  2085 00000B79 8916[5E22]              	mov	[data_start+2], dx ; 0
-  2086                                  	; DX_AX = Data sectors
-  2087 00000B7D A3[6022]                	mov	[data_sectors], ax
-  2088 00000B80 8916[6222]              	mov	[data_sectors+2], dx ; 0
-  2089 00000B84 8A4E0D                  	mov	cl, [bp+0Dh]	 ; [BPB_SecPerClus]
-  2090 00000B87 28ED                    	sub	ch, ch
-  2091 00000B89 F7F1                    	div	cx
-  2092                                  	; AX = Count of clusters (rounded down)
-  2093 00000B8B 29D2                    	sub	dx, dx ; 0
-  2094 00000B8D A3[6422]                	mov	[cluster_count], ax
-  2095 00000B90 8916[6622]              	mov	[cluster_count+2], dx ; 0
-  2096                                  
-  2097 00000B94 8D7E2B                  	lea	di, [bp+43] ; [BS_VolLab]
-  2098 00000B97 E8DDFB                  	call	write_volume_name
-  2099 00000B9A 8D7627                  	lea	si, [bp+39] ; [BS_VolID]
-  2100 00000B9D E836FC                  	call	write_volume_serial
-  2101 00000BA0 E836FD                  	call	write_cluster_count
+  2079                                  	; 15/07/2024 (bugfix)
+  2080                                  	; ax = 2 * FAT size (in sectors)
+  2081 00000B6C 03460E                  	add	ax, [bp+0Eh] ; total FAT sectors + reserved sectors	
+  2082 00000B6F 894642                  	mov	[bp+42h], ax	; bsRootDirStart
+  2083 00000B72 894E44                  	mov	[bp+44h], cx	; bsRootDirSects
+  2084                                  	;mov	word [bp+46h], 16 ; bsDirEntsPerSec
+  2085                                  
+  2086                                  	; 15/07/2024
+  2087                                  	;add	cx, [bp+0Eh]	; [BPB_RsvdSecCnt] ; 1
+  2088                                  		; cx = root directory sectors + reserved sectors
+  2089 00000B75 01C1                    	add	cx, ax
+  2090                                  		; cx = root dir sects + rsvd sects + total FAT sects
+  2091                                  
+  2092                                  	; CX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
+  2093                                  	;	  + RootDirSectors
+  2094 00000B77 8B4613                  	mov	ax, [bp+13h]	; [BPB_TotSec16]
+  2095 00000B7A 29C8                    	sub	ax, cx
+  2096                                  		 ; AX = data sectors
+  2097                                  		 ; cH = 0
+  2098                                  
+  2099                                  	; fix FAT size (better method)
+  2100 00000B7C 09F6                    	or	si, si
+  2101 00000B7E 7504                    	jnz	short FAT12_f_9
   2102                                  
-  2103 00000BA3 E8B7FC                  	call	write_formatting_msg
-  2104 00000BA6 B000                    	mov	al, 0
-  2105 00000BA8 E80FFD                  	call	write_format_percent_x
-  2106                                  
-  2107 00000BAB 8B461C                  	mov	ax, [bp+1Ch]	; [BPB_HiddSec]
-  2108 00000BAE 8B561E                  	mov	dx, [bp+1Eh]	; [BPB_HiddSec+2]
-  2109                                  
-  2110 00000BB1 0106[5C22]              	add	[data_start], ax
-  2111 00000BB5 1116[5E22]              	adc	[data_start+2], dx
-  2112                                  
-  2113                                  	; DX_AX = FAT12 Boot Sector address
-  2114 00000BB9 BB[5413]                	mov	bx, RD_FAT12_hd_bs
-  2115                                  	; ES:BX = Boot Sector Buffer
-  2116 00000BBC E837F9                  	call	write_hd_sector
-  2117 00000BBF 0F82FEFC                	jc	formatting_error
-  2118 00000BC3 E8BBFC                  	call	write_format_percent
-  2119 00000BC6 83C001                  	add	ax, 1
-  2120 00000BC9 83D200                  	adc	dx, 0
-  2121                                  	; write remain part of reserved sectors
-  2122 00000BCC 8B4E0E                  	mov	cx, [bp+0Eh] ; [BPB_RsvdSecCnt]
-  2123                                  	;sub	cx, 1
-  2124                                  	;jna	short FAT12_f_3
-  2125 00000BCF 49                      	dec	cx
-  2126 00000BD0 7418                    	jz	short FAT12_f_3
-  2127                                  FAT12_f_2:
-  2128 00000BD2 51                      	push	cx
-  2129 00000BD3 BB[1420]                	mov	bx, HDFORMAT_EMPTY_BUFF
-  2130 00000BD6 E81DF9                  	call	write_hd_sector
-  2131 00000BD9 0F82E4FC                	jc	formatting_error
-  2132 00000BDD E8A1FC                  	call	write_format_percent
-  2133 00000BE0 83C001                  	add	ax, 1
-  2134 00000BE3 83D200                  	adc	dx, 0
-  2135 00000BE6 59                      	pop	cx
-  2136 00000BE7 49                      	dec	cx ; dec cl
-  2137 00000BE8 75E8                    	jnz	short FAT12_f_2
-  2138                                  FAT12_f_3:
-  2139                                  	; write FAT sectors
-  2140 00000BEA 8B0E[5C22]              	mov	cx, [data_start] ; lba/abs addr
-  2141 00000BEE 8B1E[5E22]              	mov	bx, [data_start+2] ; lba/abs addr
-  2142                                  
-  2143 00000BF2 2B0E[6822]              	sub	cx, [root_dir_secs]
-  2144 00000BF6 83DB00                  	sbb	bx, 0
-  2145                                  
-  2146 00000BF9 53                      	push	bx
-  2147 00000BFA 51                      	push	cx
-  2148 00000BFB BB[1420]                	mov	bx, HDFORMAT_FATBUFFER
-  2149                                  	; ES:BX = FAT Sector Buffer
-  2150 00000BFE 8A4E15                  	mov	cl, [bp+15h] ; [BPB_Media]
-  2151 00000C01 B5FF                    	mov	ch, 0FFh
-  2152 00000C03 890F                    	mov	[bx], cx ; 0FFF8h
-  2153 00000C05 886F02                  	mov	[bx+2], ch ; 0FFFFF8h
-  2154                                  	;xor	cx, cx
-  2155 00000C08 E8EBF8                  	call	write_hd_sector
-  2156 00000C0B 0F82B2FC                	jc	formatting_error
-  2157 00000C0F E86FFC                  	call	write_format_percent
-  2158                                  	;mov	bx, HDFORMAT_FATBUFFER
-  2159 00000C12 B90000                  	mov	cx, 0
-  2160 00000C15 890F                    	mov	[bx], cx
-  2161 00000C17 884F02                  	mov	[bx+2], cl
-  2162 00000C1A EB0F                    	jmp	short FAT12_f_5
-  2163                                  FAT12_f_4:	
-  2164 00000C1C 53                      	push	bx
-  2165 00000C1D 51                      	push	cx	
-  2166 00000C1E BB[1420]                	mov	bx, HDFORMAT_FATBUFFER
-  2167 00000C21 E8D2F8                  	call	write_hd_sector
-  2168 00000C24 0F8299FC                	jc	formatting_error
-  2169 00000C28 E856FC                  	call	write_format_percent
-  2170                                  FAT12_f_5:	
-  2171 00000C2B 59                      	pop	cx
-  2172 00000C2C 5B                      	pop	bx
-  2173 00000C2D 83C001                  	add	ax, 1
-  2174 00000C30 83D200                  	adc	dx, 0
-  2175 00000C33 39DA                    	cmp	dx, bx
-  2176 00000C35 72E5                    	jb	short FAT12_f_4
-  2177 00000C37 39C8                    	cmp	ax, cx
-  2178 00000C39 72E1                    	jb	short FAT12_f_4
-  2179                                  
-  2180                                  	; write	root directory sectors
-  2181                                  	; as empty sectors
-  2182 00000C3B 8B0E[6822]              	mov	cx, [root_dir_secs]
-  2183                                  FAT12_f_6:
-  2184 00000C3F 51                      	push	cx
-  2185 00000C40 BB[1420]                	mov	bx, HDFORMAT_EMPTY_BUFF
-  2186 00000C43 E8B0F8                  	call	write_hd_sector
-  2187 00000C46 0F8277FC                	jc	formatting_error
-  2188 00000C4A E834FC                  	call	write_format_percent
-  2189 00000C4D 83C001                  	add	ax, 1
-  2190 00000C50 83D200                  	adc	dx, 0
-  2191 00000C53 59                      	pop	cx
-  2192 00000C54 49                      	dec	cx ; dec cl
-  2193 00000C55 75E8                    	jnz	short FAT12_f_6
-  2194                                  
-  2195                                  	; write DATA sectors 
-  2196                                  	; (after root directory sectors)
-  2197 00000C57 8B0E[6022]              	mov	cx, [data_sectors]
-  2198                                  	;mov	bx, [data_sectors+2]
-  2199                                  	;inc	bx
-  2200                                  FAT12_f_7:
-  2201                                  	;push	bx
-  2202 00000C5B 51                      	push	cx
-  2203 00000C5C BB[061C]                	mov	bx, HDFORMAT_SECBUFFER
-  2204 00000C5F E894F8                  	call	write_hd_sector
-  2205 00000C62 0F825BFC                	jc	formatting_error
-  2206 00000C66 E818FC                  	call	write_format_percent
-  2207 00000C69 59                      	pop	cx
-  2208                                  	;pop	bx
-  2209 00000C6A 83C001                  	add	ax, 1
-  2210 00000C6D 83D200                  	adc	dx, 0
-  2211 00000C70 49                      	dec	cx
-  2212 00000C71 75E8                    	jnz	short FAT12_f_7
-  2213                                  	;dec	bx
-  2214                                  	;jnz	short FAT12_f_7
-  2215                                  
-  2216                                  	; If there are, format remain sectors which are
-  2217                                  	; at beyond of data clusters, with zero bytes.
-  2218                                  	
-  2219 00000C73 8B4E1C                  	mov	cx, [bp+1Ch]	; [BPB_HiddSec]
-  2220 00000C76 8B5E1E                  	mov	bx, [bp+1Eh]	; [BPB_HiddSec+2]
-  2221                                  
-  2222 00000C79 034E13                  	add	cx, [bp+13h]	; [BPB_TotSec16]
-  2223 00000C7C 83D300                  	adc	bx, 0
-  2224 00000C7F E9C1FA                  	jmp	FAT12_f_8
-  2225                                  
-  2226                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  2227                                  ; Read & Write characters
-  2228                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  2229                                  
-  2230                                  rw_char:
-  2231                                  	; OUTPUT -> DS:SI = Entered String (ASCIIZ)
-  2232 00000C82 BE[7022]                	mov     si, StrVolumeName
-  2233 00000C85 BB0700                  	mov     bx, 7
-  2234 00000C88 B403                    	mov     ah, 3
-  2235 00000C8A CD10                    	int     10h
-  2236 00000C8C 8916[D418]              	mov     [Cursor_Pos], dx
-  2237                                  read_next_char:
-  2238 00000C90 30E4                    	xor     ah, ah
-  2239 00000C92 CD16                    	int     16h
-  2240 00000C94 20C0                    	and     al, al
-  2241 00000C96 7439                    	jz      short loc_arrow
-  2242 00000C98 3CE0                    	cmp     al, 0E0h
-  2243 00000C9A 7435                    	je      short loc_arrow
-  2244 00000C9C 3C08                    	cmp     al, 8
-  2245 00000C9E 753D                    	jne     short char_return
-  2246                                  loc_back:
-  2247 00000CA0 B403                    	mov     ah, 3
-  2248 00000CA2 CD10                    	int     10h
-  2249 00000CA4 3A16[D418]              	cmp     dl, byte [Cursor_Pos]
-  2250 00000CA8 761F                    	jna     short loc_beep
-  2251                                  prev_column:
-  2252 00000CAA FECA                    	dec     dl
-  2253                                  set_cursor_pos:
-  2254 00000CAC B402                    	mov     ah, 2
-  2255 00000CAE CD10                    	int     10h
-  2256 00000CB0 88D3                    	mov     bl, dl
-  2257 00000CB2 2A1E[D418]              	sub     bl, byte [Cursor_Pos]
-  2258 00000CB6 B90100                  	mov     cx, 1
-  2259 00000CB9 B409                    	mov     ah, 9
-  2260 00000CBB B020                    	mov     al, 20h
-  2261 00000CBD 8800                    	mov     [si+bx], al
-  2262                                  loc_write_it:
-  2263 00000CBF B307                    	mov     bl, 7
-  2264 00000CC1 CD10                    	int     10h
-  2265 00000CC3 8B16[D418]              	mov     dx, [Cursor_Pos]
-  2266 00000CC7 EBC7                    	jmp     short read_next_char
-  2267                                  loc_beep:
-  2268 00000CC9 B40E                    	mov     ah, 0Eh
-  2269 00000CCB B007                    	mov     al, 7
-  2270 00000CCD CD10                    	int     10h
-  2271 00000CCF EBBF                    	jmp     short read_next_char
-  2272                                  loc_arrow:    
-  2273 00000CD1 80FC4B                  	cmp     ah, 4Bh
-  2274 00000CD4 74CA                    	je      short loc_back
-  2275 00000CD6 80FC53                  	cmp     ah, 53h
-  2276 00000CD9 74C5                    	je      short loc_back
-  2277 00000CDB EBB3                    	jmp     short read_next_char
-  2278                                  char_return:
-  2279 00000CDD B403                    	mov     ah, 3
-  2280 00000CDF CD10                    	int     10h
-  2281                                  check_char_type:
-  2282 00000CE1 3C20                    	cmp     al, 20h
-  2283 00000CE3 7229                    	jb      short loc_escape
-  2284 00000CE5 88D4                    	mov     ah, dl
-  2285 00000CE7 2A26[D418]              	sub     ah, byte [Cursor_Pos]
-  2286                                  	;cmp	ah, 10 
-  2287                                  	;ja	short loc_beep
-  2288 00000CEB 3A26[5D1A]              	cmp     ah, [vname_length]
-  2289 00000CEF 73D8                    	jnb	short loc_beep
-  2290 00000CF1 3C7A                    	cmp     al, 'z'
-  2291 00000CF3 779B                    	ja      short read_next_char
-  2292 00000CF5 3C61                    	cmp     al, 'a'
-  2293 00000CF7 7202                    	jb      short pass_capitalize
-  2294 00000CF9 24DF                    	and     al, 0DFh
-  2295                                  pass_capitalize:
-  2296 00000CFB 88E3                    	mov     bl, ah 
-  2297 00000CFD 30E4                    	xor     ah, ah
-  2298 00000CFF 8900                    	mov     [si+bx], ax
-  2299 00000D01 B307                    	mov     bl, 7
-  2300 00000D03 B40E                    	mov     ah, 0Eh
-  2301 00000D05 CD10                    	int     10h
-  2302 00000D07 EB87                    	jmp     short read_next_char
-  2303                                  pass_escape:
-  2304 00000D09 3C0D                    	cmp     al, 0Dh	; 13 ; ENTER
-  2305 00000D0B 7583                    	jne     short read_next_char
-  2306                                  	;mov	ah, 0Eh
-  2307                                  	;int	10h
-  2308                                  	;mov	al, 0Ah
-  2309                                  	;int	10h
-  2310 00000D0D C3                      	retn
-  2311                                  loc_escape:
-  2312 00000D0E 3C1B                    	cmp     al, 1Bh	; 27 ; ESC
-  2313 00000D10 75F7                    	jne     short pass_escape
-  2314 00000D12 F9                      	stc
-  2315 00000D13 C3                      	retn
-  2316                                  
-  2317                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  2318                                  ; 32 bit division
-  2319                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  2320                                  
-  2321                                  div32:
-  2322                                  	; DX_AX/CX
-  2323                                  	; Result: DX_AX, BX (remainder)
-  2324 00000D14 89C3                    	mov	bx, ax
-  2325                                  	;or	dx, ax ; * DX_AX = 0 ?
-  2326                                  	;jz	short div32_retn ; yes, do not divide!
-  2327 00000D16 89D0                    	mov	ax, dx
-  2328 00000D18 31D2                            xor	dx, dx
-  2329 00000D1A F7F1                            div	cx	; at first, divide DX
-  2330                                  			; remainder is in DX 
-  2331 00000D1C 93                      	xchg	ax, bx	; now quotient is in BX
-  2332                                    			; and initial AX value is in AX
-  2333 00000D1D F7F1                    	div	cx	; now, DX_AX has been divided and
-  2334                                  			; AX has quotient
-  2335                                  			; DX has remainder
-  2336 00000D1F 87D3                    	xchg	dx, bx	; finally, BX has remainder
-  2337                                  ;div32_retn:
-  2338 00000D21 C3                              retn
-  2339                                  
-  2340                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  2341                                  ; Convert byte to decimal number
-  2342                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  2343                                  
-  2344                                  bin_to_decimal:
-  2345                                  	; INPUT: DS:SI = Target location
-  2346                                  	;        DX_AX = Binary Number (Integer)
-  2347                                  	; OUTPUT: Decimal char at DS:SI
-  2348                                  	; 	 SI decremented after every division
-  2349                                  	; 	 till AX<10.
-  2350                                  	; CX, DX, BX will be changed.
-  2351                                  	;
-  2352 00000D22 B90A00                  	mov	cx, 10
-  2353                                  btd_0:
-  2354                                  	; DX_AX = Dividend
-  2355                                  	; CX = Divisor
-  2356 00000D25 E8ECFF                  	call	div32
-  2357                                  	; DX_AX = Quotient
-  2358                                  	; BX = remainder
-  2359 00000D28 80C330                  	add	bl, '0'
-  2360 00000D2B 881C                    	mov	[si], bl
-  2361 00000D2D 21D2                    	and	dx, dx
-  2362 00000D2F 7403                    	jz	short btd_2
-  2363                                  btd_1:
-  2364 00000D31 4E                      	dec	si
-  2365 00000D32 EBF1                    	jmp	short btd_0
-  2366                                  btd_2:
-  2367 00000D34 09C0                    	or	ax, ax
-  2368 00000D36 75F9                    	jnz	short btd_1
-  2369                                  
-  2370 00000D38 C3                      	retn
+  2103 00000B80 89C6                    	mov	si, ax  ; ax = data sectors
+  2104 00000B82 EBB1                    	jmp	short FAT12_f_10
+  2105                                  
+  2106                                  FAT12_f_9:
+  2107 00000B84 31D2                    	xor	dx, dx
+  2108 00000B86 890E[7022]              	mov	[data_start], cx
+  2109 00000B8A 8916[7222]              	mov	[data_start+2], dx ; 0
+  2110                                  	
+  2111                                  	; 15/07/2024 (bugfix)
+  2112 00000B8E 894E40                  	mov	 [bp+40h], cx	; bsDataStart
+  2113                                  
+  2114                                  	; DX_AX = Data sectors
+  2115 00000B91 A3[7422]                	mov	[data_sectors], ax
+  2116 00000B94 8916[7622]              	mov	[data_sectors+2], dx ; 0
+  2117 00000B98 8A4E0D                  	mov	cl, [bp+0Dh]	 ; [BPB_SecPerClus]
+  2118 00000B9B 28ED                    	sub	ch, ch
+  2119 00000B9D F7F1                    	div	cx
+  2120                                  	; AX = Count of clusters (rounded down)
+  2121 00000B9F 29D2                    	sub	dx, dx ; 0
+  2122 00000BA1 A3[7822]                	mov	[cluster_count], ax
+  2123 00000BA4 8916[7A22]              	mov	[cluster_count+2], dx ; 0
+  2124                                  
+  2125 00000BA8 8D7E2B                  	lea	di, [bp+43] ; [BS_VolLab]
+  2126 00000BAB E8C9FB                  	call	write_volume_name
+  2127 00000BAE 8D7627                  	lea	si, [bp+39] ; [BS_VolID]
+  2128 00000BB1 E822FC                  	call	write_volume_serial
+  2129 00000BB4 E822FD                  	call	write_cluster_count
+  2130                                  
+  2131 00000BB7 E8A3FC                  	call	write_formatting_msg
+  2132 00000BBA B000                    	mov	al, 0
+  2133 00000BBC E8FBFC                  	call	write_format_percent_x
+  2134                                  
+  2135 00000BBF 8B461C                  	mov	ax, [bp+1Ch]	; [BPB_HiddSec]
+  2136 00000BC2 8B561E                  	mov	dx, [bp+1Eh]	; [BPB_HiddSec+2]
+  2137                                  
+  2138 00000BC5 0106[7022]              	add	[data_start], ax
+  2139 00000BC9 1116[7222]              	adc	[data_start+2], dx
+  2140                                  
+  2141                                  	; DX_AX = FAT12 Boot Sector address
+  2142 00000BCD BB[6813]                	mov	bx, RD_FAT12_hd_bs
+  2143                                  	; ES:BX = Boot Sector Buffer
+  2144 00000BD0 E823F9                  	call	write_hd_sector
+  2145 00000BD3 0F82EAFC                	jc	formatting_error
+  2146 00000BD7 E8A7FC                  	call	write_format_percent
+  2147 00000BDA 83C001                  	add	ax, 1
+  2148 00000BDD 83D200                  	adc	dx, 0
+  2149                                  	; write remain part of reserved sectors
+  2150 00000BE0 8B4E0E                  	mov	cx, [bp+0Eh] ; [BPB_RsvdSecCnt]
+  2151                                  	;sub	cx, 1
+  2152                                  	;jna	short FAT12_f_3
+  2153 00000BE3 49                      	dec	cx
+  2154 00000BE4 7418                    	jz	short FAT12_f_3
+  2155                                  FAT12_f_2:
+  2156 00000BE6 51                      	push	cx
+  2157 00000BE7 BB[2820]                	mov	bx, HDFORMAT_EMPTY_BUFF
+  2158 00000BEA E809F9                  	call	write_hd_sector
+  2159 00000BED 0F82D0FC                	jc	formatting_error
+  2160 00000BF1 E88DFC                  	call	write_format_percent
+  2161 00000BF4 83C001                  	add	ax, 1
+  2162 00000BF7 83D200                  	adc	dx, 0
+  2163 00000BFA 59                      	pop	cx
+  2164 00000BFB 49                      	dec	cx ; dec cl
+  2165 00000BFC 75E8                    	jnz	short FAT12_f_2
+  2166                                  FAT12_f_3:
+  2167                                  	; write FAT sectors
+  2168 00000BFE 8B0E[7022]              	mov	cx, [data_start] ; lba/abs addr
+  2169 00000C02 8B1E[7222]              	mov	bx, [data_start+2] ; lba/abs addr
+  2170                                  
+  2171 00000C06 2B0E[7C22]              	sub	cx, [root_dir_secs]
+  2172 00000C0A 83DB00                  	sbb	bx, 0
+  2173                                  
+  2174 00000C0D 53                      	push	bx
+  2175 00000C0E 51                      	push	cx
+  2176 00000C0F BB[2820]                	mov	bx, HDFORMAT_FATBUFFER
+  2177                                  	; ES:BX = FAT Sector Buffer
+  2178 00000C12 8A4E15                  	mov	cl, [bp+15h] ; [BPB_Media]
+  2179 00000C15 B5FF                    	mov	ch, 0FFh
+  2180 00000C17 890F                    	mov	[bx], cx ; 0FFF8h
+  2181 00000C19 886F02                  	mov	[bx+2], ch ; 0FFFFF8h
+  2182                                  	;xor	cx, cx
+  2183 00000C1C E8D7F8                  	call	write_hd_sector
+  2184 00000C1F 0F829EFC                	jc	formatting_error
+  2185 00000C23 E85BFC                  	call	write_format_percent
+  2186                                  	;mov	bx, HDFORMAT_FATBUFFER
+  2187 00000C26 B90000                  	mov	cx, 0
+  2188 00000C29 890F                    	mov	[bx], cx
+  2189 00000C2B 884F02                  	mov	[bx+2], cl
+  2190 00000C2E EB0F                    	jmp	short FAT12_f_5
+  2191                                  FAT12_f_4:	
+  2192 00000C30 53                      	push	bx
+  2193 00000C31 51                      	push	cx	
+  2194 00000C32 BB[2820]                	mov	bx, HDFORMAT_FATBUFFER
+  2195 00000C35 E8BEF8                  	call	write_hd_sector
+  2196 00000C38 0F8285FC                	jc	formatting_error
+  2197 00000C3C E842FC                  	call	write_format_percent
+  2198                                  FAT12_f_5:	
+  2199 00000C3F 59                      	pop	cx
+  2200 00000C40 5B                      	pop	bx
+  2201 00000C41 83C001                  	add	ax, 1
+  2202 00000C44 83D200                  	adc	dx, 0
+  2203 00000C47 39DA                    	cmp	dx, bx
+  2204 00000C49 72E5                    	jb	short FAT12_f_4
+  2205 00000C4B 39C8                    	cmp	ax, cx
+  2206 00000C4D 72E1                    	jb	short FAT12_f_4
+  2207                                  
+  2208                                  	; write	root directory sectors
+  2209                                  	; as empty sectors
+  2210 00000C4F 8B0E[7C22]              	mov	cx, [root_dir_secs]
+  2211                                  FAT12_f_6:
+  2212 00000C53 51                      	push	cx
+  2213 00000C54 BB[2820]                	mov	bx, HDFORMAT_EMPTY_BUFF
+  2214 00000C57 E89CF8                  	call	write_hd_sector
+  2215 00000C5A 0F8263FC                	jc	formatting_error
+  2216 00000C5E E820FC                  	call	write_format_percent
+  2217 00000C61 83C001                  	add	ax, 1
+  2218 00000C64 83D200                  	adc	dx, 0
+  2219 00000C67 59                      	pop	cx
+  2220 00000C68 49                      	dec	cx ; dec cl
+  2221 00000C69 75E8                    	jnz	short FAT12_f_6
+  2222                                  
+  2223                                  	; write DATA sectors 
+  2224                                  	; (after root directory sectors)
+  2225 00000C6B 8B0E[7422]              	mov	cx, [data_sectors]
+  2226                                  	;mov	bx, [data_sectors+2]
+  2227                                  	;inc	bx
+  2228                                  FAT12_f_7:
+  2229                                  	;push	bx
+  2230 00000C6F 51                      	push	cx
+  2231 00000C70 BB[1A1C]                	mov	bx, HDFORMAT_SECBUFFER
+  2232 00000C73 E880F8                  	call	write_hd_sector
+  2233 00000C76 0F8247FC                	jc	formatting_error
+  2234 00000C7A E804FC                  	call	write_format_percent
+  2235 00000C7D 59                      	pop	cx
+  2236                                  	;pop	bx
+  2237 00000C7E 83C001                  	add	ax, 1
+  2238 00000C81 83D200                  	adc	dx, 0
+  2239 00000C84 49                      	dec	cx
+  2240 00000C85 75E8                    	jnz	short FAT12_f_7
+  2241                                  	;dec	bx
+  2242                                  	;jnz	short FAT12_f_7
+  2243                                  
+  2244                                  	; If there are, format remain sectors which are
+  2245                                  	; at beyond of data clusters, with zero bytes.
+  2246                                  	
+  2247 00000C87 8B4E1C                  	mov	cx, [bp+1Ch]	; [BPB_HiddSec]
+  2248 00000C8A 8B5E1E                  	mov	bx, [bp+1Eh]	; [BPB_HiddSec+2]
+  2249                                  
+  2250 00000C8D 034E13                  	add	cx, [bp+13h]	; [BPB_TotSec16]
+  2251 00000C90 83D300                  	adc	bx, 0
+  2252 00000C93 E9ADFA                  	jmp	FAT12_f_8
+  2253                                  
+  2254                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  2255                                  ; Read & Write characters
+  2256                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  2257                                  
+  2258                                  rw_char:
+  2259                                  	; OUTPUT -> DS:SI = Entered String (ASCIIZ)
+  2260 00000C96 BE[8422]                	mov     si, StrVolumeName
+  2261 00000C99 BB0700                  	mov     bx, 7
+  2262 00000C9C B403                    	mov     ah, 3
+  2263 00000C9E CD10                    	int     10h
+  2264 00000CA0 8916[E818]              	mov     [Cursor_Pos], dx
+  2265                                  read_next_char:
+  2266 00000CA4 30E4                    	xor     ah, ah
+  2267 00000CA6 CD16                    	int     16h
+  2268 00000CA8 20C0                    	and     al, al
+  2269 00000CAA 7439                    	jz      short loc_arrow
+  2270 00000CAC 3CE0                    	cmp     al, 0E0h
+  2271 00000CAE 7435                    	je      short loc_arrow
+  2272 00000CB0 3C08                    	cmp     al, 8
+  2273 00000CB2 753D                    	jne     short char_return
+  2274                                  loc_back:
+  2275 00000CB4 B403                    	mov     ah, 3
+  2276 00000CB6 CD10                    	int     10h
+  2277 00000CB8 3A16[E818]              	cmp     dl, byte [Cursor_Pos]
+  2278 00000CBC 761F                    	jna     short loc_beep
+  2279                                  prev_column:
+  2280 00000CBE FECA                    	dec     dl
+  2281                                  set_cursor_pos:
+  2282 00000CC0 B402                    	mov     ah, 2
+  2283 00000CC2 CD10                    	int     10h
+  2284 00000CC4 88D3                    	mov     bl, dl
+  2285 00000CC6 2A1E[E818]              	sub     bl, byte [Cursor_Pos]
+  2286 00000CCA B90100                  	mov     cx, 1
+  2287 00000CCD B409                    	mov     ah, 9
+  2288 00000CCF B020                    	mov     al, 20h
+  2289 00000CD1 8800                    	mov     [si+bx], al
+  2290                                  loc_write_it:
+  2291 00000CD3 B307                    	mov     bl, 7
+  2292 00000CD5 CD10                    	int     10h
+  2293 00000CD7 8B16[E818]              	mov     dx, [Cursor_Pos]
+  2294 00000CDB EBC7                    	jmp     short read_next_char
+  2295                                  loc_beep:
+  2296 00000CDD B40E                    	mov     ah, 0Eh
+  2297 00000CDF B007                    	mov     al, 7
+  2298 00000CE1 CD10                    	int     10h
+  2299 00000CE3 EBBF                    	jmp     short read_next_char
+  2300                                  loc_arrow:    
+  2301 00000CE5 80FC4B                  	cmp     ah, 4Bh
+  2302 00000CE8 74CA                    	je      short loc_back
+  2303 00000CEA 80FC53                  	cmp     ah, 53h
+  2304 00000CED 74C5                    	je      short loc_back
+  2305 00000CEF EBB3                    	jmp     short read_next_char
+  2306                                  char_return:
+  2307 00000CF1 B403                    	mov     ah, 3
+  2308 00000CF3 CD10                    	int     10h
+  2309                                  check_char_type:
+  2310 00000CF5 3C20                    	cmp     al, 20h
+  2311 00000CF7 7229                    	jb      short loc_escape
+  2312 00000CF9 88D4                    	mov     ah, dl
+  2313 00000CFB 2A26[E818]              	sub     ah, byte [Cursor_Pos]
+  2314                                  	;cmp	ah, 10 
+  2315                                  	;ja	short loc_beep
+  2316 00000CFF 3A26[711A]              	cmp     ah, [vname_length]
+  2317 00000D03 73D8                    	jnb	short loc_beep
+  2318 00000D05 3C7A                    	cmp     al, 'z'
+  2319 00000D07 779B                    	ja      short read_next_char
+  2320 00000D09 3C61                    	cmp     al, 'a'
+  2321 00000D0B 7202                    	jb      short pass_capitalize
+  2322 00000D0D 24DF                    	and     al, 0DFh
+  2323                                  pass_capitalize:
+  2324 00000D0F 88E3                    	mov     bl, ah 
+  2325 00000D11 30E4                    	xor     ah, ah
+  2326 00000D13 8900                    	mov     [si+bx], ax
+  2327 00000D15 B307                    	mov     bl, 7
+  2328 00000D17 B40E                    	mov     ah, 0Eh
+  2329 00000D19 CD10                    	int     10h
+  2330 00000D1B EB87                    	jmp     short read_next_char
+  2331                                  pass_escape:
+  2332 00000D1D 3C0D                    	cmp     al, 0Dh	; 13 ; ENTER
+  2333 00000D1F 7583                    	jne     short read_next_char
+  2334                                  	;mov	ah, 0Eh
+  2335                                  	;int	10h
+  2336                                  	;mov	al, 0Ah
+  2337                                  	;int	10h
+  2338 00000D21 C3                      	retn
+  2339                                  loc_escape:
+  2340 00000D22 3C1B                    	cmp     al, 1Bh	; 27 ; ESC
+  2341 00000D24 75F7                    	jne     short pass_escape
+  2342 00000D26 F9                      	stc
+  2343 00000D27 C3                      	retn
+  2344                                  
+  2345                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  2346                                  ; 32 bit division
+  2347                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  2348                                  
+  2349                                  div32:
+  2350                                  	; DX_AX/CX
+  2351                                  	; Result: DX_AX, BX (remainder)
+  2352 00000D28 89C3                    	mov	bx, ax
+  2353                                  	;or	dx, ax ; * DX_AX = 0 ?
+  2354                                  	;jz	short div32_retn ; yes, do not divide!
+  2355 00000D2A 89D0                    	mov	ax, dx
+  2356 00000D2C 31D2                            xor	dx, dx
+  2357 00000D2E F7F1                            div	cx	; at first, divide DX
+  2358                                  			; remainder is in DX 
+  2359 00000D30 93                      	xchg	ax, bx	; now quotient is in BX
+  2360                                    			; and initial AX value is in AX
+  2361 00000D31 F7F1                    	div	cx	; now, DX_AX has been divided and
+  2362                                  			; AX has quotient
+  2363                                  			; DX has remainder
+  2364 00000D33 87D3                    	xchg	dx, bx	; finally, BX has remainder
+  2365                                  ;div32_retn:
+  2366 00000D35 C3                              retn
+  2367                                  
+  2368                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  2369                                  ; Convert byte to decimal number
+  2370                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   2371                                  
-  2372                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  2373                                  ; Convert byte to hexadecimal number
-  2374                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  2375                                  
-  2376                                  byte_to_hex:
-  2377                                  bin_to_hex:
-  2378                                  	; INPUT ->
-  2379                                  	; 	AL = byte (binary number)
-  2380                                  	; OUTPUT ->
-  2381                                  	;	AX = hexadecimal string
-  2382                                  	;
-  2383 00000D39 53                      	push	bx
-  2384 00000D3A 31DB                    	xor	bx, bx
-  2385 00000D3C 88C3                    	mov	bl, al
-  2386 00000D3E C0EB04                  	shr	bl, 4
-  2387 00000D41 8A9F[C418]              	mov	bl, [bx+hexchrs]
-  2388 00000D45 86D8                    	xchg	bl, al
-  2389 00000D47 80E30F                  	and	bl, 0Fh
-  2390 00000D4A 8AA7[C418]              	mov	ah, [bx+hexchrs]
-  2391 00000D4E 5B                      	pop	bx
-  2392 00000D4F C3                      	retn
-  2393                                  
-  2394                                  ; ----------------------------------------------------------------------------
-  2395                                  ; initialized data
-  2396                                  ; ----------------------------------------------------------------------------
+  2372                                  bin_to_decimal:
+  2373                                  	; INPUT: DS:SI = Target location
+  2374                                  	;        DX_AX = Binary Number (Integer)
+  2375                                  	; OUTPUT: Decimal char at DS:SI
+  2376                                  	; 	 SI decremented after every division
+  2377                                  	; 	 till AX<10.
+  2378                                  	; CX, DX, BX will be changed.
+  2379                                  	;
+  2380 00000D36 B90A00                  	mov	cx, 10
+  2381                                  btd_0:
+  2382                                  	; DX_AX = Dividend
+  2383                                  	; CX = Divisor
+  2384 00000D39 E8ECFF                  	call	div32
+  2385                                  	; DX_AX = Quotient
+  2386                                  	; BX = remainder
+  2387 00000D3C 80C330                  	add	bl, '0'
+  2388 00000D3F 881C                    	mov	[si], bl
+  2389 00000D41 21D2                    	and	dx, dx
+  2390 00000D43 7403                    	jz	short btd_2
+  2391                                  btd_1:
+  2392 00000D45 4E                      	dec	si
+  2393 00000D46 EBF1                    	jmp	short btd_0
+  2394                                  btd_2:
+  2395 00000D48 09C0                    	or	ax, ax
+  2396 00000D4A 75F9                    	jnz	short btd_1
   2397                                  
-  2398                                  align 2
+  2398 00000D4C C3                      	retn
   2399                                  
-  2400                                  trdos386fc:
-  2401 00000D50 [F008]                  	dw format_FAT16_fs
-  2402 00000D52 0000                    	dw 0
+  2400                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  2401                                  ; Convert byte to hexadecimal number
+  2402                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   2403                                  
-  2404                                  ;volume_id:
-  2405                                  ;	dd 0
-  2406                                  
-  2407                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  2408                                  ;  FAT boot sector code
-  2409                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  2410                                  
-  2411                                  RD_FAT32_hd_bs:
-  2412 00000D54 <bin 400h>              	incbin	'RD5HDBS3.BIN' ; 29/04/2024
-  2413                                  RD_FAT16_hd_bs: 
-  2414 00001154 <bin 200h>              	incbin	'RD4HDBS.BIN' ; 24/10/2023
-  2415                                  RD_FAT12_hd_bs: 
-  2416 00001354 <bin 200h>              	incbin	'RD2HDBS.BIN' ; 25/10/2023
-  2417                                  
-  2418                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  2419                                  ;  messages
-  2420                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  2404                                  byte_to_hex:
+  2405                                  bin_to_hex:
+  2406                                  	; INPUT ->
+  2407                                  	; 	AL = byte (binary number)
+  2408                                  	; OUTPUT ->
+  2409                                  	;	AX = hexadecimal string
+  2410                                  	;
+  2411 00000D4D 53                      	push	bx
+  2412 00000D4E 31DB                    	xor	bx, bx
+  2413 00000D50 88C3                    	mov	bl, al
+  2414 00000D52 C0EB04                  	shr	bl, 4
+  2415 00000D55 8A9F[D818]              	mov	bl, [bx+hexchrs]
+  2416 00000D59 86D8                    	xchg	bl, al
+  2417 00000D5B 80E30F                  	and	bl, 0Fh
+  2418 00000D5E 8AA7[D818]              	mov	ah, [bx+hexchrs]
+  2419 00000D62 5B                      	pop	bx
+  2420 00000D63 C3                      	retn
   2421                                  
-  2422 00001554 00                      lba:	db 0
-  2423                                  
-  2424 00001555 00                      drv:	db 0
+  2422                                  ; ----------------------------------------------------------------------------
+  2423                                  ; initialized data
+  2424                                  ; ----------------------------------------------------------------------------
   2425                                  
-  2426 00001556 00                      sectors: db 0
-  2427 00001557 00                      	 db 0
-  2428 00001558 00                      heads:	 db 0
-  2429 00001559 00                      	 db 0
-  2430 0000155A 0000                    cylinders: dw 0
+  2426                                  align 2
+  2427                                  
+  2428                                  trdos386fc:
+  2429 00000D64 [F008]                  	dw format_FAT16_fs
+  2430 00000D66 0000                    	dw 0
   2431                                  
-  2432                                  RD_Welcome:
-  2433 0000155C 0D0A                    	db 0Dh, 0Ah
-  2434 0000155E 526574726F20444F53-     	db 'Retro DOS v4 Hard Disk Partition Formatting Utility '
-  2434 00001567 207634204861726420-
-  2434 00001570 4469736B2050617274-
-  2434 00001579 6974696F6E20466F72-
-  2434 00001582 6D617474696E672055-
-  2434 0000158B 74696C69747920     
-  2435 00001592 0D0A                    	db 0Dh, 0Ah
-  2436 00001594 28666F72206C6F6769-     	db '(for logical dos drives in extended dos partitions)	'
-  2436 0000159D 63616C20646F732064-
-  2436 000015A6 726976657320696E20-
-  2436 000015AF 657874656E64656420-
-  2436 000015B8 646F73207061727469-
-  2436 000015C1 74696F6E732909     
-  2437 000015C8 0D0A                    	db 0Dh, 0Ah
-  2438 000015CA 0D0A                    	db 0Dh, 0Ah
-  2439 000015CC 76312E312E32343035-     	db 'v1.1.240504 (c) Erdogan TAN 2020-2024'
-  2439 000015D5 303420286329204572-
-  2439 000015DE 646F67616E2054414E-
-  2439 000015E7 20323032302D323032-
-  2439 000015F0 34                 
-  2440 000015F1 0D0A                    	db 0Dh,0Ah
-  2441 000015F3 0D0A                    	db 0Dh,0Ah
-  2442 000015F5 55736167653A206570-     	db 'Usage: epformat <drive> '
-  2442 000015FE 666F726D6174203C64-
-  2442 00001607 726976653E20       
-  2443 0000160D 0D0A0D0A                	db 0Dh,0Ah, 0Dh, 0Ah
-  2444 00001611 4472697665206E616D-     	db 'Drive names: '
-  2444 0000161A 65733A20           
-  2445 0000161E 0D0A                    	db 0Dh, 0Ah
-  2446 00001620 2020686430202E2E66-     	db '  hd0 ..for extended dos partition on 1st disk '
-  2446 00001629 6F7220657874656E64-
-  2446 00001632 656420646F73207061-
-  2446 0000163B 72746974696F6E206F-
-  2446 00001644 6E2031737420646973-
-  2446 0000164D 6B20               
-  2447 0000164F 0D0A                    	db 0Dh, 0Ah
-  2448 00001651 2020686431202E2E66-     	db '  hd1 ..for extended dos partition on 2nd disk '
-  2448 0000165A 6F7220657874656E64-
-  2448 00001663 656420646F73207061-
-  2448 0000166C 72746974696F6E206F-
-  2448 00001675 6E20326E6420646973-
-  2448 0000167E 6B20               
-  2449 00001680 0D0A                    	db 0Dh, 0Ah
-  2450 00001682 2020686432202E2E66-     	db '  hd2 ..for extended dos partition on 3rd disk '
-  2450 0000168B 6F7220657874656E64-
-  2450 00001694 656420646F73207061-
-  2450 0000169D 72746974696F6E206F-
-  2450 000016A6 6E2033726420646973-
-  2450 000016AF 6B20               
-  2451 000016B1 0D0A                    	db 0Dh, 0Ah
-  2452 000016B3 2020686433202E2E66-     	db '  hd3 ..for extended dos partition on 4th disk '
-  2452 000016BC 6F7220657874656E64-
-  2452 000016C5 656420646F73207061-
-  2452 000016CE 72746974696F6E206F-
-  2452 000016D7 6E2034746820646973-
-  2452 000016E0 6B20               
-  2453 000016E2 0D0A00                  	db 0Dh, 0Ah, 0
-  2454                                  
-  2455 000016E5 32352F30392F323032-     	db '25/09/2020'
-  2455 000016EE 30                 
-  2456 000016EF 00                      	db 0
-  2457                                  
-  2458                                  RD_Format_warning:
-  2459 000016F0 0D0A                    	db 0Dh, 0Ah
-  2460 000016F2 5741524E494E472021-     	db "WARNING ! ", 0Dh, 0Ah 
-  2460 000016FB 200D0A             
-  2461 000016FE 28496620796F752073-     	db "(If you say 'Yes', all of data in the logical DOS drive will be lost !) "
-  2461 00001707 61792027596573272C-
-  2461 00001710 20616C6C206F662064-
-  2461 00001719 61746120696E207468-
-  2461 00001722 65206C6F676963616C-
-  2461 0000172B 20444F532064726976-
-  2461 00001734 652077696C6C206265-
-  2461 0000173D 206C6F737420212920 
-  2462                                  RD_Do_you_want:
-  2463 00001746 0D0A                    	db 0Dh, 0Ah
-  2464 00001748 0D0A                    	db 0Dh, 0Ah
-  2465 0000174A 446F20796F75207761-     	db "Do you want to format logical DOS drive as Retro DOS v4 FAT" 
-  2465 00001753 6E7420746F20666F72-
-  2465 0000175C 6D6174206C6F676963-
-  2465 00001765 616C20444F53206472-
-  2465 0000176E 697665206173205265-
-  2465 00001777 74726F20444F532076-
-  2465 00001780 3420464154         
-  2466                                  fattype_str:
-  2467 00001785 3136206673203F2028-     	db "16 fs ? (Y/N) "
-  2467 0000178E 592F4E2920         
-  2468 00001793 00                      	db 0
-  2469                                  
-  2470                                  _yes_str:
-  2471 00001794 59455320                	db 'YES '
-  2472 00001798 0D0A00                  	db 0Dh, 0Ah, 0
-  2473                                  _no_str:
-  2474 0000179B 4E4F20                  	db 'NO '
-  2475 0000179E 0D0A00                  	db 0Dh, 0Ah, 0
-  2476                                  
-  2477                                  _msg_OK:
-  2478                                  	;db	07h
-  2479 000017A1 0D0A                    	db	0Dh, 0Ah
-  2480 000017A3 4F4B2E                  	db	"OK."
-  2481                                  RD_CRLF:
-  2482 000017A6 0D0A00                  	db	0Dh, 0Ah, 0
-  2483                                  
-  2484                                  RD_PressKeyWhenReady:
-  2485 000017A9 0D0A                    	db 0Dh, 0Ah
-  2486 000017AB 507265737320456E74-     	db 'Press Enter to format logical DOS drive '
-  2486 000017B4 657220746F20666F72-
-  2486 000017BD 6D6174206C6F676963-
-  2486 000017C6 616C20444F53206472-
-  2486 000017CF 69766520           
-  2487                                  RD_ldn:
-  2488 000017D3 31206F6E206864          	db '1 on hd'
-  2489                                  RD_Drive:
-  2490 000017DA 3F2E2000                	db '?. ', 0
-  2491                                  
-  2492                                  RD_disk_NotReadyOrError:
-  2493 000017DE 0D0A                    	db 0Dh, 0Ah
-  2494 000017E0 4469736B206572726F-     	db 'Disk error or drive not ready ! '
-  2494 000017E9 72206F722064726976-
-  2494 000017F2 65206E6F7420726561-
-  2494 000017FB 6479202120         
-  2495 00001800 54727920616761696E-     zbyte:	db 'Try again ? (Y/N) '
-  2495 00001809 203F2028592F4E2920 
-  2496 00001812 00                      	db 0
+  2432                                  ;volume_id:
+  2433                                  ;	dd 0
+  2434                                  
+  2435                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  2436                                  ;  FAT boot sector code
+  2437                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  2438                                  
+  2439                                  RD_FAT32_hd_bs:
+  2440 00000D68 <bin 400h>              	incbin	'RD5HDBS3.BIN' ; 29/04/2024
+  2441                                  RD_FAT16_hd_bs: 
+  2442 00001168 <bin 200h>              	incbin	'RD4HDBS.BIN' ; 24/10/2023
+  2443                                  RD_FAT12_hd_bs: 
+  2444 00001368 <bin 200h>              	incbin	'RD2HDBS.BIN' ; 25/10/2023
+  2445                                  
+  2446                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  2447                                  ;  messages
+  2448                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  2449                                  
+  2450 00001568 00                      lba:	db 0
+  2451                                  
+  2452 00001569 00                      drv:	db 0
+  2453                                  
+  2454 0000156A 00                      sectors: db 0
+  2455 0000156B 00                      	 db 0
+  2456 0000156C 00                      heads:	 db 0
+  2457 0000156D 00                      	 db 0
+  2458 0000156E 0000                    cylinders: dw 0
+  2459                                  
+  2460                                  RD_Welcome:
+  2461 00001570 0D0A                    	db 0Dh, 0Ah
+  2462 00001572 526574726F20444F53-     	db 'Retro DOS v4 Hard Disk Partition Formatting Utility '
+  2462 0000157B 207634204861726420-
+  2462 00001584 4469736B2050617274-
+  2462 0000158D 6974696F6E20466F72-
+  2462 00001596 6D617474696E672055-
+  2462 0000159F 74696C69747920     
+  2463 000015A6 0D0A                    	db 0Dh, 0Ah
+  2464 000015A8 28666F72206C6F6769-     	db '(for logical dos drives in extended dos partitions)	'
+  2464 000015B1 63616C20646F732064-
+  2464 000015BA 726976657320696E20-
+  2464 000015C3 657874656E64656420-
+  2464 000015CC 646F73207061727469-
+  2464 000015D5 74696F6E732909     
+  2465 000015DC 0D0A                    	db 0Dh, 0Ah
+  2466 000015DE 0D0A                    	db 0Dh, 0Ah
+  2467 000015E0 76312E312E32343037-     	db 'v1.1.240715 (c) Erdogan TAN 2020-2024'
+  2467 000015E9 313520286329204572-
+  2467 000015F2 646F67616E2054414E-
+  2467 000015FB 20323032302D323032-
+  2467 00001604 34                 
+  2468 00001605 0D0A                    	db 0Dh,0Ah
+  2469 00001607 0D0A                    	db 0Dh,0Ah
+  2470 00001609 55736167653A206570-     	db 'Usage: epformat <drive> '
+  2470 00001612 666F726D6174203C64-
+  2470 0000161B 726976653E20       
+  2471 00001621 0D0A0D0A                	db 0Dh,0Ah, 0Dh, 0Ah
+  2472 00001625 4472697665206E616D-     	db 'Drive names: '
+  2472 0000162E 65733A20           
+  2473 00001632 0D0A                    	db 0Dh, 0Ah
+  2474 00001634 2020686430202E2E66-     	db '  hd0 ..for extended dos partition on 1st disk '
+  2474 0000163D 6F7220657874656E64-
+  2474 00001646 656420646F73207061-
+  2474 0000164F 72746974696F6E206F-
+  2474 00001658 6E2031737420646973-
+  2474 00001661 6B20               
+  2475 00001663 0D0A                    	db 0Dh, 0Ah
+  2476 00001665 2020686431202E2E66-     	db '  hd1 ..for extended dos partition on 2nd disk '
+  2476 0000166E 6F7220657874656E64-
+  2476 00001677 656420646F73207061-
+  2476 00001680 72746974696F6E206F-
+  2476 00001689 6E20326E6420646973-
+  2476 00001692 6B20               
+  2477 00001694 0D0A                    	db 0Dh, 0Ah
+  2478 00001696 2020686432202E2E66-     	db '  hd2 ..for extended dos partition on 3rd disk '
+  2478 0000169F 6F7220657874656E64-
+  2478 000016A8 656420646F73207061-
+  2478 000016B1 72746974696F6E206F-
+  2478 000016BA 6E2033726420646973-
+  2478 000016C3 6B20               
+  2479 000016C5 0D0A                    	db 0Dh, 0Ah
+  2480 000016C7 2020686433202E2E66-     	db '  hd3 ..for extended dos partition on 4th disk '
+  2480 000016D0 6F7220657874656E64-
+  2480 000016D9 656420646F73207061-
+  2480 000016E2 72746974696F6E206F-
+  2480 000016EB 6E2034746820646973-
+  2480 000016F4 6B20               
+  2481 000016F6 0D0A00                  	db 0Dh, 0Ah, 0
+  2482                                  
+  2483 000016F9 32352F30392F323032-     	db '25/09/2020'
+  2483 00001702 30                 
+  2484 00001703 00                      	db 0
+  2485                                  
+  2486                                  RD_Format_warning:
+  2487 00001704 0D0A                    	db 0Dh, 0Ah
+  2488 00001706 5741524E494E472021-     	db "WARNING ! ", 0Dh, 0Ah 
+  2488 0000170F 200D0A             
+  2489 00001712 28496620796F752073-     	db "(If you say 'Yes', all of data in the logical DOS drive will be lost !) "
+  2489 0000171B 61792027596573272C-
+  2489 00001724 20616C6C206F662064-
+  2489 0000172D 61746120696E207468-
+  2489 00001736 65206C6F676963616C-
+  2489 0000173F 20444F532064726976-
+  2489 00001748 652077696C6C206265-
+  2489 00001751 206C6F737420212920 
+  2490                                  RD_Do_you_want:
+  2491 0000175A 0D0A                    	db 0Dh, 0Ah
+  2492 0000175C 0D0A                    	db 0Dh, 0Ah
+  2493 0000175E 446F20796F75207761-     	db "Do you want to format logical DOS drive as Retro DOS v4 FAT" 
+  2493 00001767 6E7420746F20666F72-
+  2493 00001770 6D6174206C6F676963-
+  2493 00001779 616C20444F53206472-
+  2493 00001782 697665206173205265-
+  2493 0000178B 74726F20444F532076-
+  2493 00001794 3420464154         
+  2494                                  fattype_str:
+  2495 00001799 3136206673203F2028-     	db "16 fs ? (Y/N) "
+  2495 000017A2 592F4E2920         
+  2496 000017A7 00                      	db 0
   2497                                  
-  2498                                  RD_psize_defect:
-  2499 00001813 0D0A                    	db 0Dh, 0Ah
-  2500 00001815 4D4252207061727469-     	db 'MBR partition size defect ! '
-  2500 0000181E 74696F6E2073697A65-
-  2500 00001827 206465666563742021-
-  2500 00001830 20                 
-  2501 00001831 0D0A                    	db 0Dh, 0Ah
-  2502 00001833 286C65737320746861-     	db '(less than the minimum number of sectors required) '
-  2502 0000183C 6E20746865206D696E-
-  2502 00001845 696D756D206E756D62-
-  2502 0000184E 6572206F6620736563-
-  2502 00001857 746F72732072657175-
-  2502 00001860 697265642920       
-  2503 00001866 00                      	db 0
+  2498                                  _yes_str:
+  2499 000017A8 59455320                	db 'YES '
+  2500 000017AC 0D0A00                  	db 0Dh, 0Ah, 0
+  2501                                  _no_str:
+  2502 000017AF 4E4F20                  	db 'NO '
+  2503 000017B2 0D0A00                  	db 0Dh, 0Ah, 0
   2504                                  
-  2505                                  RD_ep_ldd_defect:
-  2506 00001867 0D0A                    	db 0Dh, 0Ah
-  2507 00001869 546865726520697320-     	db 'There is not a logical DOS drive ! '
-  2507 00001872 6E6F742061206C6F67-
-  2507 0000187B 6963616C20444F5320-
-  2507 00001884 6472697665202120   
-  2508 0000188C 0D0A                    	db 0Dh, 0Ah
-  2509                                  ldd_count:
-  2510 0000188E 00                      	db 0
+  2505                                  _msg_OK:
+  2506                                  	;db	07h
+  2507 000017B5 0D0A                    	db	0Dh, 0Ah
+  2508 000017B7 4F4B2E                  	db	"OK."
+  2509                                  RD_CRLF:
+  2510 000017BA 0D0A00                  	db	0Dh, 0Ah, 0
   2511                                  
-  2512                                  RD_fatp_notfound:
-  2513 0000188F 0D0A                    	db 0Dh, 0Ah
-  2514 00001891 4D425220646F657320-     	db 'MBR does not contain an extended DOS partition ! '
-  2514 0000189A 6E6F7420636F6E7461-
-  2514 000018A3 696E20616E20657874-
-  2514 000018AC 656E64656420444F53-
-  2514 000018B5 20706172746974696F-
-  2514 000018BE 6E202120           
-  2515                                  fattype:
-  2516 000018C2 00                      	db 0
-  2517                                  ;RetryCount:
-  2518                                  ;	db 4
+  2512                                  RD_PressKeyWhenReady:
+  2513 000017BD 0D0A                    	db 0Dh, 0Ah
+  2514 000017BF 507265737320456E74-     	db 'Press Enter to format logical DOS drive '
+  2514 000017C8 657220746F20666F72-
+  2514 000017D1 6D6174206C6F676963-
+  2514 000017DA 616C20444F53206472-
+  2514 000017E3 69766520           
+  2515                                  RD_ldn:
+  2516 000017E7 31206F6E206864          	db '1 on hd'
+  2517                                  RD_Drive:
+  2518 000017EE 3F2E2000                	db '?. ', 0
   2519                                  
-  2520                                  ;error: db 0
-  2521                                  
-  2522                                  ;align 2
-  2523 000018C3 90                      align 4
-  2524                                  
-  2525                                  hexchrs:
-  2526 000018C4 303132333435363738-     	db	'0123456789ABCDEF'
-  2526 000018CD 39414243444546     
-  2527                                  
-  2528                                  Cursor_Pos: ; dw 0
-  2529                                  CHS_limit:  ; dword
-  2530 000018D4 0000                    	dw	0
-  2531                                  	;dw	0
+  2520                                  RD_disk_NotReadyOrError:
+  2521 000017F2 0D0A                    	db 0Dh, 0Ah
+  2522 000017F4 4469736B206572726F-     	db 'Disk error or drive not ready ! '
+  2522 000017FD 72206F722064726976-
+  2522 00001806 65206E6F7420726561-
+  2522 0000180F 6479202120         
+  2523 00001814 54727920616761696E-     zbyte:	db 'Try again ? (Y/N) '
+  2523 0000181D 203F2028592F4E2920 
+  2524 00001826 00                      	db 0
+  2525                                  
+  2526                                  RD_psize_defect:
+  2527 00001827 0D0A                    	db 0Dh, 0Ah
+  2528 00001829 4D4252207061727469-     	db 'MBR partition size defect ! '
+  2528 00001832 74696F6E2073697A65-
+  2528 0000183B 206465666563742021-
+  2528 00001844 20                 
+  2529 00001845 0D0A                    	db 0Dh, 0Ah
+  2530 00001847 286C65737320746861-     	db '(less than the minimum number of sectors required) '
+  2530 00001850 6E20746865206D696E-
+  2530 00001859 696D756D206E756D62-
+  2530 00001862 6572206F6620736563-
+  2530 0000186B 746F72732072657175-
+  2530 00001874 697265642920       
+  2531 0000187A 00                      	db 0
   2532                                  
-  2533 000018D6 A101                    sign:	dw	417	; magic word
-  2534                                  
-  2535                                  ldd_table:
-  2536 000018D8 0D0A                    	db	0Dh, 0Ah
-  2537 000018DA 3D3D3D3D3D3D3D3D3D-     	db	"=======================================", 0Dh, 0Ah
-  2537 000018E3 3D3D3D3D3D3D3D3D3D-
-  2537 000018EC 3D3D3D3D3D3D3D3D3D-
-  2537 000018F5 3D3D3D3D3D3D3D3D3D-
-  2537 000018FE 3D3D3D0D0A         
-  2538 00001903 2020202020204844        	db	"      HD"
-  2539                                  drv_str:
-  2540 0000190B 3020455854454E4445-     	db	"0 EXTENDED DOS PARTITION       ", 0Dh, 0Ah
-  2540 00001914 4420444F5320504152-
-  2540 0000191D 544954494F4E202020-
-  2540 00001926 202020200D0A       
-  2541 0000192C 3D3D3D3D3D3D3D3D3D-     	db	"=======================================", 0Dh, 0Ah
-  2541 00001935 3D3D3D3D3D3D3D3D3D-
-  2541 0000193E 3D3D3D3D3D3D3D3D3D-
-  2541 00001947 3D3D3D3D3D3D3D3D3D-
-  2541 00001950 3D3D3D0D0A         
-  2542 00001955 204C6F676963616C20-     	db	" Logical DOS Drive   Type      SIZE    ", 0Dh, 0Ah
-  2542 0000195E 444F53204472697665-
-  2542 00001967 202020547970652020-
-  2542 00001970 2020202053495A4520-
-  2542 00001979 2020200D0A         
-  2543 0000197E 2D2D2D2D2D2D2D2D2D-     	db	"---------------------------------------", 0Dh, 0Ah, 0
-  2543 00001987 2D2D2D2D2D2D2D2D2D-
-  2543 00001990 2D2D2D2D2D2D2D2D2D-
-  2543 00001999 2D2D2D2D2D2D2D2D2D-
-  2543 000019A2 2D2D2D0D0A00       
-  2544                                  ldd_row:
-  2545 000019A8 202020202020202020-     	db	"                 "
-  2545 000019B1 2020202020202020   
-  2546                                  ldd_row_dn:
-  2547 000019B9 31202020464154          	db	"1   FAT"
-  2548                                  ldd_row_fs:
-  2549 000019C0 31322020202020          	db	"12     "
-  2550                                  ldd_row_sz:
-  2551 000019C7 31323847422020200D-     	db	"128GB   ", 0Dh, 0Ah, 0
-  2551 000019D0 0A00               
-  2552                                  ldd_dline:
-  2553 000019D2 3D3D3D3D3D3D3D3D3D-     	db	"=======================================", 0Dh, 0Ah
-  2553 000019DB 3D3D3D3D3D3D3D3D3D-
-  2553 000019E4 3D3D3D3D3D3D3D3D3D-
-  2553 000019ED 3D3D3D3D3D3D3D3D3D-
-  2553 000019F6 3D3D3D0D0A         
-  2554 000019FB 00                      	db	0
+  2533                                  RD_ep_ldd_defect:
+  2534 0000187B 0D0A                    	db 0Dh, 0Ah
+  2535 0000187D 546865726520697320-     	db 'There is not a logical DOS drive ! '
+  2535 00001886 6E6F742061206C6F67-
+  2535 0000188F 6963616C20444F5320-
+  2535 00001898 6472697665202120   
+  2536 000018A0 0D0A                    	db 0Dh, 0Ah
+  2537                                  ldd_count:
+  2538 000018A2 00                      	db 0
+  2539                                  
+  2540                                  RD_fatp_notfound:
+  2541 000018A3 0D0A                    	db 0Dh, 0Ah
+  2542 000018A5 4D425220646F657320-     	db 'MBR does not contain an extended DOS partition ! '
+  2542 000018AE 6E6F7420636F6E7461-
+  2542 000018B7 696E20616E20657874-
+  2542 000018C0 656E64656420444F53-
+  2542 000018C9 20706172746974696F-
+  2542 000018D2 6E202120           
+  2543                                  fattype:
+  2544 000018D6 00                      	db 0
+  2545                                  ;RetryCount:
+  2546                                  ;	db 4
+  2547                                  
+  2548                                  ;error: db 0
+  2549                                  
+  2550                                  ;align 2
+  2551 000018D7 90                      align 4
+  2552                                  
+  2553                                  hexchrs:
+  2554 000018D8 303132333435363738-     	db	'0123456789ABCDEF'
+  2554 000018E1 39414243444546     
   2555                                  
-  2556                                  ldd_select_msg:
-  2557 000019FC 0D0A0D0A                	db	0Dh, 0Ah, 0Dh, 0Ah
-  2558 00001A00 53656C656374206C6F-     	db	"Select logical DOS drive number (1 to "
-  2558 00001A09 676963616C20444F53-
-  2558 00001A12 206472697665206E75-
-  2558 00001A1B 6D6265722028312074-
-  2558 00001A24 6F20               
-  2559                                  ldd_select_pn:
-  2560 00001A26 342920746F20666F72-     	db	"4) to format. "
-  2560 00001A2F 6D61742E20         
-  2561 00001A34 0D0A                    	db 	0Dh, 0Ah
-  2562 00001A36 286F72207072657373-     	db	"(or press ESC to cancel) ", 0Dh, 0Ah, 0
-  2562 00001A3F 2045534320746F2063-
-  2562 00001A48 616E63656C29200D0A-
-  2562 00001A51 00                 
-  2563                                  
-  2564                                  ;align 4 
-  2565                                  
-  2566                                  msg_sectors_crlf:
-  2567 00001A52 20736563746F72          	db	" sector"
-  2568                                  msg_sectors_crlf_s:
-  2569 00001A59 73                      	db	"s"
-  2570 00001A5A 0D0A00                  	db	0Dh, 0Ah, 0
-  2571                                  
-  2572                                  vname_length:
-  2573 00001A5D 00                      	db	0
-  2574                                  
-  2575                                  bs_oem_name:
-  2576                                  	;db	'TRDOS2.0', 0
-  2577                                  	; 28/10/2023
-  2578 00001A5E 524554524F444F5300      	db	'RETRODOS', 0
-  2579                                  
-  2580 00001A67 90                      align 2
-  2581                                  
-  2582                                  no_name:
-  2583 00001A68 4E4F204E414D452020-     	db 	'NO NAME    ', 0
-  2583 00001A71 202000             
-  2584                                  
-  2585                                  Msg_Volume_Name:
-  2586 00001A74 0D0A                    	db	0Dh, 0Ah
-  2587 00001A76 0D0A                    	db	0Dh, 0Ah
-  2588 00001A78 566F6C756D65204E61-     	db	"Volume Name: ", 0
-  2588 00001A81 6D653A2000         
-  2589                                  
-  2590                                  Msg_Volume_Serial:
-  2591 00001A86 566F6C756D65205365-     	db	"Volume Serial No: "
-  2591 00001A8F 7269616C204E6F3A20 
-  2592                                  Vol_Serial1:
-  2593 00001A98 30303030                	db	"0000"
-  2594 00001A9C 2D                      	db	"-"
-  2595                                  Vol_Serial2:
-  2596 00001A9D 30303030                	db	"0000"
-  2597 00001AA1 0D0A00                  	db	0Dh, 0Ah, 0
-  2598                                  
-  2599                                  msg_cluster_count:
-  2600 00001AA4 436C75737465722043-     	db	"Cluster Count: ", 0
-  2600 00001AAD 6F756E743A2000     
-  2601                                  cluster_count_str:
-  2602 00001AB4 30303030303030          	db	"0000000"
-  2603 00001ABB 0D0A00                  	db	0Dh, 0Ah, 0
-  2604                                  msg_formatting:
-  2605 00001ABE 466F726D617474696E-     	db	"Formatting ", 0
-  2605 00001AC7 672000             
-  2606                                  format_percent_str:
-  2607 00001ACA 30303025                	db	"000%"
-  2608 00001ACE 00                      	db	0
+  2556                                  Cursor_Pos: ; dw 0
+  2557                                  CHS_limit:  ; dword
+  2558 000018E8 0000                    	dw	0
+  2559                                  	;dw	0
+  2560                                  
+  2561 000018EA A101                    sign:	dw	417	; magic word
+  2562                                  
+  2563                                  ldd_table:
+  2564 000018EC 0D0A                    	db	0Dh, 0Ah
+  2565 000018EE 3D3D3D3D3D3D3D3D3D-     	db	"=======================================", 0Dh, 0Ah
+  2565 000018F7 3D3D3D3D3D3D3D3D3D-
+  2565 00001900 3D3D3D3D3D3D3D3D3D-
+  2565 00001909 3D3D3D3D3D3D3D3D3D-
+  2565 00001912 3D3D3D0D0A         
+  2566 00001917 2020202020204844        	db	"      HD"
+  2567                                  drv_str:
+  2568 0000191F 3020455854454E4445-     	db	"0 EXTENDED DOS PARTITION       ", 0Dh, 0Ah
+  2568 00001928 4420444F5320504152-
+  2568 00001931 544954494F4E202020-
+  2568 0000193A 202020200D0A       
+  2569 00001940 3D3D3D3D3D3D3D3D3D-     	db	"=======================================", 0Dh, 0Ah
+  2569 00001949 3D3D3D3D3D3D3D3D3D-
+  2569 00001952 3D3D3D3D3D3D3D3D3D-
+  2569 0000195B 3D3D3D3D3D3D3D3D3D-
+  2569 00001964 3D3D3D0D0A         
+  2570 00001969 204C6F676963616C20-     	db	" Logical DOS Drive   Type      SIZE    ", 0Dh, 0Ah
+  2570 00001972 444F53204472697665-
+  2570 0000197B 202020547970652020-
+  2570 00001984 2020202053495A4520-
+  2570 0000198D 2020200D0A         
+  2571 00001992 2D2D2D2D2D2D2D2D2D-     	db	"---------------------------------------", 0Dh, 0Ah, 0
+  2571 0000199B 2D2D2D2D2D2D2D2D2D-
+  2571 000019A4 2D2D2D2D2D2D2D2D2D-
+  2571 000019AD 2D2D2D2D2D2D2D2D2D-
+  2571 000019B6 2D2D2D0D0A00       
+  2572                                  ldd_row:
+  2573 000019BC 202020202020202020-     	db	"                 "
+  2573 000019C5 2020202020202020   
+  2574                                  ldd_row_dn:
+  2575 000019CD 31202020464154          	db	"1   FAT"
+  2576                                  ldd_row_fs:
+  2577 000019D4 31322020202020          	db	"12     "
+  2578                                  ldd_row_sz:
+  2579 000019DB 31323847422020200D-     	db	"128GB   ", 0Dh, 0Ah, 0
+  2579 000019E4 0A00               
+  2580                                  ldd_dline:
+  2581 000019E6 3D3D3D3D3D3D3D3D3D-     	db	"=======================================", 0Dh, 0Ah
+  2581 000019EF 3D3D3D3D3D3D3D3D3D-
+  2581 000019F8 3D3D3D3D3D3D3D3D3D-
+  2581 00001A01 3D3D3D3D3D3D3D3D3D-
+  2581 00001A0A 3D3D3D0D0A         
+  2582 00001A0F 00                      	db	0
+  2583                                  
+  2584                                  ldd_select_msg:
+  2585 00001A10 0D0A0D0A                	db	0Dh, 0Ah, 0Dh, 0Ah
+  2586 00001A14 53656C656374206C6F-     	db	"Select logical DOS drive number (1 to "
+  2586 00001A1D 676963616C20444F53-
+  2586 00001A26 206472697665206E75-
+  2586 00001A2F 6D6265722028312074-
+  2586 00001A38 6F20               
+  2587                                  ldd_select_pn:
+  2588 00001A3A 342920746F20666F72-     	db	"4) to format. "
+  2588 00001A43 6D61742E20         
+  2589 00001A48 0D0A                    	db 	0Dh, 0Ah
+  2590 00001A4A 286F72207072657373-     	db	"(or press ESC to cancel) ", 0Dh, 0Ah, 0
+  2590 00001A53 2045534320746F2063-
+  2590 00001A5C 616E63656C29200D0A-
+  2590 00001A65 00                 
+  2591                                  
+  2592                                  ;align 4 
+  2593                                  
+  2594                                  msg_sectors_crlf:
+  2595 00001A66 20736563746F72          	db	" sector"
+  2596                                  msg_sectors_crlf_s:
+  2597 00001A6D 73                      	db	"s"
+  2598 00001A6E 0D0A00                  	db	0Dh, 0Ah, 0
+  2599                                  
+  2600                                  vname_length:
+  2601 00001A71 00                      	db	0
+  2602                                  
+  2603                                  bs_oem_name:
+  2604                                  	;db	'TRDOS2.0', 0
+  2605                                  	; 28/10/2023
+  2606 00001A72 524554524F444F5300      	db	'RETRODOS', 0
+  2607                                  
+  2608 00001A7B 90                      align 2
   2609                                  
-  2610                                  Msg_3dot_OK:
-  2611 00001ACF 2E2E2E                  	db	'...'
-  2612                                  Msg_OK:
-  2613 00001AD2 204F4B2E                	db	' OK.'
-  2614                                  CRLF:
-  2615 00001AD6 0D0A00                  	db	0Dh, 0Ah, 0
-  2616                                  
-  2617                                  Msg_Error:
-  2618 00001AD9 0D0A                    	db	0Dh, 0Ah
-  2619 00001ADB 4572726F72202120        	db	'Error ! '
-  2620 00001AE3 28                      	db	'('
-  2621                                  error_code:
-  2622 00001AE4 3030                    	dw	3030h
-  2623 00001AE6 68                      	db	'h'
-  2624 00001AE7 2920                    	db	') '
-  2625 00001AE9 0D0A                    	db	0Dh, 0Ah
-  2626 00001AEB 00                      	db	0
-  2627                                  
-  2628                                  	; 04/05/2024
-  2629                                  FAT32_note:
-  2630 00001AEC 0D0A                    	db	0Dh, 0Ah
-  2631 00001AEE 0D0A                    	db	0Dh, 0Ah
-  2632 00001AF0 4E4F54453A20            	db	'NOTE: '
-  2633 00001AF6 0D0A                    	db	0Dh, 0Ah
-  2634 00001AF8 0D0A                    	db	0Dh, 0Ah
-  2635 00001AFA 526574726F20444F53-     	db	'Retro DOS v4.2 -MSDOS 6.22- does not recognize FAT32 file system.'
-  2635 00001B03 2076342E32202D4D53-
-  2635 00001B0C 444F5320362E32322D-
-  2635 00001B15 20646F6573206E6F74-
-  2635 00001B1E 207265636F676E697A-
-  2635 00001B27 652046415433322066-
-  2635 00001B30 696C65207379737465-
-  2635 00001B39 6D2E               
-  2636 00001B3B 0D0A                    	db	0Dh, 0Ah
-  2637 00001B3D 0D0A                    	DB	0Dh, 0Ah
-  2638 00001B3F 4275742C2052657472-     	db	'But, Retro DOS v5 -PCDOS 7.1- recognizes FAT32 file system and '
-  2638 00001B48 6F20444F5320763520-
-  2638 00001B51 2D5043444F5320372E-
-  2638 00001B5A 312D207265636F676E-
-  2638 00001B63 697A65732046415433-
-  2638 00001B6C 322066696C65207379-
-  2638 00001B75 7374656D20616E6420 
-  2639 00001B7E 0D0A                    	db	0Dh, 0Ah
-  2640 00001B80 69747320626F6F7420-     	db	'its boot sector will be used to format the new FAT32 partition/volume.'
-  2640 00001B89 736563746F72207769-
-  2640 00001B92 6C6C20626520757365-
-  2640 00001B9B 6420746F20666F726D-
-  2640 00001BA4 617420746865206E65-
-  2640 00001BAD 772046415433322070-
-  2640 00001BB6 6172746974696F6E2F-
-  2640 00001BBF 766F6C756D652E     
-  2641 00001BC6 0D0A                    	db	0Dh, 0Ah
-  2642 00001BC8 0D0A                    	db	0Dh, 0Ah
-  2643                                  	;db	'The kernel file name of the FAT32 boot sector is ', 34,'PCDOS.SYS', 34,'.'
-  2644                                  	;db	0Dh, 0Ah
-  2645                                  	;db	0Dh, 0Ah 
-  2646 00001BCA 507265737320454E54-     	db	'Press ENTER to CONTINUE or press another key to CANCEL.'
-  2646 00001BD3 455220746F20434F4E-
-  2646 00001BDC 54494E5545206F7220-
-  2646 00001BE5 707265737320616E6F-
-  2646 00001BEE 74686572206B657920-
-  2646 00001BF7 746F2043414E43454C-
-  2646 00001C00 2E                 
-  2647 00001C01 0D0A0D0A00              	db	0Dh, 0Ah, 0Dh, 0Ah, 0
-  2648                                  
-  2649                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  2650                                  ;  initialized buffers
-  2651                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  2652                                  
-  2653                                  HDFORMAT_SECBUFFER:
-  2654 00001C06 F6<rep 200h>            	times	512 db 0F6h
-  2655                                  HDFORMAT_FSINFO_BUFF:
-  2656 00001E06 52526141                	dd	41615252h  ; FSI_LeadSig
-  2657 00001E0A 00<rep 1E0h>            	times	480 db 0   ; FSI_Reserved1
-  2658 00001FEA 72724161                	dd	61417272h  ; FSI_StrucSig
-  2659 00001FEE FFFFFFFF                	dd	0FFFFFFFFh ; FSI_Free_Count
-  2660 00001FF2 02000000                	dd	000000002h ; FSI_Nxt_Free
-  2661 00001FF6 00<rep Ch>              	times	12 db 0	   ; FSI_Reserved2
-  2662 00002002 000055AA                	dd	0AA550000h ; FSI_TrailSig
-  2663                                  
-  2664                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  2665                                  
-  2666 00002006 [1422]                  lddt_ptr dw lddt
-  2667                                  
-  2668                                  ;SizeOfFile equ $-100
-  2669                                  
-  2670                                  ; ----------------------------------------------------------------------------
-  2671                                  ; uninitialized data
-  2672                                  ; ----------------------------------------------------------------------------
-  2673                                  
-  2674                                  bss_start:
-  2675                                  
-  2676                                  ABSOLUTE bss_start
-  2677                                  
-  2678                                  alignb 4
-  2679                                  
-  2680 00002008 ??                      fsID:	resb 1
-  2681 00002009 ??                      rw:	resb 1
-  2682 0000200A ????                    csize:	resw 1 ; heads*spt (sectors per cylinder)
-  2683                                  
-  2684 0000200C ????????                dosp_start: resd 1 ; start sector of the (primary) dos partition
-  2685 00002010 ????????                dosp_size:  resd 1 ; partition size in sectors
-  2686                                  
-  2687                                  MBR:
-  2688                                  bootsector:
-  2689                                  ; 	resb 512
-  2690                                  HDFORMAT_FATBUFFER:
-  2691                                  HDFORMAT_EMPTY_BUFF:
-  2692 00002014 <res 200h>              	resb 512
+  2610                                  no_name:
+  2611 00001A7C 4E4F204E414D452020-     	db 	'NO NAME    ', 0
+  2611 00001A85 202000             
+  2612                                  
+  2613                                  Msg_Volume_Name:
+  2614 00001A88 0D0A                    	db	0Dh, 0Ah
+  2615 00001A8A 0D0A                    	db	0Dh, 0Ah
+  2616 00001A8C 566F6C756D65204E61-     	db	"Volume Name: ", 0
+  2616 00001A95 6D653A2000         
+  2617                                  
+  2618                                  Msg_Volume_Serial:
+  2619 00001A9A 566F6C756D65205365-     	db	"Volume Serial No: "
+  2619 00001AA3 7269616C204E6F3A20 
+  2620                                  Vol_Serial1:
+  2621 00001AAC 30303030                	db	"0000"
+  2622 00001AB0 2D                      	db	"-"
+  2623                                  Vol_Serial2:
+  2624 00001AB1 30303030                	db	"0000"
+  2625 00001AB5 0D0A00                  	db	0Dh, 0Ah, 0
+  2626                                  
+  2627                                  msg_cluster_count:
+  2628 00001AB8 436C75737465722043-     	db	"Cluster Count: ", 0
+  2628 00001AC1 6F756E743A2000     
+  2629                                  cluster_count_str:
+  2630 00001AC8 30303030303030          	db	"0000000"
+  2631 00001ACF 0D0A00                  	db	0Dh, 0Ah, 0
+  2632                                  msg_formatting:
+  2633 00001AD2 466F726D617474696E-     	db	"Formatting ", 0
+  2633 00001ADB 672000             
+  2634                                  format_percent_str:
+  2635 00001ADE 30303025                	db	"000%"
+  2636 00001AE2 00                      	db	0
+  2637                                  
+  2638                                  Msg_3dot_OK:
+  2639 00001AE3 2E2E2E                  	db	'...'
+  2640                                  Msg_OK:
+  2641 00001AE6 204F4B2E                	db	' OK.'
+  2642                                  CRLF:
+  2643 00001AEA 0D0A00                  	db	0Dh, 0Ah, 0
+  2644                                  
+  2645                                  Msg_Error:
+  2646 00001AED 0D0A                    	db	0Dh, 0Ah
+  2647 00001AEF 4572726F72202120        	db	'Error ! '
+  2648 00001AF7 28                      	db	'('
+  2649                                  error_code:
+  2650 00001AF8 3030                    	dw	3030h
+  2651 00001AFA 68                      	db	'h'
+  2652 00001AFB 2920                    	db	') '
+  2653 00001AFD 0D0A                    	db	0Dh, 0Ah
+  2654 00001AFF 00                      	db	0
+  2655                                  
+  2656                                  	; 04/05/2024
+  2657                                  FAT32_note:
+  2658 00001B00 0D0A                    	db	0Dh, 0Ah
+  2659 00001B02 0D0A                    	db	0Dh, 0Ah
+  2660 00001B04 4E4F54453A20            	db	'NOTE: '
+  2661 00001B0A 0D0A                    	db	0Dh, 0Ah
+  2662 00001B0C 0D0A                    	db	0Dh, 0Ah
+  2663 00001B0E 526574726F20444F53-     	db	'Retro DOS v4.2 -MSDOS 6.22- does not recognize FAT32 file system.'
+  2663 00001B17 2076342E32202D4D53-
+  2663 00001B20 444F5320362E32322D-
+  2663 00001B29 20646F6573206E6F74-
+  2663 00001B32 207265636F676E697A-
+  2663 00001B3B 652046415433322066-
+  2663 00001B44 696C65207379737465-
+  2663 00001B4D 6D2E               
+  2664 00001B4F 0D0A                    	db	0Dh, 0Ah
+  2665 00001B51 0D0A                    	DB	0Dh, 0Ah
+  2666 00001B53 4275742C2052657472-     	db	'But, Retro DOS v5 -PCDOS 7.1- recognizes FAT32 file system and '
+  2666 00001B5C 6F20444F5320763520-
+  2666 00001B65 2D5043444F5320372E-
+  2666 00001B6E 312D207265636F676E-
+  2666 00001B77 697A65732046415433-
+  2666 00001B80 322066696C65207379-
+  2666 00001B89 7374656D20616E6420 
+  2667 00001B92 0D0A                    	db	0Dh, 0Ah
+  2668 00001B94 69747320626F6F7420-     	db	'its boot sector will be used to format the new FAT32 partition/volume.'
+  2668 00001B9D 736563746F72207769-
+  2668 00001BA6 6C6C20626520757365-
+  2668 00001BAF 6420746F20666F726D-
+  2668 00001BB8 617420746865206E65-
+  2668 00001BC1 772046415433322070-
+  2668 00001BCA 6172746974696F6E2F-
+  2668 00001BD3 766F6C756D652E     
+  2669 00001BDA 0D0A                    	db	0Dh, 0Ah
+  2670 00001BDC 0D0A                    	db	0Dh, 0Ah
+  2671                                  	;db	'The kernel file name of the FAT32 boot sector is ', 34,'PCDOS.SYS', 34,'.'
+  2672                                  	;db	0Dh, 0Ah
+  2673                                  	;db	0Dh, 0Ah 
+  2674 00001BDE 507265737320454E54-     	db	'Press ENTER to CONTINUE or press another key to CANCEL.'
+  2674 00001BE7 455220746F20434F4E-
+  2674 00001BF0 54494E5545206F7220-
+  2674 00001BF9 707265737320616E6F-
+  2674 00001C02 74686572206B657920-
+  2674 00001C0B 746F2043414E43454C-
+  2674 00001C14 2E                 
+  2675 00001C15 0D0A0D0A00              	db	0Dh, 0Ah, 0Dh, 0Ah, 0
+  2676                                  
+  2677                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  2678                                  ;  initialized buffers
+  2679                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  2680                                  
+  2681                                  HDFORMAT_SECBUFFER:
+  2682 00001C1A F6<rep 200h>            	times	512 db 0F6h
+  2683                                  HDFORMAT_FSINFO_BUFF:
+  2684 00001E1A 52526141                	dd	41615252h  ; FSI_LeadSig
+  2685 00001E1E 00<rep 1E0h>            	times	480 db 0   ; FSI_Reserved1
+  2686 00001FFE 72724161                	dd	61417272h  ; FSI_StrucSig
+  2687 00002002 FFFFFFFF                	dd	0FFFFFFFFh ; FSI_Free_Count
+  2688 00002006 02000000                	dd	000000002h ; FSI_Nxt_Free
+  2689 0000200A 00<rep Ch>              	times	12 db 0	   ; FSI_Reserved2
+  2690 00002016 000055AA                	dd	0AA550000h ; FSI_TrailSig
+  2691                                  
+  2692                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   2693                                  
-  2694                                  ;HDFORMAT_FATBUFFER:
-  2695                                  ;HDFORMAT_EMPTY_BUFF:
-  2696                                  ;	resb 512
+  2694 0000201A [2822]                  lddt_ptr dw lddt
+  2695                                  
+  2696                                  ;SizeOfFile equ $-100
   2697                                  
-  2698                                  ; logical dos drives table
-  2699 00002214 <res 40h>               lddt:	resb 4*16 ; 64 bytes
-  2700                                  
-  2701 00002254 ????????                EP_Start:	resd 1
-  2702 00002258 ????????                EP_Start_x:	resd 1
+  2698                                  ; ----------------------------------------------------------------------------
+  2699                                  ; uninitialized data
+  2700                                  ; ----------------------------------------------------------------------------
+  2701                                  
+  2702                                  bss_start:
   2703                                  
-  2704 0000225C ????????                data_start:	resd 1
-  2705 00002260 ????????                data_sectors:	resd 1
-  2706 00002264 ????????                cluster_count:	resd 1
-  2707 00002268 ????                    root_dir_secs:	resw 1
-  2708 0000226A ????                    format_percent: resw 1
-  2709 0000226C ??                      prev_percent:	resb 1
-  2710 0000226D ??                      rsvdbyte:	resb 1
+  2704                                  ABSOLUTE bss_start
+  2705                                  
+  2706                                  alignb 4
+  2707                                  
+  2708 0000201C ??                      fsID:	resb 1
+  2709 0000201D ??                      rw:	resb 1
+  2710 0000201E ????                    csize:	resw 1 ; heads*spt (sectors per cylinder)
   2711                                  
-  2712 0000226E ????                    old_sp:		resw 1
-  2713                                  
-  2714 00002270 <res Ch>                StrVolumeName:	resb 12
-  2715                                  
-  2716 0000227C ????                    lddt_save:	resw 1
-  2717                                  
-  2718                                  end_bss:
+  2712 00002020 ????????                dosp_start: resd 1 ; start sector of the (primary) dos partition
+  2713 00002024 ????????                dosp_size:  resd 1 ; partition size in sectors
+  2714                                  
+  2715                                  MBR:
+  2716                                  bootsector:
+  2717                                  ; 	resb 512
+  2718                                  HDFORMAT_FATBUFFER:
+  2719                                  HDFORMAT_EMPTY_BUFF:
+  2720 00002028 <res 200h>              	resb 512
+  2721                                  
+  2722                                  ;HDFORMAT_FATBUFFER:
+  2723                                  ;HDFORMAT_EMPTY_BUFF:
+  2724                                  ;	resb 512
+  2725                                  
+  2726                                  ; logical dos drives table
+  2727 00002228 <res 40h>               lddt:	resb 4*16 ; 64 bytes
+  2728                                  
+  2729 00002268 ????????                EP_Start:	resd 1
+  2730 0000226C ????????                EP_Start_x:	resd 1
+  2731                                  
+  2732 00002270 ????????                data_start:	resd 1
+  2733 00002274 ????????                data_sectors:	resd 1
+  2734 00002278 ????????                cluster_count:	resd 1
+  2735 0000227C ????                    root_dir_secs:	resw 1
+  2736 0000227E ????                    format_percent: resw 1
+  2737 00002280 ??                      prev_percent:	resb 1
+  2738 00002281 ??                      rsvdbyte:	resb 1
+  2739                                  
+  2740 00002282 ????                    old_sp:		resw 1
+  2741                                  
+  2742 00002284 <res Ch>                StrVolumeName:	resb 12
+  2743                                  
+  2744 00002290 ????                    lddt_save:	resw 1
+  2745                                  
+  2746                                  end_bss:
