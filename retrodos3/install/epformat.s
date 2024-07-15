@@ -1,23 +1,32 @@
 ; ****************************************************************************
-; HDFORMAT.ASM (HDFORMAT.COM) - Retro DOS v4 Hard Disk Formatting Utility
-; (RDHDFORM.S - RDHDFORM.COM)
+; TRDOS386.ASM (TRDOS 386 Kernel) - v2.0.7 - epformat.s
 ; ----------------------------------------------------------------------------
-; Primary DOS Partition (FAT File System) Format Utility for Retro DOS v4 OS.
+; Extended DOS Partition (FAT File System) Format Utility for TRDOS 386 v2 OS.
 ; ----------------------------------------------------------------------------
-; Last Update: 14/07/2024 (Previous: 04/05/2024)
+; Last Update: 03/05/2024 (Previous: 28/10/2023)
 ; ----------------------------------------------------------------------------
-; Beginning: 28/10/2023
+; Beginning: 22/09/2020
 ; ----------------------------------------------------------------------------
-; Assembler: NASM version 2.15 (rdhdform.s)
+; Assembler: NASM version 2.15 (epformat.s)
 ; ----------------------------------------------------------------------------
-; Modified from 'hdformat.s'(HDFORMAT.COM) source code by Erdogan Tan
-; (25/09/2020) - TRDOS 386 hard/fixed disk formatting utility -
+; Turkish Rational DOS
+; Operating System Project v2.0 by ERDOGAN TAN (Beginning: 04/01/2016)
+;
+; Derived from TRDOS Operating System v2.0 (80386) source code by Erdogan Tan
+; hdformat.s (14/09/2020)
 ; ****************************************************************************
-; Copyright (C) 2020-2024  Erdogan TAN 
-; ****************************************************************************
-; assembling: nasm hdformat.s -l hdformat.lst -o HDFORMAT.COM -Z error.txt
+; Derived from hdimage.s (08/03/2019), Retro DOS v2 Hard Disk BS Utility
 
-; Note: Logical DOS drives in extended DOS partitions are excluded.
+; HDFORMAT.ASM
+; Turkish Rational DOS
+; Disk Operation System v2.0 Project
+; Primary DOS Partition (FAT12, FAT16, FAT32 fs) FORMAT Code
+;
+; Copyright (C) 2020  Erdogan TAN 
+; ****************************************************************************
+; assembling: nasm epformat.s -l epformat.txt -o EPFORMAT.COM -Z error.txt
+
+; Note: Only for formatting logical DOS drives in extended DOS partitions.
 
 ; ----------------------------------------------------------------------------
 ; equations
@@ -25,35 +34,28 @@
 
 ; boot sector parameters
 
-bsOemName	equ 3
-bsBytesPerSec	equ 11 ; 512 (word)
+bsOemName	equ 3	; ('MSWIN4.1') --> 'TRDOS386'       
+bsBytesPerSec	equ 11	; 512 (word)
 bsSecPerClust	equ 13
 bsResSectors	equ 14
 bsFATs		equ 16
 bsRootDirEnts	equ 17
 bsSectors	equ 19
-bsMedia		equ 21
+bsMedia		equ 21	; 0F8h
 bsFATsecs	equ 22
-bsSecPerTrack	equ 24 ; 18 (word)
-bsHeads		equ 26 ; 2 (word)
+bsSecPerTrack	equ 24
+bsHeads		equ 26
 bsHidden1	equ 28
 bsHidden2	equ 30
 bsHugeSectors	equ 32
-bsDriveNumber	equ 36
+; FAT 16 bs & FAT 12 bs
+bsDriveNumber	equ 36	; 80h
 bsReserved1	equ 37
-bsBpbSignature	equ 38 ; 29h (byte)
+bsBpbSignature	equ 38	; 29h (byte)                 
 bsVolumeID	equ 39
 bsVolumeLabel	equ 43
-bsFileSysType	equ 54 ; 'FAT12   '  (8 bytes)
-;
-bsReserved2	equ 62
-; TRDOS 386 v2.0 2018 Extensions
-bsDataStart	equ 64
-bsRootDirStart	equ 66
-bsRootDirSects	equ 68
-bsDirEntsPerSec equ 70
-
-; FAT32 bs
+bsFileSysType	equ 54	; 'FAT16   '  (8 bytes)
+; FAT 32 bs
 BPB_FATSz32	equ 36
 BPB_ExtFlags	equ 40
 BPB_FSVer	equ 42
@@ -66,7 +68,7 @@ BS_Reserved1	equ 65
 BS_BootSig	equ 66	; 29h (byte)
 BS_VolID	equ 67
 BS_VolLab	equ 71
-BS_FilSysType	equ 82	; 'FAT32   '  (8 bytes) 
+BS_FilSysType	equ 82	; 'FAT32   '  (8 bytes)         
 
 ; Masterboot / Partition Table at Beginning+1BEh
 ptBootable      equ 0
@@ -80,7 +82,7 @@ ptEndCylinder   equ 7
 ptStartSector   equ 8
 ptSectors       equ 12
 
-partition_table equ 1BEh
+partition_table equ 1BEh    
 
 ; ----------------------------------------------------------------------------
 ; code
@@ -102,131 +104,62 @@ partition_table equ 1BEh
 
 	mov	si, 80h			; PSP command tail
 	mov	cl, [si]
-	or	cl, cl
-	jnz	short T_1
-	jmp	T_9			; jump if zero
+	or	cl, cl                               
+	jz	short T_3		; jump if zero
 T_1:
-	inc	si  ; (+)
+	inc	si
 
 	mov	al, [si]
 	cmp	al, ' '			; is it SPACE ?
 	jne	short T_2
-R_1:
-	dec	cl
-	jnz	short T_1
-	jmp	T_9
+
+	dec	cl                                  
+	jnz	short T_1                  
+	jmp	short T_3
 T_2:
-	inc	si	; (*)
-
-	cmp	al, '-'
-	jne	short R_2
-
-	dec	cl ; 1st 'inc si' (+)
-	dec	cl ; previous 'inc si' (*)
-	jng	short T_9  ; cl < 1
-
-	cmp	al, ah
-	je	short T_9
-
-	mov	ah, al ; '-'
-	mov	al, [si]
-	; cl > 0
-	inc	si	; (**)
-	cmp	byte [si], ' '
-	jne	short T_9
-	cmp	al, '0'
-	jb	short T_9
-	cmp	al, '4'
-	ja	short T_9
-	sub	al, '0'
-	mov	[partition], al
-	jmp	short R_1  
-		; dec cl for previous 'inc si' (**)
-R_2:
-	dec	cl ; 1st 'inc si' (+)
-	jz	short R_3
-
-	cmp	byte [si], ':'
-	je	short T_3
-	
-	cmp	byte [si], ' '
-	jna	short R_3
-
-	dec	cl ; following 'inc si' (*)
-	jz	short R_3
+	inc	si
 
 	cmp	al, 'h'
-	jne	short T_9
+	jne	short T_3 	
 	cmp	byte [si], 'd'
-	jne	short T_9
-	inc	si	; (*)
+	jne	short T_3
+	inc	si
 	mov	al, [si]
 	cmp	al, '0'
-	je	short T_8
-	jb	short T_9
+	je	short T_4
+	jb	short T_3
 	cmp	al, '3'
-	jna	short T_8
-	jmp	short T_9
-T_3:
-	dec	cl ; following 'inc si' (**)
-	jz	short R_3
-	; cl > 0
-	inc	si	; (**)
-	cmp	byte [si], ' '
-	ja	short T_9
-R_3:
-	cmp	al, 'C'
-	jb	short T_9
-	je	short T_6
-	;cmp	al, 'Z'			; A - Z
-	;jna	short T_6
-	cmp	al, 'D'
-	jna	short T_6
-	cmp	al, 'Z'
-	jna	short T_9
-T_4:	
-	cmp	al, 'c'			; a - z 
-	jb	short T_9
-	je	short T_5
-	;cmp	al, 'z'
-	;ja	short T_9
-	cmp	al, 'd'
-	ja	short T_9
-T_5:
-	sub	al, 'a'-'A'		; to upper case
-
-;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-; get drive code
-;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-T_6:
-	sub	al, 'C'-'0'
-T_7:
-	mov	[RD_Drive], al	; '0' .. '4'
-	jmp	short T_10
-T_8:
-	inc	si
-	cmp	byte [si], ' '
-	jna	short T_7
+	jna	short T_4
 
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ; Write message
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-T_9:
-	mov	si, RD_Welcome
+T_3:
+	mov	si, TrDOS_Welcome
 	call	print_msg
 	;cmp	cl, 0
-        ;ja	short T_35
-	jmp	T_35
+        ;ja	short T_44
+	jmp	T_44
+
+;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+; get drive code
+;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+T_4:
+	inc	si
+	cmp	byte [si], ' '
+	ja	short T_3		
 
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ; get drive parameters
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-T_10:
+	mov	[TrDOS_Drive], al	; '0' .. '3'
+
+	mov	[drv_str], al
+
 	mov	ah, 08h
-	;mov	dl, [RD_Drive]	; drive
 	mov	dl, al
 	add	dl, 80h -'0'		; make it 80h based 
 	mov	[drv], dl
@@ -236,7 +169,7 @@ T_10:
 	pop	es			; restore es
 
 	or	ah, ah
-	jnz	short T_12		; error
+	jnz	short T_6		; error
 	
 	mov	al, cl
 	and	al, 63
@@ -259,7 +192,7 @@ T_10:
 ; read MBR
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-	; check for (valid) primary dos partition
+	; check for (valid) extended dos partition
 
 	;mov	byte [RetryCount], 4
 	mov	di, 5
@@ -270,14 +203,14 @@ T_10:
 	mov	cx, 1			; cylinder = 0
 					; sector = 1
 	mov	dh, 0			; head = 0
-	;mov	dl, [RD_Drive]	; drive 
+	;mov	dl, [TrDOS_Drive]	; drive 
 	;add	dl, 80h -'0'		; make it 80h based 
 	mov	dl, [drv]
-T_11:
+T_5:
 	mov	ax, 0201h
 	int	13h
-	;jc	short T_37
-	jnc	short T_13		; read masterboot sector, OK
+	;jc	short T_46	
+	jnc	short T_7		; read masterboot sector, OK
 	
  	; reset hard disk(s)
 	xor	ah, ah
@@ -286,80 +219,225 @@ T_11:
 
 	;dec	byte [RetryCount]
 	dec	di
-	jnz	short T_11
+	jnz	short T_5
 
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ; write disk error message and terminate
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-T_12:
+T_6:
 	mov	byte [zbyte], 0 ; message without (Y/N) question 
 
-	call	T_37			; write error message
-	jmp	T_35 			; terminate
+	call	T_46			; write error message
+	jmp	T_44 			; terminate
 
-T_13:
-	cmp	word [MBR+510], 0AA55h
-        jne	short T_12
+T_7:
+	cmp	word [MBR+510], 0AA55h 
+        jne	short T_6
 
 	mov	si, MBR+(partition_table+ptFileSystemID)
-	
-	; ah = 0
-	mov	al, [partition]
-	and	al, al	; 0 ?
-	jz	short T_14
-	dec	al
-	jz	short T_14
-	shl	al, 4 ; * 16
-	add	si, ax 
-T_14:
-	call	validate_primary_dos_partition
-	jnc	short T_15	
-	
-	cmp	byte [partition], 0
-	ja	short R_5
+T_8:
+	call	validate_extended_dos_partition
+	jnc	short T_10	
  
 	add	si, 16
 	cmp	si, MBR+partition_table+ptFileSystemID+64
-	jb	short T_14
-
-	mov	si, RD_fatp_notfound
+	jb	short T_8
+T_9:
+	mov	si, TRDOS_fatp_notfound
 	;call	print_msg
-	;jmp	T_35
-R_4:
-	jmp	M_3
-R_5:
-	mov	si, not_primary_dos_p
-	call	print_msg
-	mov	si, a_p_d_p
-	jmp	short R_4
-M_2:
-	; Partition size defect 
-	; (less than the minimum number of sectors required)
-	mov	si, RD_psize_defect
-	;call	print_msg
-	;jmp	T_35
-	jmp	short R_4
+	;jmp	T_44
+	jmp	T_40
+T_10:
+	; AL = EP type (05h or 0Fh)
+	cmp	al, 0Fh
+	jna	short T_11
+	inc	byte [lba]
+T_11: 
+	mov	ax, [EP_Start]
+	mov	dx, [EP_Start+2]
+T_12:
+	mov	[EP_Start_x], ax
+	mov	[EP_Start_x+2], dx
+T_13:
+	mov	bx, bootsector
+	call	read_hd_sector
+	jnc	short T_14
+	
+	cmp	byte [ldd_count], 0
+	ja	short T_18	
+	jmp	short T_6
+T_14:
+	cmp	word [bootsector+510], 0AA55h 
+        je	short T_15
 
+	cmp	byte [ldd_count], 0
+	ja	short T_18	
+	jmp	short T_9 ; there is not a valid extd dos part.
 T_15:
-	; valid primary dos partition
-	; al = FAT type (1,2,3)
-	; ah = partition type
+	mov	si, bootsector+(partition_table+ptFileSystemID)
+	call	validate_dos_partition
+	jnc	short T_16
 
-	mov	byte [fattype], al
-	mov	[fsID], ah
+	cmp	byte [ldd_count], 0
+	ja	short T_18	
 
-	cmp	al, 2
-	je	short T_17 ; FAT16 BS (default offset addr)
-	jb	short T_16
+	mov	si, TrDOS_ep_ldd_defect ; not a logical dos drive
+	jmp	T_40
 
+T_16:
+	inc	byte [ldd_count]
+	sub	si, ptFileSystemID
+	mov	ax, [EP_Start_x]
+	mov	dx, [EP_Start_x+2]
+	add	[si+ptStartSector], ax
+	adc	[si+ptStartSector+2], dx
+
+	mov	di, [lddt_ptr]
+	mov	cx, 8
+	rep 	movsw
+
+	mov	cl, [si+ptFileSystemID]
+	cmp	cl, 05h
+	je	short T_17
+	cmp	cl, 0Fh
+	jne	short T_18 ; there is not a next logical dos drive	
+	inc	byte [lba] ; LBA type disk r/w
+T_17:
+	cmp	byte [ldd_count], 3
+	ja	short T_18  ; max. 4 logical dos drive
+	mov	[lddt_ptr], di
+	mov	ax, [EP_Start]
+	mov	dx, [EP_Start+2]
+	add	ax, [si+ptStartSector]
+	adc	dx, [si+ptStartSector+2]
+	jmp	T_12
+
+T_18:
+	mov	si, ldd_table
+	call	print_msg
+
+	xor	bh, bh
+
+	mov	bl, 1
+	call	fill_ldd_row
+	mov	si, ldd_row
+	call	print_msg
+	mov	bl, 2 
+	cmp	[ldd_count], bl  ; 2
+	jb	short T_19 ; direct question (only one ldd)
+	call	fill_ldd_row
+	mov	si, ldd_row
+	call	print_msg
+	mov	bl, 3 
+	cmp	[ldd_count], bl  ; 3
+	jb	short T_19 ; select menu
+	call	fill_ldd_row
+	mov	si, ldd_row
+	call	print_msg
+	mov	bl, 4
+	cmp	[ldd_count], bl  ; 4
+	jb	short T_19 ; select menu
+	call	fill_ldd_row
+	mov	si, ldd_row
+	call	print_msg
+
+T_19:
+	mov	si, ldd_dline  ; print bottom line
+	call	print_msg	
+
+	cmp	byte [ldd_count], 1
+	ja	short T_20
+
+	; the first logical dos partition in extended dos partition
+	mov	bx, lddt  ; start of logical dos drives
+			  ; (dos partitiona) table
+	
+	jmp	short T_25	; pass select menu
+T_20:
+	mov	al, [ldd_count]
+	add	al, '0'
+	mov	[ldd_select_pn], al ; last logical dos drive number
+
+T_21:
+	mov	si, ldd_select_msg
+	call	print_msg
+	
+T_22:
+	xor	ax, ax
+	int	16h			; wait for keyboard command
+	
+	cmp	al, 27 ; ESC key
+	je	T_44 ; CRLF and Exit
+
+	cmp	al, 32 ; SPACE key (or control keys or CR key etc.)
+	ja	short T_24
+	je	short T_23
+
+	cmp	al, 13 ; CR/ENTER key
+	jne	short T_22  ; don't beep 
+
+	; Beeper
+T_23:	
+	mov	al, 07h  ; beep
+	mov	ah, 0Eh			
+	mov	bx, 07h             
+	int	10h
+	
+	jmp	short T_22
+
+T_24:
+	mov	ah, [ldd_count]
+	add	ah, '0'
+	cmp	al, '1'
+	jb	short T_21
+	cmp	al, ah
+	ja	short T_21
+	
+	mov	[TrDos_ldn], al
+
+	sub	al, '1'
+	shl	al, 4 ; * 16
+	mov	bl, al
+	xor	bh, bh
+	add	bx, lddt ; logical dos drive (partition) table
+T_25:
+	mov	[lddt_save], bx
+	mov	ah, 1
+	mov	al, [bx+ptFileSystemID]  ; Partition ID
+	cmp	al, ah  ; 1 ; FAT12 file system
+	jna	short T_26	
+	inc	ah  ; 2
+	cmp	al, 6	; FAT 16 file system (>32MB)
+	je	short T_26
+	jb	short T_26 ; 4 ; FAT16 file sytem (<=32MB)
+	cmp	al, 0Eh
+	je	short T_26 ; FAT16 LBA file sytem (>32MB)
+	inc	ah ; 3
+	; FAT32 CHS or FAT 32 LBA file system
+T_26:
+	mov	byte [fattype], ah
+	mov	[fsID], al
+
+	cmp	ah, 2
+	je	short T_29 ; FAT16 BS (default offset addr)
+	jb	short T_28
 	; set format code pointer to FAT32 format code
 	mov	word [trdos386fc], format_FAT32_fs
 	; set FS type string
 	mov	word [fattype_str],'32'	; 'FAT32'
 	; ok.. read boot sector
-	jmp	short T_17
-T_16:
+	jmp	short T_29
+
+T_27:
+	; Partition size defect 
+	; (less than the minimum number of sectors required)
+	mov	si, TrDOS_psize_defect
+	;call	print_msg
+	;jmp	T_44
+	jmp	T_40
+
+T_28:
 	; set format code pointer to FAT12 format code
 	mov	word [trdos386fc], format_FAT12_fs
 	mov	byte [fattype_str+1],'2' ; 'FAT12'
@@ -368,163 +446,142 @@ T_16:
 ; read primary dos partition's boot sector
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-T_17:	
+T_29:	
 	;mov	byte [RetryCount], 5
 
-	add	si, ptStartSector-ptFileSystemID
-	mov	ax, [si]
-	mov	dx, [si+2]
+	mov	si, [lddt_save] ; pt row for logical dos drive
+
+	mov	ax, [si+ptStartSector]
+	mov	dx, [si+ptStartSector+2]
 	mov	[dosp_start], ax
 	mov	[dosp_start+2], dx
-	add	si, ptSectors-ptStartSector
-	mov	cx, [si]
-	mov	bx, [si+2]
+	mov	cx, [si+ptSectors]
+	mov	bx, [si+ptSectors+2]
 	mov	[dosp_size], cx
 	mov	[dosp_size+2], bx
 
 	; check minimum partition size
-	cmp	byte [fattype], 3 ; FAT32 FS
-	jnb	short M_1 ; yes
-M_0:
+	cmp	byte [fattype], 3 ;  FAT32 FS
+	jnb	short T_31 ; yes
+T_30:
 	or	bx, bx
-	jnz	short T_19
+	jnz	short T_32
 
 	cmp	cx, [csize] ; sectors per cylinder
-	jnb	short T_19
-	jmp	short M_2
-M_1:
+	jnb	short T_32
+	jmp	short T_27
+T_31:
 	cmp	bx, 1 ; >= 32MB ?
-	ja	short T_19
-	jb	short M_2
+	ja	short T_32
+	jb	short T_27
 
 	cmp	cx, 0415h  ; must be >= 66581 sectors
-	jb	short M_2
-T_19:
+	jb	short T_27
+T_32:
 	add	cx, ax
 	adc	bx, dx
-	jc	T_12
+	jc	T_6
 
-	cmp	bx, [CHS_limit+2]
+	cmp	bx, [CHS_limit+2]	
 	mov	bx, bootsector
-	ja	short T_20 ; LBA read/write
-	jb	short T_18
+	ja	short T_34 ; LBA read/write
+	jb	short T_33
 	cmp	cx, [CHS_limit]
-	ja	short T_20
-T_18:
+	ja	short T_34
+T_33:
 	; CHS read
 
 	;mov	ax, [dosp_start]
 	;mov	dx, [dosp_start+2]
 
 	call	read_chs_sector
-	jc	T_12
-	jmp	short T_22
-T_20:
+	jc	T_6
+	jmp	short T_35
+T_34:
 	mov	byte [lba], 1 ; LBA r/w is required
 
 	;mov	ax, [dosp_start]
 	;mov	dx, [dosp_start+2]
 	
 	call	read_lba_sector
-	jc	T_12
-T_22:
+	jc	T_6	 
+T_35:
 	cmp	word [bootsector+510], 0AA55h
-	jne	short T_23
+	jne	short T_38
 
 	cmp	word [bootsector+bsBytesPerSec], 512
-	jne	short T_23
+	jne	short T_38
 
-	; 04/05/2024 (BugFix)
+	; 03/05/2024 (BugFix)
 	cmp	byte [bootsector+bsMedia], 0F8h
-	jne	short T_23
+	jne	short T_38
 
 	cmp	byte [fattype], 2
-	ja	short T_24
+	ja	short T_37
 
 	cmp	byte [bootsector+bsBpbSignature], 29h
-	jne	short T_23
+	jne	short T_38
 	cmp	dword [bootsector+bsFileSysType], 'FAT1'
-	jne	short T_23
+	jne	short T_38
 
 	mov	al, [bootsector+bsFileSysType+4]
 	cmp	al, '6'
-	je	short T_25
+	je	short T_36
 
 	cmp	al, '2'
-	jne	short T_23
+	jne	short T_38
 
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ; format question (and warning msg)
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-T_25:
-	mov	si, RD_Format_warning ; warning is required
-	jmp	short T_26
-T_24:
-	; 04/05/2024
-	cmp	word [bootsector+bsFATsecs], 0
-	ja	short T_23	; not FAT32 fs
-
+T_36:
+	mov	si, TrDOS_Format_warning ; warning is required
+	jmp	short T_39
+T_37:
 	cmp	byte [bootsector+BS_BootSig], 29h
-	jne	short T_23
-	
+	jne	short T_38
 	cmp	dword [bootsector+BS_FilSysType], 'FAT3'
-	jne	short T_23
+	jne	short T_38
 	cmp	byte [bootsector+BS_FilSysType+4], '2'
-	je	short T_25
-T_23:
-	mov	si, RD_Do_you_want ; no need to warning
-T_26:
+	je	short T_36
+T_38:
+	mov	si, TrDOS_Do_you_want ; no need to warning
+T_39:
 	call	print_msg
 
 	call	get_answer
 	cmp	al, 'Y'
-	je	short T_27
+	je	short T_41
 
 	mov	si, _no_str
-M_3:
+T_40:
 	call	print_msg
 
-	jmp	short T_35
-T_27:
+	jmp	short T_44
+T_41:
 	mov	si, _yes_str
 	call	print_msg
 
-	mov	si, RD_PressKeyWhenReady
+	mov	si, TrDOS_PressKeyWhenReady
 	call	print_msg
-T_28:
+T_42:
 	xor	ax, ax
 	int	16h			; wait for keyboard command
 	cmp	al, 'M'-40h		; Enter (OK) key
-	;je	short T_29		; write
-	je	short R_6
+	je	short T_43		; write
 	cmp	al, 'C'-40h
-	je	short T_35		; no write (exit)
+	je	short T_44		; no write (exit)
 	cmp	al, 27
-	je	short T_35
-	jmp	short T_28
+	je	short T_44
+	jmp	short T_42
 
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ; clear fat buffer and start formatting
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-R_6:
-	cmp	byte [fattype], 3 ; FAT32  ?
-	jne	short T_29
-
-	; Temporary FAT32 note for Retro DOS v4
-	; (This code will be removed when the Retro DOS v5
-	;  FAT32 boot sector code will be ready.)" ; 28/10/2023
-
-	mov	si, FAT32_note
-	call	print_msg
-	xor	ah, ah
-	int	16h	
-	cmp	al, 'M'-40h ; Enter (OK) key
-	jne	short T_35
-
-T_29:
-	mov	si, RD_CRLF
+T_43:
+	mov	si, TrDOS_CRLF
 	call	print_msg
 
 	; Clear buffer in BSS 
@@ -542,26 +599,26 @@ T_29:
 
 	jmp	word [trdos386fc]
 
-T_35:
-	mov	si, RD_CRLF
+T_44:
+	mov	si, TrDOS_CRLF
 Exit:
 	call	print_msg
 	mov	ax, 4C00h		; terminate
 	int	21h
-T_36:
+T_45:
 	call	get_answer
 	cmp	al, 'Y'
-	je	short T_29
-	jmp	short T_35
+	je	short T_43
+	jmp	short T_44
 
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ; disk r/w error or disk not ready
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-T_37:
-	mov	si, RD_disk_NotReadyOrError
+T_46:
+	mov	si, TrDOS_disk_NotReadyOrError
 	;;call	print_msg
-	;;jmp	short T_36
+	;;jmp	short T_45
 	;jmp	short print_msg
 
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -569,17 +626,17 @@ T_37:
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 print_msg:
-T_38:
+T_47:
 	lodsb				; Load byte at DS:SI to AL
-	and	al, al
-	jz	short T_39
-	mov	ah, 0Eh
-	mov	bx, 07h
+	and	al, al            
+	jz	short T_48       
+	mov	ah, 0Eh			
+	mov	bx, 07h             
 	int	10h			; BIOS Service func ( ah ) = 0Eh
 					; Write char as TTY
 					; AL-char BH-page BL-color
-	jmp     short T_38
-T_39:
+	jmp     short T_47         
+T_48:
 _NO_:
 	retn
 
@@ -599,7 +656,7 @@ get_answer:
 	cmp	al, 'N'
 	je	short _NO_
 	cmp	al, 'C'-40h
-	je	short _NO_
+	je	short _NO_                 
 	cmp	al, 27
 	je	short _NO_
 	jmp	short get_answer
@@ -612,56 +669,175 @@ _YES_:
 ; get and set partition type for formatting
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-validate_primary_dos_partition:
+validate_extended_dos_partition:
 	
 	; INPUT:
 	;   si = partition table entry offset + file system ID 
 	; OUTPUT:
-	;   cf = 0 -> ah = primary DOS partition ID
-	;			 (01h,04h,06h,0Bh,0Ch,0Eh)
-	;	      al = FAT type 
-	;			1 = FAT12
-	;			2 = FAT16
-	;			3 = FAT32
+	;   cf = 0 -> al = extended DOS partition ID
+	;			 (05h,0Fh)		
+	;	      ;ah = 0
 	;
-	;   cf = 1 -> not a primary DOS partition
+	;	[EP_Start] is set
+	;
+	;   cf = 1 -> not an extended DOS partition	
+	;
+	; Modified registers: ax, cx
 
-	sub	al, al ; mov al, 0
+	;sub	ah, ah ; mov ah, 0
 
-	mov 	ah, [si]
+	mov 	al, [si]
 
-	cmp	ah, 01h	; FAT12 partition
-	jb	short V_5 ; 0
-	je	short V_3
-V_0:
-	inc	al  ; mov al, 1
-
-	cmp 	ah, 06h ; FAT16 CHS partition (>=32MB)
-	ja	short V_2
-	je	short V_3
-
-	cmp	ah, 04h	; FAT16 CHS partition (< 32MB)
-	je	short V_3
-V_1:
+	cmp	al, 05h	; Extended DOS partition (CHS)
+	je	short VEP_clc
+	
+	cmp	al, 0Fh	; Extended DOS partition (CHS)
+	je	short VEP_clc
+VEP_stc:
 	stc
 	retn
-V_2:
-	inc	al ; mov al, 2
-
-	cmp	ah, 0Ch	; FAT32 LBA partition
-	je	short V_3
-	ja	short V_4
-
-	cmp	ah, 0Bh	; FAT32 CHS partition 
-	jb	short V_5
-V_3:
-	inc	al ; 0->1, 1->2, 2->3
+VEP_clc:
+	mov	cx, [si+ptStartSector-ptFileSystemID]
+	mov	[EP_Start], cx
+	mov	cx, [si+2+ptStartSector-ptFileSystemID]
+	mov	[EP_Start+2], cx
+	;mov	cx, [si+2+ptSectors-ptFileSystemID]
+	;mov	[EP_Size+2], cx
+	;mov	cx, [si+ptSectors-ptFileSystemID]
+	;mov	[EP_Size], cx
 	retn 
+
+validate_dos_partition:
+	
+	; INPUT:
+	;   si = partition table entry, partition ID offset
+	; OUTPUT:
+	;   cf = 0 -> al = primary DOS partition ID
+	;			 (01h,04h,06h,0Bh,0Ch,0Eh)		
+	;
+	;   cf = 1 -> not a primary DOS partition	
+
+	mov 	al, [si]
+
+	cmp	al, 01h	; FAT12 partition
+	jna	short V_2
+
+	cmp 	al, 06h ; FAT16 CHS partition (>=32MB)
+	ja	short V_1
+	je	short V_2
+
+	cmp	al, 04h	; FAT16 CHS partition (< 32MB)
+	ja	short V_4
+	retn
+V_1:
+	cmp	al, 0Ch	; FAT32 LBA partition
+	je	short V_2
+	ja	short V_3
+
+	cmp	al, 0Bh	; FAT32 CHS partition 
+V_2:
+	retn 
+V_3:
+	cmp	al, 0Eh	; FAT16 LBA partition
+	je	short V_2
 V_4:
-	cmp	ah, 0Eh	; FAT16 LBA partition
-	jne	short V_1
-	;mov	al, 2
-V_5:
+	stc
+	retn
+
+;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+; preparing text row for logical dos drive
+;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+fill_ldd_row:
+	; bl = selected logical drive number 
+	; bh = 0
+
+	;xor	bh, bh
+	
+	mov	al, bl
+	add	al, '0'
+	mov	[ldd_row_dn], al
+	dec	bl
+	jz	short flddtr_0
+	shl	bl, 4 ; * 16
+flddtr_0:
+	add	bx, lddt
+	mov	al, [bx+ptFileSystemID]
+	cmp 	al, 1				
+	jne	short flddtr_1
+	mov	word [ldd_row_fs], "12"
+	jmp	short flddtr_4
+flddtr_1:
+	cmp	al, 06h		
+	ja	short flddtr_2
+flddtr_2:
+	mov	word [ldd_row_fs], "16"
+	jmp	short flddtr_4
+flddtr_3:
+	cmp	al, 0Eh
+	jne	short flddtr_2
+	; al = 0Bh or 0Ch
+	mov	word [ldd_row_fs], "32"	
+flddtr_4:
+	mov	ax, [bx+ptSectors]
+	mov	dx, [bx+ptSectors+2]	
+	cmp	dx, 100h ; 8GB limit
+	jb	short flddtr_6 ; display size as MB or KB
+flddtr_5:
+	mov	ax, dx
+	shr	ax, 5 ; / 32
+	; GB
+	call	convert_to_decimal	
+	mov	ax, 'GB'
+	jmp	short flddtr_9
+flddtr_6:
+	or	dx, dx
+	jnz	short flddtr_7 ; MB
+	cmp	ax, 2048
+	jnb	short flddtr_8 ; MB
+	shr	ax, 1 ; / 2
+	; KB
+	call	convert_to_decimal
+	; di points to unit location
+	mov	ax, 'KB' 		
+	jmp	short flddtr_9
+flddtr_7:
+	test	dl, 1Fh ; flat ? 
+	jz	short flddtr_5
+	shl	dx, 5  ; convert GB to MB
+flddtr_8:
+	shr	ax, 11 ; / 2048 
+	or	ax, dx ; MB
+	; MB
+	call	convert_to_decimal	
+	mov	ax, 'MB'
+flddtr_9:
+	stosw	; volume size unit (KB,MB,GB)
+	 ;CRLF
+	mov	ax, 0A0Dh ; al = 0Dh, ah = 0Ah
+	stosw
+	sub al, al ; 0
+	stosb
+	retn
+
+convert_to_decimal:
+	mov	bp, sp
+	mov	cx, 10
+cvd_loop1:
+	xor	dx, dx
+	div	cx
+	push	dx
+	or	ax, ax
+	jnz	short cvd_loop1	
+	mov	di, ldd_row_sz	
+cvd_loop2:
+	pop	ax
+	add	al, '0'
+	stosb
+	cmp	sp, bp
+	jne	short cvd_loop2
+
+	; di points to unit location
 	retn
 
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -706,10 +882,10 @@ chs_rw_1:
 	pop     bx	; ES:BX = Buffer
 
 	mov	dl, [drv]
-	mov	ch, al
+	mov	ch, al                   
 	ror	ah, 1	; Rotate right
-	ror	ah, 1
-	or	cl, ah
+	ror	ah, 1                   
+	or	cl, ah                   
 chs_rw_2:
 	mov	ah, [rw] ; 02h = read, 03h = write
 	mov	al, 01h
@@ -722,10 +898,10 @@ chs_rw_2:
         
 	;mov	[error], ah
 	jnc     short chs_rw_3
-	dec	di
+	dec	di                 
 	jz	short chs_rw_3 
         
-	xor	ah, ah
+	xor	ah, ah                   
 	;mov	dl, [drv]
 	int	13h	; BIOS Service func (ah) = 0
 			; Reset disk system
@@ -735,7 +911,7 @@ chs_rw_3:
 	pop	ax
 	pop	dx
 	pop	cx
-	pop	si
+	pop	si	
 	retn		; db 0C3h
 
 read_lba_sector:
@@ -784,10 +960,10 @@ lba_rw_2:
 	;mov	[error], ah
 	jnc     short lba_rw_3
 
-	dec	di
+	dec	di                 
 	jz	short lba_rw_3 
         
-	xor	ah, ah
+	xor	ah, ah                   
 	;mov	dl, [drv]
 	int	13h	; BIOS Service func (ah) = 0
 			; Reset disk system
@@ -820,7 +996,7 @@ format_FAT32_fs:
 ;FAT32_lba_format:
 	; Put TRDOS 386 FAT32 partition magic word 
 	; at offset 5Ah, in TRDOS386 FAT32 boot sector 0.
-	mov	bp, RD_FAT32_hd_bs
+	mov	bp, TRDOS_FAT32_hd_bs
 	lea	di, [bp+3]
 	mov	si, bs_oem_name
 	mov	cx, 4
@@ -866,7 +1042,7 @@ FAT32_f_2:
 		; RootDirSectors = 0 (for FAT32 FS)
 	mov	bx, cx ; ch = 0
 	shl	bx, 8 ; * 256
-	mov	cl, [bp+10h] ; [BPB_NumFATs]
+	mov	cl, [bp+10h] ; [BPB_NumFATs] 
 	add	bx, cx	
 		; TmpVal2 = (256*BPB_SecPerClus)+BPB_NumFATs
 	shr	bx, 1
@@ -921,7 +1097,7 @@ FAT32_f_2:
 	adc	[data_start+2], dx
 FAT32_f_3:
 	; DX_AX = FAT32 Boot Sector address
-	mov	bx, RD_FAT32_hd_bs
+	mov	bx, TRDOS_FAT32_hd_bs
 	; ES:BX = Boot Sector 1 Buffer
 	call	write_hd_sector
 	jc	formatting_error
@@ -932,10 +1108,10 @@ FAT32_f_3:
 	; ES:BX = FS INFO Sector Buffer (= BS+1)
 	call	write_hd_sector
 	jc	formatting_error
-	call	write_format_percent
+	call	write_format_percent	
 	add	ax, 1
 	adc	dx, 0	
-	mov	bx, RD_FAT32_hd_bs + 512
+	mov	bx, TRDOS_FAT32_hd_bs + 512
 	; ES:BX = Boot Sector 2 Buffer
 	call	write_hd_sector
 	jc	formatting_error
@@ -959,7 +1135,7 @@ FAT32_f_4:
 	add	cx, 12
 	adc	bx, 0
 	; write BACKUP sectors
-	; (6,7,8 boot+fsi and 9,10,11 empty sectors)
+	; (6,7,8 boot+fsi and 9,10,11 empty sectors) 
 	cmp	dx, bx
 	jb	short FAT32_f_3
 	cmp	ax, cx
@@ -995,7 +1171,7 @@ FAT32_f_6:
 	mov	[bx+4], cx
 	mov	[bx+6], cx
 	; Root dir cluster number = 2
-	; 0FFFFFFFh = end of cluster chain
+	; 0FFFFFFFh = end of cluster chain 
 	mov	[bx+8], cx  ; 0FFFFh
 	and	ch, 0Fh
 	mov	[bx+10], cx ; 0FFFh
@@ -1052,7 +1228,7 @@ FAT32_f_9:
 	mov	cx, [data_sectors]
 	mov	bx, [data_sectors+2] 
 			; NOTE: Partition size must be >= 512 MB
-			;	for FAT32 FS  ((BX >= 15))
+			;	for FAT32 FS  ((BX >= 15))		
 FAT32_f_10:	
 	push	bx
 	push	cx	
@@ -1083,12 +1259,12 @@ FAT12_f_8:
 	sub	cx, ax
 	sbb	bx, dx
 	; 11/02/2019
-	; BX must be 0 (Because, 1 cluster <= 32KB. So,
+	; BX must be 0 (Because, 1 cluster <= 32KB. So, 
 	;	        remain sectors must not be more than 32K)
 	jnz	short FAT32_f_12 ; There is a wrong thing !!!
-				 ; If BX is not zero,
+				 ; If BX is not zero,	
 				 ; it is better to skip this stage...)
-	or	cx, cx
+	or	cx, cx		
 	jz	short FAT32_f_12 ; no.. 
 				 ; (good! FAT contains all data sectors)
 FAT32_f_11:
@@ -1201,7 +1377,7 @@ write_volume_serial:
 	;xchg	ch, cl
 	;xchg	dh, dl
 
-	;add	cx, dx
+	;add	cx, dx  
 	;add	[si+2], cx
                
 	;mov	ah, 04h			; Return Current Date
@@ -1210,7 +1386,7 @@ write_volume_serial:
 	;xchg	ch,cl
 	;xchg	dh,dl
 
-	;add	cx, dx
+	;add	cx, dx  
 	;add	[si+2], cx
 
 	; According to Microsoft DOS 6.0 serial number
@@ -1230,7 +1406,7 @@ write_volume_serial:
 	mov	ah, 04h		; Return Current Date
 	int	1Ah
 
-	; DL = Day (BCD)	(20h)
+	; DL = Day (BCD)	(20h) 	
 	; DH = Month (BCD)	(12h)
 	; CH = Century (BCD)	(20h)
 	; CL = Year (BCD) 	(17h)
@@ -1258,7 +1434,7 @@ write_volume_serial:
 	mov	ah, 02h		; Return Current Time
 	int	1Ah
 	
-	; DH = Seconds (BCD)	(59h)
+	; DH = Seconds (BCD)	(59h) 	
 	; CL = Minutes (BCD)	(59h)
 	; CH = Hours (BCD)	(23h)
 	; DL = Daylight savings time option (1=yes)
@@ -1299,7 +1475,7 @@ write_volume_serial:
 	; AL = 0 if 24 hours has not passed, else 1
 
 	; NOTES: 
-	; (Ref: vitaly_filatov.tripod.com/ng/asm/asm_029.1.html)
+	; (Ref: vitaly_filatov.tripod.com/ng/asm/asT_3029.1.html)
 	;
    	; Following formulas convert the clock count to
         ; the time of day:
@@ -1316,16 +1492,16 @@ write_volume_serial:
 
 	add	[si], dl
 
-	; SI = Volume serial number address (4 bytes)
+	; SI = Volume serial number address (4 bytes) 
 	mov	al, [si]
 	call	bin_to_hex
-	mov	[Vol_Serial2+2], ax
+	mov	[Vol_Serial2+2], ax	
 	mov	al, [si+1]
 	call	bin_to_hex
 	mov	[Vol_Serial2], ax
 	mov	al, [si+2]
 	call	bin_to_hex
-	mov	[Vol_Serial1+2], ax
+	mov	[Vol_Serial1+2], ax	
 	mov	al, [si+3]
 	call	bin_to_hex
 	mov	[Vol_Serial1], ax
@@ -1355,7 +1531,7 @@ write_formatting_msg:
 	mov	ax, [dosp_size]
 	mov	dx, [dosp_size+2]
 
-	; DX_AX = Total sectors for percentage
+	; DX_AX = Total sectors for percentage  
 	mov	cx, 100	
 	call	div32
 	mov	[format_percent], ax
@@ -1462,36 +1638,26 @@ write_cluster_count:
 ; (1 cylinder) or 4096 sectors (for TRDOS 386)
 
 format_FAT16_fs:
-; 04/05/2024 (BugFix)
-; DL = Partition (FS) ID
-;	mov	ax, 0706h ; db 06h, 07h ; 'push es, pop es'
-;	cmp	dl, al ; 06h ; Big CHS partition (>= 32MB)
-;	je	short FAT16_big_chs_format
-;	;mov	ax, 070Eh ; db 0Eh, 07h	; 'push cs, pop es'
-;	;cmp	dl, al ; 0Eh ; LBA partition
-;	;je	short FAT16_lba_format
-;FAT16_chs_format:  
-;	; Partition Type: 04h, CHS (<32 MB) partition
-;	mov	ax, 0004h ; db 04h, 00h ; 'add al, 0'
-;FAT16_big_chs_format:
-;;;
+	mov	ax, 0706h ; db 06h, 07h ; 'push es, pop es'
+	cmp	dl, al ; 06h ; Big CHS partition (>= 32MB)
+	je	short FAT16_big_chs_format
+	;mov	ax, 070Eh ; db 0Eh, 07h	; 'push cs, pop es'
+	;cmp	dl, al ; 0Eh ; LBA partition
+	;je	short FAT16_lba_format
+FAT16_chs_format:  
+	; Partition Type: 04h, CHS (<32 MB) partition
+	mov	ax, 0004h ; db 04h, 00h ; 'add al, 0'
+FAT16_big_chs_format:
 ;FAT16_lba_format:
 	; Put TRDOS 386 FAT16 partition magic word 
 	; at offset 3Eh, in TRDOS386 FAT16 boot sector.
-	mov	bp, RD_FAT16_hd_bs
+	mov	bp, TRDOS_FAT16_hd_bs
 	lea	di, [bp+3]
 	mov	si, bs_oem_name
 	mov	cx, 4
-	rep	movsw
- 
-	;mov	[bp+3Eh], ax	; [loc_3E]
-	; 04/05/2024 (BugFix)
-	cmp	dl, 6
-	je	short FAT16_f_x ; skip ; db 'RDv4 FAT16 06h', 0
-	; dl = 04h or 0Eh
-	mov	[bp+1CEh], dl	; Retro DOS v4 boot sect off 1CEh
-				; (see: 'rd4hdbs.lst' for 1CEh)
-FAT16_f_x:
+	rep	movsw 
+	mov	[bp+3Eh], ax	; [loc_3E]
+
 	mov	ax, [sectors]
 	mov	[bp+18h], ax	; [BPB_SecPerTrk]
 	mov	ax, [heads]
@@ -1541,7 +1707,7 @@ FAT16_f_3:
 FAT16_f_4:
 	cmp	dx, 16 ; >= 1048576 sectors ; >=512MB
 	ja	short FAT16_f_5 ; >16 sectors per cluster
-	jb	short FAT16_f_7 ; 16 sectors per cluster
+	jb	short FAT16_f_7 ; 16 sectors per cluster	
 	and	ax, ax ; dx_ax = (16*65536)+0
 	jz	short FAT16_f_7 ; 16 sectors per cluster
 	jmp	short FAT16_f_6 ; 32 sectors per cluster
@@ -1607,17 +1773,8 @@ FAT16_f_10:
 	; AX = [BPB_NumFATs] * [BPB_FATSz16]
 	mov	cx, [bp+0Eh]	; [BPB_RsvdSecCnt] ; 1
 	add	cx, ax
-	
-	; 14/07/2024 (bugfix)
-	mov	[bp+42h], cx	; bsRootDirStart
-	mov	bx, [root_dir_secs]
-	mov	[bp+44h], bx	; bsRootDirSects
-	;mov	word [bp+46h], 16 ; bsDirEntsPerSec
-
 	; CX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
-	;add	cx, [root_dir_secs] ; + RootDirsectors
-	; 14/07/2024
-	add	cx, bx
+	add	cx, [root_dir_secs] ; + RootDirsectors
 	sub	bx, bx ; BX = 0
 	; BX_CX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
 	;	  + RootDirSectors
@@ -1633,10 +1790,6 @@ FAT16_f_11:
 	sbb	dx, bx
 	mov	[data_start], cx
 	mov	[data_start+2], bx
-
-	; 14/07/2024 (bugfix)
-	mov	 [bp+40h], cx	; bsDataStart
-	
 	; DX_AX = Data sectors
 	mov	[data_sectors], ax
 	mov	[data_sectors+2], dx
@@ -1665,7 +1818,7 @@ FAT16_f_11:
 	adc	[data_start+2], dx
 
 	; DX_AX = FAT16 Boot Sector address
-	mov	bx, RD_FAT16_hd_bs
+	mov	bx, TRDOS_FAT16_hd_bs
 	; ES:BX = Boot Sector Buffer
 	call	write_hd_sector
 	jc	formatting_error
@@ -1745,7 +1898,7 @@ FAT16_f_16:
 	adc	dx, 0
 	pop	cx
 	dec	cx
-	jnz	short FAT16_f_16
+	jnz	short FAT16_f_16	
 
 	; write DATA sectors 
 	; (after root directory sectors)
@@ -1789,7 +1942,7 @@ FAT16_f_17:
 ; (1 cylinder) 
 
 format_FAT12_fs:
-	mov	bp, RD_FAT12_hd_bs
+	mov	bp, TRDOS_FAT12_hd_bs
 	lea	di, [bp+3]
 	mov	si, bs_oem_name
 	mov	cx, 4
@@ -1818,7 +1971,7 @@ format_FAT12_fs:
 	;sub	ax, 33  ; 1 reserved sector, 32 root dir sectors
 			; .. now AX has number of data sectors
 			;	 		+ 2* (FAT sectors)
-	sub	ax, cx
+	sub	ax, cx	
 FAT12_f_10:
 	; Sectors per cluster calculation
 	; (According to MS FAT32 FS specification.)
@@ -1841,7 +1994,7 @@ FAT12_f_1:
 	;mov	word [bp+11h], 512 ; [BPB_RootEntCnt]
 	
 	; Calculating FAT size in sectors
-	; AX = partition (volume) size in sectors
+	; AX = partition (volume, data) size in sectors
 	; CX = sectors per clusters
 	xor	dx, dx
 	div	cx
@@ -1878,23 +2031,11 @@ FAT12_f_1:
 
 	;mov	cx, 33
 	mov	cx, [root_dir_secs]
-
-	; 14/07/2024 (bugfix)
-	; ax = 2 * FAT size (in sectors)
-	add	ax, [bp+0Eh] ; total FAT sectors + reserved sectors	
-	mov	[bp+42h], ax	; bsRootDirStart
-	mov	[bp+44h], cx	; bsRootDirSects
-	;mov	word [bp+46h], 16 ; bsDirEntsPerSec
-
-	; 14/07/2024
-	;add	cx, [bp+0Eh]	; [BPB_RsvdSecCnt] ; 1
+	add	cx, [bp+0Eh]	; [BPB_RsvdSecCnt] ; 1
 		; cx = root directory sectors + reserved sectors
 	add	cx, ax
-		; cx = root dir sects + rsvd sects + total FAT sects
-
 	; CX = [BPB_RsvdSecCnt]+([BPB_NumFATs]*[BPB_FATSz16])
 	;	  + RootDirSectors
-
 	mov	ax, [bp+13h]	; [BPB_TotSec16]
 	sub	ax, cx
 		 ; AX = data sectors
@@ -1911,10 +2052,6 @@ FAT12_f_9:
 	xor	dx, dx
 	mov	[data_start], cx
 	mov	[data_start+2], dx ; 0
-	
-	; 14/07/2024 (bugfix)
-	mov	 [bp+40h], cx	; bsDataStart
-
 	; DX_AX = Data sectors
 	mov	[data_sectors], ax
 	mov	[data_sectors+2], dx ; 0
@@ -1930,7 +2067,7 @@ FAT12_f_9:
 	call	write_volume_name
 	lea	si, [bp+39] ; [BS_VolID]
 	call	write_volume_serial
-	call	write_cluster_count
+	call	write_cluster_count	
 
 	call	write_formatting_msg
 	mov	al, 0
@@ -1943,7 +2080,7 @@ FAT12_f_9:
 	adc	[data_start+2], dx
 
 	; DX_AX = FAT12 Boot Sector address
-	mov	bx, RD_FAT12_hd_bs
+	mov	bx, TRDOS_FAT12_hd_bs
 	; ES:BX = Boot Sector Buffer
 	call	write_hd_sector
 	jc	formatting_error
@@ -2070,8 +2207,8 @@ read_next_char:
 	xor     ah, ah
 	int     16h
 	and     al, al
-	jz      short loc_arrow
-	cmp     al, 0E0h
+	jz      short loc_arrow    
+	cmp     al, 0E0h          
 	je      short loc_arrow
 	cmp     al, 8
 	jne     short char_return
@@ -2086,7 +2223,7 @@ set_cursor_pos:
 	mov     ah, 2
 	int     10h
 	mov     bl, dl
-	sub     bl, byte [Cursor_Pos]
+	sub     bl, byte [Cursor_Pos] 
 	mov     cx, 1
 	mov     ah, 9
 	mov     al, 20h
@@ -2152,9 +2289,9 @@ loc_escape:
 
 div32:
 	; DX_AX/CX
-	; Result: DX_AX, BX (remainder)
+	; Result: DX_AX, BX (remainder) 
 	mov	bx, ax
-	;or	dx, ax ; * DX_AX = 0 ?
+	;or	dx, ax ; * DX_AX = 0 ?       
 	;jz	short div32_retn ; yes, do not divide! 
 	mov	ax, dx
         xor	dx, dx
@@ -2216,10 +2353,10 @@ bin_to_hex:
 	xor	bx, bx
 	mov	bl, al
 	shr	bl, 4
-	mov	bl, [bx+hexchrs]
+	mov	bl, [bx+hexchrs] 	 	
 	xchg	bl, al
 	and	bl, 0Fh
-	mov	ah, [bx+hexchrs]
+	mov	ah, [bx+hexchrs] 
 	pop	bx	
 	retn
 
@@ -2240,12 +2377,12 @@ trdos386fc:
 ;  FAT boot sector code
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-RD_FAT12_hd_bs:
-	incbin	'RD2HDBS.BIN' ; 25/10/2023
-RD_FAT16_hd_bs: 
-	incbin	'RD4HDBS.BIN' ; 24/10/2023
-RD_FAT32_hd_bs: 
-	incbin	'RD5HDBS3.BIN' ; 29/04/2024
+TRDOS_FAT32_hd_bs:
+	incbin	'FAT32_BS.BIN' ; 27/04/2024
+TRDOS_FAT16_hd_bs: 
+	incbin	'FAT16_BS.BIN' ; 26/12/2017
+TRDOS_FAT12_hd_bs: 
+	incbin	'FAT12_BS.BIN' ; 26/12/2017
 
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ;  messages
@@ -2261,55 +2398,40 @@ heads:	 db 0
 	 db 0
 cylinders: dw 0
 
-RD_Welcome:
+TrDOS_Welcome:
 	db 0Dh, 0Ah
-	db 'Retro DOS v4 Hard Disk Partition Formatting Utility '
+	db 'TR-DOS 386 v2 Hard Disk Partition Formatting Utility '
 	db 0Dh, 0Ah
-	db 'v1.1.240714 (c) Erdogan TAN 2020-2024 '
+	db '(for logical dos drives in extended dos partitions)	'
+	db 0Dh, 0Ah
+	db 0Dh, 0Ah
+	db '(c) Erdogan TAN 2020-2024'
 	db 0Dh,0Ah
 	db 0Dh,0Ah
-	db 'Usage: hdformat <drive> '
+	db 'Usage: epformat <drive> '
 	db 0Dh,0Ah, 0Dh, 0Ah
 	db 'Drive names: '
 	db 0Dh, 0Ah
-	db ' hd0 or C: ..for primary dos partition on 1st disk '
+	db '  hd0 ..for extended dos partition on 1st disk '
 	db 0Dh, 0Ah
-	db ' hd1 or D: ..for primary dos partition on 2nd disk '
+	db '  hd1 ..for extended dos partition on 2nd disk '
 	db 0Dh, 0Ah
-	db ' hd2       ..for primary dos partition on 3rd disk '
+	db '  hd2 ..for extended dos partition on 3rd disk '
 	db 0Dh, 0Ah
-	db ' hd3       ..for primary dos partition on 4th disk '
-	db 0Dh, 0Ah
-	db 0Dh, 0Ah
-	db ' Example: hdformat hd0 ', 0Dh, 0Ah
-	db 0Dh, 0Ah	
-	db 'Optional: hdformat -partition <drive> ', 0Dh, 0Ah
-	db 0Dh, 0Ah
-	db ' Example: hdformat -1 hd1 (partition 1 on 2nd disk) '
-	db 0Dh, 0Ah
-	db '          hdformat -2 hd0 (partition 2 on 1st disk) '
-	db 0Dh, 0Ah
-	db 0Dh, 0Ah
-	db 'Options: 1  (partition 1) '
-	db 0Dh, 0Ah
-	db '         2  (partition 2) '
-	db 0Dh, 0Ah
-	db '         3  (partition 3) '
-  	db 0Dh, 0Ah
-	db '         4  (partition 4) '
+	db '  hd3 ..for extended dos partition on 4th disk '
 	db 0Dh, 0Ah, 0
 
-partition:  ; selected partition (0 = primary dos partition)
+	db '03/05/2024'
 	db 0
 
-RD_Format_warning:
+TrDOS_Format_warning:
 	db 0Dh, 0Ah
 	db "WARNING ! ", 0Dh, 0Ah 
-	db "(If you say 'Yes', all of data in the primary DOS partition will be lost !) "
-RD_Do_you_want:
+	db "(If you say 'Yes', all of data in the logical DOS drive will be lost !) "
+TrDOS_Do_you_want:
 	db 0Dh, 0Ah
 	db 0Dh, 0Ah
-	db "Do you want to format DOS partition as Retro DOS FAT" 
+	db "Do you want to format logical DOS drive as TRDOS 386 FAT" 
 fattype_str:
 	db "16 fs ? (Y/N) "
 	db 0
@@ -2325,44 +2447,46 @@ _msg_OK:
 	;db	07h
 	db	0Dh, 0Ah
 	db	"OK."
-RD_CRLF:
+TrDOS_CRLF:
 	db	0Dh, 0Ah, 0
 
-RD_PressKeyWhenReady:
+TrDOS_PressKeyWhenReady:
 	db 0Dh, 0Ah
-	db 'Press Enter to format primary dos partition on hd'
-RD_Drive:
+	db 'Press Enter to format logical DOS drive '
+TrDos_ldn:
+	db '1 on hd'
+TrDOS_Drive:
 	db '?. ', 0
 
-RD_disk_NotReadyOrError:
+TrDOS_disk_NotReadyOrError:
 	db 0Dh, 0Ah
 	db 'Disk error or drive not ready ! '
 zbyte:	db 'Try again ? (Y/N) '
 	db 0
 
-RD_psize_defect:
+TrDOS_psize_defect:
 	db 0Dh, 0Ah
 	db 'MBR partition size defect ! '
 	db 0Dh, 0Ah
-	db '(less than the minimum number of sectors required) '
+	db '(less than the minimum number of sectors required) '	
 	db 0
 
-RD_fatp_notfound:
+TrDOS_ep_ldd_defect:
 	db 0Dh, 0Ah
-	db 'MBR does not contain '
-a_p_d_p:
-	db 'a primary DOS partition ! '
+	db 'There is not a logical DOS drive ! '
+	db 0Dh, 0Ah
+ldd_count:
+	db 0
+
+TRDOS_fatp_notfound:
+	db 0Dh, 0Ah
+	db 'MBR does not contain an extended DOS partition ! '	
 fattype:
 	db 0
 ;RetryCount:
 ;	db 4
 
 ;error: db 0
-
-not_primary_dos_p:
-	db 0Dh, 0Ah
-	db 'Selected partition is not '
-	db 0
 
 ;align 2
 align 4
@@ -2372,10 +2496,39 @@ hexchrs:
 
 Cursor_Pos: ; dw 0
 CHS_limit:  ; dword	 
-	dw 0
-	;dw 0
+	dw	0
+	;dw	0
 
-sign:	dw 417	; magic word
+sign:	dw	417	; magic word
+
+ldd_table:
+	db	0Dh, 0Ah
+	db	"=======================================", 0Dh, 0Ah
+	db	"      HD"
+drv_str:
+	db	"0 EXTENDED DOS PARTITION       ", 0Dh, 0Ah
+	db	"=======================================", 0Dh, 0Ah
+	db	" Logical DOS Drive   Type      SIZE    ", 0Dh, 0Ah
+	db	"---------------------------------------", 0Dh, 0Ah, 0
+ldd_row:
+	db	"                 "
+ldd_row_dn:
+	db	"1   FAT"
+ldd_row_fs:
+	db	"12     "
+ldd_row_sz:
+	db	"128GB   ", 0Dh, 0Ah, 0
+ldd_dline:
+	db	"=======================================", 0Dh, 0Ah	
+	db	0
+
+ldd_select_msg:
+	db	0Dh, 0Ah, 0Dh, 0Ah
+	db	"Select logical DOS drive number (1 to " 
+ldd_select_pn:
+	db	"4) to format. " 	
+	db 	0Dh, 0Ah
+	db	"(or press ESC to cancel) ", 0Dh, 0Ah, 0
 
 ;align 4 
 
@@ -2389,9 +2542,7 @@ vname_length:
 	db	0
 
 bs_oem_name:
-	;db	'TRDOS2.0', 0
-	; 28/10/2023
-	db	'RETRODOS', 0
+	db	'TRDOS2.0', 0
 
 align 2
 
@@ -2421,7 +2572,7 @@ msg_formatting:
 	db	"Formatting ", 0
 format_percent_str:
 	db	"000%"
-	db	0
+	db	0					
 
 Msg_3dot_OK:
 	db	'...'
@@ -2441,27 +2592,6 @@ error_code:
 	db	0Dh, 0Ah
 	db	0
 
-	; 04/05/2024
-FAT32_note:
-	db	0Dh, 0Ah
-	db	0Dh, 0Ah
-	db	'NOTE: '
-	db	0Dh, 0Ah
-	db	0Dh, 0Ah
-	db	'Retro DOS v4.2 -MSDOS 6.22- does not recognize FAT32 file system.'
-	db	0Dh, 0Ah
-	DB	0Dh, 0Ah
-	db	'But, Retro DOS v5 -PCDOS 7.1- recognizes FAT32 file system and '
-	db	0Dh, 0Ah
-	db	'its boot sector will be used to format the new FAT32 partition/volume.'
-	db	0Dh, 0Ah
-	db	0Dh, 0Ah
-	db	'The kernel file name of the FAT32 boot sector is ', 34,'PCDOS.SYS', 34,'.'
-	db	0Dh, 0Ah
-	db	0Dh, 0Ah 
-	db	'Press ENTER to CONTINUE or press another key to CANCEL.'
-	db	0Dh, 0Ah, 0Dh, 0Ah, 0
-
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ;  initialized buffers
 ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -2477,7 +2607,11 @@ HDFORMAT_FSINFO_BUFF:
 	times	12 db 0	   ; FSI_Reserved2
 	dd	0AA550000h ; FSI_TrailSig
 
-;SizeOfFile equ $-100
+;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+lddt_ptr dw lddt	
+
+;SizeOfFile equ $-100	  	
 
 ; ----------------------------------------------------------------------------
 ; uninitialized data
@@ -2494,7 +2628,7 @@ rw:	resb 1
 csize:	resw 1 ; heads*spt (sectors per cylinder)
 
 dosp_start: resd 1 ; start sector of the (primary) dos partition
-dosp_size:  resd 1 ; partition size in sectors
+dosp_size:  resd 1 ; partition size in sectors	 
 
 MBR:
 bootsector:
@@ -2507,6 +2641,12 @@ HDFORMAT_EMPTY_BUFF:
 ;HDFORMAT_EMPTY_BUFF:
 ;	resb 512
 
+; logical dos drives table
+lddt:	resb 4*16 ; 64 bytes	
+
+EP_Start:	resd 1
+EP_Start_x:	resd 1
+
 data_start:	resd 1
 data_sectors:	resd 1
 cluster_count:	resd 1
@@ -2518,5 +2658,7 @@ rsvdbyte:	resb 1
 old_sp:		resw 1
 
 StrVolumeName:	resb 12
+
+lddt_save:	resw 1
 
 end_bss:
