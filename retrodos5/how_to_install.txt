@@ -63,7 +63,7 @@ Note: RAWWRITEWIN.EXE or another program (IMG2FD.COM, FD2IMG.COM etc.) can be us
           ((R5FDFORM.COM, IMG2FD.COM or RAWWRITEWIN.EXE
             can be used to prepare Retro DOS v5 -PCDOS 7.1- boot floppy.))
  
-	(If the format option is used, another formatting is not neeed after
+	(If the format option is used, another formatting is not needed after
             FDISK. Only needing: to copy PCDOS.SYS and COMMAND.COM to the root
             directory of the new C:.)
 
