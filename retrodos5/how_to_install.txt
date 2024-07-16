@@ -1,0 +1,108 @@
+How Retro DOS v5 can be installed?
+----------------------------------
+Remember: It will run as (modified, bugfixed) IBM PCDOS 7.1.
+
+Answers:
+(to see command/utility usage summary write these commands on dos prompt
+ without any argument. For exmaple: "A:\RETRODOS>RD5HDIMG".)
+ 
+0) New Hard (or Floppy) Disk Image
+	RD5HDIMG.COM HARDDISKIMAGENAME(.IMG) -to create hard disk image file-
+	RD5FDIMG.COM FLOPPYDISKIMAGENAME(.IMG) -to create floppy disk img file-	
+
+        (raw disk images are created, later they can be converted to other types)
+
+	DOSBOX, DOS or 32 bit Windows can be used to creating disk images.
+        (Emulators are also proper to create disk image file. Then, the image file
+        must be copied to Windows or Linux volume in order to use with an emulator.)
+
+        (Operating system must recognize virtual disk image which contains
+         the created raw disk image. For example: IMGDISK program is proper
+         for Windows 7-11 for that purpose. Or mounting a Windows directory
+         as virtual disk is an alternative method for QEMU and VIRTUALBOX.)
+
+Note: RAWWRITEWIN.EXE or another program (IMG2FD.COM, FD2IMG.COM etc.) can be used
+      to write disk image to physical floppy disk or reverse.
+      DISKGENIUS can be used to handling hard disk images (HD2IMG or IMG2HD). 	  
+		
+1) Disk Image (for Emulator)
+   Needed: R5.IMG (Retro DOS v5) floppy disk image or
+           32 MB (Retro DOS v5 bootable, RD5HD32.IMG) hard disk image with
+           (for example, in \RETRODOS directory) those installation files:
+           a) R5HDFORM.COM ; Formats FAT12, FAT16, FAT32 partition for Retro DOS v5
+           b) FDISK3R5.COM ; Displays, Creates, Deletes, Changes MSDOS partitions
+           c) R5HDBOOT.COM ; Updates MSDOS partition's volume boot sector
+                          to Retro DOS v5 boot sector (Kernel file: PCDOS.SYS)
+           a and c are alternatives.
+           b is used if there is not a DOS partition on/in the virtual harddisk.
+
+           (If the format option is used, another formatting is not needed after
+            FDISK3R5.COM. Only needing: to copy PCDOS.SYS and COMMAND.COM.) 
+
+	   ***
+    After formatting (or updating the boot sector):
+          copy PCDOS.SYS (kernel file) to the formatted disk/volume -must be C:-
+          copy COMMAND.COM (command interpreter) to root dir of the formatted disk.
+	 
+          NOTE: Disk image can be formatted as C: or D: then
+                it can be used as C: 
+                (depending on configuration of QEMU, BOCHS, VIRTUALBOX)
+
+2) Real Computer:
+   A DOS disk (recognized by ROMBIOS) must contain or must be proper to create
+   a FAT32 (or FAT16 or FAT12) primary dos partition. .. with those files:
+
+	a) FDISK3R5.COM (<= 502GB hard disk partitioning, 65535 cylinders limit)
+           or FDISK4R5.COM (2TB disk partioning, 32 bit -virtual- cylinder numbers)
+	   -MBR type partition tables-
+           is used to DISPLAY, CREATE, DELETE, CHANGE primary DOS partition.
+        b) R5HDFORM.COM is used to formatting existing MSDOS or WINDOWS
+           (FAT12, FAT16, FAT32) partition/volume. (C: or D: or hard disk number
+            and partition number must be defined as command option.)
+
+          ((R5FDFORM.COM, IMG2FD.COM or RAWWRITEWIN.EXE
+            can be used to prepare Retro DOS v5 -PCDOS 7.1- boot floppy.))
+ 
+	(If the format option is used, another formatting is not neeed after
+            FDISK. Only needing: to copy PCDOS.SYS and COMMAND.COM to the root
+            directory of the new C:.)
+
+	((using/running above commands/utilities without a file or a disk name
+          gives usage information -short 'how to use' help-.))
+
+	If FAT or FAT32 volume is existing..
+           R5HDBOOT.COM (boot sector updater) can be used instead of R5HDFORM.COM.
+	
+	Retro DOS v5 boot sector loads the kernel file PCDOS.SYS at once.
+        (So, only needing is to write -proper type of- Retro DOS v5 boot sector
+         and copy PCDOS.SYS into the root directory of the boot disk. Of course,
+         COMMAND.COM must be copied to the root directory.)
+
+	Which COMMAND.COM: PCDOS 7.1 COMMAND.COM or equivalent 4DOS.	
+   
+   NOTE: If Retro DOS v5 is started with a Floppy Disk or with a USB disk..
+         No need to install Retro DOS on/into the internal/fixed disk.
+         Retro DOS 5 can run normally with all recognized disks including
+         all FAT or FAT32 logical disks in the extended DOS partition.
+         (Windows -FAT32-, FreeDOS, MSDOS volumes can be used with RetroDOS.)
+
+3) Changing IBMBIO.COM and IBMDOS.COM files of existing PCDOS 7.0, 7.1 volume
+   with Retro DOS v5 IBMBIO.COM and IBMDOS.COM.
+   (existing within Retro DOS v5 source code) 
+   If disk/volume is a PCDOS 7.0 volume.. PCDOS 7.1 COMMAND.COM must be copied
+   into the root directory of the PCDOS 7.0 volume/disk.
+   (Also other needed PCDOS 7.1 files/utilities can be copied from a PCDOS 7.1
+    boot floppy which is existing within Retro DOS v5 source code
+    and in the sample R5 bootable disk images.)
+   
+    A sample floppy disk image: (1.44MB, 3.5")
+      boot119p.ima (Retro DOS 5.0).. boot119.ima (original PCDOS 7.1). 
+      -IBMBIO.COM and IBMDOS.COM must be copied without deleting,
+       overwrite method is needed, because the 1st 2 root directory entries
+       must be IBMBIO.COM and IBMDOS.COM in order/sequence!..
+       deleting may change/spoil this condition.- 
+   
+Erdogan Tan - July 2024
+	  	
+
+     	            
