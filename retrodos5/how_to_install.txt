@@ -53,7 +53,7 @@ Note: RAWWRITEWIN.EXE or another program (IMG2FD.COM, FD2IMG.COM etc.) can be us
    a FAT32 (or FAT16 or FAT12) primary dos partition. .. with those files:
 
 	a) FDISK3R5.COM (<= 502GB hard disk partitioning, 65535 cylinders limit)
-           or FDISK4R5.COM (2TB disk partioning, 32 bit -virtual- cylinder numbers)
+           or FDISK4R5.COM (2TB disk partitioning, 32 bit -virtual- cylinder numbers)
 	   -MBR type partition tables-
            is used to DISPLAY, CREATE, DELETE, CHANGE primary DOS partition.
         b) R5HDFORM.COM is used to formatting existing MSDOS or WINDOWS
