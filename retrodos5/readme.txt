@@ -47,9 +47,9 @@ Retro DOS v5 PCDOS.SYS (10/07/2024)
 	but, if it is started in '\windows' directory by writing 'win',
 	after returning from windows, 'dir' will give FAT error.. <It will be
         corrected just after changing current directory to root directory>
-        But, if windows is started from the root directory,
+        But, if Windows is started from the root directory,
         for example, by writing 'c:\windows\win' at command prompt,
-	there will be no problem after returning from windows to dos.)) 
+	there will be no problem after returning from Windows to DOS.)) 
 
 (but Windows File Manager recognises FAT32 fs disk 
 even if it can not started on FAT32 fs.)
