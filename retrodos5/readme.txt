@@ -41,7 +41,15 @@ Also 1 MSDOS/PCDOS bug is fixed.)
 ****
 
 Retro DOS v5 PCDOS.SYS (10/07/2024)
-             runs Windows with "win /s" switch and on FAT16 fs 
+             runs Windows with "win /s" switch and on FAT16 fs
+
+       ((Also 'win' without a '/s' switch will run windows -in enhanced mode-, 
+	but, if it is started in '\windows' directory by writing 'win',
+	after returning from windows, 'dir' will give FAT error.. <It will be
+        corrected just after changing current directory to root directory>
+        But, if windows is started from the root directory,
+        for example, by writing 'c:\windows\win' at command prompt,
+	there will be no problem after returning from windows to dos.)) 
 
 (but Windows File Manager recognises FAT32 fs disk 
 even if it can not started on FAT32 fs.)
