@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; IBMBIO7.S (PCDOS 7.1 IBMBIO.COM) - RETRO DOS 5.0 by ERDOGAN TAN - 12/09/2023
 ; ----------------------------------------------------------------------------
-; Last Update: 21/04/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
+; Last Update: 17/07/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0), 01/10/2022 (Retro DOS 4.2)
 ; ----------------------------------------------------------------------------
@@ -3374,9 +3374,10 @@ not_from_dos:
 ;*									*
 ;************************************************************************
 
+	; 17/07/2024
 	; 02/10/2023
 	; PCDOS 7.1 IBMBIO.COM - BIOSDATA:0682h
-outchr:					
+outchr:
 		push	ax		; int 29h handler
 		push	si
 		push	di
@@ -3389,25 +3390,32 @@ outchr:
 		;int	10h	; - VIDEO - WRITE CHARACTER AND	ADVANCE	CURSOR (TTY WRITE)
 		;		; AL = character, BH = display page (alpha modes)
 		;		; BL = foreground color	(graphics modes)
+		; 17/07/2024
 		; 02/10/2023
-		;push	ds ; *
-		xor	bx,bx ; 0
-		cmp	[cs:IsWin386], bl ; (are we in) Windows ?
-		jnz	short win_outchr ; *
 		push	ds ; *
+		xor	bx,bx ; 0
 		mov	ds,bx ; 0
 		mov	ah,0Eh
 		mov	bl,7
-		;jnz	short win_outchr ; Running on Windows
-		pushf			; far call (simulate INT)	
+		cmp	[cs:IsWin386], bl ; (are we in) Windows ?
+		; 17/07/2024
+		;jnz	short win_outchr ; *
+		;push	ds ; *
+		;mov	ds,bx ; 0
+		;mov	ah,0Eh
+		;mov	bl,7
+		jnz	short win_outchr ; Running on Windows
+		pushf			; far call (simulate INT)
 		cli	; disable interrupts
 		call	far [40h]	; far call to INT 10h vector
-		pop	ds ; *
+		; 17/07/2024
+		;pop	ds ; *
 		jmp	short outchr_ok
 win_outchr:
 		int	10h
 outchr_ok:
-		;pop	ds ; *
+		; 17/07/2024
+		pop	ds ; *
 		;;;
 		pop	bx
 		pop	bp
