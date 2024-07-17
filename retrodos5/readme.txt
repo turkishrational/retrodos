@@ -41,7 +41,7 @@ Also 1 MSDOS/PCDOS bug is fixed.)
 ****
 
 Retro DOS v5 PCDOS.SYS (10/07/2024)
-             runs Windows with "win /s" switch and on FAT16 fs
+             runs Windows 3.1 with "win /s" switch and on FAT16 fs
 
        ((Also 'win' without a '/s' switch will run windows -in enhanced mode-, 
 	but, if it is started in '\windows' directory by writing 'win',
