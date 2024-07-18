@@ -1,0 +1,33 @@
+cd windows
+win
+
+(When running Windows 3.1 -enhanced mode- on PCDOS 7.1
+ or DOS 7.1 -windows 98- FAT32 aware system..
+ Windows 3.1 has a compatibility problem.. that is..)
+
+After returning from Windows 3.1 (enhanced mode) to DOS
+(except return to root directory)
+
+"File allocation table bad, drive C"
+
+error messsage will appear upon writing an internal or external command
+at dos command prompt except changing directory (CD) to root directory.
+
+The solution is to patch c:\windows\system\WIN386.EXE.
+      (and copy the patched WIN386.EXE into c:\windows\system directory)
+
+****
+ Patch SYSTEM\WIN386.EXE as follows:
+
+ Windows 3.1
+ 0005EA26: 66 C7 46 49 FF FF -> 6A FF 8F 46 49 90
+ 0005EC38: 66 C7 46 49 FF FF -> 6A FF 8F 46 49 90
+****
+
+here is location of the patched WIN386.EXE and other files:
+
+retrodos5\pcdos7_1\windows3_1_pcdos7_1_patch
+retrodos5\programs\windows3_1_pcdos_7_1
+
+Erdogan Tan - 17/07/2024
+
