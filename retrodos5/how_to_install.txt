@@ -4,7 +4,7 @@ Remember: It will run as (modified, bugfixed) IBM PCDOS 7.1.
 
 Answers:
 (to see command/utility usage summary write these commands on dos prompt
- without any argument. For exmaple: "A:\RETRODOS>RD5HDIMG".)
+ without any argument. For example: "A:\RETRODOS>RD5HDIMG".)
  
 0) New Hard (or Floppy) Disk Image
 	RD5HDIMG.COM HARDDISKIMAGENAME(.IMG) -to create hard disk image file-
