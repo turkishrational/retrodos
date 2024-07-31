@@ -1,0 +1,5 @@
+2024 modifications are not ready yet... Last Update: 31/07/2024
+
+Retro DOS v4.0&v4.1 COMMAND.COM -> usable (command5.s) -modifications not completed-
+Retro DOS v4.2 COMMAND.COM -> usable (command6.s) -modifications not completed- 
+Retro DOS v5.0 COMMAND.COM -> not ready (1/3 completed) (command7.s)
