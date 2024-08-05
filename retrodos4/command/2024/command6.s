@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 6.22 Command Interpreter) - RETRO DOS v4.2 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update:  03/08/2024 (v6.22 - 2024 optimization)
+; Last Update:  06/08/2024 (v6.22 - 2024 optimization)
 ;		19/06/2023 (v6.22) ((Previous: 05/05/2023 COMMAND.COM v5.0))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
@@ -23503,18 +23503,22 @@ NOREDIR:
 	pop	ax
 	pop	dx
 	pop	ds
+IOSET_RETN:	; 06/08/2024
 	retn
 
 ; =============== S U B	R O U T	I N E =======================================
 
 	; 26/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2CF3h
+	; 06/08/2024
 TESTDOREOUT:
 	cmp	byte [Re_OutStr],0
 	;je	short NOREOUT  ; MSDOS 3.3
 	; 26/02/2023
-	jne	short REOUTEXISTS
-	jmp	NOREOUT 
+	;jne	short REOUTEXISTS
+	;jmp	NOREOUT
+	; 06/08/2024
+	jz	short IOSET_RETN
 REOUTEXISTS:
 	cmp	byte [Re_Out_App],0
 	je	short REOUTCRT
@@ -23527,7 +23531,7 @@ REOUTEXISTS:
 	mov	ax,3D02h
 	; MSDOS 3.3
 	;mov	ax,(OPEN<<8)|1  ; 3D01h ; Open for write
-	
+
 	; MSDOS 3.3 (& MSDOS 6.0)
 	push	ax
 	int	21h	; DOS -	2+ - OPEN DISK FILE WITH HANDLE
@@ -23558,7 +23562,7 @@ REOUTEXISTS:
 			; AL = method: offset from end of file
 	push	cs			;AN011; Get transient seg to DS
 	pop	ds			;AN011;
-	
+
 	;mov	ax,(READ SHL 8) 	;AN011; Read one byte from the
 	mov	ax,3F00h
 	mov	cx,1			;AN011;  file into one_char_val
@@ -23570,11 +23574,11 @@ REOUTEXISTS:
 	jc	short OpenWriteError	;AN011; If error, exit
 	cmp	ax,cx			;AN017; Did we read 1 byte?
 	jnz	short reout_0_length	;AN017; No - file must be 0 length
-	
+
 	cmp	byte [One_Char_Val],1Ah	;AN011; Was char an eof mark?
 	mov	ds,[RESSEG]		;AN011; Get resident segment back
 	jne	short SET_REOUT		;AN011; No, just continue
-	
+
 	;mov	ax,(LSEEK<<8)|1		;AN011; EOF mark found
 	mov	ax,4201h
 	mov	cx,-1			;AN011; LSEEK back one byte
@@ -23606,9 +23610,9 @@ reout_0_length: 			;AN017; We have a 0 length file
 	;int	21h	; DOS -	2+ - MOVE FILE READ/WRITE POINTER (LSEEK)
 	;		; AL = method: offset from end of file
 	;jmp	short SET_REOUT
-		
+
 	; MSDOS 3.3 (& MSDOS 6.0)
-OpenWriteError:	
+OpenWriteError:
 	;cmp	ax,5
 	cmp	ax,ERROR_ACCESS_DENIED
 	stc
@@ -23618,7 +23622,7 @@ OpenWriteError:
 	;jmp	REDIRERR
 	je	short REDIRERR
 
-REOUTCRT:	
+REOUTCRT:
 	mov	dx,Re_OutStr
 	xor	cx,cx
 	;mov	ah,CREAT ; 3Ch
@@ -23633,7 +23637,7 @@ REOUTCRT:
 	;jnc	short NOREDIRERR
 	;jmp	REDIRERR
 	jc	short REDIRERR
-	
+
 NOREDIRERR:
 	mov	bx,ax
 SET_REOUT:
@@ -23645,17 +23649,21 @@ SET_REOUT:
 	;xchg	al,[bx+18h]
 	xchg	al,[bx+PDB.JFN_TABLE]
 	mov	[PDB.JFN_TABLE+1],al
+	; 06/08/2024
 NOREOUT:
-IOSET_RETN:	; 17/04/2023
+;IOSET_RETN:	; 17/04/2023
 	retn
 
 ; =============== S U B	R O U T	I N E =======================================
 
 	; 26/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2CABh
+	; 06/08/2024
 TESTDOREIN:
 	cmp	byte [cs:RE_INSTR],0
-	jz	short IOSET_RETN
+	;jz	short IOSET_RETN
+	; 06/08/2024
+	jz	short NOREOUT
 	push	ds
 	push	cs
 	pop	ds
