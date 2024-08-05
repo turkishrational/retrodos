@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 6.22 Command Interpreter) - RETRO DOS v4.2 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update:  31/07/2024 (v6.22 - 2024 optimization)
+; Last Update:  03/08/2024 (v6.22 - 2024 optimization)
 ;		19/06/2023 (v6.22) ((Previous: 05/05/2023 COMMAND.COM v5.0))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
@@ -8739,7 +8739,9 @@ cXMMexit:
 	; 30/01/2023
 	;db "30/1/2023 ETAN"	
 	; 19/06/2023
-	db "19/6/2023 ETAN"	
+	;db "19/6/2023 ETAN"
+	; 31/07/2024
+	db "31/7/2024 ETAN"	
 	db 0
 
 ; 30/01/2023
@@ -16978,7 +16980,7 @@ DisplayDotForm:
 	; 08/06/2023
 	mov	cx,8
 	mov	di,cx
-	add	di,bx	
+	add	di,bx
 
 	mov	al,' '
 	std				; scan down
@@ -17072,7 +17074,7 @@ ddDone:
 ;
 ;	EFFECTS
 ;
-;	  Entry is displayed.  
+;	  Entry is displayed.
 ;	  If not /b,
 ;	    Cursor is left at end of entry on screen.
 ;	    FileCnt, FileCntTotal, FileSiz, FileSizTotal are updated.
@@ -17091,7 +17093,7 @@ DisplayFile:
 	;;test	word [_Bits],8
 	;test	byte [_Bits],8
 	; 08/06/2023
-	test	byte [_Bits],mask.bare ; 16 ; MSDOS 6.0 
+	test	byte [_Bits],mask.bare ; 16 ; MSDOS 6.0
 	jz	short dfNorm		; not /b - do normal display
 
 	call	DisplayBare		; display file in bare format
@@ -17102,7 +17104,7 @@ dfNorm:
 	;;test	word [_Bits],1
 	;test	byte [_Bits],1
 	; 08/06/2023
-	test	byte [_Bits],mask.wide ; 2 ; MSDOS 6.0 
+	test	byte [_Bits],mask.wide ; 2 ; MSDOS 6.0
 	jz	short dfFull		; full format
 	call	DisplayWide		; wide format
 	jmp	short dfCnt
@@ -17114,8 +17116,8 @@ dfFull:
 	; MSDOS 6.0
 ;ifdef DBLSPACE_HOOKS
 	;;test	Bits,mask cratio
-	;test	word [_Bits],1		
-	test	byte [_Bits],mask.cratio 
+	;test	word [_Bits],1
+	test	byte [_Bits],mask.cratio
 					; display compression ratio
 	jz	short dfCnt
 	call	DisplayCompRatio
@@ -17139,7 +17141,7 @@ dhRet:	; 19/02/2023
 ;	ERROR EXIT
 ;
 ;	  Build_Dir_String will exit through CError with "Invalid drive
-;	   specification" if there's a problem obtaining the current 
+;	   specification" if there's a problem obtaining the current
 ;	   directory pathname.
 ;
 ;	USED	AX,DX,SI,DI
@@ -17165,7 +17167,7 @@ DisplayHeader:
 	;;test	word [_Bits],4
 	;test	byte [_Bits],4
 	; 08/06/2023
-	test	byte [_Bits],mask.subd ; 8  ;MSDOS 6.0
+	test	byte [_Bits],mask.subd ; 8 ; MSDOS 6.0
 	jz	short dhNorm		; not /s
 
 ;	For subdirectory listings, put a blank line before the header.
@@ -17319,7 +17321,7 @@ dnDone:
 
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:1A7Ch
-DisplayTheRest	:
+DisplayTheRest:
 	push	es			; save TRANGROUP seg addr
 	mov	es,[TPA]		; ES = TPA seg addr
 	mov	bp,bx			; BP = offset of entry in TPA
@@ -17532,6 +17534,7 @@ DisplayWide:
 	;;test	ds:[bx].fileattr,ATTR_DIRECTORY
 	;test	byte [bx+EntryStruc.fileattr],10h
 	test	byte [bx+12],ATTR_DIRECTORY
+	pushf	; 03/08/2024
 	jz	short dw1		; not a subdirectory file
 	mov	al,'['
 	call	PRINT_CHAR		; prefix subdirectory
@@ -17542,7 +17545,9 @@ dw1:
 
 	;;test	ds:[bx].fileattr,ATTR_DIRECTORY
 	;test	byte [bx+EntryStruc.fileattr],10h
-	test	byte [bx+12],ATTR_DIRECTORY
+	; 03/08/2024
+	;test	byte [bx+12],ATTR_DIRECTORY
+	popf	; 03/08/2024
 	jz	short dw2		; not a subdirectory file
 	mov	al,']'
 	call	PRINT_CHAR		; postfix subdirectory
@@ -19067,7 +19072,7 @@ gtbuf:
 typ_read:
 	;mov	ah,read
 	mov	ah,3Fh
-	int	21h		
+	int	21h
 	jnc	short tf2	;M043
 	jmp	typerr		;M043
 tf2:				;M043
@@ -19589,7 +19594,7 @@ PRINT_PROMPT:
 	pop	ds		; Make sure DS is in TRANGROUP
 	push	es
 	call	find_prompt	; Look for prompt string
-	jc	short PP0	; Can't find one	
+	jc	short PP0	; Can't find one
 	cmp	byte [es:di],0
 	jnz	short PP1
 PP0:				; Use default prompt
@@ -19783,7 +19788,6 @@ build_dir_for_chdir:
 	; 21/02/2023
 	;jmp	short doprint
 	jmp	std_printf
-
 
 ; =============== S U B	R O U T	I N E =======================================
 
@@ -21126,10 +21130,10 @@ delete_name_in_environment:
 	xchg	si,di
 ;SR;
 ; If we have only one env string, then the double null is lost when the last
-;string is deleted and we have an invalid empty environment with only a 
+;string is deleted and we have an invalid empty environment with only a
 ;single null. To avoid this, we will look for the double null case and then
 ;move an extra null char.
-; Bugbug: The only possible problem is that the last pathstring 
+; Bugbug: The only possible problem is that the last pathstring
 ;will be followed by a triple null. Is this really a problem?
 
 	; MSDOS 6.0
@@ -21461,7 +21465,7 @@ store_char:
 
 	; MSDOS 3.3 (& MSDOS 6.0)
 	call	GETENVSIZ
-	mov	bx,cx		; Save room for double nul	
+	mov	bx,cx		; Save room for double nul
 	sub	bx,2
 	cmp	di,bx
 	jb	short store1
@@ -21472,7 +21476,7 @@ store_char:
 	pop	bx
 	add	bx,2		; Recover true environment size
 
-	cmp	bx,8000h	; Don't let environment grow > 32K	
+	cmp	bx,8000h	; Don't let environment grow > 32K
 	jb	short envsiz_ok
 bad_env_size:			;AN056;
 	stc
@@ -21534,7 +21538,7 @@ GETENVSIZ:
 	push	es
 	push	ax
 	mov	ax,es
-	dec	ax		;Point at arena	
+	dec	ax		;Point at arena
 	mov	es,ax
 	;mov	ax,[es:3]
 	mov	ax,[es:ARENA.size]
@@ -21569,7 +21573,7 @@ RestUDir:
 	;call	SETREST
 	;retn
 	; 24/02/2023
-	jmp	SETREST	
+	jmp	SETREST
 
 ;============================================================================
 ; TENV2.ASM, MSDOS 6.0, 1991
@@ -22003,7 +22007,7 @@ set_ext_error_subst:
 					;AN022; set up extended error msg class
 	mov	[string_ptr_2],dx 	;AN022; get address of failed string
 	;mov	byte [extend_buf_sub],1
-	mov	byte [extend_buf_sub],one_subst 
+	mov	byte [extend_buf_sub],one_subst
 	;AN022; put number of subst in control block
 	mov	dx,extend_buf_ptr 	;AN022; get extended message pointer
 	mov	[extend_buf_ptr],ax	;AN022; get message number in control block
@@ -25347,8 +25351,8 @@ path_search_ok:
 	call	PSEARCH		; must do at least one search
 	or	ax,ax		; find anything?
 	jz	short path_noinit
-				; failure ... search farther	
-	mov	bp,ax		; success... save filetype code	
+				; failure ... search farther
+	mov	bp,ax		; success... save filetype code
 	mov	di,EXECPATH
 	;mov	si,ds:arg.argv[0].argpointer
 	;mov	si,[ARG_ARGV]
@@ -25381,7 +25385,7 @@ movedrive:
 	sub	cx,2		; 2 bytes less to move
 checkpath:
 	or	al,20h
-	mov	dl,al		
+	mov	dl,al
 	;sub	dl,60h
 	sub	dl,'a'-1	; convert to 1-based for current dir
 
@@ -25442,7 +25446,7 @@ movepath:
 	inc	si		; move past leading char
 	dec	cx		; drop from count
 copypath:
-	jcxz	_copydone	; no chars to move!	
+	jcxz	_copydone	; no chars to move!
 	rep	movsb
 _copydone:
 	jmp	path_success
@@ -25469,8 +25473,8 @@ path_loop:
 	call	path_crunch	; pcrunch (EXECPATH, pathinfo)
 	mov	bp,ax		; save filetype code
 	lahf			; save flags, just in case
-	or	bp,bp		; did path_crunch find anything?		
-	jnz	short path_found 
+	or	bp,bp		; did path_crunch find anything?
+	jnz	short path_found
 	sahf			; see? needed those flags, after all!
 	jnc	short path_loop	; is there anything left to the path?
 path_failure:
@@ -25479,7 +25483,7 @@ path_failure:
 
 path_found:				; pathinfo[] points to winner
 	mov	di,EXECPATH
-	;mov	cx,pathinfo[4] 
+	;mov	cx,pathinfo[4]
 	mov	cx,[pathinfo+4]	; "new" pointer -- end of string
 	;mov	si,pathinfo[2]
 	mov	si,[pathinfo+2]	; "old" pointer -- beginning of string
@@ -25577,7 +25581,7 @@ path_success:
 	xor	cx,cx
 path_succ_loop:
 	lodsb			; append winning filename to path
-	stosb			; (including terminating null)	
+	stosb			; (including terminating null)
 	or	al,al
 	jnz	short path_succ_loop
 	mov	ax,bp		; retrieve filetype code
@@ -25663,7 +25667,7 @@ path_crunch:
 				; replace with pointer to userpath's
 	pop	ds		; segment
 	; 26/04/2023
-	xor	cl,cl		;AN000; clear flag for later use 3/3/KK	
+	xor	cl,cl		;AN000; clear flag for later use 3/3/KK
 path_cr_copy:
 	lodsb			; get a pathname byte
 	or	al,al		; check for terminator(s)
@@ -25677,7 +25681,7 @@ path_cr_copy:
 	jz	short _notkanj2	;AN000; 3/3/KK
 	stosb			;AN000; 3/3/KK
 	movsb			;AN000; 3/3/KK
-	mov	cl,1 ; *	;AN000; CL=1 means latest stored char is DBCS 3/3/KK	
+	mov	cl,1 ; *	;AN000; CL=1 means latest stored char is DBCS 3/3/KK
 	jmp	short path_cr_copy
 _notkanj2:
 	xor	cl,cl ; *	;AN000; CL=0 means latest stored char is SBCS 3/3/KK
@@ -25691,7 +25695,7 @@ path_seg:
 	mov	bl,al		; remember if we saw null or not...
 				;;; REMOVE NEXT 3 LINES FOR CURDIR SPEC
 	xor	ax,ax		; in case nothing in pathstr...
-	cmp	di,TPBUF	; was there really anything in pathstr?		
+	cmp	di,TPBUF	; was there really anything in pathstr?
 	je	short path_cr_leave
 				; if nothing was copied, pathstr empty
 path_cr_look:
@@ -25714,7 +25718,7 @@ path_cr_l2:
 	stosb			; the end of the path, up to and
 	or	al,al		; including the terminating null
 	jnz	short path_cr_l2
-	mov	dx,TPBUF	; and look for an appropriate file...	
+	mov	dx,TPBUF	; and look for an appropriate file...
 	mov	word [search_error],BADPMES_PTR
 	;invoke search
 	call	PSEARCH		; results are in AX & search_best_buf
@@ -25736,7 +25740,7 @@ path_cr_l2:
 path_cr_leave:
 	;popf ; ** ; 18/03/2023
 	cmp	bl,1	; if bl = 0 -> cf = 1 (path_cr_empty:)
-	
+
 path_cr_exit:
 	pop	si
 	pop	di
@@ -25810,7 +25814,7 @@ SEARCH_DIR_CHECK:
 	int	21h	; DOS -	2+ - GET CURRENT DIRECTORY
 			; DL = drive (0=default,1=A,etc.)
 			; DS:SI	points to 64-byte buffer area
-	pop	dx		; directory? If we can't we'll		
+	pop	dx		; directory? If we can't we'll
 	jc	short SEARCH_INVALID_DRIVE
 				; assume it's a bad drive...
 	mov	cx,search_attr	; 13h
@@ -25829,9 +25833,9 @@ SEARCH_LOOP:
 	cmp	al,[search_best]
 				; better than what we've found so far?
 	jle	short SEARCH_NEXT
-				; no, look for another	
+				; no, look for another
 	mov	[search_best],al
-				; found something... save its code	
+				; found something... save its code
 	;mov	si,offset TRANGROUP:fbuf.find_buf_pname
 	;mov	si,FBUF_PNAME
 	mov	si,FBUF+FIND_BUF.PNAME ; FBUF+30
@@ -25840,7 +25844,7 @@ SEARCH_LOOP:
 	cld
 	rep	movsb		; save complete pathname representation
 	cmp	al,SEARCH_COM	; 8
-				; have we found the best of all?	
+				; have we found the best of all?
 	je	short SEARCH_DONE
 SEARCH_NEXT:			; keep on looking
 	mov	cx,search_attr ; 13h
@@ -40726,7 +40730,7 @@ errparsenv_ptr:
 	db	no_subst ; 0		; number of subst
 
 	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
-	; (MSDOS 6.22 COMMAN.COM - TRANGROUP:996Ah)
+	; (MSDOS 6.22 COMMAND.COM - TRANGROUP:996Ah)
 cox_Y_quest_ptr:
 	dw	1082
 	db	no_subst ; 0
@@ -42121,8 +42125,9 @@ parse_last:
 	dw 0			;AN018; used to hold parsing position
 system_cpage:
 	dw 0			;AC001; used for CHCP variable
-Arg_Buf:
-	times 128 db 0	
+; 03/08/2024
+;Arg_Buf:
+;	times 128 db 0	
 File_Size_Low:
 	dw 0	
 File_Size_High:
@@ -42351,7 +42356,9 @@ ARG_ARGFORCOMBUF:
 	; MSDOS 6.22 COMMAND.COM (1994) Transient portion offset 0AD19h
 ARGBUF_PTR:
 	dw 0			; index for argv[].argpointer
-TPBUF:	times 128 db 0		; temporary buffer
+TPBUF:	;times 128 db 0		; temporary buffer
+Arg_Buf:
+	times 128 db 0	; 03/08/2024 (PCDOS 7.1 COMMAND.COM)
 LASTARG:
 	dw 0			; point at which to accumulate switch info
 COMPTR:	dw 0			; ptr into combuf

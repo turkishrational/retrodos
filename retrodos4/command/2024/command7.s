@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (PCDOS 7.1 Command Interpreter) - RETRO DOS v5.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 31/07/2024
+; Last Update: 04/08/2024
 ; ----------------------------------------------------------------------------
 ; Beginning: 18/07/2024 (v7.1) - ((Previous: 19/06/2023 COMMAND.COM v6.22))
 ; ----------------------------------------------------------------------------
@@ -2081,8 +2081,12 @@ FUCase_Addr:	times 5 db 0 ; db 5 dup (0)
 				; buffer for file ucase address
 ; Bugbug: don't need crit_msg_ anymore?
 
+; 04/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 Crit_Msg_Off:	dw	0	; saved critical error message offset
 Crit_Msg_Seg:	dw	0	; saved critical error message segment
+%endif
+
 Dbcs_Vector_Addr: dw	0	; DBCS vector offset
 		 dw	0	; DBCS vector segment
 Append_State:	dw	0	; current state of append
@@ -2164,7 +2168,7 @@ EndPipe	equ	PipeStr+129	; EndInit+289
 ; 05/06/2023 - Retro DOS v4.2 COMMAND.COM (compatible with MSDOS 6.22)
 ; MSDOS 6.22 COMMAND.COM - RESGROUP:03EAh 
 
-; 18/07/2024 - Retro DOS v5.0 COMMAN.COM
+; 18/07/2024 - Retro DOS v5.0 COMMAND.COM
 ; PCDOS 7.1 COMMAND.COM - RESGROUP:041Eh
 
 EndInit:
@@ -7832,7 +7836,8 @@ NoKabat:					; 3/3/kk
 	cmp	ax,65				; network access denied?
 	jnz	short OpenErr 			; no - go deallocate batch
 
-%endif	; 06/06/2023 - Retro DOS 4.2 COMMAND.COM
+%endif	
+	; 06/06/2023 - Retro DOS 4.2 COMMAND.COM
 	; 21/01/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 
 AccDenErr:					; yes - put out message
@@ -9513,7 +9518,9 @@ cXMMexit:
 	; 30/01/2023
 	;db "30/1/2023 ETAN"	
 	; 19/06/2023
-	db "19/6/2023 ETAN"	
+	;db "19/6/2023 ETAN"
+	; 31/07/2024
+	db "31/7/2024 ETAN"	
 	db 0
 
 ; 30/01/2023
@@ -16699,11 +16706,11 @@ dtFree_2:
 	mov	[Bytes_Free+2],ax
 	or	dx,dx		; is dx	> 0 ?
 	jz	short dtFree_3	; no
-	mov	dx,kbytes_ptr	; MSG_1106 (".. K bytes free" msg)
+	mov	dx,kbytesf_ptr	; MSG_1106 (".. K bytes free" msg)
 				; 30 digits, long binary do decimal
 	cmp	byte [bfree_not_kilo],0
 	jz	short dtFree_5
-	mov	dx,kbytes_ptr	; MSG_1106
+	mov	dx,kbytesf_ptr	; MSG_1106
 				; ".. K	bytes free" msg, 28 digits
 	jmp	short dtFree_5
 dtFree_3:
@@ -18194,8 +18201,6 @@ dbRet:	; 19/02/2023
 
 ; ---------------------------------------------------------------------------
 
-; burada kaldým... 31/07/2024
-
 ;***	DisplayBare - display filename in bare format
 ;
 ;	ENTRY	BX = offset of entry in TPA buffer
@@ -18216,9 +18221,11 @@ dbRet:	; 19/02/2023
 	; 19/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:1775h
 
-
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:1900h
+
+	; 01/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:19ADh
 
 DisplayBare:
 ;	Suppress . and .. files from bare listing.
@@ -18236,7 +18243,8 @@ DisplayBare:
 	;;test	word [_Bits],4
 	;test	byte [_Bits],4
 	; 08/06/2023
-	test	byte [_Bits],mask.subd ; 8 ; MSDOS 6.0
+	test	byte [_Bits],mask.subd	; 8 ; MSDOS 6.0
+			; 01/08/2024    ; 4 ; PCDOS 7.1	
 	jz	short dbNameExt		; not /s - display filename only
 
 	;invoke	Build_Dir_String
@@ -18249,6 +18257,7 @@ DisplayBare:
 	;test	byte [_Bits],10h
 	; 08/06/2023
 	test	byte [_Bits],mask.lcase ; 20h ; MSDOS 6.0
+			; 01/08/2024	; 10h ; PCDOS 7.1
 	;jz	@F			;M010;lowercase not needed
 	jz	short dbare1
 	mov	si,di			;M010;DS:SI --> ASCIIZ string in BwdBuf	
@@ -18263,17 +18272,36 @@ dbare1:
 	repne	scasb			; ES:DI = ptr to byte after null
 	dec	di			; ES:DI = ptr to null byte
 
+; 01/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 1 ; *!
+;ifdef DBCS
+	push	si ; *!
+	push	di
+	;mov	si,offset TRANGROUP:BwdBuf
+	mov	si,BWDBUF
+	dec	di
+	call	CheckDBCSTailByte
+	pop	di
+	; 01/08/2024
+	;pop	si ; *!
+	jz	short dbTailByte	; if last char is double byte
+;endif
+%endif
 	cmp	byte [es:di-1],'\'
 	;je	@F
 	je	short dbare2		; already terminated w/ '\'
 
+dbTailByte:	; 01/08/2024
 	;mov	ax,'\'			; AX = '\',0
 	mov	al,'\'
 	stosw				; add to dir string
 ;@@:
 dbare2:
-	;mov	String_Ptr_2,offset TRANGROUP:BwdBuf
-	mov	word [string_ptr_2],BWDBUF
+	;;mov	String_Ptr_2,offset TRANGROUP:BwdBuf
+	;mov	word [string_ptr_2],BWDBUF ; *!
+	; 01/08/2024
+	mov	[string_ptr_2],si ; BWDBUF ; *!
+	pop	si ; *!
 	;mov	dx,offset TRANGROUP:String_Buf_Ptr
 	mov	dx,string_buf_ptr
 	;invoke	Std_Printf		; display device & directory path
@@ -18302,6 +18330,9 @@ dbNameExt:
 
 	; 19/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:1A04h
+
+	; 01/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:1D58h
 UseLine:
 	dec	word [LeftOnPage]
 	cmp	word [LeftOnPage],2
@@ -18336,12 +18367,16 @@ UseLine:
 
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:1BADh
+
+	; 01/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:1D0Ch
 EndPage:
 	;;;test	Bits,mask pagd
 	;;test	word [_Bits],2
 	;test	byte [_Bits],2
 	; 08/06/2023
 	test	byte [_Bits],mask.pagd ; 4 ; MSDOS 6.0
+			; 01/08/2024   ; 2 ; PCDOS 7.1	
 	jz	short epNew		; paged display isn't enabled
 
 	push	bx			; save BX
@@ -18397,6 +18432,9 @@ ulRet:
 
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:1953h
+
+	; 01/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:1A0Dh
 DisplayDotForm:
 	push	ds			; save TRANGROUP seg addr
 	push	es			; save ES
@@ -18435,19 +18473,42 @@ NextNameChar:
 	cld
 	lodsb				; AL = next char
 
+; 01/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 1
+;ifdef DBCS
+	;invoke	testkanj
+	;jz	@f			; if this is not lead byte
+	call	testkanj
+	jz	short ddf3
+	;invoke	Print_Char		; display lead byte
+	call    PRINT_CHAR
+	dec	cx
+	jz	short ExtChar		; if this is end
+	lodsb				; get tail byte
+	;jmp	short NameChar10	; display tail byte
+	jmp	short ddf1
+;@@:
+ddf3:
+;endif
+%endif
 	;;;test	Bits,mask lcase		;M010;check for lowercase option
 	;;test	word [ss:_Bits],10h
 	;test	byte [ss:_Bits],10h
 	; 08/06/2023
 	test	byte [ss:_Bits],mask.lcase ; 20h ; MSDOS 6.0
+			; 01/08/2024	   ; 10h ; PCDOS 7.1
 	;jz	short @F		;M010;lowercase not required
 	jz	short ddf1
 	call	LowerCase		;M010;filename char is in AL
+
+;NameChar10:
 ddf1:
 ;@@:	
 	;invoke	Print_Char		; display it
 	call	PRINT_CHAR
 	loop	NextNameChar
+
+ExtChar:	; 01/08/2024
 
 ;	Now do extension.
 
@@ -18475,11 +18536,30 @@ NextExtChar:
 	cld
 	lodsb				; AL = next char
 
+; 01/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 1
+;ifdef DBCS
+	;invoke	testkanj
+	;jz	@f			; if this is not lead byte
+	call	testkanj
+	jz	short ddf4
+	;invoke	Print_Char		; display lead byte
+	call    PRINT_CHAR
+	dec	cx
+	jz	short ddDone		; if this is end
+	lodsb				; get tail byte
+	;jmp	short ExtChar10		; display tail byte
+	jmp	short ddf2
+;@@:
+ddf4:
+;endif
+%endif
 	;;;test	CS:Bits,mask lcase	;M010;check for lowercase option
 	;;test	word [cs:_Bits],10h
 	;test	byte [cs:_Bits],10h
 	; 08/06/2023
 	test	byte [cs:_Bits],mask.lcase ; 20h ; MSDOS 6.0
+			; 01/08/2024	   ; 10h ; PCDOS 7.1
 	;jz	short @F		;M010;lowercase not required
 	jz	short ddf2
 	call	LowerCase		;M010;fileext char is in AL
@@ -18522,12 +18602,16 @@ ddDone:
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:19B9h
 
+	; 01/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:1A8Fh
+
 DisplayFile:
 	;;;test	Bits,mask bare
 	;;test	word [_Bits],8
 	;test	byte [_Bits],8
 	; 08/06/2023
-	test	byte [_Bits],mask.bare ; 16 ; MSDOS 6.0 
+	test	byte [_Bits],mask.bare ; 16 ; MSDOS 6.0
+			; 01/08/2024	; 8 ; PCDOS 7.1
 	jz	short dfNorm		; not /b - do normal display
 
 	call	DisplayBare		; display file in bare format
@@ -18538,24 +18622,28 @@ dfNorm:
 	;;test	word [_Bits],1
 	;test	byte [_Bits],1
 	; 08/06/2023
-	test	byte [_Bits],mask.wide ; 2 ; MSDOS 6.0 
+	test	byte [_Bits],mask.wide ; 2 ; MSDOS 6.0
+			; 01/08/2024   ; 1 ; PCDOS 7.1
 	jz	short dfFull		; full format
 	call	DisplayWide		; wide format
 	jmp	short dfCnt
 dfFull:	
 	call	DisplayName		; display filename & extension
 	call	DisplayTheRest		; display size, date, time
-	
+
+; 01/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0	
 	; 08/06/2023 - Retro DOS v4.2 - MSDOS 6.22 COMMAND.COM
 	; MSDOS 6.0
 ;ifdef DBLSPACE_HOOKS
 	;;test	Bits,mask cratio
-	;test	word [_Bits],1		
-	test	byte [_Bits],mask.cratio 
+	;test	word [_Bits],1
+	test	byte [_Bits],mask.cratio
 					; display compression ratio
 	jz	short dfCnt
 	call	DisplayCompRatio
 ;endif
+%endif
 
 dfCnt:
 	call	CountFile		; update file counters
@@ -18575,7 +18663,7 @@ dhRet:	; 19/02/2023
 ;	ERROR EXIT
 ;
 ;	  Build_Dir_String will exit through CError with "Invalid drive
-;	   specification" if there's a problem obtaining the current 
+;	   specification" if there's a problem obtaining the current
 ;	   directory pathname.
 ;
 ;	USED	AX,DX,SI,DI
@@ -18595,13 +18683,15 @@ DisplayHeader:
 	;test	byte [_Bits],8
 	; 08/06/2023
 	test	byte [_Bits],mask.bare ; 10h ; MSDOS 6.0
+			; 01/08/2024	; 8 ; PCDOS 7.1
 	jnz	short dhRet		; /b - don't display header
 
 	;;;test	Bits,mask subd
 	;;test	word [_Bits],4
 	;test	byte [_Bits],4
 	; 08/06/2023
-	test	byte [_Bits],mask.subd ; 8  ;MSDOS 6.0
+	test	byte [_Bits],mask.subd ; 8 ; MSDOS 6.0
+			; 01/08/2024   ; 4 ; PCDOS 7.1
 	jz	short dhNorm		; not /s
 
 ;	For subdirectory listings, put a blank line before the header.
@@ -18644,6 +18734,7 @@ dhCom:
 
 	; 19/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 01/08/2024 - Retro DOS v5.0 COMMAND.COM
 
 DisplayName:
 	push	ds			; save TRANGROUP seg addr
@@ -18676,6 +18767,7 @@ DisplayName:
 	;test	byte [_Bits],10h
 	; 08/06/2023
 	test	byte [_Bits],mask.lcase ; 20h ; MSDOS 6.0
+			; 01/08/2024	; 10h ; PCDOS 7.1
 	jz	short dn1		;M010;lowercase not required
 	mov	si,CHARBUF		;M010;DS:SI --> ASCIIZ string
 	call	LowercaseString		;M010;filename.ext string is in CharBuf
@@ -18708,6 +18800,7 @@ dn1:
 
 	; 19/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 01/08/2024 - Retro DOS v5.0 COMMAND.COM
 	
 DisplayNext:
 	cmp	word [FileCnt],0
@@ -18755,7 +18848,11 @@ dnDone:
 
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:1A7Ch
-DisplayTheRest	:
+
+	; 01/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:1B47h
+
+DisplayTheRest:
 	push	es			; save TRANGROUP seg addr
 	mov	es,[TPA]		; ES = TPA seg addr
 	mov	bp,bx			; BP = offset of entry in TPA
@@ -18764,8 +18861,20 @@ DisplayTheRest	:
 	test	byte [es:bp+12],ATTR_DIRECTORY
 	jz	short drNonDir		; not a directory file
 
+; 01/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 1
+	cmp	byte [nocommas],0	; no commas ?
+	jnz	short dr_2		; yes
+	mov	word [string_ptr_2],twospacechars ; db "  ",0
+	mov	dx,string_buf_ptr
+	call	std_printf
+dr_2:
+%endif
+
 ;	For a directory file, display <DIR> instead of size.
 
+; 01/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	mov	dx,dmes_ptr
 	call	std_printf
 	; 08/06/2023
@@ -18779,6 +18888,16 @@ DisplayTheRest	:
 	call    std_printf
 dr_0:
 	jmp	short drCom		; skip to common fields
+%else
+	; 01/08/2024 - PCDOS 7.1 COMMAND.COM
+	mov	dx,dmes_ptr		; MSG_1068
+	cmp	byte [bfree_not_kilo],0 ; size will be displayed as kilobyte ?
+	jz	short dr_3		; yes
+	mov	dx,space_4_ptr		; 4 space chars
+dr_3:
+	call	std_printf
+	jmp	short drCom	
+%endif
 
 drNonDir:
 ;	For a non-directory file, display file size.
@@ -18792,6 +18911,19 @@ drNonDir:
 	mov	dx,[es:bp+19]
 	mov	[File_Size_High],dx
 	mov	dx,disp_file_size_ptr
+
+; 01/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 1
+	cmp	byte [narrow],0
+	jnz	short dr_4		; narrow display
+	mov	dx,disp_file_size_w_ptr	; big file (wide)
+dr_4:
+	cmp	byte [bfree_not_kilo],0
+	jz	short dr_5		; big file
+	mov	dx,disp_file_size_n_ptr ; not big file
+dr_5:	
+%endif
+
 	call	std_printf
 drCom:
 ;	For all files, display date & time.
@@ -18799,8 +18931,18 @@ drCom:
 	;;mov	ax,es:[bp].filedate	; AX = date word
 	;mov	ax,[es:bp+EntryStruc.filedate]
 	mov	ax,[es:bp+15]
+
+; 01/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	or	ax,ax			; test for null date (DOS 1.x)
 	jz	short drDone		; no date, skip date/time display
+%else
+	or	ax,ax
+	jnz	short dr_6
+	jmp	drDone
+dr_6:
+%endif
+
 	mov	bx,ax			; BX = date word
 	and	ax,1Fh			; AX = day of month
 	mov	dl,al			; DL = day of month
@@ -18812,10 +18954,24 @@ drCom:
 	mov	cl,bh
 	shr	cl,1			; CL = year - 1980
 	xor	ch,ch			; CX = year - 1980
+
+; 01/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
+	; MSDOS 5.0-6.22
 	add	cx,80			; CX = 2-digit year
 	cmp	cl,100
 	jb	short dr_1		; not year 2000 yet, skip ahead
 	sub	cl,100			; adjust for 21st century
+%else
+	; PCDOS 7.1
+	add	cx,1980			; CX = 4-digit year
+	cmp	byte [yeardigit4],0	; 4 digits year display ?
+	jnz	short dr_1		; yes
+	sub	cx,2000			; after	year 2000 (21st century)
+	jns	short dr_1
+	add	cx,100			; before year 2000 (20th century)
+%endif
+
 dr_1:	
 	xchg	dh,dl			; DX = month/day
 	mov	[DirDat_Yr],cx		; move year to msg block
@@ -18832,18 +18988,49 @@ dr_1:
 	xchg	ch,cl			; CX = hr/min
 	mov	[DirTim_Hr_Min],cx	; move time to msg block
 drPrint:
+; 01/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 1
+	mov	word [dirdattim_ptr],1077 ; MSG_1077 (normal)
+	mov	byte [DirDat_form],0A4h   ; Right_Align+DATE_MDY_2
+	mov	word [DirDat_width],80Ah  ; 10 (max), 8 (min)
+	cmp	byte [narrow],0
+	jnz	short dr_narrow
+	mov	word [dirdattim_ptr],1075 ; MSG_1075 (narrow)
+	add	word [DirDat_width],202h  ; 12 (max), 10 (min)
+dr_narrow:
+	cmp	byte [yeardigit4],0
+	jz	short dr_7		 ; 2 digits year display
+		; 4 digits year display
+	mov	byte [DirDat_form],0B4h  ; Right_Align+DATE_MDY_4
+	add	word [DirDat_width],202h ; 12 (max), 10 (min)
+dr_7:	
+%endif
 	mov	dx,dirdattim_ptr
 	call	std_printf		; print date & time
+
+; 01/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 1
+	; restore message data format fields (to the default values)
+	mov	word [dirdattim_ptr],1077 ; MSG_1077
+	mov	byte [DirDat_form],0A4h   ; Right_Align+DATE_MDY_2
+	mov	word [DirDat_width],80Ah  ; 10 (max), 8 (min)
+	mov	word [DirDat_Yr],0
+	mov	word [DirDat_Mo_Day],0
+	mov	word [DirTim_Hr_Min],0
+%endif
+
 drDone:
 	pop	es			; ES = TRANGROUP seg addr again	
 	mov	bx,bp			; BX = offset of entry in TPA again
-;dtrRet:
+dtrRet:		; 03/08/2024
 	; 19/02/2023
 	retn
 
 ; ---------------------------------------------------------------------------
 ; MSDOS 6.0
 
+; 01/08/2024 - Retro DOS v5.0 - PCDOS 7.1 COMMAND.COM
+%if 0
 ;ifdef DBLSPACE_HOOKS
 
 ;***	DisplayCompRatio - display compression ratio
@@ -18861,7 +19048,7 @@ drDone:
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:1B09h
 
-DisplayCompRatio:	;proc
+DisplayCompRatio: ;proc
 	push	es			; save TRANGROUP seg addr
 	mov	es,[TPA]		; ES = TPA seg addr
 	;;mov	al,es:[bx].compratio
@@ -18887,9 +19074,10 @@ dcrRet:
 dtrRet:		; 08/06/2023
 	retn
 
-;DisplayCompRatio	;endp
+;DisplayCompRatio ;endp
 
 ;endif
+%endif
 
 ; ---------------------------------------------------------------------------
 
@@ -18909,6 +19097,7 @@ dtrRet:		; 08/06/2023
 
 	; 19/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 02/08/2024 - Retro DOS v5.0 COMMAND.COM
 
 DisplayTrailer:
 	;;;test	Bits,mask bare
@@ -18916,6 +19105,7 @@ DisplayTrailer:
 	;test	byte [_Bits],8
 	; 08/06/2023
 	test	byte [_Bits],mask.bare ; 10h ; MSDOS 6.0
+			    ; 02/08/2024 ; 8 ; PCDOS 7.1 	
 	jnz	short dtrRet		; /b - don't display trailer
 
 	call	CRLF2			; start on new line
@@ -18928,6 +19118,9 @@ DisplayCntSiz:
 ;	AX = # files
 ;	FileSiz = dword total size of files
 
+; 02/08/2024 - Retro DOS v5.0 COMMAND.COM
+; PCDOS 7.1 COMMAND.COM
+%if 0 
 	mov	[Dir_Num],ax		; load # files
 	mov	dx,dirmes_ptr		; DX = ptr to message block
 	call	std_printf		; "nnn File(s)"
@@ -18941,6 +19134,56 @@ DisplayCntSiz:
 
 	; 19/02/2023
 	jmp	UseLine
+%else
+	; 02/08/2024 - PCDOS 7.1 COMMAND.COM
+	mov	[Dir_Num],ax		; number of files
+	mov	[Dir_Num+2],dx
+	mov	dx,dirmes_ptr		; MSG_1019, 9 bytes, word	
+	cmp	byte [narrow],0		; narrow display ?
+	jnz	short dcs_1		; yes
+	mov	dx,dirmes_w_ptr		; MSG_1019, 10 bytes
+dcs_1:
+	cmp	byte [bfree_not_kilo],0	; is kilobyte display usable?
+	jz	short dcs_2		; yes (big files)
+	mov	dx,dirmes2_ptr		; MSG_1019, 9 bytes, dword
+dcs_2:
+	call	std_printf		; "nnn File(s)"
+	mov	cx,[FileSiz+4]		; 5th and 6th byte of the file size
+					; (6th byte=0)
+	jcxz	dcs_3			; file size is (in) 4 bytes
+	mov	dx,[FileSiz+3]		; convert to kilobytes
+	mov	ax,[FileSiz+1]
+	ror	ch,1			; ch = 5th byte of file size
+	rcr	dx,1
+	rcr	ax,1
+	ror	ch,1
+	rcr	dx,1
+	rcr	ax,1			; dx:ax = (ch:dx:ax) / 1024
+	mov	[FileSiz+2],dx
+	mov	[FileSiz],ax
+	mov	dx,kbytes_ptr		; MSG_1107 normal, 14 bytes
+	cmp	byte [bfree_not_kilo],0 ; is kilobyte display usable?
+	jz	short dcs_5		; yes (big files)
+		; no (not big files)
+	mov	dx,kybytes_n_ptr	; MSG_1107 narrow, 10 bytes
+	jmp	short dcs_5
+dcs_3:
+	mov	dx,bytes_ptr		; MSG_1079 normal, 12 bytes
+	cmp	byte [narrow],0		; narrow display option
+	jnz	short dcs_4
+	mov	dx,bytes_w_tr		; MSG_1079 wide, 14 bytes
+dcs_4:
+	cmp	byte [bfree_not_kilo],0
+	jz	short dcs_5
+	mov	dx,bytes_n_ptr		; MSG_1079 narrow, 10 bytes
+dcs_5:
+	call	std_printf		; "nnn bytes",cr,lf
+	;call	UseLine
+;dtrRet:
+	;retn
+	; 02/08/2024
+	jmp	UseLine
+%endif
 
 ; ---------------------------------------------------------------------------
 
@@ -18960,6 +19203,9 @@ DisplayCntSiz:
 	; 19/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:198Ah
 
+	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:1CDEh
+
 DisplayWide:
 	push	ds			; save TRANGROUP seg addr
 	mov	ds,[TPA]		; DS:BX = ptr to entry
@@ -18968,6 +19214,7 @@ DisplayWide:
 	;;test	ds:[bx].fileattr,ATTR_DIRECTORY
 	;test	byte [bx+EntryStruc.fileattr],10h
 	test	byte [bx+12],ATTR_DIRECTORY
+	pushf	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
 	jz	short dw1		; not a subdirectory file
 	mov	al,'['
 	call	PRINT_CHAR		; prefix subdirectory
@@ -18978,7 +19225,9 @@ dw1:
 
 	;;test	ds:[bx].fileattr,ATTR_DIRECTORY
 	;test	byte [bx+EntryStruc.fileattr],10h
-	test	byte [bx+12],ATTR_DIRECTORY
+	; 03/08/2024
+	;test	byte [bx+12],ATTR_DIRECTORY
+	popf	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
 	jz	short dw2		; not a subdirectory file
 	mov	al,']'
 	call	PRINT_CHAR		; postfix subdirectory
@@ -19087,7 +19336,10 @@ SetupParamError:
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:1A13h
 
 	; 05/06/2023 - Retro DOS v4.2 COMMAND.COM
-	; MSDOS 6.22 COMMAND.COM - TRANGROUP:1C08h	
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:1C08h
+
+	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:1D67h
 ZeroTotals:
 	mov	di,FileCntTotal
 
@@ -19097,7 +19349,9 @@ ZeroTotals:
 	;ifdef DBLSPACE_HOOKS
 	;mov	cx,size FileCntTotal+size FileSizTotal+csecSIZE+ccluSIZE
 	;endif
-	mov	cx,26
+	;mov	cx,26
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	mov	cx,12
 
 	xor	al,al
 	rep	stosb
@@ -19134,6 +19388,9 @@ ZeroTotals:
 	; 05/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:1C13h ; *
 
+	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:1D72h
+
 CtrlCHandler:	;proc far
 
 ;SR;
@@ -19144,12 +19401,20 @@ CtrlCHandler:	;proc far
 	push	cs
 	pop	ds			; DS = TRANGROUP seg addr
 	push	ax
+
+; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	push	bx ; *
 	push	dx
 	call	CloseCVF ; * 		; close CVF file if open
 	call	RestUDir		; restore user's default directory
 	pop	dx
 	pop	bx ; *
+%else
+	push	dx
+	call	RestUDir		; restore user's default directory
+	pop	dx
+%endif
 	pop	ax
 	pop	ds
 	jmp	far [cs:OldCtrlCHandler]
@@ -19189,6 +19454,7 @@ lcRet:
 ;	USED	AL,SI
 
 	; 19/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
 LowercaseString:
 	push	di			; save di
 	mov	di,si			; ES:DI --> ASCIIZ string
@@ -19198,6 +19464,23 @@ NextChar:
 	or	al,al			; are we at end of string?
 	jz	short EndOfString
 
+; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 1
+;ifdef DBCS
+	;invoke	testkanj
+	;jz	@f			; if this is not lead byte
+	call	testkanj
+	jz	short NextChar_@
+	stosb				; store lead byte
+	lodsb				; get tail byte
+	or	al,al
+	jz	short EndOfString	; if end
+	stosb				; store tail byte
+	jmp	short NextChar
+;@@:
+NextChar_@:
+;endif
+%endif
 	call	LowerCase		; convert character to lowercase
 	stosb				; store character back into buffer
 	jmp	short NextChar		; repeat until end of string
@@ -19208,7 +19491,6 @@ EndOfString:
 
 ;M010;end
 
-
 ; 08/06/2023
 ; ---------------------------------------------------------------------------
 ; MSDOS 6.2(2) COMMAND.COM procedure only !
@@ -19216,6 +19498,8 @@ EndOfString:
 ; Hex-Rays IDA / disassembled source code ! modified for NASM by Erdogan Tan
 ; ---------------------------------------------------------------------------
 
+; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:1C44h
 screen_f_set:
@@ -19246,6 +19530,10 @@ columns_80:
 	mov	word [screen_f_7],2020h ; 32 bytes (free bytes field)
 screen_f_set_retn:
 	retn
+%endif
+
+; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 
 ;============================================================================
 ; CRATIO.ASM, MSDOS 6.0, 1992
@@ -20032,6 +20320,8 @@ ReadCVFile:
 rcf_ret:
 	retn
 
+%endif
+
 ;============================================================================
 ; TCMD1B.ASM, MSDOS 6.0, 1991
 ;============================================================================
@@ -20046,6 +20336,9 @@ rcf_ret:
 
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:1FF4h
+
+	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:1DCCh
 PAUSE:
 	mov	dx,PAUSEMES_PTR ; 19/02/2023
 	call	std_printf
@@ -20080,6 +20373,9 @@ PAUSE:
 
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:2001h
+
+	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:1DD9h
 ERASE:
 	; MSDOS 6.0
 
@@ -20203,6 +20499,7 @@ errj2:				;AC022; exit jump
 
 	; 20/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
 CRENAME:
 	; MSDOS 6.0
 	;assume	ds:trangroup,es:trangroup
@@ -20338,7 +20635,7 @@ use_renerr:
 errj:
 	jmp	cerror
 ret56:
-;typefil_ret:	; 20/02/2023 ; 17/04/2023	
+;typefil_ret:	; 20/02/2023 ; 17/04/2023
 	retn
 
 ; ---------------------------------------------------------------------------
@@ -20361,6 +20658,7 @@ ret56:
 
 	; 20/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
 TYPEFIL:
 	; MSDOS 6.0	
 	;assume	ds:trangroup,es:trangroup
@@ -20409,7 +20707,9 @@ nowilds:
 	;mov	dx,read_open_flag ; 101h
 				;AN000; set up open flags
 	mov	si,SrcBuf	;AN030; get file name
-	int	21h
+	;int	21h
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 	jnc	short typecont	; If open worked, continue. Otherwise load
 
 typerr: 			;AN022;
@@ -20432,13 +20732,17 @@ typecont:
 ;
 	;mov	ax,(IOCTL shl 8) or 0
 	mov	ax,4400h
-	int	21h
+	;int	21h
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 
 	test	dl,80h		;is it a device?
 	jz	short not_device
 				;no, a file
 
-	mov	word [TypeFilSiz+2],-1 ; 0FFFFh
+	;mov	word [TypeFilSiz+2],-1 ; 0FFFFh
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	mov	word [File_Size_High],-1 ; 0FFFFh
 				;indicate it is a device
 	jmp	short dotype
 not_device:
@@ -20450,14 +20754,22 @@ not_device:
 	mov	ax,4202h
 	xor	dx,dx
 	mov	cx,dx		;seek  to end of file
-	int	21h
+	;int	21h
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 
-	mov	[TypeFilSiz],ax
-	mov	[TypeFilSiz+2],dx ;store filesize
+	;mov	[TypeFilSiz],ax
+	;mov	[TypeFilSiz+2],dx ;store filesize
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	mov	[File_Size_Low],ax
+	mov	[File_Size_High],dx
+
 	;mov	ax,(LSEEK shl 8) or 0
 	mov	ax,4200h
 	xor	dx,dx
-	int	21h	        ;reset file pointer to start
+	;int	21h	        ;reset file pointer to start
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 dotype:				;M043
 	mov	byte [zflag],0 	; Reset ^Z flag
 	mov	ds,[TPA]
@@ -20475,35 +20787,52 @@ tf1:
 
 ;Update the filesize left to read
 
-	cmp	word [cs:TypeFilSiz+2],-1
+	;cmp	word [cs:TypeFilSiz+2],-1
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	cmp	word [cs:File_Size_High],-1 ; 0FFFFh
 				;is it a device? M043
 	je	short typ_read	;yes, just read from it; M043
 
-	cmp	word [cs:TypeFilSiz+2],0
+	;cmp	word [cs:TypeFilSiz+2],0
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	cmp	word [cs:File_Size_High],0
 				;more than 64K left?
 	jz	short lt64k	;no, do word subtraction
-	sub	[cs:TypeFilSiz],cx
-	sbb	word [cs:TypeFilSiz+2],0
+	;sub	[cs:TypeFilSiz],cx
+	;sbb	word [cs:TypeFilSiz+2],0
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	sub	[cs:File_Size_Low],cx
+	sbb	word [cs:File_Size_High],0
 				;update filesize
       	jmp	short typ_read	;do the read
 lt64k:
-	cmp	cx,[cs:TypeFilSiz]
+	;cmp	cx,[cs:TypeFilSiz]
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	cmp	cx,[cs:File_Size_Low]
 				;readsize <= buffer?
 	jbe	short gtbuf	; yes, just update readsize
 
 ;Buffer size is larger than bytes to read
 
-	mov	cx,[cs:TypeFilSiz]
+	;mov	cx,[cs:TypeFilSiz]
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	mov	cx,[cs:File_Size_Low]
 	jcxz	typelp_ret
-	mov	word [cs:TypeFilSiz],0
+	;mov	word [cs:TypeFilSiz],0
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	mov	word [cs:File_Size_Low],0
 	jmp	short typ_read
 gtbuf:
-	sub	[cs:TypeFilSiz],cx
+	;sub	[cs:TypeFilSiz],cx
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	sub	 [cs:File_Size_Low],cx
 				;update filesize remaining
 typ_read:
 	;mov	ah,read
 	mov	ah,3Fh
-	int	21h		
+	;int	21h
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 	jnc	short tf2	;M043
 	jmp	typerr		;M043
 tf2:				;M043
@@ -20537,7 +20866,9 @@ typecont2:			;  will quit after this write.
 	mov	bx,1
 	;mov	ah,Write
 	mov	ah,40h
-	int	21h
+	;int	21h
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 	pop	bx
 	jc	short Error_outputj
 	cmp	ax,cx
@@ -20557,7 +20888,9 @@ Error_outputj:
 	mov	bx,1
 	;mov	ax,IOCTL SHL 8
 	mov	ax,4400h
-	int	21h
+	;int	21h
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 	test	dl,80h
 	;test	dl,devid_ISDEV
 	;;retnz			; If device, no error message
@@ -20574,6 +20907,7 @@ typelp_ret:
 	; 20/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; 10/06/2023
+	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
 VOLUME:
 	; MSDOS 6.0
 	mov	si,81h
@@ -20636,6 +20970,9 @@ badvolarg:
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:2289h
 
+	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:2069h
+
 	; MSDOS 6.0
 DisAppend:
 	push	ds			; save DS
@@ -20644,19 +20981,25 @@ DisAppend:
 
 	;mov	ax,APPENDINSTALL	; AX = Append Installed Check code
 	mov	ax,0B700h
-	int	2Fh			; talk to APPEND via multiplex
+	;int	2Fh			; talk to APPEND via multiplex
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_2Fh_indirect
 	or	al,al
 	jz	short daRet		; APPEND not installed, return
 
 	;mov	ax,APPENDDOS		; AX = Get Append Version code
 	mov	ax,0B702h
-	int	2Fh			; talk to APPEND via multiplex
+	;int	2Fh			; talk to APPEND via multiplex
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_2Fh_indirect
 	cmp	ax,0FFFFh
 	jne	short daRet		; it's not a local version, return
 
 	;mov	ax,APPENDGETSTATE	; AX = Get Function State code
 	mov	ax,0B706h
-	int	2Fh			; talk to APPEND via multiplex
+	;int	2Fh			; talk to APPEND via multiplex
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_2Fh_indirect
 
 	mov	ds,[RESSEG]		; DS = resident seg addr
 
@@ -20666,7 +21009,9 @@ DisAppend:
 	xor	bx,bx			; BX = APPEND state = off
 	;mov	ax,APPENDSETSTATE	; AX = Set Append State code
 	mov	ax,0B707h
-	int	2Fh			; talk to APPEND via multiplex
+	;int	2Fh			; talk to APPEND via multiplex
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_2Fh_indirect
 daRet:	
 	pop	di
 	pop	es			; restore ES
@@ -20680,6 +21025,7 @@ daRet:
 
 	; 21/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
 	
 	; MSDOS 6.0
 OkVolArg:
@@ -20713,14 +21059,19 @@ OkVolArg:
 	mov	dx,DIRBUF
 	;mov	ah,Set_DMA
 	mov	ah,1Ah
-	int	21h
+	;int	21h
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 
 ; Do the search
 
 	mov	dx,FCB-7 ; 55h
 	;mov	ah,Dir_Search_First
 	mov	ah,11h
-	int	21h
+	;int	21h
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
+
 
 ;********************************
 ; Print volume ID info
@@ -20761,8 +21112,10 @@ print_serial:
 	;mov	ax,(GetSetMediaID SHL 8)
 	mov	ax,6900h		;AC036; Get the volume serial info
 	mov	bl,[FCB] ; [5Ch]	;AN000; get drive number from FCB
-	mov	dx,vol_ioctl_buf	;AN000;target buffer
-	int	21h			;AN000; do the call
+	mov	dx,vol_ioctl_buf	;AN000; target buffer
+	;int	21h			;AN000; do the call
+	; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 			; DOS - 4.0 internal - GET/SET DISK SERIAL NUMBER
 			; AL = 00h get serial number / 01h set serial number
 			; BL = drive (0=default, 1=A, 2=B, etc)
@@ -20891,6 +21244,7 @@ get_ext_error_number:			;AN022;
 
 	; 21/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 20/07/2024 - Retro DOS v5.0 COMMAND.COM
 VERSION:
 	;assume	ds:TRANGROUP,es:TRANGROUP
 
@@ -20924,7 +21278,7 @@ VERSION:
 
 verPrintVer:
 
-; 20/07/2024 - Retro DOS v4.2 COMMAND.COM
+; 20/07/2024 - Retro DOS v5.0 COMMAND.COM
 %if 1
 check_t_switch:
 	cmp	word [PARSE1_SYN],SLASH_T_SYN ; "/T" ; /t switch
@@ -21034,13 +21388,18 @@ PRINT_VERSION:
 
 	; 21/02/2023 - Retro DOS v4.0
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
+
 PRINT_PROMPT:
+
+; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	push	ds
 	push	cs
 	pop	ds		; Make sure DS is in TRANGROUP
 	push	es
 	call	find_prompt	; Look for prompt string
-	jc	short PP0	; Can't find one	
+	jc	short PP0	; Can't find one
 	cmp	byte [es:di],0
 	jnz	short PP1
 PP0:				; Use default prompt
@@ -21102,6 +21461,79 @@ PP5:
 	pop	es		; Restore segments
 	pop	ds
 	retn
+%else
+	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM
+	push	ds
+	push	cs
+	pop	ds		; Make sure DS is in TRANGROUP
+	push	es
+	pushf
+PP0:
+	mov	ax,4A10h	; SMARTDRV INSTALLATION CHECK (*)
+	mov	bx,0		; (*)
+	int	2Fh
+	cmp	ax,0BABEh	; 0BABEh if installed
+	jnz	short PP1
+	;cmp	cx,0		; number of dirty cache elements
+	and	cx,cx ; 03/08/2024
+	jnz	short PP3
+PP1:
+	popf
+	call	find_prompt	; Look for prompt string
+	jc	short PP2	; Can't find one
+	cmp	byte [es:di],0
+	jnz	short PP4
+PP2:				; Use default prompt
+	push	ds
+	pop	es
+	call	build_dir_for_prompt
+	call	PRINT_G
+	jmp	short PP8
+PP3:
+	mov	ax,4A10h	; SMARTDRV - FLUSH BUFFERS (**)
+	mov	bx,1		; (**)
+	int	2Fh
+	jmp	short PP0
+PP5:
+	mov	al,[es:di]
+	inc	di
+	;mov	bx,CLSSTRING+2	; "[2J"
+	mov	bx,PROMPT_TABLE-3
+	or	al,al
+	jz	short PP8
+PP6:
+	add	bx,3
+	call	UPCONV
+	cmp	al,[bx]
+	je	short PP7
+	cmp	byte [bx],0
+	jnz	short PP6
+	;jmp	short PP4
+PP4:
+	mov	al,[es:di]	; Get a char
+	inc	di
+	or	al,al
+	jz	short PP5	; Nul terminated
+	cmp	al,'$' ; 24h	; Meta character
+	je	short PP5	; Nope
+	call	PRINT_CHAR
+	jmp	short PP4
+PP7:
+	push	es
+	push	di
+	push	cs
+	pop	es
+	call	word [bx+1]
+	pop	di
+	pop	es
+	jmp	short PP4
+PP8:
+	pop	es		; Restore segments
+	pop	ds
+	retn
+
+%endif
 
 ; ---------------------------------------------------------------------------
 
@@ -21225,6 +21657,9 @@ doprint:
 	; 21/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:1EDFh
 
+	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:22C5h
+
 build_dir_for_chdir:
 	call	build_dir_string
 	mov	dx,DIRBUF
@@ -21237,7 +21672,6 @@ build_dir_for_chdir:
 	; 21/02/2023
 	;jmp	short doprint
 	jmp	std_printf
-
 
 ; =============== S U B	R O U T	I N E =======================================
 
@@ -21421,6 +21855,7 @@ ANSI_installed	equ 0FFh
 
 	; 21/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
 CLS:
 	;;mov	ah,Mult_ANSI		;AN000; see if ANSI.SYS installed
 	;mov	ah,1Ah
@@ -21676,9 +22111,10 @@ clrloop:
 ; *
 ; ****************************************************************
 
-	; 21/02/2023 - Retro DOS v4.0
+	; 21/02/2023 - Retro DOS v4.0 (MSDOS 5.0) COMMAND.COM
 	; 08/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
 	; 10/06/2023
+	; 03/08/2024 - Retro DOS v5.0 (PCDOS 7.1) COMMAND.COM
 CTTY:
 	; MSDOS 6.0
 	push	ds			;AN000; Get local ES
@@ -21862,6 +22298,7 @@ get_global_cp	  equ  1
 	; 21/02/2023 - Retro DOS v4.0
 	; 09/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; 10/06/2023
+	; 03/08/2024 - Retro DOS v5.0 (PCDOS 7.1) COMMAND.COM
 CHCP:
 	; MSDOS 6.0
 	push	ds		;AN000; Get local ES
@@ -22031,6 +22468,9 @@ chcp_return:
 	; 10/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:2741h
 
+	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:257Dh
+
 TRUENAME:				;AN000; TRUENAME entry point
 	push	ds			;AN000; Get local ES
 	pop	es			;AN000;
@@ -22155,6 +22595,9 @@ tn_print_xname: 			;AN000;
 
 	; 10/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:27C3h
+
+	; 04/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:2600h
 _$EXIT:
 	; MSDOS 6.0
 	push	ds			;AN000; save data segment
@@ -22172,6 +22615,9 @@ _$EXIT:
 	jmp	TCOMMAND		;permanent command, recycle
 
 free_com:
+
+; 04/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	;mov	ax,(multdos shl 8 or message_2f)
 	mov	ax,122Eh		;AN060; reset parse message pointers
 	;mov	dl,SET_CRITICAL_MSG	;AN000; set up critical error message address
@@ -22179,6 +22625,8 @@ free_com:
 	mov	di,[Crit_Msg_Off] 	;AN000; old offset of critical messages
 	mov	es,[Crit_Msg_Seg] 	;AN000; old segment of critical messages
 	int	2Fh			;AN000; go set it
+%endif
+
 no_reset:				;AN045;
 	pop	ds			;AN000; restore local data segment
 	;assume	ds:trangroup		;AN000;
@@ -22245,6 +22693,8 @@ no_reset:				;AN045;
 	; 23/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2270h
 
+	; 04/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:2648h
 parse_check_eol:
 	xor	dx,dx			;AN000;
 	mov	[parse_last],si 	;AN018; save start of parameter
@@ -22288,6 +22738,7 @@ parse_msg_good:	; 23/02/2023
 ; ****************************************************************
 
 	; 23/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 04/08/2024 - Retro DOS v5.0 COMMAND.COM
 Parse_With_Msg:
 	mov	[parse_last],si 	;AN018; save start of parameter
 	call	cmd_parse		;AN018; call parser
@@ -22325,6 +22776,7 @@ Parse_With_Msg:
 ; ****************************************************************
 
 	; 23/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 04/08/2024 - Retro DOS v5.0 COMMAND.COM
 setup_parse_error_msg:
 	mov	byte [msg_disp_class],parse_msg_class
 	;mov	byte [msg_disp_class],2	;AC018; Set up parse message class
@@ -22363,6 +22815,7 @@ setup_parse_msg_ret:
 
 	; 23/02/2023 - Retro DOS v4.0 COMMAND.COM
 	; 10/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 04/08/2024 - Retro DOS v5.0 COMMAND.COM
 ADD_PROMPT:
 	call	delete_prompt	; Delete any existing prompt
 	call	scan_double_null
@@ -22583,10 +23036,10 @@ delete_name_in_environment:
 	xchg	si,di
 ;SR;
 ; If we have only one env string, then the double null is lost when the last
-;string is deleted and we have an invalid empty environment with only a 
+;string is deleted and we have an invalid empty environment with only a
 ;single null. To avoid this, we will look for the double null case and then
 ;move an extra null char.
-; Bugbug: The only possible problem is that the last pathstring 
+; Bugbug: The only possible problem is that the last pathstring
 ;will be followed by a triple null. Is this really a problem?
 
 	; MSDOS 6.0
@@ -22642,6 +23095,7 @@ find_name_in_environment:
 ; On return of FIND1, ES:DI points to beginning of name
 
 	; 10/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 04/08/2024 - Retro DOS v5.0 COMMAND.COM
 FIND:
 	cld
 	call	COUNT0		; CX = Length of name
@@ -22856,6 +23310,9 @@ ktret:					;AN000;  3/3/KK
 
 	; 10/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:2A6Eh
+
+	; 04/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:289Ch
 UPCONV:
 	cmp	al,80h			;AN000;  see if char is > ascii 128
 	jb	short oth_fucase	;AN000;  no - upper case math
@@ -22921,7 +23378,7 @@ store_char:
 
 	; MSDOS 3.3 (& MSDOS 6.0)
 	call	GETENVSIZ
-	mov	bx,cx		; Save room for double nul	
+	mov	bx,cx		; Save room for double nul
 	sub	bx,2
 	cmp	di,bx
 	jb	short store1
@@ -22932,7 +23389,7 @@ store_char:
 	pop	bx
 	add	bx,2		; Recover true environment size
 
-	cmp	bx,8000h	; Don't let environment grow > 32K	
+	cmp	bx,8000h	; Don't let environment grow > 32K
 	jb	short envsiz_ok
 bad_env_size:			;AN056;
 	stc
@@ -22994,7 +23451,7 @@ GETENVSIZ:
 	push	es
 	push	ax
 	mov	ax,es
-	dec	ax		;Point at arena	
+	dec	ax		;Point at arena
 	mov	es,ax
 	;mov	ax,[es:3]
 	mov	ax,[es:ARENA.size]
@@ -23029,7 +23486,7 @@ RestUDir:
 	;call	SETREST
 	;retn
 	; 24/02/2023
-	jmp	SETREST	
+	jmp	SETREST
 
 ;============================================================================
 ; TENV2.ASM, MSDOS 6.0, 1991
@@ -23067,6 +23524,10 @@ RestUDir:
 
 	; 10/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:2B21h
+
+	; 04/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:294Fh
+
 _$CHDIR:
 	; MSDOS 6.0
 	mov	si,81h
@@ -23156,7 +23617,9 @@ REALCD:
 	; 26/04/2023
 	mov	ah,3Bh
 	;mov	ah,CHDir
-	int	21h
+	;int	21h
+	; 04/08/2024 - PCDOS 7.1 COMMAND.COM
+	call    int_21h_indirect
 	jnc	short chdir_retn
 	
 	call	get_ext_error_number
@@ -23209,6 +23672,10 @@ BadChDir:
 
 	; 11/06/2023 - Retro DOS v4.2
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:2B8Ch
+
+	; 04/08/2024 - Retro DOS v5.0
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:29BBh
+
 _$MKDIR:
 	; MSDOS 6.0
 	call	SETRMMK
@@ -23216,7 +23683,9 @@ _$MKDIR:
 
 	mov	ah,39h
 	;mov	ah,MKDIR
-	int	21h
+	;int	21h
+	; 04/08/2024 - PCDOS 7.1 COMMAND.COM
+	call    int_21h_indirect
 	jnc	short mkdir_retn
 
 	call	get_ext_error_number	
@@ -23245,14 +23714,18 @@ badmderr:
 	mov	dx,SRCXNAME	;AN006; Set Disk transfer address
 	mov	ah,1Ah
 	;mov	ah,Set_DMA	;AN006;
-	int	21h		;AN006;
+	;int	21h		;AN006;
+	; 04/08/2024 - PCDOS 7.1 COMMAND.COM
+	call    int_21h_indirect
 	
 	mov	ah,4Eh
 	;mov	ah,Find_First	;AN006; see if file/dir exists
 	;mov	cx,10h
 	mov	cx,ATTR_DIRECTORY
 				;AN006;   search for directory
-	int	21h		;AN006;
+	;int	21h		;AN006;
+	; 04/08/2024 - PCDOS 7.1 COMMAND.COM
+	call    int_21h_indirect
 	jc	short MD_other_err
 				;AN006; doesn't exist - must be something else
 	;;mov	dl,SRCXNAME.find_buf_attr
@@ -23292,8 +23765,13 @@ MD_other_err:			;AN006;
 
 	; 24/02/2023 - Retro DOS v4.0 (& v4.1)
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2656h
+	
 	; 11/06/2023 - Retro DOS v4.2
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:2C00h
+	
+	; 04/08/2024 - Retro DOS v5.0
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:2A32h
+
 _$RMDIR:
 	call	SETRMMK
 	jb	short RmDirErr
@@ -23301,8 +23779,10 @@ _$RMDIR:
 
 	mov	ah,3Ah
 	;mov	ah,RMDIR ; 3Ah
-	int	21h	; DOS -	2+ - REMOVE A DIRECTORY	ENTRY (RMDIR)
+	;int	21h	; DOS -	2+ - REMOVE A DIRECTORY	ENTRY (RMDIR)
 			; DS:DX	-> ASCIZ pathname (may include drive)
+	; 04/08/2024 - PCDOS 7.1 COMMAND.COM
+	call    int_21h_indirect
 	jnc	short rmdir_retn ; 24/02/2023
 
 	; 24/02/2023
@@ -23361,8 +23841,13 @@ badrderr:
 
 	; 24/02/2023 - Retro DOS v4.0 (& v4.1)
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2624h
+	
 	; 11/06/2023 - Retro DOS v4.2
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:2BCEh
+
+	; 04/08/2024 - Retro DOS v5.0
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:2A00h
+
 SETRMMK:
 	; MSDOS 6.0
 	mov	si,81h
@@ -23463,7 +23948,7 @@ set_ext_error_subst:
 					;AN022; set up extended error msg class
 	mov	[string_ptr_2],dx 	;AN022; get address of failed string
 	;mov	byte [extend_buf_sub],1
-	mov	byte [extend_buf_sub],one_subst 
+	mov	byte [extend_buf_sub],one_subst
 	;AN022; put number of subst in control block
 	mov	dx,extend_buf_ptr 	;AN022; get extended message pointer
 	mov	[extend_buf_ptr],ax	;AN022; get message number in control block
@@ -23507,9 +23992,11 @@ GOTUDRV:
 	mov	si,di
 	mov	ah,47h ; 24/02/2023
 	;mov	ah,CURRENT_DIR	; 47h
-	int	21h	; DOS -	2+ - GET CURRENT DIRECTORY
+	;int	21h	; DOS -	2+ - GET CURRENT DIRECTORY
 			; DL = drive (0=default,1=A,etc.)
 			; DS:SI	points to 64-byte buffer area
+	; 04/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 	jc	short savudir_err_retn ; 24/02/2023
 	push	cs
 	pop	ds
@@ -23614,7 +24101,7 @@ STRCOMP_RETN:
 STRCOMP:	
 	cmpsb
 	jnz	short STRCOMP_RETN ; Strings not equal
-	cmp	byte [si-1],0	; Hit NUL terminator?	
+	cmp	byte [si-1],0	; Hit NUL terminator?
 	;jz	short STRCOMP_RETN ; Yes, strings equal
 	;jmp	short STRCOMP	; Equal so far, keep going
 	; 24/02/2023
@@ -23722,6 +24209,9 @@ pccont:
 
 	; 11/06/2023 - Retro DOS v4.2
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:2D11h
+
+	; 04/08/2024 - Retro DOS v5.0
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:2B45h
 PathCrunch:
 	; MSDOS 6.0
 	mov     word [Msg_Numb],0
@@ -23877,8 +24367,10 @@ notdoublesl:
 	mov	byte [si],0
 	;mov	ah,CHDir ; 3Bh
 	mov	ah,3Bh
-	int	21h	; DOS -	2+ - CHANGE THE	CURRENT	DIRECTORY (CHDIR)
+	;int	21h	; DOS -	2+ - CHANGE THE	CURRENT	DIRECTORY (CHDIR)
 			; DS:DX	-> ASCIZ directory name	(may include drive)
+	; 04/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 	jnc	short cdsucc
 
 	; 25/02/2023
@@ -23903,8 +24395,10 @@ badret:
 	xchg	bl,[si+1]
 	;mov	ah,CHDir ; 3Bh
 	mov	ah,3Bh
-	int	21h	; DOS -	2+ - CHANGE THE	CURRENT	DIRECTORY (CHDIR)
+	;int	21h	; DOS -	2+ - CHANGE THE	CURRENT	DIRECTORY (CHDIR)
 			; DS:DX	-> ASCIZ directory name	(may include drive)
+	; 04/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 	;jc	short pcrunch_retn ; MSDOS 3.3
 	; 25/02/2023
 	jc	short pcrunch_cderr
@@ -23936,6 +24430,46 @@ cdsucc:
 pcrunch_end:
 	popf			;AN015; get flags back
 	retn
+
+; =============== S U B	R O U T	I N E =======================================
+
+; 01/08/2024 - Retro DOS v5.0 COMMAND.COM
+; PCDOS 7.1 COMMAND.COM
+%if 1
+;ifdef DBCS
+;
+;	Check if the character position is at Tail Byte of DBCS
+;
+;	input:	ds:si = start address of the string
+;		ds:di = character position to check
+;	output:	ZF = 1 if at Tail Byte
+;
+;CheckDBCSTailByte proc near
+CheckDBCSTailByte:
+	push	ax
+	push	cx
+	push	di
+	mov	cx,di			; save character position
+cdtb_check:
+	cmp	di,si
+	jz	short cdtb_next		; if at the top
+	dec	di			; go back
+	mov	al,[di]			; get character
+	;invoke	testkanj
+	call	testkanj
+	jnz	short cdtb_check	; if DBCS lead byte do next
+	inc	di			; adjust
+cdtb_next:
+	sub	cx,di			; if the length is odd then
+	xor	cl,1			; the character position is
+	test	cl,1			; at the tail byte
+	pop	di
+	pop	cx
+	pop	ax
+	retn
+;CheckDBCSTailByte endp
+;endif
+%endif
 
 ;============================================================================
 ; TMISC1.ASM, MSDOS 6.0, 1991
@@ -23975,6 +24509,7 @@ RETSW:
 
 	; 25/02/2023 - Retro DOS v4.0 COMMAND.COM
 	; 11/06/2023 - Retro DOS 4.2 COMMAND.COM
+	; 04/08/2024 - Retro DOS 5.0 COMMAND.COM
 SWITCH:
 	xor	bx,bx		; Initialize - no switches set
 SWLOOP:
@@ -23994,18 +24529,19 @@ SWLOOP:
 	call	UPCONV
 	;call	UPCONV_MAPCALL	; MSDOS 3.3
 
-	mov	di,switch_list	; "-Y?VBAPW" (for MSDOS 6.22) ; 11/06/2023
+	mov	di,switch_list	; "-Y?VBAPW" (for PCDOS 7.1) ; 04/08/2024
+				; "-Y?VBAPW" (for MSDOS 6.22) ; 11/06/2023
 				; "?VBAPW" (for MSDOS 6.0)
 				; ("VBAPW" (for MSDOS 3.3))
 	; 11/06/2023
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:2E33h
-	mov	cx,8  ; MSDOS 6.22	   	
+	mov	cx,8  ; MSDOS 6.22
 	;mov	cx,6  ; MSDOS 6.0 (& MSDOS 5.0)
 	;;mov	cx,5  ; MSDOS 3.3
 	;;mov	cx,SWCOUNT ; 5 (for MSDOS 3.3), (6 (for MSDOS 6.0))
-		
+
 	;nop
-		
+
 	repne	scasb		; Look for matching switch
 	jnz	short BADSW
 	mov	ax,1
@@ -24034,13 +24570,13 @@ APPEND_INTERNAL:
 	mov	ch,0
 	mov	[PathPos],cx
 	
-	; 25/02/2023	
+	; 25/02/2023
 	; MSDOS 6.0
 	inc 	byte [append_exec]
 				;AN041; set APPEND to ON
 	call	IOSET		; re-direct the o'l io
 
-	mov	si,IDLEN	; address command name, DS already set	
+	mov	si,IDLEN	; address command name, DS already set
 	mov	dx,-1 ; 0FFFFh	; set invoke function
 		
 	; MSDOS 6.0
@@ -24098,7 +24634,7 @@ FINDCOM:
 	jne	short ABCD	; lengths not equal ==> strings not eq
 	mov	[PathPos],cx	; store length of command
 	repe	cmpsb
-ABCD:					
+ABCD:
 	lahf			; save the good ol' flags
 	add	di,cx		; skip over remaining internal, if any
 	mov	al,[di]		; load drive-check indicator byte (DCIB)
@@ -24107,7 +24643,7 @@ ABCD:
 	mov	bx,[di]		; load internal command address
 	inc	di		; skip over the puppy
 	inc	di
-		
+
 	; MSDOS 6.0
 	mov	dx,[di]		; load ptr to help msg #s
 	inc	di
@@ -24130,7 +24666,7 @@ DONT_SET_IO:			;AN041;
 
 	mov	ax,[COMSW]	; AX = switches after command
 	or	ax,[AllSwitch]	; AX = all switches
-	;and	ax,SwitchQues	
+	;and	ax,SwitchQues
 	and	ax,20h
 	jz	short DRIVE_CHECK
 				; /? not in command line
@@ -24164,13 +24700,13 @@ NEXT_HELP_MSG:
 ;; We assume DS = SS.
 	
 	mov     dx,sp		; DS:DX = ptr to subst block
-	call	std_printf	; display help message	
+	call	std_printf	; display help message
 	pop	ax		; remove msg # from stack
 	jmp	short NEXT_HELP_MSG
 
 HELP_DONE:
 	pop	ax		; clean up stack
-	jmp	TCOMMAND	
+	jmp	TCOMMAND
 
 	; 25/02/2023
 	; MSDOS 3.3
@@ -24180,7 +24716,7 @@ HELP_DONE:
 
 DRIVE_CHECK:
 	test	byte [CHKDRV],1
-	;test	byte [CHKDRV],FCHECKDRIVE 
+	;test	byte [CHKDRV],FCHECKDRIVE
 				; did we wanna check those drives?
 	jz	short NOCHECK
 	mov	al,[PARM1]	; parse_file_descriptor results tell
@@ -24302,7 +24838,7 @@ POSTSAVE:
 	;jz	short RESEARCH
 	; 25/02/2023
 	;jmp	short NEOEXECUTE
-	jnz	short NEOEXECUTE	
+	jnz	short NEOEXECUTE
 
 	;nop
 RESEARCH:
@@ -24322,6 +24858,57 @@ RESEARCH:
 
 	; 02H is .bat
 
+; 04/08/2024 - Retro DOS v5.0 COMMAND.COM
+; PCDOS 7.1 COMMAND.COM
+%if 1
+		; ... .BAT file	...
+	mov	dx,EXECPATH
+	mov	ax,3D00h
+	int	21h		; DOS -	2+ - OPEN DISK FILE WITH HANDLE
+				; DS:DX	-> ASCIZ filename
+				; AL = access mode
+				; 0 - read
+	jb	short BATCOMJ
+	and	word [TPBUF],0	; clear 1st two bytes of the buffer
+	mov	dx,TPBUF
+	mov	cx,2
+	mov	bx,ax
+	mov	ah,3Fh
+	int	21h		; DOS -	2+ - READ FROM FILE WITH HANDLE
+				; BX = file handle, CX = number	of bytes to read
+				; DS:DX	-> buffer
+	mov	ah,3Eh
+	int	21h		; DOS -	2+ - CLOSE A FILE WITH HANDLE
+				; BX = file handle
+	cmp	word [TPBUF],2A2Fh ; '/*' (NASM syntax)
+	jnz	short BATCOMJ
+	mov	ax,REXX_EXE ; "REXX.EXE"
+	;mov	[ARG_ARGV],ax
+	mov	[ARG+ARGV_ELE.argpointer],ax
+	;mov	word [ARGV0_ARG_FLAGS],0
+	mov	word [ARG+ARGV_ELE.argflags],0
+	;mov	[ARGV0_ARGSTARTEL],ax
+	mov	[ARG+ARGV_ELE.argstartel],ax
+	;mov	word [ARGV0_ARGLEN],8
+	mov	word [ARG+ARGV_ELE.arglen],8
+	;mov	word [ARGV0_ARGSW_WORD],0
+	mov	word [ARG+ARGV_ELE.argsw_word],0
+	;mov	[ARGV0_ARG_OCOMPTR],ax
+	mov	[ARG+ARGV_ELE.argforcombuf],ax
+				; pointer into original	command	string
+	call	path_search
+	test	ax,ax
+	jz	short rexx_nf_err
+	mov	si,COMBUF+1
+	mov	di,80h		; PSP command tail (arguments)
+	mov	cx,di ; 128
+	rep movsb
+	jmp	short NEOEXECUTE
+rexx_nf_err:
+	mov	dx,REXXNOTF_PTR	; MSG_1012 ; REXX.EXE not found
+	jmp	short cerror	
+%endif
+
 	;nop
 BATCOMJ:
 	jmp	BATCOM
@@ -24334,6 +24921,8 @@ BATCOMJ:
 EXECUTE:
 NEOEXECUTE:
 	call	IOSET
+
+; burada kaldým.. 05/08/2024
 
 ; MSDOS 6.0
 ;M051
@@ -26747,7 +27336,9 @@ align 16
 ;	if search returns an .exe or .bat.
 ;   5)	Clobbers dma address.
 
-PBUFLEN 	EQU	128		; length of EXECPATH
+;PBUFLEN 	EQU	128		; length of EXECPATH
+; 04/08/2024 - PCDOS 7.1 COMMAND.COM
+PBUFLEN 	EQU	256
 PATH_SEP_CHAR	EQU	';'
 
 ;parseflags RECORD special_delim:1, unused:4, path_sep:1, wildcard:1, sw_flag:1
@@ -26766,6 +27357,9 @@ PATH_SEP_CHAR	EQU	';'
 
 ; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
 ; MSDOS 6.22 - COMMAND.COM, transient portion/segment offset 387Bh
+
+; 04/08/2024 - Retro DOS v5.0 COMMAND.COM
+; PCDOS 7.1 - COMMAND.COM, transient portion/segment offset 372Fh
 
 path_search:
 	push	bx
@@ -26796,7 +27390,10 @@ path_search_ok:
 	mov	[pathinfo+4],di	; "new" pathstring pointer
 	pop	es
 	
-	mov	bx,PBUFLEN ; 128 ; copy/format argv[0] into temp buffer
+	;mov	bx,PBUFLEN ; 128 ; copy/format argv[0] into temp buffer
+	; 04/08/2024 - PCDOS 7.1 COMMAND.COM
+	;mov	bx,256
+	mov	bx,PBUFLEN ; 256 ; copy/format argv[0] into temp buffer
 	mov	si,EXECPATH
 	call	STRIP
 	jc	short path_failure_jmp ; if possible, of course
@@ -26806,8 +27403,8 @@ path_search_ok:
 	call	PSEARCH		; must do at least one search
 	or	ax,ax		; find anything?
 	jz	short path_noinit
-				; failure ... search farther	
-	mov	bp,ax		; success... save filetype code	
+				; failure ... search farther
+	mov	bp,ax		; success... save filetype code
 	mov	di,EXECPATH
 	;mov	si,ds:arg.argv[0].argpointer
 	;mov	si,[ARG_ARGV]
@@ -26840,7 +27437,7 @@ movedrive:
 	sub	cx,2		; 2 bytes less to move
 checkpath:
 	or	al,20h
-	mov	dl,al		
+	mov	dl,al
 	;sub	dl,60h
 	sub	dl,'a'-1	; convert to 1-based for current dir
 
@@ -26901,7 +27498,7 @@ movepath:
 	inc	si		; move past leading char
 	dec	cx		; drop from count
 copypath:
-	jcxz	_copydone	; no chars to move!	
+	jcxz	_copydone	; no chars to move!
 	rep	movsb
 _copydone:
 	jmp	path_success
@@ -26928,8 +27525,8 @@ path_loop:
 	call	path_crunch	; pcrunch (EXECPATH, pathinfo)
 	mov	bp,ax		; save filetype code
 	lahf			; save flags, just in case
-	or	bp,bp		; did path_crunch find anything?		
-	jnz	short path_found 
+	or	bp,bp		; did path_crunch find anything?
+	jnz	short path_found
 	sahf			; see? needed those flags, after all!
 	jnc	short path_loop	; is there anything left to the path?
 path_failure:
@@ -26938,7 +27535,7 @@ path_failure:
 
 path_found:				; pathinfo[] points to winner
 	mov	di,EXECPATH
-	;mov	cx,pathinfo[4] 
+	;mov	cx,pathinfo[4]
 	mov	cx,[pathinfo+4]	; "new" pointer -- end of string
 	;mov	si,pathinfo[2]
 	mov	si,[pathinfo+2]	; "old" pointer -- beginning of string
@@ -27036,7 +27633,7 @@ path_success:
 	xor	cx,cx
 path_succ_loop:
 	lodsb			; append winning filename to path
-	stosb			; (including terminating null)	
+	stosb			; (including terminating null)
 	or	al,al
 	jnz	short path_succ_loop
 	mov	ax,bp		; retrieve filetype code
@@ -27105,7 +27702,9 @@ STORE_SLASH:
 
 	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:39FEh
-	
+
+	; 04/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:38B2h
 path_crunch:
 	push	bx
 	push	cx
@@ -27122,7 +27721,7 @@ path_crunch:
 				; replace with pointer to userpath's
 	pop	ds		; segment
 	; 26/04/2023
-	xor	cl,cl		;AN000; clear flag for later use 3/3/KK	
+	xor	cl,cl		;AN000; clear flag for later use 3/3/KK
 path_cr_copy:
 	lodsb			; get a pathname byte
 	or	al,al		; check for terminator(s)
@@ -27136,7 +27735,7 @@ path_cr_copy:
 	jz	short _notkanj2	;AN000; 3/3/KK
 	stosb			;AN000; 3/3/KK
 	movsb			;AN000; 3/3/KK
-	mov	cl,1 ; *	;AN000; CL=1 means latest stored char is DBCS 3/3/KK	
+	mov	cl,1 ; *	;AN000; CL=1 means latest stored char is DBCS 3/3/KK
 	jmp	short path_cr_copy
 _notkanj2:
 	xor	cl,cl ; *	;AN000; CL=0 means latest stored char is SBCS 3/3/KK
@@ -27150,7 +27749,7 @@ path_seg:
 	mov	bl,al		; remember if we saw null or not...
 				;;; REMOVE NEXT 3 LINES FOR CURDIR SPEC
 	xor	ax,ax		; in case nothing in pathstr...
-	cmp	di,TPBUF	; was there really anything in pathstr?		
+	cmp	di,TPBUF	; was there really anything in pathstr?
 	je	short path_cr_leave
 				; if nothing was copied, pathstr empty
 path_cr_look:
@@ -27173,7 +27772,7 @@ path_cr_l2:
 	stosb			; the end of the path, up to and
 	or	al,al		; including the terminating null
 	jnz	short path_cr_l2
-	mov	dx,TPBUF	; and look for an appropriate file...	
+	mov	dx,TPBUF	; and look for an appropriate file...
 	mov	word [search_error],BADPMES_PTR
 	;invoke search
 	call	PSEARCH		; results are in AX & search_best_buf
@@ -27195,7 +27794,7 @@ path_cr_l2:
 path_cr_leave:
 	;popf ; ** ; 18/03/2023
 	cmp	bl,1	; if bl = 0 -> cf = 1 (path_cr_empty:)
-	
+
 path_cr_exit:
 	pop	si
 	pop	di
@@ -27249,6 +27848,9 @@ WILDCHAR		EQU	'?'
 
 	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:3A73h
+
+	; 04/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:3927h
 PSEARCH:
 	push	cx
 	push	dx
@@ -27269,7 +27871,7 @@ SEARCH_DIR_CHECK:
 	int	21h	; DOS -	2+ - GET CURRENT DIRECTORY
 			; DL = drive (0=default,1=A,etc.)
 			; DS:SI	points to 64-byte buffer area
-	pop	dx		; directory? If we can't we'll		
+	pop	dx		; directory? If we can't we'll
 	jc	short SEARCH_INVALID_DRIVE
 				; assume it's a bad drive...
 	mov	cx,search_attr	; 13h
@@ -27288,9 +27890,9 @@ SEARCH_LOOP:
 	cmp	al,[search_best]
 				; better than what we've found so far?
 	jle	short SEARCH_NEXT
-				; no, look for another	
+				; no, look for another
 	mov	[search_best],al
-				; found something... save its code	
+				; found something... save its code
 	;mov	si,offset TRANGROUP:fbuf.find_buf_pname
 	;mov	si,FBUF_PNAME
 	mov	si,FBUF+FIND_BUF.PNAME ; FBUF+30
@@ -27299,7 +27901,7 @@ SEARCH_LOOP:
 	cld
 	rep	movsb		; save complete pathname representation
 	cmp	al,SEARCH_COM	; 8
-				; have we found the best of all?	
+				; have we found the best of all?
 	je	short SEARCH_DONE
 SEARCH_NEXT:			; keep on looking
 	mov	cx,search_attr ; 13h
@@ -27354,6 +27956,8 @@ SEARCH_EXIT:
 
 	; 18/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 12/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 04/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:3927h
 SEARCH_FTYPE:
 	push	di
 	push	si
@@ -40192,6 +40796,9 @@ lhsp_errret:				; M016
 	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:6930h
 
+	; 02/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:67ADh
+
 ; ---------------------------------------------------------------------------
 ; Class 3 message table/structure
 ; ---------------------------------------------------------------------------
@@ -40203,8 +40810,10 @@ $M_CLASS_3_STRUC:
 	; 17/06/2023
 	;dw 1606h		; MSDOS 6.22 COMMAND.COM (hb=22,lb=6)
 	; 21/07/2024 - Retro DOS v5.0 COMMAND.COM
-	dw 0A07h  ; PCDOS 7.10 COMMAND.COM
-	db 187			; Total number of messages
+	dw 0A07h  ; PCDOS 7.1 COMMAND.COM
+	;db 187			; Total number of messages
+	; 02/08/2024
+	db 183	; PCDOS 7.1 COMMAND.COM
 $M_ID_3_1:
 	; (MSDOS 5.0 COMMAND.COM - TRANGROUP:5A48h)
 	dw 1020			; Message Number = 1020
@@ -40313,11 +40922,21 @@ $M_ID_3_67:
 	dw 1098,MSG_1098-$ ; 2225
 	dw 1099,MSG_1099-$ ; 2250
 	dw 1100,MSG_1100-$ ; 2268
+
+; 02/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	dw 1101,MSG_1101-$ ; 2302
 	dw 1102,MSG_1102-$ ; 2313
+%endif
 	dw 1103,MSG_1103-$ ; 2367
 	dw 1104,MSG_1104-$ ; 2390
 	dw 1105,MSG_1105-$ ; 2390 ; TRANGROUP:6AA8h 
+
+; 02/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 1
+	dw 1106,MSG_1106-$ ; 2345 *
+%endif
+
 ;$M_ID_3_84:
 $M_ID_3_95: ; 17/06/2023	
 	dw 1200,MSG_1200-$ ; 2391
@@ -40357,11 +40976,16 @@ $M_ID_3_114: ; 17/06/2023
 	dw 1488,MSG_1488-$ ; 5319
 	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
 	dw 1489,MSG_1489-$ ; 5443
+
+; 02/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	dw 1490,MSG_1490-$ ; 5505
 	dw 1491,MSG_1491-$ ; 5529
 	dw 1492,MSG_1492-$ ; 5608
 	dw 1493,MSG_1493-$ ; 5751
 	dw 1494,MSG_1494-$ ; 5770
+%endif
+
 ;$M_ID_3_112:
 $M_ID_3_132: ; 17/06/2023
 	dw 1500,MSG_1500-$ ; 5796
@@ -40431,6 +41055,13 @@ $M_ID_3_187:	; 17/06/2023
 	dw MSG_1927-$+2	; 10782	; Message offset from message number
 				; (Msg addr: 6C1Ch+2A1Eh = TRANGROUP:963Ah)
 
+; 02/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 1
+$M_ID_3_183:
+	dw 1107,MSG_1107-$ ; 10602 *
+			; (Msg addr: 6A89h+296Ah = TRANGROUP:96F3h)	
+%endif
+
 ; ---------------------------------------------------------------------------
 ; Class 3 messages
 ; ---------------------------------------------------------------------------
@@ -40440,6 +41071,9 @@ $M_ID_3_187:	; 17/06/2023
 
 	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:6C20h
+
+	; 02/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:6A8Dh
 
 MSG_1020:	; COMMON4
 	db 15	; (MSG_1015-MSG_1020)-1
@@ -40499,6 +41133,14 @@ MSG_1010:
 MSG_1011:
 	db 26
 	db 'Bad command or file name',0Dh,0Ah
+
+; 04/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 1
+MSG_1012:
+	db 28
+	db 'REXX interpreter not found',0Dh,0Ah	
+%endif
+
 MSG_1014:	; EXTEND5
 	db 16
 	db 'Access denied ',0Dh,0Ah
@@ -40560,9 +41202,18 @@ MSG_1039:
         db 60
 	db 'All files in directory will be deleted!',0Dh,0Ah
 	db 'Are you sure (Y/N)?'
+
+; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 MSG_1040:
 	db 20
 	db 'MS-DOS Version %1.%2'
+%else
+MSG_1040:
+	db 18
+	db 'PC DOS Version 7.1'
+%endif
+
 MSG_1044:
 	db 19
 	db 'Invalid directory',0Dh,0Ah
@@ -40632,6 +41283,7 @@ MSG_1067:
 	db 1
 	db 9
 MSG_1068:
+MSG_1105:	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
 	db 10
 	db ' <DIR>    '
 MSG_1069:
@@ -40730,12 +41382,17 @@ MSG_1099:
 MSG_1100:
 	db 37
 	db 'A bad UMB number has been specified',0Dh,0Ah
+
+; 02/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 MSG_1101:
 	db 14
 	db '  %1.%2 to 1.0'
 MSG_1102:
 	db 57
 	db '                 %1.%2 to 1.0 average compression ratio',0Dh,0Ah
+%endif
+
 MSG_1103:
 	db 26
 	db 'Overwrite %1 (Yes/No/All)?'
@@ -40744,13 +41401,28 @@ MSG_1104:
 _Y_es:	db 'Y'
 _N_o:	db 'N'
 _A_ll:	db 'A'
+
+; 02/08/2024 - Retro DOS v5.0 - PCDOS 7.1 COMMAND.COM
+%if 0
 	; (MSDOS 6.22 COMMAND.COM - TRANGROUP:73FEh)
 MSG_1105:
 	db 4
 	db '    '
-	
-	; (MSDOS 5.0 COMMAND.COM - TRANGROUP:63C2h)
-	; MSDOS 6.22 COMMAND.COM - TRANGROUP:7403h
+%else
+	; 03/08/2024
+;MSG_1105:
+	;db 10
+	;db ' <DIR>    '
+
+	; (PCDOS 7.1 COMMAND.COM - TRANGROUP:724Eh)
+MSG_1106:
+	db 17
+	db '%1 K bytes free',0Dh,0Ah
+%endif
+
+	; ((MSDOS 5.0 COMMAND.COM - TRANGROUP:63C2h))
+	; (MSDOS 6.22 COMMAND.COM - TRANGROUP:7403h)
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:7260h
 MSG_1200:
 	db 0	; /? unimplemented
 	; (MSDOS 6.22 COMMAND.COM - TRANGROUP:7404h)
@@ -40890,7 +41562,7 @@ MSG_1462:
 	db '  /P                      Prompts for confirmation before deleting each file.',0Dh,0Ah
 
 ; 17/06/2023
-%if 0	; MSDOS 5.0 DIR Help messages 
+%if 0	; MSDOS 5.0 DIR Help messages
 
 MSG_1480:
 	db 162
@@ -40974,6 +41646,9 @@ MSG_1488:
 MSG_1489:
 	db 65
 	db '  /B      Uses bare format (no heading information or summary).',0Dh,0Ah
+
+; 02/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 MSG_1490:
 	db 27
 	db '  /L      Uses lowercase.',0Dh,0Ah
@@ -40993,6 +41668,7 @@ MSG_1494:
 	db 29
 	db '  /L      Uses lowercase.',0Dh,0Ah
 	db 0Dh,0Ah
+%endif
 
 MSG_1500:
 	db 62
@@ -41303,6 +41979,12 @@ MSG_1927:
 	db 'parameters  Specifies any command-line information required by',0Dh,0Ah
 	db '            the program.',0Dh,0Ah
 
+	; 02/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:96F3h
+MSG_1107:
+	db 12
+	db '%1 K bytes',0Dh,0Ah
+
 ; ---------------------------------------------------------------------------
 
 	; 15/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
@@ -41508,6 +42190,14 @@ BADNAM_PTR:
 	dw	1011			;AN000;message number
 	db	no_subst ; 0		;AN000;number of subst
 
+; 04/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 1
+; "REXX interpreter not found",13,10
+REXXNOTF_PTR:
+	dw	1012
+	db	no_subst ; 0
+%endif
+
 ;  "Access denied",13,10
 ACCDEN_PTR:
 	dw	1014			;AN000;message number
@@ -41555,13 +42245,15 @@ dirmes_ptr:
 	; MSDOS 5.0 COMMAND.COM
 	;db	0A1h ; Right_Align+Unsgn_Bin_Word
 	; 17/06/2023
-screen_f_3:
+;screen_f_3:
 	db	0E1h ; MSDOS 6.22 COMMAND.COM
 					;AN000;binary to decimal
 	db	9			;AN000;maximum width
 	db	9			;AN000;minimum width
 	db	blank ; 20h		;AN000;pad character
 
+; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 ;  "%1 bytes free",13,10
 bytmes_ptr:
 	dw	1020			;AN000;message number
@@ -41585,6 +42277,70 @@ screen_f_7:
 	db	32
 
 	db	blank ; 20h		;AN000;pad character
+%else
+	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM
+dirmes_w_ptr:
+	dw	1019
+	db	1
+	db	11
+	db	0
+	dw	Dir_Num
+	dw	0
+	db	1
+	db	0F1h			; long binary to decimal
+	db	10
+	db	10
+	db	20h
+dirmes2_ptr:
+	dw	1019
+	db	1
+	db	11
+	db	0
+	dw	Dir_Num
+	dw	0
+	db	1
+	db	0B1h			; Right_Align+Unsgn_Bin_DWord
+	db	9
+	db	9
+	db	20h
+bytmes1_ptr:
+	dw	1020
+	db	1
+	db	11
+	db	0
+	dw	Bytes_Free
+	dw	0
+	db	1
+	db	0F1h			; long binary to decimal
+	db	30			; maximum width
+	db	30			; minimum width
+	db	20h			; blank
+bytmes2_ptr:
+	dw	1020
+	db	1
+	db	11
+	db	0
+	dw 	Bytes_Free
+	dw	0
+	db	1
+	db	0F1h			; long binary to decimal
+	db	33			; maximum width
+	db	33			; minimum width
+	db	20h			; pad
+bytmes_n_ptr:
+	dw	1020
+	db	1
+	db	11			; parm_block_size
+	db	0
+	dw	Bytes_Free
+	dw	0
+	db	1
+	db	0B1h			; Right_Align+Unsgn_Bin_DWord
+	db	28
+	db	28
+	db	20h
+%endif
 
 ;  "Invalid drive specification",13,10
 baddrv_ptr:
@@ -41759,6 +42515,9 @@ SureMes_Ptr:
 ;  "Microsoft DOS Version %1.%2",13,10
 VerMes_Ptr:
 	dw	1040			;AN000;message number
+
+; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	db	2			;AN000;number of subst
 	db	parm_block_size ; 11 	;AN000;size of sublist
 	db	0			;AN000;reserved
@@ -41780,6 +42539,9 @@ VerMes_Ptr:
 	db	2			;AN000;maximum width
 	db	2			;AN000;minimum width
 	db	'0' ; 30h		;AN000;pad character
+%else
+	db	0	; no_subst
+%endif
 
 ;  "Volume in drive %1 has no label",13,10
 VolMes_Ptr_2:
@@ -41998,6 +42760,9 @@ file_name_ptr:
 	db	0			;AN000;minimum width
 	db	blank ; 20h		;AN000;pad character
 
+; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
+
 ;  file size output for dir
 disp_file_size_ptr:
 	dw	1065			;AN000;message number
@@ -42021,6 +42786,46 @@ screen_f_2:
 	db	14
 	
 	db	blank ; 20h		;AN000;pad character
+%else
+	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM
+disp_file_size_ptr:
+	dw	1065
+	db	1
+	db	11
+	db	0
+	dw	File_Size_Low
+	dw	0
+	db	1
+	db	0F1h
+	db	12
+	db	12
+	db	20h
+disp_file_size_w_ptr:
+	dw	1065
+	db	1
+	db	11
+	db	0
+	dw	File_Size_Low
+	dw	0
+	db	1
+	db	0F1h			; long binary to decimal
+	db	14
+	db	14
+	db	20h
+disp_file_size_n_ptr:
+	dw	1065
+	db	1
+	db	11
+	db	0
+	dw	File_Size_Low
+	dw	0
+	db	1
+	db	0B1h			; Right_Align+Unsgn_Bin_DWord
+	db	10
+	db	10
+	db	20h
+%endif
 
 ;  unformatted string output
 ; %s
@@ -42131,8 +42936,10 @@ DirDat_Yr:
 DirDat_Mo_Day:
 	dw	0			;AN000;month,day
 	db	1			;AN000;first subst
+DirDat_form:	; 03/08/2024 - PCDOS 7.1
 	db	0A4h ; Right_Align+DATE_MDY_2
 					;AN000;date
+DirDat_width:	; 03/08/2024 - PCDOS 7.1	
 	db	10			;AN000;maximum width
 	db	8			;AN000;minimum width
 	db	blank ; 20h		;AN000;pad character
@@ -42155,6 +42962,9 @@ MD_EXISTS_PTR:
 	db	no_subst		;AN000;number of subst
 
 ;  "%1 bytes",13,10
+
+; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 bytes_ptr:
 	dw	1079			; message number
 	db	1			; number of subst
@@ -42175,8 +42985,75 @@ screen_f_4:
 screen_f_5:
 	db	14 ; MSDOS 6.22 COMMAND.COM
 	db	14	
-
 	db	blank ; 20h		; pad character
+%else
+	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:9718h
+bytes_ptr:
+	dw	1079
+	db	1
+	db	11
+	db	0
+	dw	FileSiz
+	dw	0
+	db	1
+	db	0F1h
+	db	12
+	db	12
+	db	20h
+bytes_w_tr:
+	dw	1079
+	db	1
+	db	11
+	db	0
+	dw	FileSiz
+	dw	0
+	db	1
+	db	0F1h
+	db	14
+	db	14
+	db	20h
+bytes_n_ptr:
+	dw	1079
+	db	1
+	db	11
+	db	0
+	db	0B1h
+	db	160
+	db	0
+	db	0
+	db	1
+	db	0B1h
+	db	10
+	db	10
+	db	20h
+kbytes_ptr:
+	dw	1107
+	db	1
+	db	11
+	db	0
+	db	0B1h
+	db	160
+	db	0
+	db	0
+	db	1
+	db	0F1h
+	db	14
+	db	14
+	db	20h
+kybytes_n_ptr:
+	dw	1107
+	db	1
+	db	11
+	db	0
+	dw	FileSiz
+	dw	0
+	db	1
+	db	0B1h
+	db	10
+	db	10
+	db	20h
+%endif
 
 ;  "Total:",13,10
 total_ptr:
@@ -42189,7 +43066,7 @@ errparsenv_ptr:
 	db	no_subst ; 0		; number of subst
 
 	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
-	; (MSDOS 6.22 COMMAN.COM - TRANGROUP:996Ah)
+	; (MSDOS 6.22 COMMAND.COM - TRANGROUP:996Ah)
 cox_Y_quest_ptr:
 	dw	1082
 	db	no_subst ; 0
@@ -42287,6 +43164,8 @@ LhBadUMB_Ptr:
 	db	no_subst ; 0
 ;%endif	
 
+; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
+%if 0
 	; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:99AAh
 
@@ -42333,12 +43212,43 @@ AveCompRatio_Ptr:
 	db	1			;maximum width
 	db	1			;minimum width
 	db	blank ; 20h		;pad character
+%else
+	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:97A4h
+kbytesf_ptr:
+	dw	1106
+	db	1
+	db	11
+	db	0
+	dw	Bytes_Free
+	dw	0
+	db	1
+	db	0F1h			; long binary to decimal
+	db	30
+	db	30
+	db	20h
+kbytesf_n_ptr:
+	dw	1106
+	db	1
+	db	11
+	db	0
+	dw	Bytes_Free
+	dw	0
+	db	1
+	db	0B1h			; Right_Align+Unsgn_Bin_DWord
+	db	28
+	db	28
+	db	20h
+%endif
 
 	; 15/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:8483h
 
 	; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:99DCh
+
+	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:97C0h
 
 ; ---------------------------------------------------------------------------
 
@@ -42350,6 +43260,13 @@ COMSPECSTR:
 	db	"COMSPEC="
 DirEnvVar:
 	db	"DIRCMD="		; DIR's environment variable
+
+; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
+; PCDOS 7.1 COMMAND.COM
+%if 1
+no_sep_text:
+	db	'NO_SEP='	; 1 = do not use commas as num separator
+%endif
 
 ;============================================================================
 ; TDATA.ASM, MSDOS 6.0, 1991
@@ -42447,6 +43364,13 @@ LoadhighHelpMsgs:
 	; MSDOS 6.0 COMMAND.COM
 	dw	1923,1924,1925,1926,1927 ;M014
 	dw	0
+
+; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
+%if 1
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:98CEh
+twospacechars:
+	db	'  ',0
+%endif
 
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:8578h
 CLSSTRING:
@@ -43608,8 +44532,13 @@ parse_last:
 	dw 0			;AN018; used to hold parsing position
 system_cpage:
 	dw 0			;AC001; used for CHCP variable
+
+; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 Arg_Buf:
 	times 128 db 0	
+%endif
+
 File_Size_Low:
 	dw 0	
 File_Size_High:
@@ -43623,6 +44552,8 @@ cpyflag:
 Dir_Num:
 	dw 0
 
+; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.0
 ;ifdef DBLSPACE_HOOKS
@@ -43631,6 +44562,7 @@ Dir_CRatio_1:
 Dir_CRatio_2:
 	db 0
 ;endif
+%endif
 
 Bytes_Free:
 	dd 0
@@ -43838,9 +44770,13 @@ ARG_ARGFORCOMBUF:
 	; MSDOS 5.0 COMMAND.COM (1991) Transient portion offset 9649h
 	; 18/06/2023
 	; MSDOS 6.22 COMMAND.COM (1994) Transient portion offset 0AD19h
+	; 03/08/2024
+	; PCDOS 7.1 COMMAND.COM (2003) Transient portion offset 0A823h
 ARGBUF_PTR:
 	dw 0			; index for argv[].argpointer
-TPBUF:	times 128 db 0		; temporary buffer
+TPBUF:				; temporary buffer
+Arg_Buf: ; 03/08/2024 - PCDOS 7.1 COMMAND.COM	
+	times 128 db 0
 LASTARG:
 	dw 0			; point at which to accumulate switch info
 COMPTR:	dw 0			; ptr into combuf
@@ -43981,8 +44917,12 @@ BATBUFPOS:
 BATBUF:	times BATLEN db 0 ; times 32 db 0
 BATBUFEND:
 	dw 0
+
+; 03/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 TypeFilSiz:
 	dd 0			; stores size of file to be typed
+%endif
 
 ; *****************************************************
 ; EMG 4.00
