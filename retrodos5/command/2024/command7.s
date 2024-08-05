@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (PCDOS 7.1 Command Interpreter) - RETRO DOS v5.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 04/08/2024
+; Last Update: 06/08/2024
 ; ----------------------------------------------------------------------------
 ; Beginning: 18/07/2024 (v7.1) - ((Previous: 19/06/2023 COMMAND.COM v6.22))
 ; ----------------------------------------------------------------------------
@@ -24894,7 +24894,7 @@ RESEARCH:
 	;mov	word [ARGV0_ARGSW_WORD],0
 	mov	word [ARG+ARGV_ELE.argsw_word],0
 	;mov	[ARGV0_ARG_OCOMPTR],ax
-	mov	[ARG+ARGV_ELE.argforcombuf],ax
+	mov	[ARG+ARGV_ELE.arg_ocomptr],ax
 				; pointer into original	command	string
 	call	path_search
 	test	ax,ax
@@ -24917,12 +24917,24 @@ BATCOMJ:
 ;BADCOMJ45:
 	;jmp	short BADCOM
 
+; 06/08/2024
+; ---------------------------------------------------------------------------
+
+	;  25/02/2023 - Retro DOS v4.0 COMMAND.COM
+BADCOM:
+	push	cs
+	pop	ds
+	mov	dx,BADNAM_PTR
+cerror:		
+	call	std_eprintf
+	jmp	TCOMMAND
+
+; ---------------------------------------------------------------------------
+
 	;nop
 EXECUTE:
 NEOEXECUTE:
 	call	IOSET
-
-; burada kaldým.. 05/08/2024
 
 ; MSDOS 6.0
 ;M051
@@ -24990,17 +25002,6 @@ OK_EXEC:
 	; MSDOS 6.0
 	jmp	far [cs:EXEC_ADDR] ; Jmp to the EXEC in the resident
 
-; ---------------------------------------------------------------------------
-
-	;  25/02/2023 - Retro DOS v4.0 COMMAND.COM
-BADCOM:
-	push	cs
-	pop	ds
-	mov	dx,BADNAM_PTR
-cerror:		
-	call	std_eprintf
-	jmp	TCOMMAND
-
 ; =============== S U B	R O U T	I N E =======================================
 
 ; Prescan converts the input buffer into a canonicalized form.
@@ -25012,6 +25013,8 @@ cerror:
 	; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:2FFBh
 
+	; 05/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:2E8Dh
 PRESCAN:
 	xor	cx,cx
 	mov	es,[RESSEG]
@@ -25170,6 +25173,25 @@ GOTRESTR_J:
 	jmp	short GOTRESTR	;AN002; go process it
 NO_ABRACKET:			;AN002; NOT AT END OF STRING
 	stosb			; store it into resgroup
+
+; 05/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 1
+;ifdef DBCS
+	;invoke	testkanj
+	;jz	short @f	; if not lead byte of DBCS
+	call	testkanj
+	jz	short NO_ABRACKET_@
+	jcxz	GOTRESTR_J	; if no tail byte
+	lodsb
+	cmp	al,0Dh
+	jz	short GOTRESTR_J ; if tail byte does't come and ends
+	stosb			; copy tail byte
+	dec	cx
+;@@:
+NO_ABRACKET_@:	; 05/08/2024
+;endif
+%endif
+
 	loop	SETREOUTSTR_LOOP
 				; MSKK06 07/14/89
 	jmp	short GOTRESTR_J
@@ -25300,6 +25322,12 @@ PRESCANEND:
 	;;MSDOS 5.0 COMMAND.COM - TRANGROUP:2BA0h
 	;;mov	di,3C0h		; offset RESGROUP:PIPESTR
 	;;			; (EndInit+160]
+
+	; 05/08/2024
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:2FEAh
+	;mov	di,4BEh		; PipeStr ; RESGROUP:EndInit+160	
+	;mov	[es:4BCh],di	; (RESGROUP:EndInit+158)
+
 	;mov	di,offset RESGROUP:PIPESTR
 	mov	di,PipeStr	; RESGROUP:EndInit+160
 
@@ -25316,7 +25344,7 @@ PIPESETLP:			; Transfer the pipe into the resident
 	jnz	short PIPESETLP
 ISNOPIPE:
 	mov	[COMBUF+1],cl
-	cmp	byte [es:PipeFlag],0
+	cmp	byte [es:PipeFlag],0 ; [es:41Ch] ; PCDOS 7.1 COMMAND.COM
 	push	cs
 	pop	es
 	retn
@@ -25398,6 +25426,9 @@ test_append:
 
 ; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
 ; MSDOS 6.22 - COMMAND.COM, transient portion/segment offset 3199h
+
+; 05/08/2024 - Retro DOS v5.0 COMMAND.COM
+; PCDOS 7.1 - COMMAND.COM, transient portion/segment offset 3039h
 
 ; =============== S U B	R O U T	I N E =======================================
 
@@ -25548,18 +25579,24 @@ NOREDIR:
 	pop	ax
 	pop	dx
 	pop	ds
+IOSET_RETN:	; 06/08/2024
 	retn
 
 ; =============== S U B	R O U T	I N E =======================================
 
 	; 26/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2CF3h
+
+	; 06/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:313Dh
 TESTDOREOUT:
 	cmp	byte [Re_OutStr],0
 	;je	short NOREOUT  ; MSDOS 3.3
 	; 26/02/2023
-	jne	short REOUTEXISTS
-	jmp	NOREOUT 
+	;jne	short REOUTEXISTS
+	;jmp	NOREOUT
+	; 06/08/2024
+	jz	short IOSET_RETN
 REOUTEXISTS:
 	cmp	byte [Re_Out_App],0
 	je	short REOUTCRT
@@ -25690,23 +25727,30 @@ SET_REOUT:
 	;xchg	al,[bx+18h]
 	xchg	al,[bx+PDB.JFN_TABLE]
 	mov	[PDB.JFN_TABLE+1],al
-NOREOUT:
-IOSET_RETN:	; 17/04/2023
+NOREOUT:	; 06/08/2024
 	retn
 
 ; =============== S U B	R O U T	I N E =======================================
 
 	; 26/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2CABh
+
+	; 06/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:30F5h
 TESTDOREIN:
 	cmp	byte [cs:RE_INSTR],0
-	jz	short IOSET_RETN
+	;jz	short IOSET_RETN
+	; 06/08/2024
+	jz	short NOREOUT
 	push	ds
 	push	cs
 	pop	ds
 	mov	dx,RE_INSTR
-	;mov	ax,OPEN*256 ; 3D00h
-	mov	ax,3D00h
+	;;mov	ax,OPEN*256 ; 3D00h
+	;mov	ax,3D00h
+	; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+	;mov	ax,(OPEN*256)+SHARING_DENY_NONE
+	mov	ax,3D40h
 	mov	bx,ax
 	int	21h	; DOS -	2+ - OPEN DISK FILE WITH HANDLE
 			; DS:DX	-> ASCIZ filename
@@ -44110,8 +44154,17 @@ TempVarName:
 	; 18/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
 copycmd:
 	db 'COPYCMD='
+
+; 06/08/2024 - Retro DOS v5.0 - PCDOS 7.1 COMMAND.COM
+%if 0
 sCVFRoot:
 	db '\DBLSPACE.'
+%else
+	; 06/08/2024
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:9C3Eh
+REXX_EXE:
+	db 'REXX.EXE',0		
+%endif
 
 ; ----------------------------------------------------------------------------
 ; 20/07/2024 - Retro DOS v5.0 COMMAND.COM
