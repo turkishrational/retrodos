@@ -23937,7 +23937,7 @@ SETREST:
 	; 26/02/2023 - Retro DOS v4.0 COMMAND.COM
 	;
 	; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
-	; MSDOS 6.22 COMMAND.COM - TRANGROUP:33AFh 
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:33AFh
 PIPEDEL:
 	push	ds
 	push	dx
@@ -23946,10 +23946,10 @@ PIPEDEL:
 	;;mov	dx,320h	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2E0Ch
 			; Pipe1 = offset RESGROUP:EndInit
 	mov	dx,Pipe1	; Clean up in case ^C
-	;mov	ah,Unlink ; 41h 
+	;mov	ah,Unlink ; 41h
 	mov	ah,41h
 	int	21h	; DOS -	2+ - DELETE A FILE (UNLINK)
-			; DS:DX	-> ASCIZ pathname of file to delete 
+			; DS:DX	-> ASCIZ pathname of file to delete
 			;		(no wildcards allowed)
 
 	;mov	dx,439h	; MSDOS 6.22 COMMAND.COM - TRANGROUP:33BDh
@@ -23959,7 +23959,7 @@ PIPEDEL:
 	;mov	ah,Unlink ; 41h
 	mov	ah,41h
 	int	21h	; DOS -	2+ - DELETE A FILE (UNLINK)
-			; DS:DX	-> ASCIZ pathname of file to delete 
+			; DS:DX	-> ASCIZ pathname of file to delete
 			;		(no wildcards allowed)
 	pop	dx
 	call	PipeOff
@@ -39189,7 +39189,7 @@ MSG_1068:
 MSG_1069:
 	db 3
 	db 8, 20h, 8
-MSG_1070:	; CRLF		
+MSG_1070:	; CRLF
 	db 2
 	db 0Dh
 	db 0Ah
@@ -39375,7 +39375,7 @@ MSG_1402:
 MSG_1403:	
 	;db 65  ;  MSDOS 5.0
 	; 17/06/2023
-	db 63 ; MSDOS 6.22	
+	db 63 ; MSDOS 6.22
 	db '  /V           Verifies that new files are written correctly.',0Dh,0Ah
 	;db 0Dh,0Ah ; MSDOS 5.0
 
@@ -39442,7 +39442,7 @@ MSG_1462:
 	db '  /P                      Prompts for confirmation before deleting each file.',0Dh,0Ah
 
 ; 17/06/2023
-%if 0	; MSDOS 5.0 DIR Help messages 
+%if 0	; MSDOS 5.0 DIR Help messages
 
 MSG_1480:
 	db 162
@@ -39568,7 +39568,7 @@ MSG_1541:
 	db 107
 	db 'Type PATH ; to clear all search-path settings and direct MS-DOS to search',0Dh,0Ah
 	db 'only in the current directory.',0Dh,0Ah
-MSG_1542:	
+MSG_1542:
 	db 59
 	db 'Type PATH without parameters to display the current path.',0Dh,0Ah
 MSG_1560:
@@ -39577,7 +39577,7 @@ MSG_1560:
 	db 0Dh,0Ah
 	db 'PROMPT [text]',0Dh,0Ah
 	db 0Dh,0Ah
-MSG_1561:	
+MSG_1561:
 	db 124
 	db '  text    Specifies a new command prompt.',0Dh,0Ah
 	db 0Dh,0Ah
@@ -39688,7 +39688,7 @@ MSG_1700:
 	db 'VERIFY [ON | OFF]',0Dh,0Ah
 	db 0Dh,0Ah
 	db 'Type VERIFY without a parameter to display the current VERIFY setting.',0Dh,0Ah
-MSG_1720:              
+MSG_1720:
 	db 82
 	db 'Displays the disk volume label and serial number, if they exist.',0Dh,0Ah
 	db 0Dh,0Ah
@@ -39703,7 +39703,7 @@ MSG_1741:
 	db 114
 	db '  batch-parameters   Specifies any command-line information required by the',0Dh,0Ah
 	db '                     batch program.',0Dh,0Ah
-MSG_1760:	
+MSG_1760:
 	db 76
 	db 'Records comments (remarks) in a batch file or CONFIG.SYS.',0Dh,0Ah
 	db 0Dh,0Ah
@@ -39872,7 +39872,9 @@ $M_CLS_3:
 	; 15/04/2023
 	;add	cx,10053	; ADD CX,$-$M_CLASS_3_STRUC ; 8189h-5A44h
 	; 17/06/2023
-	add	cx,11627	; ADD CX,$-$M_CLASS_3_STRUC ; 969Bh-6930h
+	;add	cx,11627	; ADD CX,$-$M_CLASS_3_STRUC ; 969Bh-6930h
+	; 06/08/2024
+	add	cx,$-$M_CLASS_3_STRUC
 	retn
 
 	; 15/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
@@ -41186,7 +41188,7 @@ COMTAB:
 	dw	LoadHigh		; In loadhi.asm ; M003
 	dw	LoadhighHelpMsgs	; M003
 	
-	db	2,"LH",fSwitchAllowed ; 2	; Short form; M003
+	db	2,"LH",fSwitchAllowed ; 2 ; Short form; M003
 	dw	LoadHigh		; In loadhi.asm ; M003
 	dw	LoadhighHelpMsgs	; M003
 	
@@ -41203,7 +41205,7 @@ switch_list:
 	;db	"?VBAPW"		; flags we can recognize
 	; 18/06/2023
 	; MSDOS 6.22 COMMAND.COM
-	db "-Y?VBAPW"
+	db	"-Y?VBAPW"
 
 AttrLtrs:
 	db	"RHSvDA"		; attribute letters for DIR

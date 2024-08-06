@@ -21550,6 +21550,81 @@ PRINT_EQ:
 
 ; ---------------------------------------------------------------------------
 
+; 06/08/2024 - Retro DOS v5.0 COMMAND.COM
+; PCDOS 7.1 COMMAND.COM - TRANGROUP:223Eh
+%if 1
+PRINT_R:	 ; Print [RetCode] as PROMPT
+	push	ds
+	mov	ds,[RESSEG]
+	mov	al,[RetCode]
+	pop	ds
+	xor	ah,ah
+	mov	dl,10
+	mov	si,RetCode_str ; "000"
+	div	dl
+	add	ah,30h	; '0'
+	mov	[si+2],ah
+	xor	ah,ah
+	div	dl
+	add	ax,3030h
+	mov	[si],ax
+	cmp	al,30h	; '0'
+	jnz	short Print_R_@
+	inc	si
+	cmp	ah,30h	; '0'
+	jnz	short Print_R_@
+	inc	si
+Print_R_@:
+	mov	[string_ptr_2],si
+	clc
+	jmp	short Print_R_@@
+
+; ---------------------------------------------------------------------------
+RetCode_str:
+	db	'000',0
+; ---------------------------------------------------------------------------
+;; 'PROMPT $R' test for PCDOS 7.1 COMMAND.COM - Erdogan Tan - August 6, 2024
+;
+;	[org 100h]
+;	
+;	;mov	ah,09h
+;	;mov	dx,program_name
+;	;int	21h
+;	call	print_msg
+;
+;	mov	al,255  ; Return Code
+;	mov	ah,4Ch
+;	int	21h
+;hang:
+;	;sti
+;	jmp	short hang
+;
+;print_msg:
+;	mov	ah,0Eh
+;	mov	bx,7
+;	mov	si,program_name
+;nextchr:
+;	lodsb
+;	or	al,al
+;	jz	short pmsg_end
+;	int	10h
+;	jmp	short nextchr
+;pmsg_end:
+;	retn
+;
+;program_name:
+;	db 0Dh,0Ah
+;	db "IBM PCDOS 7.1 COMMAND.COM (Prompt "
+;	db 24h,"R) Return Code Test Program"
+;	db 0Dh,0Ah
+;	db "(Erdogan Tan - 06/08/2024)"
+;	;db 0Dh,0Ah,"$"
+;	db 0Dh,0Ah,0 
+
+%endif
+
+; ---------------------------------------------------------------------------
+
 PRINT_ESC:
 	mov	al,1Bh
 	jmp	short PRINT_CHAR
@@ -21643,6 +21718,7 @@ build_dir_for_prompt:
 			; DL = drive (0=default,1=A,etc.)
 			; DS:SI	points to 64-byte buffer area
 	;mov	dx,STRINGBUF2PTR ; MSDOS 3.3
+Print_R_@@:	; 06/08/2024
 	mov	dx,string_buf_ptr
 	jnc	short doprint
 	;mov	dx,BADCURDRVPTR	; MSDOS 3.3
@@ -26018,30 +26094,39 @@ SETREST:
 	; 26/02/2023 - Retro DOS v4.0 COMMAND.COM
 	;
 	; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
-	; MSDOS 6.22 COMMAND.COM - TRANGROUP:33AFh 
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:33AFh
+	;
+	; 06/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:324Fh
 PIPEDEL:
 	push	ds
 	push	dx
 	mov	ds,[cs:RESSEG]
-	;mov	dx,3EAh	; MSDOS 6.22 COMMAND.COM - TRANGROUP:33B1h
-	;;mov	dx,320h	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2E0Ch
+	;;;mov	dx,320h	; MSDOS 5.0 COMMAND.COM - TRANGROUP:2E0Ch
+	;;mov	dx,3EAh	; MSDOS 6.22 COMMAND.COM - TRANGROUP:33B1h
+	;mov	dx,41Eh	; PCDOS 7.1 COMMAND.COM - TRANGROUP:3256h
 			; Pipe1 = offset RESGROUP:EndInit
 	mov	dx,Pipe1	; Clean up in case ^C
 	;mov	ah,Unlink ; 41h 
 	mov	ah,41h
-	int	21h	; DOS -	2+ - DELETE A FILE (UNLINK)
+	;int	21h	; DOS -	2+ - DELETE A FILE (UNLINK)
 			; DS:DX	-> ASCIZ pathname of file to delete 
 			;		(no wildcards allowed)
+	; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 
-	;mov	dx,439h	; MSDOS 6.22 COMMAND.COM - TRANGROUP:33BDh
-	;;mov	dx,36Fh ; MSDOS 5.0 COMMAND.COM - TRANGROUP:2E13h
+	;;;mov	dx,36Fh ; MSDOS 5.0 COMMAND.COM - TRANGROUP:2E13h
+	;;mov	dx,439h	; MSDOS 6.22 COMMAND.COM - TRANGROUP:33BDh
+	;mov	dx,46Dh	; PCDOS 7.1 COMMAND.COM - TRANGROUP:325Eh
 			; Pipe2 = offset RESGROUP:EndInit+79
 	mov	dx,Pipe2
 	;mov	ah,Unlink ; 41h
 	mov	ah,41h
-	int	21h	; DOS -	2+ - DELETE A FILE (UNLINK)
+	;int	21h	; DOS -	2+ - DELETE A FILE (UNLINK)
 			; DS:DX	-> ASCIZ pathname of file to delete 
 			;		(no wildcards allowed)
+	; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 	pop	dx
 	call	PipeOff
 	mov	byte [PipeFiles],0
@@ -26052,7 +26137,7 @@ PIPEDEL:
 
 	; 26/02/2023
 PIPEERRSYN:
-	mov	dx,SYNTMES_PTR
+	mov	dx,SYNTMES_PTR	; MSG_1030 ; 06/08/2024
 	call	PIPEDEL
 	push	cs
 	pop	ds
@@ -26075,7 +26160,7 @@ PIPERR:
 	pop	dx		; Restore results from TriageError
 	pop	ax
 	popf
-	cmp	ax,65
+	cmp	ax,65		; network access denied
 	jne	short TCOMMANDJ
 	jmp	cerror
 
@@ -26086,6 +26171,7 @@ TCOMMANDJ:
 
 	; 27/02/2023 - Retro DOS v4.0 COMMAND.COM
 	; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 06/08/2024 - Retro DOS v5.0 COMMAND.COM
 PIPEPROCSTRT:
 	mov	ds,[RESSEG]
 	inc	byte [PipeFiles] ; Flag that the pipe files exist
@@ -26126,12 +26212,15 @@ PIPEPROCSTRT:
 	push	es
 	pop	ds			;ds = DATARES
 	;mov	dx,offset DATARES:Pipe1	;ds:dx = path to look for
-	;;mov	dx,320h ; MSDOS 5.0 - offset EndInit
-	;mov	dx,3EAh	; MSDOS 6.22 - offset EndInit
+	;;;mov	dx,320h ; MSDOS 5.0 - offset EndInit
+	;;mov	dx,3EAh	; MSDOS 6.22 - offset EndInit
+	;mov	dx,41Eh	; PCDOS 7.1 COMMAND.COM - offset EndInit
 	mov	dx,Pipe1
 	;mov	ax,(CHMOD shl 8) or 0
 	mov	ax,4300h
-	int	21h
+	;int	21h
+	; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 	jc	short no_temp_path
 	
 	test	cx,10h			;is it a directory?
@@ -26187,11 +26276,13 @@ crt_temp:
 	xor	cx,cx
 	;mov	ah,CREATETEMPFILE ; 5Ah ; the CreateTemp call
 	mov	ah,5Ah
-	int	21h
+	;int	21h
 		; DOS -	3+ - CREATE UNIQUE FILE
-		; DS:DX	-> ASCIZ directory path	name ending with a '' + 13 bytes to
-		; receive generated filename
+		; DS:DX	-> ASCIZ directory path	name ending with a '' + 13 bytes
+		;         to receive generated filename
 		; CX = file attributes (only bits 0,1,2,5 may be set)
+	; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 	jc	short PIPERR	; Couldn't create
 
 	mov	bx,ax
@@ -26200,16 +26291,19 @@ crt_temp:
 	int	21h	; DOS -	2+ - CLOSE A FILE WITH HANDLE
 			; BX = file handle
 	;;;mov	dx,PIPE2
-	;;mov	dx,36Fh ; MSDOS 5.0 COMMAND.COM
-	;mov	dx,439h ; MSDOS 6.22 COMMAND.COM
+	;;;mov	dx,36Fh ; MSDOS 5.0 COMMAND.COM
+	;;mov	dx,439h ; MSDOS 6.22 COMMAND.COM
+	;mov	dx,46Dh ; PCDOS 7.1 COMMAND.COM
 	mov	dx,Pipe2
 	;mov	ah,CREATETEMPFILE ; 5Ah ; the CreateTemp call
 	mov	ah,5Ah
-	int	21h
+	;int	21h
 		; DOS -	3+ - CREATE UNIQUE FILE
 		; DS:DX	-> ASCIZ directory path	name ending with a '' + 13 bytes to
 		; receive generated filename
 		; CX = file attributes (only bits 0,1,2,5 may be set)
+	; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 	; 17/04/2023
 	;jc	short PIPERR
 	; 27/02/2023
@@ -26218,11 +26312,15 @@ crt_temp:
 pps1:
 	mov	bx,ax
 	mov	ah,CLOSE ; 3Eh	; Don't proliferate handles
-	int	21h		; DOS -	2+ - CLOSE A FILE WITH HANDLE
+	;int	21h		; DOS -	2+ - CLOSE A FILE WITH HANDLE
 				; BX = file handle
+	; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
+	;
 	;call	near ptr TESTDOREIN ; Set up a redirection if specified
 	call	TESTDOREIN
-	;mov	si,[488h] ; MSDOS 6.22 COMMAND.COM ; 11/06/2023
+	;;mov	si,[488h] ; MSDOS 6.22 COMMAND.COM ; 11/06/2023
+	;mov	si,[4BCh] ; PCDOS 7.1 COMMAND.COM ; 06/08/2024
 	mov	si,[PipePtr]	; offset RESGROUP:EndInit+158
 	cmp	word [SingleCom],-1 ; 0FFFFh
 	jne	short NOSINGP
@@ -26234,6 +26332,7 @@ NOSINGP:
 
 	; 27/02/2023 - Retro DOS v4.0 COMMAND.COM
 	; 11/06/2026 - Retro DOS v4.2 COMMAND.COM
+	; 06/08/2024 - Retro DOS v5.0 COMMAND.COM
 PIPEPROC:
 	and	byte [EchoFlag],0FEh  ; force current echo to be off
 	;;mov	si,[488h] ; MSDOS 6.22 COMMAND.COM ; 11/06/2023
@@ -26251,10 +26350,12 @@ ISPIPE1:
 	mov	dx,[InPipePtr]	; Get the input file name
 	;mov	ax,OPEN*256 ; 3D00h
 	mov	ax,3D00h
-	int	21h	; DOS -	2+ - OPEN DISK FILE WITH HANDLE
+	;int	21h	; DOS -	2+ - OPEN DISK FILE WITH HANDLE
 			; DS:DX	-> ASCIZ filename
 			; AL = access mode
 			; 0 - read
+	; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 PIPEERRJ:
 	jnc	short NO_PIPEERR
 	jmp	PIPERR		; Lost the pipe file
@@ -26263,7 +26364,7 @@ NO_PIPEERR:
 	mov	al,0FFh
 	;xchg	al,[bx+18h]
 	xchg	al,[bx+PDB.JFN_TABLE]
-	mov	[PDB.JFN_TABLE],al	; Redirect
+	mov	[PDB.JFN_TABLE],al ; Redirect
 FIRSTPIPE:
 	mov	di,COMBUF+2
 	xor	cx,cx
@@ -26313,6 +26414,8 @@ ISPIPE2:
 	;;mov	[3BEh],si ; MSDOS 5.0 COMMAND.COM
 	; 11/06/2023 - MSDOS 6.22 COMMAND.COM
 	;mov	[488h],si ; [PipePtr] = [EndInit+158]
+	; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+	;mov	[4BCh],si ; [PipePtr] = [EndInit+158]
 	mov	[PipePtr],si		; On to next pipe element
 			; mov [EndInit+158],si
 	mov	dx,[OutPipePtr]
@@ -26320,9 +26423,11 @@ ISPIPE2:
 	xor	cx,cx
 	;mov	ax,CREAT*256 ; 3C00h
 	mov	ax,3C00h
-	int	21h	; DOS -	2+ - CREATE A FILE WITH	HANDLE (CREAT)
+	;int	21h	; DOS -	2+ - CREATE A FILE WITH	HANDLE (CREAT)
 			; CX = attributes for file
 			; DS:DX	-> ASCIZ filename (may include drive and path)
+	; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 	pop	cx
 	jc	short PIPEERRJ		; Lost the file
 	mov	bx,ax
@@ -26338,8 +26443,9 @@ LASTPIPE:
 	; 27/02/2023
 	mov	[es:COMBUF+1],cl
 	dec	si
-	;mov	[3BEh],si ; MSDOS 5.0 COMMAND.COM
-	;mov	[488h],si ; MSDOS 6.22 COMMAND.COM ; 11/06/2023
+	;;;mov	[3BEh],si ; MSDOS 5.0 COMMAND.COM
+	;;mov	[488h],si ; MSDOS 6.22 COMMAND.COM ; 11/06/2023
+	;mov	[4BCh],si ; PCDOS 7.1 COMMAND.COM ; 06/08/2024
 	mov	[PipePtr],si	; Point at the CR (anything not '|' will do)
 		; mov [EndInit+158],si
 	call	TESTDOREOUT	; Set up the redirection if specified
@@ -26361,6 +26467,7 @@ NOSINGP2:
 ; this routines since they need to do a long return
 
 	; 27/02/2023 - Retro DOS v4.0 COMMAND.COM
+
 DATINIT:
 	mov	[cs:RESSEG],ds	; SetInitFlag needs resseg initialized
 	push	es
@@ -26372,9 +26479,11 @@ DATINIT:
 	mov	dx,INTERNATVARS
 	mov	ax,3800h
 	;mov	ax,INTERNATIONAL*256 ; 3800h
-	int	21h	; DOS -	2+ - GET COUNTRY-DEPENDENT INFORMATION
+	;int	21h	; DOS -	2+ - GET COUNTRY-DEPENDENT INFORMATION
 			; get current-country info
 			; DS:DX	-> buffer for returned info
+	; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 	; 20/10/2018
 	mov	word [81h],0Dh ; Want to prompt for date during initialization
 	mov	byte [COMBUF],128 ; Init COMBUF
@@ -26411,6 +26520,9 @@ DATINIT:
 
 	; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:356Eh
+
+	; 06/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:3417h
 DATE:
 	mov	si,81h			; Accepting argument for date inline
 	mov	di,PARSE_DATE		;AN000; Get address of PARSE_DATE
@@ -26454,10 +26566,12 @@ COMDAT:
 	; 26/04/2023
 	;mov	ah,SET_DATE		;yes - set date
 	mov	ah,2Bh
-	int	21h
+	;int	21h
 			; DOS - SET CURRENT DATE
 			; DL = day, DH = month, CX = year
 			; Return: AL = 00h if no error /= FFh if bad value sent to routine
+	; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 	or	al,al
 	jnz	short DATERR
 date_end:
@@ -26536,6 +26650,9 @@ DATERR:
 
 	; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:35D7h
+
+	; 06/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:3481h
 CTIME:
 	mov	si,81h			; Accepting argument for time inline
 	mov	di,PARSE_TIME		;AN000; Get address of PARSE_time
@@ -26579,7 +26696,9 @@ COMTIM:
 SAVTIM:
 	;mov	ah,SET_TIME
 	mov	ah,2Dh
-	int	21h
+	;int	21h
+	; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 	or	al,al
 	jnz	short TIMERR		;AC000; if an error occured, try again
 time_end:
@@ -26590,7 +26709,9 @@ PRMTTIM:
 
 	;mov	ah,Get_Time		;AC000; get the current time
 	mov	ah,2Ch
-	int	21h			;AC000;   Get time in CX:DX
+	;int	21h			;AC000;   Get time in CX:DX
+	; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+	call	int_21h_indirect
 	xchg	ch,cl			;AN000; switch hours & minutes
 	xchg	dh,dl			;AN000; switch seconds & hundredths
 	mov	[CurTim_hr_min],cx	;AC000; put hours and minutes into message subst block
@@ -26673,6 +26794,8 @@ PipeOffDone:
 
 	; 27/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 11/06/2023 - Retro DOS v4.2 COMMAND.COM
+
+;burada kaldým... 06/08/2024
 PRINT_TIME:
 	;mov	ah,Get_Time
 	mov	ah,2Ch
@@ -40871,155 +40994,161 @@ $M_ID_3_2:
 	dw MSG_1015-$+2 ; 2F8h	; Message offset from message number (6938h+02F8h=6C30h)
 $M_ID_3_3:	; 26/04/2023
 			; 17/06/2023
-	dw 1004,MSG_1004-$ ; 792
-	dw 1026,MSG_1026-$ ; 814
-	dw 1031,MSG_1031-$ ; 830
-	dw 1035,MSG_1035-$ ; 841
-	dw 1062,MSG_1062-$ ; 852
-	dw 1028,MSG_1028-$ ; 863
-	dw 1045,MSG_1045-$ ; 893
-	dw 1041,MSG_1041-$ ; 918
-	dw 1042,MSG_1042-$ ; 948
+			   ; 06/08/2024
+	dw 1004,MSG_1004-$ ; 776	
+	dw 1026,MSG_1026-$ ; 798
+	dw 1031,MSG_1031-$ ; 814
+	dw 1035,MSG_1035-$ ; 825
+	dw 1062,MSG_1062-$ ; 836
+	dw 1028,MSG_1028-$ ; 847
+	dw 1045,MSG_1045-$ ; 877
+	dw 1041,MSG_1041-$ ; 902
+	dw 1042,MSG_1042-$ ; 932
 $M_ID_3_12:
-	dw 1043,MSG_1043-$ ; 971
-	dw 1002,MSG_1002-$ ; 999
-	dw 1003,MSG_1003-$ ; 1035
-	dw 1007,MSG_1007-$ ; 1059
-	dw 1008,MSG_1008-$ ; 1082
-	dw 1009,MSG_1009-$ ; 1100
-	dw 1010,MSG_1010-$ ; 1117
-	dw 1011,MSG_1011-$ ; 1145
-	dw 1014,MSG_1014-$ ; 1168
-	dw 1016,MSG_1016-$ ; 1181
-	dw 1017,MSG_1017-$ ; 1219
-	dw 1018,MSG_1018-$ ; 1252
+	dw 1043,MSG_1043-$ ; 955
+	dw 1002,MSG_1002-$ ; 983
+	dw 1003,MSG_1003-$ ; 1019
+	dw 1007,MSG_1007-$ ; 1043
+	dw 1008,MSG_1008-$ ; 1066
+	dw 1009,MSG_1009-$ ; 1084
+	dw 1010,MSG_1010-$ ; 1101
+	dw 1011,MSG_1011-$ ; 1129
+	dw 1014,MSG_1014-$ ; 1152
+	dw 1016,MSG_1016-$ ; 1177
+	dw 1017,MSG_1017-$ ; 1190
+	dw 1018,MSG_1018-$ ; 1228
 $M_ID_3_24:
-	dw 1019,MSG_1019-$ ; 1268
-	dw 1021,MSG_1021-$ ; 1276
-	dw 1022,MSG_1022-$ ; 1302
-	dw 1023,MSG_1023-$ ; 1337
-	dw 1024,MSG_1024-$ ; 1377
-	dw 1025,MSG_1025-$ ; 1396
-	dw 1027,MSG_1027-$ ; 1416
-	dw 1029,MSG_1029-$ ; 1445
-	dw 1030,MSG_1030-$ ; 1459
-	dw 1032,MSG_1032-$ ; 1470
-	dw 1033,MSG_1033-$ ; 1490
-	dw 1034,MSG_1034-$ ; 1508
-	dw 1036,MSG_1036-$ ; 1526
-	dw 1037,MSG_1037-$ ; 1543
-	dw 1038,MSG_1038-$ ; 1556
-	dw 1039,MSG_1039-$ ; 1571
+	dw 1019,MSG_1019-$ ; 1277
+	dw 1021,MSG_1021-$ ; 1285
+	dw 1022,MSG_1022-$ ; 1311
+	dw 1023,MSG_1023-$ ; 1346
+	dw 1024,MSG_1024-$ ; 1386
+	dw 1025,MSG_1025-$ ; 1405
+	dw 1027,MSG_1027-$ ; 1425
+	dw 1029,MSG_1029-$ ; 1454
+	dw 1030,MSG_1030-$ ; 1468
+	dw 1032,MSG_1032-$ ; 1479
+	dw 1033,MSG_1033-$ ; 1499
+	dw 1034,MSG_1034-$ ; 1517
+	dw 1036,MSG_1036-$ ; 1535
+	dw 1037,MSG_1037-$ ; 1552
+	dw 1038,MSG_1038-$ ; 1565
+	dw 1039,MSG_1039-$ ; 1580
 $M_ID_3_40:
-	dw 1040,MSG_1040-$ ; 1628
-	dw 1044,MSG_1044-$ ; 1645
-	dw 1046,MSG_1046-$ ; 1661
-	dw 1047,MSG_1047-$ ; 1712
-	dw 1048,MSG_1048-$ ; 1733
-	dw 1049,MSG_1049-$ ; 1747
-	dw 1050,MSG_1050-$ ; 1753
-	dw 1051,MSG_1051-$ ; 1780
-	dw 1052,MSG_1052-$ ; 1793
-	dw 1053,MSG_1053-$ ; 1812
-	dw 1054,MSG_1054-$ ; 1846
+	dw 1040,MSG_1040-$ ; 1637
+	dw 1044,MSG_1044-$ ; 1652
+	dw 1046,MSG_1046-$ ; 1668
+	dw 1047,MSG_1047-$ ; 1719
+	dw 1048,MSG_1048-$ ; 1740
+	dw 1049,MSG_1049-$ ; 1754
+	dw 1050,MSG_1050-$ ; 1760
+	dw 1051,MSG_1051-$ ; 1787
+	dw 1052,MSG_1052-$ ; 1800
+	dw 1053,MSG_1053-$ ; 1819
+	dw 1054,MSG_1054-$ ; 1853
 $M_ID_3_51:
-	dw 1055,MSG_1055-$ ; 1881
-	dw 1056,MSG_1056-$ ; 1891
-	dw 1057,MSG_1057-$ ; 1902
-	dw 1059,MSG_1059-$ ; 1911
-	dw 1060,MSG_1060-$ ; 1912
-	dw 1061,MSG_1061-$ ; 1912
-	dw 1063,MSG_1063-$ ; 1934
-	dw 1064,MSG_1064-$ ; 1933
-	dw 1065,MSG_1065-$ ; 1932
-	dw 1066,MSG_1066-$ ; 1931
-	dw 1067,MSG_1067-$ ; 1930
-	dw 1068,MSG_1068-$ ; 1928
-	dw 1069,MSG_1069-$ ; 1935
-	dw 1070,MSG_1070-$ ; 1935
-	dw 1071,MSG_1071-$ ; 1934
-	dw 1072,MSG_1072-$ ; 1933
+	dw 1055,MSG_1055-$ ; 1888
+	dw 1056,MSG_1056-$ ; 1898
+	dw 1057,MSG_1057-$ ; 1909
+	dw 1059,MSG_1059-$ ; 1918
+	dw 1060,MSG_1060-$ ; 1919
+	dw 1061,MSG_1061-$ ; 1919
+	dw 1063,MSG_1063-$ ; 1941
+	dw 1064,MSG_1064-$ ; 1940
+	dw 1065,MSG_1065-$ ; 1939
+	dw 1066,MSG_1066-$ ; 1938
+	dw 1067,MSG_1067-$ ; 1937
+	dw 1068,MSG_1068-$ ; 1935
+	dw 1069,MSG_1069-$ ; 1944
+	dw 1070,MSG_1070-$ ; 1944
+	dw 1071,MSG_1071-$ ; 1943
+	dw 1072,MSG_1072-$ ; 1942
 $M_ID_3_67:
-	dw 1073,MSG_1073-$ ; 1939
-	dw 1074,MSG_1074-$ ; 1945
-	dw 1075,MSG_1075-$ ; 1951
-	dw 1076,MSG_1076-$ ; 1953
-	dw 1077,MSG_1077-$ ; 1952
-	dw 1078,MSG_1078-$ ; 1956
-	dw 1079,MSG_1079-$ ; 1979
-	dw 1080,MSG_1080-$ ; 1986
-	dw 1081,MSG_1081-$ ; 2004
+	dw 1073,MSG_1073-$ ; 1948
+	dw 1074,MSG_1074-$ ; 1954
+	dw 1075,MSG_1075-$ ; 1960
+	dw 1076,MSG_1076-$ ; 1962
+	dw 1077,MSG_1077-$ ; 1961
+	dw 1078,MSG_1078-$ ; 1965
+	dw 1079,MSG_1079-$ ; 1988
+	dw 1080,MSG_1080-$ ; 1995
+	dw 1081,MSG_1081-$ ; 2013
 	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
-	dw 1082,MSG_1082-$ ; 2043	
-	dw 1083,MSG_1083-$ ; 2047	
+	dw 1082,MSG_1082-$ ; 2052	
+	dw 1083,MSG_1083-$ ; 2060	
 	;
-	dw 1084,MSG_1084-$ ; 2046
-	dw 1090,MSG_1090-$ ; 2058
-	dw 1091,MSG_1091-$ ; 2068
-	dw 1092,MSG_1092-$ ; 2078
-	dw 1093,MSG_1093-$ ; 2088
-	dw 1094,MSG_1094-$ ; 2105
-	dw 1095,MSG_1095-$ ; 2130
-	dw 1096,MSG_1096-$ ; 2155
+	dw 1084,MSG_1084-$ ; 2059
+	dw 1090,MSG_1090-$ ; 2071
+	dw 1091,MSG_1091-$ ; 2081
+	dw 1092,MSG_1092-$ ; 2091
+	dw 1093,MSG_1093-$ ; 2101
+	dw 1094,MSG_1094-$ ; 2118
+	dw 1095,MSG_1095-$ ; 2143
+	dw 1096,MSG_1096-$ ; 2168
 	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
-	dw 1097,MSG_1097-$ ; 2200
-	dw 1098,MSG_1098-$ ; 2225
-	dw 1099,MSG_1099-$ ; 2250
-	dw 1100,MSG_1100-$ ; 2268
+	dw 1097,MSG_1097-$ ; 2213
+	dw 1098,MSG_1098-$ ; 2238
+	dw 1099,MSG_1099-$ ; 2263
+	dw 1100,MSG_1100-$ ; 2281
 
 ; 02/08/2024 - PCDOS 7.1 COMMAND.COM
 %if 0
 	dw 1101,MSG_1101-$ ; 2302
 	dw 1102,MSG_1102-$ ; 2313
 %endif
-	dw 1103,MSG_1103-$ ; 2367
-	dw 1104,MSG_1104-$ ; 2390
-	dw 1105,MSG_1105-$ ; 2390 ; TRANGROUP:6AA8h 
+	dw 1103,MSG_1103-$ ; 2315
+	dw 1104,MSG_1104-$ ; 2338
+
+	; TRANGROUP:6AA8h ; MSDOS 6.22
+	; TRANGROUP:6921h ; PCDOS 7.1
+
+	dw 1105,MSG_1105-$ ; 2338  ; TRANGROUP:7243h ; PCDOS 7.1
 
 ; 02/08/2024 - PCDOS 7.1 COMMAND.COM
 %if 1
-	dw 1106,MSG_1106-$ ; 2345 *
+	dw 1106,MSG_1106-$ ; 2345
 %endif
 
 ;$M_ID_3_84:
 $M_ID_3_95: ; 17/06/2023	
-	dw 1200,MSG_1200-$ ; 2391
-	dw 1300,MSG_1300-$ ; 2388
-	dw 1320,MSG_1320-$ ; 2519
-	dw 1321,MSG_1321-$ ; 2579
-	dw 1340,MSG_1340-$ ; 2688
-	dw 1341,MSG_1341-$ ; 2776
-	dw 1342,MSG_1342-$ ; 2871
-	dw 1360,MSG_1360-$ ; 3013
-	dw 1400,MSG_1400-$ ; 3037
-	dw 1401,MSG_1401-$ ; 3190
-	dw 1402,MSG_1402-$ ; 3291
-	dw 1403,MSG_1403-$ ; 3406
-	dw 1404,MSG_1404-$ ; 3466 ; TRANGROUP:6ADCh 
+	dw 1200,MSG_1200-$ ; 2359
+	dw 1300,MSG_1300-$ ; 2356
+	dw 1320,MSG_1320-$ ; 2487
+	dw 1321,MSG_1321-$ ; 2547
+	dw 1340,MSG_1340-$ ; 2656
+	dw 1341,MSG_1341-$ ; 2744
+	dw 1342,MSG_1342-$ ; 2839
+	dw 1360,MSG_1360-$ ; 2981
+	dw 1400,MSG_1400-$ ; 3005
+	dw 1401,MSG_1401-$ ; 3158
+	dw 1402,MSG_1402-$ ; 3259
+	dw 1403,MSG_1403-$ ; 3374
+	dw 1404,MSG_1404-$ ; 3434 ; TRANGROUP:6ADCh ; MSDOS 6.22
 	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
-	dw 1405,MSG_1405-$ ; 3579 ; TRANGROUP:6AE0h 
-	dw 1406,MSG_1406-$ ; 3690
-	dw 1407,MSG_1407-$ ; 3753 ; (MSG_1404 for MSDOS 5.0 COMMAND.COM)
+	dw 1405,MSG_1405-$ ; 3547 ; TRANGROUP:6AE0h ; MSDOS 6.22
+		     ; 06/08/2024 ; TRANGROUP:695Dh ; PCDOS 7.1 
+	dw 1406,MSG_1406-$ ; 3658
+	dw 1407,MSG_1407-$ ; 3721 ; (MSG_1404 for MSDOS 5.0 COMMAND.COM)
 	;
-	dw 1420,MSG_1420-$ ; 3885
-	dw 1440,MSG_1440-$ ; 4020
-	dw 1441,MSG_1441-$ ; 4110
+	dw 1420,MSG_1420-$ ; 3853
+	dw 1440,MSG_1440-$ ; 3988
+	dw 1441,MSG_1441-$ ; 4023
 ;$M_ID_3_100:
 $M_ID_3_114: ; 17/06/2023
-	dw 1460,MSG_1460-$ ; 4238
-	dw 1461,MSG_1461-$ ; 4335
-	dw 1462,MSG_1462-$ ; 4463
-	dw 1480,MSG_1480-$ ; 4539
-	dw 1481,MSG_1481-$ ; 4673
-	dw 1482,MSG_1482-$ ; 4700
-	dw 1483,MSG_1483-$ ; 4777
-	dw 1484,MSG_1484-$ ; 4863
-	dw 1485,MSG_1485-$ ; 4986
-	dw 1486,MSG_1486-$ ; 5106
-	dw 1487,MSG_1487-$ ; 5252
-	dw 1488,MSG_1488-$ ; 5319
+	dw 1460,MSG_1460-$ ; 4151
+	dw 1461,MSG_1461-$ ; 4248
+	dw 1462,MSG_1462-$ ; 4376
+	dw 1480,MSG_1480-$ ; 4452
+	dw 1481,MSG_1481-$ ; 4608
+	dw 1482,MSG_1482-$ ; 4682
+	dw 1483,MSG_1483-$ ; 4770
+	dw 1484,MSG_1484-$ ; 4893
+	dw 1485,MSG_1485-$ ; 5014
+	dw 1486,MSG_1486-$ ; 5160
+	dw 1487,MSG_1487-$ ; 5300
+	dw 1488,MSG_1488-$ ; 5391
 	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
-	dw 1489,MSG_1489-$ ; 5443
+	dw 1489,MSG_1489-$ ; 5534
 
 ; 02/08/2024 - PCDOS 7.1 COMMAND.COM
 %if 0
@@ -41032,72 +41161,73 @@ $M_ID_3_114: ; 17/06/2023
 
 ;$M_ID_3_112:
 $M_ID_3_132: ; 17/06/2023
-	dw 1500,MSG_1500-$ ; 5796
-	dw 1520,MSG_1520-$ ; 5855
-	dw 1540,MSG_1540-$ ; 5913
-	dw 1541,MSG_1541-$ ; 6003
-	dw 1542,MSG_1542-$ ; 6107
-	dw 1560,MSG_1560-$ ; 6163
-	dw 1561,MSG_1561-$ ; 6215
-	dw 1562,MSG_1562-$ ; 6336
-	dw 1563,MSG_1563-$ ; 6380
-	dw 1564,MSG_1564-$ ; 6419
-	dw 1565,MSG_1565-$ ; 6477
-	dw 1566,MSG_1566-$ ; 6526
-	dw 1567,MSG_1567-$ ; 6567
-	dw 1568,MSG_1568-$ ; 6685
-	dw 1580,MSG_1580-$ ; 6758
+	dw 1500,MSG_1500-$ ; 5611
+	dw 1520,MSG_1520-$ ; 5670
+	dw 1540,MSG_1540-$ ; 5728
+	dw 1541,MSG_1541-$ ; 5818
+	dw 1542,MSG_1542-$ ; 5922
+	dw 1560,MSG_1560-$ ; 5978
+	dw 1561,MSG_1561-$ ; 6030
+	dw 1562,MSG_1562-$ ; 6151
+	dw 1563,MSG_1563-$ ; 6195
+	dw 1564,MSG_1564-$ ; 6234
+	dw 1565,MSG_1565-$ ; 6292
+	dw 1566,MSG_1566-$ ; 6341
+	dw 1567,MSG_1567-$ ; 6382
+	dw 1568,MSG_1568-$ ; 6500
+	dw 1580,MSG_1580-$ ; 6573
 ;$M_ID_3_127:
 $M_ID_3_147: ; 17/06/2023
-	dw 1600,MSG_1600-$ ; 6826
-	dw 1601,MSG_1601-$ ; 6851
-	dw 1602,MSG_1602-$ ; 6931
-	dw 1620,MSG_1620-$ ; 7088
-	dw 1621,MSG_1621-$ ; 7172
-	dw 1622,MSG_1622-$ ; 7298
-	dw 1640,MSG_1640-$ ; 7370
-	dw 1641,MSG_1641-$ ; 7412
-	dw 1660,MSG_1660-$ ; 7540
-	dw 1680,MSG_1680-$ ; 7607
-	dw 1700,MSG_1700-$ ; 7641
-	dw 1720,MSG_1720-$ ; 7815
-	dw 1740,MSG_1740-$ ; 7894
-	dw 1741,MSG_1741-$ ; 7982
-	dw 1760,MSG_1760-$ ; 8093
-	dw 1780,MSG_1780-$ ; 8166
+	dw 1600,MSG_1600-$ ; 6641
+	dw 1601,MSG_1601-$ ; 6666
+	dw 1602,MSG_1602-$ ; 6746
+	dw 1620,MSG_1620-$ ; 6903
+	dw 1621,MSG_1621-$ ; 6987
+	dw 1622,MSG_1622-$ ; 7113
+	dw 1640,MSG_1640-$ ; 7185
+	dw 1641,MSG_1641-$ ; 7234
+	dw 1660,MSG_1660-$ ; 7362
+	dw 1680,MSG_1680-$ ; 7429
+	dw 1700,MSG_1700-$ ; 7463
+	dw 1720,MSG_1720-$ ; 7637
+	dw 1740,MSG_1740-$ ; 7716
+	dw 1741,MSG_1741-$ ; 7804
+	dw 1760,MSG_1760-$ ; 7915
+	dw 1780,MSG_1780-$ ; 7988
 ;$M_ID_3_143:
 $M_ID_3_163: ; 17/06/2023
-	dw 1800,MSG_1800-$ ; 8270
-	dw 1801,MSG_1801-$ ; 8344
-	dw 1820,MSG_1820-$ ; 8428
-	dw 1821,MSG_1821-$ ; 8496
-	dw 1840,MSG_1840-$ ; 8631
-	dw 1860,MSG_1860-$ ; 8702
-	dw 1861,MSG_1861-$ ; 8789
-	dw 1862,MSG_1862-$ ; 8856
-	dw 1863,MSG_1863-$ ; 8978
-	dw 1864,MSG_1864-$ ; 9137
-	dw 1865,MSG_1865-$ ; 9236
-	dw 1866,MSG_1866-$ ; 9339
-	dw 1880,MSG_1880-$ ; 9439
-	dw 1881,MSG_1881-$ ; 9555
-	dw 1882,MSG_1882-$ ; 9677
-	dw 1883,MSG_1883-$ ; 9760
-	dw 1900,MSG_1900-$ ; 9919
-	dw 1920,MSG_1920-$ ; 9939
-	dw 1921,MSG_1921-$ ; 9983
+	dw 1800,MSG_1800-$ ; 8092
+	dw 1801,MSG_1801-$ ; 8166
+	dw 1820,MSG_1820-$ ; 8250
+	dw 1821,MSG_1821-$ ; 8318
+	dw 1840,MSG_1840-$ ; 8453
+	dw 1860,MSG_1860-$ ; 8524
+	dw 1861,MSG_1861-$ ; 8611
+	dw 1862,MSG_1862-$ ; 8678
+	dw 1863,MSG_1863-$ ; 8800
+	dw 1864,MSG_1864-$ ; 9959
+	dw 1865,MSG_1865-$ ; 9058
+	dw 1866,MSG_1866-$ ; 9161
+	dw 1880,MSG_1880-$ ; 9261
+	dw 1881,MSG_1881-$ ; 9377
+	dw 1882,MSG_1882-$ ; 9499
+	dw 1883,MSG_1883-$ ; 9582
+	dw 1900,MSG_1900-$ ; 9741
+	dw 1920,MSG_1920-$ ; 9810
+	dw 1921,MSG_1921-$ ; 9854
 ;$M_ID_3_162:
 $M_ID_3_182: ; 17/06/2023
-	dw 1922,MSG_1922-$ ; 9285
+	dw 1922,MSG_1922-$ ; 10003
 	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
-	dw 1923,MSG_1923-$ ; 10316
-	dw 1924,MSG_1924-$ ; 10446
-	dw 1925,MSG_1925-$ ; 10570
-	dw 1926,MSG_1926-$ ; 10698
+	dw 1923,MSG_1923-$ ; 10182
+	dw 1924,MSG_1924-$ ; 10312
+	dw 1925,MSG_1925-$ ; 10432
+	dw 1926,MSG_1926-$ ; 10431
 $M_ID_3_187:	; 17/06/2023
 	dw 1927	; 19/06/2023	; Message Number = 1927
-	dw MSG_1927-$+2	; 10782	; Message offset from message number
-				; (Msg addr: 6C1Ch+2A1Eh = TRANGROUP:963Ah)
+	dw MSG_1927-$+2	; 10515	; Message offset from message number
+		; MSDOS 6.22	; (Msg addr: 6C1Ch+2A1Eh = TRANGROUP:963Ah)
+; 06/08/2024	; PCDOS 7.1	; (Msg addr: 6A85h+2913h = TRANGROUP:9398h)
 
 ; 02/08/2024 - PCDOS 7.1 COMMAND.COM
 %if 1
@@ -41293,6 +41423,8 @@ MSG_1054:
 	; (MSDOS 5.0 COMMAND.COM - TRANGROUP:6205h)
 	; 17/06/2023
 	; (MSDOS 6.22 COMMAND.COM - TRANGROUP:7155h)
+	; 06/08/2024
+	; (PCDOS 7.1 COMMAND.COM - TRANGROUP:6FDDh)
 MSG_1055:
 	db 13
 	db 'BREAK is %1',0Dh,0Ah
@@ -41327,13 +41459,18 @@ MSG_1067:
 	db 1
 	db 9
 MSG_1068:
-MSG_1105:	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
+; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	db 10
 	db ' <DIR>    '
+%else
+	db 12
+	db ' <DIR>      '
+%endif
 MSG_1069:
 	db 3
 	db 8, 20h, 8
-MSG_1070:	; CRLF		
+MSG_1070:	; CRLF
 	db 2
 	db 0Dh
 	db 0Ah
@@ -41379,10 +41516,19 @@ MSG_1081:
 	db 42
 	db '(Error occurred in environment variable)',0Dh,0Ah
 	;
+; 06/08/2024 -Retro DOS 5.0 COMMAND.COM
+%if 0
 	; 17/06/2023 - Retro DOS 4.2 COMMAND.COM
 MSG_1082:
         db 7
 	db ' [Y/N]?'
+%else
+	; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+MSG_1082:
+        db 11
+	db ' [Y,N,ESC]?'
+%endif
+	;
 MSG_1083:
 	db 2
 	db 'YN'
@@ -41454,9 +41600,9 @@ MSG_1105:
 	db '    '
 %else
 	; 03/08/2024
-;MSG_1105:
-	;db 10
-	;db ' <DIR>    '
+MSG_1105:
+	db 10
+	db ' <DIR>    '
 
 	; (PCDOS 7.1 COMMAND.COM - TRANGROUP:724Eh)
 MSG_1106:
@@ -41522,6 +41668,9 @@ MSG_1400:
 	
 	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; (MSDOS 6.22 COMMAND.COM - TRANGROUP:76A9h)
+	; 06/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; (PCDOS 7.1 COMMAND.COM - TRANGROUP:7506h)
+
 	db 156 ; 19/06/2023	
 	db 'Copies one or more files to another location.',0Dh,0Ah
 	db 0Dh,0Ah
@@ -41559,7 +41708,8 @@ MSG_1406:
 	db 'The switch /Y may be preset in the COPYCMD environment variable.',0Dh,0Ah
 
 ;MSG_1404: ; MSDOS 5.0 (TRANGROUP:681Ch)
-MSG_1407:  ; MSDOS 6.22	(TRANGROUP:7991h)
+	   ; MSDOS 6.22	(TRANGROUP:7991h)
+MSG_1407:  ; PCDOS 7.1	(TRANGROUP:77EEh)
 	db 135
 	db 'To append files, specify a single file for destination, but multiple files',0Dh,0Ah
 	db 'for source (using wildcards or file1+file2+file3 format).',0Dh,0Ah
@@ -41577,6 +41727,8 @@ MSG_1440:
 	;db 'DATE [date]',0Dh,0Ah
 	;db 0Dh,0Ah
 
+; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; (MSDOS 6.22 COMMAND.COM - TRANGROUP:7AA4h)
 	db 93
@@ -41586,6 +41738,16 @@ MSG_1440:
 	db 0Dh,0Ah
 	db '  mm-dd-yy    Sets the date you specify.',0Dh,0Ah
 	db 0Dh,0Ah
+%else
+	; 06/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; (PCDOS 7.1 COMMAND.COM - TRANGROUP:7901h)
+	db 38
+	db 'Displays or sets the date.',0Dh,0Ah
+	db 0Dh,0Ah
+	db 'DATE',0Dh,0Ah
+	db 0Dh,0Ah	
+%endif
+
 MSG_1441:
 	db 131
 	db 'Type DATE without parameters to display the current date setting and',0Dh,0Ah
@@ -41650,6 +41812,9 @@ MSG_1488:
 	db 'Switches may be preset in the DIRCMD environment variable.  Override',0Dh,0Ah
 	db 'preset switches by prefixing any switch with - (hyphen)--for example, /-W.',0Dh,0Ah
 %endif
+
+; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:7CBFh
 MSG_1480:
@@ -41691,8 +41856,6 @@ MSG_1489:
 	db 65
 	db '  /B      Uses bare format (no heading information or summary).',0Dh,0Ah
 
-; 02/08/2024 - PCDOS 7.1 COMMAND.COM
-%if 0
 MSG_1490:
 	db 27
 	db '  /L      Uses lowercase.',0Dh,0Ah
@@ -41712,6 +41875,51 @@ MSG_1494:
 	db 29
 	db '  /L      Uses lowercase.',0Dh,0Ah
 	db 0Dh,0Ah
+%else
+	; 06/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:7AE5h
+MSG_1480:
+	db 159
+	db 'Displays a list of files and subdirectories in a directory.',0Dh,0Ah
+	db 0Dh,0Ah
+	db 'DIR [drive:][path][filename] [/P] [/W] [/A[[:]attribs]] [/O[[:]sortord]]',0Dh,0Ah
+	db '    [/S] [/B] [/L]',0Dh,0Ah
+	db 0Dh,0Ah
+MSG_1481:
+	db 77
+	db '  [drive:][path][filename]   Specifies drive, directory, and files to list.',0Dh,0Ah
+MSG_1482:
+	db 91
+	db '  /P      Pauses after each screenful of information.',0Dh,0Ah
+	db '  /W      Uses wide list format.',0Dh,0Ah
+MSG_1483:
+	db 126
+	db '  /A      Displays files with specified attributes.',0Dh,0Ah
+	db '  attribs   D  Directories   R  Read-only files         H  Hidden files',0Dh,0Ah
+MSG_1484:
+	db 124
+	db '            S  System files  A  Files ready to archive  -  Prefix meaning "not"',0Dh,0Ah
+	db '  /O      Lists by files in sorted order.',0Dh,0Ah
+MSG_1485:
+	db 149
+	db '  sortord   N  By name (alphabetic)       S  By size (smallest first)',0Dh,0Ah
+	db '            E  By extension (alphabetic)  D  By date & time (earliest first)',0Dh,0Ah
+MSG_1486:
+	db 143
+	db '            G  Group directories first    -  Prefix to reverse order',0Dh,0Ah
+	db '  /S      Displays files in specified directory and all subdirectories.',0Dh,0Ah
+MSG_1487:
+	db 94
+	db '  /B      Uses bare format (no heading information or summary).',0Dh,0Ah
+	db '  /L      Uses lowercase.',0Dh,0Ah
+	db 0Dh,0Ah
+MSG_1488:
+	db 146
+	db 'Switches may be preset in the DIRCMD environment variable.  Override',0Dh,0Ah
+	db 'preset switches by prefixing any switch with - (hyphen)--for example, /-W.',0Dh,0Ah
+MSG_1489:
+	db 80
+	db 'To remove the commas from the DIR output, use the NO_SEP environment variable.',0Dh,0Ah
 %endif
 
 MSG_1500:
@@ -41734,18 +41942,18 @@ MSG_1540:
 	db 0Dh,0Ah
 MSG_1541:
 	db 107
-	db 'Type PATH ; to clear all search-path settings and direct MS-DOS to search',0Dh,0Ah
+	db 'Type PATH ; to clear all search-path settings and direct PC DOS to search',0Dh,0Ah
 	db 'only in the current directory.',0Dh,0Ah
-MSG_1542:	
+MSG_1542:
 	db 59
 	db 'Type PATH without parameters to display the current path.',0Dh,0Ah
 MSG_1560:
 	db 55
-	db 'Changes the MS-DOS command prompt.',0Dh,0Ah
+	db 'Changes the PC DOS command prompt.',0Dh,0Ah
 	db 0Dh,0Ah
 	db 'PROMPT [text]',0Dh,0Ah
 	db 0Dh,0Ah
-MSG_1561:	
+MSG_1561:
 	db 124
 	db '  text    Specifies a new command prompt.',0Dh,0Ah
 	db 0Dh,0Ah
@@ -41801,6 +42009,9 @@ MSG_1602:
 
 	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:8697h
+
+	; 06/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:8447h
 MSG_1602:
 	db 160
 	db 'Note that you cannot specify a new drive or path for your destination file.',0Dh,0Ah
@@ -41808,7 +42019,12 @@ MSG_1602:
 	db 'Use MOVE to rename a directory, or to move files from one directory to another.',0Dh,0Ah
 MSG_1620:
 	db 87
+; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	db 'Displays, sets, or removes MS-DOS environment variables.',0Dh,0Ah
+%else
+	db 'Displays, sets, or removes PC DOS environment variables.',0Dh,0Ah
+%endif
 	db 0Dh,0Ah
 	db 'SET [variable=[string]]',0Dh,0Ah
 	db 0Dh,0Ah
@@ -41827,6 +42043,8 @@ MSG_1640:
 	;db 'TIME [time]',0Dh,0Ah
 	;db 0Dh,0Ah
 
+; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; (MSDOS 6.22 COMMAND.COM - TRANGROUP:885Eh)
 	db 45
@@ -41834,6 +42052,16 @@ MSG_1640:
 	db 0Dh,0Ah
 	db 'TIME [time]',0Dh,0Ah
 	db 0Dh,0Ah
+%else
+	; 06/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:860Eh
+	db 52
+	db 'Displays or sets the system time.',0Dh,0Ah
+	db 0Dh,0Ah
+	db 'TIME [time]',0Dh,0Ah
+	db 0Dh,0Ah
+%endif
+
 MSG_1641:
 	db 131
 	db 'Type TIME with no parameters to display the current time setting and a prompt',0Dh,0Ah
@@ -41845,18 +42073,29 @@ MSG_1660:
 	db 'TYPE [drive:][path]filename',0Dh,0Ah
 MSG_1680:
 	db 37
+; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	db 'Displays the MS-DOS version.',0Dh,0Ah
+%else
+	db 'Displays the PC DOS version.',0Dh,0Ah
+%endif
 	db 0Dh,0Ah
 	db 'VER',0Dh,0Ah
 MSG_1700:
 	db 177
+; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	db 'Tells MS-DOS whether to verify that your files are written correctly to a',0Dh,0Ah
 	db 'disk.',0Dh,0Ah
+%else
+	db 'Tells PC DOS whether to verify that your files are written correctly to a',0Dh,0Ah
+	db 'disk.',0Dh,0Ah
+%endif
 	db 0Dh,0Ah
 	db 'VERIFY [ON | OFF]',0Dh,0Ah
 	db 0Dh,0Ah
 	db 'Type VERIFY without a parameter to display the current VERIFY setting.',0Dh,0Ah
-MSG_1720:              
+MSG_1720:
 	db 82
 	db 'Displays the disk volume label and serial number, if they exist.',0Dh,0Ah
 	db 0Dh,0Ah
@@ -41871,7 +42110,7 @@ MSG_1741:
 	db 114
 	db '  batch-parameters   Specifies any command-line information required by the',0Dh,0Ah
 	db '                     batch program.',0Dh,0Ah
-MSG_1760:	
+MSG_1760:
 	db 76
 	db 'Records comments (remarks) in a batch file or CONFIG.SYS.',0Dh,0Ah
 	db 0Dh,0Ah
@@ -41896,7 +42135,12 @@ MSG_1801:
 	db 0Dh,0Ah
 MSG_1820:
 	db 71
+; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	db 'Directs MS-DOS to a labelled line in a batch program.',0Dh,0Ah
+%else
+	db 'Directs PC DOS to a labelled line in a batch program.',0Dh,0Ah
+%endif
 	db 0Dh,0Ah
 	db 'GOTO label',0Dh,0Ah
 	db 0Dh,0Ah
@@ -41922,7 +42166,12 @@ MSG_1861:
 	db 0Dh,0Ah
 MSG_1862:
 	db 125
+; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	db '  NOT               Specifies that MS-DOS should carry out the command only',0Dh,0Ah
+%else
+	db '  NOT               Specifies that PC DOS should carry out the command only',0Dh,0Ah
+%endif
 	db '                    if the condition is false.',0Dh,0Ah
 MSG_1863:
 	db 162
@@ -41962,8 +42211,18 @@ MSG_1883:
 	db 'To use the FOR command in a batch program, specify %%variable instead of',0Dh,0Ah
 	db '%variable.',0Dh,0Ah
 MSG_1900:
+; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
+	; MSDOS 6.22 COMMAND.COM
 	db 23
 	db 'Reserved command name',0Dh,0Ah
+%else
+	; PCDOS 7.1 COMMAND.COM
+	db 72
+	db 'Returns a fully qualified filename.',0Dh,0Ah
+	db 0Dh,0Ah
+	db 'TRUENAME [drive:][path]filename',0Dh,0Ah
+%endif
 MSG_1920:
 	db 47
 	db 'Loads a program into the upper memory area.',0Dh,0Ah
@@ -41974,6 +42233,8 @@ MSG_1921:
 	;db 'LH [drive:][path]filename [parameters]',0Dh,0Ah
 	;db 0Dh,0Ah
 
+; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:9303h
 	db 157
@@ -41981,7 +42242,15 @@ MSG_1921:
 	db 'LOADHIGH [/L:region1[,minsize1][;region2[,minsize2]...] [/S]]',0Dh,0Ah
 	db '         [drive:][path]filename [parameters]',0Dh,0Ah
 	db 0Dh,0Ah
-	
+%else
+	; 06/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:90EBh
+	db 152
+	db 'LOADHIGH [drive:][path]filename [parameters]',0Dh,0Ah
+	db 'LOADHIGH [/L:region1[,minsize1][;region2[,minsize2]...]]',0Dh,0Ah
+	db '         [drive:][path]filename [parameters]',0Dh,0Ah
+	db 0Dh,0Ah	
+%endif
 	; (MSDOS 5.0 COMMAND.COM - TRANGROUP:8111h)
 ;MSG_1922: 	; MSDOS 5.0 COMMAND.COM
 	;db 113
@@ -42001,6 +42270,8 @@ MSG_1923:
 	db '            any, for region1.  Region2 and minsize2 specify the',0Dh
 	db 0Ah
 MSG_1924:
+; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	db 127
 	db '            number and minimum size of the second region, if any.',0Dh,0Ah
 	db '            You can specify as many regions as you want.',0Dh,0Ah
@@ -42010,6 +42281,14 @@ MSG_1925:
 	db '/S          Shrinks a UMB to its minimum size while the program',0Dh,0Ah
 	db '            is loading.  /S is normally used only by MemMaker.',0Dh,0Ah
 	db 0Dh,0Ah
+%else
+	db 123
+	db '            number and minimum size of the second region, if any.',0Dh,0Ah
+	db '            You can specify as many regions as you want.'
+MSG_1925:
+	db 2
+	db 0Dh,0Ah
+%endif
 MSG_1926:
 	db 87
 	db '[drive:][path]filename',0Dh,0Ah
@@ -42018,6 +42297,9 @@ MSG_1926:
 
 	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:963Ah
+
+	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; MSDOS 6.22 COMMAND.COM - TRANGROUP:9398h
 MSG_1927:
 	db 90
 	db 'parameters  Specifies any command-line information required by',0Dh,0Ah
@@ -42037,6 +42319,9 @@ MSG_1107:
 	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:9695h
 
+	; 06/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:9400h
+
 ; --------------- S U B R O U T I N E ---------------------------------------
 
 $M_CLS_3:
@@ -42046,7 +42331,10 @@ $M_CLS_3:
 	; 15/04/2023
 	;add	cx,10053	; ADD CX,$-$M_CLASS_3_STRUC ; 8189h-5A44h
 	; 17/06/2023
-	add	cx,11627	; ADD CX,$-$M_CLASS_3_STRUC ; 969Bh-6930h
+	;add	cx,11627	; ADD CX,$-$M_CLASS_3_STRUC ; 969Bh-6930h
+	; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+	;add	cx,11353	; ADD CX,$-$M_CLASS_3_STRUC ; 9406h-67ADh
+	add	cx,$-$M_CLASS_3_STRUC
 	retn
 
 	; 15/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
@@ -42054,6 +42342,9 @@ $M_CLS_3:
 
 	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:96A0h
+
+	; 06/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:940Bh
 
 ; ---------------------------------------------------------------------------
 ; Class 1 messages
@@ -42111,6 +42402,8 @@ $M_MSGSERV_1:
 	;add	cx,94		; $-$M_CLASS_1_STRUC ; 81ECh-818Eh
 			; 17/06/2023 MSDOS 6.22 COMMAND.COM
 				; 96FEh-96A0h = 5Eh = 94
+	; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+	;add	cx,94 ; Retro DOS v5.0 COMMAND.COM
 	retn
 
 	; 15/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
@@ -42147,6 +42440,9 @@ PARSE999:
 	; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:9719h
 
+	; 06/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:9484h
+
 ; --------------- S U B R O U T I N E ---------------------------------------
 $M_MSGSERV_2:
 	push	cs
@@ -42156,6 +42452,8 @@ $M_MSGSERV_2:
 	;add	cx,29		; $-$M_CLASS_2_STRUC ; 820Dh-81F0h
 			; 17/06/2023 MSDOS 6.22 COMMAND.COM
 				; 971Fh-9702h = 1Dh = 29
+	; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+	;add	cx,29 ; Retro DOS v5.0 COMMAND.COM
 	retn
 
 ;============================================================================
@@ -42163,10 +42461,11 @@ $M_MSGSERV_2:
 ;============================================================================
 ; 15/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 ; 17/06/2023 - Retro DOS v4.2 COMMAND.COM
+; 06/08/2024 - Retro DOS v5.0 COMMAND.COM
 
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:8211h
-	
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:9723h
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:948Eh
 
 ;****************************************************
 ;* TRANSIENT MESSAGE POINTERS & SUBSTITUTION BLOCKS *
@@ -42760,7 +43059,6 @@ EchoMes_Ptr:
 OFFMES_PTR:
 	dw	1059			;AN000;message number
 	db	no_subst		;AN000;number of subst
-
 ;  "on"
 ONMES_PTR:
 	dw	1060			;AN000;message number
@@ -43358,7 +43656,9 @@ DirHelpMsgs:
 	dw	1480,1481,1482,1483,1484,1485,1486,1487,1488
 	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM 
 	; MSDOS 6.0 COMMAND.COM
-	dw	1489,1490,1491,1492
+	;dw	1489,1490,1491,1492
+	; 06/08/2024 - Retro DOS v5.0 (PCDOS 7.1) COMMAND.COM 
+	dw	1489	
 	dw	0
 ExitHelpMsgs:
 	dw	1500,0
@@ -43420,6 +43720,7 @@ twospacechars:
 CLSSTRING:
 	db	4,1Bh,"[2J"		; ANSI Clear screen
 
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:98D6h
 PROMPT_TABLE:
 	db	"B"
 	dw	Print_B
@@ -43439,6 +43740,11 @@ PROMPT_TABLE:
 	dw	build_dir_for_prompt
 	db	"Q"
 	dw	PRINT_EQ
+	;
+	; 06/08/2024 - PCDOS 7.1 COMMAND.COM
+	db	"R"
+	dw	PRINT_R ; PRINT Return code, [Retcode]
+	;
 	db	"T"
 	dw	PRINT_TIME
 	db	"V"
@@ -43458,6 +43764,9 @@ IFTAB:
 	db	5,"EXIST"
 	dw	IFEXISTS
 	db	0
+
+	; 06/08/2024
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:991Dh
 
 ; Table for internal command names
 COMTAB:
@@ -43605,13 +43914,14 @@ COMTAB:
 	dw	LoadHigh		; In loadhi.asm ; M003
 	dw	LoadhighHelpMsgs	; M003
 	
-	db	2,"LH",fSwitchAllowed ; 2	; Short form; M003
+	db	2,"LH",fSwitchAllowed ; 2 ; Short form; M003
 	dw	LoadHigh		; In loadhi.asm ; M003
 	dw	LoadhighHelpMsgs	; M003
 	
 	db	0			; Terminate command table
 
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:8736h
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:9A92h ; 06/08/2024
 
 comext:	db	".COM"
 exeext:	db	".EXE"
@@ -43622,7 +43932,7 @@ switch_list:
 	;db	"?VBAPW"		; flags we can recognize
 	; 18/06/2023
 	; MSDOS 6.22 COMMAND.COM
-	db "-Y?VBAPW"
+	db	"-Y?VBAPW" ; PCDOS 7.1 COMMAND.COM ; 06/08/2024
 
 AttrLtrs:
 	db	"RHSvDA"		; attribute letters for DIR
@@ -43638,7 +43948,10 @@ OrderLtrs:
 	;db	"NEDSG"			; sort order letters for DIR
 	; 18/06/2023
 	; MSDOS 6.0 COMMAND.COM
-	db	"NEDSGC"		; sort order letters for DIR
+	;db	"NEDSGC"		; sort order letters for DIR
+	; 06/08/2024
+	; PCDOS 7.1 COMMAND.COM
+	db	"NEDSG"
 
 ;	Sort order letters stand for file name, extension,
 ;	date/time, size, grouped (directory files before others),
