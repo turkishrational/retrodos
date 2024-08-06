@@ -1,0 +1,44 @@
+     1                                  ; PROMPT $R test for PCDOS 7.1 COMMAND.COM - Erdogan Tan - August 6, 2024
+     2                                  
+     3                                  	[org 100h]
+     4                                  	
+     5                                  	;mov	ah,09h
+     6                                  	;mov	dx,program_name
+     7                                  	;int	21h
+     8 00000000 E80800                  	call	print_msg
+     9                                  
+    10 00000003 B0FF                    	mov	al,255  ; Return Code
+    11 00000005 B44C                    	mov	ah,4Ch
+    12 00000007 CD21                    	int	21h
+    13                                  hang:
+    14                                  	;sti
+    15 00000009 EBFE                    	jmp	short hang
+    16                                  
+    17                                  print_msg:
+    18 0000000B B40E                    	mov	ah,0Eh
+    19 0000000D BB0700                  	mov	bx,7
+    20 00000010 BE[1D00]                	mov	si,program_name
+    21                                  nextchr:
+    22 00000013 AC                      	lodsb
+    23 00000014 08C0                    	or	al,al
+    24 00000016 7404                    	jz	short pmsg_end
+    25 00000018 CD10                    	int	10h
+    26 0000001A EBF7                    	jmp	short nextchr
+    27                                  pmsg_end:
+    28 0000001C C3                      	retn
+    29                                  
+    30                                  program_name:
+    31 0000001D 0D0A                    	db 0Dh,0Ah
+    32 0000001F 49424D205043444F53-     	db "IBM PCDOS 7.1 COMMAND.COM (Prompt ",24h,"R) Return Code Test Program"
+    32 00000028 20372E3120434F4D4D-
+    32 00000031 414E442E434F4D2028-
+    32 0000003A 50726F6D7074202452-
+    32 00000043 292052657475726E20-
+    32 0000004C 436F64652054657374-
+    32 00000055 2050726F6772616D   
+    33 0000005D 0D0A                    	db 0Dh,0Ah
+    34 0000005F 284572646F67616E20-     	db "(Erdogan Tan - 06/08/2024)"
+    34 00000068 54616E202D2030362F-
+    34 00000071 30382F3230323429   
+    35                                  	;db 0Dh,0Ah,"$"
+    36 00000079 0D0A00                  	db 0Dh,0Ah,0 
