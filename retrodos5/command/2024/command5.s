@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 5.0 Command Interpreter) - RETRO DOS v4.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update:  06/08/2024 (v5.0 - 2024 optimization)
+; Last Update:  12/08/2024 (v5.0 - 2024 optimization)
 ;		15/06/2023 (v5.0) ((Previous: 20/10/2018 COMMAND.COM v3.3))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
@@ -25605,6 +25605,8 @@ SAVE_ARGS:
 	xor	di,di		; destination is new memory area
 	;mov	si,ARG_ARGV
 	mov	si,ARG		; source is arg structure
+	; 09/08/2024
+	push	si
 	rep	movsb		; move that sucker!
 	;mov	cx,arg.argvcnt 	; adjust argv pointers
 	;mov	cx,[ARG_ARGVCNT]
@@ -25616,8 +25618,10 @@ SAVE_ARGS:
 ;;	mov	SI, OFFSET TRANGROUP:arg.argbuf - OFFSET arg_unit.argbuf
 ;	mov	SI, OFFSET TRANGROUP:arg
 
-	;mov	si,ARG_ARGV
-	mov	si,ARG	
+	;;mov	si,ARG_ARGV
+	;mov	si,ARG
+	; 09/08/2024
+	pop	si
 SAVE_PTR_LOOP:
 	dec	cx		; exhausted all args?
 	jl	short SAVE_DONE
@@ -26857,7 +26861,9 @@ GOTPLUS:
 	inc	cx			; CX = mov length (incl null)
 	rep	movsb			; DestBuf = possible destination path
 	mov	[DestInfo],bh		; save CParse info flags
-	mov	word [DestSwitch],0	; clear destination switches
+	;mov	word [DestSwitch],0	; clear destination switches
+	; 10/08/2024
+	mov	[DestSwitch],cx ; 0
 	pop	si			; SI = ptr into cmd line again
 	jmp	short DESTSCAN		;AC018; continue scanning for dest
 
@@ -27213,7 +27219,7 @@ DRVSPEC1:
 
 	;	FCB contains drive and filename to search.
 		
-	mov	ah,Dir_Search_First ; 11h  ; AH = 'Find First File'	
+	mov	ah,Dir_Search_First ; 11h  ; AH = 'Find First File'
 	call	SEARCH
 SRCHDONE:
 	pushf				; save flags from Search
@@ -27266,7 +27272,7 @@ DOREAD:
 
 	mov	byte [CFLAG],0		; 'destination not created'
 NODCLOSE:
-	cmp	byte [Concat],0		
+	cmp	byte [Concat],0
 	jz	short NOFLUSH
 
 ;	Concatenating - flush output between source files so LostErr
@@ -27746,7 +27752,7 @@ CLOSEDONE:
 
 FORGETIT:
 	mov	bx,[DESTHAND]
-	call	DODCLOSE	 ; close the dest	
+	call	DODCLOSE	 ; close the dest
 	call	DestDelete
 	mov	word [FileCnt],0 ; no files transferred
 	jmp	short RET50
@@ -28066,7 +28072,7 @@ NoChecking:
 	mov	ds,[TPA]
 	mov	ah,Write ; 40h
 	int	21h	; DOS -	2+ - WRITE TO FILE WITH	HANDLE
-			; BX = file handle,CX = number	of bytes to write,DS:DX -> buffer
+			; BX = file handle,CX = number of bytes to write,DS:DX -> buffer
 	pop	ds
 	mov	dx,NOSPACE_PTR
 	;jc	short COPERRP		; failure
@@ -28132,7 +28138,7 @@ NoChecking2:
 	jnz	short Ret60		; inexact so ok
 	dec	cx
 ;Retz60:
-	jz	short Ret60		; wrote one byte less (the ^z)		
+	jz	short Ret60		; wrote one byte less (the ^z)
 
 DevWrtErr:
 	mov	dx,DEVWMES_PTR
@@ -28347,11 +28353,11 @@ SETCONC:
 	shl	al,1
 	mov	[INEXACT],al		; concatenation -> inexact copy
 	cmp	byte [BINARY],0
-	jne	short NOFIRSTDEST 	; explicit binary copy	
+	jne	short NOFIRSTDEST 	; explicit binary copy
 
-	mov	[ASCII],al		; otherwise, concatenate in ascii mode	
+	mov	[ASCII],al		; otherwise, concatenate in ascii mode
 	or	cl,cl
-	jnz	short NOFIRSTDEST 	; Ascii flag set before, data read correctly	
+	jnz	short NOFIRSTDEST 	; Ascii flag set before, data read correctly
 	or	al,al
 	jz	short NOFIRSTDEST 	; Ascii flag did not change state
 
@@ -28485,7 +28491,7 @@ PURE_FILE:
 NOTPFILE:
 	mov	dx,[bp+VARSTRUC.BUF] ; mov dx,[bp+5]
 	
-	; 27/03/2023	
+	; 27/03/2023
 	; MSDOS 6.0
 	cmp	dl,0		     	;AN034; If no drive specified, get
 	je	short SET_DRIVE_SPEC	;AN034;    default drive dir
@@ -28527,7 +28533,7 @@ CURDIR_OK:
 KNOWNOTSPEC:
 	;mov	byte [bp+VARSTRUC.ISDIR],1
 					; Know is path/file
-	;mov	byte [bp+0],1		
+	;mov	byte [bp+0],1
 	mov	byte [bp],1
 	dec	si
 DOPCDJ:
@@ -28538,7 +28544,7 @@ CHECKAMB:
 ISSIMPFILE:
 ISADEV:
 	;mov	byte [bp+VARSTRUC.ISDIR],0
-	;mov	byte [bp+0],0		
+	;mov	byte [bp+0],0
 	mov	byte [bp],0
 	retn
 CHECKCD:
@@ -28577,7 +28583,8 @@ DONE:
 	; 27/03/2023
 	; MSDOS 6.0
 	or	ah,ah			;AN000; 3/3/KK
-	jnz	short _STORE_PCHAR	;AN000; 3/3/KK	 this is the tra
+	jnz	short _STORE_PCHAR	;AN000; 3/3/KK
+					;this is the trailing byte of ECS code
 	;
 	cmp	al,[di-1]
 	jz	short GOTSRCSLSH
@@ -28588,7 +28595,7 @@ _STORE_PCHAR:
 	mov	byte [bp],1
 GOTSRCSLSH:
 	;or	byte [bp+4],6
-	or 	byte [bp+VARSTRUC.INFO],6 
+	or 	byte [bp+VARSTRUC.INFO],6
 	call	SETSTARS
 NOTPDIR_RETN:
 	retn
@@ -28613,12 +28620,12 @@ NOTPDIR_TRY:
 	test	bh,4
 	jz	short NOTPDIR_RETN	; Know pure file, no path seps
 	;mov	byte [bp+VARSTRUC.ISDIR],2 ; assume d:/file
-	;mov	byte [bp+0],2		
+	;mov	byte [bp+0],2
 	mov	byte [bp],2
 	;mov	si,[bp+2]
 	mov	si,[bp+VARSTRUC.TTAIL]
 	cmp	byte [si],0
-	je	short BADCDERRJ2	; Trailing '/'	
+	je	short BADCDERRJ2	; Trailing '/'
 	;mov	bl,[DOT_CHR]
 	; 28/03/2023 - Retro DOS v4.0 COMMAND.COM
 	; MSDOS 6.0 (& 5.0) COMMAND.COM
@@ -28628,7 +28635,7 @@ NOTPDIR_TRY:
 	mov	bl,':'  ; 3Ah
 	cmp	[si-2],bl
 	je	short DOPCD		; Know d:/file
-	;mov	byte [bp+VARSTRUC.ISDIR],1 
+	;mov	byte [bp+VARSTRUC.ISDIR],1
 					; Know path/file
 	;mov	byte [bp+0],1
 	mov	byte [bp],1
@@ -28683,7 +28690,7 @@ DoCdr:
 	; 28/03/2023
 	; MSDOS 6.0 (& MSDOS 5.0)
 	call	get_ext_error_number	;AN022; get the extended error
-EXTEND_SETUPJ:					;AN022;
+EXTEND_SETUPJ:				;AN022;
 	jmp	extend_setup		;AN022; go issue the error message
 BADCDERRJ2:
 	jmp	badpath_err		;AC022; go issue path not found message
@@ -29034,7 +29041,7 @@ BADCDERR:
 	
 cperror:
 	dec	si			; adjust the pointer
-	pop	di			; retrive token buffer address
+	pop	di			; retrieve token buffer address
 	popf				; restore flags
 	stc				; set the carry bit
 	retn
@@ -29113,7 +29120,7 @@ out_tokenp:
 out_token:
 	mov	al,0			; null at the end
 	stosb
-	pop	di			; restore token buffer pointer	
+	pop	di			; restore token buffer pointer
 	popf
 	clc				; clear carry flag
 	retn
@@ -29747,7 +29754,7 @@ $P_Fin: 				;AN000;
 
 ;---------------------------
 $P_Start:				;AN000;
-	mov	[cs:$P_SaveSI_Cmpx],si	;AN000;AC034;  save ptr to command line for later use by complex,
+	mov	[cs:$P_SaveSI_Cmpx],si	;AN000;AC034; save ptr to command line for later use by complex,
 	push	bx			;AN000; quoted string or file spec.
 	push	di			;AN000;
 	push	bp			;AN000;
@@ -29843,6 +29850,8 @@ $P_Too_Many_Error:			;AN000;
 					;AC034; set exit code
 	jmp	short $P_Return_to_Caller
 					;AN000; and return to the caller
+; 11/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 $P_SW_Manager:				;AN000;
 	;mov	al,[es:bx+1]		;AN000; get maxp
 	mov	al,[es:bx+$P_PARMSX_BLK.$P_MaxP]
@@ -29855,6 +29864,24 @@ $P_SW_Manager:				;AN000;
 	or	cx,cx			;AN000; at least one switch ?
 	jz	short $P_SW_Not_Found 	;AN000;
 	inc	bx			;AN000; now bx points to 1st CONTROL address
+%else
+$P_get_max_ptr:
+	mov	al,[es:bx+1]		; [es:bx+$P_PARMSX_BLK.$P_MaxP] ; get maxp
+	xor	ah,ah			; ax = maxp
+	inc	ax
+	shl	ax,1			; ax = (ax+1)*2
+	add	bx,ax			; now bx points to maxs
+	retn
+
+$P_SW_Manager:
+	call	$P_get_max_ptr
+	mov	cl,[es:bx]
+	xor	ch,ch			; cx = maxs
+					; at least one switch ?
+	jcxz	$P_SW_Not_Found 	; no
+	inc	bx			; now bx points to 1st CONTROL address
+%endif
+
 $P_SW_Mgr_Loop: 			;AN000;
 	push	bx			;AN000;
 	mov	bx,[es:bx]		;AN000; bx points to Switch CONTROL itself
@@ -29872,7 +29899,9 @@ $P_SW_Not_Found:			;AN000;
 					;AC034; here no CONTROL for the switch has
 	jmp	short $P_Return_to_Caller0
 					;AN000; not been found, means error.
-$P_Key_Manager: 			;AN000;
+; 11/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
+$P_Key_Manager:				;AN000;
 	;mov	al,[es:bx+1]		;AN000; get maxp
 	mov	al,[es:bx+$P_PARMSX_BLK.$P_MaxP]
 	xor	ah,ah			;AN000; ax = maxp
@@ -29889,6 +29918,21 @@ $P_Key_Manager: 			;AN000;
 	or	cx,cx			;AN000; at least one keyword ?
 	jz	short $P_Key_Not_Found	;AN000;
 	inc	bx			;AN000; now bx points to 1st CONTROL
+%else
+$P_Key_Manager:
+	call	$P_get_max_ptr
+	mov	al,[es:bx]
+	xor	ah,ah			; ax = maxs
+	shl	ax,1
+	inc	ax			; ax = ax*2+1
+	add	bx,ax			; now bx points to maxk
+	mov	cl,[es:bx]
+	xor	ch,ch			; cx = maxk
+					; at least one keyword ?
+	jcxz	$P_Key_Not_Found
+	inc	bx			; now bx points to 1st CONTROL
+%endif
+
 $P_Key_Mgr_Loop:			;AN000;
 	push	bx			;AN000;
 	mov	bx,[es:bx]		;AN000; bx points to keyword CONTROL itself
@@ -29965,7 +30009,7 @@ $P_CPC02:				;AN000;
 	;mov	al,$P_String		;AN000; if it is optional return NULL
 	;;mov	ah,0FFh
 	;mov	ah,$P_No_Tag		;AN000; no item tag indication
-	;31/03/2023
+	; 31/03/2023
 	mov	ax,($P_No_Tag<<8)+$P_String
 	call	$P_Fill_Result		;AN000;
 	; 27/04/2023
@@ -30578,7 +30622,9 @@ $P_DCC00:				;AN000;
 	;mov	dx,-1
 	mov	bx,$P_DOSTBL_Def ; -1	;AN000; get active CON
 	mov	cx,$P_DOSTBL_BL  ; 5 	;AN000; buffer length
-	mov	dx,$P_DOSTBL_Def ; -1	;AN000; get for default code page
+	; 11/08/2024 - PCDOS 7.1 COMMAND.COM
+	mov	dx,bx
+	;mov	dx,$P_DOSTBL_Def ; -1	;AN000; get for default code page
 					;DI already set to point to buffer
 	int	21h			;AN000; es:di point to buffer that
 					;now has been filled in with info
@@ -30592,10 +30638,14 @@ $P_DCC01:				;AN000;
 ; by the previous GET COUNTRY INFO DOS call. This usage of ES is made
 ; regardless of which base reg is currently the PSDATA_SEG reg.
 
-	mov	bx,[cs:di+$P_DOS_TBL.$P_DOS_TBL_Off]
-	;mov	bx,[cs:di+1]		;AN000; get offset of table
-	mov	es,[cs:di+$P_DOS_TBL.$P_DOS_TBL_Seg]
-	;mov	es,[cs:di+3]		;AN000; get segment of table
+	;mov	bx,[cs:di+$P_DOS_TBL.$P_DOS_TBL_Off]
+	;;mov	bx,[cs:di+1]		;AN000; get offset of table
+	;mov	es,[cs:di+$P_DOS_TBL.$P_DOS_TBL_Seg]
+	;;mov	es,[cs:di+3]		;AN000; get segment of table
+	; 11/08/2024 - PCDOS 7.1 COMMAND.COM
+	;les	bx,[cs:di+1]
+	les	bx,[cs:di+$P_DOS_TBL.$P_DOS_TBL_Off]
+	;
 	inc	bx			;AC035; add '2' to
 	inc	bx			;AC035;  BX reg
 					;AN000; skip length field
@@ -30654,6 +30704,7 @@ $P_SVal00:				;AN000;
 $P_Sval01:				;AN000;
 	call	$P_Value		;AN000; and process value
 	pop	ax			;AN000;
+$P_Check_OVF_ok: ; 11/08/2024
 	retn				;AN000;
 
 ;***********************************************************************
@@ -30661,6 +30712,7 @@ $P_Sval01:				;AN000;
 	; 31/03/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:4955h
 
+	; 11/08/2024
 $P_Value:
 	push	ax			;AN000;
 	push	cx			;AN000;
@@ -30677,6 +30729,8 @@ $P_Value_Loop:				;AN000;
 	call	$P_0099 		;AN000; make asc(0..9) to bin(0..9)
 	jc	short $P_Value_Err0	;AN000;
 
+; 11/08/2024 - PCDOS 7.1 COMMAND.COM
+%if 0
 	xor	ah,ah			;AN000;
 	mov	bp,ax			;AN000; save binary number
 	shl	dx,1			;AN000; to have 2*x
@@ -30708,6 +30762,39 @@ $P_Value_Loop:				;AN000;
 
 	inc	si			;AN000; update pointer
 	jmp	short $P_Value_Loop	;AN000; loop until NULL encountered
+%else
+	xor	ah,ah
+	mov	bp,ax			; save binary number
+	call	$P_Check_OVF_shl32	; check Overflow (after shl32)
+	mov	bx,dx			; save low(2*x)
+	mov	ax,cx			; save high(2*x)
+	call	$P_Check_OVF_shl32	; check OverFlow (after shl32)
+	call	$P_Check_OVF_shl32	; check OverFlow (after shl32)
+	add	dx,bx			; now have 10*x
+	adc	cx,ax			; 32bit ADD
+	call	$P_Check_OVF_@		; check OverFlow
+	add	dx,bp			; Add the current one degree decimal
+	adc	cx,0			; if carry, add 1 to high 16bit
+	call	$P_Check_OVF_@		; check Overflow
+	inc	si			; update pointer
+	jmp	short $P_Value_Loop	; loop until NULL encountered
+
+$P_Check_OVF_shl32:
+	shl	dx,1
+	rcl	cx,1
+$P_Check_OVF_@:
+	call	$P_Check_OVF
+	;jc	short $P_Value_Err0_@
+	;retn
+	; 11/08/2024
+	jnc	short $P_Check_OVF_ok
+
+$P_Value_Err0_@:
+	;inc	sp
+	;inc	sp
+	; 11/08/2024
+	pop	bx
+%endif
 
 $P_Value_Err0:				;AN000;
 	pop	bx			;AN000;
@@ -31067,14 +31154,14 @@ $P_SCOM01:				;AN000;
 	jmp	short $P_SCOM_Loop	;AN000; loop until NULL or "=" or "/" found in case
 
 $P_SCOM_Differ0:			;AN000;
-	test	byte [cs:$P_Flags2],$P_SW ; 40h 
+	test	byte [cs:$P_Flags2],$P_SW ; 40h
 	;test	byte [cs:$P_Flags2],40h	;AC034;(tm10)
 	jz	short $P_not_applicable	;AN000;(tm10)
 
 	;test	word [es:bx+$P_CONTROL_BLK.$P_Function_Flag],$P_colon_is_not_necessary
 	;;test	word [es:bx+2],20h	;AN000;(tm10)
 	; 03/04/2023
-	test	byte [es:bx+$P_CONTROL_BLK.$P_Function_Flag],$P_colon_is_not_necessary	
+	test	byte [es:bx+$P_CONTROL_BLK.$P_Function_Flag],$P_colon_is_not_necessary
 	jz	short $P_not_applicable	;AN000;(tm10)
 
 	cmp	byte [es:bp],$P_NULL	;AN000;(tm10)
@@ -31141,7 +31228,7 @@ $P_SCOM_Exit:				;AN000;
 ;***********************************************************************
 
 	; 03/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 11/08/2024
 $P_Date_Format:
 	push	ax			;AN000;
 	push	cx			;AN000;
@@ -31158,10 +31245,13 @@ $P_Date_Format:
 	xor	si,si
 	mov	[cs:$P_1st_Val],si ; 0	;AC034; set initial value
 	mov	[cs:$P_2nd_Val],si ; 0	;AC034; set initial value
-	;mov	[cs:$P_3rd_Val],si ; 0	;AC034; set initial value
+	; 11/08/2024
+	mov	[cs:$P_3rd_Val],si ; 0	;AC034; set initial value
 	pop	si
 	call	$P_Get_DecNum		;AN000; get 1st number
-	jc	short $P_DateF_Err0	;AN000;-----------------------+
+	;jc	short $P_DateF_Err0	;AN000;-----------------------+
+	; 11/08/2024
+	jc	short $P_DateF_Error
 	mov	[cs:$P_1st_Val],ax	;AC034;			      |
 	or	bl,bl			;AN000; end of line ?	      |
 	jz	short $P_DateF_YMD	;AN000; 		      |
@@ -31279,7 +31369,7 @@ $P_Set_CDI_Exit:			;AN000;
 ;***********************************************************************
 ; $P_Get_DecNum:
 ;
-; Function:  Read a chcrater code from psdata_seg:SI until specified delimiter
+; Function:  Read a character code from psdata_seg:SI until specified delimiter
 ;	     or NULL encountered. And make a decimal number.
 ;
 ; Input:     psdata_seg:SI -> $P_STRING_BUF
@@ -31392,7 +31482,7 @@ $P_GetNum_Exit: 			;AN000;
 ;***********************************************************************
 
 	; 03/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 12/08/2024
 $P_Time_Format:				;AN000;
 	push	ax			;AN000;
 	push	cx			;AN000;
@@ -31432,18 +31522,24 @@ $P_TimeF00:				;AN000;
 	mov	[cs:$P_Got_Time],bl ; 1
 	;
 	call	$P_Get_DecNum		;AN000; get 1st number
-	jc	short $P_TimeF_Err0	;AN000;
+	;jc	short $P_TimeF_Err0	;AN000;
+	; 12/08/2024
+	jc	short $P_TimeF_Error
 	mov	[cs:$P_1st_Val],ax	;AC034;
 	or	bl,bl			;AN000; end of line ?
 	jz	short $P_TimeF_Rlt	;AN000;
 	call	$P_Get_DecNum		;AN000; get 2nd number
-	jc	short $P_TimeF_Err0	;AC038; if OK
+	;jc	short $P_TimeF_Err0	;AC038; if OK
+	; 12/08/2024
+	jc	short $P_TimeF_Error
 	mov	[cs:$P_2nd_Val],ax	;AC034;
 	or	bl,bl			;AN000; end of line ?
 	jz	short $P_TimeF_Rlt	;AN000;
 	mov	bl,2 ; $P_period_only	;AN032; flag, which to decimal separator
 	call	$P_Get_DecNum		;AN000; get 3rd number
-	jc	short $P_TimeF_Err0	;AC039; if problem, bridge to error
+	;jc	short $P_TimeF_Err0	;AC039; if problem, bridge to error
+	; 12/08/2024
+	jc	short $P_TimeF_Error
 	mov	[cs:$P_3rd_Val],ax	;AC034;
 	or	bl,bl			;AN000; end of line ?
 	jnz	short $P_Time_4		;AN039; NOT END OF LINE,
@@ -31477,6 +31573,27 @@ $P_TimeF00:				;AN000;
 	mov	si,[cs:$P_ORIG_SI]	;AN039; ORIGINAL START
 					;AN039;   PARSE POINTER FROM SI
 	jmp	$P_Redo_Time		;AN039; go try TIME again
+
+	; 12/08/2024
+$P_TimeF_Error: 			;AN000;
+$P_TimeF_Err:				;AN000;
+	pop	bx			;AN000; recover CONTROL block
+	pop	si			;AN000; recover string pointer
+	;mov	ah,$P_No_Tag		;AN000; set
+	;mov	al,$P_String		;AN000;     result
+	; 03/04/2023
+	mov	ax,($P_No_Tag<<8)+$P_String
+	call	$P_Fill_Result		;AN000; 	  buffer
+					;AN000; to string
+	mov	word [cs:$P_RC],$P_Syntax ; 9	
+					;AC034; return syntax error
+$P_Time_Format_Exit:			;AN000;
+	mov	byte [cs:$P_Got_Time],0	;AN023;AC034; finished with this time field
+	pop	dx			;AN000;
+	pop	cx			;AN000;
+	pop	ax			;AN000;
+	retn
+
 $P_Time_4:				;AN039; READY FOR 4TH (HUNDREDTHS) NUMBER
 	call	$P_Get_DecNum		;AN000; get 4th number
 $P_TimeF_Err0:				;AN000; Bridge
@@ -31530,24 +31647,6 @@ $P_TimeSkip00:				;AN000;
 	call	$P_Fill_Result		;AN000;        buffer
 	jmp	short $P_Time_Format_Exit
 					;AN000; to time
-$P_TimeF_Error: 			;AN000;
-$P_TimeF_Err:				;AN000;
-	pop	bx			;AN000; recover CONTROL block
-	pop	si			;AN000; recover string pointer
-	;mov	ah,$P_No_Tag		;AN000; set
-	;mov	al,$P_String		;AN000;     result
-	; 03/04/2023
-	mov	ax,($P_No_Tag<<8)+$P_String
-	call	$P_Fill_Result		;AN000; 	  buffer
-					;AN000; to string
-	mov	word [cs:$P_RC],$P_Syntax ; 9	
-					;AC034; return syntax error
-$P_Time_Format_Exit:			;AN000;
-	mov	byte [cs:$P_Got_Time],0	;AN023;AC034; finished with this time field
-	pop	dx			;AN000;
-	pop	cx			;AN000;
-	pop	ax			;AN000;
-	retn
 
 ;***********************************************************************
 ; $P_Time_2412:
@@ -31913,7 +32012,7 @@ $P_Chk_EOL_Exit:			;AN000;
 ;***********************************************************************
 
 	; 06/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 12/08/2024
 $P_Chk_Delim:
 	push	bx			;AN000;
 	push	cx			;AN000;
@@ -31950,8 +32049,10 @@ $P_Chk_Delim01: 			;AN000;
 	xor	cx,cx			;AN000;
 	mov	cl,[es:di+$P_PARMS_BLK.$P_Len_Extra_Delim]
 	;mov	cl,[esi:di+3]		;AN000; get length of delimiter list
-	or	cx,cx			;AN000; No extra Delim character ?
-	jz	short $P_Chk_Delim_NZ	;AN000;
+	;or	cx,cx			;AN000; No extra Delim character ?
+	;jz	short $P_Chk_Delim_NZ	;AN000;
+	; 12/08/2024 - PCDOS 7.1 COMMAND.COM
+	jcxz	$P_Chk_Delim_NZ
 
 	mov	bx,$P_Len_PARMS-1 ; 3	;AN000; set bx to 1st extra delimiter
 $P_Chk_Delim_Loop:			;AN000;
@@ -32066,7 +32167,7 @@ $P_STRUC_L1:				;AN000;
 ;***************************************************************************
 
 	; 06/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 12/08/2024
 $P_Chk_DBCS:
 	push	ds			;AN000;
 	push	si			;AN000;
@@ -32100,8 +32201,10 @@ $P_DBCS02:				;AN000;
 	mov	[cs:$P_DBCSEV_OFF],si	;AC034; save EV offset
 	mov	[cs:$P_DBCSEV_SEG],bx	;AC034; save EV segment (tm11)
 $P_DBCS00:				;AN000;
-	mov	si,[cs:$P_DBCSEV_OFF]	;AC034; load EV offset
-	mov	ds,[cs:$P_DBCSEV_SEG]	;AC034; and segment
+	;mov	si,[cs:$P_DBCSEV_OFF]	;AC034; load EV offset
+	;mov	ds,[cs:$P_DBCSEV_SEG]	;AC034; and segment
+	; 12/08/2024 - PCDOS 7.1 COMMAND.COM
+	lds	di,[cs:$P_DBCSEV_OFF]
 $P_DBCS_LOOP:				;AN000;
 	cmp	word [si],0 		;AN000; zero vector ?
 	je	short $P_NON_DBCS	;AN000; then exit
@@ -32661,6 +32764,7 @@ std_eprintf:
 	; 07/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM (1991) Transient portion offset 5012h
 	; 15/06/2023
+	; 12/08/2024
 std_printf:
 	mov	word [PRINTF_HANDLE],1 		;AC000;Print to STDOUT
 
@@ -32695,8 +32799,10 @@ new_printf:
 	
 	;cmp	cx,0				;AN000;Any substitutions?
 	; 07/04/2023
-	and	cx,cx
-	jz	short ready_to_print		;AN000;No - continue
+	;and	cx,cx
+	;jz	short ready_to_print		;AN000;No - continue
+	; 12/08/2024
+	jcxz	ready_to_print
 
 	mov	di,subst_buffer			;AN061; Get address of message subst buffer
 	push	di				;AN061; save it
@@ -32817,7 +32923,7 @@ not_stderr:
 	jz	short _go_to_error
 	call	PipeOff
 	mov	dx,PIPEEMES_PTR
-	jmp	short print_err_exit			;AC000;
+	jmp	short print_err_exit		;AC000;
 
 _go_to_error:
 	mov	byte [msg_disp_class],ext_msg_class
@@ -39692,6 +39798,7 @@ OFilePtr_Lo:
 	dw 0			; original file ptr for COPY when
 OFilePtr_Hi:
 	dw 0			; 1st source is also destination
+zflag:	; 10/08/2024 - PCDOS 7.1 COMMAND.COM
 OCtrlZ:	db 0			; original ctrl+Z for COPY when ditto
 BATHAND:
 	dw 0			; Batch handle
@@ -39857,7 +39964,9 @@ search_error:
 
 IF_NOT_COUNT:
 	dw 0
-zflag:	db 0
+; 10/08/2024
+;zflag:	db 0
+align 2
 	times 256 db 0 
 	; 16/04/2023
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:9854h
