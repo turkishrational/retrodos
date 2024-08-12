@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (PCDOS 7.1 Command Interpreter) - RETRO DOS v5.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 12/08/2024
+; Last Update: 13/08/2024
 ; ----------------------------------------------------------------------------
 ; Beginning: 18/07/2024 (v7.1) - ((Previous: 19/06/2023 COMMAND.COM v6.22))
 ; ----------------------------------------------------------------------------
@@ -35989,9 +35989,6 @@ endstruc				;;AN000;;
 
 	; 12/08/2024 - Retro DOS v5.0 COMMAND.COM
 	; PCDOS 7.1 COMMAND.COM - TRANGROUP:5757h
-
-; burada kaldým... 12/08/2024
-
 SYSLOADMSG:
 	push	ax				;;AN000;
 	push	bx				;;AN000;
@@ -36141,6 +36138,7 @@ SYSLOADMSG:
 
 	; 07/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 12/08/2024 - Retro DOS v5.0 COMMAND.COM
 $M_GET_DBCS_VEC:
 	push	ax				;;AN000;; Save character to check
 	push	si				;;AN000;;
@@ -36187,6 +36185,7 @@ $MIF23:
 
 	; 07/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 12/08/2024 - Retro DOS v5.0 COMMAND.COM
 
 	utility_msg_class equ 0FFh ; 18/04/2023
 
@@ -36237,6 +36236,7 @@ $MIF31:
 
 	; 07/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 12/08/2024 - Retro DOS v5.0 COMMAND.COM
 $M_GET_MSG_ADDRESS:
 	push	si				;;AN000;;
 	push	bx				;;AN000;;
@@ -36448,6 +36448,7 @@ $M_SET_LEN_IN_CX:
 
 	; 07/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 12/08/2024 - Retro DOS v5.0 COMMAND.COM
 $M_FIND_SPECIFIED_MSG:
 	cmp	bx,1				;;AN004;; Do we have an address to CALL?
 	jne	short $MIF64
@@ -36599,6 +36600,9 @@ $MIF91:
 	;
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:5ACBh
+
+	; 12/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:5955h
 SYSDISPMSG:
 	;; Save registers and values needed later
 	push	ax				;;AN000;; Save changed REGs
@@ -36727,6 +36731,7 @@ $MEN104:
 
 	; 08/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 12/08/2024 - Retro DOS v5.0 COMMAND.COM
 $M_DISPLAY_STRING:
 	push	ax				;;AN000;;
 	push	bx				;;AN000;;
@@ -36794,6 +36799,7 @@ $MIF117:
 
 	; 08/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 12/08/2024 - Retro DOS v5.0 COMMAND.COM
 $M_DISPLAY_$_STRING:
 	push	ds				;;AN000;;
 	push	es				;;AN000;;
@@ -36864,6 +36870,7 @@ $MIF120: ; 08/04/2023 ; *
 
 	; 08/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 12/08/2024 - Retro DOS v5.0 COMMAND.COM
 scan_ctrlz:
 	push	di
 	push	ax
@@ -36908,6 +36915,7 @@ $MIF127:	; 08/04/2023
 
 	; 08/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 12/08/2024 - Retro DOS v5.0 COMMAND.COM
 $M_DISPLAY_H_STRING:
 	xor	ax,ax			;;AN002;; Set number of bytes written to 0
 	or	cx,cx			;;AN002;; For performance, don't write if not necessary
@@ -36991,7 +36999,7 @@ $MIF128:
 	;jnc	short chk_count		;no error, adjust return count
 	;jmp	short m_cnt_ok		;error, return with carry set;M007
 	; 08/04/2023
-	jc	short m_cnt_ok 
+	jc	short m_cnt_ok
 ;M007
 ; If we are writing to con and there is a Ctrl-Z in the string, the
 ;return count will be much less and if this returns to the caller we can get
@@ -37032,6 +37040,8 @@ $MEN128:
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:5BFAh
 
+	; 12/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:5A81h
 $M_GET_EXT_ERR_39:
 	mov	ax,27h ; EXT_ERR_39	;AN001; Set AX=39
 	;mov	bx,(ERROR_CLASS_39 SHR 8) + ACTION_39
@@ -37053,11 +37063,12 @@ $M_GET_EXT_ERR_39:
 
 	; 09/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 12/08/2024 - Retro DOS v5.0 COMMAND.COM
 $M_ADD_CRLF:
 	;cmp	dh,0FFh
 	cmp	dh,utility_msg_class	;;AN004;; Is it a utility message?
 	je	short $MIF134		;;AN004;; Yes
-	test	dh,80h; $M_NO_CRLF_MASK	;;AN004;; Are we to supress the CR LF?
+	test	dh,80h ; $M_NO_CRLF_MASK ;;AN004;; Are we to supress the CR LF?
 	jnz	short $MIF135
 					;;AN004;; No	
 	push	ds			;;AN004;;
@@ -37084,6 +37095,7 @@ $MIF134:
 
 	; 09/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 12/08/2024 - Retro DOS v5.0 COMMAND.COM
 $M_IS_IT_DBCS:
 	push	es			;;AN000;; Save Extra Segment register
 	push	di			;;AN000;; Save DI register
@@ -37131,6 +37143,7 @@ $MIF138:
 
 	; 09/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 12/08/2024 - Retro DOS v5.0 COMMAND.COM
 $M_CONVERT2ASC:
 	pop	word [$M_RT+$M_RES_ADDRS.$M_RETURN_ADDR]
 	;pop	word [$M_RT+70]			;;AN000;; Save Return Address
@@ -37165,7 +37178,7 @@ $MLL149:
 	je	short $MIF153
 ;	jne	short $MIF150			;;AN000;; No
 ;	;cmp	$M_SL.$M_S_PAD,$M_COMMA		;;AN000;; Is the pad character a comma?
-;	cmp	byte [si+$M_SUBLIST_STRUC.$M_S_PAD],','	
+;	cmp	byte [si+$M_SUBLIST_STRUC.$M_S_PAD],','
 ;	;cmp	byte [si+0Ah],',' ; $M_COMMA
 ;	;jne	short $MIF151
 ;	; 09/04/2023
@@ -37185,7 +37198,7 @@ $MIF150:
 	; 15/06/2023 (7)
 	; MSDOS 6.22
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:5C78h 
-	cmp	cx,7 ; $M_SECOND_THOU		;;AN000;; Are we at the first thousands mark	
+	cmp	cx,7 ; $M_SECOND_THOU		;;AN000;; Are we at the first thousands mark
 
 ; 28/04/2023
 	je	short $MIF153
@@ -37196,7 +37209,7 @@ $MIF150:
 ;	;jne	short $MIF155			;;AN000;; No
 ;	; 09/04/2023
 ;	jne	short $MEN154
-;						;;AN000;; Yes				
+;						;;AN000;; Yes
 ;	push	word [$M_RT+$M_COUNTRY_INFO.$M_THOU_SEPARA]
 ;	;push	word [$M_RT+83]			;;AN000;; Insert a thousand separator
 ;	inc	cx				;;AN000;;
@@ -37212,11 +37225,11 @@ $MIF154:
 	; MSDOS 6.22
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:5C8Ah 
 	cmp	cx,11 ; $M_THIRD_THOU		;;AN000;; Are we at the first thousands mark
-	jne	short $MIF158			;;AN000;; No  
+	jne	short $MIF158			;;AN000;; No
 ; 28/04/2023
 $MIF153:
 	;cmp	$M_SL.$M_S_PAD,$M_COMMA		;;AN000;; Is the pad character a comma?
-	cmp	byte [si+$M_SUBLIST_STRUC.$M_S_PAD],','	
+	cmp	byte [si+$M_SUBLIST_STRUC.$M_S_PAD],','
 	;cmp	byte [si+0Ah],',' ; $M_COMMA
 	jne	short $MIF159			;;AN000;; No
 						;;AN000;; Yes
@@ -37263,6 +37276,9 @@ $MEN145: ; 09/04/2023 ; * ; ax = 0
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:54DBh
 
+	; 12/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:5B2Eh
+
 $M_DISPLAY_MESSAGE:
 ; $DO						;;AN000;; Note: DS:SI -> message
 $MDO165:
@@ -37270,8 +37286,10 @@ $MDO165:
 	or	cx,cx				;;AN000;; Are we finished the message yet?
 ;; $IF NZ					;;AN000;; No
 	jz	short $MIF166			;;AN000;; Yes
-	mov	ah,"%"				;;AN000;; Prepare to scan for %
-	mov	al,0				;;AN004;;
+	;mov	ah,"%"				;;AN000;; Prepare to scan for %
+	;mov	al,0				;;AN004;;
+	; 12/08/2024
+	mov	ax,2500h
 ;; $DO						;;AN000;; Scan through string until %
 $MDO167:
 	cmp	byte [es:di],ah			;;AN000;; Is this character NOT a %
@@ -37283,7 +37301,7 @@ $MDO167:
 
 	cmp	al,ah				;;AN000;; Was the character before a %
 ;; $LEAVE NE					;;AN000;; No, GREAT found it
-	jne	short MEN167
+	jne	short $MEN167 ; 12/08/2024
 $MLL168:
 	mov	al,[es:di]			;;AN004;; Yes, (to any of the above)
 	call	$M_IS_IT_DBCS			;;AN004;; Is this character the first part of a DBCS?
@@ -37294,9 +37312,11 @@ $MLL168:
 $MIF169:
 	inc	di				;;AN000;; Next character in string
 	inc	dx				;;AN000;; Size = Size + 1
-	dec	cx				;;AN000;; Decrement total size
+	;dec	cx				;;AN000;; Decrement total size
 ;; $ENDDO Z					;;AN000;; Exit scan if we're at the end of the line
-	jnz	short $MDO167
+	;jnz	short $MDO167
+	; 12/08/2024
+	loop	$MDO167
 $MEN167:
 ;; $ENDIF					;;AN000;;
 $MIF166:
@@ -37583,6 +37603,7 @@ $MEN211:
 
 	; 11/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 12/08/2024 - Retro DOS v5.0 COMMAND.COM
 
 $M_EXT_PAR_REPLACE:
 	xor	dx,dx				;;AN000;; Prepare for get binary value (HIGH)
@@ -37627,8 +37648,12 @@ $MIF216:
 	
 	; 11/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:56C8h
+
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:5E95h
+
+	; 12/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:5D1Bh
 $M_FLUSH_BUF:
 	push	cx				;;AN000;; Save changed regs
 	push	es				;;AN000;;
@@ -37659,8 +37684,12 @@ $MEN314:
 
 	; 11/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP:5609h
+
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:5DD6h
+
+	; 12/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:5C5Ch
 $M_DISPLAY_REPLACE:
 	xor	bx,bx				;;AN000;; Use BX for buffer count
 	;;cmp	$M_SL.$M_S_ID,$M_SPECIAL_CASE-30h ; 0
@@ -37840,6 +37869,7 @@ $MEN307:
 
 	; 12/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 12/08/2024 - Retro DOS v5.0 COMMAND.COM
 $M_CHAR_REPLACE:
 	pop	bp				;;AN000;; Save return address
 	;test	$M_SL.$M_S_FLAG,not Char_Field_Char and $M_SIZE_MASK
@@ -37888,6 +37918,7 @@ $MEN317:
 
 	; 12/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 12/08/2024 - Retro DOS v5.0 COMMAND.COM
 $M_BIN2ASC_REPLACE:
 	pop	bp				;;AN000;; Save return address
 	xor	dx,dx				;;AN000;; Prepare for get binary value (HIGH)
@@ -37922,7 +37953,6 @@ $M_BIN2ASC_REPLACE:
 
 ; 12/04/2023
 %if 0
-
 $MIF327:
 $MIF335:	; 12/04/2023
 	mov	word [$M_RT+$M_RES_ADDRS.$M_DIVISOR],10 ; $M_BASE10
@@ -37966,7 +37996,6 @@ $MIF325:
 
 ; 12/04/2023
 %if 0
-
 $MIF335:
 	mov	word [$M_RT+$M_RES_ADDRS.$M_DIVISOR],10 ; $M_BASE10
 	;mov	word [$M_RT+74],10		;;AN000;;
@@ -38090,6 +38119,7 @@ $MIF349:
 
 	; 12/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 13/08/2024 - Retro DOS v5.0 COMMAND.COM
 $M_DATE_REPLACE:
 	pop	bp				;;AN000;; Save return address
 
@@ -38188,11 +38218,11 @@ $MIF353:
 
 	inc	cx				;;AN000;;
 
-	 mov	al,[si+$M_SUBLIST_STRUC.$M_S_VALUE+2]
+	mov	al,[si+$M_SUBLIST_STRUC.$M_S_VALUE+2]
 	;mov	al,[si+4]			;;AN000;; Get Month
 	call	$M_CONVERTDATE			;;AN000;; Convert it to an ASCII string
 	
-	 push	word [$M_RT+$M_COUNTRY_INFO.$M_DATE_SEPARA]
+	push	word [$M_RT+$M_COUNTRY_INFO.$M_DATE_SEPARA]
 	;push	word [$M_RT+87]			;;AN000;;
 	
 	inc	cx				;;AN000;;
@@ -38211,6 +38241,7 @@ $MIF355:
 
 	; 12/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 13/08/2024 - Retro DOS v5.0 COMMAND.COM
 $M_GET_DATE:
 	;mov	ah,38h ; DOS_GET_COUNTRY	;;AN000;; Call DOS for country dependant info
 	;mov	al,0 				;;AN000;; Get current country info
@@ -38235,6 +38266,7 @@ $MIF357:
 
 	; 12/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 13/08/2024 - Retro DOS v5.0 COMMAND.COM
 $M_YEAR:
 	mov	ax,[si+$M_SUBLIST_STRUC.$M_S_VALUE]
 	;mov	ax,[si+2]			;;AN000;; Get Year
@@ -38256,6 +38288,7 @@ $MIF359:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 	; 12/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 13/08/2024 - Retro DOS v5.0 COMMAND.COM
 $M_CONVERTDATE:
 $M_CONVERTTIME: ; *!*!  ; 12/04/2023
 	pop	word [$M_RT+$M_RES_ADDRS.$M_TEMP_BUF]
@@ -38292,7 +38325,8 @@ $MIF363:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 	; 12/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM							     ;;
+	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 13/08/2024 - Retro DOS v5.0 COMMAND.COM							     ;;
 $M_TIME_REPLACE:
 	pop	bp				;;AN000;; Save return address
 
@@ -38332,7 +38366,9 @@ $MEN367:	; * ; 12/04/2023
 $MIF366:
 $MIF365:					;;AN000;;
 	xor	ax,ax				;;AN000;;
-	xor	dx,dx				;;AN000;;
+	;xor	dx,dx				;;AN000;;
+	; 13/08/2024
+	cwd	; PCDOS 7.1 COMMAND.COM
 	
 	;test	$M_SL.$M_S_FLAG,Time_HHMMSSHH_Cty and $M_SIZE_MASK
 	test	byte [si+$M_SUBLIST_STRUC.$M_S_FLAG],20h
@@ -38408,6 +38444,7 @@ $MIF376:
 
 	; 12/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 13/08/2024 - Retro DOS v5.0 COMMAND.COM
 $M_GET_TIME:
 	;mov	ah,38h ; DOS_GET_COUNTRY	;;AN000;; Call DOS for country dependant info
 	;mov	al,0 				;;AN000;; Get current country info
@@ -38433,7 +38470,7 @@ $MIF384:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 	; 12/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
-
+	; 13/08/2024 - Retro DOS v5.0 COMMAND.COM
 ; 12/04/2023 
 ;; ($M_CONVERTTIME is same with $M_CONVERTDATE)
 %if 0
@@ -38471,6 +38508,9 @@ $MIF386:
 
 	; 15/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:6123h
+
+	; 13/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:5FA1h
 $M_WAIT_FOR_INPUT:
 	push	cx				;;AN000;; Save CX
 	push	dx				;;AN000;; Save DX
@@ -38499,7 +38539,7 @@ $MEN388:
 	mov	cl,al				;;AN000;; Save first character
 	mov	ah,dl				;;AN001;; Get back function
 	int	21h				;;AN000;; Get keyboard input
-	mov	ah,cl				;;AN000;; Retreive first character  AX = xxxx
+	mov	ah,cl				;;AN000;; Retrieve first character AX = xxxx
 	clc					;;AN000;; Clear carry condition
 	jmp	short $MEN392
 $MIF392:
@@ -38645,6 +38685,9 @@ $MIF391:
 
 	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:615Fh
+
+	; 13/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:5FDCh
 InitVar:	; proc	near
 	;push	ax
 	;push	cx
@@ -38656,7 +38699,7 @@ InitVar:	; proc	near
 	;mov	[es:fInHigh],al		;Set to 1 when DH/LH has been called
 	mov	[es:fInHigh],ax ; 16/06/2023
 	mov	[es:SegLoad],ax		;Load Address (seg), used for DH only
-	mov	byte [es:UmbLoad],0FFh ;UNSPECIFIED
+	mov	byte [es:UmbLoad],0FFh	;UNSPECIFIED
 					;Later is the # of the 1st spec'd UMB
 	mov	[es:fm_argc],al		;Start with zero args having been read
 
@@ -38689,6 +38732,7 @@ InitVar:	; proc	near
 ; -----------------------------------------------------------------------------
 
 	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 13/08/2024 - Retro DOS v5.0 COMMAND.COM
 FixMem:
 	;push	ax
 	;push	bx
@@ -38795,6 +38839,7 @@ fmX:
 ; -----------------------------------------------------------------------------
 
 	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 13/08/2024 - Retro DOS v5.0 COMMAND.COM
 fm_link:
 	mov	ax,5802h ; DOS_CHECK_UMBLINK
 	int	21h			; Current link-state is now in al
@@ -38823,7 +38868,9 @@ fm_link:
 ; ERROR:    None
 ; USES:     AX, BX
 ; -----------------------------------------------------------------------------
+
 	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
+	; 13/08/2024 - Retro DOS v5.0 COMMAND.COM
 fm_unlink:
 	xor	bx,bx
 	
@@ -38894,6 +38941,11 @@ fm_unlink:
 
 	; 16/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:6216h
+
+	; 13/08/2024 - Retro DOS v5.0 COMMAND.COM
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:6093h
+; burada kaldým... 13/08/2024
+
 ParseVar:	; proc	near
 	;push	di
 	;push	ds ; *

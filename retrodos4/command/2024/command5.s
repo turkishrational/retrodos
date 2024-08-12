@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 5.0 Command Interpreter) - RETRO DOS v4.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update:  12/08/2024 (v5.0 - 2024 optimization)
+; Last Update:  13/08/2024 (v5.0 - 2024 optimization)
 ;		15/06/2023 (v5.0) ((Previous: 20/10/2018 COMMAND.COM v3.3))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
@@ -34125,7 +34125,7 @@ $MIF128:
 	;jnc	short chk_count		;no error, adjust return count
 	;jmp	short m_cnt_ok		;error, return with carry set;M007
 	; 08/04/2023
-	jc	short m_cnt_ok 
+	jc	short m_cnt_ok
 ;M007
 ; If we are writing to con and there is a Ctrl-Z in the string, the
 ;return count will be much less and if this returns to the caller we can get
@@ -34187,7 +34187,7 @@ $M_ADD_CRLF:
 	;cmp	dh,0FFh
 	cmp	dh,utility_msg_class	;;AN004;; Is it a utility message?
 	je	short $MIF134		;;AN004;; Yes
-	test	dh,80h; $M_NO_CRLF_MASK	;;AN004;; Are we to supress the CR LF?
+	test	dh,80h ; $M_NO_CRLF_MASK ;;AN004;; Are we to supress the CR LF?
 	jnz	short $MIF135
 					;;AN004;; No	
 	push	ds			;;AN004;;
@@ -34295,7 +34295,7 @@ $MLL149:
 	je	short $MIF153
 ;	jne	short $MIF150			;;AN000;; No
 ;	;cmp	$M_SL.$M_S_PAD,$M_COMMA		;;AN000;; Is the pad character a comma?
-;	cmp	byte [si+$M_SUBLIST_STRUC.$M_S_PAD],','	
+;	cmp	byte [si+$M_SUBLIST_STRUC.$M_S_PAD],','
 ;	;cmp	byte [si+0Ah],',' ; $M_COMMA
 ;	;jne	short $MIF151
 ;	; 09/04/2023
@@ -34315,18 +34315,18 @@ $MIF150:
 	; 15/06/2023 (7)
 	; MSDOS 6.22
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:5C78h 
-	cmp	cx,7 ; $M_SECOND_THOU		;;AN000;; Are we at the first thousands mark	
+	cmp	cx,7 ; $M_SECOND_THOU		;;AN000;; Are we at the first thousands mark
 
 ; 28/04/2023
 	je	short $MIF153
 ;	jne	short $MIF154			;;AN000;; No
 ;	;cmp	$M_SL.$M_S_PAD,$M_COMMA		;;AN000;; Is the pad character a comma?
-;	cmp	byte [si+$M_SUBLIST_STRUC.$M_S_PAD],','	
+;	cmp	byte [si+$M_SUBLIST_STRUC.$M_S_PAD],','
 ;	;cmp	byte [si+0Ah],',' ; $M_COMMA
 ;	;jne	short $MIF155			;;AN000;; No
 ;	; 09/04/2023
 ;	jne	short $MEN154
-;						;;AN000;; Yes				
+;						;;AN000;; Yes
 ;	push	word [$M_RT+$M_COUNTRY_INFO.$M_THOU_SEPARA]
 ;	;push	word [$M_RT+83]			;;AN000;; Insert a thousand separator
 ;	inc	cx				;;AN000;;
@@ -34336,17 +34336,17 @@ $MIF150:
 $MIF154:
 	; 15/06/2023 (9)
 	; MSDOS 6.0
-	; MSDOS 5.0 COMMAND.COM - TRANGROUP:54BDh 
+	; MSDOS 5.0 COMMAND.COM - TRANGROUP:54BDh
 	;cmp	cx,9 ; $M_THIRD_THOU		;;AN000;; Are we at the first thousands mark
 	; 15/06/2023 (11)
 	; MSDOS 6.22
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:5C8Ah 
 	cmp	cx,11 ; $M_THIRD_THOU		;;AN000;; Are we at the first thousands mark
-	jne	short $MIF158			;;AN000;; No  
+	jne	short $MIF158			;;AN000;; No
 ; 28/04/2023
 $MIF153:
 	;cmp	$M_SL.$M_S_PAD,$M_COMMA		;;AN000;; Is the pad character a comma?
-	cmp	byte [si+$M_SUBLIST_STRUC.$M_S_PAD],','	
+	cmp	byte [si+$M_SUBLIST_STRUC.$M_S_PAD],','
 	;cmp	byte [si+0Ah],',' ; $M_COMMA
 	jne	short $MIF159			;;AN000;; No
 						;;AN000;; Yes
@@ -34397,8 +34397,10 @@ $MDO165:
 	or	cx,cx				;;AN000;; Are we finished the message yet?
 ;; $IF NZ					;;AN000;; No
 	jz	short $MIF166			;;AN000;; Yes
-	mov	ah,"%"				;;AN000;; Prepare to scan for %
-	mov	al,0				;;AN004;;
+	;mov	ah,"%"				;;AN000;; Prepare to scan for %
+	;mov	al,0				;;AN004;;
+	; 12/08/2024
+	mov	ax,2500h
 ;; $DO						;;AN000;; Scan through string until %
 $MDO167:
 	cmp	byte [es:di],ah			;;AN000;; Is this character NOT a %
@@ -34410,7 +34412,7 @@ $MDO167:
 
 	cmp	al,ah				;;AN000;; Was the character before a %
 ;; $LEAVE NE					;;AN000;; No, GREAT found it
-	jne	short MEN167
+	jne	short $MEN167 ; 12/08/2024
 $MLL168:
 	mov	al,[es:di]			;;AN004;; Yes, (to any of the above)
 	call	$M_IS_IT_DBCS			;;AN004;; Is this character the first part of a DBCS?
@@ -34421,9 +34423,11 @@ $MLL168:
 $MIF169:
 	inc	di				;;AN000;; Next character in string
 	inc	dx				;;AN000;; Size = Size + 1
-	dec	cx				;;AN000;; Decrement total size
+	;dec	cx				;;AN000;; Decrement total size
 ;; $ENDDO Z					;;AN000;; Exit scan if we're at the end of the line
-	jnz	short $MDO167
+	;jnz	short $MDO167
+	; 12/08/2024
+	loop	$MDO167
 $MEN167:
 ;; $ENDIF					;;AN000;;
 $MIF166:
@@ -35274,11 +35278,11 @@ $MIF353:
 
 	inc	cx				;;AN000;;
 
-	 mov	al,[si+$M_SUBLIST_STRUC.$M_S_VALUE+2]
+	mov	al,[si+$M_SUBLIST_STRUC.$M_S_VALUE+2]
 	;mov	al,[si+4]			;;AN000;; Get Month
 	call	$M_CONVERTDATE			;;AN000;; Convert it to an ASCII string
 	
-	 push	word [$M_RT+$M_COUNTRY_INFO.$M_DATE_SEPARA]
+	push	word [$M_RT+$M_COUNTRY_INFO.$M_DATE_SEPARA]
 	;push	word [$M_RT+87]			;;AN000;;
 	
 	inc	cx				;;AN000;;
@@ -35375,7 +35379,8 @@ $MIF363:
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-	; 12/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM							     ;;
+	; 12/04/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
+	; 13/08/2024							     ;;
 $M_TIME_REPLACE:
 	pop	bp				;;AN000;; Save return address
 
@@ -35415,7 +35420,9 @@ $MEN367:	; * ; 12/04/2023
 $MIF366:
 $MIF365:					;;AN000;;
 	xor	ax,ax				;;AN000;;
-	xor	dx,dx				;;AN000;;
+	;xor	dx,dx				;;AN000;;
+	; 13/08/2024
+	cwd	; PCDOS 7.1 COMMAND.COM
 	
 	;test	$M_SL.$M_S_FLAG,Time_HHMMSSHH_Cty and $M_SIZE_MASK
 	test	byte [si+$M_SUBLIST_STRUC.$M_S_FLAG],20h
