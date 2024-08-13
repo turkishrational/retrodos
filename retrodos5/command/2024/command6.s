@@ -33065,7 +33065,7 @@ $P_DBCS00:				;AN000;
 	;mov	si,[cs:$P_DBCSEV_OFF]	;AC034; load EV offset
 	;mov	ds,[cs:$P_DBCSEV_SEG]	;AC034; and segment
 	; 12/08/2024 - PCDOS 7.1 COMMAND.COM
-	lds	di,[cs:$P_DBCSEV_OFF]
+	lds	si,[cs:$P_DBCSEV_OFF]
 $P_DBCS_LOOP:				;AN000;
 	cmp	word [si],0 		;AN000; zero vector ?
 	je	short $P_NON_DBCS	;AN000; then exit

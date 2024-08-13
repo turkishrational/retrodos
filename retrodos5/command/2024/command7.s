@@ -30689,8 +30689,6 @@ getansw_8:	; 12/06/2023
 	; 11/08/2024 - Retro DOS v5.0 COMMAND.COM
 	; PCDOS 7.1 COMMAND.COM - TRANGROUP:4427h
 
-; burada kaldým.. 11/08/2024
-
 get_answer_YNA:
 	mov	byte [cox_dest_file],0	; clear validation flag
 	mov	ax,4300h
@@ -33887,7 +33885,7 @@ $P_SVal00:				;AN000;
 $P_Sval01:				;AN000;
 	call	$P_Value		;AN000; and process value
 	pop	ax			;AN000;
-$P_Check_OVF_ok: ; 11/08/2024 - Retro DOS v5.0 COMMAND.COM	
+$P_Check_OVF_ok: ; 11/08/2024 - Retro DOS v5.0 COMMAND.COM
 	retn				;AN000;
 
 ;***********************************************************************
@@ -35444,7 +35442,7 @@ $P_DBCS00:				;AN000;
 	;mov	si,[cs:$P_DBCSEV_OFF]	;AC034; load EV offset
 	;mov	ds,[cs:$P_DBCSEV_SEG]	;AC034; and segment
 	; 12/08/2024 - PCDOS 7.1 COMMAND.COM
-	lds	di,[cs:$P_DBCSEV_OFF]
+	lds	si,[cs:$P_DBCSEV_OFF]
 $P_DBCS_LOOP:				;AN000;
 	cmp	word [si],0 		;AN000; zero vector ?
 	je	short $P_NON_DBCS	;AN000; then exit
