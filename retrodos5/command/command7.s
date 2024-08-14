@@ -19098,7 +19098,7 @@ dtrRet:		; 08/06/2023
 	; 19/02/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 	; 08/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; 02/08/2024 - Retro DOS v5.0 COMMAND.COM
-
+	; 14/08/2024
 DisplayTrailer:
 	;;;test	Bits,mask bare
 	;;test	word [_Bits],8
@@ -19111,6 +19111,8 @@ DisplayTrailer:
 	call	CRLF2			; start on new line
 	call	UseLine
 	mov	ax,[FileCnt]		; AX = # files found
+	; 14/08/2024
+	xor	dx,dx
 
 ;	DisplayTotals uses this entry point.
 ;
