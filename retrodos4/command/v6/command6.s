@@ -5508,21 +5508,30 @@ Lh_OffUnlink:	; proc	far
 ;Lh_OffUnlink endp
 
 ; M003; End of changes for UMB support
+
 ;public	EndCode
 ; 14/01/2023
 ;EndCode: ; label byte
 ; 06/06/2023
 ; 16/04/2023
-EndCode equ ($-StartCode)+100h
+; 14/08/2024
+;EndCode equ ($-StartCode)+100h
+
 ; 06/06/2023
 ;EndCode equ $-StartCode
+
+; 14/08/2024
+EndCode:
+ENDCODE equ ($-StartCode)+100h	
 
 ;CODERES ends
 ;	end
 
 ; 14/01/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 
-	times	(((EndCode+15)>>4)<<4)-EndCode db 0
+	;times	(((EndCode+15)>>4)<<4)-EndCode db 0
+	; 14/08/2024
+	times	(((ENDCODE+15)>>4)<<4)-ENDCODE db 0
 
 ;align 16
 
@@ -5835,13 +5844,16 @@ init_cntry:
 	;add	ax,cx				;  segment of the TPA.
 
 	mov	ax,cs
-	add	ax,(EndCode+15)>>4
+	; 14/08/2024
+	EndCodeParag equ (ENDCODE+15)>>4
+	;add	ax,(EndCode+15)>>4
+	add	ax,EndCodeParag
 	
-	mov     [Res_Tpa],ax			; Temporarily save the TPA segment
-	and     ax,0F000h
-	add     ax,1000h			; Round up to next 64K boundary
-	jnc     short TpaSet			; Memory wrap if carry set
-	mov     ax,[Res_Tpa]
+	mov	[Res_Tpa],ax			; Temporarily save the TPA segment
+	and	ax,0F000h
+	add	ax,1000h			; Round up to next 64K boundary
+	jnc	short TpaSet			; Memory wrap if carry set
+	mov	ax,[Res_Tpa]
 TpaSet:
 	mov	[LTpa],ax			; Good enough for the moment
 	;mov	ax,[2]
@@ -8399,8 +8411,10 @@ copy_path:
 	mov	si,PathString
         cmp     byte [si],al			; add it?
         je	short init_prompt		; no
-	;mov	cx,PathStrLen+1                 ;
-	mov	cx,6 ; db "PATH=",0
+	;;mov	cx,PathStrLen+1                 ;
+	;mov	cx,6 ; db "PATH=",0
+        ; 14/08/2024
+	mov	cl,6
         rep     movsb                           ;
         cmp     [AllocedEnv],al			; virgin env?
         je	short init_prompt		; no
@@ -8425,8 +8439,11 @@ copy_path:
 	int     21h                             ;
         pop     ds                              ;
 
-	;mov	cx,DefPathStrLen+1              ;
-	mov	cx,9 ; db "C:\MSDOS",0
+	;;mov	cx,DefPathStrLen+1              ;
+	;mov	cx,9 ; db "C:\MSDOS",0
+	; 14/08/2024 ; ch = 0
+	mov	cl,9
+
 	;mov	dx,offset RESGROUP:DefPathString
 	mov	dx,DefPathString	; "C:\MSDOS"
 	mov	si,dx                           ;
@@ -8435,9 +8452,11 @@ copy_path:
 	int     21h                             ;
         jnc	short init_setpath		; DefPathString exists!
 
-	;mov	cx,DefPath2StrLen+1		;
-        mov	cx,7 ; db "C:\DOS",0
-	;mov	dx,offset RESGROUP:DefPath2String
+	;;mov	cx,DefPath2StrLen+1		;
+	;mov	cx,7 ; db "C:\DOS",0
+	; 14/08/2024 ; ch = 0
+	mov	cl,7
+
 	mov	dx,DefPath2String	; "C:\DOS"
         mov     si,dx                           ;
         ;mov	ah,CHDir                        ;
@@ -8463,7 +8482,9 @@ init_setpath:
 init_prompt:
         push    di                              ;
         sub     ax,ax                           ;
-        mov     cx,64                           ; insure any data read in
+	;mov	cx,64				; insure any data read in
+	; 14/08/2024
+	mov	cl,64  ; ch = 0
         rep     stosb                           ; from Current_Dir is zapped
         pop     di                              ;
 
@@ -8514,8 +8535,8 @@ init_ok:
 
 	xor	di,di
 	mov	ax,di
-	;mov	cx,160	
-        mov     cx,ENVIRONSIZ
+	;mov	cx,160
+	mov	cx,ENVIRONSIZ
         rep	stosb
 
 init_pathstr:
