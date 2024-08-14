@@ -5914,16 +5914,24 @@ Lh_OffUnlink:	; proc	far
 ;EndCode: ; label byte
 ; 06/06/2023
 ; 16/04/2023
-EndCode equ ($-StartCode)+100h
+; 14/08/2024
+;EndCode equ ($-StartCode)+100h
+
 ; 06/06/2023
 ;EndCode equ $-StartCode
+
+; 14/08/2024
+EndCode:
+ENDCODE equ ($-StartCode)+100h
 
 ;CODERES ends
 ;	end
 
 ; 14/01/2023 - Retro DOS v4.0 (& v4.1) COMMAND.COM
 
-	times	(((EndCode+15)>>4)<<4)-EndCode db 0
+	;times	(((EndCode+15)>>4)<<4)-EndCode db 0
+	; 14/08/2024
+	times	(((ENDCODE+15)>>4)<<4)-ENDCODE db 0
 
 ;align 16
 
@@ -6248,7 +6256,10 @@ init_cntry:
 	;add	ax,cx				;  segment of the TPA.
 
 	mov	ax,cs
-	add	ax,(EndCode+15)>>4
+	; 14/08/2024
+	EndCodeParag equ (ENDCODE+15)>>4 
+	;add	ax,(EndCode+15)>>4
+	add	ax,EndCodeParag
 	
 	mov	[Res_Tpa],ax			; Temporarily save the TPA segment
 	and	ax,0F000h
@@ -9157,9 +9168,11 @@ copy_path:
 	mov	si,PathString
         cmp     byte [si],al			; add it?
         je	short init_prompt		; no
-	;mov	cx,PathStrLen+1                 ;
-	mov	cx,6 ; db "PATH=",0
-        rep     movsb                           ;
+	;;mov	cx,PathStrLen+1                 ;
+	;mov	cx,6 ; db "PATH=",0
+        ; 14/08/2024
+	mov	cl,6
+	rep     movsb                           ;
         cmp     [AllocedEnv],al			; virgin env?
         je	short init_prompt		; no
 
@@ -9185,8 +9198,10 @@ copy_path:
 
 	;mov	cx,9 ; db "C:\MSDOS",0
 	; 18/07/2024 - PCDOS 7.1 COMMAND.COM
-	;mov	cx,7 ; db "C:\DOS",0
-	mov	cx,DefPathStrLen+1 ; 7
+	;;mov	cx,7 ; db "C:\DOS",0
+	;mov	cx,DefPathStrLen+1 ; 7
+	; 14/08/2024 ; ch = 0
+	mov	cl,DefPathStrLen+1 ; 7
 	
 	;mov	dx,offset RESGROUP:DefPathString
 	mov	dx,DefPathString	; "C:\MSDOS"
@@ -9199,8 +9214,10 @@ copy_path:
 
         ;mov	cx,7 ; db "C:\DOS",0
 	; 18/07/2024 - PCDOS 7.1 COMMAND.COM
-	;mov	cx,9 ; db "C:\MSDOS",0
-	mov	cx,DefPath2StrLen+1 ; 9
+	;;mov	cx,9 ; db "C:\MSDOS",0
+	;mov	cx,DefPath2StrLen+1 ; 9
+	; 14/08/2024 ; ch = 0
+	mov	cl,DefPath2StrLen+1 ; 9
 
 	;mov	dx,offset RESGROUP:DefPath2String
 	mov	dx,DefPath2String	; "C:\DOS"
@@ -9217,7 +9234,7 @@ init_setpath:
         push    es                              ;
         pop     ds                              ; DS:DX -> prev dir
         ;mov	ah,CHDir                        ;
-        mov	ah,3Bh			
+        mov	ah,3Bh
         int     21h                             ;
         pop     ds                              ;
 
@@ -9227,13 +9244,15 @@ init_setpath:
 ; Initialize the default prompt
 
 init_prompt:
-;init_compec:	; 18/07/2024 (PCDOS 7.1 COMMAND.COM - RESGROUP:217Ah)	
+;init_compec:	; 18/07/2024 (PCDOS 7.1 COMMAND.COM - RESGROUP:217Ah)
 
-        push    di                              ;
-        sub     ax,ax                           ;
-        mov     cx,64                           ; insure any data read in
-        rep     stosb                           ; from Current_Dir is zapped
-        pop     di                              ;
+	push	di				;
+	sub	ax,ax 				;
+	;mov	cx,64				; insure any data read in
+	; 14/08/2024
+	mov	cl,64  ; ch = 0
+	rep	stosb				; from Current_Dir is zapped
+	pop	di				;
 
 ; 18/07/2024 - Retro DOS v5.0 COMMAND.COM
 ;%if 0 	; PCDOS 7.1 COMMAND.COM
@@ -9241,11 +9260,11 @@ init_prompt:
 ;	je	short init_comspec		; no
 ;	;mov	si,offset RESGROUP:PrmptString  ; DS:SI -> "PROMPT=$P$G\0"
 ;	mov	si,PrmptString
-;	cmp     [si],al				; add it?
-;	je      short init_comspec		; no
+;	cmp	[si],al				; add it?
+;	je	short init_comspec		; no
 ;	;mov	cx,PrmptStrLen+1                ;
 ;	mov	cl,12  ; db "PROMPT=$P$G",0
-;	rep     movsb                           ;
+;	rep	movsb                           ;
 ;%endif
 
 ; Initialize the Comspec string
@@ -9261,8 +9280,10 @@ init_comspec:
         ;mov	si,offset RESGROUP:ComspString  ; DS:SI -> "COMSPEC=\\COMMAND.COM\0"
         mov	si,ComspString
 	; 23/07/2024
-	mov	cx,ComspStrLen2+1               ;
-        ;mov	cx,21 ; db "COMSPEC=\COMMAND.COM",0
+	;mov	cx,ComspStrLen2+1               ;
+        ;;mov	cx,21 ; db "COMSPEC=\COMMAND.COM",0
+	; 14/08/2024
+	mov	cl,ComspStrLen2+1 ; 21
 	rep     movsb                           ;
 
 init_done:
@@ -9288,8 +9309,8 @@ init_ok:
 
 	xor	di,di
 	mov	ax,di
-	;mov	cx,160	
-        mov     cx,ENVIRONSIZ
+	;mov	cx,160
+	mov	cx,ENVIRONSIZ
         rep	stosb
 
 init_pathstr:
@@ -9325,7 +9346,7 @@ init_done:
         mov     ax,es                           ; return env seg in ax
         ;mov	[EnvirSeg],ax			; save env seg
         ;inc	byte [AllocedEnv]		; remember that *we* alloced it
-%endif	
+%endif
 
 	; 29/01/2023
 alloc_done:
