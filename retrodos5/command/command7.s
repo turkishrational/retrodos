@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (PCDOS 7.1 Command Interpreter) - RETRO DOS v5.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 14/08/2024
+; Last Update: 15/08/2024
 ; ----------------------------------------------------------------------------
 ; Beginning: 18/07/2024 (v7.1) - ((Previous: 19/06/2023 COMMAND.COM v6.22))
 ; ----------------------------------------------------------------------------
@@ -2176,7 +2176,7 @@ EndInit:
 	push	es		; save segments
 	; 18/07/2024 - PCDOS 7.1 COMMAND.COM (ds=cs=RESGROUP)
 	;push	cs
-	;pop	ds		
+	;pop	ds
 	;assume	ds:RESGROUP
 
 ; M004; Save size of transient here before INIT segment is deallocated
@@ -2374,7 +2374,10 @@ adjust_env:
 	; 21/01/2023
 	; MSDOS 5.0 COMMAND.COM - RESGROUP:0398h
 	cmp	byte [AllocedEnv],0 ; flag - old environment segment
-	jne	short no_free
+	; !!!! ; 15/08/2024
+	;jne	short no_free	; MSDOS 5.0 COMMAND.COM - RESGROUP:039Dh
+	; PCDOS 7.1 COMMAND.COM - RESGROUP:04C0h
+	je	short no_free	; MSDOS 6.22 COMMAND.COM - RESGROUP:0467h
 
 	mov	es,bp
 	mov	ah,49h
@@ -2467,7 +2470,7 @@ no_free:
 
 	;mov	InitFlag,FALSE	; indicate INIT is done
 	; 09/01/2023
-	mov	byte [InitFlag],0	
+	mov	byte [InitFlag],0
 
 	pop	es
 	pop	ds
@@ -2480,7 +2483,7 @@ no_free:
 nomem_err:
 
 ;We call the error routine which will never return. It will either exit
-;with an error ( if not the first COMMAND ) or just hang after an error 
+;with an error ( if not the first COMMAND ) or just hang after an error
 ;message ( if first COMMAND )
 
 	jmp	Alloc_error
@@ -8807,7 +8810,7 @@ load_low:
 	;mov	bx,ExtMsgEnd
 
 ; 18/07/2024 - Retro DOS v5.0 COMMAND.COM
-%if 0	 ; PCDOS 7.1 COMMAND.COM
+%if 0	; PCDOS 7.1 COMMAND.COM
 
 	; 29/01/2023
 	cmp	di,ExtMsgEnd
@@ -9541,7 +9544,7 @@ cXMMexit:
 	; 19/06/2023
 	;db "19/6/2023 ETAN"
 	; 31/07/2024
-	db "14/8/2024 ETAN" ; 14/08/2024
+	db "15/8/2024 ETAN" ; 15/08/2024
 	db 0
 
 ; 30/01/2023
@@ -9597,7 +9600,7 @@ HEADERPTR:
 	; PCDOS 7.1 COMMAND.COM - RESGROUP:2200h 
 ICONDEV:
         db '/DEV/'
-	db 'CON',0,0,0,0,0,0	; Room for 8 char device	
+	db 'CON',0,0,0,0,0,0	; Room for 8 char device
 BADCSPFL:
 	db 0
 COMSPECT:
@@ -10158,7 +10161,7 @@ HelpMsgs:
 
 Reloc_Table:	; 23/07/2024 ; PCDOS 7.1 COMMAND.COM CODERES addresses
 	dw MsgInt2fHandler - RCODE_START  ; 7B2h (RESGROUP:7B2h+X) *
-	dw Int_2e - RCODE_START		  ; 170h (RESGROUP:170h+X) *	
+	dw Int_2e - RCODE_START		  ; 170h (RESGROUP:170h+X) *
 	dw ContC - RCODE_START		  ; 02Eh (RESGROUP:02Eh+X) *
 	dw DSKERR - RCODE_START		  ; 495h (RESGROUP:495h+X) *
 	dw Exec_Ret - RCODE_START	  ; 022h (RESGROUP:022h+X) *
@@ -10213,7 +10216,7 @@ coderes_end equ $
 ;db	"Retro DOS v3.0 COMMAND.COM by Erdogan Tan [2018]"
 	; 30/01/2023
 db	0
-;db	"Retro DOS v4.0 COMMAND.COM by Erdogan Tan [2023]"		
+;db	"Retro DOS v4.0 COMMAND.COM by Erdogan Tan [2023]"
 	; 07/06/2023
 ;db	"Retro DOS v4.2 COMMAND.COM by Erdogan Tan [2023]"
 	; 21/07/2024
@@ -20028,7 +20031,7 @@ cr_exit:
 
 	retn
 
-; --------------------------------------------------------------------------- 
+; ---------------------------------------------------------------------------
 
 ;***	Div32 - 32 bit divide for computing ratios
 ;
@@ -20145,7 +20148,7 @@ gdf_testEOF:
 	cmp	ax,0FF0h		; valid entry?
 	;jb	short gdf_success
 	cmc	; cf = 1 <--> cf = 0
-	jnc	short gdf_ret	
+	jnc	short gdf_ret
 
 	or	ah,0F0h			; caller expects 16 bit special values
 	;jmp	short gdf_success
@@ -20337,7 +20340,7 @@ ReadCVFile:
 
 	cmp	ax,cx			; read it all?
 	;je	short rcf_ret 		; yes, CY clear
-	; 08/06/2023	
+	; 08/06/2023
 	; ax < cx
 	;stc				; end-of-file?
 rcf_ret:
@@ -20441,11 +20444,11 @@ erase_scan:
 	cmp	byte [si+1],':'	;AC000; drive specified?
 	jne	short erase_drive_ok
 				;AC000; no - continue
-	;cmp	byte [si+2],END_OF_LINE_OUT	
+	;cmp	byte [si+2],END_OF_LINE_OUT
 	cmp	byte [si+2],0	;AC000; was only drive entered?
 	jne	short erase_drive_ok
 				;AC000; no - continue
-	mov	ax,ERROR_FILE_NOT_FOUND ; 2 
+	mov	ax,ERROR_FILE_NOT_FOUND ; 2
 				;AN022; get message number in control block
 	jmp	short extend_setup
 				;AC000; exit
@@ -36117,7 +36120,7 @@ SYSLOADMSG:
 	; --------------------------
 	; MSDOS 5.0 COMMAND.COM - TRANGROUP5192h
 
-	;$M_BUILD_PTRS %$M_NUM_CLS     		;;AN000;; Build all utility classes	
+	;$M_BUILD_PTRS %$M_NUM_CLS     		;;AN000;; Build all utility classes
 	call    $M_CLS_3			; Get addressibility to class F
 	mov	[$M_RT+$M_RES_ADDRS.$M_CLASS_ADDRS],di
 	;mov	[$M_RT+44],di
@@ -36231,7 +36234,7 @@ SYSGETMSG:
 	;pop	ds				;;AN000;;
 	jmp	short $MEN32
 $MIF32:
-	push	cs				;;AN000;;			
+	push	cs				;;AN000;;
 	;pop	ds				;;AN000;;
 $MEN32:
 	; 07/04/2023
@@ -43551,7 +43554,7 @@ screen_f_1:
 	;db	10			;AN000;maximum width
 	;db	10			;AN000;minimum width
 screen_f_2:
-	db	14 ; MSDOS 6.22 COMMAND.COM		
+	db	14 ; MSDOS 6.22 COMMAND.COM
 	db	14
 	
 	db	blank ; 20h		;AN000;pad character
@@ -43624,7 +43627,7 @@ dmes_ptr:
 
 	; 17/06/2023 - Retro DOS v4.2 (MSDOS 6.22) COMMAND.COM
 space_4_ptr :
-	dw	1105 
+	dw	1105
 	db	no_subst ; 0
 
 ;  destructive back space
@@ -43753,7 +43756,7 @@ screen_f_4:
 	;db	10			; minimum width
 screen_f_5:
 	db	14 ; MSDOS 6.22 COMMAND.COM
-	db	14	
+	db	14
 	db	blank ; 20h		; pad character
 %else
 	; 03/08/2024 - Retro DOS v5.0 COMMAND.COM
@@ -43874,17 +43877,17 @@ dosrev_ptr:
 ;  "DOS is in ROM"
 DosRom_Ptr:
 	dw	1091
-	db	no_subst ; 0		
+	db	no_subst ; 0
 
 ;  "DOS is in HMA"
 DosHma_Ptr:
 	dw	1092
-	db	no_subst ; 0		
+	db	no_subst ; 0
 
 ;  "DOS is in low memory"
 DosLow_Ptr:
 	dw	1093
-	db	no_subst ; 0		
+	db	no_subst ; 0
 
 ;  "Cannot Loadhigh batch file" ;M016
 NoExecBat_Ptr:
@@ -43915,17 +43918,17 @@ NoCntry_Ptr:
 ;  "LoadHigh: Invalid argument"
 LhInvArg_Ptr:
 	dw	1097
-	db	no_subst ; 0		
+	db	no_subst ; 0
 
 ;  "Required parameter missing"
 ReqParmMiss:
 	dw	1098
-	db	no_subst ; 0		
+	db	no_subst ; 0
 
 ;  "Unrecognized switch"
 LhInvSwt_Ptr:
 	dw	1099
-	db	no_subst ; 0		
+	db	no_subst ; 0
 
 ;  "A bad UMB number has been specified"
 LhBadUMB_Ptr:
@@ -44798,7 +44801,7 @@ Dir_Sw_Ptrs:			; list of ptrs to switch synonyms
 %if 0
 	; 18/06/2023
 	; MSDOS 6.0 COMMAND.COM ; *
-	dw	DIR_SW_NEG_C	; * 
+	dw	DIR_SW_NEG_C	; *
 Dir_Sw_Ptrs_2:
 	dw	DIR_SW_C	; *
 	; MSDOS 5.0 COMMAND.COM	
@@ -44947,7 +44950,7 @@ sCVFRoot:
 	; 06/08/2024
 	; PCDOS 7.1 COMMAND.COM - TRANGROUP:9C3Eh
 REXX_EXE:
-	db 'REXX.EXE',0		
+	db 'REXX.EXE',0
 %endif
 
 ; ----------------------------------------------------------------------------
@@ -45068,7 +45071,7 @@ $P_err_flag:
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:9F2Fh
 
 	; 13/08/2024
-	; PCDOS 7.1 COMMAND.COM - TRANGROUP:9D23h	
+	; PCDOS 7.1 COMMAND.COM - TRANGROUP:9D23h
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -45185,30 +45188,30 @@ USERDIR1: times	DIRSTRLEN+3  db 0 ; 70  ; Storage for users current directory
 EXECPATH: times COMBUFLEN+3  db 0 ; 131 ; Path for external command
 RE_INSTR: times DIRSTRLEN+16 db 0 ; 83  ; path for input to redirection
 
-; Variables passed up from resident	; in the Resident portion: (initial values)	
+; Variables passed up from resident	; in the Resident portion: (initial values)
 HEADCALL:
 	dw 0			; TRANVARS  (dw THEADFIX)
-RESSEG:	dw 0			; MYSEG     (dw 0) 	 	
-TPA:	dw 0			; LTPA	    (dw 0)	
+RESSEG:	dw 0			; MYSEG     (dw 0)
+TPA:	dw 0			; LTPA	    (dw 0)
 SWITCHAR:
 	db 0			; RSWITCHAR (db '-')
 DIRCHAR:
 	db 0			; RDIRCHAR  (db '/')
 EXEC_ADDR:
-	dd 0			; 	    (dw EXT_EXEC)	 
-				; MYSEG1    (dw 0)	
+	dd 0			; 	    (dw EXT_EXEC)
+				; MYSEG1    (dw 0)
 RCH_ADDR:
-	dd 0			;	    (dw TREMCHECK) 	
+	dd 0			;	    (dw TREMCHECK)
 				; MYSEG2    (dw 0)
 
 ; 13/08/2024 - Retro DOS v5.0 COMMAND.COM
 ; PCDOS 7.1 COMMAND.COM
 %if 0		
-	dw 0			; RESTEST   (dw 0)	
+	dw 0			; RESTEST   (dw 0)
 %endif
 
 TRAN_TPA:
-	dw 0			; RES_TPA   (dw 0)	
+	dw 0			; RES_TPA   (dw 0)
 
 CHKDRV:	db 0
 IFNOTFLAG:
@@ -45220,13 +45223,13 @@ Concat:	db 0
 ; 11/08/2024 - PCDOS 7.1 COMMAND.COM
 %if 1
 notzerofile:
-	db 0			; (if 1, destination file size is not zero) 			
+	db 0			; (if 1, destination file size is not zero)
 %endif
 PARM2:
 ArgC:	db 0
 COMSW:	dw 0			; Switches between command and 1st arg
 ARG1S:	dw 0			; Switches between 1st and 2nd arg
-ARG2S:				; Switches after 2nd arg		
+ARG2S:				; Switches after 2nd arg
 DestSwitch:
 	dw 0
 ARGTS:
@@ -45301,15 +45304,15 @@ FileSizTotal:
 ccluUsed:
 	dw 0			; count of DOS clusters used
 ccluUsedDir:
-	dw 0			
+	dw 0
 ccluUsedTotal:
-	dw 0			
+	dw 0
 csecUsed:
 	dd 0			; count of comp sectors used
 csecUsedDir:
-	dd 0			
+	dd 0
 csecUsedTotal:
-	dd 0			
+	dd 0
 
 ; Note:  keep FileCntTotal through csecUsedTotal together!
 
@@ -45352,7 +45355,7 @@ CHARBUF:
 DESTFCB2:
 IDLEN:	db 0
 ID:	times	8  db 0
-COM:	times	3  db 0 
+COM:	times	3  db 0
 DEST:	times	37 db 0
 DESTNAME:
 	times	11 db 0
@@ -45367,7 +45370,7 @@ DIRBUF:	times DIRSTRLEN+3 db 0 ; 70
 DIRBUF_ATTRIB1 equ DIRBUF+19  ; byte	; INT 21h AH=11h (8+DIR_ENTRY struc)
 DIRBUF_ATTRIB2 equ DIRBUF+21  ; byte	; INT 21h AH=4Eh (FIND_BUF struc)
 DIRBUF_FTIME   equ DIRBUF+30  ; word
-DIRBUF_FDATE   equ DIRBUF+32  ; word	
+DIRBUF_FDATE   equ DIRBUF+32  ; word
 DIRBUF_FSIZ_L  equ DIRBUF+36  ; word
 DIRBUF_FSIZ_H  equ DIRBUF+38  ; word
 
@@ -45376,7 +45379,7 @@ DIRBUF_FSIZ_H  equ DIRBUF+38  ; word
 	; 18/06/2023 - Retro DOS v4.2 COMMAND.COM
 	; MSDOS 6.22 COMMAND.COM - TRANGROUP:0A584h
 SDIRBUF:
-	times 12 db 0	
+	times 12 db 0
 _Bits:
 	dw 0
 PathCnt:
@@ -45401,15 +45404,15 @@ system_cpage:
 ; 03/08/2024 - PCDOS 7.1 COMMAND.COM
 %if 0
 Arg_Buf:
-	times 128 db 0	
+	times 128 db 0
 %endif
 
 File_Size_Low:
-	dw 0	
+	dw 0
 File_Size_High:
-	dw 0		
+	dw 0
 string_ptr_2:
-	dw 0	
+	dw 0
 Copy_num:
 	dw 0
 cpyflag:
@@ -45536,7 +45539,7 @@ ELPOS:	db 0
 ; MSDOS 5.0
 SKPDEL:
 	; 18/06/2023
-	db 0	; MSDOS 6.22 (& MSDOS 5.0)  	
+	db 0	; MSDOS 6.22 (& MSDOS 5.0)
 SOURCE:	times 11 db 0
 
 ext_entered:
@@ -45583,7 +45586,7 @@ subst_buffer:
 	times parm_block_size*2 db 0 ; times 22 db 0 
 				;AN061;
 ; 15/04/2023
-KPARSE:	db 0	; 3/3/KK	
+KPARSE:	db 0	; 3/3/KK
 
 ; Data declarations taken out of parse.asm
 
@@ -45616,7 +45619,7 @@ ARGV0_ARGSW_WORD:
 ARGV0_OCOMPTR:
 	dw 0
 ARGV1_ARGPOINTER:
-	dw 0	; ARGV[1]	
+	dw 0	; ARGV[1]
 	times 5 db 0
 ARGV1_ARGSW_WORD:
 	dw 0
@@ -45740,7 +45743,7 @@ DECIMAL_SEP:
 DATE_SEP:
 	db 0,0			; Date separator 2 bytes
 TIME_SEP:
-	db 0,0			; Time separator 2 bytes	
+	db 0,0			; Time separator 2 bytes
 BIT_FIELD:
 	db 0			; Bit values
 				;   Bit 0 = 0 if currency symbol first
@@ -45756,7 +45759,7 @@ MAP_CALL:
 				; THIS IS TWO WORDS SO IT CAN BE INITIALIZED
 				;  in pieces.
 DATA_SEP:
-	db 0,0			; Data list separator character		
+	db 0,0			; Data list separator character
 
 	times 8 db 0
 
@@ -45780,7 +45783,7 @@ CountryPtr:
 	dd 0
 
 OldCtrlCHandler:
-	dd 0			; previous int 23 vector		
+	dd 0			; previous int 23 vector
 
 BATLEN equ 32
 
