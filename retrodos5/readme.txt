@@ -60,6 +60,7 @@ Retro DOS v5 PCDOS.SYS is almost a PCDOS 7.1 kernel
 
 Retro DOS v1 to v5 web pages (and more source):
 https://www.singlix.com/trdos/retrodos/index.html
+https://www.singlix.com/trdos/retrodos.html
 
 QEMU demo link: 
 https://www.singlix.com/trdos/retrodos/retrodos5/qemu/
