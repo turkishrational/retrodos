@@ -197,12 +197,14 @@ TRICK:	A bootable MSDOS 5.0 (or 6.22) disk(ette) can be used to run Retro DOS v4
 	proper to keep these/both directory entries (in order) as unchanged.
 
 ****
+
 Details and relevant files are existing at:
-https://www.singlix.com/trdos/index.html
-https://www.singlix.com/trdos/specs.html
-https://www.singlix.com/trdos/retrodos/index.html
-https://www.singlix.com/trdos/retrodos4.html
-https://www.singlix.com/trdos/retrodos.html
+        https://www.singlix.com/trdos/index.html
+        https://www.singlix.com/trdos/specs.html
+        https://www.singlix.com/trdos/retrodos/index.html
+        https://www.singlix.com/trdos/retrodos4.html
+        https://www.singlix.com/trdos/retrodos.html
+
 ***
 
 The NEXT VERSION:
