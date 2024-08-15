@@ -200,6 +200,7 @@ Details and relevant files are existing at:
 	http://www.singlix.com/trdos/index.html
 	http://www.singlix.com/trdos/specs.html
 	http://www.singlix.com/trdos/retrodos/index.html
+        http://www.singlix.com/trdos/retrodos.html
 
 The NEXT VERSION:
 
