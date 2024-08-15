@@ -1,4 +1,5 @@
-Retro DOS v5.0 (Modified PCDOS 7.1) COMMAND.COM Source Code (Not ready yet...) 
-(100% completed but currently being verified)
+Retro DOS v5.0 (Modified PCDOS 7.1) COMMAND.COM Source Code (in NASM syntax)
+(and disassembled source code of original PCDOS 7.1 COMMAND.COM)
+Retro DOS v5.0 COMMAND.COM (reports itself as PCDOS 7.10 COMMAND.COM) is as optimized PCDOS 7.1 COMMAND.COM
 
-14/08/2024 - Erdogan Tan
+15/08/2024 - Erdogan Tan
