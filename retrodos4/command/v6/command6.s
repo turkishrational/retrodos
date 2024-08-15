@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (MSDOS 6.22 Command Interpreter) - RETRO DOS v4.2 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update:  14/08/2024 (v6.22 - 2024 optimization)
+; Last Update:  15/08/2024 (v6.22 - 2024 optimization & bugfix)
 ;		19/06/2023 (v6.22) ((Previous: 05/05/2023 COMMAND.COM v5.0))
 ; ----------------------------------------------------------------------------
 ; Beginning: 21/04/2018 (COMMAND.COM v2.11) - 11/09/2018 (COMMAND.COM v3.30)
@@ -2318,7 +2318,10 @@ adjust_env:
 	; 21/01/2023
 	; MSDOS 5.0 COMMAND.COM - RESGROUP:0398h
 	cmp	byte [AllocedEnv],0 ; flag - old environment segment
-	jne	short no_free
+	; !!!! ; 15/08/2024 (!BugFix!)
+	;jne	short no_free	; MSDOS 5.0 COMMAND.COM - RESGROUP:039Dh
+	; MSDOS 6.22 COMMAND.COM - RESGROUP:0467h
+	je	short no_free	; PCDOS 7.1 COMMAND.COM - RESGROUP:04C0h
 
 	mov	es,bp
 	mov	ah,49h
@@ -8767,7 +8770,7 @@ cXMMexit:
 	; 19/06/2023
 	;db "19/6/2023 ETAN"
 	; 31/07/2024
-	db "14/8/2024 ETAN" ; 14/08/2024
+	db "15/8/2024 ETAN" ; 15/08/2024
 	db 0
 
 ; 30/01/2023
