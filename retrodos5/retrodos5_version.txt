@@ -6,8 +6,8 @@ Retro DOS v5.0 Kernel (PCDOS.SYS) is based on disassembled source code
 of IBM PCDOS 7.1 IBMBIO.COM and IBMDOS.COM.
 
 (But Retro DOS v5 kernel source code reference/construction is based on
-on Retro DOS v4.2 kernel source code which is derived from 
-original MSDOS 6.0 source code and disassembled MSDOS 6.22 kernel code.)
+Retro DOS v4.2 kernel source code which is derived from original
+MSDOS 6.0 source code and disassembled MSDOS 6.22 kernel code.)
 
 Retro DOS v5 boot sector(s) is different (original code) 
 than IBM PCDOS 7.1 boot sector(s). It loads combined 'PCDOS.SYS' kernel
