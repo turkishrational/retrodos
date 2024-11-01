@@ -19,7 +19,7 @@ NOTE:
                                                       
                                          alternative: MSDOS/PCDOS bootsector (loads MSLOAD sectors)
                                                       same with MSDOS and PCDOS       
-                                         source code: iosys6.s, mddos6.s, command6.s (for Retro DOS v4.2)
+                                         source code: iosys6.s, msdos6.s, command6.s (for Retro DOS v4.2)
                                                       ibmbio7.s, ibmdos7.s, command7.s (for Retro DOS 5.0)  
                                                       
                              MSDOS and PCDOS assembler: MASM (segment group linked together)
