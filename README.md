@@ -26,7 +26,7 @@ NOTE:
                                 construction: boot sector (loads MSLOAD sectors)
                                               IO.SYS (MSLOAD+BIOS+SYSINIT), MSDOS.SYS, COMMAND.COM 
                                               IBMBIO.COM (MSLOAD+BIOS+SYSINIT), IBMDOS.COM, COMMAND.COM
-Retro DOS v1.0 == MSDOS 1.25
+Retro DOS v1.0 == MSDOS 1.25  
 Retro DOS v2.0 == MSDOS 2.11  
 Retro DOS v3.0 == MSDOS 3.3 -not compatible with Windows 3.1-                                             
 Retro DOS v3.1 == compact (a bit more utilizied than Retro DOS v3.0) -not compatible with Windows 3.1-                                           
