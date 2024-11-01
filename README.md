@@ -15,7 +15,7 @@ NOTE:
                                                       MSDOS.SYS (IO.SYS+MSDOS.SYS), COMMAND.COM
                                                       PCDOS.SYS (IBMBIO.COM+IBMDOS.COM), COMMAND.COM -Retro DOS v5 only-
                                          source code: retrodos5.s (includes ibmdos7.bin), ibmdos7.s, command7.s 
-                                                      retrodos42.s (includes msdos6.bin), msdos6.s, command.6 s
+                                                      retrodos42.s (includes msdos6.bin), msdos6.s, command6.s
                                                       
                                          alternative: MSDOS/PCDOS bootsector (loads MSLOAD sectors)
                                                       same with MSDOS and PCDOS       
