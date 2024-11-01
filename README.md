@@ -6,7 +6,7 @@ link: https://www.singlix.com/trdos/retrodos/index.html
 www.youtube.com/@erdogantan
 
 NOTE:
-== means aproximately equal (quivalent) or "BASED ON MSDOS .." (but contains more optimized code than the original)
+== means aproximately equal (equivalent) or "BASED ON MSDOS .." (but contains more optimized code than the original)
 
 
   Retro DOS kernel and Command COM source code assembler: NASM ("Multi Section Binary File format" method)
