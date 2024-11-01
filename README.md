@@ -9,6 +9,7 @@ NOTE:
 == means aproximately equal (quivalent) or "BASED ON MSDOS .." (but contains more optimized code than the original)
 
 Retro DOS kernel and Command COM source code assembler: NASM ("Multi Section Binary File format" method)
+
                                         construction: Retro DOS bootsector (loads combined kernel)
                                                       MSDOS.SYS (IO.SYS+MSDOS.SYS), COMMAND.COM
                                                       PCDOS.SYS (IBMBIO.COM+IBMDOS.COM), COMMAND.COM -Retro DOS v5 only-
@@ -36,7 +37,8 @@ Retro DOS v4.2 == MSDOS 6.22 (without DBLSPACE feature) -Multi Configuration Men
 Retro DOS v5.0 == IBM PCDOS 7.1 (with bugfixes) -FAT32 file system support-
 
 Retro DOS v3.3 to 5.0 are full compatible with Windows 3.1
-Retro DOS v5.0 has all features of PCDOS 7.1. (also it contains 10 bugfixes, 9 IBM, 1 Microsoft code bugfix)
+Retro DOS v5.0 has all features of PCDOS 7.1.
+       (also it contains 10 bugfixes, 9 IBM, 1 Microsoft code bugfix)
                  (If a programs runs with PCDOS 7.1 it also will run on Retro DOS v5.0)
                  ((Only exception: Program must not stand on original IBMDOS.COM and IBMBIO.COM order and layout.))
 
