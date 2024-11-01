@@ -28,12 +28,12 @@ Retro DOS kernel and command.com source code assembler: NASM ("Multi Section Bin
 Retro DOS v1.0 == MSDOS 1.25  
 Retro DOS v2.0 == MSDOS 2.11  
 Retro DOS v3.0 == MSDOS 3.3 -not compatible with Windows 3.1-                                             
-Retro DOS v3.1 == compact (a bit more utilizied than Retro DOS v3.0) -not compatible with Windows 3.1-                                           
+Retro DOS v3.1 == compact (a bit more improved than Retro DOS v3.0) -not compatible with Windows 3.1-                                           
 Retro DOS v3.2 == MSDOS 3.3 + 32bit disk sectors support (like as in MSDOS 5.0) -not compatible with Windows 3.1-  
 Retro DOS v3.3 == MSDOS 3.3 -Windows 3.1 compatible- (but this kernel does not support 32bit disk sectors)
 
 Retro DOS v4.0 == MSDOS 5.0  
-Retro DOS v4.1 == compact (a bit more utilizied than Retro DOS v4.0)  
+Retro DOS v4.1 == compact (a bit more improved than Retro DOS v4.0)  
 Retro DOS v4.2 == MSDOS 6.22 (without DBLSPACE feature) -Multi Configuration Menu Support-
 
 Retro DOS v5.0 == IBM PCDOS 7.1 (with bugfixes) -FAT32 file system support-
