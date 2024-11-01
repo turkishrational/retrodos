@@ -37,6 +37,7 @@ Retro DOS v4.0 == MSDOS 5.0
 Retro DOS v4.1 == compact (a bit more utilizied than Retro DOS v4.0)
 
 Retro DOS v4.2 == MSDOS 6.22 (without DBLSPACE feature) -Multi Configuration Menu Support-
+
 Retro DOS v5.0 == IBM PCDOS 7.1 (with bugfixes) -FAT32 file system support-
 
 Retro DOS v3.3 to 5.0 are full compatible with Windows 3.1
