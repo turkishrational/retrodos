@@ -8,8 +8,8 @@ www.youtube.com/@erdogantan
 NOTE:
 == means aproximately equal (quivalent) or "BASED ON MSDOS .." (but contains more optimized code than the original)
 
-Retro DOS kernel and Command COM source code assembler: NASM ("Multi Section Binary File format" method)
 
+Retro DOS kernel and Command COM source code assembler: NASM ("Multi Section Binary File format" method)
                                         construction: Retro DOS bootsector (loads combined kernel)
                                                       MSDOS.SYS (IO.SYS+MSDOS.SYS), COMMAND.COM
                                                       PCDOS.SYS (IBMBIO.COM+IBMDOS.COM), COMMAND.COM -Retro DOS v5 only-
