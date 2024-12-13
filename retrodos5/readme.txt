@@ -23,7 +23,7 @@ It is as an update of PCDOS 7.1 kernel with important bugfixes.
 (NOTE: There are also -Retro DOS v5- IBMBIO.COM and IBMDOS.COM kernel files
 usable with IBM PCDOS boot sector.)
 
-((Original PCDOS 7.1 COMMAND.COM is needed for now.))
+((Original PCDOS 7.1 COMMAND.COM is needed for now.)) -not needed since 15/08/2024-
 (((I will write/develop Retro DOS v5 COMMAND.COM later, in 2024.)))
 
 ****
