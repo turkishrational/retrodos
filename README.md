@@ -43,7 +43,7 @@ Retro DOS v3.3 to 5.0 are full compatible with Windows 3.1.
 Retro DOS v5.0 has all features of PCDOS 7.1.
        (also it contains 10 bugfixes, 9 IBM, 1 Microsoft code bugfix)
        
-                 (If a programs runs on PCDOS 7.1, it also will run on Retro DOS v5.0)
+                 (If a program runs on PCDOS 7.1, it also will run on Retro DOS v5.0)
        
                  ((Only exception: Program must not stand on original IBMDOS.COM and IBMBIO.COM order and layout.))
 
