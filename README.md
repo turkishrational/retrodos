@@ -45,6 +45,6 @@ Retro DOS v5.0 has all features of PCDOS 7.1.
        
                  (If a program runs on PCDOS 7.1, it also will run on Retro DOS v5.0)
        
-                 ((Only exception: Program must not stand on original IBMDOS.COM and IBMBIO.COM order and layout.))
+                 ((Only exception: Program must not stand on original IBMBIO.COM and IBMDOS.COM order and layout.))
 
 Erdogan Tan - Istanbul - 2024
