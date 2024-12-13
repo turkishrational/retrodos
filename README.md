@@ -29,7 +29,7 @@ Retro DOS v1.0 == MSDOS 1.25
 Retro DOS v2.0 == MSDOS 2.11  
 Retro DOS v3.0 == MSDOS 3.3 -not compatible with Windows 3.1-                                             
 Retro DOS v3.1 == compact (a bit more improved than Retro DOS v3.0) -not compatible with Windows 3.1-                                           
-Retro DOS v3.2 == MSDOS 3.3 + 32bit disk sectors support (like as in MSDOS 5.0) -not compatible with Windows 3.1-  
+Retro DOS v3.2 == MSDOS 3.3 + 32bit disk sectors support (like as in MSDOS 5.0) -not Windows 3.1 compatible-  
 Retro DOS v3.3 == MSDOS 3.3 -Windows 3.1 compatible- (but this kernel does not support 32bit disk sectors)
 
 Retro DOS v4.0 == MSDOS 5.0  
