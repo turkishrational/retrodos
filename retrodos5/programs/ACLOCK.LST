@@ -1,0 +1,558 @@
+     1                                  ; analogic clock 8086/87 (using 13h graphic mode)
+     2                                  ; written by Leonardo Ono (ono.leo@gmail.com)
+     3                                  ; 26/09/2017
+     4                                  ; target os: DOS (.COM file extension)
+     5                                  ; use: nasm aclock.asm -o aclock.com -f bin
+     6                                  
+     7                                  		bits 16
+     8                                  		org 100h
+     9                                  
+    10                                  start:
+    11 00000000 E8B901                  		call start_graphic_mode
+    12 00000003 9BDBE3                  		finit
+    13 00000006 E86F01                  		call draw_background
+    14                                  	.main_loop:
+    15 00000009 E88400                  		call update_time
+    16 0000000C E84100                  		call update_angles
+    17                                  		
+    18 0000000F B90F00                  		mov cx, 15
+    19 00000012 E8A900                  		call draw_pointers
+    20                                  		
+    21 00000015 B401                    		mov ah, 1
+    22 00000017 CD16                    		int 16h ; if key pressed, exit
+    23 00000019 0F857D01                		jnz exit_process
+    24                                  
+    25 0000001D E80800                  		call sleep_half_s ; wait 0.5 seconds
+    26                                  
+    27 00000020 B90000                  		mov cx, 0
+    28 00000023 E89800                  		call draw_pointers ; clear previous pointers
+    29                                  		
+    30 00000026 EBE1                    		jmp .main_loop
+    31                                  
+    32                                  sleep_half_s:
+    33 00000028 B90700                  		mov cx, 07h
+    34 0000002B BA20A1                  		mov dx, 0a120h
+    35 0000002E B486                    		mov ah, 86h
+    36 00000030 CD15                    		int 15h
+    37 00000032 C3                      		ret
+    38                                  
+    39                                  ; in:
+    40                                  ;	di = angle
+    41                                  ;	si = size
+    42                                  update_pointer:
+    43 00000033 DD05                    		fld qword [di]
+    44 00000035 D9FF                    		fcos
+    45 00000037 DD04                    		fld qword [si]
+    46 00000039 D8C9                    		fmul st1
+    47 0000003B DF1E[E403]              		fistp word [data.x]
+    48 0000003F DDC0                    		ffree st0
+    49                                  	
+    50 00000041 DD05                    		fld qword [di]
+    51 00000043 D9FE                    		fsin
+    52 00000045 DD04                    		fld qword [si]
+    53 00000047 D8C9                    		fmul st1
+    54 00000049 DF1E[E603]              		fistp word [data.y]
+    55 0000004D DDC0                    		ffree st0
+    56                                  
+    57 0000004F C3                      		ret
+    58                                  
+    59                                  update_angles:
+    60 00000050 BB[DC03]                		mov bx, data.v720
+    61 00000053 BE[8603]                		mov si, data.hours
+    62 00000056 BF[7E03]                		mov di, data.angle_h
+    63 00000059 E81900                  		call update_angle
+    64                                  
+    65 0000005C BB[D403]                		mov bx, data.v60
+    66 0000005F BE[8803]                		mov si, data.minutes
+    67 00000062 BF[7603]                		mov di, data.angle_m
+    68 00000065 E80D00                  		call update_angle
+    69                                  
+    70 00000068 BB[D403]                		mov bx, data.v60
+    71 0000006B BE[8A03]                		mov si, data.seconds
+    72 0000006E BF[6E03]                		mov di, data.angle_s
+    73 00000071 E80100                  		call update_angle
+    74                                  
+    75 00000074 C3                      		ret;
+    76                                  
+    77                                  ; in:
+    78                                  ;	bx = v720 or v60
+    79                                  ;	si = hours, minutes or seconds
+    80                                  ;	di = angle_h, angle_m or angle_s
+    81                                  update_angle:
+    82 00000075 DD06[C403]              		fld qword [data.v90deg]
+    83 00000079 DD06[AC03]              		fld qword [data.pi2]
+    84 0000007D DD07                    		fld qword [bx]
+    85 0000007F DF04                    		fild word [si]
+    86 00000081 D8F1                    		fdiv st1
+    87 00000083 D8CA                    		fmul st2
+    88 00000085 D8E3                    		fsub st3
+    89 00000087 DD1D                    		fstp qword [di]
+    90 00000089 DDC0                    		ffree st0
+    91 0000008B DDC1                    		ffree st1
+    92 0000008D DDC2                    		ffree st2
+    93 0000008F C3                      		ret
+    94                                  
+    95                                  update_time:
+    96                                  		; http://vitaly_filatov.tripod.com/ng/asm/asm_029.3.html
+    97 00000090 B402                    		mov ah, 02h
+    98 00000092 CD1A                    		int 1ah
+    99                                  		; ch = hours (bcd)
+   100                                  		; cl = minutes (bcd)
+   101                                  		; dh = seconds (bcd)
+   102                                  
+   103 00000094 88F0                    		mov al, dh
+   104 00000096 E80501                  		call convert_byte_bcd_to_bin
+   105 00000099 B400                    		mov ah, 0
+   106 0000009B A3[8A03]                		mov word [data.seconds], ax
+   107                                  
+   108 0000009E 88C8                    		mov al, cl
+   109 000000A0 E8FB00                  		call convert_byte_bcd_to_bin
+   110 000000A3 B400                    		mov ah, 0
+   111 000000A5 A3[8803]                		mov word [data.minutes], ax
+   112                                  
+   113 000000A8 88E8                    		mov al, ch
+   114 000000AA E8F100                  		call convert_byte_bcd_to_bin
+   115 000000AD B400                    		mov ah, 0
+   116 000000AF BB3C00                  		mov bx, 60
+   117 000000B2 31D2                    		xor dx, dx
+   118 000000B4 F7E3                    		mul bx
+   119 000000B6 0306[8803]              		add ax, [data.minutes]
+   120 000000BA A3[8603]                		mov word [data.hours], ax ; in number of minutes
+   121                                  		
+   122 000000BD C3                      		ret
+   123                                  
+   124                                  ; in:
+   125                                  ;	cx = color index
+   126                                  draw_pointers:
+   127 000000BE BF[7E03]                		mov di, data.angle_h
+   128 000000C1 BE[A403]                		mov si, data.size50
+   129 000000C4 E86CFF                  		call update_pointer
+   130 000000C7 89CF                    		mov di, cx
+   131 000000C9 E81D00                  		call draw_pointer
+   132                                  
+   133 000000CC BF[7603]                		mov di, data.angle_m
+   134 000000CF BE[9C03]                		mov si, data.size80
+   135 000000D2 E85EFF                  		call update_pointer
+   136 000000D5 89CF                    		mov di, cx
+   137 000000D7 E80F00                  		call draw_pointer
+   138                                  
+   139 000000DA BF[6E03]                		mov di, data.angle_s
+   140 000000DD BE[9C03]                		mov si, data.size80
+   141 000000E0 E850FF                  		call update_pointer
+   142 000000E3 89CF                    		mov di, cx
+   143 000000E5 E80100                  		call draw_pointer
+   144                                  
+   145 000000E8 C3                      		ret
+   146                                  
+   147                                  ; in:
+   148                                  ;	di = color index
+   149                                  draw_pointer:
+   150 000000E9 60                      		pusha
+   151 000000EA B8A000                  		mov ax, 160
+   152 000000ED BB6400                  		mov bx, 100
+   153 000000F0 B9A000                  		mov cx, 160
+   154 000000F3 BA6400                  		mov dx, 100
+   155 000000F6 030E[E403]              		add cx, word [data.x]
+   156 000000FA 0316[E603]              		add dx, word [data.y]
+   157 000000FE E8C700                  		call draw_line
+   158 00000101 61                      		popa
+   159 00000102 C3                      		ret
+   160                                  
+   161                                  ; in:
+   162                                  ;	cx = number of steps
+   163                                  ;	bx = angle incrementation
+   164                                  ;   di = angle variable
+   165                                  ;   si = radius
+   166                                  draw_circle:
+   167                                  	.next:
+   168 00000103 DD07                    		fld qword [bx]
+   169 00000105 DD05                    		fld qword [di]
+   170 00000107 D8C1                    		fadd st1
+   171 00000109 DD1D                    		fstp qword [di]
+   172 0000010B DDC0                    		ffree st0
+   173                                  
+   174 0000010D BF[6E03]                		mov di, data.angle_s
+   175                                  		;mov si, data.size90
+   176 00000110 E820FF                  		call update_pointer
+   177                                  
+   178 00000113 60                      		pusha
+   179 00000114 B00F                    		mov al, 15
+   180 00000116 B9A000                  		mov cx, 160
+   181 00000119 030E[E403]              		add cx, [data.x]
+   182 0000011D BB6400                  		mov bx, 100
+   183 00000120 031E[E603]              		add bx, [data.y]
+   184 00000124 E83402                  		call pset
+   185 00000127 61                      		popa
+   186                                  		
+   187 00000128 E2D9                    		loop .next
+   188 0000012A C3                      		ret
+   189                                  		
+   190                                  draw_hours_indications:
+   191 0000012B B90C00                  		mov cx, 12
+   192                                  	.next:
+   193 0000012E 51                      		push cx
+   194                                  
+   195 0000012F DD06[CC03]              		fld qword [data.v30deg]
+   196 00000133 DD06[7E03]              		fld qword [data.angle_h]
+   197 00000137 D8C1                    		fadd st1
+   198 00000139 DD1E[7E03]              		fstp qword [data.angle_h]
+   199 0000013D DDC0                    		ffree st0
+   200                                  
+   201 0000013F BF[7E03]                		mov di, data.angle_h
+   202 00000142 BE[9403]                		mov si, data.size85
+   203 00000145 E8EBFE                  		call update_pointer
+   204                                  
+   205                                  	.draw_square:
+   206 00000148 B89F00                  		mov ax, 159
+   207 0000014B BA6300                  		mov dx, 99
+   208                                  	.next_dot:		
+   209 0000014E E81300                  		call .draw_square_dot
+   210 00000151 40                      		inc ax
+   211 00000152 3DA200                  		cmp ax, 162
+   212 00000155 72F7                    		jb .next_dot
+   213                                  	.dot_next_y:
+   214 00000157 B89F00                  		mov ax, 159
+   215 0000015A 42                      		inc dx
+   216 0000015B 83FA66                  		cmp dx, 102
+   217 0000015E 72EE                    		jb .next_dot
+   218                                  
+   219 00000160 59                      		pop cx
+   220 00000161 E2CB                    		loop .next
+   221                                  
+   222 00000163 C3                      		ret
+   223                                  	; ax = x
+   224                                  	; dx = y
+   225                                  	.draw_square_dot:
+   226 00000164 60                      		pusha
+   227 00000165 89C1                    		mov cx, ax
+   228 00000167 030E[E403]              		add cx, [data.x]
+   229 0000016B 89D3                    		mov bx, dx
+   230 0000016D 031E[E603]              		add bx, [data.y]
+   231 00000171 B00F                    		mov al, 15
+   232 00000173 E8E501                  		call pset
+   233 00000176 61                      		popa
+   234 00000177 C3                      		ret
+   235                                  		
+   236                                  draw_background:
+   237                                  		; draw external circle
+   238 00000178 B9D002                  		mov cx, 720
+   239 0000017B BB[B403]                		mov bx, data.vhalf_deg
+   240 0000017E BE[8C03]                		mov si, data.size90
+   241 00000181 BF[6E03]                		mov di, data.angle_s
+   242 00000184 E87CFF                  		call draw_circle
+   243                                  
+   244                                  		; draw minutes indications
+   245 00000187 B93C00                  		mov cx, 60
+   246 0000018A BB[BC03]                		mov bx, data.v6deg
+   247 0000018D BE[9403]                		mov si, data.size85
+   248 00000190 BF[7603]                		mov di, data.angle_m
+   249 00000193 E86DFF                  		call draw_circle
+   250                                  
+   251 00000196 E892FF                  		call draw_hours_indications
+   252 00000199 C3                      		ret
+   253                                  
+   254                                  exit_process:
+   255 0000019A B44C                    		mov ah, 4ch
+   256 0000019C CD21                    		int 21h
+   257                                  
+   258                                  ; in:
+   259                                  ;	example:
+   260                                  ;	al = 11h (bcd)
+   261                                  ; out:
+   262                                  ;	al = 0bh
+   263                                  convert_byte_bcd_to_bin:
+   264 0000019E 53                      		push bx
+   265 0000019F 51                      		push cx
+   266 000001A0 52                      		push dx
+   267 000001A1 B700                    		mov bh, 0
+   268 000001A3 88C3                    		mov bl, al
+   269 000001A5 80E30F                  		and bl, 0fh
+   270 000001A8 B500                    		mov ch, 0
+   271 000001AA 88C1                    		mov cl, al
+   272 000001AC C1E904                  		shr cx, 4
+   273 000001AF 31D2                    		xor dx, dx
+   274 000001B1 B80A00                  		mov ax, 10
+   275 000001B4 F7E1                    		mul cx
+   276 000001B6 01D8                    		add ax, bx
+   277 000001B8 5A                      		pop dx
+   278 000001B9 59                      		pop cx
+   279 000001BA 5B                      		pop bx
+   280 000001BB C3                      		ret
+   281                                  		
+   282                                  		%include "graphic.inc"
+     1                              <1> ; bresenham's line algorithm
+     2                              <1> ; written by Leonardo Ono (ono.leo@gmail.com)
+     3                              <1> ; 26/09/2017
+     4                              <1> ; target os: DOS (.COM file extension)
+     5                              <1> 
+     6                              <1> start_graphic_mode:
+     7 000001BC B800A0              <1> 	mov ax, 0a000h
+     8 000001BF 8EC0                <1> 	mov es, ax
+     9 000001C1 B400                <1> 	mov ah, 0
+    10 000001C3 B013                <1> 	mov al, 13h
+    11 000001C5 CD10                <1> 	int 10h
+    12 000001C7 C3                  <1> 	ret
+    13                              <1> 
+    14                              <1> ; ax = x1
+    15                              <1> ; bx = y1
+    16                              <1> ; cx = x2
+    17                              <1> ; dx = y2
+    18                              <1> ; di = color index
+    19                              <1> draw_line:
+    20 000001C8 A3[9802]            <1> 		mov word [.x1], ax
+    21 000001CB 891E[9A02]          <1> 		mov word [.y1], bx
+    22 000001CF 890E[9C02]          <1> 		mov word [.x2], cx
+    23 000001D3 8916[9E02]          <1> 		mov word [.y2], dx
+    24 000001D7 29C1                <1> 		sub cx, ax ; CX -> dx = x2 - x1
+    25 000001D9 29DA                <1> 		sub dx, bx ; DX -> dy = y2 - y1
+    26 000001DB 890E[A002]          <1> 		mov word [.dx], cx
+    27 000001DF 8916[A202]          <1> 		mov word [.dy], dx
+    28 000001E3 83F900              <1> 		cmp cx, 0
+    29 000001E6 7C07                <1> 		jl .dx_less
+    30                              <1> 		
+    31                              <1> 	.dx_greater:
+    32 000001E8 83FA00              <1> 		cmp dx, 0
+    33 000001EB 7D09                <1> 		jge .dx_greater_dy_greater
+    34 000001ED 7C29                <1> 		jl .dx_greater_dy_less
+    35                              <1> 	.dx_less:
+    36 000001EF 83FA00              <1> 		cmp dx, 0
+    37 000001F2 7D4C                <1> 		jge .dx_less_dy_greater
+    38 000001F4 7C72                <1> 		jl .dx_less_dy_less
+    39                              <1> 		
+    40                              <1> 	.dx_greater_dy_greater:
+    41 000001F6 A1[A002]            <1> 		mov ax, [.dx]
+    42 000001F9 8B1E[A202]          <1> 		mov bx, [.dy]
+    43 000001FD A3[C202]            <1> 		mov [draw_line_quadrant.dx], ax
+    44 00000200 891E[C402]          <1> 		mov [draw_line_quadrant.dy], bx
+    45 00000204 A1[9802]            <1> 		mov ax, [.x1]
+    46 00000207 8B1E[9A02]          <1> 		mov bx, [.y1]
+    47 0000020B 8B0E[9C02]          <1> 		mov cx, [.x2]
+    48 0000020F 8B16[9E02]          <1> 		mov dx, [.y2]
+    49 00000213 BE0000              <1> 		mov si, 0 ; quadrant 0
+    50 00000216 EB7C                <1> 		jmp .continue
+    51                              <1> 	.dx_greater_dy_less:
+    52 00000218 A1[A202]            <1> 		mov ax, [.dy]
+    53 0000021B F7D8                <1> 		neg ax
+    54 0000021D 8B1E[A002]          <1> 		mov bx, [.dx]
+    55 00000221 A3[C202]            <1> 		mov [draw_line_quadrant.dx], ax
+    56 00000224 891E[C402]          <1> 		mov [draw_line_quadrant.dy], bx
+    57 00000228 A1[9A02]            <1> 		mov ax, [.y1]
+    58 0000022B F7D8                <1> 		neg ax
+    59 0000022D 8B1E[9802]          <1> 		mov bx, [.x1]
+    60 00000231 8B0E[9E02]          <1> 		mov cx, [.y2]
+    61 00000235 F7D9                <1> 		neg cx
+    62 00000237 8B16[9C02]          <1> 		mov dx, [.x2]
+    63 0000023B BE0300              <1> 		mov si, 3 ; quadrant 3
+    64 0000023E EB54                <1> 		jmp .continue
+    65                              <1> 	.dx_less_dy_greater:
+    66 00000240 A1[A202]            <1> 		mov ax, [.dy]
+    67 00000243 8B1E[A002]          <1> 		mov bx, [.dx]
+    68 00000247 F7DB                <1> 		neg bx
+    69 00000249 A3[C202]            <1> 		mov [draw_line_quadrant.dx], ax
+    70 0000024C 891E[C402]          <1> 		mov [draw_line_quadrant.dy], bx
+    71 00000250 A1[9A02]            <1> 		mov ax, [.y1]
+    72 00000253 8B1E[9802]          <1> 		mov bx, [.x1]
+    73 00000257 F7DB                <1> 		neg bx
+    74 00000259 8B0E[9E02]          <1> 		mov cx, [.y2]
+    75 0000025D 8B16[9C02]          <1> 		mov dx, [.x2]
+    76 00000261 F7DA                <1> 		neg dx
+    77 00000263 BE0100              <1> 		mov si, 1 ; quadrant 1
+    78 00000266 EB2C                <1> 		jmp .continue
+    79                              <1> 	.dx_less_dy_less:
+    80 00000268 A1[A002]            <1> 		mov ax, [.dx]
+    81 0000026B F7D8                <1> 		neg ax
+    82 0000026D 8B1E[A202]          <1> 		mov bx, [.dy]
+    83 00000271 F7DB                <1> 		neg bx
+    84 00000273 A3[C202]            <1> 		mov [draw_line_quadrant.dx], ax
+    85 00000276 891E[C402]          <1> 		mov [draw_line_quadrant.dy], bx
+    86 0000027A A1[9802]            <1> 		mov ax, [.x1]
+    87 0000027D F7D8                <1> 		neg ax
+    88 0000027F 8B1E[9A02]          <1> 		mov bx, [.y1]
+    89 00000283 F7DB                <1> 		neg bx
+    90 00000285 8B0E[9C02]          <1> 		mov cx, [.x2]
+    91 00000289 F7D9                <1> 		neg cx
+    92 0000028B 8B16[9E02]          <1> 		mov dx, [.y2]
+    93 0000028F F7DA                <1> 		neg dx
+    94 00000291 BE0200              <1> 		mov si, 2 ; quadrant 2
+    95                              <1> 		
+    96                              <1> 	.continue:
+    97 00000294 E80D00              <1> 		call draw_line_quadrant
+    98 00000297 C3                  <1> 		ret
+    99 00000298 0000                <1> 		.x1 dw 0
+   100 0000029A 0000                <1> 		.y1 dw 0
+   101 0000029C 0000                <1> 		.x2 dw 0
+   102 0000029E 0000                <1> 		.y2 dw 0
+   103 000002A0 0000                <1> 		.dx dw 0
+   104 000002A2 0000                <1> 		.dy dw 0
+   105                              <1> 		
+   106                              <1> ; ax = x1
+   107                              <1> ; bx = y1
+   108                              <1> ; cx = x2
+   109                              <1> ; dx = y2
+   110                              <1> ; di = color index
+   111                              <1> ; si = quadrant
+   112                              <1> draw_line_quadrant:
+   113 000002A4 01F6                <1> 		add si, si
+   114 000002A6 51                  <1> 		push cx
+   115 000002A7 52                  <1> 		push dx
+   116 000002A8 8B0E[C202]          <1> 		mov cx, word [.dx] ; CX = dx
+   117 000002AC 8B16[C402]          <1> 		mov dx, word [.dy] ; DX = dy
+   118 000002B0 39D1                <1> 		cmp cx, dx
+   119 000002B2 7D08                <1> 		jge .not_swap
+   120                              <1> 	.swap:
+   121 000002B4 5A                  <1> 		pop dx
+   122 000002B5 59                  <1> 		pop cx
+   123 000002B6 93                  <1> 		xchg ax, bx
+   124 000002B7 87D1                <1> 		xchg cx, dx
+   125 000002B9 46                  <1> 		inc si
+   126 000002BA EB02                <1> 		jmp .continue
+   127                              <1> 	.not_swap:
+   128 000002BC 5A                  <1> 		pop dx
+   129 000002BD 59                  <1> 		pop cx
+   130                              <1> 	.continue:
+   131 000002BE E80500              <1> 		call draw_line_octant
+   132 000002C1 C3                  <1> 		ret
+   133 000002C2 0000                <1> 	.dx dw 0
+   134 000002C4 0000                <1> 	.dy dw 0
+   135                              <1> 		
+   136                              <1> ; ax = x1
+   137                              <1> ; bx = y1
+   138                              <1> ; cx = x2
+   139                              <1> ; dx = y2
+   140                              <1> ; di = color index
+   141                              <1> ; si = octant
+   142                              <1> draw_line_octant:
+   143 000002C6 890E[FF02]          <1> 		mov word [.x2], cx
+   144 000002CA 29C1                <1> 		sub cx, ax
+   145 000002CC 29DA                <1> 		sub dx, bx
+   146 000002CE 01D2                <1> 		add dx, dx 
+   147 000002D0 8916[0303]          <1> 		mov word [.2dy], dx
+   148 000002D4 29CA                <1> 		sub dx, cx ; dx = d = 2 * dy - dx
+   149 000002D6 01C9                <1> 		add cx, cx
+   150 000002D8 890E[0103]          <1> 		mov word [.2dx], cx
+   151                              <1> 		; bx = y = y1
+   152 000002DC 89C1                <1> 		mov cx, ax ; cx = x
+   153 000002DE 89F8                <1> 		mov ax, di
+   154                              <1> 	.next_point:
+   155 000002E0 E82200              <1> 		call pset_octant
+   156 000002E3 83FA00              <1> 		cmp dx, 0
+   157 000002E6 7E0B                <1> 		jle .d_less_or_equal
+   158                              <1> 	.d_greater:
+   159 000002E8 0316[0303]          <1> 		add dx, word [.2dy]
+   160 000002EC 2B16[0103]          <1> 		sub dx, word [.2dx]
+   161 000002F0 43                  <1> 		inc bx
+   162 000002F1 EB04                <1> 		jmp .continue
+   163                              <1> 	.d_less_or_equal:
+   164 000002F3 0316[0303]          <1> 		add dx, word [.2dy]
+   165                              <1> 	.continue:
+   166 000002F7 41                  <1> 		inc cx
+   167 000002F8 3B0E[FF02]          <1> 		cmp cx, word [.x2]
+   168 000002FC 76E2                <1> 		jbe .next_point
+   169 000002FE C3                  <1> 		ret
+   170 000002FF 0000                <1> 		.x2 dw 0
+   171 00000301 0000                <1> 		.2dx dw 0
+   172 00000303 0000                <1> 		.2dy dw 0
+   173                              <1> 
+   174                              <1> ; al = color index
+   175                              <1> ; bx = row
+   176                              <1> ; cx = col
+   177                              <1> ; si = octant
+   178                              <1> pset_octant:
+   179 00000305 53                  <1> 		push bx
+   180 00000306 51                  <1> 		push cx
+   181 00000307 83FE00              <1> 		cmp si, 0
+   182 0000030A 7423                <1> 		jz .octant_0
+   183 0000030C 83FE01              <1> 		cmp si, 1
+   184 0000030F 7420                <1> 		jz .octant_1
+   185 00000311 83FE02              <1> 		cmp si, 2
+   186 00000314 741F                <1> 		jz .octant_2
+   187 00000316 83FE03              <1> 		cmp si, 3
+   188 00000319 7420                <1> 		jz .octant_3
+   189 0000031B 83FE04              <1> 		cmp si, 4
+   190 0000031E 741F                <1> 		jz .octant_4
+   191 00000320 83FE05              <1> 		cmp si, 5
+   192 00000323 7420                <1> 		jz .octant_5
+   193 00000325 83FE06              <1> 		cmp si, 6
+   194 00000328 7423                <1> 		jz .octant_6
+   195 0000032A 83FE07              <1> 		cmp si, 7
+   196 0000032D 7424                <1> 		jz .octant_7
+   197                              <1> 	.octant_0:
+   198                              <1> 		; do nothing
+   199 0000032F EB24                <1> 		jmp .continue
+   200                              <1> 	.octant_1:
+   201 00000331 87CB                <1> 		xchg bx, cx
+   202 00000333 EB20                <1> 		jmp .continue
+   203                              <1> 	.octant_2:
+   204 00000335 F7DB                <1> 		neg bx
+   205 00000337 87CB                <1> 		xchg bx, cx
+   206 00000339 EB1A                <1> 		jmp .continue
+   207                              <1> 	.octant_3:
+   208 0000033B F7D9                <1> 		neg cx
+   209 0000033D EB16                <1> 		jmp .continue
+   210                              <1> 	.octant_4:
+   211 0000033F F7D9                <1> 		neg cx
+   212 00000341 F7DB                <1> 		neg bx
+   213 00000343 EB10                <1> 		jmp .continue
+   214                              <1> 	.octant_5:
+   215 00000345 F7D9                <1> 		neg cx
+   216 00000347 F7DB                <1> 		neg bx
+   217 00000349 87CB                <1> 		xchg bx, cx
+   218 0000034B EB08                <1> 		jmp .continue
+   219                              <1> 	.octant_6:
+   220 0000034D F7D9                <1> 		neg cx
+   221 0000034F 87CB                <1> 		xchg bx, cx
+   222 00000351 EB02                <1> 		jmp .continue
+   223                              <1> 	.octant_7:
+   224 00000353 F7DB                <1> 		neg bx
+   225                              <1> 	.continue:
+   226 00000355 E80300              <1> 		call pset
+   227 00000358 59                  <1> 		pop cx
+   228 00000359 5B                  <1> 		pop bx
+   229 0000035A C3                  <1> 		ret
+   230                              <1> 		
+   231                              <1> ; al = color index
+   232                              <1> ; bx = row
+   233                              <1> ; cx = col
+   234                              <1> pset:
+   235 0000035B 60                  <1> 	pusha
+   236 0000035C 31D2                <1> 	xor dx, dx
+   237 0000035E 50                  <1> 	push ax
+   238 0000035F B84001              <1> 	mov ax, 320
+   239 00000362 F7E3                <1> 	mul bx
+   240 00000364 01C8                <1> 	add ax, cx
+   241 00000366 89C3                <1> 	mov bx, ax
+   242 00000368 58                  <1> 	pop ax
+   243 00000369 268807              <1> 	mov byte [es:bx], al
+   244 0000036C 61                  <1> 	popa
+   245 0000036D C3                  <1> 	ret
+   246                              <1> 
+   247                              <1> 	
+   283                                  
+   284                                  data:
+   285 0000036E 0000000000000000        		.angle_s	dq 0
+   286 00000376 0000000000000000        		.angle_m	dq 0
+   287 0000037E 0000000000000000        		.angle_h	dq 0
+   288                                  
+   289 00000386 0000                    		.hours		dw 0 ; in number of minutes
+   290 00000388 0000                    		.minutes	dw 0
+   291 0000038A 0000                    		.seconds	dw 0
+   292                                  
+   293 0000038C 0000000000805640        		.size90		dq 90.0
+   294 00000394 0000000000405540        		.size85		dq 85.0
+   295 0000039C 0000000000005440        		.size80		dq 80.0
+   296 000003A4 0000000000004940        		.size50		dq 50.0
+   297                                  		
+   298 000003AC 6E861BF0F9211940        		.pi2		dq 6.28318
+   299                                  		
+   300 000003B4 5F40D42247DF813F        		.vhalf_deg	dq 0.00872665
+   301 000003BC E5B33C0FEECEBA3F        		.v6deg		dq 0.10472
+   302 000003C4 A7E8482EFF21F93F        		.v90deg		dq 1.5708
+   303 000003CC 59FCA6B052C1E03F        		.v30deg		dq 0.523599
+   304                                  		
+   305 000003D4 0000000000004E40        		.v60		dq 60.0
+   306 000003DC 0000000000808640        		.v720		dq 720.0
+   307                                  		
+   308 000003E4 0000                    		.x 			dw 0
+   309 000003E6 0000                    		.y 			dw 0
+   310                                  		
+   311 000003E8 0000                    		.tmp		dw 0
