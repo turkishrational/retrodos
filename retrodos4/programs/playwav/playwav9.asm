@@ -5,7 +5,7 @@
 ;
 ; 24/11/2024
 ;
-; [ Last Modification: 18/12/2024 ]
+; [ Last Modification: 20/12/2024 ]
 ;
 ; Modified from PLAYWAV8.COM .wav player program by Erdogan Tan, 23/11/2024
 ;
@@ -1097,7 +1097,8 @@ write_sb16_dev_info:
 	mov	al, [bx+hex_chars]
 	mov	[msgBasePort+1], al
 	mov	bl, ah
-	mov	dl, bl
+	; 20/12/2024
+	;mov	dl, bl
 	;and	bl, 0Fh
 	mov	al, [bx+hex_chars]
 	mov	[msgBasePort], al
@@ -2397,7 +2398,7 @@ p_msg_x:
 Credits:
 	db	'Tiny WAV Player for Retro DOS by Erdogan Tan. '
 	db	'December 2024.',10,13,0
-	db	'18/12/2024', 10,13,0
+	db	'20/12/2024', 10,13,0
 
 msgAudioCardInfo:
 	db 	'for Sound Blaster 16 audio device.', 10,13,0
