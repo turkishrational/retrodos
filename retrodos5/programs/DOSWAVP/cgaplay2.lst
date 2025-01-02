@@ -1,0 +1,3389 @@
+     1                                  ; ****************************************************************************
+     2                                  ; cgaplay2.asm - Retro DOS (MSDOS/PCDOS) WAV PLAYER - Video Mode 13h
+     3                                  ; ----------------------------------------------------------------------------
+     4                                  ; CGAPLAY2.COM ! Sound Blaster 16 .WAV PLAYER program by Erdogan TAN
+     5                                  ;
+     6                                  ; 02/01/2025				- play music from multiple wav files -
+     7                                  ;
+     8                                  ; [ Last Modification: 02/01/2025 ]
+     9                                  ;
+    10                                  ; Modified from CGAPLAY.COM .wav player program by Erdogan Tan, 01/01/2025
+    11                                  ;	        SB16PLAY.COM, 20/12/2024
+    12                                  ;
+    13                                  ; ****************************************************************************
+    14                                  ; nasm cgaplay2.asm -l cgaplay2.lst -o CGAPLAY2.COM -Z error.txt
+    15                                  
+    16                                  ; 01/01/2025
+    17                                  ; cgaplay.asm  : Video Mode 13h (320*200, 256 colors) -NASM-
+    18                                  ; 20/12/2024
+    19                                  ; sb16play.asm : Video Mode 03h (80x25 text mode) -FASM-
+    20                                  
+    21                                  ; vgaplay.s (26/12/2024) - play music from multiple wav files -
+    22                                  ; dplayvga.s (25/12/2024) - play music from single wav file -
+    23                                  ; ac97play.s (18/12/2024) - play music from multiple wav files -
+    24                                  
+    25                                  ; 07/12/2024 - playwav9.s - interrupt (srb) + tuneloop version
+    26                                  ; ------------------------------------------------------------
+    27                                  ; INTERRUPT (SRB) + TUNELOOP version ; 24/11/2024 (PLAYWAV9.ASM)
+    28                                  ;	(running in DOSBOX, VIRTUALBOX, QEMU is ok)
+    29                                  ; Signal Response Byte = message/signal to user about an event/interrupt
+    30                                  ;	    as requested (TuneLoop procedure continuously checks this SRB)
+    31                                  ; (TRDOS 386 v2 feature is used here as very simple interrupt handler output)
+    32                                  
+    33                                  ; ------------------------------------------------------------
+    34                                  
+    35                                  ; 01/01/2025
+    36                                  %macro	sys_msg	2
+    37                                  	mov	si, %1	; message
+    38                                  	mov	bl, %2	; text color
+    39                                  	xor	bh, bh	; video page 0
+    40                                  	mov	ah, 0Eh
+    41                                  	call	p_msg	
+    42                                  %endmacro
+    43                                  
+    44                                  ; 02/01/2025
+    45                                  %macro SbOut 1
+    46                                  %%wait:
+    47                                  	in	al, dx
+    48                                  	or	al, al
+    49                                  	js	short %%wait
+    50                                  	mov	al, %1	; command
+    51                                  	out	dx, al
+    52                                  %endmacro
+    53                                  
+    54                                  ; ------------------------------------------------------------
+    55                                  
+    56                                  ; player internal variables and other equates.
+    57                                  ; -------------------------
+    58                                  ; 02/01/2025 - cgaplay2.asm
+    59                                  ; -------------------------
+    60                                  ; 20/12/2024 - sb16play.asm
+    61                                  ;--------------------------
+    62                                  ; 17/11/2024
+    63                                  ;BUFFERSIZE	equ 65520
+    64                                  ; 24/11/2024
+    65                                  ;dma_buffer_size equ 32768
+    66                                  ;LOADSIZE	equ 16384
+    67                                  ENDOFFILE	equ 1		; flag for knowing end of file
+    68                                  ; 27/11/2024
+    69                                  dma_buffer_size equ 44100
+    70                                  LOADSIZE	equ 22050
+    71                                  
+    72                                  ; ------------------------------------------------------------
+    73                                  
+    74                                  [BITS 16] ; 16-bit intructions
+    75                                  
+    76                                  [ORG 100h]
+    77                                  
+    78                                  	; 02/01/2025
+    79                                  START_CODE:
+    80                                  	; 30/05/2024
+    81                                  	; Prints the Credits Text.
+    82                                  	sys_msg Credits, 0Bh
+    37 00000000 BE[370C]            <1>  mov si, %1
+    38 00000003 B30B                <1>  mov bl, %2
+    39 00000005 30FF                <1>  xor bh, bh
+    40 00000007 B40E                <1>  mov ah, 0Eh
+    41 00000009 E8D801              <1>  call p_msg
+    83                                  
+    84                                  	; 01/01/2025
+    85                                  	; (setFree is required before memAlloc)
+    86                                  	; 30/05/2024
+    87 0000000C E80A05                          call    setFree		; deallocate unused DOS mem
+    88                                  
+    89                                  	; 17/02/2017
+    90                                  	; Clear BSS (uninitialized data) area
+    91 0000000F 31C0                    	xor	ax, ax ; 0
+    92 00000011 B9BB57                  	mov	cx, (bss_end - bss_start)/2
+    93 00000014 BF[8E11]                	mov	di, bss_start
+    94 00000017 F3AB                    	rep	stosw
+    95                                  
+    96                                  ; -------------------------------------------------------------
+    97                                  
+    98                                  	; 02/01/2025
+    99                                  	; 24/11/2024
+   100                                  	; Detect (& Reset) Sound Blaster 16 Audio Device
+   101 00000019 E8EC02                  	call	DetectSB16
+   102                                  	;jnc	short GetFileName
+   103                                  	; 02/01/2025
+   104 0000001C 730F                    	jnc	short set_video_mode_13h
+   105                                  
+   106                                  	; 30/11/2024
+   107                                  	; 30/05/2024
+   108                                  _dev_not_ready:
+   109                                  	; couldn't find the audio device!
+   110                                  	sys_msg noDevMsg, 0Fh
+    37 0000001E BE[D60C]            <1>  mov si, %1
+    38 00000021 B30F                <1>  mov bl, %2
+    39 00000023 30FF                <1>  xor bh, bh
+    40 00000025 B40E                <1>  mov ah, 0Eh
+    41 00000027 E8BA01              <1>  call p_msg
+   111 0000002A E98901                          jmp     Exit
+   112                                  
+   113                                  ; -------------------------------------------------------------
+   114                                  
+   115                                  	; 02/01/2025
+   116                                  set_video_mode_13h:
+   117                                  	; 01/01/2025
+   118                                  	; set VGA/CGA mode (320*200 pixels, 256 colors)
+   119 0000002D B81300                  	mov	ax, 13h
+   120 00000030 CD10                    	int	10h
+   121                                  
+   122                                  ; -------------------------------------------------------------
+   123                                  
+   124                                  mode_13h_set_ok:
+   125                                  	; 01/01/2025
+   126                                  	;mov	word [graphstart], (11*8*320)+(4*320)
+   127                                  
+   128                                  ; -------------------------------------------------------------
+   129                                  
+   130                                  	; 01/01/2025
+   131                                  Player_ParseParameters:
+   132                                  	; 28/11/2024
+   133 00000032 BE8100                  	mov	si, 81h
+   134 00000035 8936[5414]              	mov	[PSP_CurrentOffset], si
+   135 00000039 803C0D                  	cmp	byte [si], 0Dh		; "CR": No command line parameters
+   136 0000003C 7737                    	ja	short Player_ParseNextParameter ; 01/01/2025
+   137 0000003E E97C01                  	jmp	pmsg_usage
+   138                                  
+   139                                  	; 30/12/2024
+   140                                  	; 29/11/2024
+   141                                  check_p_command:
+   142 00000041 803E[2014]50              	cmp	byte [command], 'P'
+   143 00000046 740C                    	je	short Player_ParsePreviousParameter
+   144                                      
+   145 00000048 8B36[5414]              	mov	si, [PSP_CurrentOffset]
+   146 0000004C 803C0D                  	cmp	byte [si], 0Dh
+   147 0000004F 7724                    	ja	short Player_ParseNextParameter
+   148                                  jmp_Player_Quit:
+   149 00000051 E9D101                  	jmp	Player_Quit
+   150                                  
+   151                                  Player_ParsePreviousParameter:
+   152                                  	; 29/11/2024
+   153                                  	;mov	byte [command], 0
+   154                                  
+   155 00000054 8B36[5414]              	mov	si, [PSP_CurrentOffset]
+   156                                  
+   157 00000058 81FE8100                	cmp	si, 81h
+   158 0000005C 7417                    	je	short Player_ParseNextParameter
+   159                                  
+   160                                  	;; Search for previous space character
+   161 0000005E 4E                      	dec	si
+   162 0000005F B90200                  	mov	cx, 2
+   163                                  PSPParsePrev_Search:
+   164 00000062 4E                      	dec	si
+   165 00000063 8A04                    	mov	al, [si]
+   166 00000065 3C20                    	cmp	al, 20h
+   167 00000067 75F9                    	jne	short PSPParsePrev_Search
+   168                                  
+   169 00000069 81FE8100                	cmp	si, 81h
+   170 0000006D 7602                    	jna	PSPParsePrev_Copy
+   171 0000006F E2F1                    	loop	PSPParsePrev_Search
+   172                                  
+   173                                  PSPParsePrev_Copy:
+   174 00000071 8936[5414]              	mov	[PSP_CurrentOffset], si
+   175                                  	
+   176                                  Player_ParseNextParameter:
+   177                                  	; 29/11/2024
+   178 00000075 E82600                  	call	GetFileName
+   179 00000078 E3D7                    	jcxz	jmp_Player_Quit
+   180                                  
+   181                                  	; 01/01/2025
+   182                                  	; 28/11/2024
+   183 0000007A BA[5614]                	mov	dx, wav_file_name
+   184                                  
+   185                                  	; 30/12/2024
+   186                                          ; open existing file
+   187 0000007D E85104                          call	openFile ; no error? ok.
+   188 00000080 736C                            jnc	getwavparms	; 14/11/2024
+   189                                  
+   190                                  	; 29/11/2024
+   191 00000082 803E[2114]00            	cmp	byte [filecount], 0
+   192 00000087 77B8                    	ja	short check_p_command
+   193                                  
+   194                                  	; 25/12/2024
+   195                                  	; 21/12/2024
+   196 00000089 E88401                  	call	set_text_mode
+   197                                  	; file not found!
+   198                                  	; 01/01/2025
+   199                                  	; 30/11/2024
+   200                                  	sys_msg	noFileErrMsg, 0Ch
+    37 0000008C BE[0D0D]            <1>  mov si, %1
+    38 0000008F B30C                <1>  mov bl, %2
+    39 00000091 30FF                <1>  xor bh, bh
+    40 00000093 B40E                <1>  mov ah, 0Eh
+    41 00000095 E84C01              <1>  call p_msg
+   201 00000098 E91B01                          jmp     Exit
+   202                                  
+   203                                  _exit_:
+   204 0000009B E91501                  	jmp	terminate
+   205                                  
+   206                                  ; -------------------------------------------------------------
+   207                                  
+   208                                  	; 29/11/2024
+   209                                  	; 30/05/2024
+   210                                  GetFileName:
+   211 0000009E BF[5614]                	mov	di, wav_file_name 
+   212 000000A1 8B36[5414]              	mov	si, [PSP_CurrentOffset]
+   213 000000A5 31C9                    	xor	cx, cx ; 0
+   214                                  ScanName:
+   215 000000A7 AC                      	lodsb
+   216                                  	;test	al, al
+   217                                  	;jz	short a_4
+   218                                  	; 29/11/2024
+   219 000000A8 3C0D                    	cmp	al, 0Dh
+   220 000000AA 7639                    	jna	short a_4
+   221 000000AC 3C20                    	cmp	al, 20h
+   222 000000AE 74F7                    	je	short ScanName	; scan start of name.
+   223 000000B0 AA                      	stosb
+   224 000000B1 B4FF                    	mov	ah, 0FFh
+   225                                  	;;;
+   226                                  	; 14/11/2024
+   227                                  	; (max. path length = 64 bytes for MSDOS ?) (*)
+   228                                  	;xor	cx, cx ; 0
+   229                                  	;;;
+   230                                  a_0:	
+   231 000000B3 FEC4                    	inc	ah
+   232                                  a_1:
+   233                                  	;;;
+   234                                  	; 14/11/2024
+   235 000000B5 41                      	inc	cx
+   236                                  	;;;
+   237 000000B6 AC                      	lodsb
+   238 000000B7 AA                      	stosb
+   239 000000B8 3C2E                    	cmp	al, '.'
+   240 000000BA 74F7                    	je	short a_0
+   241                                  	; 29/11/2024
+   242 000000BC 3C20                    	cmp	al, 20h
+   243                                  	;and	al, al
+   244                                  	;jnz	short a_1
+   245                                  	;;;
+   246                                  	; 14/11/2024
+   247 000000BE 7613                    	jna	short a_3
+   248 000000C0 20E4                    	and	ah, ah
+   249 000000C2 7406                    	jz	short a_2
+   250 000000C4 3C5C                    	cmp	al, '\'
+   251 000000C6 7502                    	jne	short a_2
+   252 000000C8 B400                    	mov	ah, 0
+   253                                  a_2:
+   254 000000CA 80F94B                  	cmp	cl, 75	; 64+8+'.'+3 -> offset 75 is the last chr
+   255 000000CD 72E6                    	jb	short a_1
+   256                                  	; 29/11/2024
+   257 000000CF 29C9                    	sub	cx, cx
+   258 000000D1 EB12                    	jmp	short a_4
+   259                                  a_3:
+   260                                  	; 29/11/2024
+   261 000000D3 4F                      	dec	di
+   262                                  	;;;
+   263 000000D4 08E4                    	or	ah, ah		; if period NOT found,
+   264 000000D6 750D                    	jnz	short a_4 	; then add a .WAV extension.
+   265                                  SetExt:
+   266                                  	; 29/11/2024
+   267                                  	;dec	di
+   268 000000D8 66C7052E574156          	mov	dword [di], '.WAV' ; ! 64+12 is DOS limit
+   269                                  				   ;   but writing +4 must not
+   270                                  				   ;   destroy the following data	 
+   271                                  	;mov	byte [di+4], 0	   ; so, 80 bytes path + 0 is possible here
+   272                                  	; 29/11/2024
+   273 000000DF 83C104                  	add	cx, 4
+   274 000000E2 83C704                  	add	di, 4
+   275                                  a_4:	
+   276 000000E5 C60500                  	mov	byte [di], 0
+   277 000000E8 4E                      	dec	si
+   278 000000E9 8936[5414]              	mov	[PSP_CurrentOffset], si
+   279 000000ED C3                      	retn
+   280                                  
+   281                                  ; -------------------------------------------------------------
+   282                                  
+   283                                  getwavparms:
+   284                                  	; 14/11/2024
+   285 000000EE E8FF03                         	call    getWAVParameters
+   286 000000F1 72A8                    	jc	short _exit_		; nothing to do
+   287                                  
+   288                                  	; 17/11/2024
+   289 000000F3 B304                    	mov	bl, 4
+   290 000000F5 2A1E[4414]              	sub	bl, byte [WAVE_BlockAlign]
+   291                                  			; = 0 for 16 bit stereo
+   292                                  			; = 2 for 8 bit stereo or 16 bit mono
+   293                                  			; = 3 for 8 bit mono	
+   294                                  
+   295 000000F9 D0EB                    	shr	bl, 1	;  0 -->  0,  2 -->  1,  3 -->  1
+   296                                  	; 15/11/2024
+   297 000000FB 80D300                  	adc	bl, 0	; 3 --> 1 --> 2
+   298 000000FE 881E[A814]              	mov	byte [fbs_shift], bl	; = 2 mono and 8 bit
+   299                                  					; = 0 stereo and 16 bit
+   300                                  					; = 1 mono or 8 bit
+   301                                  	; 02/01/2025
+   302                                  
+   303                                  ; -------------------------------------------------------------
+   304                                  
+   305                                  	; 02/01/2025
+   306                                  StartPlay:
+   307                                  	; 30/12/2024
+   308 00000102 C606[1B14]01            	mov	byte [wpoints], 1
+   309                                  
+   310                                  	; 02/01/2025
+   311 00000107 A1[3C14]                	mov	ax, [WAVE_SampleRate]
+   312 0000010A B90A00                  	mov	cx, 10
+   313 0000010D F7E1                    	mul	cx
+   314 0000010F B1B6                    	mov	cl, 182
+   315 00000111 F7F1                    	div	cx
+   316                                  	; ax = samples per 1/18.2 second
+   317 00000113 8A0E[4414]              	mov	cl, byte [WAVE_BlockAlign]
+   318 00000117 F7E1                    	mul	cx
+   319                                  _w:
+   320 00000119 A3[8A11]                	mov	[wpoints_dif], ax ; buffer read differential (distance)
+   321                                  				; for wave volume leds update
+   322                                  				; (byte stream per 1/18.2 second)
+   323                                  
+   324                                  ; -------------------------------------------------------------
+   325                                  
+   326                                  	; 02/01/2025 (cgaplay2.asm)
+   327                                  	;;;
+   328                                  	; 23/11/2024 (sb16play.asm, [turn_on_leds])
+   329 0000011C 803E[3A14]01            	cmp	byte [WAVE_NumChannels], 1
+   330 00000121 7717                    	ja	short stolp_s
+   331                                  stolp_m:
+   332 00000123 803E[4614]08            	cmp	byte [WAVE_BitsPerSample], 8
+   333 00000128 7708                    	ja	short stolp_m16
+   334                                  stolp_m8:
+   335 0000012A C706[AC14][6009]        	mov	word [UpdateWavePoints], UpdateWavePoints_8m
+   336 00000130 EB1F                    	jmp	short stolp_ok
+   337                                  stolp_m16:
+   338 00000132 C706[AC14][5E08]        	mov	word [UpdateWavePoints], UpdateWavePoints_16m
+   339 00000138 EB17                    	jmp	short stolp_ok
+   340                                  stolp_s:
+   341 0000013A 803E[4614]08            	cmp	byte [WAVE_BitsPerSample], 8
+   342 0000013F 7708                    	ja	short stolp_s16
+   343                                  stolp_s8:
+   344 00000141 C706[AC14][DC08]        	mov	word [UpdateWavePoints], UpdateWavePoints_8s
+   345 00000147 EB08                    	jmp	short stolp_ok
+   346                                  stolp_s16:
+   347 00000149 C706[AC14][D407]        	mov	word [UpdateWavePoints], UpdateWavePoints_16s
+   348 0000014F EB00                    	jmp	short stolp_ok
+   349                                  stolp_ok:
+   350                                  	;;;
+   351                                  
+   352                                  	; 25/12/2024 (vgaplay.s)
+   353 00000151 FE06[2114]              	inc	byte [filecount]
+   354 00000155 C606[2014]00            	mov	byte [command], 0
+   355                                  	; 30/12/2024 (cgaplay.s)
+   356 0000015A C606[8D11]FF            	mov	byte [pbprev], -1
+   357                                  
+   358                                  ; -------------------------------------------------------------
+   359                                  
+   360                                  	; 02/01/2025
+   361                                  	; 01/01/2025 (cgaplay.asm)
+   362                                  	; 30/12/2024
+   363                                  Player_Template:
+   364                                  	; 21/12/2024
+   365 0000015F E88C00                  	call	clearscreen
+   366 00000162 E89A00                  	call	drawplayingscreen
+   367                                  	; 14/11/2024
+   368 00000165 E8D208                  	call	SetTotalTime
+   369 00000168 E87209                  	call	UpdateFileInfo
+   370                                  
+   371                                  ; -------------------------------------------------------------
+   372                                  
+   373                                  	; 02/01/2025 (cgaplay2.asm) -SB16-
+   374                                  	; 01/01/2025 (cgaplay.asm) -AC97-
+   375                                  	; 30/12/2024 (cgaplay.s) -AC97- 	
+   376                                  	; 29/12/2024 (vgaplay3.s) -AC97-
+   377                                  	; 20/12/2024 (sb16play.asm) 
+   378                                  	; 18/12/2024 (ac97play.s)
+   379                                  PlayNow:
+   380                                  	; 01/12/2024 (32bit)
+   381                                  	; 14/11/2024
+   382                                  	;;mov	al, 3	; 0 = max, 31 = min
+   383                                  	; 24/11/2024
+   384                                  	;mov	al, 5	; 15 = max, 0 = min
+   385                                  	; 27/11/2024
+   386                                  	;mov	[volume], al
+   387                                  	; 14/12/2024
+   388 0000016B A0[320A]                	mov	al, [volume]
+   389                                  	;call	SetPCMOutVolume@
+   390                                  	; 02/01/2025
+   391 0000016E E87E01                  	call	SetMasterVolume@
+   392                                  	; 15/11/2024
+   393                                  	;call	SetMasterVolume
+   394                                  	;;call	SetPCMOutVolume
+   395                                  
+   396                                  	;;;
+   397                                  	; 14/11/2024
+   398 00000171 E8EC09                  	call	UpdateProgressBar
+   399                                  	;;;
+   400                                  
+   401                                   	; 30/05/2024
+   402                                  	; playwav4.asm
+   403                                  _2:	
+   404 00000174 E86608                  	call	check4keyboardstop	; flush keyboard buffer
+   405 00000177 72FB                    	jc	short _2		; 07/11/2023
+   406                                  
+   407                                  	; 01/01/2025 (cgaplay.asm)
+   408                                  
+   409                                  ; play the .wav file. Most of the good stuff is in here.
+   410                                  
+   411 00000179 E8AB00                  	call    PlayWav
+   412                                  
+   413                                  	; 30/12/2024
+   414                                  	; 29/12/2024 (vgaplay3.s)
+   415                                  	; 27/12/2024 (vgaplay.s)
+   416                                  _3:
+   417                                  
+   418                                  ; close the .wav file and exit.
+   419                                  
+   420                                  	; 25/12/2024
+   421 0000017C E86003                  	call	closeFile
+   422                                  
+   423                                  	; 01/01/2025 (16bit modifications)
+   424                                  	; 25/12/2024
+   425                                  	;;;
+   426                                  	; reset file loading and EOF parameters
+   427                                  	; 18/12/2024
+   428 0000017F C706[B214]0000          	mov	word [count], 0
+   429                                  	;mov	dword [LoadedDataBytes], 0
+   430 00000185 C706[B414]0000          	mov	word [LoadedDataBytes], 0
+   431 0000018B C706[B614]0000          	mov	word [LoadedDataBytes+2], 0
+   432 00000191 C606[5014]00            	mov	byte [flags], 0
+   433 00000196 C606[1914]00            	mov	byte [stopped], 0
+   434                                  	; 29/12/2024
+   435 0000019B C706[1E14]0000          	mov	word [pbuf_s], 0
+   436                                  	;;;
+   437                                  
+   438 000001A1 803E[2014]51            	cmp	byte [command], 'Q'
+   439                                  	;je	short terminate
+   440                                  	; 02/01/2025
+   441 000001A6 7403                    	je	short terminate@
+   442 000001A8 E996FE                  	jmp	check_p_command
+   443                                  
+   444                                  	; 02/01/2025
+   445                                  terminate@:
+   446                                  	; 27/11/2024
+   447                                  	; 24/11/2024
+   448                                  	; restore old interrupt vector
+   449 000001AB A0[1614]                	mov	al, [IRQnum]
+   450 000001AE 30E4                    	xor	ah, ah ; reset
+   451 000001B0 E8ED01                  	call	set_hardware_int_vector
+   452                                  
+   453                                  terminate:
+   454 000001B3 E85A00                  	call	set_text_mode
+   455                                  	
+   456                                  Exit:	; 01/01/2025
+   457 000001B6 B8004C                  	mov	ax, 4C00h	; bye !
+   458 000001B9 CD21                    	int	21h
+   459                                  halt:
+   460 000001BB EBFE                    	jmp	short halt
+   461                                  
+   462                                  ; -------------------------------------------------------------
+   463                                  
+   464                                  	; 30/05/2024
+   465                                  pmsg_usage:
+   466                                  	; 21/12/2024
+   467 000001BD E85000                  	call	set_text_mode
+   468                                  	; 01/01/2025
+   469                                  	; 01/12/2024
+   470                                  	sys_msg msg_usage, 0Fh
+    37 000001C0 BE[A60C]            <1>  mov si, %1
+    38 000001C3 B30F                <1>  mov bl, %2
+    39 000001C5 30FF                <1>  xor bh, bh
+    40 000001C7 B40E                <1>  mov ah, 0Eh
+    41 000001C9 E81800              <1>  call p_msg
+   471 000001CC EBE8                    	jmp	short Exit
+   472                                  
+   473                                  ; -------------------------------------------------------------
+   474                                  
+   475                                  	; 30/05/2024
+   476                                  init_err:
+   477                                  	; 21/12/2024
+   478 000001CE E83F00                  	call	set_text_mode
+   479                                  	; 01/01/2025
+   480                                  	; 01/12/2024
+   481                                  	sys_msg msg_init_err, 0Fh
+    37 000001D1 BE[260D]            <1>  mov si, %1
+    38 000001D4 B30F                <1>  mov bl, %2
+    39 000001D6 30FF                <1>  xor bh, bh
+    40 000001D8 B40E                <1>  mov ah, 0Eh
+    41 000001DA E80700              <1>  call p_msg
+   482 000001DD EBD7                    	jmp	short Exit
+   483                                  
+   484                                  ; -------------------------------------------------------------
+   485                                  
+   486                                  	; 01/01/2025 (cgaplay.asm)
+   487                                  	; 21/12/2024
+   488                                  	; 14/11/2024
+   489                                  PrintString:
+   490 000001DF B40E                    	mov	ah, 0Eh
+   491 000001E1 BB0F00                  	mov	bx, 0Fh ; char attribute & color (white)
+   492                                  p_msg:
+   493                                  	; ah = 0Eh
+   494                                  	; bh = 0
+   495                                  	; bl = color
+   496                                  	; ds:si = msg address
+   497                                  p_next_chr:
+   498 000001E4 AC                      	lodsb
+   499 000001E5 08C0                    	or	al, al
+   500 000001E7 7404                    	jz	short p_retn ; retn
+   501 000001E9 CD10                    	int	10h
+   502 000001EB EBF7                    	jmp	short p_next_chr
+   503                                  p_retn:
+   504 000001ED C3                      	retn
+   505                                  
+   506                                  ; -------------------------------------------------------------
+   507                                  
+   508                                  	; 01/01/2025 (cgaplay.asm)
+   509                                  clearscreen:
+   510                                  	; fast clear
+   511                                  	; 320*200, 256 colors
+   512 000001EE 06                      	push	es
+   513 000001EF BF00A0                  	mov	di, 0A000h
+   514 000001F2 8EC7                    	mov	es, di
+   515 000001F4 31FF                    	xor	di, di
+   516 000001F6 B9007D                  	mov	cx, 320*200*1/2
+   517 000001F9 31C0                    	xor	ax, ax
+   518 000001FB F3AB                    	rep	stosw
+   519 000001FD 07                      	pop	es
+   520 000001FE C3                      	retn
+   521                                  
+   522                                  ; -------------------------------------------------------------
+   523                                  
+   524                                  	; 01/01/2025v (cgaplay.asm)
+   525                                  drawplayingscreen:
+   526                                  	;push	es
+   527                                  	;push	bp
+   528                                  	;push	ds
+   529                                  	;pop	es
+   530                                  	; es = ds
+   531 000001FF BD[C00D]                	mov	bp, PlayingScreen
+   532 00000202 B80013                  	mov	ax, 1300h ; write character string
+   533 00000205 BB0F00                  	mov	bx, 0Fh
+   534 00000208 B9C003                  	mov	cx, 24*40
+   535 0000020B 31D2                    	xor	dx, dx ; row 0, columns 0
+   536 0000020D CD10                    	int	10h
+   537                                  	;pop	bp
+   538                                  	;pop	es
+   539 0000020F C3                      	retn
+   540                                  
+   541                                  ; -------------------------------------------------------------
+   542                                  
+   543                                  	; 01/01/2025
+   544                                  set_text_mode:
+   545 00000210 B80300                  	mov	ax, 03h
+   546 00000213 CD10                    	int	10h
+   547                                  	;retn
+   548                                  
+   549                                  	sys_msg Credits, 0Bh
+    37 00000215 BE[370C]            <1>  mov si, %1
+    38 00000218 B30B                <1>  mov bl, %2
+    39 0000021A 30FF                <1>  xor bh, bh
+    40 0000021C B40E                <1>  mov ah, 0Eh
+    41 0000021E E8C3FF              <1>  call p_msg
+   550                                  	;call	write_audio_dev_info
+   551                                  	;retn
+   552 00000221 E95103                  	jmp	write_audio_dev_info
+   553                                  
+   554                                  ; -------------------------------------------------------------
+   555                                  
+   556                                  	; 01/01/2025 (16bit pop)
+   557                                  	; 02/12/2024
+   558                                  Player_Quit@:
+   559 00000224 58                      	pop	ax ; return addr (call PlayWav@)
+   560                                  	
+   561                                  	; 29/11/2024
+   562                                  Player_Quit:
+   563                                  	;jmp	terminate
+   564                                  	; 02/01/2025
+   565 00000225 EB84                    	jmp	terminate@  ; reset hardware interrupt
+   566                                  
+   567                                  ; -------------------------------------------------------------
+   568                                  
+   569                                  	; 02/01/2025 (cgaplay2.asm) -SB16-
+   570                                  	; 01/01/2025 (cgaplay.asm) -AC97-
+   571                                  	; 20/12/2024 (sb16play.asm)
+   572                                  PlayWav:
+   573                                  	; 24/11/2024
+   574 00000227 B8[C014]                	mov     ax, wav_buffer1
+   575 0000022A E8FD02                  	call	loadFromFile
+   576 0000022D A1[B214]                	mov	ax, [count]
+   577 00000230 0106[B414]              	add	[LoadedDataBytes], ax
+   578 00000234 8316[B614]00            	adc	word [LoadedDataBytes+2], 0
+   579                                  
+   580 00000239 B8[E26A]                	mov     ax, wav_buffer2
+   581 0000023C E8EB02                  	call	loadFromFile
+   582 0000023F A1[B214]                	mov	ax, [count]
+   583 00000242 0106[B414]              	add	[LoadedDataBytes], ax
+   584 00000246 8316[B614]00            	adc	word [LoadedDataBytes+2], 0
+   585                                  
+   586                                  	; 25/11/2024
+   587 0000024B E87B03                  	call	SB16Init_play	; initialize SB16 card
+   588                                  				; set sample rate, start to play
+   589 0000024E 0F827CFF                	jc	init_err
+   590                                  
+   591                                  	; 02/01/2025
+   592                                  	; 27/11/2024
+   593                                  	; set audio interrupt vector (to user's handler)
+   594 00000252 A0[1614]                	mov	al, [IRQnum]
+   595 00000255 B401                    	mov	ah, 1 ; set
+   596 00000257 BA[2604]                	mov	dx, IRQ_service
+   597 0000025A E84301                  	call	set_hardware_int_vector
+   598                                  
+   599                                  	; 26/11/2024
+   600 0000025D E87D07                  	call	check4keyboardstop
+   601 00000260 7273                    	jc	_exitt_
+   602                                  
+   603                                  	; 27/11/2024
+   604 00000262 C606[1614]00            	mov	byte [IRQnum], 0
+   605                                  
+   606                                  	; 02/01/2025
+   607                                  
+   608                                  ; -------------------------------------------
+   609                                  
+   610                                  	; 02/01/2025 (cgaplay2.asm) -SB16-
+   611                                  	; 01/01/2025 (cgaplay.asm) -AC97-
+   612                                  	; 20/12/2024 (sb16play.asm)
+   613                                  	; ----------
+   614                                  	; 29/11/2024
+   615                                  	; 27/11/2024
+   616                                  	; 24/11/2024
+   617                                  TuneLoop: 
+   618                                  	; 30/05/2024
+   619                                  	; 18/11/2023 (ich_wav4.asm)
+   620                                  	; 08/11/2023
+   621                                  	; 06/11/2023
+   622                                  tLWait:
+   623                                  	; 18/11/2024
+   624 00000267 803E[1914]00            	cmp	byte [stopped], 0
+   625                                  	; 24/11/2024
+   626 0000026C 7624                    	jna	short tL1
+   627                                  tLWait@:	; 21/11/2024
+   628 0000026E E87604                  	call	checkUpdateEvents
+   629 00000271 7262                    	jc	_exitt_
+   630                                  	;;;
+   631                                  	; 29/11/2024
+   632 00000273 803E[2014]4E            	cmp	byte [command], 'N'
+   633 00000278 745B                    	je	_exitt_
+   634 0000027A 803E[2014]50            	cmp	byte [command], 'P'
+   635 0000027F 7454                    	je	_exitt_
+   636                                  	;;;
+   637 00000281 803E[1A14]30            	cmp	byte [tLO], '0'
+   638 00000286 74DF                    	je	short tLWait
+   639 00000288 E85000                  	call	tLZ
+   640 0000028B C606[1A14]30            	mov	byte [tLO], '0'
+   641 00000290 EBD5                    	jmp	short tLWait
+   642                                  tL1:
+   643                                  	; 27/11/2024
+   644                                  	; Check SB 16 interrupt status
+   645 00000292 803E[1614]00            	cmp	byte [IRQnum], 0
+   646 00000297 7707                    	ja	short tL3
+   647                                  tL2:
+   648 00000299 E84B04                  	call	checkUpdateEvents
+   649 0000029C 7237                    	jc	_exitt_
+   650 0000029E EBC7                    	jmp	short tLWait
+   651                                  tL3:
+   652 000002A0 8036[8811]01            	xor	byte [half_buffer], 1
+   653                                  
+   654 000002A5 C606[1614]00            	mov	byte [IRQnum], 0
+   655                                  
+   656                                  	; load buffer 1
+   657                                  	;mov	ax, wav_buffer1
+   658 000002AA B8[C014]                	mov     ax, dma_buffer  ; wav_buffer1
+   659 000002AD 803E[8811]00            	cmp	byte [half_buffer], 0
+   660 000002B2 7603                    	jna	short tL4
+   661                                  
+   662                                  	; load buffer 2
+   663                                  	;mov	ax, wav_buffer2
+   664 000002B4 052256                  	add     ax, LOADSIZE ; dma_buffer_size/2
+   665                                  tL4:
+   666 000002B7 E87002                  	call	loadFromFile
+   667 000002BA 7219                    	jc	short _exitt_	; end of file
+   668                                  
+   669                                  	; 26/11/2024
+   670 000002BC A0[8811]                	mov	al, [half_buffer]
+   671 000002BF 0431                    	add	al, '1'
+   672                                  	; 19/11/2024
+   673 000002C1 A2[1A14]                	mov	[tLO], al
+   674 000002C4 E81600                  	call	tL0
+   675                                  	; 24/11/2024
+   676                                  	; 14/11/2024
+   677 000002C7 A1[B214]                	mov	ax, [count]
+   678 000002CA 0106[B414]              	add	[LoadedDataBytes], ax
+   679 000002CE 8316[B614]00            	adc	word [LoadedDataBytes+2], 0
+   680                                  
+   681                                  	; 27/11/2024
+   682 000002D3 EBC4                    	jmp	short tL2
+   683                                  
+   684                                  _exitt_:
+   685                                  	; 24/11/2024
+   686 000002D5 E87101                  	call	sb16_stop
+   687                                  
+   688                                  	;;;
+   689                                  	; 14/11/2024
+   690 000002D8 E88508                  	call	UpdateProgressBar
+   691                                  	;;;
+   692                                  
+   693                                  	; 18/11/2024
+   694                                  tLZ:
+   695                                  	; 30/05/2024
+   696 000002DB B030                    	mov	al, '0'
+   697                                  tL0:
+   698                                  	; 01/01/2025 (cgaplay.asm)
+   699                                  	; 31/12/2024
+   700 000002DD 50                      	push	ax
+   701 000002DE 31D2                    	xor	dx, dx ; row 0, column 0
+   702 000002E0 E85007                  	call	setCursorPosition
+   703 000002E3 58                      	pop	ax
+   704                                  	;
+   705 000002E4 B40E                    	mov	ah, 0Eh
+   706 000002E6 BB0E00                  	mov	bx, 0Eh
+   707 000002E9 CD10                    	int	10h
+   708                                  	
+   709 000002EB C3                      	retn
+   710                                  
+   711                                  ; -------------------------------------------
+   712                                  
+   713                                  	; 02/01/2025
+   714                                  SetMasterVolume:
+   715 000002EC A2[320A]                	mov	[volume], al  ; max = 15, min = 0
+   716                                  	; 02/01/2025
+   717                                  	; 24/11/2024
+   718                                  SetMasterVolume@:
+   719                                  	; al = sound volume (15 = max, 0 = min)
+   720 000002EF 50                      	push	ax
+   721                                  	; Tell the SB 16 card which register to write
+   722 000002F0 8B16[AA14]              	mov	dx, [audio_io_base]
+   723                                  	;add	dx, 4 ; Mixer chip address port
+   724 000002F4 80C204                  	add	dl, 4
+   725 000002F7 B022                    	mov	al, 22h
+   726 000002F9 EE                      	out	dx, al
+   727 000002FA 58                      	pop	ax
+   728                                  	;and	al, 0Fh
+   729                                  	; Set the volume for both L and R
+   730 000002FB B311                    	mov	bl, 11h
+   731 000002FD F6E3                    	mul	bl
+   732                                  	; Set new volume
+   733 000002FF 8B16[AA14]              	mov	dx, [audio_io_base]
+   734                                  	;add	dx, 5
+   735 00000303 80C205                  	add	dl, 5
+   736 00000306 EE                      	out	dx, al
+   737 00000307 C3                      	retn
+   738                                  
+   739                                  ; -------------------------------------------
+   740                                  	; 24/11/2024
+   741                                  	; Ref: TRDOS 386 Kernel v2.0.9 audio.s (06/06/2024)
+   742                                  	;      DetectSB procedure (06/08/2022, v2.0.5)	 
+   743                                  DetectSB16:
+   744                                  	; 06/08/2022 - TRDOS 386 v2.0.5
+   745                                  	; 24/04/2017
+   746                                  ScanPort:
+   747 00000308 BB1002                  	mov	bx, 0210h	; start scanning ports
+   748                                  				; 210h, 220h, .. 260h
+   749                                  ResetDSP:       
+   750                                  	; 26/11/2024
+   751 0000030B 89DA                    	mov	dx, bx		; try to reset the DSP.
+   752 0000030D 80C206                  	add	dl, 06h
+   753                                  
+   754 00000310 B001                    	mov	al, 1
+   755 00000312 EE                      	out	dx, al
+   756                                  
+   757 00000313 EC                      	in	al, dx
+   758 00000314 EC                      	in	al, dx
+   759 00000315 EC                      	in	al, dx
+   760 00000316 EC                      	in	al, dx
+   761                                  
+   762 00000317 30C0                    	xor     al, al
+   763 00000319 EE                      	out	dx, al
+   764                                  
+   765                                  	;add	dx, 08h
+   766 0000031A 80C208                  	add	dl, 08h
+   767 0000031D B96400                  	mov	cx, 100
+   768                                  WaitID:
+   769 00000320 EC                      	in	al, dx
+   770 00000321 08C0                    	or      al, al
+   771 00000323 7804                    	js      short GetID
+   772 00000325 E2F9                    	loop    WaitID
+   773 00000327 EB0D                    	jmp     short NextPort
+   774                                  GetID:          
+   775                                  	;sub	dx, 04h
+   776 00000329 80EA04                  	sub	dl, 04h
+   777 0000032C EC                      	in	al, dx
+   778 0000032D 3CAA                    	cmp     al, 0AAh
+   779 0000032F 740F                    	je      short Found
+   780                                  	;add	dx, 04h
+   781 00000331 80C204                  	add	dl, 04h
+   782 00000334 E2EA                    	loop    WaitID
+   783                                  NextPort:
+   784                                  	;add	bx, 10h		; if not response,
+   785 00000336 80C310                  	add	bl, 10h
+   786                                  	;cmp	bx, 260h	; try the next port.
+   787 00000339 80FB60                  	cmp	bl, 60h
+   788 0000033C 76CD                    	jbe     short ResetDSP
+   789 0000033E F9                      	stc
+   790 0000033F C3                      	retn
+   791                                  Found:
+   792 00000340 891E[AA14]              	mov     [audio_io_base], bx ; SB Port Address Found!
+   793                                  ScanIRQ:
+   794                                  SetIrqs:
+   795 00000344 28C0                    	sub 	al, al ; 0
+   796 00000346 A2[1614]                	mov 	[IRQnum], al ; reset
+   797                                  	; 27/11/2024
+   798                                  	;mov	[audio_intr], al
+   799                                  
+   800                                  	; 25/11/2024
+   801                                  	; save IRQ status
+   802 00000349 E421                    	in      al, 21h		; save the IMR.
+   803 0000034B A2[1814]                	mov	[IRQstatus], al
+   804                                  
+   805                                  	; ah > 0 -> set IRQ vector
+   806                                  	; al = IRQ number
+   807 0000034E B80501                  	mov	ax, 105h ; IRQ 5
+   808                                  	; 26/11/2024
+   809 00000351 BA[1804]                	mov	dx, IRQ5_service
+   810 00000354 E84900                  	call	set_hardware_int_vector
+   811 00000357 B80701                  	mov	ax, 107h ; IRQ 7
+   812                                  	; 26/11/2024
+   813 0000035A BA[1F04]                	mov	dx, IRQ7_service
+   814 0000035D E84000                  	call	set_hardware_int_vector
+   815                                  
+   816 00000360 8B16[AA14]              	mov     dx, [audio_io_base] ; tells to the SB to
+   817                                  	;add	dx, 0Ch		    ; generate a IRQ!
+   818 00000364 80C20C                  	add	dl, 0Ch
+   819                                  WaitSb:
+   820 00000367 EC                      	in	al, dx
+   821 00000368 08C0                    	or      al, al
+   822 0000036A 78FB                    	js      short WaitSb
+   823 0000036C B0F2                    	mov     al, 0F2h
+   824 0000036E EE                      	out	dx, al
+   825                                  	; 24/11/2024
+   826 0000036F 31C9                    	xor     cx, cx	; wait until IRQ level
+   827                                  WaitIRQ: 
+   828 00000371 A0[1614]                	mov	al, [IRQnum]
+   829 00000374 3C00                    	cmp     al, 0 ; is changed or timeout.
+   830 00000376 7705                    	ja	short IrqOk
+   831 00000378 49                      	dec	cx
+   832 00000379 75F6                    	jnz	short WaitIRQ
+   833 0000037B EB11                    	jmp	short RestoreIrqs
+   834                                  IrqOk:
+   835                                  	;;;
+   836                                  	; 27/11/2024
+   837 0000037D A2[1714]                	mov	[audio_intr], al
+   838 00000380 8B16[AA14]              	mov 	dx, [audio_io_base]
+   839                                  	;add	dx, 0Eh
+   840 00000384 80C20E                  	add	dl, 0Eh ; 8bit DMA-mode int ack
+   841 00000387 EC                      	in	al, dx	; SB acknowledge.
+   842 00000388 42                      	inc	dx ; 0Fh ; 16bit DMA-mode int ack
+   843 00000389 EC                      	in	al, dx	; SB 16 acknowledge.
+   844                                  	;;;
+   845 0000038A B020                    	mov	al, 20h
+   846 0000038C E620                    	out	20h, al	; Hardware acknowledge.
+   847                                  RestoreIrqs:
+   848                                  	; ah = 0 -> reset IRQ vector
+   849                                  	; al = IRQ number
+   850 0000038E B80500                  	mov	ax, 5 ; IRQ 5
+   851 00000391 E80C00                  	call	set_hardware_int_vector
+   852 00000394 B80700                  	mov	ax, 7 ; IRQ 7
+   853 00000397 E80600                  	call	set_hardware_int_vector
+   854                                  
+   855 0000039A 803E[1614]01            	cmp     byte [IRQnum], 1 ; IRQ level was changed?
+   856                                  	
+   857 0000039F C3                      	retn
+   858                                  
+   859                                  ; ----------------------------------
+   860                                  
+   861                                  	; 24/11/2024
+   862                                  set_hardware_int_vector:
+   863 000003A0 08E4                    	or	ah, ah
+   864 000003A2 753F                    	jnz	short shintv_1 ; set user's audio interrupt handler
+   865                                  
+   866                                  rhintv_1:		
+   867                                  	; reset the interrupt vector to the old interrupt handler
+   868 000003A4 1E                      	push	ds
+   869 000003A5 3C05                    	cmp	al, 5
+   870 000003A7 751D                    	jne	short rhintv_2
+   871                                  
+   872                                  	; 25/11/2024
+   873                                  	; restore IRQ 5 status
+   874 000003A9 8A26[1814]              	mov	ah, [IRQstatus]
+   875 000003AD E421                    	in	al, 21h
+   876 000003AF 80E420                  	and	ah, 00100000b ; 20h
+   877 000003B2 08E0                    	or	al, ah
+   878 000003B4 E621                    	out     21h, al
+   879                                  
+   880 000003B6 8B16[0E14]              	mov	dx, [old_irq5v_o]
+   881 000003BA 8E1E[1014]              	mov	ds, [old_irq5v_s]
+   882                                  shintv_3:
+   883 000003BE B00D                    	mov	al, 0Dh
+   884 000003C0 B425                    	mov	ah, 25h
+   885 000003C2 CD21                    	int	21h
+   886 000003C4 1F                      	pop	ds
+   887 000003C5 C3                      	retn
+   888                                  
+   889                                  rhintv_2:
+   890                                  	; 25/11/2024
+   891                                  	; restore IRQ 7 status
+   892 000003C6 8A26[1814]              	mov	ah, [IRQstatus]
+   893 000003CA E421                    	in	al, 21h
+   894 000003CC 80E480                  	and	ah, 10000000b ; 80h
+   895 000003CF 08E0                    	or	al, ah
+   896 000003D1 E621                    	out     21h, al
+   897                                  
+   898 000003D3 8B16[1214]              	mov	dx, [old_irq7v_o]
+   899 000003D7 8E1E[1414]              	mov	ds, [old_irq7v_s]
+   900                                  shintv_4:
+   901 000003DB B00F                    	mov	al, 0Fh
+   902 000003DD B425                    	mov	ah, 25h
+   903 000003DF CD21                    	int	21h
+   904 000003E1 1F                      	pop	ds
+   905 000003E2 C3                      	retn
+   906                                  
+   907                                  shintv_1:
+   908 000003E3 06                      	push	es
+   909                                  
+   910 000003E4 3C05                    	cmp	al, 5
+   911 000003E6 7518                    	jne	short shintv_2
+   912                                  
+   913                                  	; INT 0Dh = IRQ 5 (default) interrupt number
+   914                                  
+   915                                  	; 25/11/2024
+   916                                  	; enable IRQ 5
+   917                                  	; 26/11/2024
+   918 000003E8 E421                    	in	al, 21h
+   919 000003EA 24DF                    	and	al, 11011111b
+   920 000003EC E621                    	out     21h, al
+   921                                  
+   922 000003EE B00F                    	mov	al, 0Fh
+   923 000003F0 B435                    	mov	ah, 35h	; Get Interrupt Vector 
+   924 000003F2 CD21                    	int	21h
+   925 000003F4 8C06[1014]              	mov	[old_irq5v_s], es
+   926 000003F8 891E[0E14]              	mov	[old_irq5v_o], bx
+   927 000003FC 07                      	pop	es
+   928 000003FD 1E                      	push	ds
+   929                                  	; 27/11/2024
+   930                                  	;mov	dx, IRQ5_service
+   931 000003FE EBBE                    	jmp	short shintv_3
+   932                                  
+   933                                  shintv_2:	
+   934                                  	; al = 7
+   935                                  	; INT 0Fh = IRQ 7 (default) interrupt number
+   936                                  
+   937                                  	; 25/11/2024
+   938                                  	; enable IRQ 7
+   939                                  	; 26/11/2024
+   940 00000400 E421                    	in	al, 21h
+   941 00000402 247F                    	and	al, 01111111b
+   942 00000404 E621                    	out     21h, al
+   943                                  	
+   944 00000406 B00F                    	mov	al, 0Fh
+   945 00000408 B435                    	mov	ah, 35h	; Get Interrupt Vector 
+   946 0000040A CD21                    	int	21h
+   947 0000040C 8C06[1414]              	mov	[old_irq7v_s], es
+   948 00000410 891E[1214]              	mov	[old_irq7v_o], bx
+   949 00000414 07                      	pop	es
+   950 00000415 1E                      	push	ds
+   951                                  	; 27/11/2024
+   952                                  	;mov	dx, IRQ7_service
+   953 00000416 EBC3                    	jmp	short shintv_4
+   954                                  
+   955                                  IRQ5_service:
+   956 00000418 2EC606[1614]05          	mov	byte [cs:IRQnum], 5
+   957 0000041E CF                      	iret
+   958                                  
+   959                                  IRQ7_service:
+   960 0000041F 2EC606[1614]07          	mov	byte [cs:IRQnum], 7
+   961 00000425 CF                      	iret
+   962                                  
+   963                                  	; 27/11/2024
+   964                                  IRQ_service:
+   965 00000426 1E                      	push	ds
+   966 00000427 52                      	push	dx
+   967 00000428 50                      	push	ax
+   968                                  	;
+   969 00000429 0E                      	push	cs
+   970 0000042A 1F                      	pop	ds
+   971 0000042B C606[1614]05            	mov	byte [IRQnum], 5
+   972 00000430 8B16[AA14]              	mov     dx, [audio_io_base]
+   973                                  	;add	dx, 0Eh
+   974 00000434 80C20E                  	add	dl, 0Eh ; 8bit DMA-mode int ack
+   975 00000437 803E[4614]08            	cmp	byte [WAVE_BitsPerSample], 8
+   976 0000043C 7602                    	jna	short irq_ack_@
+   977 0000043E FEC2                    	inc	dl ; 0Fh ; 16bit DMA-mode int ack
+   978                                  irq_ack_@:
+   979 00000440 EC                      	in	al, dx	; SB acknowledge.
+   980                                  	;
+   981 00000441 B020                    	mov	al, 20h
+   982 00000443 E620                    	out	20h, al	; Hardware acknowledge
+   983                                  	;
+   984 00000445 58                      	pop	ax
+   985 00000446 5A                      	pop	dx
+   986 00000447 1F                      	pop	ds
+   987 00000448 CF                      	iret
+   988                                  
+   989                                  ; ----------------------------------
+   990                                  
+   991                                  	; 02/01/2025
+   992                                  	; 24/11/2024
+   993                                  	; Ref: TRDOS 386 Kernel v2.0.9 audio.s (06/06/2024)
+   994                                  	;      sb16_stop procedure (06/08/2022, v2.0.5)	
+   995                                  sb16_stop:
+   996                                  	; 02/01/2025
+   997 00000449 C606[1914]02            	mov	byte [stopped], 2
+   998                                  	;
+   999 0000044E 8B16[AA14]              	mov	dx, [audio_io_base]
+  1000                                  	;add	dx, 0Ch
+  1001 00000452 80C20C                  	add	dl, 0Ch
+  1002                                  
+  1003 00000455 B3D9                    	mov	bl, 0D9h ; exit auto-initialize 16 bit transfer
+  1004                                  	; stop  autoinitialized DMA transfer mode 
+  1005 00000457 803E[4614]10            	cmp	byte [WAVE_BitsPerSample], 16 ; 16 bit samples
+  1006 0000045C 7402                    	je	short sb16_stop_1
+  1007                                  	;mov	bl, 0DAh ; exit auto-initialize 8 bit transfer
+  1008 0000045E FEC3                    	inc	bl
+  1009                                  sb16_stop_1:
+  1010                                  	SbOut	bl ; exit auto-initialize transfer command
+    46                              <1> %%wait:
+    47 00000460 EC                  <1>  in al, dx
+    48 00000461 08C0                <1>  or al, al
+    49 00000463 78FB                <1>  js short %%wait
+    50 00000465 88D8                <1>  mov al, %1
+    51 00000467 EE                  <1>  out dx, al
+  1011                                  
+  1012 00000468 30C0                    	xor     al, al ; stops all DMA processes on selected channel
+  1013                                  
+  1014 0000046A 803E[4614]10            	cmp	byte [WAVE_BitsPerSample], 16 ; 16 bit samples
+  1015 0000046F 7404                    	je	short sb16_stop_2
+  1016 00000471 E60C                    	out	0Ch, al ; clear selected channel register
+  1017 00000473 EB02                    	jmp	short sb16_stop_3
+  1018                                  
+  1019                                  sb16_stop_2:
+  1020 00000475 E6D8                    	out	0D8h, al ; clear selected channel register
+  1021                                  
+  1022                                  sb16_stop_3:
+  1023                                  	; 24/11/2024
+  1024 00000477 C606[1914]02            	mov	byte [stopped], 2 ; stop !
+  1025                                  SbDone:
+  1026                                  	;mov	dx, [audio_io_base]
+  1027                                  	;add	dx, 0Ch
+  1028                                  	SbOut   0D0h
+    46                              <1> %%wait:
+    47 0000047C EC                  <1>  in al, dx
+    48 0000047D 08C0                <1>  or al, al
+    49 0000047F 78FB                <1>  js short %%wait
+    50 00000481 B0D0                <1>  mov al, %1
+    51 00000483 EE                  <1>  out dx, al
+  1029                                  	SbOut   0D3h
+    46                              <1> %%wait:
+    47 00000484 EC                  <1>  in al, dx
+    48 00000485 08C0                <1>  or al, al
+    49 00000487 78FB                <1>  js short %%wait
+    50 00000489 B0D3                <1>  mov al, %1
+    51 0000048B EE                  <1>  out dx, al
+  1030                                  sb16_stop_4:
+  1031 0000048C C3                      	retn
+  1032                                  
+  1033                                  ; ----------------------------------
+  1034                                  
+  1035                                  	; 02/01/2025
+  1036                                  	; 24/11/2024
+  1037                                  	; Ref: TRDOS 386 Kernel v2.0.9 audio.s (06/06/2024)
+  1038                                  	;      sb16_pause procedure (06/08/2022, v2.0.5)	
+  1039                                  sb16_pause:
+  1040                                  	; 02/01/2025
+  1041 0000048D C606[1914]01            	mov	byte [stopped], 1 ; paused
+  1042                                  	;
+  1043 00000492 8B16[AA14]              	mov	dx, [audio_io_base]
+  1044                                  	;add	dx, 0Ch ; Command & Data Port
+  1045 00000496 80C20C                  	add	dl, 0Ch
+  1046 00000499 803E[4614]10            	cmp	byte [WAVE_BitsPerSample], 16 ; 16 bit samples
+  1047 0000049E 7404                    	je	short sb_pause_1
+  1048                                  	; 8 bit samples
+  1049 000004A0 B3D0                    	mov	bl, 0D0h ; 8 bit DMA mode
+  1050 000004A2 EB02                    	jmp	short sb_pause_2
+  1051                                  sb_pause_1:
+  1052                                  	; 16 bit samples
+  1053 000004A4 B3D5                    	mov	bl, 0D5h ; 16 bit DMA mode
+  1054                                  sb_pause_2:
+  1055                                  	SbOut   bl ; bCommand
+    46                              <1> %%wait:
+    47 000004A6 EC                  <1>  in al, dx
+    48 000004A7 08C0                <1>  or al, al
+    49 000004A9 78FB                <1>  js short %%wait
+    50 000004AB 88D8                <1>  mov al, %1
+    51 000004AD EE                  <1>  out dx, al
+  1056                                  sb_pause_3:
+  1057 000004AE C3                      	retn
+  1058                                  
+  1059                                  ; ----------------------------------
+  1060                                  
+  1061                                  	; 02/01/2025
+  1062                                  	; 24/11/2024
+  1063                                  	; Ref: TRDOS 386 Kernel v2.0.9 audio.s (06/06/2024)
+  1064                                  	;      sb16_continue procedure (06/08/2022, v2.0.5)
+  1065                                  sb16_play:
+  1066                                  sb16_continue:
+  1067                                  	; 02/01/2025
+  1068                                  	; continue to play (after pause)
+  1069 000004AF C606[1914]00            	mov	byte [stopped], 0
+  1070                                  	;
+  1071 000004B4 8B16[AA14]              	mov	dx, [audio_io_base]
+  1072                                  	;add	dx, 0Ch ; Command & Data Port
+  1073 000004B8 80C20C                  	add	dl, 0Ch
+  1074 000004BB 803E[4614]10            	cmp	byte [WAVE_BitsPerSample], 16 ; 16 bit samples
+  1075 000004C0 7404                    	je	short sb_cont_1
+  1076                                  	; 8 bit samples
+  1077 000004C2 B3D4                    	mov	bl, 0D4h ; 8 bit DMA mode
+  1078 000004C4 EB02                    	jmp	short sb_cont_2
+  1079                                  sb_cont_1:
+  1080                                  	; 16 bit samples
+  1081 000004C6 B3D6                    	mov	bl, 0D6h ; 16 bit DMA mode
+  1082                                  sb_cont_2:     
+  1083                                  	SbOut   bl ; bCommand
+    46                              <1> %%wait:
+    47 000004C8 EC                  <1>  in al, dx
+    48 000004C9 08C0                <1>  or al, al
+    49 000004CB 78FB                <1>  js short %%wait
+    50 000004CD 88D8                <1>  mov al, %1
+    51 000004CF EE                  <1>  out dx, al
+  1084                                  sb_cont_3:
+  1085 000004D0 C3                      	retn
+  1086                                  
+  1087                                  ; ----------------------------------
+  1088                                  
+  1089                                  	; 14/11/2024
+  1090                                  	; INPUT: ds:dx = file name address
+  1091                                  	; OUTPUT: [filehandle] = ; -1 = not open
+  1092                                  openFile:
+  1093 000004D1 B8003D                  	mov	ax, 3D00h	; open File for read
+  1094 000004D4 CD21                    	int	21h
+  1095 000004D6 7303                    	jnc	short _of1
+  1096 000004D8 B8FFFF                  	mov	ax, -1
+  1097                                  	; cf = 1 -> not found or access error
+  1098                                  _of1:
+  1099 000004DB A3[5214]                	mov	[filehandle], ax
+  1100 000004DE C3                      	retn
+  1101                                  
+  1102                                  ; ----------------------------------
+  1103                                  
+  1104                                  ; close the currently open file
+  1105                                  
+  1106                                  	; 14/11/2024
+  1107                                  	; INPUT: [filehandle] ; -1 = not open
+  1108                                  	; OUTPUT: none
+  1109                                  closeFile:
+  1110 000004DF 833E[5214]FF            	cmp	word [filehandle], -1
+  1111 000004E4 7409                    	jz	short _cf1
+  1112 000004E6 8B1E[5214]              	mov     bx, [filehandle]
+  1113 000004EA B8003E                  	mov     ax, 3E00h
+  1114 000004ED CD21                            int     21h              ; close file
+  1115                                  _cf1:
+  1116 000004EF C3                      	retn
+  1117                                  
+  1118                                  ; ----------------------------------
+  1119                                  
+  1120                                  	; 14/11/2024 - Erdogan Tan
+  1121                                  getWAVParameters:
+  1122                                  ; reads WAV file header(s) (44 bytes) from the .wav file.
+  1123                                  ; entry: none - assumes file is already open
+  1124                                  ; exit: ax = sample rate (11025, 22050, 44100, 48000)
+  1125                                  ;	cx = number of channels (mono=1, stereo=2)
+  1126                                  ;	dx = bits per sample (8, 16)
+  1127                                  ;	bx = number of bytes per sample (1 to 4)
+  1128                                  
+  1129 000004F0 BA[2414]                        mov     dx, WAVFILEHEADERbuff
+  1130 000004F3 8B1E[5214]              	mov	bx, [filehandle]
+  1131 000004F7 B92C00                          mov     cx, 44			; 44 bytes
+  1132 000004FA B43F                    	mov	ah, 3Fh
+  1133 000004FC CD21                            int     21h
+  1134 000004FE 7218                    	jc	short gwavp_retn
+  1135                                  
+  1136 00000500 83F82C                  	cmp	ax, 44
+  1137 00000503 7213                    	jb	short gwavp_retn
+  1138                                  
+  1139 00000505 66813E[2C14]574156-     	cmp	dword [RIFF_Format], 'WAVE'
+  1139 0000050D 45                 
+  1140 0000050E 7507                    	jne	short gwavp_stc_retn
+  1141                                  
+  1142 00000510 833E[3814]01            	cmp	word [WAVE_AudioFormat], 1 ; Offset 20, must be 1 (= PCM)
+  1143                                  	;jne	short gwavp_stc_retn
+  1144 00000515 7401                    	je	short gwavp_retn ; 15/11/2024
+  1145                                  
+  1146                                  	; 15/11/2024
+  1147                                  	;mov	cx, [WAVE_NumChannels]	; return num of channels in CX
+  1148                                          ;mov    ax, [WAVE_SampleRate]	; return sample rate in AX
+  1149                                  	;mov	dx, [WAVE_BitsPerSample] 
+  1150                                  					; return bits per sample value in DX
+  1151                                  	;mov	bx, [WAVE_BlockAlign]	; return bytes per sample in BX
+  1152                                  ;gwavp_retn:
+  1153                                          ;retn
+  1154                                  
+  1155                                  gwavp_stc_retn:
+  1156 00000517 F9                      	stc
+  1157                                  gwavp_retn:
+  1158 00000518 C3                      	retn
+  1159                                  
+  1160                                  ; --------------------------------------------------------
+  1161                                  ; ----	30/05/2024 (playwav4.asm, 19/05/2024)
+  1162                                  ; --------------------------------------------------------
+  1163                                  
+  1164                                  ; MEMALLOC.ASM
+  1165                                  ;-- SETFREE: Release memory not used  --------------------
+  1166                                  ;-- Input    : ES = address of PSP
+  1167                                  ;-- Output   : none
+  1168                                  ;-- Register : AX, BX, CL and FLAGS are changed 
+  1169                                  ;-- Info     : Since the stack-segment is always the last segment in an 
+  1170                                  ;              EXE-file, ES:0000 points to the beginning and SS:SP
+  1171                                  ;              to the end of the program in memory. Through this the
+  1172                                  ;              length of the program can be calculated 
+  1173                                  ; call this routine once at the beginning of the program to free up memory
+  1174                                  ; assigned to it by DOS.
+  1175                                  
+  1176                                  setFree:
+  1177 00000519 BB0010                  	mov	bx, 65536/16	; 4K paragraphs ; 17/02/2017 (Erdogan Tan)		
+  1178                                  
+  1179 0000051C B44A                    	mov	ah, 4Ah		; pass new length to DOS
+  1180 0000051E CD21                    	int	21h
+  1181                                  
+  1182 00000520 C3                      	retn			; back to caller 
+  1183                                  				; new size (allocated memory) = 64KB
+  1184                                  
+  1185                                  ; --------------------------------------------------------
+  1186                                  
+  1187                                  memAlloc:
+  1188                                  ; input: AX = # of paragraphs required
+  1189                                  ; output: AX = segment of block to use
+  1190                                  
+  1191 00000521 53                      	push	bx
+  1192 00000522 89C3                    	mov	bx, ax
+  1193 00000524 B448                    	mov	ah, 48h
+  1194 00000526 CD21                    	int	21h
+  1195 00000528 5B                      	pop	bx
+  1196 00000529 C3                      	retn
+  1197                                  
+  1198                                  ; --------------------------------------------------------
+  1199                                  ; 02/01/2025
+  1200                                  ; --------------------------------------------------------
+  1201                                  
+  1202                                  ; /////
+  1203                                  	; 24/11/2024 (SB16 version of playwav8.asm -> playwav9.asm)
+  1204                                  	; 30/05/2024 (ich_wav4.asm, 19/05/2024)
+  1205                                  loadFromFile:
+  1206                                  	; 18/12/2024
+  1207 0000052A C706[B214]0000          	mov	word [count], 0
+  1208                                  
+  1209                                  	; 07/11/2023
+  1210 00000530 F606[5014]01                    test    byte [flags], ENDOFFILE	; have we already read the
+  1211                                  					; last of the file?
+  1212 00000535 7402                    	jz	short lff_0		; no
+  1213 00000537 F9                      	stc
+  1214 00000538 C3                      	retn
+  1215                                  
+  1216                                  lff_0:
+  1217                                  	; 24/11/2024
+  1218                                  	; 08/11/2023
+  1219 00000539 89C7                    	mov	di, ax ; save buffer address
+  1220                                  	; 17/11/2024
+  1221 0000053B 8B1E[5214]              	mov	bx, [filehandle]
+  1222                                  
+  1223                                  	; 24/11/2024
+  1224 0000053F B92256                  	mov	cx, LOADSIZE
+  1225 00000542 89C2                    	mov	dx, ax ; buffer address
+  1226                                  
+  1227                                  	; 24/11/2024
+  1228                                  	; load/read file
+  1229                                  	; bx = file handle
+  1230                                  	; ds = cs
+  1231                                  	; ds:dx = buffer
+  1232                                  	; cx = read count
+  1233 00000544 B43F                           	mov	ah, 3Fh
+  1234 00000546 CD21                    	int	21h
+  1235 00000548 7212                    	jc	short lff_4 ; error !
+  1236                                  
+  1237                                  	; 14/11/2024
+  1238 0000054A A3[B214]                	mov	[count], ax
+  1239                                  
+  1240 0000054D 39C8                    	cmp	ax, cx
+  1241 0000054F 740A                    	je	short endLFF
+  1242                                  	; 24/11/2024
+  1243                                  	; di = buffer address
+  1244 00000551 01C7                    	add	di, ax
+  1245                                  lff_3:
+  1246 00000553 E80F00                  	call    padfill			; blank pad the remainder
+  1247                                          ;clc				; don't exit with CY yet.
+  1248 00000556 800E[5014]01                    or	byte [flags], ENDOFFILE	; end of file flag
+  1249                                  endLFF:
+  1250 0000055B C3                              retn
+  1251                                  lff_4:
+  1252                                  	; 08/11/2023
+  1253 0000055C B021                    	mov	al, '!'  ; error
+  1254 0000055E E87CFD                  	call	tL0
+  1255                                  
+  1256 00000561 31C0                    	xor	ax, ax
+  1257 00000563 EBEE                    	jmp	short lff_3
+  1258                                  
+  1259                                  ; entry ds:ax points to last byte in file
+  1260                                  ; cx = target size
+  1261                                  ; note: must do byte size fill
+  1262                                  ; destroys bx, cx
+  1263                                  ;
+  1264                                  padfill:
+  1265                                  	; 24/11/2024
+  1266                                  	;   di = offset (to be filled with ZEROs)
+  1267                                  	;   es = ds = cs
+  1268                                  	;   ax = di = number of bytes loaded
+  1269                                  	;   cx = buffer size (> loaded bytes)
+  1270 00000565 29C1                    	sub	cx, ax
+  1271 00000567 31C0                    	xor	ax, ax
+  1272 00000569 803E[4614]08            	cmp	byte [WAVE_BitsPerSample], 8
+  1273 0000056E 7702                    	ja	short padfill@
+  1274 00000570 B080                    	mov	al, 80h
+  1275                                  padfill@:
+  1276 00000572 F3AA                    	rep	stosb
+  1277 00000574 C3                      	retn
+  1278                                  ; /////
+  1279                                  	
+  1280                                  write_audio_dev_info:
+  1281                                  	; 30/05/2024
+  1282                                       	sys_msg msgAudioCardInfo, 0Fh
+    37 00000575 BE[810C]            <1>  mov si, %1
+    38 00000578 B30F                <1>  mov bl, %2
+    39 0000057A 30FF                <1>  xor bh, bh
+    40 0000057C B40E                <1>  mov ah, 0Eh
+    41 0000057E E863FC              <1>  call p_msg
+  1283 00000581 C3                      	retn
+  1284                                  
+  1285                                  	; 02/01/2025
+  1286                                  write_sb16_dev_info:
+  1287                                  	; 24/11/2024
+  1288 00000582 A1[AA14]                	mov	ax, [audio_io_base]
+  1289 00000585 88C3                    	mov	bl, al
+  1290 00000587 88DA                    	mov	dl, bl
+  1291 00000589 80E30F                  	and	bl, 0Fh
+  1292 0000058C 8A87[5B0D]              	mov	al, [bx+hex_chars]
+  1293 00000590 A2[A40D]                	mov	[msgBasePort+2], al
+  1294 00000593 88D3                    	mov	bl, dl
+  1295 00000595 C0EB04                  	shr	bl, 4
+  1296 00000598 8A87[5B0D]              	mov	al, [bx+hex_chars]
+  1297 0000059C A2[A30D]                	mov	[msgBasePort+1], al
+  1298 0000059F 88E3                    	mov	bl, ah
+  1299                                  	; 20/12/2024
+  1300                                  	;mov	dl, bl
+  1301                                  	;and	bl, 0Fh
+  1302 000005A1 8A87[5B0D]              	mov	al, [bx+hex_chars]
+  1303 000005A5 A2[A20D]                	mov	[msgBasePort], al
+  1304                                  
+  1305 000005A8 31C0                    	xor	ax, ax
+  1306                                  	;mov	al, [IRQnum]
+  1307                                  	; 27/11/2024
+  1308 000005AA A0[1714]                	mov	al, [audio_intr]
+  1309                                  	;mov	cl, 10
+  1310                                  	;div	cl
+  1311                                  	;add	ah, 30h
+  1312                                  	;mov	[msgIRQ], ah
+  1313                                  	; 25/11/2024
+  1314 000005AD 0430                    	add	al, 30h
+  1315 000005AF A2[B90D]                	mov	[msgIRQ], al
+  1316                                  
+  1317 000005B2 E86D06                  	call 	clear_window
+  1318                                  	;mov	dh, 13
+  1319                                  	; 02/01/2025
+  1320 000005B5 B60C                    	mov	dh, 12
+  1321 000005B7 B200                    	mov	dl, 0
+  1322 000005B9 E87704                  	call	setCursorPosition
+  1323                                  
+  1324                                  	sys_msg msgSB16Info, 07h
+    37 000005BC BE[6C0D]            <1>  mov si, %1
+    38 000005BF B307                <1>  mov bl, %2
+    39 000005C1 30FF                <1>  xor bh, bh
+    40 000005C3 B40E                <1>  mov ah, 0Eh
+    41 000005C5 E81CFC              <1>  call p_msg
+  1325                                  
+  1326 000005C8 C3                      	retn
+  1327                                  
+  1328                                  ; --------------------------------------------------------
+  1329                                  ; 24/11/2024 - Sound Blaster 16 initialization
+  1330                                  ; --------------------------------------------------------
+  1331                                  
+  1332                                  	; 25/11/2024
+  1333                                  	; 24/11/2024
+  1334                                  	; Ref: TRDOS 386 Kernel v2.0.9, audio.s (06/06/2024)
+  1335                                  	;      SbInit_play procedure (06/08/2022, v2.0.5)	 
+  1336                                  SB16Init_play:
+  1337 000005C9 8CD8                    	mov	ax, ds
+  1338 000005CB 89C2                    	mov	dx, ax
+  1339 000005CD C1EA0C                  	shr	dx, 12
+  1340 000005D0 C1E004                  	shl	ax, 4
+  1341 000005D3 05[C014]                	add	ax, dma_buffer
+  1342 000005D6 83D200                  	adc	dx, 0
+  1343 000005D9 89C3                    	mov	bx, ax	; linear address
+  1344                                  	; dx = page number
+  1345                                  
+  1346 000005DB B944AC                  	mov     cx, dma_buffer_size
+  1347                                  
+  1348 000005DE 803E[4614]10            	cmp	byte [WAVE_BitsPerSample], 16
+  1349 000005E3 7532                    	jne	short sbInit_0 ; set 8 bit DMA buffer
+  1350                                  
+  1351                                  	; 26/11/2024
+  1352 000005E5 89D0                    	mov	ax, dx	; page number
+  1353                                  	
+  1354                                  	; convert byte count to word count
+  1355                                  	; 26/11/2024
+  1356                                  	;dec	cx
+  1357 000005E7 D1E9                    	shr	cx, 1
+  1358 000005E9 49                      	dec	cx	; word count - 1
+  1359                                  
+  1360                                  	; convert byte offset to word offset
+  1361 000005EA D1E8                    	shr	ax, 1
+  1362 000005EC D1DB                    	rcr	bx, 1
+  1363                                  	; 26/11/2024
+  1364                                  	;shr	bx, 1
+  1365                                  
+  1366                                  	; 16 bit DMA buffer setting (DMA channel 5)
+  1367 000005EE B005                    	mov	al, 05h  ; set mask bit for channel 5 (4+1)
+  1368 000005F0 E6D4                    	out	0D4h, al
+  1369                                  	
+  1370 000005F2 30C0                    	xor	al, al   ; stops all DMA processes on selected channel
+  1371 000005F4 E6D8                    	out	0D8h, al ; clear selected channel register
+  1372                                  
+  1373 000005F6 88D8                    	mov	al, bl	 ; byte 0 of DMA buffer offset in words (physical)
+  1374 000005F8 E6C4                    	out	0C4h, al ; DMA channel 5 port number
+  1375                                  
+  1376 000005FA 88F8                    	mov	al, bh   ; byte 1 of DMA buffer offset in words (physical)
+  1377 000005FC E6C4                    	out	0C4h, al
+  1378                                  	
+  1379                                  	; 26/11/2024
+  1380 000005FE 80E2FE                  	and	dl, 0FEh ; clear bit 0 (not necessary, it will be ignored)
+  1381                                  
+  1382 00000601 88D0                    	mov	al, dl   ; byte 2 of DMA buffer address (physical)
+  1383 00000603 E68B                    	out	8Bh, al  ; page register port addr for channel 5
+  1384                                  
+  1385 00000605 88C8                    	mov	al, cl   ; low byte of DMA count - 1
+  1386 00000607 E6C6                    	out	0C6h, al ; count register port addr for channel 5
+  1387                                  
+  1388 00000609 88E8                    	mov	al, ch   ; high byte of DMA count - 1
+  1389 0000060B E6C6                    	out	0C6h, al
+  1390                                  
+  1391                                  	; channel 5, read, autoinitialized, single mode
+  1392 0000060D B059                    	mov	al, 59h
+  1393 0000060F E6D6                    	out	0D6h, al ; DMA mode register port address
+  1394                                  
+  1395 00000611 B001                    	mov	al, 01h  ; clear mask bit for channel 5
+  1396 00000613 E6D4                    	out	0D4h, al ; DMA mask register port address
+  1397                                  
+  1398 00000615 EB25                    	jmp	short ResetDsp
+  1399                                  
+  1400                                  sbInit_0:    
+  1401 00000617 49                      	dec	cx	; byte count - 1
+  1402                                  
+  1403                                  	; 8 bit DMA buffer setting (DMA channel 1)
+  1404 00000618 B005                    	mov	al, 05h ; set mask bit for channel 1 (4+1)
+  1405 0000061A E60A                    	out	0Ah, al ; DMA mask register
+  1406                                  
+  1407 0000061C 30C0                    	xor	al, al  ; stops all DMA processes on selected channel
+  1408 0000061E E60C                    	out	0Ch, al ; clear selected channel register
+  1409                                  
+  1410 00000620 88D8                    	mov	al, bl	; byte 0 of DMA buffer address (physical)
+  1411 00000622 E602                    	out	02h, al ; DMA channel 1 port number
+  1412                                  
+  1413 00000624 88F8                    	mov	al, bh  ; byte 1 of DMA buffer address (physical)
+  1414 00000626 E602                    	out	02h, al
+  1415                                  
+  1416 00000628 88D0                    	mov	al, dl  ; byte 2 of DMA buffer address (physical)
+  1417 0000062A E683                    	out	83h, al ; page register port addr for channel 1
+  1418                                  
+  1419 0000062C 88C8                    	mov	al, cl  ; low byte of DMA count - 1
+  1420 0000062E E603                    	out	03h, al ; count register port addr for channel 1
+  1421                                  
+  1422 00000630 88E8                    	mov	al, ch  ; high byte of DMA count - 1
+  1423 00000632 E603                    	out	03h, al
+  1424                                  
+  1425                                  	; channel 1, read, autoinitialized, single mode
+  1426 00000634 B059                    	mov	al, 59h
+  1427 00000636 E60B                    	out	0Bh, al ; DMA mode register port address
+  1428                                  
+  1429 00000638 B001                    	mov	al, 01h ; clear mask bit for channel 1
+  1430 0000063A E60A                    	out	0Ah, al ; DMA mask register port address
+  1431                                  
+  1432                                  ResetDsp:
+  1433 0000063C 8B16[AA14]              	mov	dx, [audio_io_base]
+  1434                                  	;add	dx, 06h
+  1435 00000640 80C206                  	add	dl, 06h
+  1436 00000643 B001                    	mov	al, 1
+  1437 00000645 EE                      	out	dx, al
+  1438                                  
+  1439 00000646 EC                      	in	al, dx
+  1440 00000647 EC                      	in	al, dx
+  1441 00000648 EC                      	in	al, dx
+  1442 00000649 EC                      	in	al, dx
+  1443                                  
+  1444 0000064A 31C0                    	xor	ax, ax
+  1445 0000064C EE                      	out	dx, al
+  1446                                  
+  1447 0000064D B96400                  	mov	cx, 100
+  1448                                  WaitId:         
+  1449 00000650 8B16[AA14]              	mov	dx, [audio_io_base]
+  1450 00000654 80C20E                  	add	dl, 0Eh
+  1451 00000657 EC                      	in	al, dx
+  1452 00000658 08C0                    	or	al, al
+  1453                                  	;js	short sb_GetId
+  1454                                  	; 26/11/2024
+  1455 0000065A 790C                    	jns	short sb_next
+  1456                                  	;loop	WaitId
+  1457                                  	;jmp	sb_Exit
+  1458                                  
+  1459                                  sb_GetId:
+  1460 0000065C 8B16[AA14]              	mov	dx, [audio_io_base]
+  1461                                  	;add	dx, 0Ah
+  1462 00000660 80C20A                  	add	dl, 0Ah
+  1463 00000663 EC                      	in	al, dx
+  1464 00000664 3CAA                    	cmp	al, 0AAh
+  1465 00000666 7404                    	je	short SbOk
+  1466                                  sb_next:
+  1467 00000668 E2E6                    	loop	WaitId
+  1468 0000066A F9                      	stc
+  1469 0000066B C3                      	retn
+  1470                                  SbOk:
+  1471 0000066C 8B16[AA14]              	mov	dx, [audio_io_base]
+  1472                                  	;add	dx, 0Ch
+  1473 00000670 80C20C                  	add	dl, 0Ch
+  1474                                  	SbOut	0D1h	; Turn on speaker
+    46                              <1> %%wait:
+    47 00000673 EC                  <1>  in al, dx
+    48 00000674 08C0                <1>  or al, al
+    49 00000676 78FB                <1>  js short %%wait
+    50 00000678 B0D1                <1>  mov al, %1
+    51 0000067A EE                  <1>  out dx, al
+  1475                                  	SbOut	41h	; 8 bit or 16 bit transfer
+    46                              <1> %%wait:
+    47 0000067B EC                  <1>  in al, dx
+    48 0000067C 08C0                <1>  or al, al
+    49 0000067E 78FB                <1>  js short %%wait
+    50 00000680 B041                <1>  mov al, %1
+    51 00000682 EE                  <1>  out dx, al
+  1476 00000683 8B1E[3C14]              	mov	bx, [WAVE_SampleRate] ; sampling rate (Hz)
+  1477                                  	SbOut	bh	; sampling rate high byte
+    46                              <1> %%wait:
+    47 00000687 EC                  <1>  in al, dx
+    48 00000688 08C0                <1>  or al, al
+    49 0000068A 78FB                <1>  js short %%wait
+    50 0000068C 88F8                <1>  mov al, %1
+    51 0000068E EE                  <1>  out dx, al
+  1478                                  	SbOut	bl	; sampling rate low byte
+    46                              <1> %%wait:
+    47 0000068F EC                  <1>  in al, dx
+    48 00000690 08C0                <1>  or al, al
+    49 00000692 78FB                <1>  js short %%wait
+    50 00000694 88D8                <1>  mov al, %1
+    51 00000696 EE                  <1>  out dx, al
+  1479                                  
+  1480                                  	; 25/11/2024
+  1481                                  
+  1482                                  StartDMA: 
+  1483                                  	; autoinitialized mode
+  1484 00000697 803E[4614]10            	cmp	byte [WAVE_BitsPerSample], 16 ; 16 bit samples
+  1485 0000069C 740E                    	je	short sb_play_1
+  1486                                  	; 8 bit samples
+  1487 0000069E BBC600                  	mov	bx, 0C6h ; 8 bit output (0C6h)
+  1488 000006A1 803E[3A14]02            	cmp	byte [WAVE_NumChannels], 2 ; 1 = mono, 2 = stereo
+  1489 000006A6 7211                    	jb	short sb_play_2
+  1490 000006A8 B720                    	mov	bh, 20h	; 8 bit stereo (20h)
+  1491 000006AA EB0D                    	jmp	short sb_play_2
+  1492                                  sb_play_1:
+  1493                                  	; 16 bit samples
+  1494 000006AC BBB610                  	mov	bx, 10B6h ; 16 bit output (0B6h)
+  1495 000006AF 803E[3A14]02            	cmp	byte [WAVE_NumChannels], 2 ; 1 = mono, 2 = stereo
+  1496 000006B4 7203                    	jb	short sb_play_2
+  1497 000006B6 80C720                  	add	bh, 20h	; 16 bit stereo (30h)
+  1498                                  sb_play_2:     
+  1499                                  	; PCM output (8/16 bit mono autoinitialized transfer)
+  1500                                  	SbOut   bl	; bCommand
+    46                              <1> %%wait:
+    47 000006B9 EC                  <1>  in al, dx
+    48 000006BA 08C0                <1>  or al, al
+    49 000006BC 78FB                <1>  js short %%wait
+    50 000006BE 88D8                <1>  mov al, %1
+    51 000006C0 EE                  <1>  out dx, al
+  1501                                  	SbOut	bh	; bMode
+    46                              <1> %%wait:
+    47 000006C1 EC                  <1>  in al, dx
+    48 000006C2 08C0                <1>  or al, al
+    49 000006C4 78FB                <1>  js short %%wait
+    50 000006C6 88F8                <1>  mov al, %1
+    51 000006C8 EE                  <1>  out dx, al
+  1502                                  	; 25/11/2024
+  1503 000006C9 BB2256                  	mov	bx, dma_buffer_size/2
+  1504                                  			; half buffer size
+  1505 000006CC 803E[4614]10            	cmp	byte [WAVE_BitsPerSample], 16 ; 16 bit DMA
+  1506 000006D1 7502                    	jne	short sb_play_3
+  1507 000006D3 D1EB                    	shr	bx, 1	; byte count to word count (samples)
+  1508                                  sb_play_3: 
+  1509 000006D5 4B                      	dec	bx ; wBlkSize is one less than the actual size
+  1510                                  	SbOut   bl
+    46                              <1> %%wait:
+    47 000006D6 EC                  <1>  in al, dx
+    48 000006D7 08C0                <1>  or al, al
+    49 000006D9 78FB                <1>  js short %%wait
+    50 000006DB 88D8                <1>  mov al, %1
+    51 000006DD EE                  <1>  out dx, al
+  1511                                  	SbOut   bh
+    46                              <1> %%wait:
+    47 000006DE EC                  <1>  in al, dx
+    48 000006DF 08C0                <1>  or al, al
+    49 000006E1 78FB                <1>  js short %%wait
+    50 000006E3 88F8                <1>  mov al, %1
+    51 000006E5 EE                  <1>  out dx, al
+  1512                                  
+  1513                                  	; 24/11/2024
+  1514                                  	;mov	byte [stopped], 0 ; playing !
+  1515                                  sb_Exit:
+  1516 000006E6 C3                      	retn
+  1517                                  
+  1518                                  ; --------------------------------------------------------
+  1519                                  ; 14/11/2024 - Erdogan Tan
+  1520                                  ; --------------------------------------------------------
+  1521                                  
+  1522                                  	; 02/01/2025 (cgaplay2.asm, SB16)
+  1523                                  	; 01/01/2025 (cgaplay.asm, 16bit registers)
+  1524                                  	; 07/12/2024
+  1525                                  	; 01/12/2024 (32bit registers)
+  1526                                  	; 29/11/2024
+  1527                                  checkUpdateEvents:
+  1528 000006E7 E8F302                  	call	check4keyboardstop
+  1529 000006EA 724B                    	jc	short c4ue_ok
+  1530                                  
+  1531                                  	; 01/01/2025
+  1532                                  	; 18/11/2024
+  1533 000006EC 50                      	push	ax ; *
+  1534 000006ED 09C0                    	or	ax, ax
+  1535 000006EF 0F849800                	jz	c4ue_cpt
+  1536                                  
+  1537                                  	; 18/11/2024
+  1538 000006F3 3C20                    	cmp	al, 20h ; SPACE (spacebar) ; pause/play
+  1539 000006F5 752B                    	jne	short c4ue_chk_s
+  1540 000006F7 803E[1914]00            	cmp	byte [stopped], 0
+  1541 000006FC 7706                    	ja	short c4ue_chk_ps
+  1542                                  	; pause
+  1543                                  	;call	ac97_pause
+  1544                                  	; 02/01/2025
+  1545 000006FE E88CFD                  	call	sb16_pause	; 24/11/2024
+  1546                                  	; 02/01/2025
+  1547                                  	; 21/11/2024
+  1548                                  	;mov	al, [tLO]
+  1549                                  	;mov	byte [tLP], al
+  1550 00000701 E98700                  	jmp	c4ue_cpt
+  1551                                  c4ue_chk_ps:
+  1552 00000704 803E[1914]01            	cmp	byte [stopped], 1
+  1553 00000709 7705                    	ja	short c4ue_replay
+  1554                                  	; continue to play (after a pause)
+  1555                                  	;call	ac97_play
+  1556                                  	; 02/01/2025
+  1557 0000070B E8A1FD                  	call	sb16_play	; 24/11/2024
+  1558 0000070E EB7B                    	jmp	c4ue_cpt
+  1559                                  c4ue_replay:
+  1560                                  	; 19/11/2024
+  1561 00000710 58                      	pop	ax ; *
+  1562 00000711 58                      	pop	ax ; return address
+  1563                                  	; 07/02/2024
+  1564                                  	;mov	al, [volume]
+  1565                                  	;call	SetmasterVolume
+  1566 00000712 C606[1914]00            	mov	byte [stopped], 0
+  1567                                  	; 02/01/2024
+  1568                                  	; 24/11/2024
+  1569 00000717 C606[8811]01            	mov	byte [half_buffer], 1
+  1570 0000071C E8C704                  	call	move_to_beginning
+  1571                                  	; 02/01/2025 (cgaplay2.asm, SB16)
+  1572 0000071F E905FB                  	jmp	PlayWav
+  1573                                  	; 07/12/2024 (cgaplay.asm, AC97)
+  1574                                  	;jmp	RePlayWav
+  1575                                  
+  1576                                  c4ue_chk_s:
+  1577 00000722 3C53                    	cmp	al, 'S'	; stop
+  1578 00000724 7512                    	jne	short c4ue_chk_fb
+  1579 00000726 803E[1914]00            	cmp	byte [stopped], 0
+  1580 0000072B 775E                    	ja	c4ue_cpt ; Already stopped/paused
+  1581                                  	;call	ac97_stop
+  1582                                  	; 02/01/2025
+  1583 0000072D E819FD                  	call	sb16_stop	; 24/11/2024
+  1584                                  	; 19/11/2024
+  1585 00000730 C606[1A14]00            	mov	byte [tLO], 0
+  1586                                  	; 02/01/2025
+  1587                                  	; 21/11/2024
+  1588                                  	;mov	byte [tLP], '0'
+  1589 00000735 EB54                    	jmp	c4ue_cpt
+  1590                                  
+  1591                                  	; 01/12/2024
+  1592                                  	; 18/11/2024
+  1593                                  c4ue_ok:
+  1594 00000737 C3                      	retn
+  1595                                  
+  1596                                  c4ue_chk_fb:
+  1597                                  	; 17/11/2024
+  1598 00000738 3C46                    	cmp	al, 'F'
+  1599 0000073A 7505                    	jne	short c4ue_chk_b
+  1600 0000073C E88304                  	call 	Player_ProcessKey_Forwards
+  1601 0000073F EB4A                    	jmp	c4ue_cpt
+  1602                                  
+  1603                                  c4ue_chk_b:
+  1604 00000741 3C42                    	cmp	al, 'B'
+  1605                                  	;;jne	short c4ue_cpt
+  1606                                  	; 19/11/2024
+  1607                                  	;jne	short c4ue_chk_h
+  1608                                  	; 25/12/2024
+  1609                                  	; 29/11/2024
+  1610 00000743 7505                    	jne	short c4ue_chk_n
+  1611 00000745 E87604                  	call 	Player_ProcessKey_Backwards
+  1612 00000748 EB41                    	jmp	short c4ue_cpt
+  1613                                  
+  1614                                  	;;;
+  1615                                  	; 25/12/2024
+  1616                                  	; 29/11/2024
+  1617                                  c4ue_chk_n:
+  1618 0000074A 3C4E                    	cmp	al, 'N'
+  1619 0000074C 7404                    	je	short c4ue_nps
+  1620                                  c4ue_chk_p:
+  1621 0000074E 3C50                    	cmp	al, 'P'
+  1622 00000750 7507                    	jne	short c4ue_chk_h
+  1623                                  c4ue_nps:
+  1624 00000752 C606[1914]03            	mov	byte [stopped], 3
+  1625 00000757 EB32                    	jmp	short c4ue_cpt
+  1626                                  	;;;
+  1627                                  
+  1628                                  c4ue_chk_h:
+  1629                                  	; 19/11/2024
+  1630 00000759 3C48                    	cmp	al, 'H'
+  1631 0000075B 750A                    	jne	short c4ue_chk_cr
+  1632 0000075D C606[1B14]00            	mov	byte [wpoints], 0
+  1633                                  	;call 	write_ac97_pci_dev_info
+  1634                                  	; 02/01/2025
+  1635 00000762 E81DFE                  	call 	write_sb16_dev_info
+  1636                                  	; 30/12/2024
+  1637 00000765 EB24                    	jmp	short c4ue_cpt
+  1638                                  c4ue_chk_cr:
+  1639                                  	;;;
+  1640                                  	; 24/12/2024 (wave lighting points option)
+  1641                                  	;mov	ah, [wpoints]
+  1642                                  	; 01/01/2025
+  1643 00000767 31DB                    	xor	bx, bx
+  1644 00000769 8A1E[1B14]              	mov	bl, [wpoints]
+  1645 0000076D 3C47                    	cmp	al, 'G'
+  1646 0000076F 7406                    	je	short c4ue_g
+  1647                                  	; 19/11/2024
+  1648 00000771 3C0D                    	cmp	al, 0Dh ; ENTER/CR key
+  1649 00000773 7516                    	jne	short c4ue_cpt
+  1650                                  	; 23/11/2024
+  1651                                  	;xor	bx, bx
+  1652                                  	; 30/12/2024
+  1653                                  	;mov	bl, ah ; 24/12/2024
+  1654 00000775 FEC3                    	inc	bl
+  1655                                  c4ue_g:	; 30/12/2024
+  1656 00000777 80E307                  	and	bl, 07h
+  1657 0000077A 7501                    	jnz	short c4ue_sc
+  1658                                  	; 01/01/2025
+  1659 0000077C 43                      	inc	bx
+  1660                                  c4ue_sc:
+  1661 0000077D 881E[1B14]              	mov	[wpoints], bl
+  1662                                  	; 01/01/2025
+  1663 00000781 8A87[7F11]              	mov	al, [bx+colors-1] ; 1 to 7
+  1664                                  	; 24/12/2024
+  1665 00000785 A2[8711]                	mov	[ccolor], al
+  1666                                  	; 30/12/2024
+  1667 00000788 E89704                  	call	clear_window
+  1668                                  	;;;
+  1669                                  c4ue_cpt:
+  1670 0000078B 1E                      	push	ds
+  1671 0000078C BB4000                  	mov	bx, 40h
+  1672 0000078F 8EDB                    	mov	ds, bx
+  1673 00000791 BB6C00                  	mov	bx, 6Ch  ; counter (INT 08h, 18.2 ticks per sec)
+  1674                                  	;cli
+  1675 00000794 8B07                    	mov	ax, [bx]
+  1676 00000796 8B5702                  	mov	dx, [bx+2]
+  1677                                  	;sti
+  1678 00000799 1F                      	pop	ds
+  1679                                  	; 18/11/2024
+  1680 0000079A 59                      	pop	cx ; *
+  1681 0000079B 3B16[BA14]              	cmp	dx, [timerticks+2]
+  1682 0000079F 7506                    	jne	short c4ue_utt
+  1683 000007A1 3B06[B814]              	cmp	ax, [timerticks]
+  1684                                  	;je	short c4ue_ok
+  1685                                  	; 18/11/2024
+  1686 000007A5 740A                    	je	short c4ue_skip_utt
+  1687                                  c4ue_utt:
+  1688                                  	; 01/01/2025
+  1689 000007A7 A3[B814]                	mov	[timerticks], ax
+  1690 000007AA 8916[BA14]              	mov	[timerticks+2], dx
+  1691 000007AE EB05                    	jmp	short c4ue_cpt_@
+  1692                                  
+  1693                                  	; 30/12/2024
+  1694                                  c4ue_vb_ok:
+  1695 000007B0 C3                      	retn
+  1696                                  
+  1697                                  c4ue_skip_utt:
+  1698                                  	; 01/01/2025
+  1699                                  	; 18/11/2024
+  1700 000007B1 21C9                    	and	cx, cx
+  1701 000007B3 74FB                    	jz	short c4ue_vb_ok
+  1702                                  c4ue_cpt_@:
+  1703                                  	; 18/11/2024
+  1704 000007B5 803E[1914]00            	cmp	byte [stopped], 0
+  1705 000007BA 77F4                    	ja	short c4ue_vb_ok
+  1706                                  	
+  1707 000007BC E80203                  	call	CalcProgressTime
+  1708                                  
+  1709 000007BF 3B06[B014]              	cmp	ax, [ProgressTime]
+  1710                                  	;je	short c4ue_vb_ok
+  1711                                  			; same second, no need to update
+  1712                                  	; 23/11/2024
+  1713 000007C3 7403                    	je	short c4ue_uvb
+  1714                                  
+  1715                                  	;call	UpdateProgressTime
+  1716                                  	;call	UpdateProgressBar@
+  1717 000007C5 E89803                  	call	UpdateProgressBar
+  1718                                  
+  1719                                  	; 23/11/2024
+  1720                                  c4ue_uvb:
+  1721 000007C8 803E[1B14]00            	cmp	byte [wpoints], 0
+  1722 000007CD 76E1                    	jna	short c4ue_vb_ok
+  1723                                  
+  1724                                  	; 30/12/2024
+  1725                                  	;call	UpdateWavePoints
+  1726                                  	;retn
+  1727                                  
+  1728                                  	; 02/01/2025 (cgaplay2.asm, SB16)
+  1729 000007CF FF16[AC14]              	call	word [UpdateWavePoints]
+  1730 000007D3 C3                      	retn
+  1731                                  
+  1732                                  ; --------------------------------------------------------
+  1733                                  ; 27/12/2024 - Erdogan Tan
+  1734                                  ; --------------------------------------------------------
+  1735                                  
+  1736                                  	; 02/01/2025 (cgaplay2.asm, SB16)
+  1737                                  	; 01/01/2025 (cgaplay.asm, 16bit registers)
+  1738                                  	; 30/12/2024 (cgaplay.s)
+  1739                                  	;  * 320*200 pixels, 256 colors
+  1740                                  	;  * 64 volume levels
+  1741                                  	; 29/12/2024
+  1742                                  	; 27/12/2024 (DMA Buffer Tracking)
+  1743                                  	; 26/12/2024
+  1744                                  	; 24/12/2024
+  1745                                  ;UpdateWavePoints:
+  1746                                  	; 02/01/2025
+  1747                                  UpdateWavePoints_16s:
+  1748                                  	; 01/01/2025
+  1749 000007D4 06                      	push	es ; **
+  1750 000007D5 BB00A0                  	mov	bx, 0A000h
+  1751 000007D8 8EC3                    	mov	es, bx
+  1752                                  	;
+  1753 000007DA BE[8E11]                	mov	si, prev_points
+  1754 000007DD 833C00                  	cmp	word [si], 0
+  1755 000007E0 740C                    	jz	short lights_off_ok
+  1756                                  
+  1757                                  	;mov	cx, 640
+  1758                                  	; 30/12/2024
+  1759 000007E2 B94001                  	mov	cx, 320
+  1760                                  light_off:
+  1761 000007E5 AD                      	lodsw
+  1762                                  	; ax = wave point (lighting point) address
+  1763                                  	;mov	byte [ax], 0 ; black point (light off)
+  1764                                  	; 01/01/2025 (16bit mode modification)
+  1765 000007E6 89C3                    	mov	bx, ax
+  1766 000007E8 26C60700                	mov	byte [es:bx], 0
+  1767 000007EC E2F7                    	loop	light_off
+  1768                                  
+  1769                                  lights_off_ok:
+  1770                                  	; 29/12/2024
+  1771 000007EE 803E[1A14]32            	cmp	byte [tLO],'2'
+  1772 000007F3 7505                    	jne	short lights_on_buff_1
+  1773                                  lights_on_buff_2:
+  1774                                  	; 01/01/2025
+  1775                                  	;mov	dx, [WAV_BUFFER2]
+  1776                                  	; 02/01/2025
+  1777 000007F5 BA[E26A]                	mov	dx, wav_buffer2
+  1778 000007F8 EB03                    	jmp	short lights_on
+  1779                                  lights_on_buff_1:
+  1780                                  	; 01/01/2025
+  1781                                  	;mov	dx, [WAV_BUFFER1]
+  1782                                  	; 02/01/2025
+  1783 000007FA BA[C014]                	mov	dx, wav_buffer1
+  1784                                  lights_on:
+  1785 000007FD 3916[1E14]              	cmp	[pbuf_s], dx
+  1786 00000801 7519                    	jne	short lights_on_2
+  1787 00000803 8B1E[8A11]              	mov	bx, [wpoints_dif]
+  1788 00000807 8B36[1C14]              	mov	si, [pbuf_o]
+  1789                                  	;mov	cx, [buffersize] ; samples
+  1790                                  	;; 01/01/2025
+  1791                                  	;shl	cx, 1  ; bytes
+  1792                                  	; 02/01/2025
+  1793 0000080B B92256                  	mov	cx, LOADSIZE
+  1794 0000080E 29D9                    	sub	cx, bx ; sub cx, [wpoints_dif]
+  1795 00000810 01DE                    	add	si, bx
+  1796 00000812 7204                    	jc	short lights_on_1
+  1797 00000814 39CE                    	cmp	si, cx
+  1798 00000816 760A                    	jna	short lights_on_3
+  1799                                  lights_on_1:
+  1800 00000818 89CE                    	mov	si, cx
+  1801 0000081A EB06                    	jmp	short lights_on_3
+  1802                                  
+  1803                                  lights_on_2:
+  1804                                  	; 29/12/2024
+  1805 0000081C 8916[1E14]              	mov	[pbuf_s], dx
+  1806 00000820 31F6                    	xor	si, si ; 0
+  1807                                  lights_on_3:
+  1808 00000822 8936[1C14]              	mov	[pbuf_o], si
+  1809                                  	; 02/01/2025
+  1810                                  	; 01/01/2025
+  1811                                  	;push	ds ; **
+  1812                                  	;
+  1813                                  	;mov	cx, 640
+  1814                                  	; 30/12/2024
+  1815 00000826 B94001                  	mov	cx, 320
+  1816 00000829 89CD                    	mov	bp, cx
+  1817                                  	; 26/12/2024
+  1818 0000082B BF[8E11]                	mov	di, prev_points
+  1819                                  	;mov	bx, [graphstart] ; start (top) line
+  1820                                  	; 01/01/2025
+  1821                                  	;mov	ds, dx
+  1822                                  	; 02/01/2025
+  1823 0000082E 01D6                    	add	si, dx
+  1824 00000830 BB0073                  	mov	bx, (11*8*320)+(4*320)
+  1825                                  lights_on_4:
+  1826                                  	; 01/01/2025
+  1827 00000833 6631C0                  	xor	eax, eax ; 0
+  1828 00000836 AD                      	lodsw	; left
+  1829 00000837 80C480                  	add	ah, 80h
+  1830 0000083A 6689C2                  	mov	edx, eax
+  1831 0000083D AD                      	lodsw	; right
+  1832                                  	;add	ax, dx
+  1833 0000083E 80C480                  	add	ah, 80h
+  1834                                  	;;shr	eax, 9	; 128 volume levels
+  1835 00000841 6601D0                  	add	eax, edx
+  1836                                  	;;shr	eax, 10	; (L+R/2) & 128 volume levels
+  1837                                  	;shr	eax, 9	; (L+R/2) & 256 volume levels
+  1838                                  	; 30/12/2024
+  1839 00000844 66C1E80B                	shr	eax, 11	; (L+R/2) & 64 volume levels
+  1840                                  	; * 320 row  ; 30/12/2024
+  1841 00000848 F7E5                    	mul	bp	; * 640 (row) 
+  1842 0000084A 01D8                    	add	ax, bx ; + column
+  1843                                  	; 02/01/2025
+  1844 0000084C 8A16[8711]              	mov	dl, [ccolor]
+  1845                                  	; 01/01/2025
+  1846                                  	;mov	dl, [cs:ccolor]
+  1847 00000850 93                      	xchg	ax, bx
+  1848 00000851 268817                  	mov	[es:bx], dl ; pixel (light on) color
+  1849 00000854 93                      	xchg	ax, bx
+  1850                                  	;mov	[cs:di], ax ; save light on addr in prev_points
+  1851                                  	; 02/01/2025
+  1852 00000855 8905                    	mov	[di], ax
+  1853 00000857 47                      	inc	di
+  1854 00000858 47                      	inc	di
+  1855 00000859 43                      	inc	bx
+  1856 0000085A E2D7                    	loop	lights_on_4
+  1857                                  	; 02/01/2025
+  1858                                  	;pop	ds ; **
+  1859 0000085C 07                      	pop	es ; *
+  1860 0000085D C3                      	retn
+  1861                                  
+  1862                                  ; -------------------------
+  1863                                  
+  1864                                  	; 02/01/2025 (cgaplay2.asm, SB16, RetroDOS)
+  1865                                  	; 01/01/2025 (cgaplay.asm, AC97, RetroDOS)
+  1866                                  	; 30/12/2024 (cgaplay.s, AC97, TRDOS386)
+  1867                                  	;  * 320*200 pixels, 256 colors
+  1868                                  	;  * 64 volume levels
+  1869                                  UpdateWavePoints_16m:
+  1870                                  	; 01/01/2025
+  1871 0000085E 06                      	push	es ; **
+  1872 0000085F BB00A0                  	mov	bx, 0A000h
+  1873 00000862 8EC3                    	mov	es, bx
+  1874                                  	;
+  1875 00000864 BE[8E11]                	mov	si, prev_points
+  1876 00000867 833C00                  	cmp	word [si], 0
+  1877 0000086A 740C                    	jz	short lights_off_16m_ok
+  1878                                  
+  1879                                  	;mov	cx, 640
+  1880                                  	; 30/12/2024
+  1881 0000086C B94001                  	mov	cx, 320
+  1882                                  light_16m_off:
+  1883 0000086F AD                      	lodsw
+  1884                                  	; ax = wave point (lighting point) address
+  1885                                  	;mov	byte [ax], 0 ; black point (light off)
+  1886                                  	; 01/01/2025 (16bit mode modification)
+  1887 00000870 89C3                    	mov	bx, ax
+  1888 00000872 26C60700                	mov	byte [es:bx], 0
+  1889 00000876 E2F7                    	loop	light_16m_off
+  1890                                  
+  1891                                  lights_off_16m_ok:
+  1892                                  	; 29/12/2024
+  1893 00000878 803E[1A14]32            	cmp	byte [tLO],'2'
+  1894 0000087D 7505                    	jne	short lights_16m_on_buff_1
+  1895                                  lights_16m_on_buff_2:
+  1896                                  	; 01/01/2025
+  1897                                  	;mov	dx, [WAV_BUFFER2]
+  1898                                  	; 02/01/2025
+  1899 0000087F BA[E26A]                	mov	dx, wav_buffer2
+  1900 00000882 EB03                    	jmp	short lights_16m_on
+  1901                                  lights_16m_on_buff_1:
+  1902                                  	; 01/01/2025
+  1903                                  	;mov	dx, [WAV_BUFFER1]
+  1904                                  	; 02/01/2025
+  1905 00000884 BA[C014]                	mov	dx, wav_buffer1
+  1906                                  lights_16m_on:
+  1907 00000887 3916[1E14]              	cmp	[pbuf_s], dx
+  1908 0000088B 7519                    	jne	short lights_16m_on_2
+  1909 0000088D 8B1E[8A11]              	mov	bx, [wpoints_dif]
+  1910 00000891 8B36[1C14]              	mov	si, [pbuf_o]
+  1911                                  	;mov	cx, [buffersize] ; samples
+  1912                                  	;; 01/01/2025
+  1913                                  	;shl	cx, 1  ; bytes
+  1914                                  	; 02/01/2025
+  1915 00000895 B92256                  	mov	cx, LOADSIZE
+  1916 00000898 29D9                    	sub	cx, bx ; sub cx, [wpoints_dif]
+  1917 0000089A 01DE                    	add	si, bx
+  1918 0000089C 7204                    	jc	short lights_16m_on_1
+  1919 0000089E 39CE                    	cmp	si, cx
+  1920 000008A0 760A                    	jna	short lights_16m_on_3
+  1921                                  lights_16m_on_1:
+  1922 000008A2 89CE                    	mov	si, cx
+  1923 000008A4 EB06                    	jmp	short lights_16m_on_3
+  1924                                  
+  1925                                  lights_16m_on_2:
+  1926                                  	; 29/12/2024
+  1927 000008A6 8916[1E14]              	mov	[pbuf_s], dx
+  1928 000008AA 31F6                    	xor	si, si ; 0
+  1929                                  lights_16m_on_3:
+  1930 000008AC 8936[1C14]              	mov	[pbuf_o], si
+  1931                                  	; 02/01/2025
+  1932                                  	; 01/01/2025
+  1933                                  	;push	ds ; **
+  1934                                  	;
+  1935                                  	;mov	cx, 640
+  1936                                  	; 30/12/2024
+  1937 000008B0 B94001                  	mov	cx, 320
+  1938 000008B3 89CD                    	mov	bp, cx
+  1939                                  	; 26/12/2024
+  1940 000008B5 BF[8E11]                	mov	di, prev_points
+  1941                                  	;mov	bx, [graphstart] ; start (top) line
+  1942                                  	; 01/01/2025
+  1943                                  	;mov	ds, dx
+  1944                                  	; 02/01/2025
+  1945 000008B8 01D6                    	add	si, dx
+  1946 000008BA BB0073                  	mov	bx, (11*8*320)+(4*320)
+  1947                                  lights_16m_on_4:
+  1948                                  	; 02/01/2025 (16bit mono play modifications)
+  1949 000008BD 31C0                    	xor	ax, ax ; 0
+  1950 000008BF AD                      	lodsw	; left
+  1951 000008C0 80C480                  	add	ah, 80h
+  1952 000008C3 C1E80A                  	shr	ax, 10	; 64 volume levels
+  1953                                  	; 30/12/2024
+  1954                                  	; * 320 row
+  1955 000008C6 F7E5                    	mul	bp ; * 640 (row)
+  1956 000008C8 01D8                    	add	ax, bx ; + column
+  1957                                  	; 02/01/2025
+  1958 000008CA 8A16[8711]              	mov	dl, [ccolor]
+  1959                                  	; 01/01/2025
+  1960                                  	;mov	dl, [cs:ccolor]
+  1961 000008CE 93                      	xchg	ax, bx
+  1962 000008CF 268817                  	mov	[es:bx], dl ; pixel (light on) color
+  1963 000008D2 93                      	xchg	ax, bx
+  1964                                  	;mov	[cs:di], ax ; save light on addr in prev_points
+  1965                                  	; 02/01/2025
+  1966 000008D3 8905                    	mov	[di], ax
+  1967 000008D5 47                      	inc	di
+  1968 000008D6 47                      	inc	di
+  1969 000008D7 43                      	inc	bx
+  1970 000008D8 E2E3                    	loop	lights_16m_on_4
+  1971                                  	; 02/01/2025
+  1972                                  	;pop	ds ; **
+  1973 000008DA 07                      	pop	es ; *
+  1974 000008DB C3                      	retn
+  1975                                  
+  1976                                  ; -------------------------
+  1977                                  
+  1978                                  	; 02/01/2025
+  1979                                  UpdateWavePoints_8s:
+  1980                                  	; 01/01/2025
+  1981 000008DC 06                      	push	es ; **
+  1982 000008DD BB00A0                  	mov	bx, 0A000h
+  1983 000008E0 8EC3                    	mov	es, bx
+  1984                                  	;
+  1985 000008E2 BE[8E11]                	mov	si, prev_points
+  1986 000008E5 833C00                  	cmp	word [si], 0
+  1987 000008E8 740C                    	jz	short lights_off_8s_ok
+  1988                                  
+  1989                                  	;mov	cx, 640
+  1990                                  	; 30/12/2024
+  1991 000008EA B94001                  	mov	cx, 320
+  1992                                  light_8s_off:
+  1993 000008ED AD                      	lodsw
+  1994                                  	; ax = wave point (lighting point) address
+  1995                                  	;mov	byte [ax], 0 ; black point (light off)
+  1996                                  	; 01/01/2025 (16bit mode modification)
+  1997 000008EE 89C3                    	mov	bx, ax
+  1998 000008F0 26C60700                	mov	byte [es:bx], 0
+  1999 000008F4 E2F7                    	loop	light_8s_off
+  2000                                  
+  2001                                  lights_off_8s_ok:
+  2002                                  	; 29/12/2024
+  2003 000008F6 803E[1A14]32            	cmp	byte [tLO],'2'
+  2004 000008FB 7505                    	jne	short lights_8s_on_buff_1
+  2005                                  lights_8s_on_buff_2:
+  2006                                  	; 01/01/2025
+  2007                                  	;mov	dx, [WAV_BUFFER2]
+  2008                                  	; 02/01/2025
+  2009 000008FD BA[E26A]                	mov	dx, wav_buffer2
+  2010 00000900 EB03                    	jmp	short lights_8s_on
+  2011                                  lights_8s_on_buff_1:
+  2012                                  	; 01/01/2025
+  2013                                  	;mov	dx, [WAV_BUFFER1]
+  2014                                  	; 02/01/2025
+  2015 00000902 BA[C014]                	mov	dx, wav_buffer1
+  2016                                  lights_8s_on:
+  2017 00000905 3916[1E14]              	cmp	[pbuf_s], dx
+  2018 00000909 7519                    	jne	short lights_8s_on_2
+  2019 0000090B 8B1E[8A11]              	mov	bx, [wpoints_dif]
+  2020 0000090F 8B36[1C14]              	mov	si, [pbuf_o]
+  2021                                  	;mov	cx, [buffersize] ; samples
+  2022                                  	;; 01/01/2025
+  2023                                  	;shl	cx, 1  ; bytes
+  2024                                  	; 02/01/2025
+  2025 00000913 B92256                  	mov	cx, LOADSIZE
+  2026 00000916 29D9                    	sub	cx, bx ; sub cx, [wpoints_dif]
+  2027 00000918 01DE                    	add	si, bx
+  2028 0000091A 7204                    	jc	short lights_8s_on_1
+  2029 0000091C 39CE                    	cmp	si, cx
+  2030 0000091E 760A                    	jna	short lights_8s_on_3
+  2031                                  lights_8s_on_1:
+  2032 00000920 89CE                    	mov	si, cx
+  2033 00000922 EB06                    	jmp	short lights_8s_on_3
+  2034                                  
+  2035                                  lights_8s_on_2:
+  2036                                  	; 29/12/2024
+  2037 00000924 8916[1E14]              	mov	[pbuf_s], dx
+  2038 00000928 31F6                    	xor	si, si ; 0
+  2039                                  lights_8s_on_3:
+  2040 0000092A 8936[1C14]              	mov	[pbuf_o], si
+  2041                                  	; 02/01/2025
+  2042                                  	; 01/01/2025
+  2043                                  	;push	ds ; **
+  2044                                  	;
+  2045                                  	;mov	cx, 640
+  2046                                  	; 30/12/2024
+  2047 0000092E B94001                  	mov	cx, 320
+  2048 00000931 89CD                    	mov	bp, cx
+  2049                                  	; 26/12/2024
+  2050 00000933 BF[8E11]                	mov	di, prev_points
+  2051                                  	;mov	bx, [graphstart] ; start (top) line
+  2052                                  	; 01/01/2025
+  2053                                  	;mov	ds, dx
+  2054                                  	; 02/01/2025
+  2055 00000936 01D6                    	add	si, dx
+  2056 00000938 BB0073                  	mov	bx, (11*8*320)+(4*320)
+  2057                                  lights_8s_on_4:
+  2058                                  	; 02/01/2025 (8bit stereo play modifications)
+  2059 0000093B 31C0                    	xor	ax, ax ; 0
+  2060 0000093D AC                      	lodsb	; left
+  2061 0000093E 89C2                    	mov	dx, ax
+  2062 00000940 AC                      	lodsb	; right
+  2063 00000941 01D0                    	add	ax, dx
+  2064 00000943 D1E8                    	shr	ax, 1 ; (L+R/2)
+  2065 00000945 2CFF                    	sub	al, 255	; max. value will be shown on top
+  2066 00000947 C1E802                  	shr	ax, 2 ; 64 volume levels
+  2067                                  	; * 320 row  ; 30/12/2024
+  2068 0000094A F7E5                    	mul	bp	; * 640 (row) 
+  2069 0000094C 01D8                    	add	ax, bx ; + column
+  2070                                  	; 02/01/2025
+  2071 0000094E 8A16[8711]              	mov	dl, [ccolor]
+  2072                                  	; 01/01/2025
+  2073                                  	;mov	dl, [cs:ccolor]
+  2074 00000952 93                      	xchg	ax, bx
+  2075 00000953 268817                  	mov	[es:bx], dl ; pixel (light on) color
+  2076 00000956 93                      	xchg	ax, bx
+  2077                                  	;mov	[cs:di], ax ; save light on addr in prev_points
+  2078                                  	; 02/01/2025
+  2079 00000957 8905                    	mov	[di], ax
+  2080 00000959 47                      	inc	di
+  2081 0000095A 47                      	inc	di
+  2082 0000095B 43                      	inc	bx
+  2083 0000095C E2DD                    	loop	lights_8s_on_4
+  2084                                  	; 02/01/2025
+  2085                                  	;pop	ds ; **
+  2086 0000095E 07                      	pop	es ; *
+  2087 0000095F C3                      	retn
+  2088                                  
+  2089                                  ; -------------------------
+  2090                                  
+  2091                                  	; 02/01/2025
+  2092                                  UpdateWavePoints_8m:
+  2093                                  	; 01/01/2025
+  2094 00000960 06                      	push	es ; **
+  2095 00000961 BB00A0                  	mov	bx, 0A000h
+  2096 00000964 8EC3                    	mov	es, bx
+  2097                                  	;
+  2098 00000966 BE[8E11]                	mov	si, prev_points
+  2099 00000969 833C00                  	cmp	word [si], 0
+  2100 0000096C 740C                    	jz	short lights_off_8m_ok
+  2101                                  
+  2102                                  	;mov	cx, 640
+  2103                                  	; 30/12/2024
+  2104 0000096E B94001                  	mov	cx, 320
+  2105                                  light_8m_off:
+  2106 00000971 AD                      	lodsw
+  2107                                  	; ax = wave point (lighting point) address
+  2108                                  	;mov	byte [ax], 0 ; black point (light off)
+  2109                                  	; 01/01/2025 (16bit mode modification)
+  2110 00000972 89C3                    	mov	bx, ax
+  2111 00000974 26C60700                	mov	byte [es:bx], 0
+  2112 00000978 E2F7                    	loop	light_8m_off
+  2113                                  
+  2114                                  lights_off_8m_ok:
+  2115                                  	; 29/12/2024
+  2116 0000097A 803E[1A14]32            	cmp	byte [tLO],'2'
+  2117 0000097F 7505                    	jne	short lights_8m_on_buff_1
+  2118                                  lights_8m_on_buff_2:
+  2119                                  	; 01/01/2025
+  2120                                  	;mov	dx, [WAV_BUFFER2]
+  2121                                  	; 02/01/2025
+  2122 00000981 BA[E26A]                	mov	dx, wav_buffer2
+  2123 00000984 EB03                    	jmp	short lights_8m_on
+  2124                                  lights_8m_on_buff_1:
+  2125                                  	; 01/01/2025
+  2126                                  	;mov	dx, [WAV_BUFFER1]
+  2127                                  	; 02/01/2025
+  2128 00000986 BA[C014]                	mov	dx, wav_buffer1
+  2129                                  lights_8m_on:
+  2130 00000989 3916[1E14]              	cmp	[pbuf_s], dx
+  2131 0000098D 7519                    	jne	short lights_8m_on_2
+  2132 0000098F 8B1E[8A11]              	mov	bx, [wpoints_dif]
+  2133 00000993 8B36[1C14]              	mov	si, [pbuf_o]
+  2134                                  	;mov	cx, [buffersize] ; samples
+  2135                                  	;; 01/01/2025
+  2136                                  	;shl	cx, 1  ; bytes
+  2137                                  	; 02/01/2025
+  2138 00000997 B92256                  	mov	cx, LOADSIZE
+  2139 0000099A 29D9                    	sub	cx, bx ; sub cx, [wpoints_dif]
+  2140 0000099C 01DE                    	add	si, bx
+  2141 0000099E 7204                    	jc	short lights_8m_on_1
+  2142 000009A0 39CE                    	cmp	si, cx
+  2143 000009A2 760A                    	jna	short lights_8m_on_3
+  2144                                  lights_8m_on_1:
+  2145 000009A4 89CE                    	mov	si, cx
+  2146 000009A6 EB06                    	jmp	short lights_8m_on_3
+  2147                                  
+  2148                                  lights_8m_on_2:
+  2149                                  	; 29/12/2024
+  2150 000009A8 8916[1E14]              	mov	[pbuf_s], dx
+  2151 000009AC 31F6                    	xor	si, si ; 0
+  2152                                  lights_8m_on_3:
+  2153 000009AE 8936[1C14]              	mov	[pbuf_o], si
+  2154                                  	; 02/01/2025
+  2155                                  	; 01/01/2025
+  2156                                  	;push	ds ; **
+  2157                                  	;
+  2158                                  	;mov	cx, 640
+  2159                                  	; 30/12/2024
+  2160 000009B2 B94001                  	mov	cx, 320
+  2161 000009B5 89CD                    	mov	bp, cx
+  2162                                  	; 26/12/2024
+  2163 000009B7 BF[8E11]                	mov	di, prev_points
+  2164                                  	;mov	bx, [graphstart] ; start (top) line
+  2165                                  	; 01/01/2025
+  2166                                  	;mov	ds, dx
+  2167                                  	; 02/01/2025
+  2168 000009BA 01D6                    	add	si, dx
+  2169 000009BC BB0073                  	mov	bx, (11*8*320)+(4*320)
+  2170                                  lights_8m_on_4:
+  2171                                  	; 02/01/2025 (8bit mono play modifications)
+  2172 000009BF 31C0                    	xor	ax, ax ; 0
+  2173 000009C1 AC                      	lodsb
+  2174 000009C2 2CFF                    	sub	al, 255	; max. value will be shown on top
+  2175 000009C4 C1E802                  	shr	ax, 2  ; 64 volume levels
+  2176                                  	; 30/12/2024
+  2177                                  	; * 320 row
+  2178 000009C7 F7E5                    	mul	bp ; * 640 (row)
+  2179 000009C9 01D8                    	add	ax, bx ; + column
+  2180                                  	; 02/01/2025
+  2181 000009CB 8A16[8711]              	mov	dl, [ccolor]
+  2182                                  	; 01/01/2025
+  2183                                  	;mov	dl, [cs:ccolor]
+  2184 000009CF 93                      	xchg	ax, bx
+  2185 000009D0 268817                  	mov	[es:bx], dl ; pixel (light on) color
+  2186 000009D3 93                      	xchg	ax, bx
+  2187                                  	;mov	[cs:di], ax ; save light on addr in prev_points
+  2188                                  	; 02/01/2025
+  2189 000009D4 8905                    	mov	[di], ax
+  2190 000009D6 47                      	inc	di
+  2191 000009D7 47                      	inc	di
+  2192 000009D8 43                      	inc	bx
+  2193 000009D9 E2E4                    	loop	lights_8m_on_4
+  2194                                  	; 02/01/2025
+  2195                                  	;pop	ds ; **
+  2196 000009DB 07                      	pop	es ; *
+  2197 000009DC C3                      	retn
+  2198                                  
+  2199                                  ; --------------------------------------------------------
+  2200                                  ; 19/05/2024 - (playwav4.asm) ich_wav4.asm
+  2201                                  ; --------------------------------------------------------
+  2202                                  
+  2203                                  	; 02/01/2025 (cgaplay2.asm)
+  2204                                  	; 29/11/2024
+  2205                                  check4keyboardstop:
+  2206                                  	; 19/05/2024
+  2207                                  	; 08/11/2023
+  2208                                  	; 04/11/2023
+  2209 000009DD B401                    	mov	ah, 1
+  2210 000009DF CD16                    	int	16h
+  2211                                  	;clc
+  2212 000009E1 7429                    	jz	short _cksr
+  2213                                  
+  2214 000009E3 30E4                    	xor	ah, ah
+  2215 000009E5 CD16                    	int	16h
+  2216                                  
+  2217                                  	; 29/11/2024
+  2218 000009E7 A2[2014]                	mov	[command], al
+  2219                                  
+  2220                                  	;;;
+  2221                                  	; 19/05/2024 (change PCM out volume)
+  2222 000009EA 3C2B                    	cmp	al, '+'
+  2223 000009EC 750B                    	jne	short p_1
+  2224                                  	
+  2225 000009EE A0[320A]                	mov	al, [volume]
+  2226                                  	;cmp	al, 0
+  2227                                  	;jna	short p_3
+  2228                                  	;dec	al
+  2229                                  	;jmp	short p_2
+  2230                                  	; 02/01/2025
+  2231 000009F1 3C0F                    	cmp	al, 15
+  2232 000009F3 7319                    	jnb	short p_3
+  2233 000009F5 FEC0                    	inc	al
+  2234 000009F7 EB0D                    	jmp	short p_2
+  2235                                  p_1:
+  2236 000009F9 3C2D                    	cmp	al, '-'
+  2237 000009FB 7512                    	jne	short p_4
+  2238                                  
+  2239 000009FD A0[320A]                	mov	al, [volume]
+  2240                                  	;cmp	al, 31
+  2241                                  	;jnb	short p_3
+  2242                                  	;inc	al
+  2243                                  	; 02/01/2025
+  2244 00000A00 3C00                    	cmp	al, 0
+  2245 00000A02 760A                    	jna	short p_3
+  2246 00000A04 FEC8                    	dec	al
+  2247                                  p_2:
+  2248                                  	; 02/01/2025
+  2249                                  	;mov	[volume], al
+  2250                                  	; 14/11/2024
+  2251                                  	;call	SetPCMOutVolume
+  2252                                  	; 02/01/2025
+  2253                                  	; 15/11/2024 (QEMU)
+  2254 00000A06 E8E3F8                  	call	SetMasterVolume
+  2255                                  	;call	UpdateVolume
+  2256                                  	;;clc
+  2257                                  	;retn
+  2258 00000A09 E93101                  	jmp	UpdateVolume
+  2259                                  
+  2260                                  _cksr:		; 19/05/2024
+  2261                                  	; 18/11/2024
+  2262 00000A0C 31C0                    	xor	ax, ax
+  2263                                  	;clc
+  2264                                  p_3:
+  2265 00000A0E C3                      	retn
+  2266                                  p_4:
+  2267                                  	; 17/11/2024
+  2268 00000A0F 80FC01                  	cmp	ah, 01h  ; ESC
+  2269 00000A12 7417                        	je	short p_q
+  2270 00000A14 3C03                    	cmp	al, 03h  ; CTRL+C
+  2271 00000A16 7413                    	je	short p_q
+  2272                                  
+  2273                                  	; 18/11/2024
+  2274 00000A18 3C20                    	cmp	al, 20h
+  2275 00000A1A 7415                    	je	short p_r
+  2276                                  
+  2277                                  	; 19/11/2024
+  2278 00000A1C 3C0D                    	cmp	al, 0Dh ; CR/ENTER
+  2279 00000A1E 7411                    	je	short p_r
+  2280                                  
+  2281 00000A20 24DF                    	and	al, 0DFh
+  2282                                  
+  2283                                  	; 29/11/2024
+  2284 00000A22 A2[2014]                	mov	[command], al
+  2285                                  
+  2286                                  	;cmp	al, 'B'
+  2287                                  	;je	short p_r
+  2288                                  	;cmp	al, 'F'
+  2289                                  	;je	short p_r
+  2290                                  
+  2291                                  	; 29/11/2024
+  2292                                  	;cmp	al, 'N'
+  2293                                  	;je	short p_r
+  2294                                  	;cmp	al, 'P'
+  2295                                  	;je	short p_r
+  2296                                  
+  2297 00000A25 3C51                    	cmp	al, 'Q'
+  2298                                  	;je	short p_q
+  2299 00000A27 7407                    	je	short p_quit ; 29/11/2024
+  2300                                  
+  2301 00000A29 F8                      	clc
+  2302 00000A2A C3                      	retn
+  2303                                  
+  2304                                  	;;;
+  2305                                  ;_cskr:	
+  2306                                  p_q:
+  2307                                  	; 29/11/2024
+  2308 00000A2B C606[2014]51            	mov	byte [command], 'Q'
+  2309                                  p_quit:
+  2310 00000A30 F9                      	stc
+  2311                                  p_r:
+  2312 00000A31 C3                      	retn
+  2313                                  
+  2314                                  ; 29/05/2024
+  2315                                  ; 19/05/2024
+  2316                                  volume: 
+  2317                                  	;db	02h
+  2318                                  ; 26/12/2024
+  2319                                  	;db	03h
+  2320                                  ; 02/01/2025 (SB16)
+  2321 00000A32 0A                      	db	10 ; max = 15, min = 0
+  2322                                  
+  2323                                  ; --------------------------------------------------------
+  2324                                  
+  2325                                  	; 01/01/2025 /cgaplay.asm)
+  2326                                  setCursorPosition:
+  2327                                  	; dh = Row
+  2328                                  	; dl = Column
+  2329                                  
+  2330                                  	; 31/12/2024
+  2331 00000A33 B700                    	mov	bh, 0
+  2332 00000A35 B402                    	mov	ah, 02h
+  2333 00000A37 CD10                    	int	10h
+  2334 00000A39 C3                      	retn
+  2335                                  	
+  2336                                  ; --------------------------------------------------------
+  2337                                  ; 14/11/2024
+  2338                                  ; (Ref: player.asm, out_cs.asm, Matan Alfasi, 2017)
+  2339                                  
+  2340                                  ;; NAME:	SetTotalTime
+  2341                                  ;; DESCRIPTION: Calculates the total time in seconds in file
+  2342                                  ;; INPUT:	DATA_SubchunkSize, WAVE_SampleRate, WAVE_BlockAlign
+  2343                                  ;; OUTPUT:	CurrentTotalTime=Total time in seconds in file,
+  2344                                  ;; 		Output on the screen of the total time in seconds
+  2345                                  
+  2346                                  	; 01/01/2025
+  2347                                  SetTotalTime:
+  2348                                  	;; Calculate total seconds in file
+  2349 00000A3A A1[4C14]                	mov	ax, [DATA_SubchunkSize]
+  2350 00000A3D 8B16[4E14]              	mov	dx, [DATA_SubchunkSize+2]
+  2351 00000A41 8B1E[3C14]              	mov	bx, [WAVE_SampleRate]
+  2352 00000A45 F7F3                    	div	bx
+  2353 00000A47 31D2                    	xor	dx, dx
+  2354                                  
+  2355 00000A49 8B1E[4414]              	mov	bx, [WAVE_BlockAlign]
+  2356                                  
+  2357 00000A4D F7F3                    	div	bx
+  2358                                  
+  2359 00000A4F A3[AE14]                	mov	[TotalTime], ax
+  2360                                  
+  2361 00000A52 B33C                    	mov	bl, 60
+  2362 00000A54 F6F3                    	div	bl
+  2363                                  
+  2364                                  	;; al = minutes, ah = seconds
+  2365 00000A56 50                      	push	ax ; **
+  2366 00000A57 50                      	push	ax ; *
+  2367                                  
+  2368                                  	;mov	dh, 24
+  2369                                  	;mov	dl, 42
+  2370                                  	; 01/01/2025 (cgaplay.asm, video mode 13h)
+  2371 00000A58 B617                    	mov	dh, 23
+  2372 00000A5A B216                    	mov	dl, 22
+  2373 00000A5C E8D4FF                  	call	setCursorPosition
+  2374                                  
+  2375 00000A5F 58                      	pop	ax ; *
+  2376 00000A60 30E4                    	xor	ah, ah
+  2377 00000A62 BD0200                  	mov	bp, 2
+  2378 00000A65 E80F00                  	call	PrintNumber
+  2379                                  	
+  2380                                  	;mov	dh, 24
+  2381                                  	;mov	dl, 45
+  2382                                  	; 01/01/2025 (cgaplay.asm, video mode 13h)
+  2383 00000A68 B617                    	mov	dh, 23
+  2384 00000A6A B219                    	mov	dl, 25
+  2385 00000A6C E8C4FF                  	call	setCursorPosition
+  2386                                  
+  2387 00000A6F 58                      	pop	ax ; **
+  2388 00000A70 88E0                    	mov	al, ah
+  2389 00000A72 30E4                    	xor	ah, ah
+  2390 00000A74 BD0200                  	mov	bp, 2
+  2391                                  	;jmp	short PrintNumber
+  2392                                  
+  2393                                  ; --------------------------------------------------------
+  2394                                  
+  2395                                  	; 01/01/2025 (cgaplay.asm)
+  2396                                  PrintNumber:
+  2397                                  	; bp = digits
+  2398                                  	; ax = binary number
+  2399 00000A77 BB0A00                  	mov	bx, 10
+  2400 00000A7A 31C9                    	xor	cx, cx
+  2401                                  printNumber_CutNumber:
+  2402 00000A7C 41                      	inc	cx
+  2403 00000A7D 31D2                    	xor	dx, dx
+  2404 00000A7F F7F3                    	div	bx
+  2405 00000A81 52                      	push	dx
+  2406 00000A82 39E9                    	cmp	cx, bp
+  2407 00000A84 7402                    	je	short printNumber_printloop
+  2408 00000A86 EBF4                    	jmp	printNumber_CutNumber
+  2409                                  
+  2410                                  printNumber_printloop:
+  2411 00000A88 58                      	pop	ax
+  2412                                  	; bp = count of digits
+  2413                                  	; ax <= 9
+  2414                                  
+  2415 00000A89 0430                    	add	al, '0'
+  2416                                  	
+  2417                                  	; al = character
+  2418 00000A8B E8C900                  	call	write_character_white
+  2419                                  
+  2420 00000A8E 4D                      	dec	bp
+  2421 00000A8F 7402                     	jz	short printNumber_ok
+  2422 00000A91 EBF5                    	jmp	short printNumber_printloop
+  2423                                  printNumber_ok:
+  2424 00000A93 C3                      	retn
+  2425                                  
+  2426                                  ; --------------------------------------------------------
+  2427                                  
+  2428                                  	; 01/01/2025
+  2429                                  	; 14/11/2024 - Erdogan Tan
+  2430                                  SetProgressTime:
+  2431                                  	;; Calculate playing/progress seconds in file
+  2432 00000A94 E82A00                  	call	CalcProgressTime
+  2433                                  
+  2434                                  UpdateProgressTime:
+  2435                                  	; ax = (new) progress time 
+  2436                                  
+  2437 00000A97 A3[B014]                	mov	[ProgressTime], ax
+  2438                                  
+  2439 00000A9A B33C                    	mov	bl, 60
+  2440 00000A9C F6F3                    	div	bl
+  2441                                  
+  2442                                  	;; al = minutes, ah = seconds
+  2443 00000A9E 50                      	push	ax ; **
+  2444 00000A9F 50                      	push	ax ; *
+  2445                                  
+  2446                                  	;mov	dh, 24
+  2447                                  	;mov	dl, 33
+  2448                                  	; 01/01/2025 (cgaplay.asm, video mode 13h)
+  2449 00000AA0 B617                    	mov	dh, 23
+  2450 00000AA2 B20D                    	mov	dl, 13
+  2451 00000AA4 E88CFF                  	call	setCursorPosition
+  2452                                  
+  2453 00000AA7 58                      	pop	ax ; *
+  2454 00000AA8 30E4                    	xor	ah, ah
+  2455 00000AAA BD0200                  	mov	bp, 2
+  2456 00000AAD E8C7FF                  	call	PrintNumber
+  2457                                  	
+  2458                                  	;mov	dh, 24
+  2459                                  	;mov	dl, 36
+  2460                                  	; 01/01/2025 (cgaplay.asm, video mode 13h)
+  2461 00000AB0 B617                    	mov	dh, 23
+  2462 00000AB2 B210                    	mov	dl, 16
+  2463 00000AB4 E87CFF                  	call	setCursorPosition
+  2464                                  
+  2465 00000AB7 58                      	pop	ax ; **
+  2466 00000AB8 88E0                    	mov	al, ah
+  2467 00000ABA 30E4                    	xor	ah, ah
+  2468                                  	; 21/12/2024
+  2469 00000ABC BD0200                  	mov	bp, 2
+  2470 00000ABF EBB6                    	jmp	short PrintNumber
+  2471                                  
+  2472                                  ; --------------------------------------------------------
+  2473                                  
+  2474                                  	; 17/11/2024
+  2475                                  	; 14/11/2024
+  2476                                  CalcProgressTime:
+  2477 00000AC1 A1[B414]                	mov	ax, [LoadedDataBytes]
+  2478 00000AC4 8B16[B614]              	mov	dx, [LoadedDataBytes+2]
+  2479 00000AC8 89C3                    	mov	bx, ax
+  2480 00000ACA 09D3                    	or	bx, dx
+  2481 00000ACC 740E                    	jz	short cpt_ok
+  2482                                  
+  2483 00000ACE 8B1E[3C14]              	mov	bx, [WAVE_SampleRate]
+  2484 00000AD2 F7F3                    	div	bx
+  2485 00000AD4 31D2                    	xor	dx, dx
+  2486 00000AD6 8B1E[4414]              	mov	bx, [WAVE_BlockAlign]
+  2487 00000ADA F7F3                    	div	bx
+  2488                                  cpt_ok:
+  2489                                  	; ax = (new) progress time
+  2490 00000ADC C3                      	retn
+  2491                                  
+  2492                                  ; --------------------------------------------------------
+  2493                                  ; 14/11/2024
+  2494                                  ; (Ref: player.asm, out_cs.asm, Matan Alfasi, 2017)
+  2495                                  
+  2496                                  ;; DESCRIPTION: Update file information on template
+  2497                                  ;; PARAMS:	WAVE parameters and other variables
+  2498                                  ;; REGS:	AX(RW)
+  2499                                  ;; VARS:	CurrentFileName, WAVE_SampleRate, 
+  2500                                  ;; RETURNS:	On-screen file info is updated.
+  2501                                  
+  2502                                  	; 01/01/2025 (cgaplay.asm)
+  2503                                  UpdateFileInfo:
+  2504                                  	;; Print File Name
+  2505                                  	;mov	dh, 9
+  2506                                  	;mov	dl, 23
+  2507                                  	; 01/01/2025 (cgaplay.asm, video mode 13h)
+  2508 00000ADD B607                    	mov	dh, 7
+  2509 00000ADF B208                    	mov	dl, 8
+  2510 00000AE1 E84FFF                  	call	setCursorPosition
+  2511                                  	
+  2512 00000AE4 BE[5614]                	mov	si, wav_file_name
+  2513                                  	
+  2514                                  	;;;
+  2515                                  	; 14/11/2024
+  2516                                  	; skip directory separators
+  2517                                  	; (note: asciiz string, max. 79 bytes except zero tail)
+  2518 00000AE7 89F3                    	mov	bx, si
+  2519                                  chk4_nxt_sep:
+  2520 00000AE9 AC                      	lodsb
+  2521 00000AEA 3C5C                    	cmp	al, '\'
+  2522 00000AEC 7406                    	je	short chg_fpos
+  2523 00000AEE 20C0                    	and	al, al
+  2524 00000AF0 7406                    	jz	short chg_fpos_ok
+  2525 00000AF2 EBF5                    	jmp	short chk4_nxt_sep
+  2526                                  chg_fpos:
+  2527 00000AF4 89F3                    	mov	bx, si
+  2528 00000AF6 EBF1                    	jmp	short chk4_nxt_sep
+  2529                                  chg_fpos_ok:
+  2530 00000AF8 89DE                    	mov	si, bx	; file name (without its path/directory)
+  2531                                  	;;;
+  2532                                  _fnl_chk:
+  2533                                  	; 01/01/2025 (cplay.asm)
+  2534                                  	; 30/12/2024 (cgaplay.s)
+  2535                                  	; ????????.wav
+  2536                                  	; 26/12/2024 (file name length limit -display-)
+  2537 00000AFA BB0C00                  	mov	bx, 12
+  2538                                  	;mov	bx, 17	; ????????.wav?????
+  2539 00000AFD 56                      	push	si
+  2540                                  _fnl_chk_loop:
+  2541 00000AFE AC                      	lodsb
+  2542 00000AFF 20C0                    	and	al, al
+  2543 00000B01 7406                    	jz	short _fnl_ok
+  2544 00000B03 4B                       	dec	bx
+  2545 00000B04 75F8                    	jnz	short _fnl_chk_loop
+  2546 00000B06 C60400                  	mov	byte [si], 0
+  2547                                  _fnl_ok:
+  2548 00000B09 5E                      	pop	si
+  2549                                  	;;;
+  2550                                  
+  2551 00000B0A E8D2F6                  	call	PrintString
+  2552                                  	
+  2553                                  	;; Print Frequency
+  2554                                  	;mov	dh, 10
+  2555                                  	;mov	dl, 23
+  2556                                  	; 01/01/2025 (cgaplay.asm, video mode 13h)
+  2557 00000B0D B608                    	mov	dh, 8
+  2558 00000B0F B208                    	mov	dl, 8
+  2559 00000B11 E81FFF                  	call	setCursorPosition
+  2560                                  	 
+  2561 00000B14 A1[3C14]                	mov	ax, [WAVE_SampleRate]
+  2562 00000B17 BD0500                  	mov	bp, 5
+  2563 00000B1A E85AFF                  	call	PrintNumber
+  2564                                  
+  2565                                  	;; Print BitRate
+  2566                                  	;mov	dh, 9
+  2567                                  	;mov	dl, 57
+  2568                                  	; 01/01/2025 (cgaplay.asm, video mode 13h)
+  2569 00000B1D B607                    	mov	dh, 7
+  2570 00000B1F B21F                    	mov	dl, 31
+  2571 00000B21 E80FFF                  	call	setCursorPosition
+  2572                                  
+  2573 00000B24 A1[4614]                	mov	ax, [WAVE_BitsPerSample]
+  2574 00000B27 BD0200                  	mov	bp, 2
+  2575 00000B2A E84AFF                  	call	PrintNumber
+  2576                                  
+  2577                                  	;; Print Channel Number
+  2578                                  	;mov	dh, 10
+  2579                                  	;mov	dl, 57
+  2580                                  	; 01/01/2025 (cgaplay.asm, video mode 13h)
+  2581 00000B2D B608                    	mov	dh, 8
+  2582 00000B2F B21F                    	mov	dl, 31
+  2583 00000B31 E8FFFE                  	call	setCursorPosition
+  2584                                  
+  2585 00000B34 A1[3A14]                	mov	ax, [WAVE_NumChannels]
+  2586 00000B37 BD0100                  	mov	bp, 1
+  2587 00000B3A E83AFF                  	call	PrintNumber
+  2588                                  
+  2589                                  	;call	UpdateVolume
+  2590                                  	;retn
+  2591                                  
+  2592                                  ; --------------------------------------------------------
+  2593                                  
+  2594                                  	; 02/02/2025 (cgaplay2.asm) -SB16-
+  2595                                  	; 01/01/2025 (cgaplay.asm) -AC97-
+  2596                                  	; 14/11/2024
+  2597                                  UpdateVolume:
+  2598                                  	;; Print Volume
+  2599                                  	;mov	dh, 24
+  2600                                  	;mov	dl, 75
+  2601                                  	; 01/01/2025 (cgaplay.asm, video mode 13h)
+  2602 00000B3D B617                    	mov	dh, 23
+  2603 00000B3F B223                    	mov	dl, 35
+  2604 00000B41 E8EFFE                  	call	setCursorPosition
+  2605                                  	
+  2606 00000B44 A0[320A]                	mov	al, [volume]
+  2607                                  
+  2608 00000B47 B364                    	mov	bl, 100
+  2609 00000B49 F6E3                    	mul	bl
+  2610                                  
+  2611                                  	;mov	bl, 31
+  2612                                  	;div	bl
+  2613                                  	; 02/01/2025 (SB16)
+  2614 00000B4B B30F                    	mov	bl, 15
+  2615 00000B4D F6F3                    	div	bl
+  2616                                  
+  2617                                  	;neg	ax
+  2618                                  	;add	ax, 100
+  2619                                  
+  2620 00000B4F 30E4                    	xor	ah, ah
+  2621 00000B51 BD0300                  	mov	bp, 3
+  2622                                  	;call	PrintNumber
+  2623                                  	;retn
+  2624 00000B54 E920FF                  	jmp	PrintNumber	
+  2625                                  
+  2626                                  ; --------------------------------------------------------
+  2627                                  
+  2628                                  	; 01/01/2025 (cgaplay.asm)
+  2629                                  write_character_white:
+  2630                                  	;mov	cx, 0Fh
+  2631 00000B57 B30F                    	mov	bl, 0Fh
+  2632                                  write_character:
+  2633                                  	; 01/12/2024
+  2634 00000B59 30FF                    	xor	bh, bh
+  2635                                  	; bl = foreground color
+  2636                                  	; al = character (ASCII code)
+  2637 00000B5B B40E                    	mov	ah, 0Eh
+  2638 00000B5D CD10                    	int	10h
+  2639 00000B5F C3                      	retn
+  2640                                  
+  2641                                  ; --------------------------------------------------------
+  2642                                  
+  2643                                  	; 01/01/2025 (cgaplay.asm)
+  2644                                  	; 30/12/2024
+  2645                                  	; write characters in video mode 13h
+  2646                                  	; (320*200 pixels, 256 colors)
+  2647                                  	; 22/12/2024
+  2648                                  	; 21/12/2024
+  2649                                  	; (write chars in VESA VBE graphics mode)
+  2650                                  	; 14/11/2024
+  2651                                  	; (Ref: player.asm, Matan Alfasi, 2017)
+  2652                                  	; (Modification: Erdogan Tan, 14/11/2024)
+  2653                                  
+  2654                                  	;PROGRESSBAR_ROW equ 23
+  2655                                  	; 21/12/2024 (640*480)
+  2656                                  	;PROGRESSBAR_ROW equ 31
+  2657                                  	; 30/12/2024 (320*200)
+  2658                                  	PROGRESSBAR_ROW equ 22
+  2659                                  
+  2660                                  UpdateProgressBar:
+  2661 00000B60 E831FF                  	call	SetProgressTime	; 14/11/2024
+  2662                                  
+  2663                                  	; 01/01/2025
+  2664 00000B63 A1[B014]                	mov	ax, [ProgressTime]
+  2665                                  UpdateProgressBar@:
+  2666                                  	;mov	dx, 80
+  2667                                  	; 30/12/2024
+  2668 00000B66 BA2800                  	mov	dx, 40 ; 320*200 pixels, 40 columns 
+  2669 00000B69 F7E2                    	mul	dx
+  2670 00000B6B 8B1E[AE14]              	mov	bx, [TotalTime]
+  2671 00000B6F F7F3                    	div	bx
+  2672                                  
+  2673                                  	; 22/12/2024
+  2674                                  	; check progress bar indicator position if it is same 
+  2675 00000B71 3A06[8D11]              	cmp	al, [pbprev]
+  2676 00000B75 741E                    	je	short UpdateProgressBar_ok
+  2677 00000B77 A2[8D11]                	mov	[pbprev], al
+  2678                                  
+  2679                                  	; 01/01/2025
+  2680                                  UpdateProgressBar@@:
+  2681                                  	;; Push for the 'Clean' part
+  2682 00000B7A 50                      	push	ax ; **
+  2683 00000B7B 50                      	push	ax ; *
+  2684                                  
+  2685                                  	;; Set cursor position
+  2686 00000B7C B616                    	mov	dh, PROGRESSBAR_ROW
+  2687 00000B7E B200                    	mov	dl, 0
+  2688 00000B80 E8B0FE                  	call	setCursorPosition
+  2689                                  
+  2690 00000B83 58                      	pop	ax ; *
+  2691 00000B84 09C0                    	or	ax, ax
+  2692 00000B86 741D                    	jz	short UpdateProgressBar_Clean
+  2693                                  
+  2694                                  	; 01/01/2025
+  2695                                  UpdateProgressBar_DrawProgress:
+  2696                                  	; 31/12/2024 (int 31h)
+  2697                                  	; 22/12/2024
+  2698                                  	; 21/12/2024
+  2699                                  	; (write progress bar chars in graphics mode)
+  2700                                  	;;;;
+  2701 00000B88 89C5                    	mov	bp, ax
+  2702 00000B8A 50                      	push	ax ; ***
+  2703                                  UpdateProgressBar_DrawProgress_@:
+  2704                                  	; 01/01/2025
+  2705 00000B8B B0DF                    	mov	al, 223
+  2706                                  
+  2707                                  	; al = character
+  2708                                  	;call	write_character
+  2709                                  	; 22/12/2024
+  2710 00000B8D E8C7FF                  	call	write_character_white
+  2711                                  
+  2712 00000B90 4D                      	dec	bp
+  2713 00000B91 7403                    	jz	short UpdateProgressBar_DrawCursor
+  2714 00000B93 EBF6                    	jmp	short UpdateProgressBar_DrawProgress_@
+  2715                                  
+  2716                                  UpdateProgressBar_ok:
+  2717 00000B95 C3                      	retn
+  2718                                  
+  2719                                  	; 01/01/2025
+  2720                                  UpdateProgressBar_DrawCursor:
+  2721                                  	; 22/12/2024
+  2722 00000B96 5A                      	pop	dx ; ***
+  2723 00000B97 B616                    	mov	dh, PROGRESSBAR_ROW
+  2724                                  	; 31/12/2024
+  2725 00000B99 FECA                    	dec	dl ; last written position again
+  2726 00000B9B E895FE                  	call	setCursorPosition
+  2727                                  
+  2728                                  	; 01/01/2025	
+  2729 00000B9E B0DF                    	mov	al, 223
+  2730                                  	;mov	cl, 0Ch ; red
+  2731                                  	; 01/01/2025
+  2732 00000BA0 B30C                    	mov	bl, 0Ch
+  2733 00000BA2 E8B4FF                  	call	write_character
+  2734                                  
+  2735                                  	; 01/01/2025
+  2736                                  UpdateProgressBar_Clean:
+  2737                                  	;pop	ax  ; **
+  2738                                  	; 22/12/2024
+  2739 00000BA5 5A                      	pop	dx  ; **
+  2740                                  	; 30/12/2024
+  2741                                  	; 21/12/2024
+  2742                                  	;mov	bp, 80
+  2743                                  	; 30/12/2024
+  2744 00000BA6 BD2800                  	mov	bp, 40 ; 40 columns (320*200 pixels)
+  2745                                  	;sub	bp, ax
+  2746 00000BA9 29D5                    	sub	bp, dx ; 22/12/2024
+  2747                                  	;jz	short UpdateProgressBar_ok
+  2748                                  	; 31/12/2024
+  2749 00000BAB 76E8                    	jna	short UpdateProgressBar_ok
+  2750                                  
+  2751 00000BAD B616                    	mov	dh, PROGRESSBAR_ROW
+  2752                                  	;mov	dl, al ; 22/12/2024
+  2753 00000BAF E881FE                  	call	setCursorPosition
+  2754                                  
+  2755                                  	; 21/12/2024
+  2756                                  	; (write progress bar chars in graphics mode)
+  2757                                  UpdateProgressBar_Clean_@:
+  2758                                  	; 01/01/2025	
+  2759 00000BB2 B0DF                    	mov	al, 223
+  2760                                  	;mov	cl, 08h ; gray (dark)
+  2761 00000BB4 B308                    	mov	bl, 08h
+  2762 00000BB6 E8A0FF                  	call	write_character
+  2763                                  	
+  2764 00000BB9 4D                      	dec	bp
+  2765 00000BBA 74D9                    	jz	short UpdateProgressBar_ok
+  2766 00000BBC EBF4                    	jmp	short UpdateProgressBar_Clean_@
+  2767                                  
+  2768                                  ; --------------------------------------------------------
+  2769                                  ; 17/11/2024
+  2770                                  
+  2771                                  Player_ProcessKey_Backwards:
+  2772                                  	;; In order to go backwards 5 seconds:
+  2773                                  	;; Update file pointer to the beginning, skip headers
+  2774 00000BBE B142                    	mov	cl, 'B'
+  2775 00000BC0 EB02                    	jmp	short Player_ProcessKey_B_or_F
+  2776                                  
+  2777                                  Player_ProcessKey_Forwards:
+  2778                                  	;; In order to fast-forward 5 seconds, set the file pointer
+  2779                                  	;; to CUR_SEEK + 5 * Freq
+  2780                                  
+  2781 00000BC2 B146                    	mov	cl, 'F'
+  2782                                  	;jmp	short Player_ProcessKey_B_or_F
+  2783                                  
+  2784                                  	; 01/01/2025 (cgaplay.asm, 16bit registers)
+  2785                                  	; 01/12/2024 (32bit registers)
+  2786                                  Player_ProcessKey_B_or_F:
+  2787                                  	; 17/11/2024
+  2788                                  	; 04/11/2024
+  2789                                  	; (Ref: player.asm, Matan Alfasi, 2017)
+  2790                                    
+  2791                                  	; 04/11/2024
+  2792 00000BC4 B80500                  	mov	ax, 5
+  2793 00000BC7 8B1E[4414]              	mov	bx, [WAVE_BlockAlign]
+  2794 00000BCB F7E3                    	mul	bx
+  2795 00000BCD 8B1E[3C14]              	mov	bx, [WAVE_SampleRate]
+  2796 00000BD1 F7E3                    	mul	bx
+  2797                                  	; dx:ax = transfer byte count for 5 seconds
+  2798                                  	
+  2799                                  	; 17/11/2024
+  2800 00000BD3 80F942                  	cmp	cl, 'B'
+  2801 00000BD6 8B1E[B414]              	mov	bx, [LoadedDataBytes]
+  2802 00000BDA 8B0E[B614]              	mov	cx, [LoadedDataBytes+2]
+  2803 00000BDE 750C                    	jne	short move_forward ; cl = 'F'
+  2804                                  move_backward:
+  2805 00000BE0 29C3                    	sub	bx, ax
+  2806 00000BE2 19D1                    	sbb	cx, dx
+  2807 00000BE4 7322                    	jnc	short move_file_pointer
+  2808                                  move_to_beginning:
+  2809 00000BE6 31C9                    	xor	cx, cx ; 0
+  2810 00000BE8 31DB                    	xor	bx, bx ; 0
+  2811 00000BEA EB1C                    	jmp	short move_file_pointer
+  2812                                  move_forward: 
+  2813 00000BEC 01C3                    	add	bx, ax
+  2814 00000BEE 11D1                    	adc	cx, dx
+  2815 00000BF0 720E                    	jc	short move_to_end
+  2816 00000BF2 3B0E[4E14]              	cmp	cx, [DATA_SubchunkSize+2]
+  2817 00000BF6 7708                    	ja	short move_to_end
+  2818 00000BF8 720E                    	jb	short move_file_pointer
+  2819 00000BFA 3B1E[4C14]              	cmp	bx, [DATA_SubchunkSize]
+  2820 00000BFE 7608                    	jna	short move_file_pointer
+  2821                                  move_to_end:
+  2822 00000C00 8B1E[4C14]              	mov	bx, [DATA_SubchunkSize]
+  2823 00000C04 8B0E[4E14]              	mov	cx, [DATA_SubchunkSize+2]
+  2824                                  move_file_pointer:
+  2825 00000C08 89DA                    	mov	dx, bx    
+  2826 00000C0A 8916[B414]              	mov	[LoadedDataBytes], dx
+  2827 00000C0E 890E[B614]              	mov	[LoadedDataBytes+2], cx
+  2828 00000C12 83C22C                  	add	dx, 44 ; + header
+  2829 00000C15 83D100                  	adc	cx, 0
+  2830                                  
+  2831                                  	; seek
+  2832 00000C18 8B1E[5214]              	mov	bx, [filehandle]
+  2833 00000C1C B80042                  	mov	ax, 4200h
+  2834 00000C1F CD21                    	int	21h
+  2835                                  	
+  2836 00000C21 C3                      	retn
+  2837                                  
+  2838                                  ; --------------------------------------------------------
+  2839                                  
+  2840                                  	; 01/01/2025 (cgaplay.asm)
+  2841                                  	; (video mode 13h, 320*200, 256 colors)
+  2842                                  clear_window:
+  2843 00000C22 06                      	push	es
+  2844 00000C23 BF00A0                  	mov	di, 0A000h
+  2845 00000C26 8EC7                    	mov	es, di
+  2846 00000C28 BF8070                  	mov	di, (11*8*320)+(2*320) ; AC97 info start 
+  2847 00000C2B 29C0                    	sub	ax, ax
+  2848 00000C2D B90032                  	mov	cx, (10*8*320)/2
+  2849 00000C30 F3AB                    	rep	stosw
+  2850 00000C32 A3[8E11]                	mov	[prev_points], ax ; 0
+  2851 00000C35 07                      	pop	es
+  2852 00000C36 C3                      	retn
+  2853                                  
+  2854                                  ; -------------------------------------------------------------
+  2855                                  ; DATA (INFO)
+  2856                                  ; -------------------------------------------------------------
+  2857                                  
+  2858                                  ; 02/01/2025
+  2859                                  
+  2860                                  Credits:
+  2861 00000C37 564741205741562050-     	db 'VGA WAV Player for Retro DOS by Erdogan Tan. '
+  2861 00000C40 6C6179657220666F72-
+  2861 00000C49 20526574726F20444F-
+  2861 00000C52 53206279204572646F-
+  2861 00000C5B 67616E2054616E2E20 
+  2862 00000C64 4A616E756172792032-     	db 'January 2025.',10,13,0
+  2862 00000C6D 3032352E0A0D00     
+  2863 00000C74 30322F30312F323032-     	db '02/01/2025', 10,13,0
+  2863 00000C7D 350A0D00           
+  2864                                  
+  2865                                  msgAudioCardInfo:
+  2866 00000C81 666F7220536F756E64-     	db  'for Sound Blaster 16 audio device.', 10,13,0
+  2866 00000C8A 20426C617374657220-
+  2866 00000C93 313620617564696F20-
+  2866 00000C9C 6465766963652E0A0D-
+  2866 00000CA5 00                 
+  2867                                  
+  2868                                  	; 02/01/2025
+  2869                                  msg_usage:
+  2870 00000CA6 75736167653A204347-     	db 'usage: CGAPLAY2 <FileName1> <FileName2> <...>',10,13,0
+  2870 00000CAF 41504C415932203C46-
+  2870 00000CB8 696C654E616D65313E-
+  2870 00000CC1 203C46696C654E616D-
+  2870 00000CCA 65323E203C2E2E2E3E-
+  2870 00000CD3 0A0D00             
+  2871                                  
+  2872                                  	; 24/11/2024
+  2873                                  noDevMsg:
+  2874 00000CD6 4572726F723A20556E-     	db 'Error: Unable to find Sound Blaster 16 audio device!'
+  2874 00000CDF 61626C6520746F2066-
+  2874 00000CE8 696E6420536F756E64-
+  2874 00000CF1 20426C617374657220-
+  2874 00000CFA 313620617564696F20-
+  2874 00000D03 64657669636521     
+  2875 00000D0A 0A0D00                  	db 10,13,0
+  2876                                  
+  2877                                  noFileErrMsg:
+  2878 00000D0D 4572726F723A206669-     	db 'Error: file not found.',10,13,0
+  2878 00000D16 6C65206E6F7420666F-
+  2878 00000D1F 756E642E0A0D00     
+  2879                                  
+  2880                                  msg_error: ; 30/05/2024
+  2881                                  
+  2882                                  ; 24/11/2024
+  2883                                  msg_init_err:
+  2884 00000D26 0D0A                    	db 0Dh, 0Ah
+  2885 00000D28 536F756E6420426C61-     	db "Sound Blaster 16 hardware initialization error !"
+  2885 00000D31 737465722031362068-
+  2885 00000D3A 617264776172652069-
+  2885 00000D43 6E697469616C697A61-
+  2885 00000D4C 74696F6E206572726F-
+  2885 00000D55 722021             
+  2886 00000D58 0D0A00                  	db 0Dh, 0Ah, 0
+  2887                                  
+  2888                                  ; 19/11/2024
+  2889                                  ; 03/06/2017
+  2890                                  hex_chars:
+  2891 00000D5B 303132333435363738-     	db "0123456789ABCDEF", 0
+  2891 00000D64 3941424344454600   
+  2892                                  
+  2893                                  ; 24/11/2024
+  2894                                  msgSB16Info:
+  2895 00000D6C 0D0A                    	db 0Dh, 0Ah
+  2896 00000D6E 20417564696F204861-     	db " Audio Hardware: Sound Blaster 16", 0Dh, 0Ah 
+  2896 00000D77 7264776172653A2053-
+  2896 00000D80 6F756E6420426C6173-
+  2896 00000D89 7465722031360D0A   
+  2897 00000D91 202020202020426173-     	db "      Base Port: "
+  2897 00000D9A 6520506F72743A20   
+  2898                                  msgBasePort:
+  2899 00000DA2 303030680D0A            	db "000h", 0Dh, 0Ah 
+  2900 00000DA8 202020202020202020-     	db "            IRQ: "
+  2900 00000DB1 2020204952513A20   
+  2901                                  msgIRQ:
+  2902 00000DB9 30                      	db 30h
+  2903 00000DBA 0D0A00                  	db 0Dh, 0Ah, 0
+  2904                                  
+  2905 00000DBD 90<rep 3h>              align 4
+  2906                                  
+  2907                                  ; -------------------------------------------------------------
+  2908                                  
+  2909                                  	; 30/12/2024
+  2910                                  PlayingScreen:
+  2911 00000DC0 DBDBDBDBDBDBDBDBDB-     	db  14 dup(219), " DOS Player ", 14 dup(219)
+  2911 00000DC9 DBDBDBDBDB20444F53-
+  2911 00000DD2 20506C6179657220DB-
+  2911 00000DDB DBDBDBDBDBDBDBDBDB-
+  2911 00000DE4 DBDBDBDB           
+  2912 00000DE8 C9CDCDCDCDCDCDCDCD-     	db  201, 38 dup(205), 187
+  2912 00000DF1 CDCDCDCDCDCDCDCDCD-
+  2912 00000DFA CDCDCDCDCDCDCDCDCD-
+  2912 00000E03 CDCDCDCDCDCDCDCDCD-
+  2912 00000E0C CDCDCDBB           
+  2913 00000E10 BA203C53706163653E-     	db  186, " <Space> Play/Pause <N>/<P> Next/Prev ", 186
+  2913 00000E19 20506C61792F506175-
+  2913 00000E22 7365203C4E3E2F3C50-
+  2913 00000E2B 3E204E6578742F5072-
+  2913 00000E34 657620BA           
+  2914 00000E38 BA203C533E20202020-     	db  186, " <S>     Stop       <Enter> Color     ", 186
+  2914 00000E41 2053746F7020202020-
+  2914 00000E4A 2020203C456E746572-
+  2914 00000E53 3E20436F6C6F722020-
+  2914 00000E5C 202020BA           
+  2915 00000E60 BA203C463E20202020-     	db  186, " <F>     Forwards   <+>/<-> Volume    ", 186
+  2915 00000E69 20466F727761726473-
+  2915 00000E72 2020203C2B3E2F3C2D-
+  2915 00000E7B 3E20566F6C756D6520-
+  2915 00000E84 202020BA           
+  2916 00000E88 BA203C423E20202020-     	db  186, " <B>     Backwards  <Q>     Quit Prg  ", 186
+  2916 00000E91 204261636B77617264-
+  2916 00000E9A 7320203C513E202020-
+  2916 00000EA3 202051756974205072-
+  2916 00000EAC 672020BA           
+  2917 00000EB0 CCCDCDCDCDCDCDCDCD-     	db  204, 38 dup(205), 185
+  2917 00000EB9 CDCDCDCDCDCDCDCDCD-
+  2917 00000EC2 CDCDCDCDCDCDCDCDCD-
+  2917 00000ECB CDCDCDCDCDCDCDCDCD-
+  2917 00000ED4 CDCDCDB9           
+  2918 00000ED8 BA2046696C653A2020-     	db  186, " File:              Bits:     0       ", 186
+  2918 00000EE1 202020202020202020-
+  2918 00000EEA 202020426974733A20-
+  2918 00000EF3 202020203020202020-
+  2918 00000EFC 202020BA           
+  2919 00000F00 BA20467265713A2030-     	db  186, " Freq: 0     Hz     Channels: 0       ", 186
+  2919 00000F09 2020202020487A2020-
+  2919 00000F12 2020204368616E6E65-
+  2919 00000F1B 6C733A203020202020-
+  2919 00000F24 202020BA           
+  2920 00000F28 C8CDCDCDCDCDCDCDCD-     	db  200, 38 dup(205), 188
+  2920 00000F31 CDCDCDCDCDCDCDCDCD-
+  2920 00000F3A CDCDCDCDCDCDCDCDCD-
+  2920 00000F43 CDCDCDCDCDCDCDCDCD-
+  2920 00000F4C CDCDCDBC           
+  2921 00000F50 202020202020202020-     	db  40 dup(32)
+  2921 00000F59 202020202020202020-
+  2921 00000F62 202020202020202020-
+  2921 00000F6B 202020202020202020-
+  2921 00000F74 20202020           
+  2922                                  improper_samplerate_txt:
+  2923                                  read_error_txt:
+  2924 00000F78 202020202020202020-     	db  40 dup(32)
+  2924 00000F81 202020202020202020-
+  2924 00000F8A 202020202020202020-
+  2924 00000F93 202020202020202020-
+  2924 00000F9C 20202020           
+  2925 00000FA0 202020202020202020-     	db  40 dup(32)
+  2925 00000FA9 202020202020202020-
+  2925 00000FB2 202020202020202020-
+  2925 00000FBB 202020202020202020-
+  2925 00000FC4 20202020           
+  2926 00000FC8 202020202020202020-     	db  40 dup(32)
+  2926 00000FD1 202020202020202020-
+  2926 00000FDA 202020202020202020-
+  2926 00000FE3 202020202020202020-
+  2926 00000FEC 20202020           
+  2927 00000FF0 202020202020202020-     	db  40 dup(32)
+  2927 00000FF9 202020202020202020-
+  2927 00001002 202020202020202020-
+  2927 0000100B 202020202020202020-
+  2927 00001014 20202020           
+  2928 00001018 202020202020202020-     	db  40 dup(32)
+  2928 00001021 202020202020202020-
+  2928 0000102A 202020202020202020-
+  2928 00001033 202020202020202020-
+  2928 0000103C 20202020           
+  2929 00001040 202020202020202020-     	db  40 dup(32)
+  2929 00001049 202020202020202020-
+  2929 00001052 202020202020202020-
+  2929 0000105B 202020202020202020-
+  2929 00001064 20202020           
+  2930 00001068 202020202020202020-     	db  40 dup(32)
+  2930 00001071 202020202020202020-
+  2930 0000107A 202020202020202020-
+  2930 00001083 202020202020202020-
+  2930 0000108C 20202020           
+  2931 00001090 202020202020202020-     	db  40 dup(32)
+  2931 00001099 202020202020202020-
+  2931 000010A2 202020202020202020-
+  2931 000010AB 202020202020202020-
+  2931 000010B4 20202020           
+  2932 000010B8 202020202020202020-     	db  40 dup(32)
+  2932 000010C1 202020202020202020-
+  2932 000010CA 202020202020202020-
+  2932 000010D3 202020202020202020-
+  2932 000010DC 20202020           
+  2933 000010E0 202020202020202020-     	db  40 dup(32)
+  2933 000010E9 202020202020202020-
+  2933 000010F2 202020202020202020-
+  2933 000010FB 202020202020202020-
+  2933 00001104 20202020           
+  2934 00001108 CDCDCDCDCDCDCDCDCD-     	db  40 dup(205)
+  2934 00001111 CDCDCDCDCDCDCDCDCD-
+  2934 0000111A CDCDCDCDCDCDCDCDCD-
+  2934 00001123 CDCDCDCDCDCDCDCDCD-
+  2934 0000112C CDCDCDCD           
+  2935 00001130 202020202020202020-     	db  40 dup(32)
+  2935 00001139 202020202020202020-
+  2935 00001142 202020202020202020-
+  2935 0000114B 202020202020202020-
+  2935 00001154 20202020           
+  2936 00001158 202020202020202020-     	db  13 dup(32), "00:00 ", 174, 175, " 00:00", 4 dup(32), "VOL 000%"
+  2936 00001161 2020202030303A3030-
+  2936 0000116A 20AEAF2030303A3030-
+  2936 00001173 20202020564F4C2030-
+  2936 0000117C 303025             
+  2937                                  	;db  40 dup(32) ; not necessary
+  2938 0000117F 00                      	db 0
+  2939                                  
+  2940                                  ; -------------------------------------------------------------
+  2941                                  
+  2942                                  ; 31/12/2024
+  2943                                  	; 30/12/2024
+  2944                                  ;fillblock:
+  2945                                  ;	times 8 db 0FFh
+  2946                                  ;	dw 0
+  2947                                  
+  2948                                  ; -------------------------------------------------------------
+  2949                                  
+  2950                                  ; 30/12/2024
+  2951                                  ; 23/11/2024
+  2952                                  colors:
+  2953 00001180 0F0B0A0C0E090D          	db 0Fh, 0Bh, 0Ah, 0Ch, 0Eh, 09h, 0Dh
+  2954                                  	; white, cyan, green, red, yellow, blue, magenta
+  2955 00001187 0B                      ccolor:	db 0Bh	; cyan
+  2956                                  
+  2957                                  ; -------------------------------------------------------------
+  2958                                  
+  2959                                  ; 02/05/2024
+  2960                                  ; 24/11/2024
+  2961                                  half_buffer:
+  2962 00001188 01                      	db 1	; dma half buffer 1 or 2 (0 or 1)
+  2963                                  		; (initial value = 1 -> after xor in TuneLoop -> 0)
+  2964                                  EOF: 
+  2965                                  
+  2966                                  ; -------------------------------------------------------------
+  2967                                  
+  2968                                  bss:
+  2969                                  
+  2970                                  ABSOLUTE bss
+  2971                                  
+  2972                                  ; 02/01/2025 (SB16 modifications) -cgaplay2.asm-
+  2973                                  ; 01/01/2025 (16bit modifications) -AC97, cgaplay.asm-
+  2974                                  
+  2975 00001189 ??                      alignb 2
+  2976                                  
+  2977                                  ; 24/12/2024
+  2978                                  wpoints_dif:	; wave lighting points factor (differential) 
+  2979 0000118A ????                    	resw 1	; required bytes for 1/18 second wave lighting
+  2980                                  ; 01/01/2025
+  2981                                  ;graphstart:
+  2982                                  ;	resw 1	; start (top) line/row for wave lighting points 	 
+  2983                                  
+  2984                                  columns:
+  2985 0000118C ??                      	resb 1
+  2986 0000118D ??                      pbprev:	resb 1 ; previous progress bar indicator position
+  2987                                  
+  2988                                  ;alignb 2
+  2989                                  
+  2990                                  bss_start:
+  2991                                  
+  2992                                  ; 30/12/2024
+  2993                                  prev_points:
+  2994 0000118E <res 280h>              	resw 320 ; previous wave points (which are lighting)
+  2995                                  
+  2996                                  ; 02/01/2025
+  2997                                  ; 24/11/2024
+  2998                                  old_irq5v_o:
+  2999 0000140E ????                    	resw 1
+  3000                                  old_irq5v_s:
+  3001 00001410 ????                    	resw 1
+  3002                                  old_irq7v_o:
+  3003 00001412 ????                    	resw 1
+  3004                                  old_irq7v_s:
+  3005 00001414 ????                    	resw 1
+  3006                                  ;
+  3007 00001416 ??                      IRQnum:	resb 1
+  3008                                  ; 27/11/2024
+  3009                                  audio_intr:
+  3010 00001417 ??                      	resb 1
+  3011                                  ; 25/11/2024
+  3012                                  IRQstatus:
+  3013 00001418 ??                      	resb 1	
+  3014                                  
+  3015                                  ; 18/11/2024
+  3016                                  stopped:
+  3017 00001419 ??                      	resb 1
+  3018 0000141A ??                      tLO:	resb 1
+  3019                                  ; 21/11/2024
+  3020                                  ;tLP:	resb 1
+  3021                                  ; 30/12/2024
+  3022                                  wpoints:
+  3023 0000141B ??                      	resb 1
+  3024 0000141C ????                    pbuf_o:	resw 1
+  3025                                  ; 29/12/2024
+  3026 0000141E ????                    pbuf_s:	resw 1
+  3027                                  
+  3028                                  ; 25/12/2024
+  3029                                  ; 29/11/2024
+  3030                                  command:
+  3031 00001420 ??                      	resb 1
+  3032                                  filecount:
+  3033 00001421 ??                      	resb 1
+  3034                                  
+  3035                                  ; 30/11/2024
+  3036 00001422 ????                    alignb 4
+  3037                                  
+  3038                                  ;;;;;;;;;;;;;;
+  3039                                  ; 14/11/2024
+  3040                                  ; (Ref: player.asm, Matan Alfasi, 2017)  
+  3041                                  WAVFILEHEADERbuff:
+  3042                                  RIFF_ChunkID:
+  3043 00001424 ????????                	resd 1	; Must be equal to "RIFF" - big-endian
+  3044                                  		; 0x52494646
+  3045                                  RIFF_ChunkSize:
+  3046 00001428 ????????                	resd 1	; Represents total file size, not 
+  3047                                          	; including the first 2 fields 
+  3048                                  		; (Total_File_Size - 8), little-endian
+  3049                                  RIFF_Format:
+  3050 0000142C ????????                	resd 1	; Must be equal to "WAVE" - big-endian
+  3051                                  		; 0x57415645
+  3052                                  
+  3053                                  ;; WAVE header parameters ("Sub-chunk")
+  3054                                  WAVE_SubchunkID:
+  3055 00001430 ????????                	resd 1	; Must be equal to "fmt " - big-endian
+  3056                                  		; 0x666d7420
+  3057                                  WAVE_SubchunkSize:
+  3058 00001434 ????????                	resd 1	; Represents total chunk size
+  3059                                  WAVE_AudioFormat:
+  3060 00001438 ????                    	resw 1	; PCM (Raw) - is 1, other - is a form 
+  3061                                  		; of compression, not supported.
+  3062                                  WAVE_NumChannels:
+  3063 0000143A ????                    	resw 1	; Number of channels, Mono-1, Stereo-2
+  3064                                  WAVE_SampleRate:
+  3065 0000143C ????????                	resd 1	; Frequency rate, in Hz (8000, 44100 ...)
+  3066                                  WAVE_ByteRate:
+  3067 00001440 ????????                	resd 1	; SampleRate * NumChannels * BytesPerSample
+  3068                                  WAVE_BlockAlign:
+  3069 00001444 ????                    	resw 1	; NumChannels * BytesPerSample
+  3070                                  		; Number of bytes for one sample.
+  3071                                  WAVE_BitsPerSample:
+  3072 00001446 ????                    	resw 1	; 8 = 8 bits, 16 = 16 bits, etc.
+  3073                                  
+  3074                                  ;; DATA header parameters
+  3075                                  DATA_SubchunkID:
+  3076 00001448 ????????                	resd 1	; Must be equal to "data" - big-endian
+  3077                                          	; 0x64617461
+  3078                                  DATA_SubchunkSize:
+  3079 0000144C ????????                	resd 1	; NumSamples * NumChannels * BytesPerSample
+  3080                                          	; Number of bytes in the data.
+  3081                                  ;;;;;;;;;;;;;;
+  3082                                  
+  3083                                  ; 01/01/2025
+  3084                                  
+  3085 00001450 ??                      flags:	resb 1
+  3086                                  ; 06/11/2023
+  3087                                  ac97_int_ln_reg:
+  3088 00001451 ??                      	resb 1
+  3089                                  filehandle:
+  3090 00001452 ????                    	resw 1
+  3091                                  
+  3092                                  ; 01/01/2025
+  3093                                  ; 28/11/2024
+  3094                                  PSP_CurrentOffset:
+  3095 00001454 ????                    	resw 1
+  3096                                  
+  3097                                  ; 30/05/2024
+  3098                                  wav_file_name:
+  3099 00001456 <res 50h>               	resb 80	; wave file, path name (<= 80 bytes)
+  3100 000014A6 ????                    	resw 1	; 30/11/2024
+  3101                                  
+  3102                                  ; 08/11/2023
+  3103                                  ; 07/11/2023
+  3104                                  fbs_shift:
+  3105 000014A8 ??                      	resb 1
+  3106                                  ; 07/12/2024
+  3107 000014A9 ??                      SRB:	resb 1
+  3108                                  
+  3109                                  ; 02/01/2025
+  3110                                  audio_io_base:
+  3111 000014AA ????                    	resw 1	; Sound Blaster 16 base port address (220h)
+  3112                                  
+  3113                                  ; 02/01/2025
+  3114                                  UpdateWavePoints:
+  3115 000014AC ????                    	resw 1	; wave lighting procedure pointer (8m,16m,8s,16s)
+  3116                                  		
+  3117                                  ; 01/01/2025
+  3118                                  ; 14/11/2024
+  3119                                  TotalTime:
+  3120 000014AE ????                    	resw 1	; Total (WAV File) Playing Time in seconds
+  3121                                  ProgressTime:
+  3122 000014B0 ????                    	resw 1
+  3123 000014B2 ????                    count:	resw 1	; byte count of one (wav file) read
+  3124                                  LoadedDataBytes:
+  3125 000014B4 ????????                	resd 1	; total read/load count
+  3126                                  
+  3127                                  timerticks:
+  3128 000014B8 ????????                	resd 1	; (to eliminate excessive lookup of events in tuneloop)
+  3129                                  		; (in order to get the emulator/qemu to run correctly)
+  3130 000014BC ????????                alignb 16
+  3131                                  
+  3132                                  ; 02/01/2025
+  3133                                  ; 24/11/2024
+  3134                                  dma_buffer:	; 32768 bytes	
+  3135                                  wav_buffer1:
+  3136 000014C0 <res 5622h>             	resb dma_buffer_size/2 ; 16384
+  3137                                  wav_buffer2:
+  3138 00006AE2 <res 5622h>             	resb dma_buffer_size/2 ; 16384
+  3139                                  
+  3140                                  ; 14/11/2024
+  3141                                  bss_end:
