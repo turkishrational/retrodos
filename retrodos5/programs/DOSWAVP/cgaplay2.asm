@@ -5,7 +5,7 @@
 ;
 ; 02/01/2025				- play music from multiple wav files -
 ;
-; [ Last Modification: 02/01/2025 ]
+; [ Last Modification: 23/01/2025 ]
 ;
 ; Modified from CGAPLAY.COM .wav player program by Erdogan Tan, 01/01/2025
 ;	        SB16PLAY.COM, 20/12/2024
@@ -1733,6 +1733,7 @@ c4ue_uvb:
 ; 27/12/2024 - Erdogan Tan
 ; --------------------------------------------------------
 
+	; 23/01/2025
 	; 02/01/2025 (cgaplay2.asm, SB16)
 	; 01/01/2025 (cgaplay.asm, 16bit registers)
 	; 30/12/2024 (cgaplay.s)
@@ -1823,20 +1824,31 @@ lights_on_3:
 	add	si, dx
 	mov	bx, (11*8*320)+(4*320)
 lights_on_4:
-	; 01/01/2025
-	xor	eax, eax ; 0
+	; 23/01/2025
+	;; 01/01/2025
+	;xor	eax, eax ; 0
+	;lodsw	; left
+	;add	ah, 80h
+	;mov	edx, eax
+	;lodsw	; right
+	;;add	ax, dx
+	;add	ah, 80h
+	;;;shr	eax, 9	; 128 volume levels
+	;add	eax, edx
+	;;;shr	eax, 10	; (L+R/2) & 128 volume levels
+	;;shr	eax, 9	; (L+R/2) & 256 volume levels
+	;; 30/12/2024
+	;shr	eax, 11	; (L+R/2) & 64 volume levels
+	; 23/01/2025
 	lodsw	; left
 	add	ah, 80h
-	mov	edx, eax
+	mov	dx, ax	
 	lodsw	; right
-	;add	ax, dx
 	add	ah, 80h
-	;;shr	eax, 9	; 128 volume levels
-	add	eax, edx
-	;;shr	eax, 10	; (L+R/2) & 128 volume levels
-	;shr	eax, 9	; (L+R/2) & 256 volume levels
-	; 30/12/2024
-	shr	eax, 11	; (L+R/2) & 64 volume levels
+	add	ax, dx	; (L+R)	
+	rcr	ax, 1	; (L+R)/2
+	shr	ax, 10	; 64 volume levels
+
 	; * 320 row  ; 30/12/2024
 	mul	bp	; * 640 (row) 
 	add	ax, bx ; + column
@@ -1946,7 +1958,8 @@ lights_16m_on_3:
 	mov	bx, (11*8*320)+(4*320)
 lights_16m_on_4:
 	; 02/01/2025 (16bit mono play modifications)
-	xor	ax, ax ; 0
+	; 23/01/2025
+	;xor	ax, ax ; 0
 	lodsw	; left
 	add	ah, 80h
 	shr	ax, 10	; 64 volume levels
@@ -2861,6 +2874,7 @@ Credits:
 	db 'VGA WAV Player for Retro DOS by Erdogan Tan. '
 	db 'January 2025.',10,13,0
 	db '02/01/2025', 10,13,0
+	db '23/01/2025', 10,13,0
 
 msgAudioCardInfo:
 	db  'for Sound Blaster 16 audio device.', 10,13,0
