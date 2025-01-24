@@ -5,7 +5,7 @@
 ;
 ; 14/11/2024
 ;
-; [ Last Modification: 18/12/2024 ]
+; [ Last Modification: 23/01/2025 ]
 ;
 ; Modified from PLAYWAV7.COM .wav player program by Erdogan Tan, 13/11/2024
 ;
@@ -6019,6 +6019,7 @@ UpdateWaveLeds:
 
 ; --------------------------------------------------------
 
+	; 23/01/2025	
 	; 09/12/2024
 turn_on_leds:
 	; 19/11/2024
@@ -6092,18 +6093,24 @@ tol_fill_c:
 	;push	di
 	lodsw	; left
 	;shr	ax, 8
+	; 23/01/2025
+	add	ah, 80h
 	mov	dx, ax
 	lodsw	; right
 	;shr	ax, 8
 	;;;
 	; 23/11/2024
-	add	ax, dx
+	;add	ax, dx
 	; 09/12/2024
 	;shr	ax, 8
 	;;shr	ax, 9
 	;add	al, 80h
 	;shr	ax, 5
 	add	ah, 80h
+	;shr	ax, 13
+	; 23/01/2025
+	add	ax, dx
+	rcr	ax, 1
 	shr	ax, 13
 	;;;
 	;;shr	ax, 6
@@ -6175,8 +6182,10 @@ p_msg_x:
 
 Credits:
 	db	'Tiny WAV Player for Retro DOS by Erdogan Tan. '
-	db	'December 2024.',10,13,0
-	db	'18/12/2024', 10,13
+	;db	'December 2024.',10,13,0
+	db	'January 2025.',10,13,0
+	db	'18/12/2024', 10,13,0
+	db	'23/01/2025', 10,13
 ; 15/11/2024
 reset:
 	db	0

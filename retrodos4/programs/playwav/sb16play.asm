@@ -5,7 +5,7 @@
 ;
 ; 29/11/2024
 ;
-; [ Last Modification: 20/12/2024 ]
+; [ Last Modification: 23/01/2025 ]
 ;
 ; Modified from PLAYWAV9.COM .wav player program by Erdogan Tan, 27/11/2024
 ;
@@ -2253,6 +2253,8 @@ clear_window_@:
 
 ; --------------------------------------------------------
 
+	; 23/01/2025
+	; 09/12/2024
 	; 24/11/2024
 	; 19/11/2024
 turn_on_leds_stereo_16bit:
@@ -2326,18 +2328,27 @@ tol_fill_c:
 	;push	di
 	lodsw	; left
 	;shr	ax, 8
+	; 23/01/2025
+	add	ah, 80h
 	mov	dx, ax
 	lodsw	; right
 	;shr	ax, 8
 	;;;
 	; 23/11/2024
+	;add	ax, dx
+	; 09/12/2024
+	;shr	ax, 8
+	;;shr	ax, 9
+	;add	al, 80h
+	;shr	ax, 5
+	add	ah, 80h
+	;shr	ax, 13
+	; 23/01/2025
 	add	ax, dx
-	shr	ax, 8
-	;shr	ax, 9
-	add	al, 80h
-	shr	ax, 5
+	rcr	ax, 1
+	shr	ax, 13	; 8 volume levels
 	;;;
-	;shr	ax, 6
+	;;shr	ax, 6
 
 	push	bx
 	shl	ax, 1
@@ -2354,7 +2365,7 @@ tol_fill_c:
 
 	jmp	short tol_retn
 
-
+	; 23/01/2025
 	; 24/11/2024
 	; 23/11/2024
 turn_on_leds_mono_16bit:
@@ -2416,9 +2427,13 @@ tol2_buf_@:
 	add	si, [pbuf_s]
 tol2_fill_c:
 	lodsw
-	shr	ax, 8
-	add	al, 80h
-	shr	ax, 5
+	;shr	ax, 8
+	;add	al, 80h
+	;shr	ax, 5
+	; 23/01/2025
+	add	ah, 80h
+	shr	ax, 13	; 8 volume levels
+
 	push	bx
 	shl	ax, 1
 	add	bx, ax
@@ -2433,6 +2448,7 @@ tol2_fill_c:
 
 	jmp	tol_retn
 
+	; 23/01/2025
 	; 24/11/2024
 turn_on_leds_stereo_8bit:
 	; 25/11/2024
@@ -2492,12 +2508,23 @@ tol3_buf_@:
 	; 27/11/2024
 	add	si, [pbuf_s]
 tol3_fill_c:
-	lodsw	; left (al), right (ah)
-	add	al, ah
-	add	al, 80h
-	xor	ah, ah
-	;shr	ax, 6
-	shr	ax, 5
+	;lodsw	; left (al), right (ah)
+	;add	al, ah
+	;add	al, 80h
+	;xor	ah, ah
+	;;shr	ax, 6
+	;shr	ax, 5
+
+	; 23/01/2025
+	xor	ax, ax ; 0
+	lodsb	; left
+	mov	dx, ax
+	lodsb	; right
+	add	ax, dx
+	shr	ax, 1 ; (L+R/2)
+	sub	al, 255	; max. value will be shown on top
+	shr	ax, 5	; 8 volume levels
+
 	push	bx
 	shl	ax, 1
 	add	bx, ax
@@ -2512,6 +2539,7 @@ tol3_fill_c:
 
 	jmp	short tol3_retn
 
+	; 23/01/2025
 	; 24/11/2024
 	; 23/11/2024
 turn_on_leds_mono_8bit:
@@ -2572,12 +2600,18 @@ tol4_buf_@:
 	; 27/11/2024
 	add	si, [pbuf_s]
 tol4_fill_c:
-	lodsb
+	;lodsb
 	; 27/11/2024
-	add	ax, ax
-	add	al, 80h
-	xor	ah, ah
-	shr	ax, 5
+	;add	ax, ax
+	;add	al, 80h
+	;xor	ah, ah
+	;shr	ax, 5
+	; 23/01/2025
+	xor	ax, ax ; 0
+	lodsb
+	sub	al, 255	; max. value will be shown on top
+	shr	ax, 5  ; 8 volume levels
+
 	push	bx
 	shl	ax, 1
 	add	bx, ax
@@ -2642,8 +2676,10 @@ p_msg_x:
 
 Credits:
 	db	'Tiny WAV Player for Retro DOS by Erdogan Tan. '
-	db	'December 2024.',10,13,0
+	;db	'December 2024.',10,13,0
+	db	'January 2025.',10,13,0
 	db	'20/12/2024', 10,13,0
+	db	'23/01/2025', 10,13,0
 
 msgAudioCardInfo:
 	db 	'for Sound Blaster 16 audio device.', 10,13,0
