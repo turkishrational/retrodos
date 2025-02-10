@@ -28,7 +28,7 @@ usable with IBM PCDOS boot sector.)
 
 ****
 
-Retro DOS v5.0 combined kernel PCDOS.SYS (10/07/2024) -last update: 17/07/2027- 
+Retro DOS v5.0 combined kernel PCDOS.SYS (10/07/2024) -last update: 17/07/2024- 
                                file size is 81366 bytes ..
                PCDOS 7.1 IBMBIO.COM + IBMDOS.COM total file size is 87222 bytes.
 
