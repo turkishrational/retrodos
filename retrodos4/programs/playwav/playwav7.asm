@@ -5,7 +5,7 @@
 ;
 ; 13/11/2024
 ;
-; [ Last Modification: 13/11/2024 ]
+; [ Last Modification: 04/02/2025 ]
 ;
 ; Modified from PLAYWAV6.COM .wav player program by Erdogan Tan, 30/05/2024
 ;               (Assembler: NASM 2.15)
@@ -187,6 +187,8 @@ playwav_48_khz:
 	mov	word [buffersize], 32768 ; samples
 	jmp	PlayNow ; 30/05/2024
 
+	; 04/02/2025
+	; 02/02/2025
 chk_sample_rate:
 	; set conversion parameters
 	; (for 8, 11.025, 16, 22.050, 24, 32 kHZ)
@@ -199,53 +201,53 @@ chk_22khz:
 	cmp	byte [bps], 8
 	jna	short chk_22khz_1
 	mov	bx, load_22khz_stereo_16_bit
-	cmp	byte [stmo], 1 
+	cmp	byte [stmo], 1
 	jne	short chk_22khz_2
 	mov	bx, load_22khz_mono_16_bit
 	jmp	short chk_22khz_2
 chk_22khz_1:
 	mov	bx, load_22khz_stereo_8_bit
-	cmp	byte [stmo], 1 
+	cmp	byte [stmo], 1
 	jne	short chk_22khz_2
 	mov	bx, load_22khz_mono_8_bit
 chk_22khz_2:
 	mov	ax, 7514  ; (442*17)
 	mov	dx, 37
-	mov	cx, 17 
-	jmp	set_sizes	
+	mov	cx, 17
+	jmp	set_sizes
 chk_11khz:
 	cmp	ax, 11025
 	jne	short chk_44khz
 	cmp	byte [bps], 8
 	jna	short chk_11khz_1
 	mov	bx, load_11khz_stereo_16_bit
-	cmp	byte [stmo], 1 
+	cmp	byte [stmo], 1
 	jne	short chk_11khz_2
 	mov	bx, load_11khz_mono_16_bit
 	jmp	short chk_11khz_2
 chk_11khz_1:
 	mov	bx, load_11khz_stereo_8_bit
-	cmp	byte [stmo], 1 
+	cmp	byte [stmo], 1
 	jne	short chk_11khz_2
 	mov	bx, load_11khz_mono_8_bit
 chk_11khz_2:
 	mov	ax, 3757  ; (221*17)
 	mov	dx, 74
 	mov	cx, 17
-	jmp	set_sizes 
+	jmp	set_sizes
 chk_44khz:
 	cmp	ax, 44100
 	jne	short chk_16khz
 	cmp	byte [bps], 8
 	jna	short chk_44khz_1
 	mov	bx, load_44khz_stereo_16_bit
-	cmp	byte [stmo], 1 
+	cmp	byte [stmo], 1
 	jne	short chk_44khz_2
 	mov	bx, load_44khz_mono_16_bit
 	jmp	short chk_44khz_2
 chk_44khz_1:
 	mov	bx, load_44khz_stereo_8_bit
-	cmp	byte [stmo], 1 
+	cmp	byte [stmo], 1
 	jne	short chk_44khz_2
 	mov	bx, load_44khz_mono_8_bit
 chk_44khz_2:
@@ -254,87 +256,91 @@ chk_44khz_2:
 	mov	ax, 14076 ; (612 *23)
 	mov	dx, 25
 	mov	cx, 23
-	jmp	set_sizes 
+	jmp	set_sizes
 chk_16khz:
 	cmp	ax, 16000
 	jne	short chk_8khz
 	cmp	byte [bps], 8
 	jna	short chk_16khz_1
 	mov	bx, load_16khz_stereo_16_bit
-	cmp	byte [stmo], 1 
+	cmp	byte [stmo], 1
 	jne	short chk_16khz_2
 	mov	bx, load_16khz_mono_16_bit
 	jmp	short chk_16khz_2
 chk_16khz_1:
 	mov	bx, load_16khz_stereo_8_bit
-	cmp	byte [stmo], 1 
+	cmp	byte [stmo], 1
 	jne	short chk_16khz_2
 	mov	bx, load_16khz_mono_8_bit
 chk_16khz_2:
 	mov	ax, 5461
 	mov	dx, 3
 	mov	cx, 1
-	jmp	set_sizes 
+	jmp	set_sizes
 chk_8khz:
 	cmp	ax, 8000
 	jne	short chk_24khz
 	cmp	byte [bps], 8
 	jna	short chk_8khz_1
 	mov	bx, load_8khz_stereo_16_bit
-	cmp	byte [stmo], 1 
+	cmp	byte [stmo], 1
 	jne	short chk_8khz_2
 	mov	bx, load_8khz_mono_16_bit
 	jmp	short chk_8khz_2
 chk_8khz_1:
 	mov	bx, load_8khz_stereo_8_bit
-	cmp	byte [stmo], 1 
+	cmp	byte [stmo], 1
 	jne	short chk_8khz_2
 	mov	bx, load_8khz_mono_8_bit
 chk_8khz_2:
 	mov	ax, 2730
 	mov	dx, 6
 	mov	cx, 1
-	jmp	short set_sizes 
+	jmp	short set_sizes
 chk_24khz:
 	cmp	ax, 24000
 	jne	short chk_32khz
 	cmp	byte [bps], 8
 	jna	short chk_24khz_1
 	mov	bx, load_24khz_stereo_16_bit
-	cmp	byte [stmo], 1 
+	cmp	byte [stmo], 1
 	jne	short chk_24khz_2
 	mov	bx, load_24khz_mono_16_bit
 	jmp	short chk_24khz_2
 chk_24khz_1:
 	mov	bx, load_24khz_stereo_8_bit
-	cmp	byte [stmo], 1 
+	cmp	byte [stmo], 1
 	jne	short chk_24khz_2
 	mov	bx, load_24khz_mono_8_bit
 chk_24khz_2:
-	mov	ax, 8192
+	;mov	ax, 8192
+	; 04/02/2025
+	mov	ax, 8190
 	mov	dx, 2
 	mov	cx, 1
-	jmp	short set_sizes 
+	jmp	short set_sizes
 chk_32khz:
 	cmp	ax, 32000
-	jne	short vra_needed
+	;jne	short vra_needed
+	; 02/02/2025
+	jne	short chk_12khz
 	cmp	byte [bps], 8
 	jna	short chk_32khz_1
 	mov	bx, load_32khz_stereo_16_bit
-	cmp	byte [stmo], 1 
+	cmp	byte [stmo], 1
 	jne	short chk_32khz_2
 	mov	bx, load_32khz_mono_16_bit
 	jmp	short chk_32khz_2
 chk_32khz_1:
 	mov	bx, load_32khz_stereo_8_bit
-	cmp	byte [stmo], 1 
+	cmp	byte [stmo], 1
 	jne	short chk_32khz_2
 	mov	bx, load_32khz_mono_8_bit
 chk_32khz_2:
 	mov	ax, 10922
 	mov	dx, 3
 	mov	cx, 2
-	;jmp	short set_sizes 
+	;jmp	short set_sizes
 set_sizes:
 	cmp	byte [stmo], 1
 	je	short ss_1
@@ -347,23 +353,55 @@ ss_1:
 ss_2:
 	mov	[loadsize], ax
 	mul	dx
-	;cmp	cx, 1
-	;je	short ss_3
-;ss_3:
+
+	; 04/02/2025
+	cmp	cx, 1
+	je	short ss_3
+
 	div	cx
+ss_3:
 	mov	cl, [fbs_shift]
 	shl	ax, cl
+
+	; 03/02/2025
 	shr	ax, 1	; buffer size is 16 bit sample count
-	mov	[buffersize], ax 
+	; 65536 -> 32768
+	mov	[buffersize], ax
 	mov	[loadfromwavfile], bx
 	jmp	short PlayNow
+
+	;;;;
+	; 02/02/2025
+chk_12khz:
+	cmp	ax, 12000
+	jne	short vra_needed
+	cmp	byte [bps], 8
+	jna	short chk_12khz_1
+	mov	bx, load_12khz_stereo_16_bit
+	cmp	byte [stmo], 1
+	jne	short chk_12khz_2
+	mov	bx, load_12khz_mono_16_bit
+	jmp	short chk_12khz_2
+chk_12khz_1:
+	mov	bx, load_12khz_stereo_8_bit
+	cmp	byte [stmo], 1
+	jne	short chk_12khz_2
+	mov	bx, load_12khz_mono_8_bit
+chk_12khz_2:
+	;mov	ax, 4096
+	; 04/02/2025
+	mov	ax, 4095
+	mov	dx, 4
+	mov	cx, 1
+	jmp	set_sizes
+	;;;;
 
 vra_needed:
 	; 13/11/2023
 	pop	ax ; discard return address to the caller
 	; 30/05/2024
 vra_err:
-	sys_msg msg_no_vra, 0Fh 
+	sys_msg msg_no_vra, 0Fh
 	jmp	Exit
 
 	; 30/05/2024
@@ -1165,6 +1203,7 @@ _w_VRAi_no:
 	sys_msg msgVRAno, 07h
 	retn
 
+; 02/02/2025
 ; 30/05/2024 (playwav6.asm)
 ; 18/11/2023 (ich_wav3.asm & ich_wav4.asm)
 ; 15/11/2023 (ich_wav3.asm)	
@@ -1197,6 +1236,7 @@ _w_VRAi_no:
 ;;		       	Retro DOS v4.2 (MSDOS 6.22) operating system.
 
 load_8khz_mono_8_bit:
+	; 02/02/2025
 	; 15/11/2023
 	; 14/11/2023
 	; 13/11/2023
@@ -1207,7 +1247,7 @@ load_8khz_mono_8_bit:
 	retn
 
 lff8m_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -1229,7 +1269,7 @@ lff8m_6:
 	; 15/11/2023
 	jz	short lff8_eof
 
-	mov	cx, ax		; byte count
+	mov	cx, ax	; byte count
 lff8m_1:
 	lodsb
 	mov	[previous_val], al
@@ -1238,11 +1278,12 @@ lff8m_1:
 	stosw		; original sample (left channel)
 	stosw		; original sample (right channel)
 	;xor	ax, ax
+	; 02/02/2025
+	mov	al, [si]
+	dec	cx
+	jnz	short lff8m_2
 	; 14/11/2023
 	mov	al, 80h
-	dec	cx
-	jz	short lff8m_2
-	mov	al, [si]
 lff8m_2:
 	;mov	[next_val], ax
 	mov	bh, al	; [next_val]
@@ -1256,7 +1297,7 @@ lff8m_2:
 	add	al, ah	; [previous_val]
 	rcr	al, 1
 	sub	al, 80h
-	shl	ax, 8	
+	shl	ax, 8
 	stosw		; this is 1st interpolated sample (L)
 	stosw		; this is 1st interpolated sample (R)
 	mov	al, bl
@@ -1309,6 +1350,7 @@ lff32_3:
 lff44_3:
 lff22_3:
 lff11_3:
+lff12_3:	; 02/02/2025
 	mov	cx, [buffersize] ; 16 bit (48 kHZ, stereo) sample size
 	shl	cx, 1	; byte count
 	sub	cx, di
@@ -1329,6 +1371,7 @@ lff32_eof:
 lff44_eof:
 lff22_eof:
 lff11_eof:
+lff12_eof:	; 02/02/2025
 	; 15/11/2023
 	mov	byte [flags], ENDOFFILE
 	jmp	short lff8m_3
@@ -1346,6 +1389,7 @@ lff32_5:
 lff44_5:
 lff22_5:
 lff11_5:
+lff12_5:	; 02/02/2025
 	mov	al, '!'  ; error
 	call	tL0
 	
@@ -1356,6 +1400,7 @@ lff11_5:
 	; --------------
 
 load_8khz_stereo_8_bit:
+	; 02/02/2025
 	; 15/11/2023
 	; 14/11/2023
 	; 13/11/2023
@@ -1366,7 +1411,7 @@ load_8khz_stereo_8_bit:
 	retn
 
 lff8s_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -1386,7 +1431,7 @@ lff8s_0:
 	; 15/11/2023
 	jz	short lff8_eof
 
-	mov	cx, ax		; word count
+	mov	cx, ax	; word count
 lff8s_1:
 	lodsb
 	mov	[previous_val_l], al
@@ -1400,12 +1445,13 @@ lff8s_1:
 	stosw		; original sample (R)
 
 	;xor	ax, ax
+	; 02/02/2025
+	mov	ax, [si]
+	dec	cx
+	jnz	short lff8s_2
+		; convert 8 bit sample to 16 bit sample
 	; 14/11/2023
 	mov	ax, 8080h
-	dec	cx
-	jz	short lff8s_2
-		; convert 8 bit sample to 16 bit sample
-	mov	ax, [si]
 lff8s_2:
 	mov	[next_val_l], al
 	mov	[next_val_r], ah
@@ -1414,7 +1460,7 @@ lff8s_2:
 	rcr	al, 1
 	mov	dl, al	; this is interpolated middle (3th) sample (L)
 	add	al, ah
-	rcr	al, 1	
+	rcr	al, 1
 	mov	bl, al	; this is temporary interpolation value (L)
 	add	al, ah
 	rcr	al, 1
@@ -1491,6 +1537,7 @@ lff8s_6:
 	jmp	lff8s_3
 
 load_8khz_mono_16_bit:
+	; 02/02/2025
 	; 13/11/2023
         test    byte [flags], ENDOFFILE	; have we already read the
 					; last of the file?
@@ -1499,7 +1546,7 @@ load_8khz_mono_16_bit:
 	retn
 
 lff8m2_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -1521,17 +1568,18 @@ lff8m2_0:
 	jmp	lff8_eof
 
 lff8m2_8:
-	mov	cx, ax		; word count
+	mov	cx, ax	; word count
 lff8m2_1:
 	lodsw
 	stosw		; original sample (left channel)
 	stosw		; original sample (right channel)
 	add	ah, 80h	; convert sound level to 0-65535 format
 	mov	[previous_val], ax
-	xor	ax, ax
-	dec	cx
-	jz	short lff8m2_2
+	; 02/02/2025
 	mov	ax, [si]
+	dec	cx
+	jnz	short lff8m2_2
+	xor	ax, ax
 lff8m2_2:
 	add	ah, 80h ; convert sound level to 0-65535 format
 	mov	bp, ax	; [next_val]
@@ -1540,7 +1588,7 @@ lff8m2_2:
 	mov	dx, ax	; this is interpolated middle (3th) sample
 	add	ax, [previous_val]
 	rcr	ax, 1	; this is temporary interpolation value
-	mov	bx, ax 		
+	mov	bx, ax
 	add	ax, [previous_val]
 	rcr	ax, 1
 	sub	ah, 80h	; -32768 to +32767 format again
@@ -1581,6 +1629,7 @@ lff8s2_7:
 	jmp	lff8m2_5  ; error
 
 load_8khz_stereo_16_bit:
+	; 02/02/2025
 	; 16/11/2023
 	; 15/11/2023
 	; 13/11/2023
@@ -1591,7 +1640,7 @@ load_8khz_stereo_16_bit:
 	retn
 
 lff8s2_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -1624,13 +1673,14 @@ lff8s2_1:
 	stosw		; original sample (R)
 	add	ah, 80h	; convert sound level to 0-65535 format
 	mov	[previous_val_r], ax
-	xor	dx, dx
-	xor	ax, ax
-	; 16/11/2023
-	dec	cx
-	jz	short lff8s2_2
+	; 02/02/2025
 	mov	ax, [si]
 	mov	dx, [si+2]
+	; 16/11/2023
+	dec	cx
+	jnz	short lff8s2_2
+	xor	dx, dx
+	xor	ax, ax
 lff8s2_2:
 	add	ah, 80h	; convert sound level to 0-65535 format
 	mov	[next_val_l], ax
@@ -1708,6 +1758,7 @@ lff8_s2_9:
 ; .....................
 
 load_16khz_mono_8_bit:
+	; 02/02/2025
 	; 14/11/2023
 	; 13/11/2023
         test    byte [flags], ENDOFFILE	; have we already read the
@@ -1738,7 +1789,7 @@ lff16m_0:
 	jmp	lff16_eof
 
 lff16m_8:
-	mov	cx, ax		; byte count
+	mov	cx, ax	; byte count
 lff16m_1:
 	lodsb
 	;mov	[previous_val], al
@@ -1748,11 +1799,12 @@ lff16m_1:
 	stosw		; original sample (left channel)
 	stosw		; original sample (right channel)
 	;xor	ax, ax
-	; 14/11/22023
-	mov	al, 80h
-	dec	cx
-	jz	short lff16m_2
+	; 02/02/2025
 	mov	al, [si]
+	dec	cx
+	jnz	short lff16m_2
+	; 14/11/2023
+	mov	al, 80h
 lff16m_2:
 	;mov	[next_val], al
 	mov	bh, al
@@ -1786,6 +1838,7 @@ lff16s_7:
 	jmp	lff16m_5  ; error
 
 load_16khz_stereo_8_bit:
+	; 02/02/2025
 	; 14/11/2023
 	; 13/11/2023
         test    byte [flags], ENDOFFILE	; have we already read the
@@ -1795,7 +1848,7 @@ load_16khz_stereo_8_bit:
 	retn
 
 lff16s_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -1817,7 +1870,7 @@ lff16s_0:
 	jmp	lff16_eof
 
 lff16s_8:
-	mov	cx, ax		; word count
+	mov	cx, ax	; word count
 lff16s_1:
 	lodsb
 	mov	[previous_val_l], al
@@ -1831,12 +1884,13 @@ lff16s_1:
 	stosw		; original sample (R)
 
 	;xor	ax, ax
+	; 02/02/2025
+	mov	ax, [si]
+	dec	cx
+	jnz	short lff16s_2
+		; convert 8 bit sample to 16 bit sample
 	; 14/11/2023
 	mov	ax, 8080h
-	dec	cx
-	jz	short lff16s_2
-		; convert 8 bit sample to 16 bit sample
-	mov	ax, [si]
 lff16s_2:
 	;mov	[next_val_l], al
 	;mov	[next_val_r], ah
@@ -1877,6 +1931,7 @@ lff16s_2:
 	jmp	lff16s_3
 
 load_16khz_mono_16_bit:
+	; 02/02/2025
 	; 15/11/2023
 	; 13/11/2023
         test    byte [flags], ENDOFFILE	; have we already read the
@@ -1886,7 +1941,7 @@ load_16khz_mono_16_bit:
 	retn
 
 lff16m2_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -1916,10 +1971,11 @@ lff16m2_1:
 	add	ah, 80h ; convert sound level 0 to 65535 format
 	;mov	[previous_val], ax
 	mov	bx, ax	
-	xor	ax, ax
-	dec	cx
-	jz	short lff16m2_2
+	; 02/02/2025
 	mov	ax, [si]
+	dec	cx
+	jnz	short lff16m2_2
+	xor	ax, ax
 lff16m2_2:
 	add	ah, 80h ; convert sound level 0 to 65535 format
 	mov	bp, ax	; [next_val]
@@ -1949,6 +2005,7 @@ lff16s2_7:
 	jmp	lff16m2_5  ; error
 
 load_16khz_stereo_16_bit:
+	; 02/02/2025
 	; 16/11/2023
 	; 15/11/2023
 	; 13/11/2023
@@ -1959,7 +2016,7 @@ load_16khz_stereo_16_bit:
 	retn
 
 lff16s2_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -1982,28 +2039,29 @@ lff16s2_0:
 	jmp	lff16_eof
 
 lff16s2_8:
-	mov	cx, ax		; dword count
+	mov	cx, ax	; dword count
 lff16s2_1:
 	lodsw
 	stosw		; original sample (L)
-	add	ah, 80h	; convert sound level 0 to 65535 format 
+	add	ah, 80h	; convert sound level 0 to 65535 format
 	mov	[previous_val_l], ax
 	lodsw
 	stosw		; original sample (R)
-	add	ah, 80h	; convert sound level 0 to 65535 format 
+	add	ah, 80h	; convert sound level 0 to 65535 format
 	mov	[previous_val_r], ax
-	xor	dx, dx
-	xor	ax, ax
-	; 16/11/2023
-	dec	cx
-	jz	short lff16s2_2
+	; 02/02/2025
 	mov	ax, [si]
 	mov	dx, [si+2]
+	; 16/11/2023
+	dec	cx
+	jnz	short lff16s2_2
+	xor	dx, dx
+	xor	ax, ax
 lff16s2_2:
-	add	ah, 80h	; convert sound level 0 to 65535 format 
+	add	ah, 80h	; convert sound level 0 to 65535 format
 	;mov	[next_val_l], ax
 	mov	bp, ax
-	add	dh, 80h	; convert sound level 0 to 65535 format 
+	add	dh, 80h	; convert sound level 0 to 65535 format
 	mov	[next_val_r], dx
 	add	ax, [previous_val_l]
 	rcr	ax, 1
@@ -2040,6 +2098,7 @@ lff16s2_2:
 ; .....................
 
 load_24khz_mono_8_bit:
+	; 02/02/2025
 	; 15/11/2023
         test    byte [flags], ENDOFFILE	; have we already read the
 					; last of the file?
@@ -2048,7 +2107,7 @@ load_24khz_mono_8_bit:
 	retn
 
 lff24m_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -2067,7 +2126,7 @@ lff24m_0:
 	jmp	lff24_eof
 
 lff24m_8:
-	mov	cx, ax		; byte count
+	mov	cx, ax	; byte count
 lff24m_1:
 	lodsb
 	;mov	[previous_val], al
@@ -2077,10 +2136,11 @@ lff24m_1:
 	stosw		; original sample (left channel)
 	stosw		; original sample (right channel)
 	;xor	ax, ax
-	mov	al, 80h
-	dec	cx
-	jz	short lff24m_2
+	; 02/02/2025
 	mov	al, [si]
+	dec	cx
+	jnz	short lff24m_2
+	mov	al, 80h
 lff24m_2:
 	;;mov	[next_val], al
 	;mov	bh, al
@@ -2102,6 +2162,7 @@ lff24s_7:
 	jmp	lff24_5  ; error
 
 load_24khz_stereo_8_bit:
+	; 02/02/2025
 	; 15/11/2023
         test    byte [flags], ENDOFFILE	; have we already read the
 					; last of the file?
@@ -2110,7 +2171,7 @@ load_24khz_stereo_8_bit:
 	retn
 
 lff24s_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -2130,7 +2191,7 @@ lff24s_0:
 	jmp	lff24_eof
 
 lff24s_8:
-	mov	cx, ax		; word count
+	mov	cx, ax	; word count
 lff24s_1:
 	lodsb
 	mov	[previous_val_l], al
@@ -2142,13 +2203,13 @@ lff24s_1:
 	sub	al, 80h
 	shl	ax, 8	; convert 8 bit sample to 16 bit sample
 	stosw		; original sample (R)
-
 	;xor	ax, ax
-	mov	ax, 8080h
-	dec	cx
-	jz	short lff24s_2
-		; convert 8 bit sample to 16 bit sample
+	; 02/02/2025
 	mov	ax, [si]
+	dec	cx
+	jnz	short lff24s_2
+		; convert 8 bit sample to 16 bit sample
+	mov	ax, 8080h
 lff24s_2:
 	;;mov	[next_val_l], al
 	;;mov	[next_val_r], ah
@@ -2174,6 +2235,7 @@ lff24s_2:
 	jmp	lff24_3
 
 load_24khz_mono_16_bit:
+	; 02/02/2025
 	; 15/11/2023
         test    byte [flags], ENDOFFILE	; have we already read the
 					; last of the file?
@@ -2182,7 +2244,7 @@ load_24khz_mono_16_bit:
 	retn
 
 lff24m2_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -2210,14 +2272,17 @@ lff24m2_1:
 	add	ah, 80h ; convert sound level 0 to 65535 format
 	;mov	[previous_val], ax
 	;mov	bx, ax	
+	;mov	ax, [si
+	; 02/02/2025
+	mov	bx, [si]
+	dec	cx
+	jnz	short lff24m2_2
 	;xor	ax, ax
 	xor	bx, bx
-	dec	cx
-	jz	short lff24m2_2
-	;mov	ax, [si
-	mov	bx, [si]
 lff24m2_2:
-	;add	ah, 80h ; convert sound level 0 to 65535 format
+	; 02/02/2025
+	add	bh, 80h ; convert sound level 0 to 65535 format
+	;add	ah, 80h
 	;mov	bp, ax	; [next_val]
 	;add	ax, [previous_val]
 	; ax = [previous_val]
@@ -2237,6 +2302,7 @@ lff24s2_7:
 	jmp	lff24_5  ; error
 
 load_24khz_stereo_16_bit:
+	; 02/02/2025
 	; 16/11/2023
 	; 15/11/2023
         test    byte [flags], ENDOFFILE	; have we already read the
@@ -2246,7 +2312,7 @@ load_24khz_stereo_16_bit:
 	retn
 
 lff24s2_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -2267,29 +2333,30 @@ lff24s2_0:
 	jmp	lff24_eof
 
 lff24s2_8:
-	mov	cx, ax		; dword count
+	mov	cx, ax	; dword count
 lff24s2_1:
 	lodsw
 	stosw		; original sample (L)
-	add	ah, 80h	; convert sound level 0 to 65535 format 
+	add	ah, 80h	; convert sound level 0 to 65535 format
 	mov	[previous_val_l], ax
 	lodsw
 	stosw		; original sample (R)
-	add	ah, 80h	; convert sound level 0 to 65535 format 
+	add	ah, 80h	; convert sound level 0 to 65535 format
 	;mov	[previous_val_r], ax
 	mov	bx, ax
-	xor	dx, dx
-	xor	ax, ax
-	; 16/11/2023
-	dec	cx
-	jz	short lff24s2_2
+	; 02/02/2025
 	mov	ax, [si]
 	mov	dx, [si+2]
+	; 16/11/2023
+	dec	cx
+	jnz	short lff24s2_2
+	xor	dx, dx
+	xor	ax, ax
 lff24s2_2:
-	add	ah, 80h	; convert sound level 0 to 65535 format 
+	add	ah, 80h	; convert sound level 0 to 65535 format
 	;;mov	[next_val_l], ax
 	;mov	bp, ax
-	add	dh, 80h	; convert sound level 0 to 65535 format 
+	add	dh, 80h	; convert sound level 0 to 65535 format
 	;mov	[next_val_r], dx
 	add	ax, [previous_val_l]
 	rcr	ax, 1
@@ -2311,6 +2378,7 @@ lff24s2_2:
 ; .....................
 
 load_32khz_mono_8_bit:
+	; 02/02/2025
 	; 15/11/2023
         test    byte [flags], ENDOFFILE	; have we already read the
 					; last of the file?
@@ -2319,7 +2387,7 @@ load_32khz_mono_8_bit:
 	retn
 
 lff32m_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -2338,7 +2406,7 @@ lff32m_0:
 	jmp	lff32_eof
 
 lff32m_8:
-	mov	cx, ax		; byte count
+	mov	cx, ax	; byte count
 lff32m_1:
 	lodsb
 	;mov	[previous_val], al
@@ -2348,10 +2416,11 @@ lff32m_1:
 	stosw		; original sample (left channel)
 	stosw		; original sample (right channel)
 	;xor	ax, ax
-	mov	al, 80h
-	dec	cx
-	jz	short lff32m_2
+	; 02/02/2025
 	mov	al, [si]
+	dec	cx
+	jnz	short lff32m_2
+	mov	al, 80h
 lff32m_2:
 	;;mov	[next_val], al
 	;mov	bh, al
@@ -2364,7 +2433,7 @@ lff32m_2:
 	stosw		; this is interpolated sample (R)
 	
 	; different than 8-16-24 kHZ !
-	; 'original-interpolated-original' trio samples 
+	; 'original-interpolated-original' trio samples
 	jcxz	lff32m_3
 
 	lodsb
@@ -2384,6 +2453,7 @@ lff32s_7:
 	jmp	lff32_5  ; error
 
 load_32khz_stereo_8_bit:
+	; 02/02/2025
 	; 15/11/2023
         test    byte [flags], ENDOFFILE	; have we already read the
 					; last of the file?
@@ -2392,7 +2462,7 @@ load_32khz_stereo_8_bit:
 	retn
 
 lff32s_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -2412,7 +2482,7 @@ lff32s_0:
 	jmp	lff32_eof
 
 lff32s_8:
-	mov	cx, ax		; word count
+	mov	cx, ax	; word count
 lff32s_1:
 	lodsb
 	mov	[previous_val_l], al
@@ -2424,13 +2494,13 @@ lff32s_1:
 	sub	al, 80h
 	shl	ax, 8	; convert 8 bit sample to 16 bit sample
 	stosw		; original sample (R)
-
+	; 02/02/2025
+	mov	ax, [si]
+	dec	cx
+	jnz	short lff32s_2
+		; convert 8 bit sample to 16 bit sample
 	;xor	ax, ax
 	mov	ax, 8080h
-	dec	cx
-	jz	short lff32s_2
-		; convert 8 bit sample to 16 bit sample
-	mov	ax, [si]
 lff32s_2:
 	;;mov	[next_val_l], al
 	;;mov	[next_val_r], ah
@@ -2471,6 +2541,7 @@ lff32s_3:
 	jmp	lff32_3
 
 load_32khz_mono_16_bit:
+	; 02/02/2025
 	; 15/11/2023
         test    byte [flags], ENDOFFILE	; have we already read the
 					; last of the file?
@@ -2479,7 +2550,7 @@ load_32khz_mono_16_bit:
 	retn
 
 lff32m2_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -2506,15 +2577,18 @@ lff32m2_1:
 	stosw		; original sample (right channel)
 	add	ah, 80h ; convert sound level 0 to 65535 format
 	;mov	[previous_val], ax
-	;mov	bx, ax	
-	;xor	ax, ax
-	xor	bx, bx
-	dec	cx
-	jz	short lff32m2_2
+	;mov	bx, ax
+	; 02/02/2025
 	;mov	ax, [si
 	mov	bx, [si]
+	dec	cx
+	jnz	short lff32m2_2
+	;xor	ax, ax
+	xor	bx, bx
 lff32m2_2:
-	;add	ah, 80h ; convert sound level 0 to 65535 format
+	; 02/02/2025
+	add	bh, 80h ; convert sound level 0 to 65535 format
+	;add	ah, 80h
 	;mov	bp, ax	; [next_val]
 	;add	ax, [previous_val]
 	; ax = [previous_val]
@@ -2526,7 +2600,7 @@ lff32m2_2:
 	stosw		; this is interpolated sample (R)
 
 	; different than 8-16-24 kHZ !
-	; 'original-interpolated-original' trio samples 
+	; 'original-interpolated-original' trio samples
 	jcxz	lff32m2_3
 
 	lodsw
@@ -2544,7 +2618,8 @@ lff32s2_7:
 	jmp	lff32_5  ; error
 
 load_32khz_stereo_16_bit:
-	 ;16/11/2023
+	; 02/02/2025
+	; 16/11/2023
 	; 15/11/2023
         test    byte [flags], ENDOFFILE	; have we already read the
 					; last of the file?
@@ -2553,7 +2628,7 @@ load_32khz_stereo_16_bit:
 	retn
 
 lff32s2_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -2567,35 +2642,36 @@ lff32s2_0:
 
 	mov	si, dx ; temp_buffer ; temporary buffer address
 	
-	shr	ax, 2	; 16/11/2023 (word left ch + word right ch) 
+	shr	ax, 2	; 16/11/2023 (word left ch + word right ch)
 	;and	ax, ax
 	jnz	short lff32s2_8
 	jmp	lff32_eof
 
 lff32s2_8:
-	mov	cx, ax		; dword count
+	mov	cx, ax	; dword count
 lff32s2_1:
 	lodsw
 	stosw		; original sample (L)
-	add	ah, 80h	; convert sound level 0 to 65535 format 
+	add	ah, 80h	; convert sound level 0 to 65535 format
 	mov	[previous_val_l], ax
 	lodsw
 	stosw		; original sample (R)
-	add	ah, 80h	; convert sound level 0 to 65535 format 
+	add	ah, 80h	; convert sound level 0 to 65535 format
 	;mov	[previous_val_r], ax
 	mov	bx, ax
-	xor	dx, dx
-	xor	ax, ax
-	; 16/11/2023
-	dec	cx
-	jz	short lff32s2_2
+	; 02/02/2025
 	mov	ax, [si]
 	mov	dx, [si+2]
+	; 16/11/2023
+	dec	cx
+	jnz	short lff32s2_2
+	xor	dx, dx
+	xor	ax, ax
 lff32s2_2:
-	add	ah, 80h	; convert sound level 0 to 65535 format 
+	add	ah, 80h	; convert sound level 0 to 65535 format
 	;;mov	[next_val_l], ax
 	;mov	bp, ax
-	add	dh, 80h	; convert sound level 0 to 65535 format 
+	add	dh, 80h	; convert sound level 0 to 65535 format
 	;mov	[next_val_r], dx
 	add	ax, [previous_val_l]
 	rcr	ax, 1
@@ -2610,7 +2686,7 @@ lff32s2_2:
 	stosw		; this is interpolated sample (R)
 
 	; different than 8-16-24 kHZ !
-	; 'original-interpolated-original' trio samples 
+	; 'original-interpolated-original' trio samples
 	jcxz	lff32s2_3
 
 	lodsw
@@ -2627,6 +2703,7 @@ lff32s2_3:
 ; .....................
 
 load_22khz_mono_8_bit:
+	; 02/02/2025
 	; 16/11/2023
         test    byte [flags], ENDOFFILE	; have we already read the
 					; last of the file?
@@ -2635,7 +2712,7 @@ load_22khz_mono_8_bit:
 	retn
 
 lff22m_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -2654,17 +2731,18 @@ lff22m_0:
 	jmp	lff22_eof
 
 lff22m_8:
-	mov	cx, ax		; byte count
+	mov	cx, ax	; byte count
 lff22m_9:
 	mov	bp, 5 ; interpolation (one step) loop count
 	mov	byte [faz], 3  ; 3 steps/phases
 lff22m_1:
 	; 3:2:2:2:2:2::3:2:2:2:2::3:2:2:2:2:2  ; 37/17
 	lodsb
-	mov	dl, 80h
-	dec	cx
-	jz	short lff22m_2_1
+	; 02/02/2025
 	mov	dl, [si]
+	dec	cx
+	jnz	short lff22m_2_1
+	mov	dl, 80h
 lff22m_2_1:	
 	; al = [previous_val]
 	; dl = [next_val]
@@ -2672,10 +2750,11 @@ lff22m_2_1:
 	jcxz	lff22m_3
 lff22m_2_2:
 	lodsb
-	mov	dl, 80h
-	dec	cx
-	jz	short lff22m_2_3
+	; 02/02/2025
 	mov	dl, [si]
+	dec	cx
+	jnz	short lff22m_2_3
+	mov	dl, 80h
 lff22m_2_3:
  	call	interpolating_2_8bit_mono ; 2 of 17 .. 6 of 17
 	jcxz	lff22m_3
@@ -2701,6 +2780,7 @@ lff22s_7:
 	jmp	lff22_5  ; error
 
 load_22khz_stereo_8_bit:
+	; 02/02/2025
 	; 16/11/2023
         test    byte [flags], ENDOFFILE	; have we already read the
 					; last of the file?
@@ -2709,7 +2789,7 @@ load_22khz_stereo_8_bit:
 	retn
 
 lff22s_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -2722,37 +2802,39 @@ lff22s_0:
 	jc	short lff22s_7 ; error !
 
 	mov	si, dx ; temp_buffer ; temporary buffer address
-	
+
 	shr	ax, 1
 	;and	ax, ax
 	jnz	short lff22s_8
 	jmp	lff22_eof
 
 lff22s_8:
-	mov	cx, ax		; word count
+	mov	cx, ax	; word count
 lff22s_9:
 	mov	bp, 5 ; interpolation (one step) loop count
 	mov	byte [faz], 3  ; 3 steps/phase
 lff22s_1:
 	; 3:2:2:2:2:2::3:2:2:2:2::3:2:2:2:2:2  ; 37/17
 	lodsw
-	mov	dx, 8080h
-	dec	cx
-	jz	short lff22s_2_1 
+	; 02/02/2025
 	mov	dx, [si]
-lff22s_2_1:	
+	dec	cx
+	jnz	short lff22s_2_1
+	mov	dx, 8080h
+lff22s_2_1:
 	; al = [previous_val_l]
 	; ah = [previous_val_r]
 	; dl = [next_val_l]
-	; dl = [next_val_r]	
-	call	interpolating_3_8bit_stereo ; 1 of 17 
+	; dl = [next_val_r]
+	call	interpolating_3_8bit_stereo ; 1 of 17
 	jcxz	lff22s_3
 lff22s_2_2:
 	lodsw
-	mov	dx, 8080h
-	dec	cx
-	jz	short lff22s_2_3
+	; 02/02/2025
 	mov	dx, [si]
+	dec	cx
+	jnz	short lff22s_2_3
+	mov	dx, 8080h
 lff22s_2_3:
  	call	interpolating_2_8bit_stereo ; 2 of 17 .. 6 of 17
 	jcxz	lff22s_3
@@ -2770,6 +2852,7 @@ lff22s_2_3:
 	jmp	short lff22s_1 ; 3:2:2:2:2:2 ; 12-17 of 17
 
 load_22khz_mono_16_bit:
+	; 02/02/2025
 	; 16/11/2023
         test    byte [flags], ENDOFFILE	; have we already read the
 					; last of the file?
@@ -2778,7 +2861,7 @@ load_22khz_mono_16_bit:
 	retn
 
 lff22m2_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -2798,17 +2881,18 @@ lff22m2_0:
 	jmp	lff22_eof
 
 lff22m2_8:
-	mov	cx, ax		; word count
+	mov	cx, ax	; word count
 lff22m2_9:
 	mov	bp, 5 ; interpolation (one step) loop count
 	mov	byte [faz], 3  ; 3 steps/phases
 lff22m2_1:
 	; 3:2:2:2:2:2::3:2:2:2:2::3:2:2:2:2:2  ; 37/17
 	lodsw
-	xor	dx, dx
-	dec	cx
-	jz	short lff22m2_2_1
+	; 02/02/2025
 	mov	dx, [si]
+	dec	cx
+	jnz	short lff22m2_2_1
+	xor	dx, dx
 lff22m2_2_1:	
 	; ax = [previous_val]
 	; dx = [next_val]
@@ -2816,10 +2900,11 @@ lff22m2_2_1:
 	jcxz	lff22m2_3
 lff22m2_2_2:
 	lodsw
-	xor	dx, dx
-	dec	cx
-	jz	short lff22m2_2_3
+	; 02/02/2025
 	mov	dx, [si]
+	dec	cx
+	jnz	short lff22m2_2_3
+	xor	dx, dx
 lff22m2_2_3:
  	call	interpolating_2_16bit_mono ; 2 of 17 .. 6 of 17
 	jcxz	lff22m2_3
@@ -2853,7 +2938,7 @@ load_22khz_stereo_16_bit:
 	retn
 
 lff22s2_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -2873,7 +2958,7 @@ lff22s2_0:
 	jmp	lff22_eof
 
 lff22s2_8:
-	mov	cx, ax		; dword count
+	mov	cx, ax	; dword count
 lff22s2_9:
 	mov	bp, 5 ; interpolation (one step) loop count
 	mov	byte [faz], 3  ; 3 steps/phase
@@ -2926,6 +3011,7 @@ lff22s2_2_3:
 ; .....................
 
 load_11khz_mono_8_bit:
+	; 02/02/2025
 	; 18/11/2023
         test    byte [flags], ENDOFFILE	; have we already read the
 					; last of the file?
@@ -2934,7 +3020,7 @@ load_11khz_mono_8_bit:
 	retn
 
 lff11m_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -2953,16 +3039,17 @@ lff11m_0:
 	jmp	lff11_eof
 
 lff11m_8:
-	mov	cx, ax		; byte count
+	mov	cx, ax	; byte count
 lff11m_9:
 	mov	bp, 6 ; interpolation (one step) loop count
 lff11m_1:
 	; 5:4:4::5:4:4::5:4:4::5:4:4::5:4:4::5:4  ; 74/17
 	lodsb
-	mov	dl, 80h
-	dec	cx
-	jz	short lff11m_2_1
+	; 02/02/2025
 	mov	dl, [si]
+	dec	cx
+	jnz	short lff11m_2_1
+	mov	dl, 80h
 lff11m_2_1:	
 	; al = [previous_val]
 	; dl = [next_val]
@@ -2970,10 +3057,11 @@ lff11m_2_1:
 	jcxz	lff11m_3
 lff11m_2_2:
 	lodsb
-	mov	dl, 80h
-	dec	cx
-	jz	short lff11m_2_3
+	; 02/02/2025
 	mov	dl, [si]
+	dec	cx
+	jnz	short lff11m_2_3
+	mov	dl, 80h
 lff11m_2_3:
  	call	interpolating_4_8bit_mono
 	jcxz	lff11m_3
@@ -2982,10 +3070,11 @@ lff11m_2_3:
 	jz	short lff11m_9
 
 	lodsb
-	mov	dl, 80h
-	dec	cx
-	jz	short lff11m_2_4
+	; 02/02/2025
 	mov	dl, [si]
+	dec	cx
+	jnz	short lff11m_2_4
+	mov	dl, 80h
 lff11m_2_4:
 	call	interpolating_4_8bit_mono
 	jcxz	lff11m_3
@@ -3000,6 +3089,7 @@ lff11s_7:
 	jmp	lff11_5  ; error
 
 load_11khz_stereo_8_bit:
+	; 02/02/2025
 	; 18/11/2023
         test    byte [flags], ENDOFFILE	; have we already read the
 					; last of the file?
@@ -3008,7 +3098,7 @@ load_11khz_stereo_8_bit:
 	retn
 
 lff11s_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -3021,36 +3111,38 @@ lff11s_0:
 	jc	short lff11s_7 ; error !
 
 	mov	si, dx ; temp_buffer ; temporary buffer address
-	
+
 	shr	ax, 1
 	;and	ax, ax
 	jnz	short lff11s_8
 	jmp	lff11_eof
 
 lff11s_8:
-	mov	cx, ax		; word count
+	mov	cx, ax	; word count
 lff11s_9:
 	mov	bp, 6 ; interpolation (one step) loop count
 lff11s_1:
 	; 5:4:4::5:4:4::5:4:4::5:4:4::5:4:4::5:4  ; 74/17
 	lodsw
-	mov	dx, 8080h
-	dec	cx
-	jz	short lff11s_2_1 
+	; 02/02/2025
 	mov	dx, [si]
-lff11s_2_1:	
+	dec	cx
+	jnz	short lff11s_2_1
+	mov	dx, 8080h
+lff11s_2_1:
 	; al = [previous_val_l]
 	; ah = [previous_val_r]
 	; dl = [next_val_l]
-	; dl = [next_val_r]	
+	; dl = [next_val_r]
 	call	interpolating_5_8bit_stereo
 	jcxz	lff11s_3
 lff11s_2_2:
 	lodsw
-	mov	dx, 8080h
-	dec	cx
-	jz	short lff11s_2_3
+	; 02/02/2025
 	mov	dx, [si]
+	dec	cx
+	jnz	short lff11s_2_3
+	mov	dx, 8080h
 lff11s_2_3:
  	call	interpolating_4_8bit_stereo
 	jcxz	lff11s_3
@@ -3059,16 +3151,18 @@ lff11s_2_3:
 	jz	short lff11s_9
 
 	lodsw
-	mov	dx, 8080h
-	dec	cx
-	jz	short lff11s_2_4
+	; 02/02/2025
 	mov	dx, [si]
+	dec	cx
+	jnz	short lff11s_2_4
+	mov	dx, 8080h
 lff11s_2_4:
 	call	interpolating_4_8bit_stereo
 	jcxz	lff11s_3
 	jmp	short lff11s_1
 
 load_11khz_mono_16_bit:
+	; 02/02/2025
 	; 18/11/2023
         test    byte [flags], ENDOFFILE	; have we already read the
 					; last of the file?
@@ -3077,7 +3171,7 @@ load_11khz_mono_16_bit:
 	retn
 
 lff11m2_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -3097,16 +3191,17 @@ lff11m2_0:
 	jmp	lff11_eof
 
 lff11m2_8:
-	mov	cx, ax		; word count
+	mov	cx, ax	; word count
 lff11m2_9:
 	mov	bp, 6 ; interpolation (one step) loop count
 lff11m2_1:
 	; 5:4:4::5:4:4::5:4:4::5:4:4::5:4:4::5:4  ; 74/17
 	lodsw
-	xor	dx, dx
-	dec	cx
-	jz	short lff11m2_2_1
+	; 02/02/2025
 	mov	dx, [si]
+	dec	cx
+	jnz	short lff11m2_2_1
+	xor	dx, dx
 lff11m2_2_1:	
 	; ax = [previous_val]
 	; dx = [next_val]
@@ -3114,10 +3209,11 @@ lff11m2_2_1:
 	jcxz	lff11m2_3
 lff11m2_2_2:
 	lodsw
-	xor	dx, dx
-	dec	cx
-	jz	short lff11m2_2_3
+	; 02/02/2025
 	mov	dx, [si]
+	dec	cx
+	jnz	short lff11m2_2_3
+	xor	dx, dx
 lff11m2_2_3:
  	call	interpolating_4_16bit_mono
 	jcxz	lff11m2_3
@@ -3126,10 +3222,11 @@ lff11m2_2_3:
 	jz	short lff11m2_9
 
 	lodsw
-	xor	dx, dx
-	dec	cx
-	jz	short lff11m2_2_4
+	; 02/02/2025
 	mov	dx, [si]
+	dec	cx
+	jnz	short lff11m2_2_4
+	xor	dx, dx
 lff11m2_2_4:
  	call	interpolating_4_16bit_mono
 	jcxz	lff11m2_3
@@ -3148,7 +3245,7 @@ load_11khz_stereo_16_bit:
 	retn
 
 lff11s2_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -3173,7 +3270,7 @@ lff11s2_3:
 		; (put zeros in the remain words of the buffer)
 
 lff11s2_8:
-	mov	cx, ax		; dword count
+	mov	cx, ax	; dword count
 lff11s2_9:
 	mov	bp, 6 ; interpolation (one step) loop count
 lff11s2_1:
@@ -3237,6 +3334,7 @@ lff11s2_2_4:
 ; .....................
 
 load_44khz_mono_8_bit:
+	; 02/02/2025
 	; 18/11/2023
         test    byte [flags], ENDOFFILE	; have we already read the
 					; last of the file?
@@ -3245,7 +3343,7 @@ load_44khz_mono_8_bit:
 	retn
 
 lff44m_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -3258,13 +3356,13 @@ lff44m_0:
 	jc	short lff44m_7 ; error !
 
 	mov	si, dx ; temp_buffer ; temporary buffer address
-	
+
 	and	ax, ax
 	jnz	short lff44m_8
 	jmp	lff44_eof
 
 lff44m_8:
-	mov	cx, ax		; byte count
+	mov	cx, ax	; byte count
 lff44m_9:
 	mov	bp, 10 ; interpolation (one step) loop count
 	mov	byte [faz], 2  ; 2 steps/phases
@@ -3272,10 +3370,11 @@ lff44m_1:
 	; 2:1:1:1:1:1:1:1:1:1:1::	; 25/23
 	; 2:1:1:1:1:1:1:1:1:1:1:1
 	lodsb
-	mov	dl, 80h
-	dec	cx
-	jz	short lff44m_2_1
+	; 02/02/2025
 	mov	dl, [si]
+	dec	cx
+	jnz	short lff44m_2_1
+	mov	dl, 80h
 lff44m_2_1:	
 	; al = [previous_val]
 	; dl = [next_val]
@@ -3286,15 +3385,15 @@ lff44m_2_2:
 	sub	al, 80h
 	shl	ax, 8	; convert 8 bit sample to 16 bit sample
 	stosw		; (L)
-	stosw		; (R)	
+	stosw		; (R)
 
 	dec	cx
-	jz	short lff44m_3	
+	jz	short lff44m_3
 	dec	bp
 	jnz	short lff44m_2_2
-	
+
 	dec	byte [faz]
-	jz	short lff44m_9 
+	jz	short lff44m_9
 	mov	bp, 11
 	jmp	short lff44m_1
 
@@ -3307,6 +3406,7 @@ lff44s_7:
 	jmp	lff44_5  ; error
 
 load_44khz_stereo_8_bit:
+	; 02/02/2025
 	; 16/11/2023
         test    byte [flags], ENDOFFILE	; have we already read the
 					; last of the file?
@@ -3315,7 +3415,7 @@ load_44khz_stereo_8_bit:
 	retn
 
 lff44s_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -3328,14 +3428,14 @@ lff44s_0:
 	jc	short lff44s_7 ; error !
 
 	mov	si, dx ; temp_buffer ; temporary buffer address
-	
+
 	shr	ax, 1
 	;and	ax, ax
 	jnz	short lff44s_8
 	jmp	lff44_eof
 
 lff44s_8:
-	mov	cx, ax		; word count
+	mov	cx, ax	; word count
 lff44s_9:
 	mov	bp, 10 ; interpolation (one step) loop count
 	mov	byte [faz], 2  ; 2 steps/phase
@@ -3343,15 +3443,16 @@ lff44s_1:
 	; 2:1:1:1:1:1:1:1:1:1:1::	; 25/23
 	; 2:1:1:1:1:1:1:1:1:1:1:1
 	lodsw
-	mov	dx, 8080h
-	dec	cx
-	jz	short lff44s_2_1 
+	; 02/02/2025
 	mov	dx, [si]
-lff44s_2_1:	
+	dec	cx
+	jnz	short lff44s_2_1
+	mov	dx, 8080h
+lff44s_2_1:
 	; al = [previous_val_l]
 	; ah = [previous_val_r]
 	; dl = [next_val_l]
-	; dl = [next_val_r]	
+	; dl = [next_val_r]
 	call	interpolating_2_8bit_stereo
 	jcxz	lff44s_3
 lff44s_2_2:
@@ -3365,16 +3466,17 @@ lff44s_2_2:
 	stosw		; (R)
 
 	dec	cx
-	jz	short lff44s_3	
+	jz	short lff44s_3
 	dec	bp
 	jnz	short lff44s_2_2
 	
 	dec	byte [faz]
-	jz	short lff44s_9 
+	jz	short lff44s_9
 	mov	bp, 11
 	jmp	short lff44s_1
 
 load_44khz_mono_16_bit:
+	; 02/02/2025
 	; 18/11/2023
         test    byte [flags], ENDOFFILE	; have we already read the
 					; last of the file?
@@ -3383,7 +3485,7 @@ load_44khz_mono_16_bit:
 	retn
 
 lff44m2_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -3403,7 +3505,7 @@ lff44m2_0:
 	jmp	lff44_eof
 
 lff44m2_8:
-	mov	cx, ax		; word count
+	mov	cx, ax	; word count
 lff44m2_9:
 	mov	bp, 10 ; interpolation (one step) loop count
 	mov	byte [faz], 2  ; 2 steps/phases
@@ -3411,10 +3513,11 @@ lff44m2_1:
 	; 2:1:1:1:1:1:1:1:1:1:1::	; 25/23
 	; 2:1:1:1:1:1:1:1:1:1:1:1
 	lodsw
-	xor	dx, dx
-	dec	cx
-	jz	short lff44m2_2_1
+	; 02/02/2025
 	mov	dx, [si]
+	dec	cx
+	jnz	short lff44m2_2_1
+	xor	dx, dx
 lff44m2_2_1:	
 	; ax = [previous_val]
 	; dx = [next_val]
@@ -3426,12 +3529,12 @@ lff44m2_2_2:
 	stosw		; (R)ight Channel
 
 	dec	cx
-	jz	short lff44m2_3	
+	jz	short lff44m2_3
 	dec	bp
 	jnz	short lff44m2_2_2
 	
 	dec	byte [faz]
-	jz	short lff44m2_9 
+	jz	short lff44m2_9
 	mov	bp, 11
 	jmp	short lff44m2_1
 
@@ -3452,7 +3555,7 @@ load_44khz_stereo_16_bit:
 	retn
 
 lff44s2_0:
-	mov	es, ax ; buffer segment	
+	mov	es, ax ; buffer segment
 	xor	di, di
 	mov	dx, temp_buffer ; temporary buffer for wav data
 	; ds = cs
@@ -3472,7 +3575,7 @@ lff44s2_0:
 	jmp	lff44_eof
 
 lff44s2_8:
-	mov	cx, ax		; dword count
+	mov	cx, ax	; dword count
 lff44s2_9:
 	mov	bp, 10 ; interpolation (one step) loop count
 	mov	byte [faz], 2  ; 2 steps/phase
@@ -3505,18 +3608,229 @@ lff44s2_2_2:
 	movsw		; (R)ight Channel
 
 	dec	cx
-	jz	short lff44s2_3	
+	jz	short lff44s2_3
 	dec	bp
 	jnz	short lff44s2_2_2
 	
 	dec	byte [faz]
-	jz	short lff44s2_9 
+	jz	short lff44s2_9
 	mov	bp, 11
 	jmp	short lff44s2_1
 
 ; .....................
 
+	; 02/02/2025
+load_12khz_mono_8_bit:
+        test    byte [flags], ENDOFFILE	; have we already read the
+					; last of the file?
+	jz	short lff12m_0		; no
+	stc
+	retn
+
+lff12m_0:
+	mov	es, ax ; buffer segment
+	xor	di, di
+	mov	dx, temp_buffer ; temporary buffer for wav data
+	; ds = cs
+
+	; load file into memory
+        mov	cx, [loadsize]
+	mov	bx, [filehandle]
+       	mov	ah, 3Fh
+	int	21h
+	jc	short lff12m_7 ; error ! !
+
+	mov	si, dx ; temp_buffer ; temporary buffer address
+	
+	and	ax, ax
+	jnz	short lff12m_8
+	jmp	lff12_eof
+
+lff12m_8:
+	mov	cx, ax	; byte count
+lff12m_1:
+	; original-interpolated-interpolated-interpolated
+	lodsb
+	; 02/02/2025
+	mov	dl, [si]
+	dec	cx
+	jnz	short lff12m_2
+	mov	dl, 80h
+lff12m_2:	
+	; al = [previous_val]
+	; dl = [next_val]
+ 	call	interpolating_4_8bit_mono
+	jcxz	lff12m_3
+	jmp	short lff12m_1
+
+	; 02/02/2025
+load_12khz_stereo_8_bit:
+        test    byte [flags], ENDOFFILE	; have we already read the
+					; last of the file?
+	jz	short lff12s_0		; no
+	stc
+	retn
+
+lff12s_0:
+	mov	es, ax ; buffer segment
+	xor	di, di
+	mov	dx, temp_buffer ; temporary buffer for wav data
+	; ds = cs
+
+	; load file into memory
+        mov	cx, [loadsize]
+	mov	bx, [filehandle]
+       	mov	ah, 3Fh
+	int	21h
+	jc	short lff12s_7 ; error !
+
+	mov	si, dx ; temp_buffer ; temporary buffer address
+	
+	shr	ax, 1
+	;and	ax, ax
+	jnz	short lff12s_8
+	jmp	lff12_eof
+
+lff12m_7:
+lff12s_7:
+	jmp	lff12_5  ; error
+
+lff12s_8:
+	mov	cx, ax	; word count
+lff12s_1:
+	; original-interpolated-interpolated-interpolated
+	lodsw
+	; 02/02/2025
+	mov	dx, [si]
+	dec	cx
+	jnz	short lff12s_2
+	mov	dx, 8080h
+lff12s_2:	
+	; al = [previous_val_l]
+	; ah = [previous_val_r]
+	; dl = [next_val_l]
+	; dh = [next_val_r]
+	call	interpolating_4_8bit_stereo
+	jecxz	lff12s_3
+	jmp	short lff12s_1
+
+lff12m_3:
+lff12s_3:
+	jmp	lff12_3	; padfill
+		; (put zeros in the remain words of the buffer)
+
+	; 02/02/2025
+load_12khz_mono_16_bit:
+	test    byte [flags], ENDOFFILE	; have we already read the
+					; last of the file?
+	jz	short lff12m2_0		; no
+	stc
+	retn
+
+lff12m2_0:
+	mov	es, ax ; buffer segment	
+	xor	di, di
+	mov	dx, temp_buffer ; temporary buffer for wav data
+	; ds = cs
+
+	; load file into memory
+        mov	cx, [loadsize]
+	mov	bx, [filehandle]
+       	mov	ah, 3Fh
+	int	21h
+	jc	short lff12m2_7 ; error !
+
+	mov	si, dx ; temp_buffer ; temporary buffer address
+	
+	shr	ax, 1
+	;and	ax, ax
+	jnz	short lff12m2_8
+	jmp	lff12_eof
+
+lff12m2_8:
+	mov	cx, ax	; word count
+lff12m2_1:
+	; original-interpolated-interpolated-interpolated
+	lodsw
+	; 02/02/2025
+	mov	dx, [si]
+	dec	cx
+	jnz	short lff12m2_2
+	xor	dx, dx
+lff12m2_2:	
+	; ax = [previous_val]
+	; dx = [next_val]
+ 	call	interpolating_4_16bit_mono
+	jecxz	lff12m_3
+	jmp	short lff12m2_1
+
+lff12m2_7:
+lff12s2_7:
+	jmp	lff12_5  ; error
+
+	; 02/02/2025
+load_12khz_stereo_16_bit:
+        test    byte [flags], ENDOFFILE	; have we already read the
+					; last of the file?
+	jz	short lff12s2_0		; no
+	stc
+	retn
+
+lff12s2_0:
+	mov	es, ax ; buffer segment
+	xor	di, di
+	mov	dx, temp_buffer ; temporary buffer for wav data
+	; ds = cs
+
+	; load file into memory
+        mov	cx, [loadsize]
+	mov	bx, [filehandle]
+       	mov	ah, 3Fh
+	int	21h
+	jc	short lff12s2_7 ; error !
+
+	mov	si, dx ; temp_buffer ; temporary buffer address
+	
+	shr	ax, 2	; dword (left chan word + right chan word)
+	;and	ax, ax
+	jnz	short lff12s2_8
+	jmp	lff12_eof
+
+lff12m2_3:
+lff12s2_3:
+	jmp	lff12_3	; padfill
+		; (put zeros in the remain words of the buffer)
+
+lff12s2_8:
+	mov	cx, ax	; dword count
+lff12s2_1:
+	; original-interpolated-interpolated-interpolated
+	lodsw
+	mov	bx, ax
+	lodsw
+	; 02/02/2025
+	mov	dx, [si]
+	mov	[next_val_l], dx
+	mov	dx, [si+2]
+	mov	[next_val_r], dx
+	dec	cx
+	jnz	short lff12s2_2
+	xor	dx, dx ; 0
+	mov	[next_val_l], dx
+	mov	[next_val_r], dx
+lff12s2_2:
+	; bx = [previous_val_l]
+	; ax = [previous_val_r]
+	; [next_val_l]
+	; [next_val_r]
+	call	interpolating_4_16bit_stereo
+	jecxz	lff12s2_3
+	jmp	short lff12s2_1
+
+; .....................
+
 interpolating_3_8bit_mono:
+	; 02/02/2025
 	; 16/11/2023
 	; al = [previous_val]
 	; dl = [next_val]
@@ -3539,12 +3853,15 @@ interpolating_3_8bit_mono:
 	mov	al, bh
 	add	al, dl	; [next_val]
 	rcr	al, 1
+	; 02/02/2025
+	sub	al, 80h
 	shl	ax, 8	; convert 8 bit sample to 16 bit sample
 	stosw		; interpolated sample 2 (L)
 	stosw		; interpolated sample 2 (R)
 	retn
 
 interpolating_3_8bit_stereo:
+	; 02/02/2025
 	; 16/11/2023
 	; al = [previous_val_l]
 	; ah = [previous_val_r]
@@ -3581,11 +3898,15 @@ interpolating_3_8bit_stereo:
 	pop	ax ; *
 	add	al, dl	; [next_val_l]
 	rcr	al, 1
+	; 02/02/2025
+	sub	al, 80h
 	shl	ax, 8	; convert 8 bit sample to 16 bit sample
 	stosw		; interpolated sample 2 (L)
 	mov	al, bl
 	add	al, dh	; [next_val_r]
 	rcr	al, 1
+	; 02/02/2025
+	sub	al, 80h
 	shl	ax, 8	; convert 8 bit sample to 16 bit sample
 	stosw		; interpolated sample 2 (R)
 	retn
@@ -3707,7 +4028,7 @@ interpolating_3_16bit_stereo:
 	sub	ah, 80h	; -32768 to +32767 format again
 	stosw 		; interpolated sample 2 (L)
 	pop	ax ; **
-	pop	dx ; *	
+	pop	dx ; *
 	add	ax, dx	; interpolated middle + [next_val_r]
 	rcr	ax, 1	; / 2
 	sub	ah, 80h	; -32768 to +32767 format again
@@ -3832,7 +4153,7 @@ interpolating_5_8bit_stereo:
 	push	ax ; **	; al = interpolated middle (L) (temporary)
 	add	al, bl	; [previous_val_l]
 	rcr	al, 1
-	xchg	al, bl	
+	xchg	al, bl
 	add	al, bl	; bl = interpolated 1st quarter (L) (temp)
 	rcr	al, 1
 	sub	al, 80h
@@ -3844,7 +4165,7 @@ interpolating_5_8bit_stereo:
 	push	ax ; *** ; al = interpolated middle (R) (temporary)
 	add	al, bh	; [previous_val_r]
 	rcr	al, 1
-	xchg	al, bh	
+	xchg	al, bh
 	add	al, bh	; bh = interpolated 1st quarter (R) (temp)
 	rcr	al, 1
 	sub	al, 80h
@@ -3869,8 +4190,8 @@ interpolating_5_8bit_stereo:
 	mov	al, bl	; interpolated middle (L) (temporary)
 	add	al, dl	; [next_val_l]
 	rcr	al, 1
-	xchg	al, bl	; al = interpolated middle (R) (temporary)	
-	add	al, bl	; bl = interpolated 3rd quarter (L) (temp) 
+	xchg	al, bl	; al = interpolated middle (R) (temporary)
+	add	al, bl	; bl = interpolated 3rd quarter (L) (temp)
 	rcr	al, 1
 	sub	al, 80h
 	shl	ax, 8	; convert 8 bit sample to 16 bit sample
@@ -3909,11 +4230,11 @@ interpolating_4_8bit_mono:
 	stosw		; original sample (L)
 	stosw		; original sample (R)
 	mov	al, bl
-	add	al, dl	
+	add	al, dl
 	rcr	al, 1
 	xchg	al, bl  ; al = [previous_val]
 	add	al, bl	; bl = interpolated middle (sample 2)
-	rcr	al, 1 	
+	rcr	al, 1
 	sub	al, 80h
 	shl	ax, 8	; convert 8 bit sample to 16 bit sample
 	stosw		; interpolated sample 1 (L)
@@ -4000,7 +4321,7 @@ interpolating_5_16bit_mono:
 	add	ax, dx
 	rcr	ax, 1
 	push	ax ; *	; interpolated middle (temporary)
-	add	ax, bx	; interpolated middle + [previous_val] 
+	add	ax, bx	; interpolated middle + [previous_val]
 	rcr	ax, 1
 	push	ax ; **	; interpolated 1st quarter (temporary)
 	add	ax, bx	; 1st quarter + [previous_val]
@@ -4014,7 +4335,7 @@ interpolating_5_16bit_mono:
 	rcr	ax, 1	; / 2
 	sub	ah, 80h	; -32768 to +32767 format again	
 	stosw		; interpolated sample 2 (L)
-	stosw		; interpolated sample 2 (R)		
+	stosw		; interpolated sample 2 (R)
 	mov	ax, bx
 	add	ax, dx	; interpolated middle + [next_val]
 	rcr	ax, 1
@@ -4054,13 +4375,13 @@ interpolating_5_16bit_stereo:
 	mov	cx, ax	; interpolated middle (L)
 	add	ax, bx	
 	rcr	ax, 1
-	mov	dx, ax	; interpolated 1st quarter (L)	
+	mov	dx, ax	; interpolated 1st quarter (L)
 	add	ax, bx	; [previous_val_l]
 	rcr	ax, 1
 	sub	ah, 80h	; -32768 to +32767 format again
 	stosw 		; interpolated sample 1 (L)
 	mov	ax, cx
-	add	ax, dx	; middle (L) + 1st quarter (L) 
+	add	ax, dx	; middle (L) + 1st quarter (L)
 	rcr	ax, 1	; / 2
 	mov	bx, ax  ; interpolated sample 2 (L)
 	pop	dx ; *	; [previous_val_r]
@@ -4119,7 +4440,8 @@ interpolating_4_16bit_mono:
 	; 18/11/2023
 	; ax = [previous_val]
 	; dx = [next_val]
-	; original-interpolated
+	; 02/02/2025
+	; original-interpolated-interpolated-interpolated
 
 	stosw		; original sample (L)
 	stosw		; original sample (R)
@@ -4205,7 +4527,7 @@ next_val_l: dw 0
 next_val_r: dw 0
 
 ; 16/11/2023
-faz:	db 0	
+faz:	db 0
 	
 ; --------------------------------------------------------
 ; 27/05/2024 - (TRDOS 386 Kernel) audio.s
@@ -4995,8 +5317,10 @@ reset:	db	0
 
 Credits:
 	db	'Tiny WAV Player for Retro DOS by Erdogan Tan. '
-	db	'November 2024.',10,13,0
-	db	'13/11/2024', 10,13,0
+	;db	'December 2024.',10,13,0
+	;db	'14/12/2024', 10,13,0
+	db	'February 2025.',10,13,0
+	db	'04/02/2025', 10,13,0
 
 msgAudioCardInfo:
 	db 	'for Intel AC97 (ICH) Audio Controller.', 10,13,0
@@ -5018,7 +5342,7 @@ msg_error:	; 30/05/2024
 msg_init_err:
 	db	CR, LF
 	db	"AC97 Controller/Codec initialization error !"
-	db	CR, LF, "$"
+	db	CR, LF, 0 ; 07/12/2024
 
 ; 25/11/2023
 msg_no_vra:

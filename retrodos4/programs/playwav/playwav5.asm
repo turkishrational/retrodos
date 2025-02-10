@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; PLAYWAV.ASM - ICH AC97 .wav player for DOS.			   PLAYWAV.COM
 ; ----------------------------------------------------------------------------
-; Last Update: 20/05/2024 (Previous: 08/05/2024)
+; Last Update: 04/02/2025 (Previous: 19/05/2024)
 ; ----------------------------------------------------------------------------
 ; Beginning: 17/02/2017
 ; ----------------------------------------------------------------------------
@@ -208,7 +208,7 @@ _1:
 	sti
 
 %endif
-	call	write_ac97_dev_info 
+	call	write_ac97_dev_info
 
 ; check the command line for a file to play
 
@@ -740,8 +740,9 @@ _ih_0:
 	add	dx, PO_SR_REG
 	in	ax, dx
 
-	; 20/05/2024
-	test	al, LVBCI ; bit 2, 4
+	; 04/02/2025
+	test	al, BCIS + LVBCI ; bit 3, 2
+	;test	al, BCIS ; bit 3
 	jz	short _ih_2
 
 	; 19/05/2024
@@ -1146,6 +1147,12 @@ msg_no_vra:
 	db	CR, LF
 	db	"No VRA support ! Only 48 kHZ sample rate supported !"
 	db	CR, LF, "$"
+
+; 02/02/2025 (signature)
+Credits:
+	db	'Tiny WAV Player for Retro DOS by Erdogan Tan. '
+	db	'February 2025.',10,13,"$"
+	db	0, '04/02/2025', 0
 
 ; 17/02/2017
 bss_start:
