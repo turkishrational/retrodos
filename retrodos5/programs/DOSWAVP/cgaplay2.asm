@@ -5,7 +5,7 @@
 ;
 ; 02/01/2025				- play music from multiple wav files -
 ;
-; [ Last Modification: 23/01/2025 ]
+; [ Last Modification: 07/02/2025 ]
 ;
 ; Modified from CGAPLAY.COM .wav player program by Erdogan Tan, 01/01/2025
 ;	        SB16PLAY.COM, 20/12/2024
@@ -446,7 +446,9 @@ terminate@:
 	; 27/11/2024
 	; 24/11/2024
 	; restore old interrupt vector
-	mov	al, [IRQnum]
+	;mov	al, [IRQnum]
+	; 07/02/2025 (BugFix)
+	mov	al, [audio_intr]
 	xor	ah, ah ; reset
 	call	set_hardware_int_vector
 
@@ -1117,6 +1119,7 @@ _cf1:
 
 ; ----------------------------------
 
+	; 04/02/2025
 	; 14/11/2024 - Erdogan Tan
 getWAVParameters:
 ; reads WAV file header(s) (44 bytes) from the .wav file.
@@ -1140,8 +1143,17 @@ getWAVParameters:
 	jne	short gwavp_stc_retn
 
 	cmp	word [WAVE_AudioFormat], 1 ; Offset 20, must be 1 (= PCM)
-	;jne	short gwavp_stc_retn
-	je	short gwavp_retn ; 15/11/2024
+	; 04/02/2025
+	jne	short gwavp_stc_retn
+	;je	short gwavp_retn ; 15/11/2024
+
+	; 04/02/2025
+	; (Open MPT creates wav files with a new type header,
+	;  this program can not use the new type
+	;  because of 'data' offset is not at DATA_SubchunkID.)
+	; ((GoldWave creates common type wav file.))
+	cmp	dword [DATA_SubchunkID], 'data'
+	je	short gwavp_retn
 
 	; 15/11/2024
 	;mov	cx, [WAVE_NumChannels]	; return num of channels in CX
@@ -1302,7 +1314,8 @@ write_sb16_dev_info:
 	mov	al, [bx+hex_chars]
 	mov	[msgBasePort], al
 
-	xor	ax, ax
+	; 07/02/2025
+	;xor	ax, ax
 	;mov	al, [IRQnum]
 	; 27/11/2024
 	mov	al, [audio_intr]
@@ -2872,9 +2885,11 @@ clear_window:
 
 Credits:
 	db 'VGA WAV Player for Retro DOS by Erdogan Tan. '
-	db 'January 2025.',10,13,0
+	;db 'January 2025.',10,13,0
+	db 'February 2025.',10,13,0
 	db '02/01/2025', 10,13,0
 	db '23/01/2025', 10,13,0
+	db '07/02/2025', 10,13,0
 
 msgAudioCardInfo:
 	db  'for Sound Blaster 16 audio device.', 10,13,0
