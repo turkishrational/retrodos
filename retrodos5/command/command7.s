@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; COMMAND.COM (PCDOS 7.1 Command Interpreter) - RETRO DOS v5.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 15/08/2024
+; Last Update: 13/03/2025 (Previous: 15/08/2024)
 ; ----------------------------------------------------------------------------
 ; Beginning: 18/07/2024 (v7.1) - ((Previous: 19/06/2023 COMMAND.COM v6.22))
 ; ----------------------------------------------------------------------------
@@ -9169,7 +9169,7 @@ copy_path:
 
         ;mov	si,offset RESGROUP:PathString   ; DS:SI -> "PATH=\0"
 	mov	si,PathString
-        cmp     byte [si],al			; add it?
+        cmp     [si],al				; add it?
         je	short init_prompt		; no
 	;;mov	cx,PathStrLen+1                 ;
 	;mov	cx,6 ; db "PATH=",0
@@ -10220,7 +10220,9 @@ db	0
 	; 07/06/2023
 ;db	"Retro DOS v4.2 COMMAND.COM by Erdogan Tan [2023]"
 	; 21/07/2024
-db	"Retro DOS v5.0 COMMAND.COM by Erdogan Tan [2024]"
+;db	"Retro DOS v5.0 COMMAND.COM by Erdogan Tan [2024]"
+	; 13/03/2025
+db	"Retro DOS v5.0 COMMAND.COM by Erdogan Tan [2025]"
 db	0
 
 ;-----------------------------------------------------------------------------
@@ -21540,7 +21542,8 @@ PP4:
 	mov	al,[es:di]	; Get a char
 	inc	di
 	or	al,al
-	jz	short PP5	; Nul terminated
+	; 13/03/2025 (BugFix)
+	jz	short PP8	; Nul terminated
 	cmp	al,'$' ; 24h	; Meta character
 	je	short PP5	; Nope
 	call	PRINT_CHAR
@@ -44959,7 +44962,9 @@ REXX_EXE:
 RD5CMD_VER_MSG: db 0Dh, 0Ah
 		db 'Retro DOS v5 COMMAND.COM'
 		db 0Dh, 0Ah 
-		db '2024 - Erdogan Tan'
+		;db '2024 - Erdogan Tan'
+		; 13/03/2025
+		db '2025 - Erdogan Tan'
 		db 0Dh,0Ah
 		db '$'
 %endif
