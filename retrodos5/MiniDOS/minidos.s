@@ -3,7 +3,7 @@
 ; ----------------------------------------------------------------------------
 ; Modified from Retro DOS v5.0 'retrodos5.s' (17/07/2024) ((PCDOS 7.1 Kernel))
 ;
-; Last Update: 16/03/2025
+; Last Update: 18/03/2025
 ;
 ; ----------------------------------------------------------------------------
 ; Assembler: NASM version 2.15
@@ -12,6 +12,10 @@
 ; ---------------------------------------------------------------------------- 
 ; Included binary file: KERNEL.BIN (MiniDOS 1.0 - Kernel file) 
 ; ****************************************************************************
+
+; 18/03/2025
+; MiniDOS 1.0 modifications:
+; 1) "DOSDATA=" configuration removed
 
 ; 12/09/2023 - Retro DOS v5.0 Kernel -dosbios- ('ibmbio7.s')
 ; Modified from 'iosys6.s' (11/09/2023, Retro DOS v4.2 Kernel's IO.SYS) file
@@ -20955,8 +20959,9 @@ CONFIG_SWITCHES     equ  '1'
 
 CONFIG_UNKNOWN      equ  'Z'
 
+; 18/03/2025 - MiniDOS v1.0
 ; 13/05/2024 - Retro DOS v5.0 (PCDOS 71 IBMBIO.COM)
-CONFIG_DOSDATA      equ  'T'
+;CONFIG_DOSDATA      equ  'T'
 
 CONFIG_OPTION_QUERY equ 80h
 
@@ -21863,10 +21868,15 @@ memhi:	dw	0
 ldoff:	dw	0
 area:	dw	0
 
+; 18/03/2025 - MiniDOS v1.0
+%if 0
+
 ; 29/12/2023 - PCDOS 7.1 IBMBIO.COM - SYSINIT:036Ah
 prev_memhi:	dw 0
 prev_alloclim:	dw 0
 dosdata_umb:	db 0
+
+%endif
 
 ; Following is the request packet used to call INIT routines for 
 ; all device drivers. Some fields may be accessed individually in
@@ -25377,6 +25387,8 @@ multrk_flag_done:
 	;mov	ax,[CONFBOT]
 	;mov	[ALLOCLIM],ax
 
+; 18/03/2025 - MiniDOS v1.0
+%if 0
 	; 09/04/2024 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
 	;;;
 	;;mov	ax,[cs:ALLOCLIM]
@@ -25389,6 +25401,7 @@ multrk_flag_done:
 	mov	[prev_memhi],ax
 dosfts:
 	;;;
+%endif
 
 	call	round
 
@@ -25933,7 +25946,9 @@ doinstallstack:
 	call	stackinit	; initialize hardware stack. 
 				; cs=ds=sysinitseg,es=relocated stack code & data
 skipstack:
-	
+
+; 18/03/2025 - MiniDOS 1.0
+%if 0	
 	; 10/04/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMBIO.COM)
 	; (PCDOS 7.1 IBMBIO.COM - SYSINIT:11F0h)
 	;;;
@@ -26014,6 +26029,7 @@ dosdata_umb_done:
 	mov	[ALLOCLIM],ax
 dosdata_noumb:
  	;;;
+%endif
 
 ;skipstack:
 	; 24/10/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
@@ -26747,6 +26763,8 @@ GetBufferAddr:
 	push	bx
 	push	dx
 
+; 18/03/2025 - MiniDOS 1.0
+%if 0
 	; 11/04/2024 - Retro DOS v5.0
 	; PCDOS 7.1 IBMBIO.COM
 	;;;
@@ -26758,6 +26776,7 @@ GetBufferAddr:
 gba_1:
 	;;;
 
+%endif
 	mov	ax, [cs:singlebuffersize]
 	mul	word [cs:buffers]
 	;add	ax,0Fh
@@ -27759,6 +27778,9 @@ int_xx_first:
 ; (PCDOS 7.1 IBMBIO.COM - SYSINIT:1905h)
 
 new_init_loop:
+
+; 18/03/2025 - MiniDOS 1.0
+%if 0
 	;;; 13/04/2024 (PCDOS 7.1 IBMBIO.COM)
 	cmp	byte [cs:dosdata_umb],2
 				; is DOSDATA=UMB done ? (DOSDATA is in UMB)
@@ -27774,6 +27796,8 @@ new_init_loop:
 	pop	ds
 new_init_loop_1st: 
 	;;;
+
+%endif
 
 ;input: si=ofset into vector table of the particular int vector being adjusted
 ;	bx=ds:offset of oldxx, where will be saved the pointer to original owner
@@ -31314,6 +31338,9 @@ dos_strings:	;label	byte
 	db	4
 	dw	noumb_string
 
+; 18/03/2025 - MiniDOS 1.0
+%if 0
+
 ; 14/04/2024 - Retro DOS v5.0
 ; (PCDOS 7.1 IBMDOS.COM - SYSINIT:273Eh)
 ;;;
@@ -31346,6 +31373,7 @@ dosdata_strings:
 	db	2		; the 2nd string tag
 	dw	noumb_string	; "NOUMB"
 ;;;
+%endif
 
 hi_string:	db	"HIGH",0
 lo_string:	db	"LOW",0
@@ -31469,7 +31497,7 @@ DevEntry:	dd	0	; Entry point to the device driver
 DevBrkAddr:	dd	0	; Break address of the device driver
 ; 30/12/2022
 ; 27/10/2022 
-ConvLoad:	db	0	; Use conventional (dos 5 -style) InitDevLoad?
+ConvLoad:	db	0	; Use conventional (dos5-style) InitDevLoad?
 ;
 DevUMB:		db	0	; byte indicating whether to load DDs in UMBs
 DevUMBAddr:	dw	0	; cuurent UMB used fro loading devices (paras)
@@ -31487,7 +31515,7 @@ DevSizeOption:	dw	0	; SIZE= option
 ;
 Int12Lied:	db	0	; did we trap int 12 ?
 OldInt12Mem:	dw	0	; value in 40:13h (int 12 ram)
-ThreeComName:	db	'PROTMAN$'	; 3Com Device name
+ThreeComName:	db	'PROTMAN$' ; 3Com Device name
 ;
 FirstUMBLinked:	db	0
 DevDOSData:	dw	0	; segment of DOS Data
@@ -34407,9 +34435,10 @@ err:
 ;------------------------------------------------------------------------
 tryn:
 	cmp	ah,CONFIG_NUMLOCK  ;'N'
-	;jne	short tryy
+	; 18/03/2025 - MiniDOS 1.0
+	jne	short tryy
 	; 14/04/2024 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
-	jne	short tryt
+	;jne	short tryt
 
 	call	query_user      ; query the user if config_cmd
 	jc	short tryy	; has the CONFIG_OPTION_QUERY bit set
@@ -34418,6 +34447,9 @@ tryn:
 	jmp	short sr110	; all done
 
 ;endif	;MULTI_CONFIG
+
+; 18/03/2025
+%if 0
 
 ; 14/04/2024 - Retro DOS v5.0 (PCDOS 7.1 IBMBIO.COM)
 ;------------------------------------------------------------------------
@@ -34461,6 +34493,9 @@ sr120:
 	; 14/04/2024
 ;en120:
 	;jmp	coff
+
+%endif
+
 
 ; 30/10/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
 ;-------------------------------------------------------------------------
@@ -43854,11 +43889,14 @@ comtab:	 ; label byte
         db      8,      "SWITCHES",     CONFIG_SWITCHES
 	db	0
 
+; 18/03/2025 - MiniDOS 1.0
+%if 0
 	; 10/09/2023
 ;aDosdata:  ; PCDOS 7.1 IBMBIO.COM - SYSINIT:5550h
 	; 13/04/2024 - Retro DOS v5.0
 	db	7,	"DOSDATA",	CONFIG_DOSDATA ; 'T'
 	db	0
+%endif
 
 ;%endif ; 02/11/2022
 
