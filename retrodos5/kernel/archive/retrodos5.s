@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RETRODOS.SYS (PCDOS 7.1 Kernel) - RETRO DOS v5.0 by ERDOGAN TAN - 12/09/2023
 ; ----------------------------------------------------------------------------
-; Last Update: 17/07/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
+; Last Update: 18/03/2025 - Retro DOS v5.0 (Modified PCDOS 7.1)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0), 01/10/2022 (Retro DOS 4.2)
 ; ----------------------------------------------------------------------------
@@ -44596,7 +44596,8 @@ comtab:	 ; label byte
         db      6,      "STACKS",       CONFIG_STACKS
 ;endif
         db      8,      "SWITCHES",     CONFIG_SWITCHES
-	db	0
+	; 18/03/2025 (BugFix)
+	;db	0
 
 	; 10/09/2023
 ;aDosdata:  ; PCDOS 7.1 IBMBIO.COM - SYSINIT:5550h
