@@ -1,7 +1,7 @@
      1                                  ; ****************************************************************************
      2                                  ; RETRODOS.SYS (PCDOS 7.1 Kernel) - RETRO DOS v5.0 by ERDOGAN TAN - 12/09/2023
      3                                  ; ----------------------------------------------------------------------------
-     4                                  ; Last Update: 17/07/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
+     4                                  ; Last Update: 18/03/2025 - Retro DOS v5.0 (Modified PCDOS 7.1)
      5                                  ; ----------------------------------------------------------------------------
      6                                  ; Beginning: 26/12/2018 (Retro DOS 4.0), 01/10/2022 (Retro DOS 4.2)
      7                                  ; ----------------------------------------------------------------------------
@@ -5461,7 +5461,7 @@
   5223 00001BE8 D1E0                    		shl	ax, 1
   5224 00001BEA D1E0                    		shl	ax, 1		; int no * 4
   5225 00001BEC 89C7                    		mov	di, ax		; interrupt vector address
-  5226 00001BEE 87F7                    		xchg	si, di		; rombios interrupt vector address in si
+  5226 00001BEE 87FE                    		xchg	si, di		; rombios interrupt vector address in si
   5227                                  					; saving address in di
   5228                                  		;lodsw			; movsw
   5229                                  		;stosw
@@ -5471,7 +5471,7 @@
   5233 00001BF0 A5                      		movsw
   5234 00001BF1 A5                      		movsw		
   5235                                  
-  5236 00001BF2 87F7                    		xchg	si, di
+  5236 00001BF2 87FE                    		xchg	si, di
   5237 00001BF4 E2EF                    		loop	next_int_
   5238                                  		
   5239                                  		;pop	di
@@ -6394,7 +6394,7 @@
   6156                                  		;inc	dh		; make number of heads 1-based
   6157                                  		;mov	[num_heads], dh	; save parms returned by rom
   6158                                  		; 10/12/2023
-  6159 00001ECB 86D6                    		xchg	dl, dh
+  6159 00001ECB 86F2                    		xchg	dl, dh
   6160 00001ECD 30F6                    		xor	dh, dh
   6161 00001ECF 42                      		inc	dx		; make number of heads 1-based
   6162 00001ED0 8916[0C1A]              		mov	[num_heads], dx
@@ -6407,7 +6407,7 @@
   6169 00001ED4 88CA                    		mov	dl, cl
   6170 00001ED6 80E23F                  		and	dl, 3Fh
   6171 00001ED9 8816[101A]              		mov	[sec_trk], dl
-  6172 00001EDD 86CD                    		xchg	cl, ch
+  6172 00001EDD 86E9                    		xchg	cl, ch
   6173 00001EDF D0C5                    		rol	ch, 1
   6174 00001EE1 D0C5                    		rol	ch, 1
   6175 00001EE3 80E503                  		and	ch, 3
@@ -6935,7 +6935,7 @@
   6697                                  ; We're running on a COMPAQ. Now look at the date code.
   6698                                  
   6699 00002073 26A1FBFF                		mov	ax, [es:0FFFBh]	; get year
-  6700 00002077 86E0                    		xchg	ah, al
+  6700 00002077 86C4                    		xchg	ah, al
   6701                                  
   6702                                  ; 11/12/2023
   6703                                  ; (PCDOS 7.1 IBMBIO.COM - BIOSDATA:22B9h)
@@ -6968,14 +6968,14 @@
   6730 0000207C 772E                    		ja	short not_compaq_patch
   6731 0000207E 7218                    		jb	short do_compaq_patch
   6732 00002080 26A1F5FF                		mov	ax, [es:0FFF5h]	; get month
-  6733 00002084 86E0                    		xchg	ah, al
+  6733 00002084 86C4                    		xchg	ah, al
   6734 00002086 3D3830                  		cmp	ax, 3038h ; 02/10/2022 (NASM syntax)
   6735                                  		;cmp	ax, '08'        ; 3038h
   6736                                  					; is it	08?
   6737 00002089 7721                    		ja	short not_compaq_patch
   6738 0000208B 720B                    		jb	short do_compaq_patch
   6739 0000208D 26A1F8FF                		mov	ax, [es:0FFF8h]	; get day
-  6740 00002091 86E0                    		xchg	ah, al
+  6740 00002091 86C4                    		xchg	ah, al
   6741 00002093 3D3430                  		cmp	ax, 3034h ; 02/10/2022 (NASM syntax)
   6742                                  		;cmp	ax, '04'        ; 3034h
   6743                                  					; is it	04?
@@ -8113,7 +8113,7 @@
   7875                                  		;mov	si, empty_dap_buff ; dap_buffer
   7876 000022C7 BE[571B]                		mov	si, dap_buffer ; empty_dap_buff 
   7877 000022CA 56                      		push	si
-  7878 000022CB 87F7                    		xchg	si, di
+  7878 000022CB 87FE                    		xchg	si, di
   7879                                  		; si = BDS
   7880                                  		; di = DAP buffer
   7881 000022CD B81000                  		mov	ax, 16
@@ -12005,7 +12005,7 @@
  11767 000003C2 91                      		xchg	ax, cx		; now time is in cx:ax
  11768 000003C3 BB0BE9                  		mov	bx, 59659
  11769 000003C6 F7E3                    		mul	bx		; multiply low half
- 11770 000003C8 87D1                    		xchg	dx, cx
+ 11770 000003C8 87CA                    		xchg	dx, cx
  11771 000003CA 92                      		xchg	ax, dx		; cx->ax, ax->dx, dx->cx
  11772 000003CB F7E3                    		mul	bx		; multiply high	half
  11773 000003CD 01C8                    		add	ax, cx		; combine overlapping products
@@ -12228,11 +12228,11 @@
  11990 000004C2 8A0E[8D04]              		mov	cl, [base_century] ; al=day,dl=month,dh=year,cl=cntry
  11991 000004C6 E81600                  		call	bintobcd	; convert "day"	to bcd
  11992                                  					; dl = bcd day,	al = month
- 11993 000004C9 86D0                    		xchg	dl, al
+ 11993 000004C9 86C2                    		xchg	dl, al
  11994 000004CB E81100                  		call	bintobcd	; dh = bcd month, al = year
- 11995 000004CE 86F0                    		xchg	dh, al
+ 11995 000004CE 86C6                    		xchg	dh, al
  11996 000004D0 E80C00                  		call	bintobcd	; cl = bcd year, al = century
- 11997 000004D3 86C8                    		xchg	cl, al
+ 11997 000004D3 86C1                    		xchg	cl, al
  11998 000004D5 E80700                  		call	bintobcd	; ch = bcd century
  11999 000004D8 88C5                    		mov	ch, al
  12000 000004DA 8F06[8904]              		pop	word [daycnt] ; restore original value
@@ -12353,7 +12353,7 @@
  12115 00000520 F7F1                    		div	cx
  12116 00000522 88D7                    		mov	bh, dl		; save the seconds
  12117 00000524 F6F1                    		div	cl		; break	into hours and minutes
- 12118 00000526 86C4                    		xchg	al, ah
+ 12118 00000526 86E0                    		xchg	al, ah
  12119                                  
  12120                                  ; time is now in ax:bx (hours, minutes, seconds, 1/100 sec)
  12121                                  
@@ -14755,7 +14755,7 @@
  14516 00000C6A D0CE                    		ror	dh, 1
  14517 00000C6C 0A36[3101]              		or	dh, [cursec]
  14518 00000C70 89D1                    		mov	cx, dx
- 14519 00000C72 86E9                    		xchg	ch, cl		;  cl =	sector,	ch = cylinder
+ 14519 00000C72 86CD                    		xchg	ch, cl		;  cl =	sector,	ch = cylinder
  14520 00000C74 8A36[3201]              		mov	dh, [curhd]	; load current head number and
  14521 00000C78 268A5504                		mov	dl, [es:di+4]	; physical drive number
  14522                                  					; [es:di+BDS.drivenum]
@@ -16139,7 +16139,7 @@
  15900                                  					; good_tracklayout
  15901 000011ED 7402                    		jz	short ionextsector
  15902                                  		
- 15903 000011EF 87D1                    		xchg	dx, cx		; HEY! We can read all secs in one blow
+ 15903 000011EF 87CA                    		xchg	dx, cx		; HEY! We can read all secs in one blow
  15904                                  ionextsector:
  15905 000011F1 51                      		push	cx
  15906 000011F2 52                      		push	dx
@@ -16428,7 +16428,7 @@
  16189 000012DA 80E503                  		and	ch, 3
  16190 000012DD D0CD                    		ror	ch, 1
  16191 000012DF D0CD                    		ror	ch, 1
- 16192 000012E1 86E9                    		xchg	ch, cl
+ 16192 000012E1 86CD                    		xchg	ch, cl
  16193 000012E3 260A4D13                		or	cl, [es:di+13h]	; [es:di+BDS.secpertrack]
  16194 000012E7 268A5504                		mov	dl, [es:di+4]	; [es:di+BDS.drivenum]
  16195 000012EB 06                      		push	es
@@ -17270,7 +17270,7 @@
  17031 00001532 BF[BD0E]                		mov	di, IOC_DC_Table
  17032                                  		;mov	di, 0C60h	; IOC_DC_Table
  17033                                  					; at 2C7h:0C60h	= 70h:31D0h
- 17034 00001535 86C4                    		xchg	al, ah		; Put minor code in AL
+ 17034 00001535 86E0                    		xchg	al, ah		; Put minor code in AL
  17035 00001537 F2AE                    		repne scasb		; Scan for minor code in AL
  17036 00001539 7505                    		jnz	short nosupport	; it was not found
  17037 0000153B B80001                  		mov	ax, 100h
@@ -18004,12 +18004,12 @@
  17765 000017B2 88CF                    		mov	bh, cl
  17766 000017B4 80E73F                  		and	bh, 3Fh		; preserve sector number
  17767 000017B7 B306                    		mov	bl, 6
- 17768 000017B9 86CB                    		xchg	cl, bl
+ 17768 000017B9 86D9                    		xchg	cl, bl
  17769 000017BB D2EB                    		shr	bl, cl		; get ms cylinder bits to ls end
  17770 000017BD 00C5                    		add	ch, al		; add in cylinder wrap
  17771 000017BF 10E3                    		adc	bl, ah		; add in high byte
  17772 000017C1 D2E3                    		shl	bl, cl		; move up to ms	end
- 17773 000017C3 86D9                    		xchg	bl, cl		; restore cylinder bits	into cl
+ 17773 000017C3 86CB                    		xchg	bl, cl		; restore cylinder bits	into cl
  17774 000017C5 08F9                    		or	cl, bh		; or in	sector number
  17775                                  no_wrap:				
  17776 000017C7 F8                      		clc
@@ -26016,7 +26016,7 @@
  25760                                  	; 18/12/2022
  25761 00000F53 43                      	inc	bx
  25762                                  
- 25763 00000F54 BA[BF4D]                	mov	dx,deviceparameters
+ 25763 00000F54 BA[BE4D]                	mov	dx,deviceparameters
  25764                                  	;mov	ax,(IOCTL<<8)|GENERIC_IOCTL
  25765 00000F57 B80D44                  	mov	ax,440Dh
  25766                                  	;mov	cx,(RAWIO<<8)|GET_DEVICE_PARAMETERS
@@ -26029,7 +26029,7 @@
  25773                                  
  25774                                  	;mov	bx,[deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.TOTALSECTORS]
  25775                                  	; 23/10/2022
- 25776 00000F61 8B1E[CE4D]              	mov	bx,[deviceparameters+15] ; total sectors (16 bit)
+ 25776 00000F61 8B1E[CD4D]              	mov	bx,[deviceparameters+15] ; total sectors (16 bit)
  25777                                  	
  25778                                  ; to keep the magnitude of the media capacity within a word,
  25779                                  ; scale the sector size
@@ -26037,7 +26037,7 @@
  25781                                  
  25782                                  	;mov	ax,[deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.BYTESPERSECTOR]
  25783                                  	; 23/10/2022
- 25784 00000F65 A1[C64D]                	mov	ax,[deviceparameters+7] ; bytes per sector
+ 25784 00000F65 A1[C54D]                	mov	ax,[deviceparameters+7] ; bytes per sector
  25785 00000F68 31D2                    	xor	dx,dx
  25786 00000F6A B90002                  	mov	cx,512
  25787 00000F6D F7F1                    	div	cx			; scale sector size in factor of
@@ -27099,7 +27099,7 @@
  26841 000013C9 59                      	pop	cx				; get first buffer
  26842                                  	;mov	[es:di+buffinfo.buf_next],cx	; last->next = first
  26843 000013CA 26890D                  	mov	[es:di],cx
- 26844 000013CD 87CF                    	xchg	cx,di
+ 26844 000013CD 87F9                    	xchg	cx,di
  26845                                  	;mov	[es:di+buffinfo.buf_prev],cx	; first->prev = last
  26846                                  	; 25/10/2022
  26847 000013CF 26894D02                	mov	[es:di+2],cx
@@ -32655,7 +32655,7 @@
  32387 0000254F E85D22                          call    getchr                  ; ignore end-of-image errors,
  32388 00002552 88C4                            mov     ah,al                   ; because if there's an error
  32389 00002554 E85822                          call    getchr                  ; fetching the line number that's
- 32390 00002557 86C4                            xchg    al,ah                   ; supposed to be there, the next
+ 32390 00002557 86E0                            xchg    al,ah                   ; supposed to be there, the next
  32391 00002559 A3[AF02]                        mov     [linecount],ax          ; getchr call will get the same error
  32392 0000255C 58                              pop     ax
  32393                                  ;
@@ -36946,9 +36946,9 @@
  36678 0000318C 89C2                    	mov	dx,ax		; DX=new:hi, AX=new:hi, TOS=old:lo, BX=0
  36679 0000318E 58                      	pop	ax		; DX=new:hi, AX=old:lo, TOS=orig, BX=0
  36680                                  
- 36681 0000318F 87D3                    	xchg	dx,bx		; DX=0, AX=old:lo, TOS=orig, BX=new:hi
+ 36681 0000318F 87DA                    	xchg	dx,bx		; DX=0, AX=old:lo, TOS=orig, BX=new:hi
  36682 00003191 2EF726[FE30]            	mul	word [cs:gnradix] ; DX=carry,  AX=new:lo, TOS=orig, BX=new:hi
- 36683 00003196 87D3                    	xchg	dx,bx		; DX=new:hi, AX=new:lo, TOS=orig, BX=carry
+ 36683 00003196 87DA                    	xchg	dx,bx		; DX=new:hi, AX=new:lo, TOS=orig, BX=carry
  36684 00003198 01DA                    	add	dx,bx		; DX=new:hi, AX=new:lo, TOS=orig, BX=carry
  36685 0000319A 31DB                    	xor	bx,bx		; DX=new:hi, AX=new:lo, TOS=orig, BX=0
  36686 0000319C C3                      	retn
@@ -40266,12 +40266,12 @@
  39998 00003A29 1F                      	pop	ds
  39999                                  
  40000 00003A2A 31DB                    	xor	bx,bx
- 40001 00003A2C 8A1E[1D4F]              	mov	bl,[drive]
+ 40001 00003A2C 8A1E[1C4F]              	mov	bl,[drive]
  40002                                  	; 18/12/2022
  40003 00003A30 43                      	inc	bx
  40004                                  	;inc	bl			; get it correct for ioctl call
  40005                                  					; (1=a,2=b...)
- 40006 00003A31 BA[BF4D]                	mov	dx,deviceparameters
+ 40006 00003A31 BA[BE4D]                	mov	dx,deviceparameters
  40007                                  	;mov	ah,IOCTL ; 44h
  40008                                  	;mov	al,GENERIC_IOCTL ; 0Dh
  40009                                  	; 04/07/2023
@@ -40283,10 +40283,10 @@
  40015 00003A3A CD21                    	int	21h
  40016                                  
  40017                                  ; 27/07/2023 - Retro DOS v4.2 IO.SYS (optimization)
- 40018 00003A3C 8A26[1E4F]              	mov	ah,[switches]
+ 40018 00003A3C 8A26[1D4F]              	mov	ah,[switches]
  40019                                  	;mov	al,[deviceparameters+20]
- 40020 00003A40 A0[D34D]                	mov	al,[deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERTRACK]
- 40021 00003A43 8A0E[1D4F]              	mov	cl,[drive]
+ 40020 00003A40 A0[D24D]                	mov	al,[deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERTRACK]
+ 40021 00003A43 8A0E[1C4F]              	mov	cl,[drive]
  40022                                  ;
  40023                                  ;; 01/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
  40024                                  ;	;;mov	ax,Bios_Data		; get Bios_Data segment
@@ -40365,12 +40365,12 @@
  40097 00003A69 0E                      	push	cs
  40098 00003A6A 1F                      	pop	ds
  40099                                  	;mov	word [deviceparameters+4],80
- 40100 00003A6B C706[C34D]5000          	mov	word [deviceparameters+A_DEVICEPARAMETERS.DP_CYLINDERS],80
+ 40100 00003A6B C706[C24D]5000          	mov	word [deviceparameters+A_DEVICEPARAMETERS.DP_CYLINDERS],80
  40101                                  	;mov	byte [deviceparameters+1],2
- 40102 00003A71 C606[C04D]02            	mov	byte [deviceparameters+A_DEVICEPARAMETERS.DP_DEVICETYPE],DEV_3INCH720KB ; 2
+ 40102 00003A71 C606[BF4D]02            	mov	byte [deviceparameters+A_DEVICEPARAMETERS.DP_DEVICETYPE],DEV_3INCH720KB ; 2
  40103                                  	;mov	word [deviceparameters+2],0
- 40104 00003A76 C706[C14D]0000          	mov	word [deviceparameters+A_DEVICEPARAMETERS.DP_DEVICEATTRIBUTES],0
- 40105 00003A7C C706[1E4F]0000          	mov	word [switches],0	    ; zero all switches
+ 40104 00003A76 C706[C04D]0000          	mov	word [deviceparameters+A_DEVICEPARAMETERS.DP_DEVICEATTRIBUTES],0
+ 40105 00003A7C C706[1D4F]0000          	mov	word [switches],0	    ; zero all switches
  40106 00003A82 1F                      	pop	ds
  40107 00003A83 C3                      	retn
  40108                                  
@@ -40522,7 +40522,7 @@
  40254                                  
  40255 00003AA7 B80100                  	mov	ax,1
  40256 00003AAA D3E0                    	shl	ax,cl			; set bit to indicate switch
- 40257 00003AAC 8B1E[1E4F]              	mov	bx,[switches]		; get switches so far
+ 40257 00003AAC 8B1E[1D4F]              	mov	bx,[switches]		; get switches so far
  40258 00003AB0 09C3                    	or	bx,ax			; save this with other switches
  40259 00003AB2 89C1                    	mov	cx,ax
  40260                                  	; 12/12/2022
@@ -40579,13 +40579,13 @@
  40311                                  	; 02/11/2022 - Retrodos v4.0 (Modified MSDOS 5.0 IO.SYS)
  40312                                  	; (SYSINIT:3156h)
  40313                                  process_num:
- 40314 00003AD3 850E[1E4F]              	test	[switches],cx		; if this switch has been done before,
+ 40314 00003AD3 850E[1D4F]              	test	[switches],cx		; if this switch has been done before,
  40315 00003AD7 752B                    	jnz	short done_ret		; ignore this one.
  40316                                  	; 12/12/2022
  40317 00003AD9 F6C108                  	test	cl,flagdrive ; 8
  40318                                  	;test	cx,flagdrive ; 8
  40319 00003ADC 7404                    	jz	short try_f
- 40320 00003ADE A2[1D4F]                	mov	byte [drive],al
+ 40320 00003ADE A2[1C4F]                	mov	byte [drive],al
  40321                                  	; 02/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
  40322                                  	;jmp	short done_ret
  40323                                  	; 12/12/2022
@@ -40600,7 +40600,7 @@
  40332                                  ; ensure that we do not get bogus form factors that are not supported
  40333                                  
  40334                                  	;mov	[deviceparameters+1],al
- 40335 00003AE7 A2[C04D]                	mov	[deviceparameters+A_DEVICEPARAMETERS.DP_DEVICETYPE],al
+ 40335 00003AE7 A2[BF4D]                	mov	[deviceparameters+A_DEVICEPARAMETERS.DP_DEVICETYPE],al
  40336                                  	; 02/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
  40337                                  	;jmp	short done_ret
  40338                                  	; 12/12/2022
@@ -40615,7 +40615,7 @@
  40347 00003AF2 7404                    	jz	short try_s
  40348                                  
  40349                                  	;mov	[deviceparameters+4],ax
- 40350 00003AF4 A3[C34D]                	mov	[deviceparameters+A_DEVICEPARAMETERS.DP_CYLINDERS],ax
+ 40350 00003AF4 A3[C24D]                	mov	[deviceparameters+A_DEVICEPARAMETERS.DP_CYLINDERS],ax
  40351                                  	; 02/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
  40352                                  	;jmp	short done_ret
  40353                                  	; 12/12/2022
@@ -40626,7 +40626,7 @@
  40358 00003AF8 F6C120                  	test	cl,flagseclim ; 20h
  40359                                  	;test	cx,flagseclim ; 20h
  40360 00003AFB 7404                    	jz	short try_h
- 40361 00003AFD A3[1B4F]                	mov	[slim],ax
+ 40361 00003AFD A3[1A4F]                	mov	[slim],ax
  40362                                  	; 02/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
  40363                                  	;jmp	short done_ret
  40364                                  	; 12/12/2022
@@ -40636,7 +40636,7 @@
  40368                                  ; must be for number of heads
  40369                                  
  40370                                  try_h:
- 40371 00003B01 A3[194F]                	mov	[hlim],ax
+ 40371 00003B01 A3[184F]                	mov	[hlim],ax
  40372                                  done_ret:
  40373                                  	;clc
  40374                                  	; 02/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
@@ -40698,7 +40698,7 @@
  40430                                  
  40431                                  getparm:
  40432 00003B17 E86EFF                  	call	check_switch
- 40433 00003B1A 891E[1E4F]              	mov	[switches],bx		; save switches read so far
+ 40433 00003B1A 891E[1D4F]              	mov	[switches],bx		; save switches read so far
  40434 00003B1E 72F6                    	jc	short swterr
  40435                                  getnext:
  40436 00003B20 E88C0C                  	call	getchr
@@ -40711,7 +40711,7 @@
  40443                                  
  40444                                  done_line:
  40445                                  	; 12/12/2022
- 40446 00003B25 F606[1E4F]08            	test	byte [switches],flagdrive ; 8
+ 40446 00003B25 F606[1D4F]08            	test	byte [switches],flagdrive ; 8
  40447                                  	;test	word [switches],flagdrive ; 8 ; see if drive specified
  40448 00003B2A 750C                    	jnz	short okay
  40449 00003B2C F9                      	stc				; mark error no-drive-specified
@@ -40731,13 +40731,13 @@
  40463 00003B36 EBED                    	jmp	short done_line
  40464                                  
  40465                                  okay:
- 40466 00003B38 A1[1E4F]                	mov	ax,[switches]
+ 40466 00003B38 A1[1D4F]                	mov	ax,[switches]
  40467 00003B3B 83E003                  	and	ax,0003h	    ; get flag bits for changeline and non-rem
- 40468 00003B3E A3[C14D]                	mov	[deviceparameters+A_DEVICEPARAMETERS.DP_DEVICEATTRIBUTES],ax
+ 40468 00003B3E A3[C04D]                	mov	[deviceparameters+A_DEVICEPARAMETERS.DP_DEVICEATTRIBUTES],ax
  40469                                  	; 16/04/2024
  40470                                  	;mov	word [deviceparameters+A_DEVICEPARAMETERS.DP_TRACKTABLEENTRIES],0
  40471                                  	;;;
- 40472 00003B41 C706[1B4E]0000          	mov	word [deviceparameters+92],0 ; PCDOS 7.1 IBMBIO.COM	
+ 40472 00003B41 C706[1A4E]0000          	mov	word [deviceparameters+92],0 ; PCDOS 7.1 IBMBIO.COM	
  40473                                  	;;;
  40474                                  	;clc			    ; everything is fine
  40475                                  	; 01/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
@@ -40790,11 +40790,11 @@
  40522 00003B49 07                      	pop	es
  40523                                  
  40524 00003B4A 31DB                    	xor	bx,bx
- 40525 00003B4C 8A1E[C04D]              	mov	bl,[deviceparameters+A_DEVICEPARAMETERS.DP_DEVICETYPE]
+ 40525 00003B4C 8A1E[BF4D]              	mov	bl,[deviceparameters+A_DEVICEPARAMETERS.DP_DEVICETYPE]
  40526 00003B50 80FB00                  	cmp	bl,DEV_5INCH ; 0
  40527 00003B53 7506                    	jne	short got_80
  40528                                  
- 40529 00003B55 C706[C34D]2800          	mov	word [deviceparameters+A_DEVICEPARAMETERS.DP_CYLINDERS],40
+ 40529 00003B55 C706[C24D]2800          	mov	word [deviceparameters+A_DEVICEPARAMETERS.DP_CYLINDERS],40
  40530                                  							; 48 tpi=40 cyl
  40531                                  got_80:
  40532 00003B5B D1E3                    	shl	bx,1			; get index into bpb table
@@ -40802,7 +40802,7 @@
  40534                                  
  40535                                  	;mov	di,deviceparameters+7	
  40536                                  	; 02/11/2022
- 40537 00003B61 BF[C64D]                	mov	di,deviceparameters+A_DEVICEPARAMETERS.DP_BPB ; es:di -> bpb
+ 40537 00003B61 BF[C54D]                	mov	di,deviceparameters+A_DEVICEPARAMETERS.DP_BPB ; es:di -> bpb
  40538 00003B64 B93B00                  	mov	cx,A_BPB.size ; 31
  40539                                  	; 09/09/2023
  40540                                  	;mov	cx,59 ; PCDOS 7.1 IBMBIO.COM A_BPB.size
@@ -40814,23 +40814,23 @@
  40546 00003B6A 07                      	pop	es
  40547                                  
  40548                                  	; 12/12/2022
- 40549 00003B6B F606[1E4F]20            	test	byte [switches],flagseclim ; 20h
+ 40549 00003B6B F606[1D4F]20            	test	byte [switches],flagseclim ; 20h
  40550                                  	;test	word [switches],flagseclim ; 20h
  40551 00003B70 7406                    	jz	short see_heads
  40552                                  
- 40553 00003B72 A1[1B4F]                	mov	ax,[slim]
+ 40553 00003B72 A1[1A4F]                	mov	ax,[slim]
  40554                                  	;mov	[deviceparameters+20],ax
- 40555 00003B75 A3[D34D]                	mov	[deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERTRACK],ax
+ 40555 00003B75 A3[D24D]                	mov	[deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERTRACK],ax
  40556                                  
  40557                                  see_heads:
  40558                                  	; 12/12/2022
- 40559 00003B78 F606[1E4F]40            	test	byte [switches],flagheads ; 40h
+ 40559 00003B78 F606[1D4F]40            	test	byte [switches],flagheads ; 40h
  40560                                  	;test	word [switches],flagheads ; 40h
  40561 00003B7D 7406                    	jz	short heads_not_altered
  40562                                  
- 40563 00003B7F A1[194F]                	mov	ax,[hlim]
+ 40563 00003B7F A1[184F]                	mov	ax,[hlim]
  40564                                  	;mov	[deviceparameters+22],ax	
- 40565 00003B82 A3[D54D]                	mov	[deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.HEADS],ax
+ 40565 00003B82 A3[D44D]                	mov	[deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.HEADS],ax
  40566                                  
  40567                                  heads_not_altered:
  40568                                  
@@ -40842,7 +40842,7 @@
  40574                                  	;mov	byte [deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERCLUSTER],2
  40575                                  	; 03/01/2023
  40576 00003B85 B80200                  	mov	ax,2	
- 40577 00003B88 A2[C84D]                	mov	[deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERCLUSTER],al ; 2
+ 40577 00003B88 A2[C74D]                	mov	[deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERCLUSTER],al ; 2
  40578                                  
  40579 00003B8B B3F0                    	mov	bl,0F0h			; get default mediabyte
  40580                                  
@@ -40850,11 +40850,11 @@
  40582                                  
  40583                                  	;mov	bh,[deviceparameters+17]
  40584                                  	; 02/11/2022
- 40585 00003B8D 8A3E[D04D]              	mov	bh,[deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.MEDIADESCRIPTOR]
+ 40585 00003B8D 8A3E[CF4D]              	mov	bh,[deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.MEDIADESCRIPTOR]
  40586                                  	
  40587                                  	; 03/01/2023
  40588                                  	; ax = 2
- 40589 00003B91 3906[D54D]              	cmp	[deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.HEADS],ax ; >2 heads?
+ 40589 00003B91 3906[D44D]              	cmp	[deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.HEADS],ax ; >2 heads?
  40590                                  	;cmp	word [deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.HEADS],2 ; >2 heads?
  40591 00003B95 773C                    	ja	short got_correct_mediad ; just use default if heads>2
  40592                                  
@@ -40873,9 +40873,9 @@
  40605                                  ;	   to be a 1.44M and use only 1 sector per cluster. Any other
  40606                                  ;	   type of 2 headed drive is all set.
  40607                                  
- 40608 00003B9B 833E[D34D]12            	cmp	word [deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERTRACK],18
+ 40608 00003B9B 833E[D24D]12            	cmp	word [deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERTRACK],18
  40609 00003BA0 7509                    	jne	short not_144m
- 40610 00003BA2 833E[C34D]50            	cmp	word [deviceparameters+A_DEVICEPARAMETERS.DP_CYLINDERS],80
+ 40610 00003BA2 833E[C24D]50            	cmp	word [deviceparameters+A_DEVICEPARAMETERS.DP_CYLINDERS],80
  40611 00003BA7 7502                    	jne	short not_144m
  40612                                  
  40613                                  ;	We've got cyl=80, heads=2, secpertrack=18. Set cluster size to 1.
@@ -40885,9 +40885,9 @@
  40617                                  ;	check for 320K
  40618                                  
  40619                                  not_144m:
- 40620 00003BAB 833E[C34D]28            	cmp	word [deviceparameters+A_DEVICEPARAMETERS.DP_CYLINDERS],40
+ 40620 00003BAB 833E[C24D]28            	cmp	word [deviceparameters+A_DEVICEPARAMETERS.DP_CYLINDERS],40
  40621 00003BB0 7521                    	jne	short got_correct_mediad
- 40622 00003BB2 833E[D34D]08            	cmp	word [deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERTRACK],8
+ 40622 00003BB2 833E[D24D]08            	cmp	word [deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERTRACK],8
  40623 00003BB7 751A                    	jne	short got_correct_mediad
  40624                                  
  40625 00003BB9 B3FC                    	mov	bl,0FCh
@@ -40897,7 +40897,7 @@
  40629                                  
  40630                                  ;	if we don't have a 360K drive, then just go use 0f0h as media descr.
  40631                                  
- 40632 00003BBD 803E[C04D]00            	cmp	byte [deviceparameters+A_DEVICEPARAMETERS.DP_DEVICETYPE],DEV_5INCH ; 0
+ 40632 00003BBD 803E[BF4D]00            	cmp	byte [deviceparameters+A_DEVICEPARAMETERS.DP_DEVICETYPE],DEV_5INCH ; 0
  40633 00003BC2 740B                    	je	short got_one_secperclus_drive
  40634                                  
  40635                                  ;	single sided 360K drive uses either 0fch or 0feh, depending on
@@ -40905,7 +40905,7 @@
  40637                                  ;	  besides 8 will be considered 0fch
  40638                                  
  40639 00003BC4 B3FC                    	mov	bl,0FCh			; single sided 9 sector media id
- 40640 00003BC6 833E[D34D]08            	cmp	word [deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERTRACK],8
+ 40640 00003BC6 833E[D24D]08            	cmp	word [deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERTRACK],8
  40641                                  	; 12/12/2022
  40642 00003BCB 7502                    	jne	short got_one_secperclus_drive ; okay if anything besides 8
  40643                                  
@@ -40918,18 +40918,18 @@
  40650                                  	; 03/01/2023
  40651                                  	; ax = 2
  40652 00003BCF 48                      	dec	ax  ; ax = 1
- 40653 00003BD0 A2[C84D]                	mov	[deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERCLUSTER],al ; 1
+ 40653 00003BD0 A2[C74D]                	mov	[deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERCLUSTER],al ; 1
  40654                                  	;mov	byte [deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERCLUSTER],1
  40655                                  
  40656                                  got_correct_mediad:
- 40657 00003BD3 881E[D04D]              	mov	[deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.MEDIADESCRIPTOR],bl
+ 40657 00003BD3 881E[CF4D]              	mov	[deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.MEDIADESCRIPTOR],bl
  40658                                  
  40659                                  ;	 Calculate the correct number of Total Sectors on medium
  40660                                  
- 40661 00003BD7 A1[C34D]                	mov	ax,[deviceparameters+A_DEVICEPARAMETERS.DP_CYLINDERS]
- 40662 00003BDA F726[D54D]              	mul	word [deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.HEADS]
- 40663 00003BDE F726[D34D]              	mul	word [deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERTRACK]
- 40664 00003BE2 A3[CE4D]                	mov	word [deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.TOTALSECTORS],ax
+ 40661 00003BD7 A1[C24D]                	mov	ax,[deviceparameters+A_DEVICEPARAMETERS.DP_CYLINDERS]
+ 40662 00003BDA F726[D44D]              	mul	word [deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.HEADS]
+ 40663 00003BDE F726[D24D]              	mul	word [deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERTRACK]
+ 40664 00003BE2 A3[CD4D]                	mov	word [deviceparameters+A_DEVICEPARAMETERS.DP_BPB+A_BPB.TOTALSECTORS],ax
  40665 00003BE5 F8                      	clc				; we currently return no errors
  40666                                  
  40667 00003BE6 C3                      	retn
@@ -41929,7 +41929,7 @@
  41661 00004015 720B                            jc	short menu_nextitem ; hit eol/eof
  41662 00004017 E8BA05                          call    skip_delim      ;
  41663 0000401A 7206                            jc	short menu_nextitem ; hit eol/eof
- 41664 0000401C 87DF                            xchg    bx,di           ;
+ 41664 0000401C 87FB                            xchg    bx,di           ;
  41665 0000401E 89BF[AA4C]                      mov     [aoffBlockDesc+bx],di
  41666                                  
  41667                                  menu_nextitem:
@@ -42710,9 +42710,9 @@
  42442 00004380 5F                              pop     di              ;
  42443 00004381 C3                              retn			;
  42444                                  comp_almost:                    ;
- 42445 00004382 86C4                            xchg    al,ah           ; we don't know for sure if it's a match
+ 42445 00004382 86E0                            xchg    al,ah           ; we don't know for sure if it's a match
  42446 00004384 E8F303                          call    any_delim       ; until we verify that the second string has
- 42447 00004387 86C4                            xchg    al,ah           ; been exhausted also...
+ 42447 00004387 86E0                            xchg    al,ah           ; been exhausted also...
  42448 00004389 EBF5                            jmp     short comp_exit ; if we are, this call to any_delim will tell...
  42449                                  
  42450                                  ;----------------------------------------------------------------------------
@@ -44887,579 +44887,580 @@
  44597                                  ;endif
  44598 00004DAA 085357495443484553-             db      8,      "SWITCHES",     CONFIG_SWITCHES
  44598 00004DB3 31                 
- 44599 00004DB4 00                      	db	0
- 44600                                  
- 44601                                  	; 10/09/2023
- 44602                                  ;aDosdata:  ; PCDOS 7.1 IBMBIO.COM - SYSINIT:5550h
- 44603                                  	; 13/04/2024 - Retro DOS v5.0
- 44604 00004DB5 07444F534441544154      	db	7,	"DOSDATA",	CONFIG_DOSDATA ; 'T'
- 44605 00004DBE 00                      	db	0
- 44606                                  
- 44607                                  ;%endif ; 02/11/2022
- 44608                                  
- 44609                                  ; 01/01/2023 - Retro DOS v4.2
- 44610                                  %if 0
- 44611                                  
- 44612                                  comtab:
- 44613                                  	; 02/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
- 44614                                  	; (SYSINIT:38EDh)
- 44615                                  	db      7,      "BUFFERS",      CONFIG_BUFFERS
- 44616                                  	db      5,      "BREAK",        CONFIG_BREAK
- 44617                                  	db      6,      "DEVICE",       CONFIG_DEVICE
- 44618                                  	db      10,     "DEVICEHIGH",   CONFIG_DEVICEHIGH
- 44619                                  	db      5,      "FILES",        CONFIG_FILES
- 44620                                  	db      4,      "FCBS",         CONFIG_FCBS
- 44621                                  	db      9,      "LASTDRIVE",    CONFIG_LASTDRIVE
- 44622                                  	db      10,     "MULTITRACK",   CONFIG_MULTITRACK
- 44623                                  	db      8,      "DRIVPARM",     CONFIG_DRIVPARM
- 44624                                  	db      6,      "STACKS",       CONFIG_STACKS
- 44625                                  	db      7,      "COUNTRY",      CONFIG_COUNTRY
- 44626                                  	db      5,      "SHELL",        CONFIG_SHELL
- 44627                                  	db      7,      "INSTALL",      CONFIG_INSTALL
- 44628                                  	db      7,      "COMMENT",      CONFIG_COMMENT
- 44629                                  	db      3,      "REM",          CONFIG_REM
- 44630                                  	db      8,      "SWITCHES",     CONFIG_SWITCHES
- 44631                                  	db      3,      "DOS",          CONFIG_DOS
- 44632                                  	db	0
- 44633                                  
- 44634                                  %endif
- 44635                                  
- 44636                                  ; 01/01/2023 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
- 44637                                  ; (SYSINIT:530Ch)
- 44638                                  
- 44639                                  ; 13/04/2024 - Retro DOS v5.0
- 44640                                  ; (PCDOS 7.1 IBMBIO.COM - SYSINIT:555Ah)
- 44641                                  
- 44642                                  deviceparameters:	
- 44643                                  	; A_DEVICEPARAMETERS <0,dev_3inch720kb,0,80>
- 44644                                  devp.specialfunc:	; deviceparameters +
- 44645 00004DBF 00                      	db	0	; A_DEVICEPARAMETERS.DP_SPECIALFUNCTIONS
- 44646                                  devp.devtype:
- 44647 00004DC0 02                      	db	2	; A_DEVICEPARAMETERS.DP_DEVICETYPE
- 44648                                  devp.devattr:
- 44649 00004DC1 0000                    	dw	0	; A_DEVICEPARAMETERS.DP_DEVICEATTRIBUTES
- 44650                                  devp.cylinders:
- 44651 00004DC3 5000                    	dw	80	; A_DEVICEPARAMETERS.DP_CYLINDERS
- 44652                                  
- 44653                                  ; 04/08/2023 - Retro DOS v4.2 IO.SYS (optimization)
- 44654                                  
- 44655                                  	;times	286	db 0
- 44656                                  devp.mediatype:		; A_DEVICEPARAMETERS.DP_MEDIATYPE
- 44657 00004DC5 00                      	db	0
- 44658                                  devp.bpb:		; A_DEVICEPARAMETERS.DP_BPB
- 44659                                  devp.bps:		; A_DEVICEPARAMETERS.DP_BPB+A_BPB.BYTESPERSECTOR
- 44660 00004DC6 0000                    	dw	0
- 44661                                  devp.secperclus:	; A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERCLUSTER	
- 44662 00004DC8 00                      	db	0	
- 44663 00004DC9 0000                    	dw	0	; A_DEVICEPARAMETERS.DP_BPB+A_BPB.RESERVEDSECTORS
- 44664 00004DCB 00                      	db	0	; A_DEVICEPARAMETERS.DP_BPB+A_BPB.NUMBEROFFATS
- 44665 00004DCC 0000                    	dw	0	; A_DEVICEPARAMETERS.DP_BPB+A_BPB.ROOTENTRIES
- 44666                                  devp.totalsecs:		; A_DEVICEPARAMETERS.DP_BPB+A_BPB.TOTALSECTORS
- 44667 00004DCE 0000                    	dw	0
- 44668                                  devp.mediaid:		; A_DEVICEPARAMETERS.DP_BPB+A_BPB.MEDIADESCRIPTOR
- 44669 00004DD0 00                      	db	0
- 44670 00004DD1 0000                    	dw	0	; A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERFAT
- 44671                                  devp.spt:		; A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERTRACK
- 44672 00004DD3 0000                    	dw	0
- 44673                                  devp.heads:		; A_DEVICEPARAMETERS.DP_BPB+A_BPB.HEADS
- 44674 00004DD5 0000                    	dw	0	
- 44675                                  
- 44676                                  	; 13/04/2024 - Retro DOS v5.0
- 44677                                  	; (PCDOS 7.1 IBMBIO.COM)
- 44678 00004DD7 00<rep 44h>             	times	68 db 0	; PCDOS 7.1 (FAT32 BPB)
- 44679                                  	;;times	14 db 0	; MSDOS 6.21
- 44680                                  	;dw	0	; A_DEVICEPARAMETERS.DP_BPB+A_BPB.HIDDENSECTORS
- 44681                                  	;dw	0
- 44682                                  	;dw	0	; A_DEVICEPARAMETERS.DP_BPB+A_BPB.BIGTOTALSECTORS
- 44683                                  	;dw	0
- 44684                                  	;times	6 db 0	
- 44685                                  
- 44686                                  devp.trktblents:
- 44687 00004E1B 0000                    	dw	0	; A_DEVICEPARAMETERS.DP_TRACKTABLEENTRIES
- 44688                                  devp.sectbl:		; A_DEVICEPARAMETERS.DP_SECTORTABLE
- 44689 00004E1D 00<rep FCh>             	times	252 db 0 ; MAX_SECTORS_IN_TRACK * A_SECTORTABLE.size
- 44690                                  			; 63*4 bytes
- 44691                                  
- 44692                                  ; 01/01/2023 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
- 44693                                  ; (SYSINIT:5430h)
- 44694                                  
- 44695                                  ; 13/04/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMBIO.COM)
- 44696                                  ; (PCDOS 7.1 IBMBIO.COM - SYSINIT:56B4h)
- 44697                                  	
- 44698 00004F19 0200                    hlim:	dw	2
- 44699 00004F1B 0900                    slim:	dw	9
- 44700                                  
- 44701 00004F1D 00                      drive:	db	0
- 44702                                  
- 44703                                  switches:
- 44704 00004F1E 0000                    	dw	0
- 44705                                  
- 44706                                  ; 01/01/2023 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
- 44707                                  ; (SYSINIT:5437h)
- 44708                                  
- 44709                                  ; the following are the recommended bpbs for the media that
- 44710                                  ; we know of so far.
- 44711                                  
- 44712                                  ; 02/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
- 44713                                  ; MSDOS 5.0 IO.SYS - SYSINIT:3AA9h
- 44714                                  
- 44715                                  ; 27/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMBIO.COM)
- 44716                                  ; PCDOS 7.1 IBMBIO.COM - SYSINIT:56BBh	
- 44717                                  
- 44718                                  ; 48 tpi diskettes
- 44719                                  
- 44720 00004F20 0002                    bpb48t:	dw	512
- 44721 00004F22 02                      	db	2
- 44722 00004F23 0100                    	dw	1
- 44723 00004F25 02                      	db	2
- 44724 00004F26 7000                    	dw	112
- 44725 00004F28 D002                    	dw	2*9*40 ; 720
- 44726 00004F2A FD                      	db	0FDh
- 44727 00004F2B 0200                    	dw	2
- 44728 00004F2D 0900                    	dw	9
- 44729 00004F2F 0200                    	dw	2
- 44730 00004F31 00000000                	dd	0
- 44731 00004F35 00000000                        dd      0
- 44732                                  	; 27/12/2023
- 44733 00004F39 00<rep 1Ch>             	times	28 db 0            ; FAT32 extensions (to BDS)
- 44734 00004F55 90                      	db	90h	
- 44735                                  
- 44736                                  ; 96tpi diskettes
- 44737                                  
- 44738 00004F56 0002                    bpb96t:	dw	512
- 44739 00004F58 01                      	db	1
- 44740 00004F59 0100                    	dw	1
- 44741 00004F5B 02                      	db	2
- 44742 00004F5C E000                    	dw	224
- 44743 00004F5E 6009                    	dw	2*15*80 ; 2400
- 44744 00004F60 F9                      	db	0F9h
- 44745 00004F61 0700                    	dw	7
- 44746 00004F63 0F00                    	dw	15
- 44747 00004F65 0200                    	dw	2
- 44748 00004F67 00000000                	dd	0
- 44749 00004F6B 00000000                        dd      0
- 44750                                  	; 27/12/2023
- 44751 00004F6F 00<rep 1Ch>             	times	28 db 0            ; FAT32 extensions (to BDS)
- 44752 00004F8B 90                      	db	90h	
- 44753                                  
- 44754                                  ; 3 1/2 inch diskette bpb
- 44755                                  
- 44756 00004F8C 0002                    bpb35:	dw	512
- 44757 00004F8E 02                      	db	2
- 44758 00004F8F 0100                    	dw	1
- 44759 00004F91 02                      	db	2
- 44760 00004F92 7000                    	dw	112
- 44761 00004F94 A005                    	dw	2*9*80 ; 1440
- 44762 00004F96 F9                      	db	0F9h
- 44763 00004F97 0300                    	dw	3
- 44764 00004F99 0900                    	dw	9
- 44765 00004F9B 0200                    	dw	2
- 44766 00004F9D 00000000                	dd	0
- 44767 00004FA1 00000000                        dd      0
- 44768                                  	; 27/12/2023
- 44769 00004FA5 00<rep 1Ch>             	times	28 db 0            ; FAT32 extensions (to BDS)
- 44770 00004FC1 90                      	db	90h
- 44771                                        
- 44772 00004FC2 0002                    bpb35h:	dw	512
- 44773 00004FC4 01                      	db	1
- 44774 00004FC5 0100                    	dw	1
- 44775 00004FC7 02                      	db	2
- 44776 00004FC8 E000                    	dw	224
- 44777 00004FCA 400B                    	dw	2*18*80 ; 2880
- 44778 00004FCC F0                      	db	0F0h
- 44779 00004FCD 0900                    	dw	9
- 44780 00004FCF 1200                    	dw	18
- 44781 00004FD1 0200                    	dw	2
- 44782 00004FD3 00000000                	dd	0
- 44783 00004FD7 00000000                        dd      0
- 44784                                  	; 27/12/2023
- 44785 00004FDB 00<rep 1Ch>             	times	28 db 0            ; FAT32 extensions (to BDS)
- 44786 00004FF7 90                      	db	90h
- 44787                                  
- 44788                                  ; m037 - BEGIN
- 44789                                  
- 44790 00004FF8 0002                    bpb288:	dw	512
- 44791 00004FFA 02                      	db	2
- 44792 00004FFB 0100                    	dw	1
- 44793 00004FFD 02                      	db	2
- 44794 00004FFE F000                    	dw	240
- 44795 00005000 8016                    	dw	2*36*80 ; 5760
- 44796 00005002 F0                      	db	0F0h
- 44797 00005003 0900                    	dw	9
- 44798 00005005 2400                    	dw	36
- 44799 00005007 0200                    	dw	2
- 44800 00005009 00000000                	dd	0
- 44801 0000500D 00000000                        dd      0
- 44802                                  	; 27/12/2023
- 44803 00005011 00<rep 1Ch>             	times	28 db 0            ; FAT32 extensions (to BDS)
- 44804 0000502D 90                      	db	90h
- 44805                                  
- 44806                                  ; m037 - END
- 44807                                  
- 44808                                  ; 12/05/2019
- 44809                                  
- 44810                                  align 2
- 44811                                  
- 44812                                  ; 02/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
- 44813                                  ; MSDOS 5.0 IO.SYS - SYSINIT:3B26h
- 44814                                  
- 44815                                  ; 13/04/2024 - Retro DOS v5.0
- 44816                                  ; (PCDOS 7.1 IBMBIO.COM - SYSINIT:5738h)
- 44817                                  
- 44818 0000502E [204F]                  bpbtable:   dw	    bpb48t		; 48tpi drives
- 44819 00005030 [564F]                  	    dw	    bpb96t		; 96tpi drives
- 44820 00005032 [8C4F]                  	    dw	    bpb35		; 3.5" drives
- 44821                                  ; the following are not supported, so default to 3.5" media layout
- 44822 00005034 [8C4F]                  	    dw	    bpb35		; not used - 8" drives
- 44823 00005036 [8C4F]                  	    dw	    bpb35		; not used - 8" drives
- 44824 00005038 [8C4F]                  	    dw	    bpb35		; not used - hard files
- 44825 0000503A [8C4F]                  	    dw	    bpb35		; not used - tape drives
- 44826 0000503C [C24F]                  	    dw	    bpb35h		; 3-1/2" 1.44mb drive
- 44827 0000503E [8C4F]                  	    dw	    bpb35		; ERIMO				m037
- 44828 00005040 [F84F]                  	    dw	    bpb288		; 2.88 MB diskette drives	m037
- 44829                                  
- 44830                                  switchlist: 
- 44831 00005042 08464853544449434E      	db	8,"FHSTDICN"	     ; preserve the positions of n and c.
- 44832                                  
- 44833                                  ;----------------------------------------------------------------------------
- 44834                                  ; Messages
- 44835                                  ;----------------------------------------------------------------------------
- 44836                                  
- 44837                                  ; 19/04/2019 - Retro DOS v4.0
- 44838                                  
- 44839                                  ; MSDOS 6.21 IO.SYS - SYSINIT:54D1h
- 44840                                  
- 44841 0000504B 00                      	db 	0
- 44842                                  
- 44843                                  ; 02/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
- 44844                                  ; MSDOS 5.0 IO.SYS - SYSINIT:3B44h
- 44845                                  
- 44846                                  ; 13/04/2024
- 44847                                  ; MSDOS 6.22 IO.SYS - SYSINIT:559Eh
- 44848                                  
- 44849                                  ; 13/04/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMBIO.COM)
- 44850                                  ; PCDOS 7.1 IBMBIO.COM - SYSINIT:5756h
- 44851                                  
- 44852                                  badopm:
- 44853 0000504C 0D0A                    	db	0Dh,0Ah 
- 44854 0000504E 556E7265636F676E69-     	db	'Unrecognized command in CONFIG.SYS'
- 44854 00005057 7A656420636F6D6D61-
- 44854 00005060 6E6420696E20434F4E-
- 44854 00005069 4649472E535953     
- 44855                                  crlfm:
- 44856 00005070 0D0A24                  	db	0Dh,0Ah,'$'
- 44857                                  badparm:
- 44858 00005073 0D0A                    	db	0Dh,0Ah
- 44859 00005075 42616420636F6D6D61-     	db	'Bad command or parameters - $'
- 44859 0000507E 6E64206F7220706172-
- 44859 00005087 616D6574657273202D-
- 44859 00005090 2024               
- 44860                                  badsiz_pre:
- 44861 00005092 0D0A                    	db	0Dh,0Ah
- 44862 00005094 536563746F72207369-     	db	'Sector size too large in file $'
- 44862 0000509D 7A6520746F6F206C61-
- 44862 000050A6 72676520696E206669-
- 44862 000050AF 6C652024           
- 44863                                  badld_pre:
- 44864 000050B3 0D0A                    	db	0Dh,0Ah
- 44865 000050B5 426164206F72206D69-     	db	'Bad or missing $'
- 44865 000050BE 7373696E672024     
- 44866                                  badcom:
- 44867 000050C5 436F6D6D616E642049-     	db	'Command Interpreter',0
- 44867 000050CE 6E7465727072657465-
- 44867 000050D7 7200               
- 44868                                  badcountry:
- 44869 000050D9 0D0A                    	db	0Dh,0Ah
- 44870 000050DB 496E76616C69642063-     	db	'Invalid country code or code page',0Dh,0Ah,'$'
- 44870 000050E4 6F756E74727920636F-
- 44870 000050ED 6465206F7220636F64-
- 44870 000050F6 6520706167650D0A24 
- 44871                                  badcountrycom:
- 44872 000050FF 0D0A                    	db	0Dh,0Ah
- 44873 00005101 4572726F7220696E20-     	db	'Error in COUNTRY command',0Dh,0Ah,'$'
- 44873 0000510A 434F554E5452592063-
- 44873 00005113 6F6D6D616E640D0A24 
- 44874                                  insufmemory:
- 44875 0000511C 0D0A                    	db	0Dh,0Ah
- 44876 0000511E 496E73756666696369-     	db	'Insufficient memory for COUNTRY.SYS file',0Dh,0Ah,'$'
- 44876 00005127 656E74206D656D6F72-
- 44876 00005130 7920666F7220434F55-
- 44876 00005139 4E5452592E53595320-
- 44876 00005142 66696C650D0A24     
- 44877                                  badmem:
- 44878 00005149 0D0A                    	db	0Dh,0Ah
- 44879 0000514B 436F6E666967757261-     	db	'Configuration too large for memory',0Dh,0Ah,'$'
- 44879 00005154 74696F6E20746F6F20-
- 44879 0000515D 6C6172676520666F72-
- 44879 00005166 206D656D6F72790D0A-
- 44879 0000516F 24                 
- 44880                                  badblock:
- 44881 00005170 0D0A                    	db	0Dh,0Ah
- 44882 00005172 546F6F206D616E7920-     	db	'Too many block devices',0Dh,0Ah,'$'
- 44882 0000517B 626C6F636B20646576-
- 44882 00005184 696365730D0A24     
- 44883                                  badstack:
- 44884 0000518B 0D0A                    	db	0Dh,0Ah
- 44885 0000518D 496E76616C69642053-     	db	'Invalid STACK parameters',0Dh,0Ah,'$'
- 44885 00005196 5441434B2070617261-
- 44885 0000519F 6D65746572730D0A24 
- 44886                                  	; 18/12/2022
- 44887                                  ;badorder:
- 44888                                  	;db	0Dh,0Ah
- 44889                                  	;db	'Incorrect order in CONFIG.SYS line $'
- 44890                                  errorcmd:
- 44891 000051A8 4572726F7220696E20-     	db	'Error in CONFIG.SYS line $'
- 44891 000051B1 434F4E4649472E5359-
- 44891 000051BA 53206C696E652024   
- 44892                                  
- 44893                                  ; 01/01/2023 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
- 44894                                  ; (SYSINIT:566Eh)
- 44895                                  
- 44896                                  ; 02/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
- 44897                                  ;%if 0
- 44898                                  
- 44899 000051C2 4F4E                    OnOff:	db	'ON'
- 44900 000051C4 4F4646                  OnOff2:	db	'OFF'
- 44901                                  
- 44902                                  	; 04/01/2023 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
- 44903                                  	; (SYSINIT:5673h)
- 44904                                  ;StartMsg:
- 44905                                  ;	db	'Starting MS-DOS...',0Dh,0Ah
- 44906                                  ;	db	0Ah,0
- 44907                                  
- 44908                                  	; 17/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMBIO.COM)
- 44909                                  	; (SYSINIT:58F7h)
- 44910                                  StartMsg:
- 44911 000051C7 5374617274696E6720-     	db	'Starting PC DOS...',0Dh,0Ah
- 44911 000051D0 504320444F532E2E2E-
- 44911 000051D9 0D0A               
- 44912 000051DB 0A00                    	db	0Ah,0
- 44913                                  
- 44914                                  _$PauseMsg:
- 44915                                  	; 17/12/2023
- 44916                                  	;db	'Press any key to continue . . .',0Dh,0Ah,'$'
- 44917                                  	; 04/08/2023 (PCDOS 7.10 - IBMBIO.COM SYSINIT:590Dh)
- 44918 000051DD 507265737320616E79-     	db	'Press any key to continue...',0Dh,0Ah,'$'
- 44918 000051E6 206B657920746F2063-
- 44918 000051EF 6F6E74696E75652E2E-
- 44918 000051F8 2E0D0A24           
- 44919                                  _$CleanMsg:
- 44920                                  	;db	'MS-DOS is bypassing your CONFIG.SYS and AUTOEXEC.BAT files.',0Dh,0Ah,'$'
- 44921                                  	; 17/12/2023
- 44922 000051FC 504320444F53206973-     	db	'PC DOS is bypassing your CONFIG.SYS and AUTOEXEC.BAT files.',0Dh,0Ah,'$'
- 44922 00005205 20627970617373696E-
- 44922 0000520E 6720796F757220434F-
- 44922 00005217 4E4649472E53595320-
- 44922 00005220 616E64204155544F45-
- 44922 00005229 5845432E4241542066-
- 44922 00005232 696C65732E0D0A24   
- 44923                                  _$InterMsg:
- 44924                                  	;db	'MS-DOS will prompt you to confirm each CONFIG.SYS command.',0Dh,0Ah,'$'
- 44925                                  	; 17/12/2023
- 44926 0000523A 504320444F53207769-     	db	'PC DOS will prompt you to confirm each CONFIG.SYS command.',0Dh,0Ah,'$'
- 44926 00005243 6C6C2070726F6D7074-
- 44926 0000524C 20796F7520746F2063-
- 44926 00005255 6F6E6669726D206561-
- 44926 0000525E 636820434F4E464947-
- 44926 00005267 2E53595320636F6D6D-
- 44926 00005270 616E642E0D0A24     
- 44927                                  _$MenuHeader:
- 44928 00005277 0D0A                    	db	0Dh,0Ah
- 44929                                  	; 17/12/2023
- 44930                                  	;db	'  MS-DOS 6.2 Startup Menu',0Dh,0Ah
- 44931                                  	;db	'  '
- 44932                                  	;times	23 db (0CDh)  ; ALT 205 ; '=======================' ; 06/08/2023
- 44933                                  	;db 	0Dh,0Ah,'$'
- 44934                                  	; 04/08/2023 (PCDOS 7.10 - IBMBIO.COM SYSINIT:59A7h)
- 44935 00005279 2020504320444F5320-     	db	'  PC DOS 7.1 Startup Menu',0Dh,0Ah
- 44935 00005282 372E31205374617274-
- 44935 0000528B 7570204D656E750D0A 
- 44936 00005294 2020                    	db	'  '
- 44937 00005296 CD<rep 17h>             	times	23 db (0CDh)  ; ALT 205 ; '=======================' ; 06/08/2023
- 44938 000052AD 0D0A24                  	db 	0Dh,0Ah,'$'
- 44939                                  _$MenuPrmpt:
- 44940 000052B0 2020456E7465722061-     	db	'  Enter a choice: $'
- 44940 000052B9 2063686F6963653A20-
- 44940 000052C2 24                 
- 44941                                  _$StatusLine:
- 44942 000052C3 46353D427970617373-     	db	'F5=Bypass startup files F8=Confirm each line of CONFIG.SYS '
- 44942 000052CC 207374617274757020-
- 44942 000052D5 66696C65732046383D-
- 44942 000052DE 436F6E6669726D2065-
- 44942 000052E7 616368206C696E6520-
- 44942 000052F0 6F6620434F4E464947-
- 44942 000052F9 2E53595320         
- 44943 000052FE 616E64204155544F45-     	db	'and AUTOEXEC.BAT [ ]$'
- 44943 00005307 5845432E424154205B-
- 44943 00005310 205D24             
- 44944                                  _$InterPrmpt:
- 44945                                  	;db	' [Y,N]?$'
- 44946                                  	; 13/04/2024
- 44947                                  	; 04/08/2023
- 44948 00005313 205B592C4E2C455343-     	db	' [Y,N,ESC]?$' ; PCDOS 7.1 - IBMBIO.COM 
- 44948 0000531C 5D3F24             
- 44949 0000531F 59455324                _$YES:	db	'YES$'
- 44950 00005323 4E4F2024                _$NO:	db	'NO $'
- 44951                                  _$TimeOut:
- 44952 00005327 54696D652072656D61-     	db	'Time remaining: $'
- 44952 00005330 696E696E673A2024   
- 44953                                  badcomprmpt:
- 44954                                  	;db	'Enter correct name of Command Interpreter (eg, C:\COMMAND.COM)'
- 44955                                  	; 13/04/2024 (PCDOS 7.1 IBMBIO.COM)
- 44956 00005338 456E74657220636F72-     	db	'Enter correct name of Command Interpreter (for example, C:\COMMAND.COM)'
- 44956 00005341 72656374206E616D65-
- 44956 0000534A 206F6620436F6D6D61-
- 44956 00005353 6E6420496E74657270-
- 44956 0000535C 72657465722028666F-
- 44956 00005365 72206578616D706C65-
- 44956 0000536E 2C20433A5C434F4D4D-
- 44956 00005377 414E442E434F4D29   
- 44957 0000537F 0D0A24                  	db	0Dh,0Ah,'$'
- 44958                                  _$AutoPrmpt:
- 44959 00005382 50726F636573732041-     	db	'Process AUTOEXEC.BAT [Y,N]?$'
- 44959 0000538B 55544F455845432E42-
- 44959 00005394 4154205B592C4E5D3F-
- 44959 0000539D 24                 
- 44960                                  
- 44961                                  ;%endif ; 02/11/2022
- 44962                                  
- 44963                                  ; 01/01/2023 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
- 44964                                  ; (SYSINIT:5840h)
- 44965                                  
- 44966                                  ; 02/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
- 44967                                  ; MSDOS 5.0 IO.SYS - SYSINIT:3CE0h
- 44968                                  
- 44969                                  TooManyDrivesMsg:
- 44970 0000539E 5741524E494E472120-     	db	'WARNING! Logical drives past Z: exist and will be ignored',0Dh,0Ah,'$'
- 44970 000053A7 4C6F676963616C2064-
- 44970 000053B0 726976657320706173-
- 44970 000053B9 74205A3A2065786973-
- 44970 000053C2 7420616E642077696C-
- 44970 000053CB 6C2062652069676E6F-
- 44970 000053D4 7265640D0A24       
- 44971                                  
- 44972                                  ; MSDOS 6.21 IO.SYS - SYSINIT:587Ch
- 44973                                  	;db	'Wrong DBLSPACE.BIN version',0Dh,0Ah,'$'
- 44974                                  	;db	7 dup(0)
- 44975                                  
- 44976                                  	;times	7 db 0
- 44977                                  	; 02/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
- 44978                                  ; MSDOS 5.0 IO.SYS - SYSINIT:3D1Ch
- 44979                                  	; 09/12/2022
- 44980                                  	;times 4 db 0
- 44981                                  
- 44982                                  	; 08/04/2024 - Retro DOS v5.0
- 44983                                  ; PCDOS 7.1 IBMBIO.COM - SYSINIT:5B0Bh
- 44984                                  baddblspace:
- 44985 000053DA 526571756972656420-     	db	'Required system component is not installed',0Dh,0Ah,'$',0
- 44985 000053E3 73797374656D20636F-
- 44985 000053EC 6D706F6E656E742069-
- 44985 000053F5 73206E6F7420696E73-
- 44985 000053FE 74616C6C65640D0A24-
- 44985 00005407 00                 
- 44986                                  	;db	7 dup(0)
- 44987                                  
- 44988                                  ;----------------------------------------------------------------------------
- 44989                                  		; 09/12/2022
- 44990                                  		;db 0
- 44991                                  
- 44992                                  number3div	equ ($-SYSINIT$)
- 44993                                  number3mod	equ (number3div % 16)
- 44994                                  
- 44995                                  %if (number3mod>0) & (number3mod<16) ; 17/09/2023
- 44996 00005408 00<rep 8h>              		times (16-number3mod) db 0
- 44997                                  %endif
- 44998                                  
- 44999                                  ;---------------------------------------------------------------------------- 
- 45000                                  ; 09/12/2022 - MSDOS 5.0 IO.SYS:3D20h ;;; SI_end = 3D20h for MSDOS 5.0 IO.SYS 
- 45001                                  ;---------------------------------------------------------------------------- 
- 45002                                  
- 45003                                  ;MSDOS 6.21 IO.SYS - SYSINIT:5899h
- 45004                                  
- 45005                                  ;----------------------------------------------------------------------------
- 45006                                  ; 20/04/2019 - Retro DOS v4.0
- 45007                                  
- 45008                                  ; 09/12/2022
- 45009                                  ;
- 45010                                  ;bss_start:
- 45011                                  ;
- 45012                                  ;ABSOLUTE bss_start
- 45013                                  ;
- 45014                                  ;alignb 16
- 45015                                  
- 45016                                  SI_end:  ; SI_end equ $
- 45017                                  
- 45018                                  ;----------------------------------------------------------------------------
- 45019                                  
- 45020                                  ;sysinitseg	ends
- 45021                                  
- 45022                                  ; ***************************************************************************
- 45023                                  
- 45024                                  ; 04/01/2023 - MSDOS 6.21 SYSINIT:SI_end = SYSINIT:58A0h (IOSYS:9F46h)
- 45025                                  ; 09/12/2022 - MSDOS 5.0 SYSINIT:SI_end = SYSINIT:3D20h
- 45026                                  
- 45027                                  SYSINITSIZE	equ SI_end - SYSINIT$
- 45028                                  DOSLOADSEG	equ SYSINITSEG+((SYSINITSIZE+15)/16)
- 45029                                  
- 45030                                  ;----------------------------------------------------------------------------
- 45031                                  ; End of Retro DOS v5.0 IBMBIO.COM (IO.SYS) source by Erdogan Tan (2023)
- 45032                                  ;----------------------------------------------------------------------------
- 45033                                  
- 45034                                  ; 21/12/2022 - Retro DOS v4.0 (Modified MSDOS 5.0)
- 45035                                  ; 02/10/2023 - Retro DOS v5.0 (Modified PCDOS 7.1)
- 45036                                  ;----------------------------------------------------------------------------
+ 44599                                  	; 18/03/2025 (BugFix)
+ 44600                                  	;db	0
+ 44601                                  
+ 44602                                  	; 10/09/2023
+ 44603                                  ;aDosdata:  ; PCDOS 7.1 IBMBIO.COM - SYSINIT:5550h
+ 44604                                  	; 13/04/2024 - Retro DOS v5.0
+ 44605 00004DB4 07444F534441544154      	db	7,	"DOSDATA",	CONFIG_DOSDATA ; 'T'
+ 44606 00004DBD 00                      	db	0
+ 44607                                  
+ 44608                                  ;%endif ; 02/11/2022
+ 44609                                  
+ 44610                                  ; 01/01/2023 - Retro DOS v4.2
+ 44611                                  %if 0
+ 44612                                  
+ 44613                                  comtab:
+ 44614                                  	; 02/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
+ 44615                                  	; (SYSINIT:38EDh)
+ 44616                                  	db      7,      "BUFFERS",      CONFIG_BUFFERS
+ 44617                                  	db      5,      "BREAK",        CONFIG_BREAK
+ 44618                                  	db      6,      "DEVICE",       CONFIG_DEVICE
+ 44619                                  	db      10,     "DEVICEHIGH",   CONFIG_DEVICEHIGH
+ 44620                                  	db      5,      "FILES",        CONFIG_FILES
+ 44621                                  	db      4,      "FCBS",         CONFIG_FCBS
+ 44622                                  	db      9,      "LASTDRIVE",    CONFIG_LASTDRIVE
+ 44623                                  	db      10,     "MULTITRACK",   CONFIG_MULTITRACK
+ 44624                                  	db      8,      "DRIVPARM",     CONFIG_DRIVPARM
+ 44625                                  	db      6,      "STACKS",       CONFIG_STACKS
+ 44626                                  	db      7,      "COUNTRY",      CONFIG_COUNTRY
+ 44627                                  	db      5,      "SHELL",        CONFIG_SHELL
+ 44628                                  	db      7,      "INSTALL",      CONFIG_INSTALL
+ 44629                                  	db      7,      "COMMENT",      CONFIG_COMMENT
+ 44630                                  	db      3,      "REM",          CONFIG_REM
+ 44631                                  	db      8,      "SWITCHES",     CONFIG_SWITCHES
+ 44632                                  	db      3,      "DOS",          CONFIG_DOS
+ 44633                                  	db	0
+ 44634                                  
+ 44635                                  %endif
+ 44636                                  
+ 44637                                  ; 01/01/2023 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
+ 44638                                  ; (SYSINIT:530Ch)
+ 44639                                  
+ 44640                                  ; 13/04/2024 - Retro DOS v5.0
+ 44641                                  ; (PCDOS 7.1 IBMBIO.COM - SYSINIT:555Ah)
+ 44642                                  
+ 44643                                  deviceparameters:	
+ 44644                                  	; A_DEVICEPARAMETERS <0,dev_3inch720kb,0,80>
+ 44645                                  devp.specialfunc:	; deviceparameters +
+ 44646 00004DBE 00                      	db	0	; A_DEVICEPARAMETERS.DP_SPECIALFUNCTIONS
+ 44647                                  devp.devtype:
+ 44648 00004DBF 02                      	db	2	; A_DEVICEPARAMETERS.DP_DEVICETYPE
+ 44649                                  devp.devattr:
+ 44650 00004DC0 0000                    	dw	0	; A_DEVICEPARAMETERS.DP_DEVICEATTRIBUTES
+ 44651                                  devp.cylinders:
+ 44652 00004DC2 5000                    	dw	80	; A_DEVICEPARAMETERS.DP_CYLINDERS
+ 44653                                  
+ 44654                                  ; 04/08/2023 - Retro DOS v4.2 IO.SYS (optimization)
+ 44655                                  
+ 44656                                  	;times	286	db 0
+ 44657                                  devp.mediatype:		; A_DEVICEPARAMETERS.DP_MEDIATYPE
+ 44658 00004DC4 00                      	db	0
+ 44659                                  devp.bpb:		; A_DEVICEPARAMETERS.DP_BPB
+ 44660                                  devp.bps:		; A_DEVICEPARAMETERS.DP_BPB+A_BPB.BYTESPERSECTOR
+ 44661 00004DC5 0000                    	dw	0
+ 44662                                  devp.secperclus:	; A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERCLUSTER	
+ 44663 00004DC7 00                      	db	0	
+ 44664 00004DC8 0000                    	dw	0	; A_DEVICEPARAMETERS.DP_BPB+A_BPB.RESERVEDSECTORS
+ 44665 00004DCA 00                      	db	0	; A_DEVICEPARAMETERS.DP_BPB+A_BPB.NUMBEROFFATS
+ 44666 00004DCB 0000                    	dw	0	; A_DEVICEPARAMETERS.DP_BPB+A_BPB.ROOTENTRIES
+ 44667                                  devp.totalsecs:		; A_DEVICEPARAMETERS.DP_BPB+A_BPB.TOTALSECTORS
+ 44668 00004DCD 0000                    	dw	0
+ 44669                                  devp.mediaid:		; A_DEVICEPARAMETERS.DP_BPB+A_BPB.MEDIADESCRIPTOR
+ 44670 00004DCF 00                      	db	0
+ 44671 00004DD0 0000                    	dw	0	; A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERFAT
+ 44672                                  devp.spt:		; A_DEVICEPARAMETERS.DP_BPB+A_BPB.SECTORSPERTRACK
+ 44673 00004DD2 0000                    	dw	0
+ 44674                                  devp.heads:		; A_DEVICEPARAMETERS.DP_BPB+A_BPB.HEADS
+ 44675 00004DD4 0000                    	dw	0	
+ 44676                                  
+ 44677                                  	; 13/04/2024 - Retro DOS v5.0
+ 44678                                  	; (PCDOS 7.1 IBMBIO.COM)
+ 44679 00004DD6 00<rep 44h>             	times	68 db 0	; PCDOS 7.1 (FAT32 BPB)
+ 44680                                  	;;times	14 db 0	; MSDOS 6.21
+ 44681                                  	;dw	0	; A_DEVICEPARAMETERS.DP_BPB+A_BPB.HIDDENSECTORS
+ 44682                                  	;dw	0
+ 44683                                  	;dw	0	; A_DEVICEPARAMETERS.DP_BPB+A_BPB.BIGTOTALSECTORS
+ 44684                                  	;dw	0
+ 44685                                  	;times	6 db 0	
+ 44686                                  
+ 44687                                  devp.trktblents:
+ 44688 00004E1A 0000                    	dw	0	; A_DEVICEPARAMETERS.DP_TRACKTABLEENTRIES
+ 44689                                  devp.sectbl:		; A_DEVICEPARAMETERS.DP_SECTORTABLE
+ 44690 00004E1C 00<rep FCh>             	times	252 db 0 ; MAX_SECTORS_IN_TRACK * A_SECTORTABLE.size
+ 44691                                  			; 63*4 bytes
+ 44692                                  
+ 44693                                  ; 01/01/2023 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
+ 44694                                  ; (SYSINIT:5430h)
+ 44695                                  
+ 44696                                  ; 13/04/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMBIO.COM)
+ 44697                                  ; (PCDOS 7.1 IBMBIO.COM - SYSINIT:56B4h)
+ 44698                                  	
+ 44699 00004F18 0200                    hlim:	dw	2
+ 44700 00004F1A 0900                    slim:	dw	9
+ 44701                                  
+ 44702 00004F1C 00                      drive:	db	0
+ 44703                                  
+ 44704                                  switches:
+ 44705 00004F1D 0000                    	dw	0
+ 44706                                  
+ 44707                                  ; 01/01/2023 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
+ 44708                                  ; (SYSINIT:5437h)
+ 44709                                  
+ 44710                                  ; the following are the recommended bpbs for the media that
+ 44711                                  ; we know of so far.
+ 44712                                  
+ 44713                                  ; 02/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
+ 44714                                  ; MSDOS 5.0 IO.SYS - SYSINIT:3AA9h
+ 44715                                  
+ 44716                                  ; 27/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMBIO.COM)
+ 44717                                  ; PCDOS 7.1 IBMBIO.COM - SYSINIT:56BBh	
+ 44718                                  
+ 44719                                  ; 48 tpi diskettes
+ 44720                                  
+ 44721 00004F1F 0002                    bpb48t:	dw	512
+ 44722 00004F21 02                      	db	2
+ 44723 00004F22 0100                    	dw	1
+ 44724 00004F24 02                      	db	2
+ 44725 00004F25 7000                    	dw	112
+ 44726 00004F27 D002                    	dw	2*9*40 ; 720
+ 44727 00004F29 FD                      	db	0FDh
+ 44728 00004F2A 0200                    	dw	2
+ 44729 00004F2C 0900                    	dw	9
+ 44730 00004F2E 0200                    	dw	2
+ 44731 00004F30 00000000                	dd	0
+ 44732 00004F34 00000000                        dd      0
+ 44733                                  	; 27/12/2023
+ 44734 00004F38 00<rep 1Ch>             	times	28 db 0            ; FAT32 extensions (to BDS)
+ 44735 00004F54 90                      	db	90h	
+ 44736                                  
+ 44737                                  ; 96tpi diskettes
+ 44738                                  
+ 44739 00004F55 0002                    bpb96t:	dw	512
+ 44740 00004F57 01                      	db	1
+ 44741 00004F58 0100                    	dw	1
+ 44742 00004F5A 02                      	db	2
+ 44743 00004F5B E000                    	dw	224
+ 44744 00004F5D 6009                    	dw	2*15*80 ; 2400
+ 44745 00004F5F F9                      	db	0F9h
+ 44746 00004F60 0700                    	dw	7
+ 44747 00004F62 0F00                    	dw	15
+ 44748 00004F64 0200                    	dw	2
+ 44749 00004F66 00000000                	dd	0
+ 44750 00004F6A 00000000                        dd      0
+ 44751                                  	; 27/12/2023
+ 44752 00004F6E 00<rep 1Ch>             	times	28 db 0            ; FAT32 extensions (to BDS)
+ 44753 00004F8A 90                      	db	90h	
+ 44754                                  
+ 44755                                  ; 3 1/2 inch diskette bpb
+ 44756                                  
+ 44757 00004F8B 0002                    bpb35:	dw	512
+ 44758 00004F8D 02                      	db	2
+ 44759 00004F8E 0100                    	dw	1
+ 44760 00004F90 02                      	db	2
+ 44761 00004F91 7000                    	dw	112
+ 44762 00004F93 A005                    	dw	2*9*80 ; 1440
+ 44763 00004F95 F9                      	db	0F9h
+ 44764 00004F96 0300                    	dw	3
+ 44765 00004F98 0900                    	dw	9
+ 44766 00004F9A 0200                    	dw	2
+ 44767 00004F9C 00000000                	dd	0
+ 44768 00004FA0 00000000                        dd      0
+ 44769                                  	; 27/12/2023
+ 44770 00004FA4 00<rep 1Ch>             	times	28 db 0            ; FAT32 extensions (to BDS)
+ 44771 00004FC0 90                      	db	90h
+ 44772                                        
+ 44773 00004FC1 0002                    bpb35h:	dw	512
+ 44774 00004FC3 01                      	db	1
+ 44775 00004FC4 0100                    	dw	1
+ 44776 00004FC6 02                      	db	2
+ 44777 00004FC7 E000                    	dw	224
+ 44778 00004FC9 400B                    	dw	2*18*80 ; 2880
+ 44779 00004FCB F0                      	db	0F0h
+ 44780 00004FCC 0900                    	dw	9
+ 44781 00004FCE 1200                    	dw	18
+ 44782 00004FD0 0200                    	dw	2
+ 44783 00004FD2 00000000                	dd	0
+ 44784 00004FD6 00000000                        dd      0
+ 44785                                  	; 27/12/2023
+ 44786 00004FDA 00<rep 1Ch>             	times	28 db 0            ; FAT32 extensions (to BDS)
+ 44787 00004FF6 90                      	db	90h
+ 44788                                  
+ 44789                                  ; m037 - BEGIN
+ 44790                                  
+ 44791 00004FF7 0002                    bpb288:	dw	512
+ 44792 00004FF9 02                      	db	2
+ 44793 00004FFA 0100                    	dw	1
+ 44794 00004FFC 02                      	db	2
+ 44795 00004FFD F000                    	dw	240
+ 44796 00004FFF 8016                    	dw	2*36*80 ; 5760
+ 44797 00005001 F0                      	db	0F0h
+ 44798 00005002 0900                    	dw	9
+ 44799 00005004 2400                    	dw	36
+ 44800 00005006 0200                    	dw	2
+ 44801 00005008 00000000                	dd	0
+ 44802 0000500C 00000000                        dd      0
+ 44803                                  	; 27/12/2023
+ 44804 00005010 00<rep 1Ch>             	times	28 db 0            ; FAT32 extensions (to BDS)
+ 44805 0000502C 90                      	db	90h
+ 44806                                  
+ 44807                                  ; m037 - END
+ 44808                                  
+ 44809                                  ; 12/05/2019
+ 44810                                  
+ 44811 0000502D 90                      align 2
+ 44812                                  
+ 44813                                  ; 02/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
+ 44814                                  ; MSDOS 5.0 IO.SYS - SYSINIT:3B26h
+ 44815                                  
+ 44816                                  ; 13/04/2024 - Retro DOS v5.0
+ 44817                                  ; (PCDOS 7.1 IBMBIO.COM - SYSINIT:5738h)
+ 44818                                  
+ 44819 0000502E [1F4F]                  bpbtable:   dw	    bpb48t		; 48tpi drives
+ 44820 00005030 [554F]                  	    dw	    bpb96t		; 96tpi drives
+ 44821 00005032 [8B4F]                  	    dw	    bpb35		; 3.5" drives
+ 44822                                  ; the following are not supported, so default to 3.5" media layout
+ 44823 00005034 [8B4F]                  	    dw	    bpb35		; not used - 8" drives
+ 44824 00005036 [8B4F]                  	    dw	    bpb35		; not used - 8" drives
+ 44825 00005038 [8B4F]                  	    dw	    bpb35		; not used - hard files
+ 44826 0000503A [8B4F]                  	    dw	    bpb35		; not used - tape drives
+ 44827 0000503C [C14F]                  	    dw	    bpb35h		; 3-1/2" 1.44mb drive
+ 44828 0000503E [8B4F]                  	    dw	    bpb35		; ERIMO				m037
+ 44829 00005040 [F74F]                  	    dw	    bpb288		; 2.88 MB diskette drives	m037
+ 44830                                  
+ 44831                                  switchlist: 
+ 44832 00005042 08464853544449434E      	db	8,"FHSTDICN"	     ; preserve the positions of n and c.
+ 44833                                  
+ 44834                                  ;----------------------------------------------------------------------------
+ 44835                                  ; Messages
+ 44836                                  ;----------------------------------------------------------------------------
+ 44837                                  
+ 44838                                  ; 19/04/2019 - Retro DOS v4.0
+ 44839                                  
+ 44840                                  ; MSDOS 6.21 IO.SYS - SYSINIT:54D1h
+ 44841                                  
+ 44842 0000504B 00                      	db 	0
+ 44843                                  
+ 44844                                  ; 02/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
+ 44845                                  ; MSDOS 5.0 IO.SYS - SYSINIT:3B44h
+ 44846                                  
+ 44847                                  ; 13/04/2024
+ 44848                                  ; MSDOS 6.22 IO.SYS - SYSINIT:559Eh
+ 44849                                  
+ 44850                                  ; 13/04/2024 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMBIO.COM)
+ 44851                                  ; PCDOS 7.1 IBMBIO.COM - SYSINIT:5756h
+ 44852                                  
+ 44853                                  badopm:
+ 44854 0000504C 0D0A                    	db	0Dh,0Ah 
+ 44855 0000504E 556E7265636F676E69-     	db	'Unrecognized command in CONFIG.SYS'
+ 44855 00005057 7A656420636F6D6D61-
+ 44855 00005060 6E6420696E20434F4E-
+ 44855 00005069 4649472E535953     
+ 44856                                  crlfm:
+ 44857 00005070 0D0A24                  	db	0Dh,0Ah,'$'
+ 44858                                  badparm:
+ 44859 00005073 0D0A                    	db	0Dh,0Ah
+ 44860 00005075 42616420636F6D6D61-     	db	'Bad command or parameters - $'
+ 44860 0000507E 6E64206F7220706172-
+ 44860 00005087 616D6574657273202D-
+ 44860 00005090 2024               
+ 44861                                  badsiz_pre:
+ 44862 00005092 0D0A                    	db	0Dh,0Ah
+ 44863 00005094 536563746F72207369-     	db	'Sector size too large in file $'
+ 44863 0000509D 7A6520746F6F206C61-
+ 44863 000050A6 72676520696E206669-
+ 44863 000050AF 6C652024           
+ 44864                                  badld_pre:
+ 44865 000050B3 0D0A                    	db	0Dh,0Ah
+ 44866 000050B5 426164206F72206D69-     	db	'Bad or missing $'
+ 44866 000050BE 7373696E672024     
+ 44867                                  badcom:
+ 44868 000050C5 436F6D6D616E642049-     	db	'Command Interpreter',0
+ 44868 000050CE 6E7465727072657465-
+ 44868 000050D7 7200               
+ 44869                                  badcountry:
+ 44870 000050D9 0D0A                    	db	0Dh,0Ah
+ 44871 000050DB 496E76616C69642063-     	db	'Invalid country code or code page',0Dh,0Ah,'$'
+ 44871 000050E4 6F756E74727920636F-
+ 44871 000050ED 6465206F7220636F64-
+ 44871 000050F6 6520706167650D0A24 
+ 44872                                  badcountrycom:
+ 44873 000050FF 0D0A                    	db	0Dh,0Ah
+ 44874 00005101 4572726F7220696E20-     	db	'Error in COUNTRY command',0Dh,0Ah,'$'
+ 44874 0000510A 434F554E5452592063-
+ 44874 00005113 6F6D6D616E640D0A24 
+ 44875                                  insufmemory:
+ 44876 0000511C 0D0A                    	db	0Dh,0Ah
+ 44877 0000511E 496E73756666696369-     	db	'Insufficient memory for COUNTRY.SYS file',0Dh,0Ah,'$'
+ 44877 00005127 656E74206D656D6F72-
+ 44877 00005130 7920666F7220434F55-
+ 44877 00005139 4E5452592E53595320-
+ 44877 00005142 66696C650D0A24     
+ 44878                                  badmem:
+ 44879 00005149 0D0A                    	db	0Dh,0Ah
+ 44880 0000514B 436F6E666967757261-     	db	'Configuration too large for memory',0Dh,0Ah,'$'
+ 44880 00005154 74696F6E20746F6F20-
+ 44880 0000515D 6C6172676520666F72-
+ 44880 00005166 206D656D6F72790D0A-
+ 44880 0000516F 24                 
+ 44881                                  badblock:
+ 44882 00005170 0D0A                    	db	0Dh,0Ah
+ 44883 00005172 546F6F206D616E7920-     	db	'Too many block devices',0Dh,0Ah,'$'
+ 44883 0000517B 626C6F636B20646576-
+ 44883 00005184 696365730D0A24     
+ 44884                                  badstack:
+ 44885 0000518B 0D0A                    	db	0Dh,0Ah
+ 44886 0000518D 496E76616C69642053-     	db	'Invalid STACK parameters',0Dh,0Ah,'$'
+ 44886 00005196 5441434B2070617261-
+ 44886 0000519F 6D65746572730D0A24 
+ 44887                                  	; 18/12/2022
+ 44888                                  ;badorder:
+ 44889                                  	;db	0Dh,0Ah
+ 44890                                  	;db	'Incorrect order in CONFIG.SYS line $'
+ 44891                                  errorcmd:
+ 44892 000051A8 4572726F7220696E20-     	db	'Error in CONFIG.SYS line $'
+ 44892 000051B1 434F4E4649472E5359-
+ 44892 000051BA 53206C696E652024   
+ 44893                                  
+ 44894                                  ; 01/01/2023 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
+ 44895                                  ; (SYSINIT:566Eh)
+ 44896                                  
+ 44897                                  ; 02/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
+ 44898                                  ;%if 0
+ 44899                                  
+ 44900 000051C2 4F4E                    OnOff:	db	'ON'
+ 44901 000051C4 4F4646                  OnOff2:	db	'OFF'
+ 44902                                  
+ 44903                                  	; 04/01/2023 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
+ 44904                                  	; (SYSINIT:5673h)
+ 44905                                  ;StartMsg:
+ 44906                                  ;	db	'Starting MS-DOS...',0Dh,0Ah
+ 44907                                  ;	db	0Ah,0
+ 44908                                  
+ 44909                                  	; 17/12/2023 - Retro DOS v5.0 (Modified PCDOS 7.1 IBMBIO.COM)
+ 44910                                  	; (SYSINIT:58F7h)
+ 44911                                  StartMsg:
+ 44912 000051C7 5374617274696E6720-     	db	'Starting PC DOS...',0Dh,0Ah
+ 44912 000051D0 504320444F532E2E2E-
+ 44912 000051D9 0D0A               
+ 44913 000051DB 0A00                    	db	0Ah,0
+ 44914                                  
+ 44915                                  _$PauseMsg:
+ 44916                                  	; 17/12/2023
+ 44917                                  	;db	'Press any key to continue . . .',0Dh,0Ah,'$'
+ 44918                                  	; 04/08/2023 (PCDOS 7.10 - IBMBIO.COM SYSINIT:590Dh)
+ 44919 000051DD 507265737320616E79-     	db	'Press any key to continue...',0Dh,0Ah,'$'
+ 44919 000051E6 206B657920746F2063-
+ 44919 000051EF 6F6E74696E75652E2E-
+ 44919 000051F8 2E0D0A24           
+ 44920                                  _$CleanMsg:
+ 44921                                  	;db	'MS-DOS is bypassing your CONFIG.SYS and AUTOEXEC.BAT files.',0Dh,0Ah,'$'
+ 44922                                  	; 17/12/2023
+ 44923 000051FC 504320444F53206973-     	db	'PC DOS is bypassing your CONFIG.SYS and AUTOEXEC.BAT files.',0Dh,0Ah,'$'
+ 44923 00005205 20627970617373696E-
+ 44923 0000520E 6720796F757220434F-
+ 44923 00005217 4E4649472E53595320-
+ 44923 00005220 616E64204155544F45-
+ 44923 00005229 5845432E4241542066-
+ 44923 00005232 696C65732E0D0A24   
+ 44924                                  _$InterMsg:
+ 44925                                  	;db	'MS-DOS will prompt you to confirm each CONFIG.SYS command.',0Dh,0Ah,'$'
+ 44926                                  	; 17/12/2023
+ 44927 0000523A 504320444F53207769-     	db	'PC DOS will prompt you to confirm each CONFIG.SYS command.',0Dh,0Ah,'$'
+ 44927 00005243 6C6C2070726F6D7074-
+ 44927 0000524C 20796F7520746F2063-
+ 44927 00005255 6F6E6669726D206561-
+ 44927 0000525E 636820434F4E464947-
+ 44927 00005267 2E53595320636F6D6D-
+ 44927 00005270 616E642E0D0A24     
+ 44928                                  _$MenuHeader:
+ 44929 00005277 0D0A                    	db	0Dh,0Ah
+ 44930                                  	; 17/12/2023
+ 44931                                  	;db	'  MS-DOS 6.2 Startup Menu',0Dh,0Ah
+ 44932                                  	;db	'  '
+ 44933                                  	;times	23 db (0CDh)  ; ALT 205 ; '=======================' ; 06/08/2023
+ 44934                                  	;db 	0Dh,0Ah,'$'
+ 44935                                  	; 04/08/2023 (PCDOS 7.10 - IBMBIO.COM SYSINIT:59A7h)
+ 44936 00005279 2020504320444F5320-     	db	'  PC DOS 7.1 Startup Menu',0Dh,0Ah
+ 44936 00005282 372E31205374617274-
+ 44936 0000528B 7570204D656E750D0A 
+ 44937 00005294 2020                    	db	'  '
+ 44938 00005296 CD<rep 17h>             	times	23 db (0CDh)  ; ALT 205 ; '=======================' ; 06/08/2023
+ 44939 000052AD 0D0A24                  	db 	0Dh,0Ah,'$'
+ 44940                                  _$MenuPrmpt:
+ 44941 000052B0 2020456E7465722061-     	db	'  Enter a choice: $'
+ 44941 000052B9 2063686F6963653A20-
+ 44941 000052C2 24                 
+ 44942                                  _$StatusLine:
+ 44943 000052C3 46353D427970617373-     	db	'F5=Bypass startup files F8=Confirm each line of CONFIG.SYS '
+ 44943 000052CC 207374617274757020-
+ 44943 000052D5 66696C65732046383D-
+ 44943 000052DE 436F6E6669726D2065-
+ 44943 000052E7 616368206C696E6520-
+ 44943 000052F0 6F6620434F4E464947-
+ 44943 000052F9 2E53595320         
+ 44944 000052FE 616E64204155544F45-     	db	'and AUTOEXEC.BAT [ ]$'
+ 44944 00005307 5845432E424154205B-
+ 44944 00005310 205D24             
+ 44945                                  _$InterPrmpt:
+ 44946                                  	;db	' [Y,N]?$'
+ 44947                                  	; 13/04/2024
+ 44948                                  	; 04/08/2023
+ 44949 00005313 205B592C4E2C455343-     	db	' [Y,N,ESC]?$' ; PCDOS 7.1 - IBMBIO.COM 
+ 44949 0000531C 5D3F24             
+ 44950 0000531F 59455324                _$YES:	db	'YES$'
+ 44951 00005323 4E4F2024                _$NO:	db	'NO $'
+ 44952                                  _$TimeOut:
+ 44953 00005327 54696D652072656D61-     	db	'Time remaining: $'
+ 44953 00005330 696E696E673A2024   
+ 44954                                  badcomprmpt:
+ 44955                                  	;db	'Enter correct name of Command Interpreter (eg, C:\COMMAND.COM)'
+ 44956                                  	; 13/04/2024 (PCDOS 7.1 IBMBIO.COM)
+ 44957 00005338 456E74657220636F72-     	db	'Enter correct name of Command Interpreter (for example, C:\COMMAND.COM)'
+ 44957 00005341 72656374206E616D65-
+ 44957 0000534A 206F6620436F6D6D61-
+ 44957 00005353 6E6420496E74657270-
+ 44957 0000535C 72657465722028666F-
+ 44957 00005365 72206578616D706C65-
+ 44957 0000536E 2C20433A5C434F4D4D-
+ 44957 00005377 414E442E434F4D29   
+ 44958 0000537F 0D0A24                  	db	0Dh,0Ah,'$'
+ 44959                                  _$AutoPrmpt:
+ 44960 00005382 50726F636573732041-     	db	'Process AUTOEXEC.BAT [Y,N]?$'
+ 44960 0000538B 55544F455845432E42-
+ 44960 00005394 4154205B592C4E5D3F-
+ 44960 0000539D 24                 
+ 44961                                  
+ 44962                                  ;%endif ; 02/11/2022
+ 44963                                  
+ 44964                                  ; 01/01/2023 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
+ 44965                                  ; (SYSINIT:5840h)
+ 44966                                  
+ 44967                                  ; 02/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
+ 44968                                  ; MSDOS 5.0 IO.SYS - SYSINIT:3CE0h
+ 44969                                  
+ 44970                                  TooManyDrivesMsg:
+ 44971 0000539E 5741524E494E472120-     	db	'WARNING! Logical drives past Z: exist and will be ignored',0Dh,0Ah,'$'
+ 44971 000053A7 4C6F676963616C2064-
+ 44971 000053B0 726976657320706173-
+ 44971 000053B9 74205A3A2065786973-
+ 44971 000053C2 7420616E642077696C-
+ 44971 000053CB 6C2062652069676E6F-
+ 44971 000053D4 7265640D0A24       
+ 44972                                  
+ 44973                                  ; MSDOS 6.21 IO.SYS - SYSINIT:587Ch
+ 44974                                  	;db	'Wrong DBLSPACE.BIN version',0Dh,0Ah,'$'
+ 44975                                  	;db	7 dup(0)
+ 44976                                  
+ 44977                                  	;times	7 db 0
+ 44978                                  	; 02/11/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
+ 44979                                  ; MSDOS 5.0 IO.SYS - SYSINIT:3D1Ch
+ 44980                                  	; 09/12/2022
+ 44981                                  	;times 4 db 0
+ 44982                                  
+ 44983                                  	; 08/04/2024 - Retro DOS v5.0
+ 44984                                  ; PCDOS 7.1 IBMBIO.COM - SYSINIT:5B0Bh
+ 44985                                  baddblspace:
+ 44986 000053DA 526571756972656420-     	db	'Required system component is not installed',0Dh,0Ah,'$',0
+ 44986 000053E3 73797374656D20636F-
+ 44986 000053EC 6D706F6E656E742069-
+ 44986 000053F5 73206E6F7420696E73-
+ 44986 000053FE 74616C6C65640D0A24-
+ 44986 00005407 00                 
+ 44987                                  	;db	7 dup(0)
+ 44988                                  
+ 44989                                  ;----------------------------------------------------------------------------
+ 44990                                  		; 09/12/2022
+ 44991                                  		;db 0
+ 44992                                  
+ 44993                                  number3div	equ ($-SYSINIT$)
+ 44994                                  number3mod	equ (number3div % 16)
+ 44995                                  
+ 44996                                  %if (number3mod>0) & (number3mod<16) ; 17/09/2023
+ 44997 00005408 00<rep 8h>              		times (16-number3mod) db 0
+ 44998                                  %endif
+ 44999                                  
+ 45000                                  ;---------------------------------------------------------------------------- 
+ 45001                                  ; 09/12/2022 - MSDOS 5.0 IO.SYS:3D20h ;;; SI_end = 3D20h for MSDOS 5.0 IO.SYS 
+ 45002                                  ;---------------------------------------------------------------------------- 
+ 45003                                  
+ 45004                                  ;MSDOS 6.21 IO.SYS - SYSINIT:5899h
+ 45005                                  
+ 45006                                  ;----------------------------------------------------------------------------
+ 45007                                  ; 20/04/2019 - Retro DOS v4.0
+ 45008                                  
+ 45009                                  ; 09/12/2022
+ 45010                                  ;
+ 45011                                  ;bss_start:
+ 45012                                  ;
+ 45013                                  ;ABSOLUTE bss_start
+ 45014                                  ;
+ 45015                                  ;alignb 16
+ 45016                                  
+ 45017                                  SI_end:  ; SI_end equ $
+ 45018                                  
+ 45019                                  ;----------------------------------------------------------------------------
+ 45020                                  
+ 45021                                  ;sysinitseg	ends
+ 45022                                  
+ 45023                                  ; ***************************************************************************
+ 45024                                  
+ 45025                                  ; 04/01/2023 - MSDOS 6.21 SYSINIT:SI_end = SYSINIT:58A0h (IOSYS:9F46h)
+ 45026                                  ; 09/12/2022 - MSDOS 5.0 SYSINIT:SI_end = SYSINIT:3D20h
+ 45027                                  
+ 45028                                  SYSINITSIZE	equ SI_end - SYSINIT$
+ 45029                                  DOSLOADSEG	equ SYSINITSEG+((SYSINITSIZE+15)/16)
+ 45030                                  
+ 45031                                  ;----------------------------------------------------------------------------
+ 45032                                  ; End of Retro DOS v5.0 IBMBIO.COM (IO.SYS) source by Erdogan Tan (2023)
+ 45033                                  ;----------------------------------------------------------------------------
+ 45034                                  
+ 45035                                  ; 21/12/2022 - Retro DOS v4.0 (Modified MSDOS 5.0)
+ 45036                                  ; 02/10/2023 - Retro DOS v5.0 (Modified PCDOS 7.1)
  45037                                  ;----------------------------------------------------------------------------
- 45038                                  
- 45039                                  ; ----------------------------------------------------------------------------
- 45040                                  ; START OF PCDOS 7.1 -IBMDOS.COM- KERNEL CODE (MSDOS.SYS) -will be relocated-
- 45041                                  ; ----------------------------------------------------------------------------
- 45042                                  ; 02/10/2023 - Retro DOS v5.0
- 45043                                  ; 04/01/2023 - Retro DOS v4.2
- 45044                                  ; 29/12/2022 - Retro DOS v4.1
- 45045                                  ; 18/03/2019 - Retro DOS v4.0 
- 45046                                  ; 11/06/2018 - Retro DOS v3.0 
- 45047                                  
- 45048                                  ;MSDOS_BIN_OFFSET:
- 45049                                  IBMDOS_BIN_OFFSET: ; this offset must be paragraph aligned
- 45050                                  		;; 28/06/2019 ('msdos6.s') 
- 45051                                  		;incbin	'MSDOS6.BIN' ; Retro DOS 4.0 - MSDOS 6.21 KERNEL
- 45052                                  		
- 45053                                  		; 29/12/2022
- 45054                                  		;incbin	'MSDOS51.BIN' ; Retro DOS 4.1 - MSDOS 5.0+ KERNEL
- 45055                                  
- 45056                                  		; 29/09/2023 (PARASTART=3DE0h)
- 45057                                  		; 27/09/2023 (BugFix) ((PARASTART=3DD0h))
- 45058                                  		; 04/01/2023
- 45059                                  		;incbin	'MSDOS6.BIN' ; Retro DOS 4.2 - MSDOS 6.21+ KERNEL		
- 45060                                  		
- 45061                                  		; 10/07/2024
- 45062                                  		; 07/07/2024
- 45063                                  		; 08/05/2024
- 45064                                  		; 14/04/2024
- 45065                                  		; 02/10/2023 - Retro DOS v5.0 - PCDOS 7.1 KERNEL		 
- 45066 00005410 <bin A336h>             		incbin	'IBMDOS7.BIN'
- 45067                                  
- 45068                                  		;; 28/12/2022 (BugFix)
- 45069                                  		;; 22/12/2022
- 45070                                  		;; 21/12/2022 ('msdos5.s')
- 45071                                  		;incbin 'MSDOS5.BIN'  ; Retro DOS 4.0 - MSDOS 5.0+ KERNEL
- 45072                                  
- 45073                                  ; 28/09/2023	
- 45074                                  ;msdos_bin_size equ $ - MSDOS_BIN_OFFSET
- 45075                                  
- 45076                                  align 2
- 45077                                  
- 45078                                  ; 21/12/2022
- 45079                                  ;;END_OF_KERNEL:
- 45080                                  ;END_OF_KERNEL equ $
- 45081                                  
- 45082                                  ; 28/09/2023
- 45083                                  S3SIZE equ $-$$
- 45084                                  KERNEL_SIZE equ S1SIZE+S2SIZE+S3SIZE
- 45085                                  
- 45086                                  ;=============================================================================
- 45087                                  ;	END
- 45088                                  ;=============================================================================
- 45089                                  ; Retro DOS v5.0 by Erdogan Tan (Redevelopment of PC-DOS 7.1 KERNEL via NASM)
- 45090                                  ; ------------------------------
- 45091                                  ; APRIL 2024, ISTANBUL - TURKIYE.
+ 45038                                  ;----------------------------------------------------------------------------
+ 45039                                  
+ 45040                                  ; ----------------------------------------------------------------------------
+ 45041                                  ; START OF PCDOS 7.1 -IBMDOS.COM- KERNEL CODE (MSDOS.SYS) -will be relocated-
+ 45042                                  ; ----------------------------------------------------------------------------
+ 45043                                  ; 02/10/2023 - Retro DOS v5.0
+ 45044                                  ; 04/01/2023 - Retro DOS v4.2
+ 45045                                  ; 29/12/2022 - Retro DOS v4.1
+ 45046                                  ; 18/03/2019 - Retro DOS v4.0 
+ 45047                                  ; 11/06/2018 - Retro DOS v3.0 
+ 45048                                  
+ 45049                                  ;MSDOS_BIN_OFFSET:
+ 45050                                  IBMDOS_BIN_OFFSET: ; this offset must be paragraph aligned
+ 45051                                  		;; 28/06/2019 ('msdos6.s') 
+ 45052                                  		;incbin	'MSDOS6.BIN' ; Retro DOS 4.0 - MSDOS 6.21 KERNEL
+ 45053                                  		
+ 45054                                  		; 29/12/2022
+ 45055                                  		;incbin	'MSDOS51.BIN' ; Retro DOS 4.1 - MSDOS 5.0+ KERNEL
+ 45056                                  
+ 45057                                  		; 29/09/2023 (PARASTART=3DE0h)
+ 45058                                  		; 27/09/2023 (BugFix) ((PARASTART=3DD0h))
+ 45059                                  		; 04/01/2023
+ 45060                                  		;incbin	'MSDOS6.BIN' ; Retro DOS 4.2 - MSDOS 6.21+ KERNEL		
+ 45061                                  		
+ 45062                                  		; 10/07/2024
+ 45063                                  		; 07/07/2024
+ 45064                                  		; 08/05/2024
+ 45065                                  		; 14/04/2024
+ 45066                                  		; 02/10/2023 - Retro DOS v5.0 - PCDOS 7.1 KERNEL		 
+ 45067 00005410 <bin A336h>             		incbin	'IBMDOS7.BIN'
+ 45068                                  
+ 45069                                  		;; 28/12/2022 (BugFix)
+ 45070                                  		;; 22/12/2022
+ 45071                                  		;; 21/12/2022 ('msdos5.s')
+ 45072                                  		;incbin 'MSDOS5.BIN'  ; Retro DOS 4.0 - MSDOS 5.0+ KERNEL
+ 45073                                  
+ 45074                                  ; 28/09/2023	
+ 45075                                  ;msdos_bin_size equ $ - MSDOS_BIN_OFFSET
+ 45076                                  
+ 45077                                  align 2
+ 45078                                  
+ 45079                                  ; 21/12/2022
+ 45080                                  ;;END_OF_KERNEL:
+ 45081                                  ;END_OF_KERNEL equ $
+ 45082                                  
+ 45083                                  ; 28/09/2023
+ 45084                                  S3SIZE equ $-$$
+ 45085                                  KERNEL_SIZE equ S1SIZE+S2SIZE+S3SIZE
+ 45086                                  
+ 45087                                  ;=============================================================================
+ 45088                                  ;	END
+ 45089                                  ;=============================================================================
+ 45090                                  ; Retro DOS v5.0 by Erdogan Tan (Redevelopment of PC-DOS 7.1 KERNEL via NASM)
+ 45091                                  ; ------------------------------
+ 45092                                  ; APRIL 2024, ISTANBUL - TURKIYE.
