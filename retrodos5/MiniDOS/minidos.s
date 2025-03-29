@@ -3,7 +3,7 @@
 ; ----------------------------------------------------------------------------
 ; Modified from Retro DOS v5.0 'retrodos5.s' (17/07/2024) ((PCDOS 7.1 Kernel))
 ;
-; Last Update: 18/03/2025
+; Last Update: 24/03/2025
 ;
 ; ----------------------------------------------------------------------------
 ; Assembler: NASM version 2.15
@@ -13,9 +13,13 @@
 ; Included binary file: KERNEL.BIN (MiniDOS 1.0 - Kernel file) 
 ; ****************************************************************************
 
-; 18/03/2025
-; MiniDOS 1.0 modifications:
+; 18/03/2025 - MiniDOS v1.0
+; ----------------------------------------------------------------------------
+; MiniDOS 1.0 'IBMBIO.COM' modifications:
+; ---------------------------------------
 ; 1) "DOSDATA=" configuration removed
+; 2) "SWITCHES=" configuration removed
+; ---------------------------------------------------------------------------- 
 
 ; 12/09/2023 - Retro DOS v5.0 Kernel -dosbios- ('ibmbio7.s')
 ; Modified from 'iosys6.s' (11/09/2023, Retro DOS v4.2 Kernel's IO.SYS) file
@@ -32074,8 +32078,18 @@ do7:
 	; 31/12/2022
 ;sr7:
 	;jmp	coff
+
+	; 24/03/2025 - MiniDOS 1.0
 	; 03/01/2023
-	jmp	badparm_p_coff
+	;jmp	badparm_p_coff
+
+; 24/03/2025 - MiniDOS 1.0
+%if 1
+badparm_p_coff:
+	call	badparm_p
+	jmp	coff
+%endif
+
 if7:
 	cmp	ax,_$P_RC_EOL ; 0FFFFh	; end of line?
 	je	short en7		;  then jmp to $endloop for semantic check
@@ -32219,6 +32233,13 @@ en22:
 	; 03/01/2023
 sr22:
 	jmp	coff
+
+; 24/03/2025 - MiniDOS 1.0
+%if 0
+badparm_p_coff:
+	call	badparm_p
+	jmp	coff
+%endif
 
 ;------------------------------------------------------------------------------
 ; multitrack command
@@ -33991,7 +34012,9 @@ sr79:
 
 trys:
         cmp     ah,CONFIG_SHELL ; 'S'
-	jne	short tryx
+	;jne	short tryx
+	; 24/03/2025 - MiniDOS 1.0
+ 	jne	short tryv
 
 ; 31/12/2022 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
 ; (SYSINIT:2BE1h)
@@ -33999,7 +34022,10 @@ trys:
 ;%if 0
 ;ifdef	MULTI_CONFIG
 	call	query_user              ; query the user if config_cmd
-	jc	short tryx		; has the CONFIG_OPTION_QUERY bit set
+	;jc	short tryx		; has the CONFIG_OPTION_QUERY bit set
+	; 24/03/2025 - MiniDOS 1.0
+ 	jne	short tryv
+
 	; 14/04/2024
 	; ds = cs
 	;mov	byte [cs:newcmd],1
@@ -34116,6 +34142,10 @@ endofparms:
 	mov	[command_line],cl
 	jmp	short endofshell
 
+
+; 24/03/2025 - MiniDOS v1.0
+%if 0
+
 ;------------------------------------------------------------------------
 ; fcbs command
 ;------------------------------------------------------------------------
@@ -34211,6 +34241,8 @@ en98:
 sr98:
 	jmp	coff
 
+%endif
+
 ; 31/12/2022 - Retro DOS v4.2
 %if 0
 
@@ -34244,6 +34276,9 @@ try0:				; do nothing with this line.
 	je	short donothing
 
 %endif
+
+; 18/03/2025 - MiniDOS 1.0
+%if 0
 
 ; 07/04/2019 - Retro DOS v4.0
 
@@ -34408,6 +34443,9 @@ skip_dos_flag:							;M063
 sr110:
 	jmp	coff
 
+; 18/03/2025
+%endif
+
 ; 31/12/2022 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
 ; (SYSINIT:2D14h)
 ; 30/10/2022 (MSDOS 5.0 IO.SYS SYSINIT compatibility)
@@ -34425,10 +34463,14 @@ tryv:
 	call	query_user      ; query the user if config_cmd
 	jc	short tryn 	; has the CONFIG_OPTION_QUERY bit set
 	call	copy_envvar     ; copy var at ES:SI to "config_wrkseg"
+chk_err: ; 24/03/2025	
 	jnc	short sr110	; no error
 err:    
 	call	error_line      ; whoops, display error in line XXX
-	jmp	short sr110     ; jump to coff (to skip to next line)
+	;jmp	short sr110     ; jump to coff (to skip to next line)
+	; 24/03/2025 - MiniDOS 1.0
+sr110:
+	jmp	coff
 
 ;------------------------------------------------------------------------
 ; numlock command (as in "numlock=on|off")
@@ -34443,8 +34485,11 @@ tryn:
 	call	query_user      ; query the user if config_cmd
 	jc	short tryy	; has the CONFIG_OPTION_QUERY bit set
 	call	set_numlock
-	jc	short err
-	jmp	short sr110	; all done
+	; 24/03/2025 - MiniDOS 1.0
+	;jc	short err
+	;jmp	short sr110	; all done
+	jmp	short chk_err
+	
 
 ;endif	;MULTI_CONFIG
 
@@ -39302,6 +39347,9 @@ setparms:
 	mov	cx,(RAWIO<<8)|SET_DEVICE_PARAMETERS 
 	int	21h
 
+; 18/03/2025 - MiniDOS v1.0
+%if 0
+
 ; 27/07/2023 - Retro DOS v4.2 IO.SYS (optimization)
 	mov	ah,[switches]
 	;mov	al,[deviceparameters+20]
@@ -39348,6 +39396,9 @@ setparms:
 	mov	ah,1
 	shl	ah,cl
 	or	[ec35_flag],ah
+
+; 18/03/2025
+%endif
 
 ; 07/07/2023 - Retro DOS v4.2 IO.SYS (optimization)
 ;	MSDOS 6.21 IO.SYS - SYINIT:3EB0h	
@@ -40224,6 +40275,13 @@ org2:
 	call	delim
         jnz	short org2
 	jmp	short org3
+
+; 24/03/2025 - MiniDOS 1.0
+%if 1
+org31:
+	jmp	org4
+%endif
+
 org21:					;if cr or lf then
 	dec	si			; undo si, cx register
 	inc	cx			;  and continue
@@ -40265,10 +40323,16 @@ org3:
 	;cmp	byte [cmd_indicator],CONFIG_DEVICE ; 'D'
 	;je	short org_file
         cmp	byte [cmd_indicator],CONFIG_SHELL ; 'S'
+	; 18/03/2025
 	je	short org_file
+	; 24/03/2025 - MiniDOS 1.0
+	jmp	org4
+
+; 18/03/2025 - MiniDOS 1.0
+%if 0
         cmp	byte [cmd_indicator],CONFIG_SWITCHES ; '1'
 	je	short org_switch
-	
+
 org31:
 	jmp	org4
 
@@ -40282,6 +40346,8 @@ org_switch:
 
 	stosb
 	jmp	org5
+%endif
+
 
 org_file:			; get the filename and put 0 at end
 	call	skip_comment
@@ -40754,11 +40820,17 @@ swchk_loop:                     ;
         jmp     short swchk_nextline
 swchk_next1:                    ;
         cmp     al,CONFIG_NUMLOCK
-        jne	short swchk_next2 ;
+        ;jne	short swchk_next2
+	; 18/03/2025 - MiniDOS 1.0
+	jne	short swchk_nextline
+
         or      bx,bx           ; only do NUMLOCK commands that exist
         jnz	short swchk_nextline ; before the first block
         call    set_numlock     ; REM it out so we don't act on it later, too
         mov     byte [es:si-1],CONFIG_REM
+
+; 18/03/2025 - MiniDOS 1.0
+%if 0
         jmp     short swchk_nextline
 swchk_next2:                    ;
         cmp     al,CONFIG_SWITCHES
@@ -40781,6 +40853,8 @@ swchk_scan2:                    ;
         jne	short swchk_scan1 ; no
         or      byte [bDisableUI],2
         jmp     short swchk_scan ; continue looking for switches of interest
+%endif
+
 swchk_nextline:                 ;
         call    skip_opt_line   ;
         jmp     short swchk_loop ;
@@ -43886,7 +43960,12 @@ comtab:	 ; label byte
 ;if    STACKSW
         db      6,      "STACKS",       CONFIG_STACKS
 ;endif
+
+; 18/03/2025 - MiniDOS v1.0
+%if 0
         db      8,      "SWITCHES",     CONFIG_SWITCHES
+%endif
+	; 18/03/2025
 	db	0
 
 ; 18/03/2025 - MiniDOS 1.0
