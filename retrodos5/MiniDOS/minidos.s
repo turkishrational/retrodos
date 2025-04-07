@@ -3,12 +3,12 @@
 ; ----------------------------------------------------------------------------
 ; Modified from Retro DOS v5.0 'retrodos5.s' (17/07/2024) ((PCDOS 7.1 Kernel))
 ;
-; Last Update: 24/03/2025
+; Last Update: 07/04/2025
 ;
 ; ----------------------------------------------------------------------------
 ; Assembler: NASM version 2.15
 ; ----------------------------------------------------------------------------
-;	   ((nasm retrodos5.s -l retrodos5.txt -o PCDOS.SYS -Z error.txt))
+;	   ((nasm minidos.s -l minidos.txt -o PCDOS.SYS -Z error.txt))
 ; ---------------------------------------------------------------------------- 
 ; Included binary file: KERNEL.BIN (MiniDOS 1.0 - Kernel file) 
 ; ****************************************************************************
@@ -19,6 +19,7 @@
 ; ---------------------------------------
 ; 1) "DOSDATA=" configuration removed
 ; 2) "SWITCHES=" configuration removed
+; 2) "FCBS=" configuration removed ; 24/03/2025
 ; ---------------------------------------------------------------------------- 
 
 ; 12/09/2023 - Retro DOS v5.0 Kernel -dosbios- ('ibmbio7.s')
@@ -21748,8 +21749,11 @@ h_buffers:	dw	0	; # of the heuristic buffers. initially 0.
 singlebuffersize: dw	0	; maximum sector size + buffer head
 
 FILES:	db	8	; enough files for pipe
+; 07/04/2025 - MiniDOS 1.0 
+%if 0
 FCBS:	db	4	; performance for recycling
 KEEP:	db	0	; keep original set
+%endif
 NUM_CDS: db	5	; 5 net drives
 
 ; 22/10/2022 (MSDOS 5.0 SYSINIT)
@@ -25493,10 +25497,14 @@ dofcbs:
 	call	setdevmark
 	; 11/12/2022
 	; ds = cs
-	mov	al,[FCBS]
-	;mov	al,[cs:FCBS]
-	xor	ah,ah			; do not use cbw instruction!!!!!
-					;  it does sign extend.
+
+	; 07/04/2025 - MiniDOS 1.0
+	;mov	al,[FCBS]
+	;;mov	al,[cs:FCBS]
+	;xor	ah,ah			; do not use cbw instruction!!!!!
+	; 07/04/2025			;  it does sign extend.
+	mov	ax, 4 ; [FCBS]	
+
 	; 11/12/2022
 	mov	bx,[memlo]
 	mov	dx,[memhi]
@@ -25512,9 +25520,12 @@ dofcbs:
 	mov	[di+1Ah],bx		; [di+SYSI_FCB]
 	mov	[di+1Ch],dx		; [di+SYSI_FCB+2]
 
-	mov	bl,[cs:KEEP]
-	xor	bh,bh
-	;mov	[di+SYSI_KEEP],bx
+	; 07/04/2025 - MiniDOS 1.0
+	;mov	bl,[cs:KEEP]
+	;xor	bh,bh
+	;;mov	[di+SYSI_KEEP],bx
+	; 07/04/2025
+	xor	bx, bx
 	mov	[di+1Eh],bx		; [di+SYSI_KEEP]	
 
 	push	cs
@@ -31047,6 +31058,9 @@ p_files:
 
 ;-----------------------------------------------------------------------
 
+; 07/04/2025 - MiniDOS v1.0
+%if 0
+
 	; 27/10/2022
 
 ; fcbs = n,m
@@ -31097,6 +31111,8 @@ fcbs_keep_range:
 
 p_fcbs:	db	0		; local variable
 p_keep:	db	0		; local variable
+
+%endif
 
 ;-----------------------------------------------------------------------
 
@@ -43934,7 +43950,10 @@ comtab:	 ; label byte
         db      10,     "DEVICEHIGH",   CONFIG_DEVICEHIGH
         db      3,      "DOS",          CONFIG_DOS
         db      8,      "DRIVPARM",     CONFIG_DRIVPARM
-        db      4,      "FCBS",         CONFIG_FCBS
+; 07/04/2025 - Mini DOS 1.0
+%if 0
+	db     4,      "FCBS",         CONFIG_FCBS
+%endif
         db      5,      "FILES",        CONFIG_FILES
 ;ifdef MULTI_CONFIG
         db      7,      "INCLUDE",      CONFIG_INCLUDE
