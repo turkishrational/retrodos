@@ -19,7 +19,7 @@
     19                                  ; ---------------------------------------
     20                                  ; 1) "DOSDATA=" configuration removed
     21                                  ; 2) "SWITCHES=" configuration removed
-    22                                  ; 2) "FCBS=" configuration removed ; 24/03/2025
+    22                                  ; 3) "FCBS=" configuration removed ; 24/03/2025
     23                                  ; ---------------------------------------------------------------------------- 
     24                                  
     25                                  ; 12/09/2023 - Retro DOS v5.0 Kernel -dosbios- ('ibmbio7.s')
