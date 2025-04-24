@@ -3,7 +3,7 @@
 ; ----------------------------------------------------------------------------
 ; Modified from Retro DOS v5.0 'ibmdos7.s' (10/07/2024) ((PCDOS 7.1 Kernel))
 ;
-; Last Update: 16/03/2025
+; Last Update: 24/04/2025 (Previous: 16/03/2025)
 ;
 ; ----------------------------------------------------------------------------
 ; Assembler: NASM version 2.15
@@ -3437,12 +3437,14 @@ I21_MAP_E_TAB:	; LABEL	BYTE
 	db 	0
 RETRODOSMSG:
 	db	13,10
-	;;;;;db	"Retro DOS v4.0 by Erdogan Tan [2019]"
-	;;;;db	"Retro DOS v4.0 by Erdogan Tan [2022]"
-	;;;db	"Retro DOS v4.1 by Erdogan Tan [2022]" ; 28/12/2022
-	;;db	"Retro DOS v4.2 by Erdogan Tan [2022]" ; 30/12/2022
-	;db	"Retro DOS v4.2 by Erdogan Tan [2023]"
-	db	"Retro DOS v5.0 by Erdogan Tan [2024]" ; 01/01/2024	 
+	;;;;;;db "Retro DOS v4.0 by Erdogan Tan [2019]"
+	;;;;;db	"Retro DOS v4.0 by Erdogan Tan [2022]"
+	;;;;db	"Retro DOS v4.1 by Erdogan Tan [2022]" ; 28/12/2022
+	;;;db	"Retro DOS v4.2 by Erdogan Tan [2022]" ; 30/12/2022
+	;;db	"Retro DOS v4.2 by Erdogan Tan [2023]"
+	;db	"Retro DOS v5.0 by Erdogan Tan [2024]" ; 01/01/2024
+	; 24/04/2025
+	db	"MiniDOS v1.0 (RetroDOS v5 compact) by Erdogan Tan [2025]"	 
 	db	13,10,"$", 0 
 
 ;============================================================================
@@ -22494,6 +22496,9 @@ setattr:
 	; MSDOS 3.3 (& MSDOS 6.0)
 	;or	byte [es:di+0Bh],20h
 	OR	BYTE [ES:DI+dir_entry.dir_attr],attr_archive ;Set archive
+
+; 24/04/2025 (MiniDOS)
+%if 0
 	; MSDOS 6.0
 	;mov	ax,[es:di+1Ah]
 	MOV	AX,[ES:DI+dir_entry.dir_first] ;AN011
@@ -22509,6 +22514,7 @@ setattr:
 	; 27/06/2024
 	MOV	[ss:OLD_FIRSTCLUS_HW],ax
 	;;;
+%endif
 
 	;;mov	ax,[si+0Bh]
 	;MOV	AX,[SI+SF_ENTRY.sf_firclus]
@@ -22593,6 +22599,9 @@ yesdirty4:
 	;push	ss
 	;pop	ds
 	;MOV	AL,[THISDRV]
+
+; 24/04/2025 (MiniDOS)
+%if 0
 ;;; 10/1/86  update fastopen cache
 	; MSDOS 3.3 & MSDOS 6.0
 	PUSH	DX
@@ -22666,6 +22675,8 @@ do_update:				;AN005;
 	POP	DX
 
 ;;; 10/1/86  update fastopen cache
+%endif
+
 	call	FLUSHBUF		; flush all relevant buffers
 	pop	di
 	pop	es
@@ -51574,8 +51585,9 @@ FAKE_COUNT:
 	times 255 db 0			;AN008; fake version count
 %endif
 
-OLD_FIRSTCLUS:
-	dw	0			;AN011; save old first cluster for fastopen
+; 24/04/2025 (MiniDOS)
+;OLD_FIRSTCLUS:
+;	dw	0		;AN011; save old first cluster for fastopen
 
 ; ---------------------------------------------------------------------------
 
@@ -52439,9 +52451,9 @@ UmbSave1:
 ; 16/01/2024 - Retrodos v5.0
 ; PCDOS 7.1 IBMDOS.COM - DOSDATA: 113Ah
 
-OLD_FIRSTCLUS_HW:
-	dw	0
-
+; 24/04/2025 (MiniDOS)
+;OLD_FIRSTCLUS_HW:
+;	dw	0
 
 ; 17/01/2024 
 ; 08/03/2025 (MiniDOS)
