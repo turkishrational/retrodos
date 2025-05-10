@@ -3,7 +3,7 @@
 ; ----------------------------------------------------------------------------
 ; Modified from Retro DOS v5.0 'ibmdos7.s' (10/07/2024) ((PCDOS 7.1 Kernel))
 ;
-; Last Update: 24/04/2025 (Previous: 16/03/2025)
+; Last Update: 10/05/2025 (Previous: 24/04/2025)
 ;
 ; ----------------------------------------------------------------------------
 ; Assembler: NASM version 2.15
@@ -21699,12 +21699,14 @@ LOCAL_SEARCH_FIRST:
 NOFN:						;AN000;
 	MOV	byte [NoSetDir],1	; if we find a dir, don't change to it
 
+; 10/05/2025
 ; 03/02/2024
 %if 0
 	; MSDOS 6.0
 	CALL	CHECK_QUESTION		;AN000;;FO. is '?' in path
 	JNC	short norm_GETPATH	;AN000;;FO. no
-%else
+; 10/05/2025
+;%else
 	; 03/02/2024
 	push	ss
 	pop	ds			;AN000;;FO. ds:si -> final path

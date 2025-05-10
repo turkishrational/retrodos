@@ -3,7 +3,7 @@
      3                                  ; ----------------------------------------------------------------------------
      4                                  ; Modified from Retro DOS v5.0 'retrodos5.s' (17/07/2024) ((PCDOS 7.1 Kernel))
      5                                  ;
-     6                                  ; Last Update: 24/04/2025  (Previous: 07/04/2025)
+     6                                  ; Last Update: 10/05/2025  (Previous: 24/04/2025)
      7                                  ;
      8                                  ; ----------------------------------------------------------------------------
      9                                  ; Assembler: NASM version 2.15
@@ -5287,7 +5287,7 @@
   5049                                  
   5050                                  		;mov	cx, KERNEL_SIZE - 32768
   5051                                  		; 28/09/2023 (BugFix)
-  5052 00001BC0 B91C16                  		mov	cx, NXWORDCOUNT
+  5052 00001BC0 B91416                  		mov	cx, NXWORDCOUNT
   5053                                  		;mov	cx, NXBYTECOUNT
   5054                                  		;shr	cx, 1 ; 28/09/2023
   5055                                  		;xor	si, si
@@ -44815,28 +44815,29 @@
  44444                                  		; 02/10/2023 - Retro DOS v5.0 - PCDOS 7.1 KERNEL
  44445                                  		;incbin	'IBMDOS7.BIN'
  44446                                  
- 44447                                  		; 24/04/2025
- 44448                                  		; 16/03/2025
- 44449                                  		; 07/03/2025
- 44450                                  		; 03/03/2025 - MiniDOS v1.0 - PCDOS 7.1 KERNEL
- 44451 00004D50 <bin 9858h>             		incbin	'KERNEL.BIN'
- 44452                                  
- 44453                                  ; 28/09/2023	
- 44454                                  ;msdos_bin_size equ $ - MSDOS_BIN_OFFSET
- 44455                                  
- 44456                                  align 2
- 44457                                  
- 44458                                  ; 21/12/2022
- 44459                                  ;;END_OF_KERNEL:
- 44460                                  ;END_OF_KERNEL equ $
- 44461                                  
- 44462                                  ; 28/09/2023
- 44463                                  S3SIZE equ $-$$
- 44464                                  KERNEL_SIZE equ S1SIZE+S2SIZE+S3SIZE
- 44465                                  
- 44466                                  ;=============================================================================
- 44467                                  ;	END
- 44468                                  ;=============================================================================
- 44469                                  ; Retro DOS v5.0 by Erdogan Tan (Redevelopment of PC-DOS 7.1 KERNEL via NASM)
- 44470                                  ; ------------------------------
- 44471                                  ; APRIL 2024, ISTANBUL - TURKIYE.
+ 44447                                  		; 10/05/2025
+ 44448                                  		; 24/04/2025
+ 44449                                  		; 16/03/2025
+ 44450                                  		; 07/03/2025
+ 44451                                  		; 03/03/2025 - MiniDOS v1.0 - PCDOS 7.1 KERNEL
+ 44452 00004D50 <bin 9848h>             		incbin	'KERNEL.BIN'
+ 44453                                  
+ 44454                                  ; 28/09/2023	
+ 44455                                  ;msdos_bin_size equ $ - MSDOS_BIN_OFFSET
+ 44456                                  
+ 44457                                  align 2
+ 44458                                  
+ 44459                                  ; 21/12/2022
+ 44460                                  ;;END_OF_KERNEL:
+ 44461                                  ;END_OF_KERNEL equ $
+ 44462                                  
+ 44463                                  ; 28/09/2023
+ 44464                                  S3SIZE equ $-$$
+ 44465                                  KERNEL_SIZE equ S1SIZE+S2SIZE+S3SIZE
+ 44466                                  
+ 44467                                  ;=============================================================================
+ 44468                                  ;	END
+ 44469                                  ;=============================================================================
+ 44470                                  ; Retro DOS v5.0 by Erdogan Tan (Redevelopment of PC-DOS 7.1 KERNEL via NASM)
+ 44471                                  ; ------------------------------
+ 44472                                  ; APRIL 2024, ISTANBUL - TURKIYE.
