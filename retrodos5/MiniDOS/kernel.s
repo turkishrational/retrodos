@@ -3,7 +3,7 @@
 ; ----------------------------------------------------------------------------
 ; Modified from Retro DOS v5.0 'ibmdos7.s' (10/07/2024) ((PCDOS 7.1 Kernel))
 ;
-; Last Update: 10/05/2025 (Previous: 24/04/2025)
+; Last Update: 11/05/2025 (Previous: 24/04/2025)
 ;
 ; ----------------------------------------------------------------------------
 ; Assembler: NASM version 2.15
@@ -21624,6 +21624,7 @@ u_fat32_inf_5:
 ; DS preserved, others destroyed
 ;---------------------------------------------------------------------------
 
+; 11/05/2025
 ; 03/03/2025 (MiniDOS)
 ; 24/01/2024
 %if 0
@@ -21762,16 +21763,20 @@ found_entry:
 ; a search-next may not have wfp_start set correctly
 
 	LES	DI,[DMAADD]
-	MOV	SI,[WFP_START]		; get pointer to beginning
-	LODSB
+	;MOV	SI,[WFP_START]		; get pointer to beginning
+	;LODSB
+	; 11/05/2025 (MiniDOS)
+	mov	al,[WFP_START]
 	SUB	AL,'A'-1                ; logical drive
 	STOSB				; High bit not set (local)
 found_it:
-	LES	DI,[DMAADD]
-	INC	DI
+	; 11/05/2055
+	;LES	DI,[DMAADD]
+	;INC	DI
 
+	; 11/05/2025 (MiniDOS)
 	; MSDOS 6.0
-	PUSH	DS				  ;FO.;AN001; save ds
+	;PUSH	DS			;FO.;AN001; save ds
 	
 	; 03/03/2025 (MiniDOS)
 	;;test	byte [FastOpenFlg],10h
@@ -21796,8 +21801,9 @@ NOTKANJB:
 	mov	cx,5
 	rep	movsw
 
+	; 11/05/2025
 	; 08/09/2018
-	POP	DS			;FO.;AN001; restore ds
+	;POP	DS			;FO.;AN001; restore ds
 
 	MOV	AL,[ATTRIB]
 	STOSB
@@ -21910,6 +21916,7 @@ NO05:
 
 ;hkn; called from search.asm. DS already set up at this point.
 
+	; 11/05/2025 (MiniDOS)
 	; 03/02/2024 - Retro DOS v5.0
 	; PCDOS 7.1 IBMDOS.COM - DOSCODE:75ECh
 
@@ -22033,6 +22040,11 @@ SEARCH_GOON:
 	call	NEXTENT
 	JC	short No_files
 	XOR	AH,AH			; If Search_Next, can't be a DEV
+
+	; 11/05/2025 (MiniDOS)
+	LES	DI,[DMAADD]
+	INC	DI
+
 	JMP	found_it ; 10/08/2018
 
 ; MSDOS 6.0
