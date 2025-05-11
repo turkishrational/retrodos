@@ -29230,8 +29230,10 @@ SKIP_GETB:
 	POP	AX
 	POP	BX
 	JNC	short SET_THE_BUF
-	POP	DI			; Start of next element
-	MOV	SI,DI			; Point with SI
+	;POP	DI			; Start of next element
+	;MOV	SI,DI			; Point with SI
+	; 11/05/2025
+	pop	si
 	JMP	SHORT _BADPATH
 
 SET_THE_BUF:
@@ -38186,7 +38188,7 @@ _ret_label:
 ;		ALLOWED set in case of INT 24
 ;	EXIT	'C' set if error (user FAIL response to INT24)
 ;		'C' clear if OK
-;		CUR ddBUF Points to the Buffer for the sector
+;		CURBUF Points to the Buffer for the sector
 ;		    the buffer type bits OF buf_flags = 0, caller must set it
 ;	USES	AX, BX, CX, SI, DI, Flags
 ;----------------------------------------------------------------------------
