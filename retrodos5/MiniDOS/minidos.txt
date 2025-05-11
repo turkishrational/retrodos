@@ -5287,7 +5287,7 @@
   5049                                  
   5050                                  		;mov	cx, KERNEL_SIZE - 32768
   5051                                  		; 28/09/2023 (BugFix)
-  5052 00001BC0 B91416                  		mov	cx, NXWORDCOUNT
+  5052 00001BC0 B90C16                  		mov	cx, NXWORDCOUNT
   5053                                  		;mov	cx, NXBYTECOUNT
   5054                                  		;shr	cx, 1 ; 28/09/2023
   5055                                  		;xor	si, si
@@ -44821,7 +44821,7 @@
  44450                                  		; 16/03/2025
  44451                                  		; 07/03/2025
  44452                                  		; 03/03/2025 - MiniDOS v1.0 - PCDOS 7.1 KERNEL
- 44453 00004D50 <bin 9848h>             		incbin	'KERNEL.BIN'
+ 44453 00004D50 <bin 9838h>             		incbin	'KERNEL.BIN'
  44454                                  
  44455                                  ; 28/09/2023	
  44456                                  ;msdos_bin_size equ $ - MSDOS_BIN_OFFSET

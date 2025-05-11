@@ -28939,11 +28939,14 @@ ROOTPATH:
 FINDPATH:
 	PUSH	ES			; Save ES:BP
 	PUSH	SI
-	MOV	DI,SI
+	; 11/05/2025
+	;MOV	DI,SI
 	MOV	CX,[DIRSTART]		; Get start clus of dir being searched
 	CMP	word [CURR_DIR_END],-1
 	JZ	short NOIDS		; No current dir part
-	CMP	DI,[CURR_DIR_END]
+	;CMP	DI,[CURR_DIR_END]
+	; 11/05/2025
+	cmp	si,[CURR_DIR_END] 
 	JNZ	short NOIDS		; Not to current dir end yet
 	LES	DI,[THISCDS]
 	;;;
