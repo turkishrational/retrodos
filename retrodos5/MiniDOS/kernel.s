@@ -3,7 +3,7 @@
 ; ----------------------------------------------------------------------------
 ; Modified from Retro DOS v5.0 'ibmdos7.s' (10/07/2024) ((PCDOS 7.1 Kernel))
 ;
-; Last Update: 11/05/2025 (Previous: 24/04/2025)
+; Last Update: 11/05/2025 (Previous: 10/05/2025)
 ;
 ; ----------------------------------------------------------------------------
 ; Assembler: NASM version 2.15
@@ -28927,6 +28927,8 @@ ROOTPATH:
 ;	      which case [NXTCLUSNUM] and [SECCLUSPOS] need not be valid)
 ; Destroys all other registers
 
+	; 11/05/2025 (MiniDOS v1.0)
+
 	; 21/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 	; DOSCODE:7F58h (MSDOS 5.0, MSDOS.SYS)
 
@@ -28972,17 +28974,22 @@ NOIDS:
 
 ;hkn; Name1 is in DOSDATA
 	MOV	DI,NAME1
-	MOV	AX,'  ' ; 2020h
-	STOSB
-	STOSW
-	STOSW
-	STOSW
-	STOSW
-	STOSW
+	;MOV	AX,'  ' ; 2020h
+	;STOSB
+	;STOSW
+	;STOSW
+	;STOSW
+	;STOSW
+	;STOSW
+	; 11/05/2025 (MiniDOS)
+	mov	al, ' ' ; 20h
+	mov	cx, 11
+	rep	stosb
 
 ;hkn; Name1 is in DOSDATA
 	MOV	DI,NAME1
-	XOR	AH,AH			; bits for CL
+	; 11/05/2025
+	;XOR	AH,AH			; bits for CL
 GetNam:
 	; 19/05/2019 - Retro DOS v4.0
 	;INC	CL ; ?*! ; MSDOS 6.0	;AN000; KK increment volid count
@@ -29000,7 +29007,9 @@ GetNam:
 	JZ	short _GetDone
 	CMP	AL,'?'	; 3Fh
 	JNZ	short StoNam
-	OR	AH,1
+	;OR	AH,1
+	; 11/05/2025
+	or	cl, 1
 StoNam: 
 	STOSB
 	JMP	short GetNam
@@ -29014,13 +29023,16 @@ GetExt:
 	JZ	short _GetDone
 	CMP	AL,'?'
 	JNZ	short StoExt
-	OR	AH,1
+	;OR	AH,1
+	; 11/05/2025
+	or	cl, 1
 StoExt: 
 	STOSB
 	JMP	short GetExt
 _GetDone:
 	DEC	SI
-	MOV	CL,AH  ; 0 or 1 ; 29/12/2022
+	; 11/05/2025
+	;MOV	CL,AH  ; 0 or 1 ; 29/12/2022
 	OR	CL,80H
 	POP	DI			; Start of this element
 	POP	ES			; Restore ES:BP
