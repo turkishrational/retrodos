@@ -3,7 +3,7 @@
 ; ----------------------------------------------------------------------------
 ; Modified from Retro DOS v5.0 'ibmdos7.s' (10/07/2024) ((PCDOS 7.1 Kernel))
 ;
-; Last Update: 11/05/2025 (Previous: 10/05/2025)
+; Last Update: 02/06/2025 (Previous: 11/05/2025)
 ;
 ; ----------------------------------------------------------------------------
 ; Assembler: NASM version 2.15
@@ -21765,8 +21765,8 @@ found_entry:
 	LES	DI,[DMAADD]
 	;MOV	SI,[WFP_START]		; get pointer to beginning
 	;LODSB
-	; 11/05/2025 (MiniDOS)
-	mov	al,[WFP_START]
+	mov	si,[WFP_START]
+	mov	al,[si]
 	SUB	AL,'A'-1                ; logical drive
 	STOSB				; High bit not set (local)
 found_it:

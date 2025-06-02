@@ -3,7 +3,7 @@
 ; ----------------------------------------------------------------------------
 ; Modified from Retro DOS v5.0 'retrodos5.s' (17/07/2024) ((PCDOS 7.1 Kernel))
 ;
-; Last Update: 11/05/2025  (Previous: 24/04/2025)
+; Last Update: 02/06/2025  (Previous: 11/05/2025)
 ;
 ; ----------------------------------------------------------------------------
 ; Assembler: NASM version 2.15
@@ -44444,11 +44444,10 @@ IBMDOS_BIN_OFFSET: ; this offset must be paragraph aligned
 		; 02/10/2023 - Retro DOS v5.0 - PCDOS 7.1 KERNEL
 		;incbin	'IBMDOS7.BIN'
 
-		; 11/05/2025
-		; 10/05/2025
+		; 02/06/2025
+		; 10/05/2025 - 11/05/2025
 		; 24/04/2025
-		; 16/03/2025
-		; 07/03/2025
+		; 07/03/2025 - 16/03/2025
 		; 03/03/2025 - MiniDOS v1.0 - PCDOS 7.1 KERNEL
 		incbin	'KERNEL.BIN'
 
