@@ -1,7 +1,7 @@
 ;*****************************************************************************
 ; IBMDOS7.S (PCDOS 7.1 Kernel) - RETRO DOS v5.0 by ERDOGAN TAN - 01/01/2024
 ; ----------------------------------------------------------------------------
-; Last Update: 10/07/2024 - Retro DOS v5.0 (Modified PCDOS 7.1)
+; Last Update: 06/08/2025 - Retro DOS v5.0 (Modified PCDOS 7.1)
 ; ----------------------------------------------------------------------------
 ; Beginning: 22/04/2019 (Retro DOS 4.0), 03/11/2022 (Retro DOS 4.2)
 ; ----------------------------------------------------------------------------
@@ -23269,10 +23269,13 @@ localcommit_retn: ; 18/12/2022
 ; decrement and after the share information release.
 
 ; DOSCODE:6FA0h (MSDOS 6.21, MSDOS.SYS)
-; DOSCODE:6F8Ch (MSDOS 5.0, MSDOS.SYS) 
+; DOSCODE:6F8Ch (MSDOS 5.0, MSDOS.SYS)
+; 06/08/2025
+; DOSCODE:78D0h (PCDOS 7.1, IBMDOS.COM)
 
 LOCAL_COMMIT:
-	call	ECritDisk
+	; 06/08/2025
+	;call	ECritDisk
 	; MSDOS 6.0
 	call	ECritDisk	;PTM.
 	call	SetSFTTimes
@@ -23281,10 +23284,13 @@ LOCAL_COMMIT:
 	; MSDOS 6.0
 	PUSHF			;PTM.				;AN000;
 	call	DEV_OPEN_SFT	;PTM.  increment device count	;AN000;
-	POPF			;PTM.				;AN000;
+	; 06/08/2025
+	;POPF			;PTM.				;AN000;
 	;call	LCritDisk	;PTM.				;AN000;
 	; 18/12/2022
-	jmp	LCritDisk
+	;jmp	LCritDisk
+	; 06/08/2025
+	jmp	NoFree
 ;localcommit_retn:
 ;	retn
 
