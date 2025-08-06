@@ -3,7 +3,7 @@
      3                                  ; ----------------------------------------------------------------------------
      4                                  ; Modified from Retro DOS v5.0 'retrodos5.s' (17/07/2024) ((PCDOS 7.1 Kernel))
      5                                  ;
-     6                                  ; Last Update: 02/06/2025  (Previous: 11/05/2025)
+     6                                  ; Last Update: 06/08/2025  (Previous: 02/06/2025)
      7                                  ;
      8                                  ; ----------------------------------------------------------------------------
      9                                  ; Assembler: NASM version 2.15
@@ -5287,7 +5287,7 @@
   5049                                  
   5050                                  		;mov	cx, KERNEL_SIZE - 32768
   5051                                  		; 28/09/2023 (BugFix)
-  5052 00001BC0 B91416                  		mov	cx, NXWORDCOUNT
+  5052 00001BC0 B90C16                  		mov	cx, NXWORDCOUNT
   5053                                  		;mov	cx, NXBYTECOUNT
   5054                                  		;shr	cx, 1 ; 28/09/2023
   5055                                  		;xor	si, si
@@ -5471,7 +5471,7 @@
   5233 00001BE8 D1E0                    		shl	ax, 1
   5234 00001BEA D1E0                    		shl	ax, 1		; int no * 4
   5235 00001BEC 89C7                    		mov	di, ax		; interrupt vector address
-  5236 00001BEE 87FE                    		xchg	si, di		; rombios interrupt vector address in si
+  5236 00001BEE 87F7                    		xchg	si, di		; rombios interrupt vector address in si
   5237                                  					; saving address in di
   5238                                  		;lodsw			; movsw
   5239                                  		;stosw
@@ -5481,7 +5481,7 @@
   5243 00001BF0 A5                      		movsw
   5244 00001BF1 A5                      		movsw		
   5245                                  
-  5246 00001BF2 87FE                    		xchg	si, di
+  5246 00001BF2 87F7                    		xchg	si, di
   5247 00001BF4 E2EF                    		loop	next_int_
   5248                                  		
   5249                                  		;pop	di
@@ -6404,7 +6404,7 @@
   6166                                  		;inc	dh		; make number of heads 1-based
   6167                                  		;mov	[num_heads], dh	; save parms returned by rom
   6168                                  		; 10/12/2023
-  6169 00001ECB 86F2                    		xchg	dl, dh
+  6169 00001ECB 86D6                    		xchg	dl, dh
   6170 00001ECD 30F6                    		xor	dh, dh
   6171 00001ECF 42                      		inc	dx		; make number of heads 1-based
   6172 00001ED0 8916[0C1A]              		mov	[num_heads], dx
@@ -6417,7 +6417,7 @@
   6179 00001ED4 88CA                    		mov	dl, cl
   6180 00001ED6 80E23F                  		and	dl, 3Fh
   6181 00001ED9 8816[101A]              		mov	[sec_trk], dl
-  6182 00001EDD 86E9                    		xchg	cl, ch
+  6182 00001EDD 86CD                    		xchg	cl, ch
   6183 00001EDF D0C5                    		rol	ch, 1
   6184 00001EE1 D0C5                    		rol	ch, 1
   6185 00001EE3 80E503                  		and	ch, 3
@@ -6945,7 +6945,7 @@
   6707                                  ; We're running on a COMPAQ. Now look at the date code.
   6708                                  
   6709 00002073 26A1FBFF                		mov	ax, [es:0FFFBh]	; get year
-  6710 00002077 86C4                    		xchg	ah, al
+  6710 00002077 86E0                    		xchg	ah, al
   6711                                  
   6712                                  ; 11/12/2023
   6713                                  ; (PCDOS 7.1 IBMBIO.COM - BIOSDATA:22B9h)
@@ -6978,14 +6978,14 @@
   6740 0000207C 772E                    		ja	short not_compaq_patch
   6741 0000207E 7218                    		jb	short do_compaq_patch
   6742 00002080 26A1F5FF                		mov	ax, [es:0FFF5h]	; get month
-  6743 00002084 86C4                    		xchg	ah, al
+  6743 00002084 86E0                    		xchg	ah, al
   6744 00002086 3D3830                  		cmp	ax, 3038h ; 02/10/2022 (NASM syntax)
   6745                                  		;cmp	ax, '08'        ; 3038h
   6746                                  					; is it	08?
   6747 00002089 7721                    		ja	short not_compaq_patch
   6748 0000208B 720B                    		jb	short do_compaq_patch
   6749 0000208D 26A1F8FF                		mov	ax, [es:0FFF8h]	; get day
-  6750 00002091 86C4                    		xchg	ah, al
+  6750 00002091 86E0                    		xchg	ah, al
   6751 00002093 3D3430                  		cmp	ax, 3034h ; 02/10/2022 (NASM syntax)
   6752                                  		;cmp	ax, '04'        ; 3034h
   6753                                  					; is it	04?
@@ -8123,7 +8123,7 @@
   7885                                  		;mov	si, empty_dap_buff ; dap_buffer
   7886 000022C7 BE[571B]                		mov	si, dap_buffer ; empty_dap_buff 
   7887 000022CA 56                      		push	si
-  7888 000022CB 87FE                    		xchg	si, di
+  7888 000022CB 87F7                    		xchg	si, di
   7889                                  		; si = BDS
   7890                                  		; di = DAP buffer
   7891 000022CD B81000                  		mov	ax, 16
@@ -12015,7 +12015,7 @@
  11777 000003C2 91                      		xchg	ax, cx		; now time is in cx:ax
  11778 000003C3 BB0BE9                  		mov	bx, 59659
  11779 000003C6 F7E3                    		mul	bx		; multiply low half
- 11780 000003C8 87CA                    		xchg	dx, cx
+ 11780 000003C8 87D1                    		xchg	dx, cx
  11781 000003CA 92                      		xchg	ax, dx		; cx->ax, ax->dx, dx->cx
  11782 000003CB F7E3                    		mul	bx		; multiply high	half
  11783 000003CD 01C8                    		add	ax, cx		; combine overlapping products
@@ -12238,11 +12238,11 @@
  12000 000004C2 8A0E[8D04]              		mov	cl, [base_century] ; al=day,dl=month,dh=year,cl=cntry
  12001 000004C6 E81600                  		call	bintobcd	; convert "day"	to bcd
  12002                                  					; dl = bcd day,	al = month
- 12003 000004C9 86C2                    		xchg	dl, al
+ 12003 000004C9 86D0                    		xchg	dl, al
  12004 000004CB E81100                  		call	bintobcd	; dh = bcd month, al = year
- 12005 000004CE 86C6                    		xchg	dh, al
+ 12005 000004CE 86F0                    		xchg	dh, al
  12006 000004D0 E80C00                  		call	bintobcd	; cl = bcd year, al = century
- 12007 000004D3 86C1                    		xchg	cl, al
+ 12007 000004D3 86C8                    		xchg	cl, al
  12008 000004D5 E80700                  		call	bintobcd	; ch = bcd century
  12009 000004D8 88C5                    		mov	ch, al
  12010 000004DA 8F06[8904]              		pop	word [daycnt] ; restore original value
@@ -12363,7 +12363,7 @@
  12125 00000520 F7F1                    		div	cx
  12126 00000522 88D7                    		mov	bh, dl		; save the seconds
  12127 00000524 F6F1                    		div	cl		; break	into hours and minutes
- 12128 00000526 86E0                    		xchg	al, ah
+ 12128 00000526 86C4                    		xchg	al, ah
  12129                                  
  12130                                  ; time is now in ax:bx (hours, minutes, seconds, 1/100 sec)
  12131                                  
@@ -14765,7 +14765,7 @@
  14526 00000C6A D0CE                    		ror	dh, 1
  14527 00000C6C 0A36[3101]              		or	dh, [cursec]
  14528 00000C70 89D1                    		mov	cx, dx
- 14529 00000C72 86CD                    		xchg	ch, cl		;  cl =	sector,	ch = cylinder
+ 14529 00000C72 86E9                    		xchg	ch, cl		;  cl =	sector,	ch = cylinder
  14530 00000C74 8A36[3201]              		mov	dh, [curhd]	; load current head number and
  14531 00000C78 268A5504                		mov	dl, [es:di+4]	; physical drive number
  14532                                  					; [es:di+BDS.drivenum]
@@ -16149,7 +16149,7 @@
  15910                                  					; good_tracklayout
  15911 000011ED 7402                    		jz	short ionextsector
  15912                                  		
- 15913 000011EF 87CA                    		xchg	dx, cx		; HEY! We can read all secs in one blow
+ 15913 000011EF 87D1                    		xchg	dx, cx		; HEY! We can read all secs in one blow
  15914                                  ionextsector:
  15915 000011F1 51                      		push	cx
  15916 000011F2 52                      		push	dx
@@ -16438,7 +16438,7 @@
  16199 000012DA 80E503                  		and	ch, 3
  16200 000012DD D0CD                    		ror	ch, 1
  16201 000012DF D0CD                    		ror	ch, 1
- 16202 000012E1 86CD                    		xchg	ch, cl
+ 16202 000012E1 86E9                    		xchg	ch, cl
  16203 000012E3 260A4D13                		or	cl, [es:di+13h]	; [es:di+BDS.secpertrack]
  16204 000012E7 268A5504                		mov	dl, [es:di+4]	; [es:di+BDS.drivenum]
  16205 000012EB 06                      		push	es
@@ -17280,7 +17280,7 @@
  17041 00001532 BF[BD0E]                		mov	di, IOC_DC_Table
  17042                                  		;mov	di, 0C60h	; IOC_DC_Table
  17043                                  					; at 2C7h:0C60h	= 70h:31D0h
- 17044 00001535 86E0                    		xchg	al, ah		; Put minor code in AL
+ 17044 00001535 86C4                    		xchg	al, ah		; Put minor code in AL
  17045 00001537 F2AE                    		repne scasb		; Scan for minor code in AL
  17046 00001539 7505                    		jnz	short nosupport	; it was not found
  17047 0000153B B80001                  		mov	ax, 100h
@@ -18014,12 +18014,12 @@
  17775 000017B2 88CF                    		mov	bh, cl
  17776 000017B4 80E73F                  		and	bh, 3Fh		; preserve sector number
  17777 000017B7 B306                    		mov	bl, 6
- 17778 000017B9 86D9                    		xchg	cl, bl
+ 17778 000017B9 86CB                    		xchg	cl, bl
  17779 000017BB D2EB                    		shr	bl, cl		; get ms cylinder bits to ls end
  17780 000017BD 00C5                    		add	ch, al		; add in cylinder wrap
  17781 000017BF 10E3                    		adc	bl, ah		; add in high byte
  17782 000017C1 D2E3                    		shl	bl, cl		; move up to ms	end
- 17783 000017C3 86CB                    		xchg	bl, cl		; restore cylinder bits	into cl
+ 17783 000017C3 86D9                    		xchg	bl, cl		; restore cylinder bits	into cl
  17784 000017C5 08F9                    		or	cl, bh		; or in	sector number
  17785                                  no_wrap:				
  17786 000017C7 F8                      		clc
@@ -26992,7 +26992,7 @@
  26734 00001217 59                      	pop	cx				; get first buffer
  26735                                  	;mov	[es:di+buffinfo.buf_next],cx	; last->next = first
  26736 00001218 26890D                  	mov	[es:di],cx
- 26737 0000121B 87F9                    	xchg	cx,di
+ 26737 0000121B 87CF                    	xchg	cx,di
  26738                                  	;mov	[es:di+buffinfo.buf_prev],cx	; first->prev = last
  26739                                  	; 25/10/2022
  26740 0000121D 26894D02                	mov	[es:di+2],cx
@@ -32076,7 +32076,7 @@
  31810 00002069 E8A220                          call    getchr                  ; ignore end-of-image errors,
  31811 0000206C 88C4                            mov     ah,al                   ; because if there's an error
  31812 0000206E E89D20                          call    getchr                  ; fetching the line number that's
- 31813 00002071 86E0                            xchg    al,ah                   ; supposed to be there, the next
+ 31813 00002071 86C4                            xchg    al,ah                   ; supposed to be there, the next
  31814 00002073 A3[AB02]                        mov     [linecount],ax          ; getchr call will get the same error
  31815 00002076 58                              pop     ax
  31816                                  ;
@@ -36293,9 +36293,9 @@
  36027 00002B4D 89C2                    	mov	dx,ax		; DX=new:hi, AX=new:hi, TOS=old:lo, BX=0
  36028 00002B4F 58                      	pop	ax		; DX=new:hi, AX=old:lo, TOS=orig, BX=0
  36029                                  
- 36030 00002B50 87DA                    	xchg	dx,bx		; DX=0, AX=old:lo, TOS=orig, BX=new:hi
+ 36030 00002B50 87D3                    	xchg	dx,bx		; DX=0, AX=old:lo, TOS=orig, BX=new:hi
  36031 00002B52 2EF726[BF2A]            	mul	word [cs:gnradix] ; DX=carry,  AX=new:lo, TOS=orig, BX=new:hi
- 36032 00002B57 87DA                    	xchg	dx,bx		; DX=new:hi, AX=new:lo, TOS=orig, BX=carry
+ 36032 00002B57 87D3                    	xchg	dx,bx		; DX=new:hi, AX=new:lo, TOS=orig, BX=carry
  36033 00002B59 01DA                    	add	dx,bx		; DX=new:hi, AX=new:lo, TOS=orig, BX=carry
  36034 00002B5B 31DB                    	xor	bx,bx		; DX=new:hi, AX=new:lo, TOS=orig, BX=0
  36035 00002B5D C3                      	retn
@@ -41305,7 +41305,7 @@
  41039 00003974 720B                            jc	short menu_nextitem ; hit eol/eof
  41040 00003976 E8BA05                          call    skip_delim      ;
  41041 00003979 7206                            jc	short menu_nextitem ; hit eol/eof
- 41042 0000397B 87FB                            xchg    bx,di           ;
+ 41042 0000397B 87DF                            xchg    bx,di           ;
  41043 0000397D 89BF[0946]                      mov     [aoffBlockDesc+bx],di
  41044                                  
  41045                                  menu_nextitem:
@@ -42086,9 +42086,9 @@
  41820 00003CDF 5F                              pop     di              ;
  41821 00003CE0 C3                              retn			;
  41822                                  comp_almost:                    ;
- 41823 00003CE1 86E0                            xchg    al,ah           ; we don't know for sure if it's a match
+ 41823 00003CE1 86C4                            xchg    al,ah           ; we don't know for sure if it's a match
  41824 00003CE3 E8F303                          call    any_delim       ; until we verify that the second string has
- 41825 00003CE6 86E0                            xchg    al,ah           ; been exhausted also...
+ 41825 00003CE6 86C4                            xchg    al,ah           ; been exhausted also...
  41826 00003CE8 EBF5                            jmp     short comp_exit ; if we are, this call to any_delim will tell...
  41827                                  
  41828                                  ;----------------------------------------------------------------------------
@@ -44815,29 +44815,30 @@
  44444                                  		; 02/10/2023 - Retro DOS v5.0 - PCDOS 7.1 KERNEL
  44445                                  		;incbin	'IBMDOS7.BIN'
  44446                                  
- 44447                                  		; 02/06/2025
- 44448                                  		; 10/05/2025 - 11/05/2025
- 44449                                  		; 24/04/2025
- 44450                                  		; 07/03/2025 - 16/03/2025
- 44451                                  		; 03/03/2025 - MiniDOS v1.0 - PCDOS 7.1 KERNEL
- 44452 00004D50 <bin 9848h>             		incbin	'KERNEL.BIN'
- 44453                                  
- 44454                                  ; 28/09/2023	
- 44455                                  ;msdos_bin_size equ $ - MSDOS_BIN_OFFSET
- 44456                                  
- 44457                                  align 2
- 44458                                  
- 44459                                  ; 21/12/2022
- 44460                                  ;;END_OF_KERNEL:
- 44461                                  ;END_OF_KERNEL equ $
- 44462                                  
- 44463                                  ; 28/09/2023
- 44464                                  S3SIZE equ $-$$
- 44465                                  KERNEL_SIZE equ S1SIZE+S2SIZE+S3SIZE
- 44466                                  
- 44467                                  ;=============================================================================
- 44468                                  ;	END
- 44469                                  ;=============================================================================
- 44470                                  ; Retro DOS v5.0 by Erdogan Tan (Redevelopment of PC-DOS 7.1 KERNEL via NASM)
- 44471                                  ; ------------------------------
- 44472                                  ; APRIL 2024, ISTANBUL - TURKIYE.
+ 44447                                  		; 06/08/2025
+ 44448                                  		; 02/06/2025
+ 44449                                  		; 10/05/2025 - 11/05/2025
+ 44450                                  		; 24/04/2025
+ 44451                                  		; 07/03/2025 - 16/03/2025
+ 44452                                  		; 03/03/2025 - MiniDOS v1.0 - PCDOS 7.1 KERNEL
+ 44453 00004D50 <bin 9838h>             		incbin	'KERNEL.BIN'
+ 44454                                  
+ 44455                                  ; 28/09/2023	
+ 44456                                  ;msdos_bin_size equ $ - MSDOS_BIN_OFFSET
+ 44457                                  
+ 44458                                  align 2
+ 44459                                  
+ 44460                                  ; 21/12/2022
+ 44461                                  ;;END_OF_KERNEL:
+ 44462                                  ;END_OF_KERNEL equ $
+ 44463                                  
+ 44464                                  ; 28/09/2023
+ 44465                                  S3SIZE equ $-$$
+ 44466                                  KERNEL_SIZE equ S1SIZE+S2SIZE+S3SIZE
+ 44467                                  
+ 44468                                  ;=============================================================================
+ 44469                                  ;	END
+ 44470                                  ;=============================================================================
+ 44471                                  ; Retro DOS v5.0 by Erdogan Tan (Redevelopment of PC-DOS 7.1 KERNEL via NASM)
+ 44472                                  ; ------------------------------
+ 44473                                  ; APRIL 2024, ISTANBUL - TURKIYE.

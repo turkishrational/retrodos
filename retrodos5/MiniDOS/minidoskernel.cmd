@@ -1,0 +1,1 @@
+nasm kernel.s -l kernel.txt -o KERNEL.BIN -Z error.txt
