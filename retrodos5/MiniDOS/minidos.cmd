@@ -1,1 +1,0 @@
-nasm minidos.s -l minidos.txt -o MINIDOS.SYS -Z error.txt
