@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RETRODOS.SYS (MSDOS 3.3 Kernel) - RETRO DOS v3.0 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 10/07/2024 (BugFix) - (Previous: 22/01/2024)
+; Last Update: 22/01/2024 (BugFix) - (Previous: 28/08/2023)
 ; ----------------------------------------------------------------------------
 ; Beginning: 24/02/2018 (Retro DOS 2.0), 25/05/2018 (Retro DOS 3.0)
 ; ----------------------------------------------------------------------------
@@ -10709,7 +10709,6 @@ align 16 ; Paragraph alignment is necessary here for MSDOS kernel relocation
 ; 11/06/2018 - Retro DOS v3.0 
 
 MSDOS_BIN_OFFSET:  ; this offset must be paragraph aligned
-		; 10/07/2024 (BugFix)
 		; 22/01/2024 (BugFix)
 		; 16/01/2024 (BugFix)
 		; 22/11/2022 (BugFix)
