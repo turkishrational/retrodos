@@ -1,7 +1,7 @@
      1                                  ; ****************************************************************************
      2                                  ; MSDOS3.BIN (MSDOS 3.3 Kernel) - RETRO DOS v3.2 by ERDOGAN TAN
      3                                  ; ----------------------------------------------------------------------------
-     4                                  ; Last Update: 10/07/2024 (BugFix) - (Previous: 22/01/2024)
+     4                                  ; Last Update: 22/01/2024 (BugFix) - (Previous: 16/12/2022)
      5                                  ; ----------------------------------------------------------------------------
      6                                  ; Beginning: 07/07/2019 (Retro DOS 3.0), 29/06/2019 (Retro DOS 3.1)
      7                                  ; ----------------------------------------------------------------------------
@@ -35815,1133 +35815,1131 @@
  35805 00007578 AA                      	STOSB				; Add a path separator (and INC DI)
  35806                                  SETENDPTR:
  35807                                  	;MOV	EndPtrL,DI		; pointer to the tail
- 35808                                  	; 10/07/2024 (Retro DOS v3-v4 BugFix - Erdogan Tan - Istanbul)
- 35809                                  	;mov	[bp-4],dl ; (Retro DOS v3-v4 !Bug!)
- 35810 00007579 897EFC                  	mov	[bp-4],di ; !Fix!
- 35811                                  CreateLoop:
- 35812 0000757C 16                      	push	ss			; let ReadTime see variables
- 35813 0000757D 1F                      	pop	ds
- 35814 0000757E 55                      	push	bp
- 35815 0000757F E8F9A3                  	call	READTIME		; go get time
- 35816 00007582 5D                      	pop	bp
+ 35808 00007579 8856FC                  	mov	[bp-4],dl
+ 35809                                  CreateLoop:
+ 35810 0000757C 16                      	push	ss			; let ReadTime see variables
+ 35811 0000757D 1F                      	pop	ds
+ 35812 0000757E 55                      	push	bp
+ 35813 0000757F E8F9A3                  	call	READTIME		; go get time
+ 35814 00007582 5D                      	pop	bp
+ 35815                                  ;
+ 35816                                  ; Time is in CX:DX.  Go drop it into the string.
  35817                                  ;
- 35818                                  ; Time is in CX:DX.  Go drop it into the string.
- 35819                                  ;
- 35820                                  	;les	di,EndPtr		; point to the string
- 35821 00007583 C47EFC                  	les	di,[BP-4]
- 35822 00007586 89C8                    	mov	ax,cx
- 35823 00007588 E8A2FF                  	call	BinToAscii		; store upper word
- 35824 0000758B 89D0                    	mov	ax,dx
- 35825 0000758D E89DFF                  	call	BinToAscii		; store lower word
- 35826 00007590 30C0                    	xor	al,al
- 35827 00007592 AA                      	STOSB				; nul terminate
- 35828                                  	;LDS	DX,FilPtr		; get name
- 35829 00007593 C556F8                  	lds	dx,[bp-8]
- 35830                                  	;MOV	CX,Attr 		; get attr
- 35831 00007596 8B4EF6                  	mov	cx,[bp-10]
- 35832 00007599 55                      	push	bp
- 35833 0000759A E889FF                  	CALL	_$CreateNewFile		; try to create a new file
- 35834 0000759D 5D                      	pop	bp
- 35835 0000759E 731B                    	JNC	short CreateDone	; failed, go try again
- 35836                                  ;
- 35837                                  ; The operation failed and the error has been mapped in AX.  Grab the extended
- 35838                                  ; error and figure out what to do.
- 35839                                  ;
- 35840                                  	;; MSDOS 3.3			; M049 - start
- 35841                                  ;;	mov	ax,[ss:EXTERR]				;smr;SS Override
- 35842                                  ;;	cmp	al,error_file_exists
- 35843                                  ;;	jz	short CreateLoop	; file existed => try with new name
- 35844                                  ;;	cmp	al,error_access_denied
- 35845                                  ;;	jz	short CreateLoop	; access denied (attr mismatch)
- 35846                                  
- 35847                                  	; MSDOS 6.0
- 35848                                  	;cmp	al,50h
- 35849 000075A0 3C50                    	CMP	AL,error_file_exists	; Q: did file already exist
- 35850 000075A2 74D8                    	JZ	short CreateLoop	; Y: try again
- 35851                                  	;cmp	al,5
- 35852 000075A4 3C05                    	CMP	AL,error_access_denied	; Q: was it access denied
- 35853 000075A6 7512                    	JNZ	short SETTMPERR		; N: Error out
- 35854                                  					; Y: Check to see if we got this due
- 35855                                  					;    to the network drive. Note that
- 35856                                  					;    the redir will set the exterr
- 35857                                  					;    to error_cannot_make if this is 
- 35858                                  					;    so. 
- 35859 000075A8 36803E[F002]41          	CMP	byte [SS:EXTERR],error_net_access_denied ; M069
- 35860                                  					; See if it's REALLY an att mismatch
- 35861 000075AE 740A                    	je	short SETTMPERR		; no, network error, stop
- 35862                                  ;M070
- 35863                                  ; If the user failed on an I24, we do not want to try again
- 35864                                  ;
- 35865 000075B0 36803E[F002]53          	cmp	byte [SS:EXTERR],error_FAIL_I24 ;User failed on I24? ;M070
- 35866 000075B6 7402                    	je	short SETTMPERR		;yes, do not try again ;M070
+ 35818                                  	;les	di,EndPtr		; point to the string
+ 35819 00007583 C47EFC                  	les	di,[BP-4]
+ 35820 00007586 89C8                    	mov	ax,cx
+ 35821 00007588 E8A2FF                  	call	BinToAscii		; store upper word
+ 35822 0000758B 89D0                    	mov	ax,dx
+ 35823 0000758D E89DFF                  	call	BinToAscii		; store lower word
+ 35824 00007590 30C0                    	xor	al,al
+ 35825 00007592 AA                      	STOSB				; nul terminate
+ 35826                                  	;LDS	DX,FilPtr		; get name
+ 35827 00007593 C556F8                  	lds	dx,[bp-8]
+ 35828                                  	;MOV	CX,Attr 		; get attr
+ 35829 00007596 8B4EF6                  	mov	cx,[bp-10]
+ 35830 00007599 55                      	push	bp
+ 35831 0000759A E889FF                  	CALL	_$CreateNewFile		; try to create a new file
+ 35832 0000759D 5D                      	pop	bp
+ 35833 0000759E 731B                    	JNC	short CreateDone	; failed, go try again
+ 35834                                  ;
+ 35835                                  ; The operation failed and the error has been mapped in AX.  Grab the extended
+ 35836                                  ; error and figure out what to do.
+ 35837                                  ;
+ 35838                                  	;; MSDOS 3.3			; M049 - start
+ 35839                                  ;;	mov	ax,[ss:EXTERR]				;smr;SS Override
+ 35840                                  ;;	cmp	al,error_file_exists
+ 35841                                  ;;	jz	short CreateLoop	; file existed => try with new name
+ 35842                                  ;;	cmp	al,error_access_denied
+ 35843                                  ;;	jz	short CreateLoop	; access denied (attr mismatch)
+ 35844                                  
+ 35845                                  	; MSDOS 6.0
+ 35846                                  	;cmp	al,50h
+ 35847 000075A0 3C50                    	CMP	AL,error_file_exists	; Q: did file already exist
+ 35848 000075A2 74D8                    	JZ	short CreateLoop	; Y: try again
+ 35849                                  	;cmp	al,5
+ 35850 000075A4 3C05                    	CMP	AL,error_access_denied	; Q: was it access denied
+ 35851 000075A6 7512                    	JNZ	short SETTMPERR		; N: Error out
+ 35852                                  					; Y: Check to see if we got this due
+ 35853                                  					;    to the network drive. Note that
+ 35854                                  					;    the redir will set the exterr
+ 35855                                  					;    to error_cannot_make if this is 
+ 35856                                  					;    so. 
+ 35857 000075A8 36803E[F002]41          	CMP	byte [SS:EXTERR],error_net_access_denied ; M069
+ 35858                                  					; See if it's REALLY an att mismatch
+ 35859 000075AE 740A                    	je	short SETTMPERR		; no, network error, stop
+ 35860                                  ;M070
+ 35861                                  ; If the user failed on an I24, we do not want to try again
+ 35862                                  ;
+ 35863 000075B0 36803E[F002]53          	cmp	byte [SS:EXTERR],error_FAIL_I24 ;User failed on I24? ;M070
+ 35864 000075B6 7402                    	je	short SETTMPERR		;yes, do not try again ;M070
+ 35865                                  
+ 35866 000075B8 EBC2                    	jmp	short CreateLoop	;attr mismatch, try again ;M070
  35867                                  
- 35868 000075B8 EBC2                    	jmp	short CreateLoop	;attr mismatch, try again ;M070
- 35869                                  
- 35870                                  ;;	MOV	AL,error_access_denied	; Return this "extended" error
- 35871                                  					; M049 - end
- 35872                                  SETTMPERR:
- 35873 000075BA F9                      	STC
- 35874                                  CreateDone:
- 35875                                  	;Leave
- 35876 000075BB 89EC                    	mov	sp,bp
- 35877 000075BD 5D                      	pop	bp
- 35878 000075BE 7203                    	JC	short CreateFail
- 35879 000075C0 E9D8A1                  	jmp	SYS_RET_OK		; success!
- 35880                                  CreateFail:
- 35881 000075C3 E9DEA1                  	jmp	SYS_RET_ERR
- 35882                                  
- 35883                                  ;
- 35884                                  ;   SetAttrib will set the search attribute (SAttrib) either to the normal
- 35885                                  ;   (CH) or to the value in CL if the current system call is through
- 35886                                  ;   serverdoscall.
- 35887                                  ;
- 35888                                  ;   Inputs:	fSharing == FALSE => set sattrib to CH
- 35889                                  ;		fSharing == TRUE => set sattrib to CL
- 35890                                  ;   Outputs:	none
- 35891                                  ;   Registers changed:	CX
- 35892                                  
- 35893                                  SetAttrib:
- 35894 000075C6 36F606[2F05]FF          	test	byte [SS:FSHARING],-1		;smr;SS Override
- 35895 000075CC 7502                    	jnz	short Set
- 35896 000075CE 88E9                    	mov	cl,ch
- 35897                                  Set:
- 35898 000075D0 36880E[2A05]            	mov	byte [ss:SATTRIB],cl		;smr;SS Override
- 35899 000075D5 C3                      	retn
- 35900                                  
- 35901                                  ; 14/07/2018 - Retro DOS v3.0
- 35902                                  ; MSDOS 6.0
- 35903                                  
- 35904                                  ;Break	<Extended_Open- Extended open the file>
- 35905                                  ;----------------------------------------------------------------------------
- 35906                                  ; Input: AL= 0 reserved  AH=6CH
- 35907                                  ;	 BX= mode
- 35908                                  ;	 CL= create attribute  CH=search attribute (from server)
- 35909                                  ;	 DX= flag
- 35910                                  ;	 DS:SI = file name
- 35911                                  ;	 ES:DI = parm list
- 35912                                  ;			   DD  SET EA list (-1) null
- 35913                                  ;			   DW  n  parameters
- 35914                                  ;			   DB  type (TTTTTTLL)
- 35915                                  ;			   DW  IOMODE
- 35916                                  ; Function: Extended Open
- 35917                                  ; Output: carry clear
- 35918                                  ;		     AX= handle
- 35919                                  ;		     CX=1 file opened
- 35920                                  ;			2 file created/opened
- 35921                                  ;			3 file replaced/opened
- 35922                                  ;	  carry set: AX has error code
- 35923                                  ;----------------------------------------------------------------------------
- 35924                                  
- 35925                                  ;_$Extended_Open:			  ;AN000;
- 35926                                  ;	;ASSUME	CS:DOSCODE,SS:DOSDATA	  ;AN000;
- 35927                                  ;	MOV	[SS:EXTOPEN_FLAG],DX	  ;AN000;EO. save ext. open flag;smr;SS Override
- 35928                                  ;	MOV	word [SS:EXTOPEN_IO_MODE],0 ;AN000;EO. initialize IO mode;smr;SS Override
- 35929                                  ;	TEST	DX,reserved_bits_mask	  ;AN000;EO. reserved bits 0  ?
- 35930                                  ;	JNZ	short ext_inval2	  ;AN000;EO. no
- 35931                                  ;	MOV	AH,DL			  ;AN000;EO. make sure flag is right
- 35932                                  ;	CMP	DL,0			  ;AN000;EO. all fail ?
- 35933                                  ;	JZ	short ext_inval2	  ;AN000;EO. yes, error
- 35934                                  ;	AND	DL,exists_mask		  ;AN000;EO. get exists action byte
- 35935                                  ;	CMP	DL,2			  ;AN000;EO, > 02
- 35936                                  ;	JA	short ext_inval2	  ;AN000;EO. yes ,error
- 35937                                  ;	AND	AH,not_exists_mask	  ;AN000;EO. get no exists action byte
- 35938                                  ;	CMP	AH,10H			  ;AN000;EO. > 10
- 35939                                  ;	JA	short ext_inval2	  ;AN000;EO. yes error
- 35940                                  ;
- 35941                                  ;	MOV	[SS:SAVE_ES],ES		  ;AN000;EO. save API parms;smr;SS Override
- 35942                                  ;	MOV	[SS:SAVE_DI],DI		  ;AN000;EO.;smr;SS Override
- 35943                                  ;	PUSH	word [SS:EXTOPEN_FLAG]	  ;AN000;EO.;smr;SS Override
- 35944                                  ;	POP	word [SS:SAVE_DX]	  ;AN000;EO.;smr;SS Override
- 35945                                  ;	MOV	[SS:SAVE_CX],CX		  ;AN000;EO.;smr;SS Override
- 35946                                  ;	MOV	[SS:SAVE_BX],BX		  ;AN000;EO.;smr;SS Override
- 35947                                  ;	MOV	[SS:SAVE_DS],DS		  ;AN000;EO.;smr;SS Override
- 35948                                  ;	MOV	[SS:SAVE_SI],SI		  ;AN000;EO.;smr;SS Override
- 35949                                  ;	MOV	DX,SI			  ;AN000;EO. ds:dx points to file name
- 35950                                  ;	MOV	AX,BX			  ;AN000;EO. ax= mode
- 35951                                  ;	JMP	SHORT goopen2		  ;AN000;;EO. do normal
- 35952                                  ;ext_inval2:				  ;AN000;;EO.
- 35953                                  ;	mov	al,error_invalid_function ;AN000;EO.. invalid function
- 35954                                  ;	jmp	SYS_RET_ERR
- 35955                                  ;error_return:				  ;AN000;EO.
- 35956                                  ;	retn				  ;AN000;EO.. return with error
- 35957                                  ;goopen2:				  ;AN000;
- 35958                                  ;	TEST	BX,int_24_error 	  ;AN000;EO.. disable INT 24 error ?
- 35959                                  ;	JZ	short goopen		  ;AN000;EO.. no
- 35960                                  ;	OR	byte [SS:EXTOPEN_ON],EXT_OPEN_I24_OFF ;AN000;EO.. set bit to disable;smr;SS Override
- 35961                                  ;goopen:					  ;AN000;
- 35962                                  ;	OR	byte [SS:EXTOPEN_ON],EXT_OPEN_ON  ;AN000;EO.. set Extended Open active;smr;SS Override
- 35963                                  ;	AND	word [SS:EXTOPEN_FLAG],0FFH  ;AN000;EO.create new ?;smr;SS Override
- 35964                                  ;	CMP	word [SS:EXTOPEN_FLAG],ext_exists_fail + ext_nexists_create ;AN000;FT.;smr;SS Override
- 35965                                  ;	JNZ	short chknext 		  ;AN000;;EO. no
- 35966                                  ;	call	_$CreateNewFile		  ;AN000;;EO. yes
- 35967                                  ;	JC	short error_return	  ;AN000;;EO. error
- 35968                                  ;	CMP	byte [SS:EXTOPEN_ON],0	  ;AN000;;EO. IFS does it;smr;SS Override
- 35969                                  ;	JZ	short ok_return2	  ;AN000;;EO. yes
- 35970                                  ;	MOV	word [SS:EXTOPEN_FLAG],action_created_opened ;AN000;EO. creted/opened;smr;SS Override
- 35971                                  ;	JMP	short setXAttr		  ;AN000;;EO. set XAs
- 35972                                  ;ok_return2:
- 35973                                  ;	jmp	SYS_RET_OK		  ;AN000;;EO.
- 35974                                  ;chknext:
- 35975                                  ;	TEST	word [SS:EXTOPEN_FLAG],ext_exists_open ;AN000;;EO. exists open;smr;SS Override
- 35976                                  ;	JNZ	short exist_open	  ;AN000;;EO. yes
- 35977                                  ;	call	_$CREAT			  ;AN000;;EO. must be replace open
- 35978                                  ;	JC	short error_return	  ;AN000;;EO. return with error
- 35979                                  ;	CMP	byte [SS:EXTOPEN_ON],0	  ;AN000;;EO. IFS does it;smr;SS Override
- 35980                                  ;	JZ	short ok_return2	  ;AN000;;EO. yes
- 35981                                  ;	MOV	word [SS:EXTOPEN_FLAG],action_created_opened ;AN000;EO. prsume create/open;smr;SS Override
- 35982                                  ;	TEST	byte [SS:EXTOPEN_ON],ext_file_not_exists ;AN000;;EO. file not exists ?;smr;SS Override
- 35983                                  ;	JNZ	short setXAttr		  ;AN000;;EO. no
- 35984                                  ;	MOV	word [SS:EXTOPEN_FLAG],action_replaced_opened ;AN000;;EO. replaced/opened;smr;SS Override
- 35985                                  ;	JMP	SHORT setXAttr		  ;AN000;;EO. set XAs
- 35986                                  ;error_return2:
- 35987                                  ;	STC 				  ; Set Carry again to flag error ;AN001;
- 35988                                  ;	retn				  ;AN000;;EO. return with error
- 35989                                  ;					  ;AN000;
- 35990                                  ;exist_open:				  ;AN000;
- 35991                                  ;	test	byte [SS:FSHARING],-1	  ;AN000;;EO. server doscall?;smr;SS Override
- 35992                                  ;	jz	short noserver		  ;AN000;;EO. no
- 35993                                  ;	MOV	CL,CH			  ;AN000;;EO. cl=search attribute
- 35994                                  ;noserver:
- 35995                                  ;	call	_$Open2			  ;AN000;;EO. do open
- 35996                                  ;	JNC	short ext_ok		  ;AN000;;EO.
- 35997                                  ;	CMP	byte [SS:EXTOPEN_ON],0	  ;AN000;;EO. error and IFS call;smr;SS Override
- 35998                                  ;	JZ	short error_return2	  ;AN000;;EO. return with error
- 35999                                  ;local_extopen:
- 36000                                  ;	CMP	AX,error_file_not_found   ;AN000;;EO. file not found error
- 36001                                  ;	JNZ	short error_return2	  ;AN000;;EO. no,
- 36002                                  ;	TEST	word [SS:EXTOPEN_FLAG],ext_nexists_create;AN000;;EO. want to fail;smr;SS Override
- 36003                                  ;	JNZ	short do_creat		  ;AN000;;EO. yes
- 36004                                  ;	JMP	short extexit 		  ;AN000;;EO. yes
- 36005                                  ;do_creat:
- 36006                                  ;	MOV	CX,[SS:SAVE_CX]		  ;AN000;;EO. get ds:dx for file name;smr;SS Override
- 36007                                  ;	LDS	SI,[SS:SAVE_SI]		  ;AN000;;EO. cx = attribute;smr;SS Override
- 36008                                  ;	MOV	DX,SI			  ;AN000;;EO.
- 36009                                  ;	call	_$CREAT			  ;AN000;;EO. do create
- 36010                                  ;	JC	short extexit 		  ;AN000;;EO. error
- 36011                                  ;	MOV	word [SS:EXTOPEN_FLAG],action_created_opened 
- 36012                                  ;					  ;AN000;;EO. is created/opened;smr;SS Override
- 36013                                  ;	JMP	SHORT setXAttr		  ;AN000;;EO. set XAs
- 36014                                  ;
- 36015                                  ;ext_ok:
- 36016                                  ;	CMP	byte [SS:EXTOPEN_ON],0	  ;AN000;;EO. IFS call ?;smr;SS Override
- 36017                                  ;	JZ	short ok_return		  ;AN000;;EO. yes
- 36018                                  ;	MOV	[SS:EXTOPEN_FLAG],action_opened ;AN000;;EO.  opened;smr;SS Override
- 36019                                  ;setXAttr:
- 36020                                  ;	call	Get_User_Stack		  ;AN000;;EO.
- 36021                                  ;	MOV	AX,[SS:EXTOPEN_FLAG]	  ;AN000;;EO.;smr;SS Override
- 36022                                  ;	MOV	[SI+user_env.user_CX],AX  ;AN000;;EO. set action code for cx
- 36023                                  ;	POP	AX			  ;AN000;;EO.
- 36024                                  ;	MOV	[SI+user_env.user_AX],AX  ;AN000;;EO. set handle for ax
- 36025                                  ;
- 36026                                  ;ok_return:				  ;AN000;
- 36027                                  ;	jmp	SYS_RET_OK		  ;AN000;;EO.
- 36028                                  ;
- 36029                                  ;extexit2:				  ;AN000; ERROR RECOVERY
- 36030                                  ;	POP	BX			  ;AN000;EO. close the handle
- 36031                                  ;	PUSH	AX			  ;AN000;EO. save error code from set XA
- 36032                                  ;	CMP	word [SS:EXTOPEN_FLAG],action_created_opened 
- 36033                                  ;					  ;AN000;EO. from create;smr;SS Override
- 36034                                  ;	JNZ	short justopen		  ;AN000;EO.
- 36035                                  ;	LDS	SI,[SS:SAVE_SI]		  ;AN000;EO. cx = attribute;smr;SS Override
- 36036                                  ;	LDS	DX,[SI]			  ;AN000;EO.
- 36037                                  ;	call	_$UNLINK 		  ;AN000;EO. delete the file
- 36038                                  ;	JMP	SHORT reserror		  ;AN000;EO.
- 36039                                  ;
- 36040                                  ;justopen:				  ;AN000;
- 36041                                  ;	call	$CLOSE			  ;AN000;EO. pretend never happend
- 36042                                  ;reserror:				  ;AN000;
- 36043                                  ;	POP	AX			  ;AN000;EO. restore error code from set XA
- 36044                                  ;	JMP	SHORT extexit		  ;AN000;EO.
- 36045                                  ;
- 36046                                  ;ext_file_unfound:			  ;AN000;
- 36047                                  ;	MOV	AX,error_file_not_found   ;AN000;EO.
- 36048                                  ;	JMP	SHORT extexit		  ;AN000;EO.
- 36049                                  ;ext_inval:				  ;AN000;
- 36050                                  ;	MOV	AX,error_invalid_function ;AN000;EO.
- 36051                                  ;extexit:
- 36052                                  ;	jmp	SYS_RET_ERR		  ;AN000;EO.
- 36053                                  
+ 35868                                  ;;	MOV	AL,error_access_denied	; Return this "extended" error
+ 35869                                  					; M049 - end
+ 35870                                  SETTMPERR:
+ 35871 000075BA F9                      	STC
+ 35872                                  CreateDone:
+ 35873                                  	;Leave
+ 35874 000075BB 89EC                    	mov	sp,bp
+ 35875 000075BD 5D                      	pop	bp
+ 35876 000075BE 7203                    	JC	short CreateFail
+ 35877 000075C0 E9D8A1                  	jmp	SYS_RET_OK		; success!
+ 35878                                  CreateFail:
+ 35879 000075C3 E9DEA1                  	jmp	SYS_RET_ERR
+ 35880                                  
+ 35881                                  ;
+ 35882                                  ;   SetAttrib will set the search attribute (SAttrib) either to the normal
+ 35883                                  ;   (CH) or to the value in CL if the current system call is through
+ 35884                                  ;   serverdoscall.
+ 35885                                  ;
+ 35886                                  ;   Inputs:	fSharing == FALSE => set sattrib to CH
+ 35887                                  ;		fSharing == TRUE => set sattrib to CL
+ 35888                                  ;   Outputs:	none
+ 35889                                  ;   Registers changed:	CX
+ 35890                                  
+ 35891                                  SetAttrib:
+ 35892 000075C6 36F606[2F05]FF          	test	byte [SS:FSHARING],-1		;smr;SS Override
+ 35893 000075CC 7502                    	jnz	short Set
+ 35894 000075CE 88E9                    	mov	cl,ch
+ 35895                                  Set:
+ 35896 000075D0 36880E[2A05]            	mov	byte [ss:SATTRIB],cl		;smr;SS Override
+ 35897 000075D5 C3                      	retn
+ 35898                                  
+ 35899                                  ; 14/07/2018 - Retro DOS v3.0
+ 35900                                  ; MSDOS 6.0
+ 35901                                  
+ 35902                                  ;Break	<Extended_Open- Extended open the file>
+ 35903                                  ;----------------------------------------------------------------------------
+ 35904                                  ; Input: AL= 0 reserved  AH=6CH
+ 35905                                  ;	 BX= mode
+ 35906                                  ;	 CL= create attribute  CH=search attribute (from server)
+ 35907                                  ;	 DX= flag
+ 35908                                  ;	 DS:SI = file name
+ 35909                                  ;	 ES:DI = parm list
+ 35910                                  ;			   DD  SET EA list (-1) null
+ 35911                                  ;			   DW  n  parameters
+ 35912                                  ;			   DB  type (TTTTTTLL)
+ 35913                                  ;			   DW  IOMODE
+ 35914                                  ; Function: Extended Open
+ 35915                                  ; Output: carry clear
+ 35916                                  ;		     AX= handle
+ 35917                                  ;		     CX=1 file opened
+ 35918                                  ;			2 file created/opened
+ 35919                                  ;			3 file replaced/opened
+ 35920                                  ;	  carry set: AX has error code
+ 35921                                  ;----------------------------------------------------------------------------
+ 35922                                  
+ 35923                                  ;_$Extended_Open:			  ;AN000;
+ 35924                                  ;	;ASSUME	CS:DOSCODE,SS:DOSDATA	  ;AN000;
+ 35925                                  ;	MOV	[SS:EXTOPEN_FLAG],DX	  ;AN000;EO. save ext. open flag;smr;SS Override
+ 35926                                  ;	MOV	word [SS:EXTOPEN_IO_MODE],0 ;AN000;EO. initialize IO mode;smr;SS Override
+ 35927                                  ;	TEST	DX,reserved_bits_mask	  ;AN000;EO. reserved bits 0  ?
+ 35928                                  ;	JNZ	short ext_inval2	  ;AN000;EO. no
+ 35929                                  ;	MOV	AH,DL			  ;AN000;EO. make sure flag is right
+ 35930                                  ;	CMP	DL,0			  ;AN000;EO. all fail ?
+ 35931                                  ;	JZ	short ext_inval2	  ;AN000;EO. yes, error
+ 35932                                  ;	AND	DL,exists_mask		  ;AN000;EO. get exists action byte
+ 35933                                  ;	CMP	DL,2			  ;AN000;EO, > 02
+ 35934                                  ;	JA	short ext_inval2	  ;AN000;EO. yes ,error
+ 35935                                  ;	AND	AH,not_exists_mask	  ;AN000;EO. get no exists action byte
+ 35936                                  ;	CMP	AH,10H			  ;AN000;EO. > 10
+ 35937                                  ;	JA	short ext_inval2	  ;AN000;EO. yes error
+ 35938                                  ;
+ 35939                                  ;	MOV	[SS:SAVE_ES],ES		  ;AN000;EO. save API parms;smr;SS Override
+ 35940                                  ;	MOV	[SS:SAVE_DI],DI		  ;AN000;EO.;smr;SS Override
+ 35941                                  ;	PUSH	word [SS:EXTOPEN_FLAG]	  ;AN000;EO.;smr;SS Override
+ 35942                                  ;	POP	word [SS:SAVE_DX]	  ;AN000;EO.;smr;SS Override
+ 35943                                  ;	MOV	[SS:SAVE_CX],CX		  ;AN000;EO.;smr;SS Override
+ 35944                                  ;	MOV	[SS:SAVE_BX],BX		  ;AN000;EO.;smr;SS Override
+ 35945                                  ;	MOV	[SS:SAVE_DS],DS		  ;AN000;EO.;smr;SS Override
+ 35946                                  ;	MOV	[SS:SAVE_SI],SI		  ;AN000;EO.;smr;SS Override
+ 35947                                  ;	MOV	DX,SI			  ;AN000;EO. ds:dx points to file name
+ 35948                                  ;	MOV	AX,BX			  ;AN000;EO. ax= mode
+ 35949                                  ;	JMP	SHORT goopen2		  ;AN000;;EO. do normal
+ 35950                                  ;ext_inval2:				  ;AN000;;EO.
+ 35951                                  ;	mov	al,error_invalid_function ;AN000;EO.. invalid function
+ 35952                                  ;	jmp	SYS_RET_ERR
+ 35953                                  ;error_return:				  ;AN000;EO.
+ 35954                                  ;	retn				  ;AN000;EO.. return with error
+ 35955                                  ;goopen2:				  ;AN000;
+ 35956                                  ;	TEST	BX,int_24_error 	  ;AN000;EO.. disable INT 24 error ?
+ 35957                                  ;	JZ	short goopen		  ;AN000;EO.. no
+ 35958                                  ;	OR	byte [SS:EXTOPEN_ON],EXT_OPEN_I24_OFF ;AN000;EO.. set bit to disable;smr;SS Override
+ 35959                                  ;goopen:					  ;AN000;
+ 35960                                  ;	OR	byte [SS:EXTOPEN_ON],EXT_OPEN_ON  ;AN000;EO.. set Extended Open active;smr;SS Override
+ 35961                                  ;	AND	word [SS:EXTOPEN_FLAG],0FFH  ;AN000;EO.create new ?;smr;SS Override
+ 35962                                  ;	CMP	word [SS:EXTOPEN_FLAG],ext_exists_fail + ext_nexists_create ;AN000;FT.;smr;SS Override
+ 35963                                  ;	JNZ	short chknext 		  ;AN000;;EO. no
+ 35964                                  ;	call	_$CreateNewFile		  ;AN000;;EO. yes
+ 35965                                  ;	JC	short error_return	  ;AN000;;EO. error
+ 35966                                  ;	CMP	byte [SS:EXTOPEN_ON],0	  ;AN000;;EO. IFS does it;smr;SS Override
+ 35967                                  ;	JZ	short ok_return2	  ;AN000;;EO. yes
+ 35968                                  ;	MOV	word [SS:EXTOPEN_FLAG],action_created_opened ;AN000;EO. creted/opened;smr;SS Override
+ 35969                                  ;	JMP	short setXAttr		  ;AN000;;EO. set XAs
+ 35970                                  ;ok_return2:
+ 35971                                  ;	jmp	SYS_RET_OK		  ;AN000;;EO.
+ 35972                                  ;chknext:
+ 35973                                  ;	TEST	word [SS:EXTOPEN_FLAG],ext_exists_open ;AN000;;EO. exists open;smr;SS Override
+ 35974                                  ;	JNZ	short exist_open	  ;AN000;;EO. yes
+ 35975                                  ;	call	_$CREAT			  ;AN000;;EO. must be replace open
+ 35976                                  ;	JC	short error_return	  ;AN000;;EO. return with error
+ 35977                                  ;	CMP	byte [SS:EXTOPEN_ON],0	  ;AN000;;EO. IFS does it;smr;SS Override
+ 35978                                  ;	JZ	short ok_return2	  ;AN000;;EO. yes
+ 35979                                  ;	MOV	word [SS:EXTOPEN_FLAG],action_created_opened ;AN000;EO. prsume create/open;smr;SS Override
+ 35980                                  ;	TEST	byte [SS:EXTOPEN_ON],ext_file_not_exists ;AN000;;EO. file not exists ?;smr;SS Override
+ 35981                                  ;	JNZ	short setXAttr		  ;AN000;;EO. no
+ 35982                                  ;	MOV	word [SS:EXTOPEN_FLAG],action_replaced_opened ;AN000;;EO. replaced/opened;smr;SS Override
+ 35983                                  ;	JMP	SHORT setXAttr		  ;AN000;;EO. set XAs
+ 35984                                  ;error_return2:
+ 35985                                  ;	STC 				  ; Set Carry again to flag error ;AN001;
+ 35986                                  ;	retn				  ;AN000;;EO. return with error
+ 35987                                  ;					  ;AN000;
+ 35988                                  ;exist_open:				  ;AN000;
+ 35989                                  ;	test	byte [SS:FSHARING],-1	  ;AN000;;EO. server doscall?;smr;SS Override
+ 35990                                  ;	jz	short noserver		  ;AN000;;EO. no
+ 35991                                  ;	MOV	CL,CH			  ;AN000;;EO. cl=search attribute
+ 35992                                  ;noserver:
+ 35993                                  ;	call	_$Open2			  ;AN000;;EO. do open
+ 35994                                  ;	JNC	short ext_ok		  ;AN000;;EO.
+ 35995                                  ;	CMP	byte [SS:EXTOPEN_ON],0	  ;AN000;;EO. error and IFS call;smr;SS Override
+ 35996                                  ;	JZ	short error_return2	  ;AN000;;EO. return with error
+ 35997                                  ;local_extopen:
+ 35998                                  ;	CMP	AX,error_file_not_found   ;AN000;;EO. file not found error
+ 35999                                  ;	JNZ	short error_return2	  ;AN000;;EO. no,
+ 36000                                  ;	TEST	word [SS:EXTOPEN_FLAG],ext_nexists_create;AN000;;EO. want to fail;smr;SS Override
+ 36001                                  ;	JNZ	short do_creat		  ;AN000;;EO. yes
+ 36002                                  ;	JMP	short extexit 		  ;AN000;;EO. yes
+ 36003                                  ;do_creat:
+ 36004                                  ;	MOV	CX,[SS:SAVE_CX]		  ;AN000;;EO. get ds:dx for file name;smr;SS Override
+ 36005                                  ;	LDS	SI,[SS:SAVE_SI]		  ;AN000;;EO. cx = attribute;smr;SS Override
+ 36006                                  ;	MOV	DX,SI			  ;AN000;;EO.
+ 36007                                  ;	call	_$CREAT			  ;AN000;;EO. do create
+ 36008                                  ;	JC	short extexit 		  ;AN000;;EO. error
+ 36009                                  ;	MOV	word [SS:EXTOPEN_FLAG],action_created_opened 
+ 36010                                  ;					  ;AN000;;EO. is created/opened;smr;SS Override
+ 36011                                  ;	JMP	SHORT setXAttr		  ;AN000;;EO. set XAs
+ 36012                                  ;
+ 36013                                  ;ext_ok:
+ 36014                                  ;	CMP	byte [SS:EXTOPEN_ON],0	  ;AN000;;EO. IFS call ?;smr;SS Override
+ 36015                                  ;	JZ	short ok_return		  ;AN000;;EO. yes
+ 36016                                  ;	MOV	[SS:EXTOPEN_FLAG],action_opened ;AN000;;EO.  opened;smr;SS Override
+ 36017                                  ;setXAttr:
+ 36018                                  ;	call	Get_User_Stack		  ;AN000;;EO.
+ 36019                                  ;	MOV	AX,[SS:EXTOPEN_FLAG]	  ;AN000;;EO.;smr;SS Override
+ 36020                                  ;	MOV	[SI+user_env.user_CX],AX  ;AN000;;EO. set action code for cx
+ 36021                                  ;	POP	AX			  ;AN000;;EO.
+ 36022                                  ;	MOV	[SI+user_env.user_AX],AX  ;AN000;;EO. set handle for ax
+ 36023                                  ;
+ 36024                                  ;ok_return:				  ;AN000;
+ 36025                                  ;	jmp	SYS_RET_OK		  ;AN000;;EO.
+ 36026                                  ;
+ 36027                                  ;extexit2:				  ;AN000; ERROR RECOVERY
+ 36028                                  ;	POP	BX			  ;AN000;EO. close the handle
+ 36029                                  ;	PUSH	AX			  ;AN000;EO. save error code from set XA
+ 36030                                  ;	CMP	word [SS:EXTOPEN_FLAG],action_created_opened 
+ 36031                                  ;					  ;AN000;EO. from create;smr;SS Override
+ 36032                                  ;	JNZ	short justopen		  ;AN000;EO.
+ 36033                                  ;	LDS	SI,[SS:SAVE_SI]		  ;AN000;EO. cx = attribute;smr;SS Override
+ 36034                                  ;	LDS	DX,[SI]			  ;AN000;EO.
+ 36035                                  ;	call	_$UNLINK 		  ;AN000;EO. delete the file
+ 36036                                  ;	JMP	SHORT reserror		  ;AN000;EO.
+ 36037                                  ;
+ 36038                                  ;justopen:				  ;AN000;
+ 36039                                  ;	call	$CLOSE			  ;AN000;EO. pretend never happend
+ 36040                                  ;reserror:				  ;AN000;
+ 36041                                  ;	POP	AX			  ;AN000;EO. restore error code from set XA
+ 36042                                  ;	JMP	SHORT extexit		  ;AN000;EO.
+ 36043                                  ;
+ 36044                                  ;ext_file_unfound:			  ;AN000;
+ 36045                                  ;	MOV	AX,error_file_not_found   ;AN000;EO.
+ 36046                                  ;	JMP	SHORT extexit		  ;AN000;EO.
+ 36047                                  ;ext_inval:				  ;AN000;
+ 36048                                  ;	MOV	AX,error_invalid_function ;AN000;EO.
+ 36049                                  ;extexit:
+ 36050                                  ;	jmp	SYS_RET_ERR		  ;AN000;EO.
+ 36051                                  
+ 36052                                  ;============================================================================
+ 36053                                  ; LOCK.ASM, MSDOS 6.0, 1991
  36054                                  ;============================================================================
- 36055                                  ; LOCK.ASM, MSDOS 6.0, 1991
- 36056                                  ;============================================================================
- 36057                                  ; 14/07/2018 - Retro DOS v3.0
+ 36055                                  ; 14/07/2018 - Retro DOS v3.0
+ 36056                                  
+ 36057                                  ;BREAK <$LockOper - Lock Calls>
  36058                                  
- 36059                                  ;BREAK <$LockOper - Lock Calls>
- 36060                                  
- 36061                                  ;
- 36062                                  ;   Assembler usage:
- 36063                                  ;	    MOV     BX, Handle	       (DOS 3.3)
- 36064                                  ;	    MOV     CX, OffsetHigh
- 36065                                  ;	    MOV     DX, OffsetLow
- 36066                                  ;	    MOV     SI, LengthHigh
- 36067                                  ;	    MOV     DI, LengthLow
- 36068                                  ;	    MOV     AH, LockOper
- 36069                                  ;	    MOV     AL, Request
- 36070                                  ;	    INT     21h
- 36071                                  ;
- 36072                                  ;   Error returns:
- 36073                                  ;	    AX = error_invalid_handle
- 36074                                  ;	       = error_invalid_function
- 36075                                  ;	       = error_lock_violation
- 36076                                  ;
- 36077                                  ;   Assembler usage:
- 36078                                  ;	    MOV     AX, 5C??	       (DOS 4.00)
- 36079                                  ;
- 36080                                  ;				    0? lock all
- 36081                                  ;				    8? lock write
- 36082                                  ;				    ?2 lock multiple
- 36083                                  ;				    ?3 unlock multiple
- 36084                                  ;				    ?4 lock/read
- 36085                                  ;				    ?5 write/unlock
- 36086                                  ;				    ?6 add (lseek EOF/lock/write/unlock)
- 36087                                  ;	    MOV     BX, Handle
- 36088                                  ;	    MOV     CX, count or size
- 36089                                  ;	    LDS     DX, buffer
- 36090                                  ;	    INT     21h
- 36091                                  ;
- 36092                                  ;   Error returns:
- 36093                                  ;	    AX = error_invalid_handle
- 36094                                  ;	       = error_invalid_function
- 36095                                  ;	       = error_lock_violation
- 36096                                  
- 36097                                  _$LockOper:
- 36098 000075D6 3C01                    	CMP	AL,1
- 36099 000075D8 770C                    	JA	short lock_bad_func
- 36100                                  
- 36101 000075DA 57                      	PUSH	DI			       ; Save LengthLow
- 36102 000075DB E863F5                  	call	SFFromHandle		       ; ES:DI -> SFT
- 36103 000075DE 7311                    	JNC	short lock_do 		       ; have valid handle
- 36104 000075E0 5F                      	POP	DI			       ; Clean stack
- 36105                                  	;mov	al,6
- 36106 000075E1 B006                    	mov	al,error_invalid_handle
- 36107 000075E3 E9BEA1                  	jmp	SYS_RET_ERR
- 36108                                  
- 36109                                  lock_bad_func:
- 36110                                  	;mov	byte [ss:EXTERR_LOCUS],1
- 36111 000075E6 36C606[EF02]01          	MOV	byte [SS:EXTERR_LOCUS],errLOC_Unk ; Extended Error Locus;smr;SS Override
- 36112                                  	;mov	al,1
- 36113 000075EC B001                    	mov	al,error_invalid_function
- 36114 000075EE E9B3A1                  	jmp	SYS_RET_ERR
- 36115                                  
- 36116                                  	; MSDOS 6.0 
- 36117                                  ; Align_buffer call has been deleted, since it corrupts the DTA (6/5/88) P5013
- 36118                                  ; Dead code deleted, MD, 23 Mar 90
- 36119                                  
- 36120                                  lock_do:
- 36121                                  	; MSDOS 3.3
- 36122 000075F1 08C0                    	or	al,al
- 36123 000075F3 58                      	pop	ax
- 36124 000075F4 741E                    	jz	short DOS_Lock
- 36125                                  DOS_Unlock:
- 36126                                   	;test	word [es:di+5],8000h
- 36127 000075F6 26F745050080            	test	word [ES:DI+SF_ENTRY.sf_flags],sf_isnet
- 36128 000075FC 7409                    	JZ	short LOCAL_UNLOCK
- 36129 000075FE 50                      	push    ax
- 36130 000075FF B80B11                  	mov     ax,110Bh
- 36131 00007602 CD2F                    	int     2Fh	; Multiplex - NETWORK REDIRECTOR - UNLOCK REGION OF FILE
- 36132                                  			; BX = file handle, CX:DX = starting offset, SI = high word of size
- 36133                                  			; STACK: WORD low word of size, ES:DI -> SFT for file
- 36134                                  			; SFT DPB field -> DPB of drive containing file
- 36135                                  			; Return: CF set error
- 36136 00007604 5B                      	pop     bx
- 36137 00007605 EB05                    	jmp     short ValChk
- 36138                                  
- 36139                                  LOCAL_UNLOCK:
- 36140 00007607 36FF1E[7800]            	Call	far [ss:JShare+(7*4)]	; 7 = clr_block ;smr;SS Override
- 36141                                  ValChk:
- 36142 0000760C 7303                    	JNC	short Lock_OK
- 36143                                  lockerror:
- 36144 0000760E E993A1                  	jmp	SYS_RET_ERR
- 36145                                  Lock_OK:
- 36146                                  	;MOV	AX,[SS:Temp_VAR] ;AN000;;MS. AX= number of bytes ;smr;SS Override
- 36147 00007611 E987A1                  	jmp	SYS_RET_OK
- 36148                                  DOS_Lock:
- 36149                                  	;test	word [es:di+5],8000h
- 36150 00007614 26F745050080            	test	word [ES:DI+SF_ENTRY.sf_flags],sf_isnet
- 36151 0000761A 7407                    	JZ	short LOCAL_LOCK
- 36152                                  	;CallInstall NET_XLock,MultNET,10
- 36153 0000761C B80A11                  	mov     ax, 110Ah
- 36154 0000761F CD2F                    	int     2Fh	; Multiplex - NETWORK REDIRECTOR - LOCK REGION OF FILE
- 36155                                  			; BX = file handle, CX:DX = starting offset, SI = high word of size
- 36156                                  			; STACK: WORD low word of size, ES:DI -> SFT
- 36157                                  			; SFT DPB field -> DPB of drive containing file, SS = DOS CS
- 36158                                  			; Return: CF set error
- 36159 00007621 EBE9                    	JMP	short ValChk
- 36160                                  
- 36161                                  LOCAL_LOCK:
- 36162 00007623 36FF1E[7400]            	Call	far [ss:JShare+(6*4)]	; 6 = Set_Block ;smr;SS Override
- 36163 00007628 EBE2                    	JMP	short ValChk
- 36164                                  
- 36165                                  ;lock_do:
- 36166                                  ;	; MSDOS 6.0
- 36167                                  ;	MOV	BX,AX				; save AX
- 36168                                  ;	MOV	BP,Lock_Buffer			; get DOS LOCK buffer
- 36169                                  ;	MOV	[BP+LockBuf.Lock_position],DX	; set low offset
- 36170                                  ;	MOV	[BP+LockBuf.Lock_position+2],CX; set high offset
- 36171                                  ;	POP	CX				; get low length
- 36172                                  ;	MOV	[BP+LockBuf.Lock_length],CX	; set low length
- 36173                                  ;	MOV	[BP+LockBuf.Lock_length+2],SI	; set high length
- 36174                                  ;	MOV	CX,1				; one range
- 36175                                  ;
- 36176                                  ;;	PUSH	CS				;
- 36177                                  ;;	POP	DS				; DS:DX points to
- 36178                                  ;
- 36179                                  ;	push	ss
- 36180                                  ;	pop	ds
- 36181                                  ;
- 36182                                  ;	MOV	DX,BP				;   Lock_Buffer
- 36183                                  ;	TEST	AL,Unlock_all			; function 1
- 36184                                  ;	JNZ	short DOS_Unlock		; yes
- 36185                                  ;	JMP	short DOS_Lock			; function 0
- 36186                                  ;
- 36187                                  ;DOS_Unlock:
- 36188                                  ;	;test	word [es:di+5],8000h
- 36189                                  ;	test	word [ES:DI+SF_ENTRY.sf_flags],sf_isnet
- 36190                                  ;	JZ	short LOCAL_UNLOCK
- 36191                                  ;	;CallInstall Net_Xlock,MultNET,10
- 36192                                  ;	mov     ax, 110Bh
- 36193                                  ;	int     2Fh	; Multiplex - NETWORK REDIRECTOR - UNLOCK REGION OF FILE
- 36194                                  ;			; BX = file handle, CX:DX = starting offset, SI = high word of size
- 36195                                  ;			; STACK: WORD low word of size, ES:DI -> SFT for file
- 36196                                  ;			; SFT DPB field -> DPB of drive containing file
- 36197                                  ;			; Return: CF set error
- 36198                                  ;
- 36199                                  ;	JMP	SHORT ValChk
- 36200                                  ;LOCAL_UNLOCK:
- 36201                                  ;	Call	far [ss:JShare+(7*4)]	; 7 = clr_block ;smr;SS Override
- 36202                                  ;ValChk:
- 36203                                  ;	JNC	short Lock_OK
- 36204                                  ;lockerror:
- 36205                                  ;	jmp	SYS_RET_ERR
- 36206                                  ;Lock_OK:
- 36207                                  ;	MOV	AX,[SS:Temp_VAR] ;AN000;;MS. AX= number of bytes ;smr;SS Override
- 36208                                  ;	jmp	SYS_RET_OK
- 36209                                  ;DOS_Lock:
- 36210                                  ;	;test	word [es:di+5],8000h
- 36211                                  ;	test	word [ES:DI+SF_ENTRY.sf_flags],sf_isnet
- 36212                                  ;	JZ	short LOCAL_LOCK
- 36213                                  ;	;CallInstall NET_XLock,MultNET,10
- 36214                                  ;	mov     ax,110Ah
- 36215                                  ;	int     2Fh	; Multiplex - NETWORK REDIRECTOR - LOCK REGION OF FILE
- 36216                                  ;			; BX = file handle, CX:DX = starting offset, SI = high word of size
- 36217                                  ;			; STACK: WORD low word of size, ES:DI -> SFT
- 36218                                  ;			; SFT DPB field -> DPB of drive containing file, SS = DOS CS
- 36219                                  ;			; Return: CF set error
- 36220                                  ;	JMP	short ValChk
- 36221                                  ;
- 36222                                  ;LOCAL_LOCK:
- 36223                                  ;	Call	far [ss:JShare+(6*4)]	; 6 = Set_Block ;smr;SS Override
- 36224                                  ;	JMP	short ValChk
- 36225                                  
- 36226                                  ; 14/07/2018 - Retro DOS v3.0
- 36227                                  ; LOC_CHECK
- 36228                                  ;MSDOS 6.0 (& MSDOS 3.3)
- 36229                                  
- 36230                                  ; Inputs:
- 36231                                  ;	Outputs of SETUP
- 36232                                  ;	[USER_ID] Set
- 36233                                  ;	[PROC_ID] Set
- 36234                                  ; Function:
- 36235                                  ;	Check for lock violations on local I/O
- 36236                                  ;	Retries are attempted with sleeps in between
- 36237                                  ; Outputs:
- 36238                                  ;    Carry clear
- 36239                                  ;	Operation is OK
- 36240                                  ;    Carry set
- 36241                                  ;	A lock violation detected
- 36242                                  ; Outputs of SETUP preserved
- 36243                                  
- 36244                                  LOCK_CHECK:
- 36245 0000762A 8B1E[1A00]              	MOV	BX,[RetryCount]	; Number retries
- 36246                                  LockRetry:
- 36247 0000762E 53                      	push	bx		; save regs
- 36248                                  	; 26/07/2019
- 36249                                  	;push	ax ; MSDOS 6.0
- 36250                                  	; MSDOS 3.3 (& MSDOS 6.0)
- 36251 0000762F FF1E[7C00]              	call	far [JShare+(8*4)] ; 8 = chk_block
- 36252                                  	;pop	ax ; MSDOS 6.0
- 36253 00007633 5B                      	pop	bx		; restrore regs
- 36254 00007634 7307                    	jnc	short lc_ret_label ; There are no locks (retnc)
- 36255                                  LockN:
- 36256 00007636 E8F3A9                  	call	Idle		; wait a while
- 36257 00007639 4B                      	DEC	BX		; remember a retry
- 36258 0000763A 75F2                    	JNZ	short LockRetry	; more retries left...
- 36259 0000763C F9                      	STC
- 36260                                  lc_ret_label:
- 36261 0000763D C3                      	retn
- 36262                                  
- 36263                                  ; 14/07/2018 - Retro DOS v3.0
- 36264                                  ; LOCK_VIOLATION
- 36265                                  ;MSDOS 6.0 (& MSDOS 3.3)
- 36266                                  
- 36267                                  ; Inputs:
- 36268                                  ;	[THISDPB] set
- 36269                                  ;	[READOP] indicates whether error on read or write
- 36270                                  ; Function:
- 36271                                  ;	Handle Lock violation on compatibility (FCB) mode SFTs
- 36272                                  ; Outputs:
- 36273                                  ;	Carry set if user says FAIL, causes error_lock_violation
- 36274                                  ;	Carry clear if user wants a retry
- 36275                                  ;
- 36276                                  ; DS, ES, DI, CX preserved, others destroyed
- 36277                                  
- 36278                                  LOCK_VIOLATION:
- 36279 0000763E 1E                      	PUSH	DS
- 36280 0000763F 06                      	PUSH	ES
- 36281 00007640 57                      	PUSH	DI
- 36282 00007641 51                      	PUSH	CX
- 36283                                  	;mov	ax,21h
- 36284 00007642 B82100                  	MOV	AX,error_lock_violation
- 36285                                  	;mov	byte [ALLOWED],18h
- 36286 00007645 C606[1503]18            	MOV	byte [ALLOWED],Allowed_FAIL+Allowed_RETRY
- 36287 0000764A C42E[4605]              	LES	BP,[THISDPB]
- 36288 0000764E BF0100                  	MOV	DI,1		; Fake some registers
- 36289 00007651 89F9                    	MOV	CX,DI
- 36290                                  	;mov	dx,[es:bp+11]
- 36291 00007653 268B560B                	MOV	DX,[ES:BP+DPB.FIRST_SECTOR]
- 36292 00007657 E8CEE4                  	call	HARDERR
- 36293 0000765A 59                      	POP	CX
- 36294 0000765B 5F                      	POP	DI
- 36295 0000765C 07                      	POP	ES
- 36296 0000765D 1F                      	POP	DS
- 36297 0000765E 3C01                    	CMP	AL,1
- 36298 00007660 74DB                    	jz	short lc_ret_label ; 1 = retry, carry clear
- 36299 00007662 F9                      	STC
- 36300 00007663 C3                      	retn
+ 36059                                  ;
+ 36060                                  ;   Assembler usage:
+ 36061                                  ;	    MOV     BX, Handle	       (DOS 3.3)
+ 36062                                  ;	    MOV     CX, OffsetHigh
+ 36063                                  ;	    MOV     DX, OffsetLow
+ 36064                                  ;	    MOV     SI, LengthHigh
+ 36065                                  ;	    MOV     DI, LengthLow
+ 36066                                  ;	    MOV     AH, LockOper
+ 36067                                  ;	    MOV     AL, Request
+ 36068                                  ;	    INT     21h
+ 36069                                  ;
+ 36070                                  ;   Error returns:
+ 36071                                  ;	    AX = error_invalid_handle
+ 36072                                  ;	       = error_invalid_function
+ 36073                                  ;	       = error_lock_violation
+ 36074                                  ;
+ 36075                                  ;   Assembler usage:
+ 36076                                  ;	    MOV     AX, 5C??	       (DOS 4.00)
+ 36077                                  ;
+ 36078                                  ;				    0? lock all
+ 36079                                  ;				    8? lock write
+ 36080                                  ;				    ?2 lock multiple
+ 36081                                  ;				    ?3 unlock multiple
+ 36082                                  ;				    ?4 lock/read
+ 36083                                  ;				    ?5 write/unlock
+ 36084                                  ;				    ?6 add (lseek EOF/lock/write/unlock)
+ 36085                                  ;	    MOV     BX, Handle
+ 36086                                  ;	    MOV     CX, count or size
+ 36087                                  ;	    LDS     DX, buffer
+ 36088                                  ;	    INT     21h
+ 36089                                  ;
+ 36090                                  ;   Error returns:
+ 36091                                  ;	    AX = error_invalid_handle
+ 36092                                  ;	       = error_invalid_function
+ 36093                                  ;	       = error_lock_violation
+ 36094                                  
+ 36095                                  _$LockOper:
+ 36096 000075D6 3C01                    	CMP	AL,1
+ 36097 000075D8 770C                    	JA	short lock_bad_func
+ 36098                                  
+ 36099 000075DA 57                      	PUSH	DI			       ; Save LengthLow
+ 36100 000075DB E863F5                  	call	SFFromHandle		       ; ES:DI -> SFT
+ 36101 000075DE 7311                    	JNC	short lock_do 		       ; have valid handle
+ 36102 000075E0 5F                      	POP	DI			       ; Clean stack
+ 36103                                  	;mov	al,6
+ 36104 000075E1 B006                    	mov	al,error_invalid_handle
+ 36105 000075E3 E9BEA1                  	jmp	SYS_RET_ERR
+ 36106                                  
+ 36107                                  lock_bad_func:
+ 36108                                  	;mov	byte [ss:EXTERR_LOCUS],1
+ 36109 000075E6 36C606[EF02]01          	MOV	byte [SS:EXTERR_LOCUS],errLOC_Unk ; Extended Error Locus;smr;SS Override
+ 36110                                  	;mov	al,1
+ 36111 000075EC B001                    	mov	al,error_invalid_function
+ 36112 000075EE E9B3A1                  	jmp	SYS_RET_ERR
+ 36113                                  
+ 36114                                  	; MSDOS 6.0 
+ 36115                                  ; Align_buffer call has been deleted, since it corrupts the DTA (6/5/88) P5013
+ 36116                                  ; Dead code deleted, MD, 23 Mar 90
+ 36117                                  
+ 36118                                  lock_do:
+ 36119                                  	; MSDOS 3.3
+ 36120 000075F1 08C0                    	or	al,al
+ 36121 000075F3 58                      	pop	ax
+ 36122 000075F4 741E                    	jz	short DOS_Lock
+ 36123                                  DOS_Unlock:
+ 36124                                   	;test	word [es:di+5],8000h
+ 36125 000075F6 26F745050080            	test	word [ES:DI+SF_ENTRY.sf_flags],sf_isnet
+ 36126 000075FC 7409                    	JZ	short LOCAL_UNLOCK
+ 36127 000075FE 50                      	push    ax
+ 36128 000075FF B80B11                  	mov     ax,110Bh
+ 36129 00007602 CD2F                    	int     2Fh	; Multiplex - NETWORK REDIRECTOR - UNLOCK REGION OF FILE
+ 36130                                  			; BX = file handle, CX:DX = starting offset, SI = high word of size
+ 36131                                  			; STACK: WORD low word of size, ES:DI -> SFT for file
+ 36132                                  			; SFT DPB field -> DPB of drive containing file
+ 36133                                  			; Return: CF set error
+ 36134 00007604 5B                      	pop     bx
+ 36135 00007605 EB05                    	jmp     short ValChk
+ 36136                                  
+ 36137                                  LOCAL_UNLOCK:
+ 36138 00007607 36FF1E[7800]            	Call	far [ss:JShare+(7*4)]	; 7 = clr_block ;smr;SS Override
+ 36139                                  ValChk:
+ 36140 0000760C 7303                    	JNC	short Lock_OK
+ 36141                                  lockerror:
+ 36142 0000760E E993A1                  	jmp	SYS_RET_ERR
+ 36143                                  Lock_OK:
+ 36144                                  	;MOV	AX,[SS:Temp_VAR] ;AN000;;MS. AX= number of bytes ;smr;SS Override
+ 36145 00007611 E987A1                  	jmp	SYS_RET_OK
+ 36146                                  DOS_Lock:
+ 36147                                  	;test	word [es:di+5],8000h
+ 36148 00007614 26F745050080            	test	word [ES:DI+SF_ENTRY.sf_flags],sf_isnet
+ 36149 0000761A 7407                    	JZ	short LOCAL_LOCK
+ 36150                                  	;CallInstall NET_XLock,MultNET,10
+ 36151 0000761C B80A11                  	mov     ax, 110Ah
+ 36152 0000761F CD2F                    	int     2Fh	; Multiplex - NETWORK REDIRECTOR - LOCK REGION OF FILE
+ 36153                                  			; BX = file handle, CX:DX = starting offset, SI = high word of size
+ 36154                                  			; STACK: WORD low word of size, ES:DI -> SFT
+ 36155                                  			; SFT DPB field -> DPB of drive containing file, SS = DOS CS
+ 36156                                  			; Return: CF set error
+ 36157 00007621 EBE9                    	JMP	short ValChk
+ 36158                                  
+ 36159                                  LOCAL_LOCK:
+ 36160 00007623 36FF1E[7400]            	Call	far [ss:JShare+(6*4)]	; 6 = Set_Block ;smr;SS Override
+ 36161 00007628 EBE2                    	JMP	short ValChk
+ 36162                                  
+ 36163                                  ;lock_do:
+ 36164                                  ;	; MSDOS 6.0
+ 36165                                  ;	MOV	BX,AX				; save AX
+ 36166                                  ;	MOV	BP,Lock_Buffer			; get DOS LOCK buffer
+ 36167                                  ;	MOV	[BP+LockBuf.Lock_position],DX	; set low offset
+ 36168                                  ;	MOV	[BP+LockBuf.Lock_position+2],CX; set high offset
+ 36169                                  ;	POP	CX				; get low length
+ 36170                                  ;	MOV	[BP+LockBuf.Lock_length],CX	; set low length
+ 36171                                  ;	MOV	[BP+LockBuf.Lock_length+2],SI	; set high length
+ 36172                                  ;	MOV	CX,1				; one range
+ 36173                                  ;
+ 36174                                  ;;	PUSH	CS				;
+ 36175                                  ;;	POP	DS				; DS:DX points to
+ 36176                                  ;
+ 36177                                  ;	push	ss
+ 36178                                  ;	pop	ds
+ 36179                                  ;
+ 36180                                  ;	MOV	DX,BP				;   Lock_Buffer
+ 36181                                  ;	TEST	AL,Unlock_all			; function 1
+ 36182                                  ;	JNZ	short DOS_Unlock		; yes
+ 36183                                  ;	JMP	short DOS_Lock			; function 0
+ 36184                                  ;
+ 36185                                  ;DOS_Unlock:
+ 36186                                  ;	;test	word [es:di+5],8000h
+ 36187                                  ;	test	word [ES:DI+SF_ENTRY.sf_flags],sf_isnet
+ 36188                                  ;	JZ	short LOCAL_UNLOCK
+ 36189                                  ;	;CallInstall Net_Xlock,MultNET,10
+ 36190                                  ;	mov     ax, 110Bh
+ 36191                                  ;	int     2Fh	; Multiplex - NETWORK REDIRECTOR - UNLOCK REGION OF FILE
+ 36192                                  ;			; BX = file handle, CX:DX = starting offset, SI = high word of size
+ 36193                                  ;			; STACK: WORD low word of size, ES:DI -> SFT for file
+ 36194                                  ;			; SFT DPB field -> DPB of drive containing file
+ 36195                                  ;			; Return: CF set error
+ 36196                                  ;
+ 36197                                  ;	JMP	SHORT ValChk
+ 36198                                  ;LOCAL_UNLOCK:
+ 36199                                  ;	Call	far [ss:JShare+(7*4)]	; 7 = clr_block ;smr;SS Override
+ 36200                                  ;ValChk:
+ 36201                                  ;	JNC	short Lock_OK
+ 36202                                  ;lockerror:
+ 36203                                  ;	jmp	SYS_RET_ERR
+ 36204                                  ;Lock_OK:
+ 36205                                  ;	MOV	AX,[SS:Temp_VAR] ;AN000;;MS. AX= number of bytes ;smr;SS Override
+ 36206                                  ;	jmp	SYS_RET_OK
+ 36207                                  ;DOS_Lock:
+ 36208                                  ;	;test	word [es:di+5],8000h
+ 36209                                  ;	test	word [ES:DI+SF_ENTRY.sf_flags],sf_isnet
+ 36210                                  ;	JZ	short LOCAL_LOCK
+ 36211                                  ;	;CallInstall NET_XLock,MultNET,10
+ 36212                                  ;	mov     ax,110Ah
+ 36213                                  ;	int     2Fh	; Multiplex - NETWORK REDIRECTOR - LOCK REGION OF FILE
+ 36214                                  ;			; BX = file handle, CX:DX = starting offset, SI = high word of size
+ 36215                                  ;			; STACK: WORD low word of size, ES:DI -> SFT
+ 36216                                  ;			; SFT DPB field -> DPB of drive containing file, SS = DOS CS
+ 36217                                  ;			; Return: CF set error
+ 36218                                  ;	JMP	short ValChk
+ 36219                                  ;
+ 36220                                  ;LOCAL_LOCK:
+ 36221                                  ;	Call	far [ss:JShare+(6*4)]	; 6 = Set_Block ;smr;SS Override
+ 36222                                  ;	JMP	short ValChk
+ 36223                                  
+ 36224                                  ; 14/07/2018 - Retro DOS v3.0
+ 36225                                  ; LOC_CHECK
+ 36226                                  ;MSDOS 6.0 (& MSDOS 3.3)
+ 36227                                  
+ 36228                                  ; Inputs:
+ 36229                                  ;	Outputs of SETUP
+ 36230                                  ;	[USER_ID] Set
+ 36231                                  ;	[PROC_ID] Set
+ 36232                                  ; Function:
+ 36233                                  ;	Check for lock violations on local I/O
+ 36234                                  ;	Retries are attempted with sleeps in between
+ 36235                                  ; Outputs:
+ 36236                                  ;    Carry clear
+ 36237                                  ;	Operation is OK
+ 36238                                  ;    Carry set
+ 36239                                  ;	A lock violation detected
+ 36240                                  ; Outputs of SETUP preserved
+ 36241                                  
+ 36242                                  LOCK_CHECK:
+ 36243 0000762A 8B1E[1A00]              	MOV	BX,[RetryCount]	; Number retries
+ 36244                                  LockRetry:
+ 36245 0000762E 53                      	push	bx		; save regs
+ 36246                                  	; 26/07/2019
+ 36247                                  	;push	ax ; MSDOS 6.0
+ 36248                                  	; MSDOS 3.3 (& MSDOS 6.0)
+ 36249 0000762F FF1E[7C00]              	call	far [JShare+(8*4)] ; 8 = chk_block
+ 36250                                  	;pop	ax ; MSDOS 6.0
+ 36251 00007633 5B                      	pop	bx		; restrore regs
+ 36252 00007634 7307                    	jnc	short lc_ret_label ; There are no locks (retnc)
+ 36253                                  LockN:
+ 36254 00007636 E8F3A9                  	call	Idle		; wait a while
+ 36255 00007639 4B                      	DEC	BX		; remember a retry
+ 36256 0000763A 75F2                    	JNZ	short LockRetry	; more retries left...
+ 36257 0000763C F9                      	STC
+ 36258                                  lc_ret_label:
+ 36259 0000763D C3                      	retn
+ 36260                                  
+ 36261                                  ; 14/07/2018 - Retro DOS v3.0
+ 36262                                  ; LOCK_VIOLATION
+ 36263                                  ;MSDOS 6.0 (& MSDOS 3.3)
+ 36264                                  
+ 36265                                  ; Inputs:
+ 36266                                  ;	[THISDPB] set
+ 36267                                  ;	[READOP] indicates whether error on read or write
+ 36268                                  ; Function:
+ 36269                                  ;	Handle Lock violation on compatibility (FCB) mode SFTs
+ 36270                                  ; Outputs:
+ 36271                                  ;	Carry set if user says FAIL, causes error_lock_violation
+ 36272                                  ;	Carry clear if user wants a retry
+ 36273                                  ;
+ 36274                                  ; DS, ES, DI, CX preserved, others destroyed
+ 36275                                  
+ 36276                                  LOCK_VIOLATION:
+ 36277 0000763E 1E                      	PUSH	DS
+ 36278 0000763F 06                      	PUSH	ES
+ 36279 00007640 57                      	PUSH	DI
+ 36280 00007641 51                      	PUSH	CX
+ 36281                                  	;mov	ax,21h
+ 36282 00007642 B82100                  	MOV	AX,error_lock_violation
+ 36283                                  	;mov	byte [ALLOWED],18h
+ 36284 00007645 C606[1503]18            	MOV	byte [ALLOWED],Allowed_FAIL+Allowed_RETRY
+ 36285 0000764A C42E[4605]              	LES	BP,[THISDPB]
+ 36286 0000764E BF0100                  	MOV	DI,1		; Fake some registers
+ 36287 00007651 89F9                    	MOV	CX,DI
+ 36288                                  	;mov	dx,[es:bp+11]
+ 36289 00007653 268B560B                	MOV	DX,[ES:BP+DPB.FIRST_SECTOR]
+ 36290 00007657 E8CEE4                  	call	HARDERR
+ 36291 0000765A 59                      	POP	CX
+ 36292 0000765B 5F                      	POP	DI
+ 36293 0000765C 07                      	POP	ES
+ 36294 0000765D 1F                      	POP	DS
+ 36295 0000765E 3C01                    	CMP	AL,1
+ 36296 00007660 74DB                    	jz	short lc_ret_label ; 1 = retry, carry clear
+ 36297 00007662 F9                      	STC
+ 36298 00007663 C3                      	retn
+ 36299                                  
+ 36300                                  ; 14/07/2018 - Retro DOS v3.0
  36301                                  
- 36302                                  ; 14/07/2018 - Retro DOS v3.0
+ 36302                                  ;	do a retz to return error
  36303                                  
- 36304                                  ;	do a retz to return error
- 36305                                  
- 36306                                  CheckShare:
- 36307                                  	; MSDOS 6.0
- 36308                                  	;push	ds			;smr;
- 36309                                  	;;getdseg <ds>			; ds -> dosdata
- 36310                                  	;push	cs
- 36311                                  	;pop	ds
- 36312                                  	;CMP	byte [fShare],0
- 36313                                  	;pop	ds			;smr;
- 36314                                  	;retn
- 36315                                  	
- 36316                                  	; MSDOS 3.3
- 36317 00007664 2E803E[CF02]00          	cmp	byte [cs:fShare],0
- 36318 0000766A C3                      	retn
- 36319                                  
+ 36304                                  CheckShare:
+ 36305                                  	; MSDOS 6.0
+ 36306                                  	;push	ds			;smr;
+ 36307                                  	;;getdseg <ds>			; ds -> dosdata
+ 36308                                  	;push	cs
+ 36309                                  	;pop	ds
+ 36310                                  	;CMP	byte [fShare],0
+ 36311                                  	;pop	ds			;smr;
+ 36312                                  	;retn
+ 36313                                  	
+ 36314                                  	; MSDOS 3.3
+ 36315 00007664 2E803E[CF02]00          	cmp	byte [cs:fShare],0
+ 36316 0000766A C3                      	retn
+ 36317                                  
+ 36318                                  ;============================================================================
+ 36319                                  ; SHARE.ASM, MSDOS 6.0, 1991
  36320                                  ;============================================================================
- 36321                                  ; SHARE.ASM, MSDOS 6.0, 1991
- 36322                                  ;============================================================================
- 36323                                  ; 14/07/2018 - Retro DOS v3.0
+ 36321                                  ; 14/07/2018 - Retro DOS v3.0
+ 36322                                  
+ 36323                                  ; SHARE_CHECK
  36324                                  
- 36325                                  ; SHARE_CHECK
- 36326                                  
- 36327                                  ; Inputs:
- 36328                                  ;       [THISSFT] Points to filled in local file/device SFT for new
- 36329                                  ;               instance of file sf_mode ALWAYS has mode (even on FCB SFTs)
- 36330                                  ;       [WFP_START] has full path of name
- 36331                                  ;       [USER_ID] Set
- 36332                                  ;       [PROC_ID] Set
- 36333                                  ; Function:
- 36334                                  ;       Check for sharing violations on local file/device access
- 36335                                  ; Outputs:
- 36336                                  ;    Carry clear
- 36337                                  ;       Sharing approved
- 36338                                  ;    Carry set
- 36339                                  ;       A sharing violation detected
- 36340                                  ;           AX is error code
- 36341                                  ; USES    ALL but DS
- 36342                                  
- 36343                                  SHARE_CHECK:
- 36344                                  	; 26/07/2019
- 36345 0000766B FF1E[6000]              	call	far [JShare+(1*4)] 	; 1 = MFT_Enter
- 36346                                  shchk_retn:
- 36347 0000766F C3                      	retn
+ 36325                                  ; Inputs:
+ 36326                                  ;       [THISSFT] Points to filled in local file/device SFT for new
+ 36327                                  ;               instance of file sf_mode ALWAYS has mode (even on FCB SFTs)
+ 36328                                  ;       [WFP_START] has full path of name
+ 36329                                  ;       [USER_ID] Set
+ 36330                                  ;       [PROC_ID] Set
+ 36331                                  ; Function:
+ 36332                                  ;       Check for sharing violations on local file/device access
+ 36333                                  ; Outputs:
+ 36334                                  ;    Carry clear
+ 36335                                  ;       Sharing approved
+ 36336                                  ;    Carry set
+ 36337                                  ;       A sharing violation detected
+ 36338                                  ;           AX is error code
+ 36339                                  ; USES    ALL but DS
+ 36340                                  
+ 36341                                  SHARE_CHECK:
+ 36342                                  	; 26/07/2019
+ 36343 0000766B FF1E[6000]              	call	far [JShare+(1*4)] 	; 1 = MFT_Enter
+ 36344                                  shchk_retn:
+ 36345 0000766F C3                      	retn
+ 36346                                  
+ 36347                                  ; SHARE_VIOLATION
  36348                                  
- 36349                                  ; SHARE_VIOLATION
- 36350                                  
- 36351                                  ; Inputs:
- 36352                                  ;       [THISDPB] Set
- 36353                                  ;       AX has error code
- 36354                                  ; Function:
- 36355                                  ;       Handle Sharing errors
- 36356                                  ; Outputs:
- 36357                                  ;       Carry set if user says FAIL, causes error_sharing_violation
- 36358                                  ;       Carry clear if user wants a retry
- 36359                                  ;
- 36360                                  ; DS, ES, DI preserved, others destroyed
- 36361                                  
- 36362                                  SHARE_VIOLATION:
- 36363 00007670 1E                      	PUSH    DS
- 36364 00007671 06                      	PUSH	ES
- 36365 00007672 57                      	PUSH    DI
- 36366 00007673 C606[3205]00            	MOV     byte [READOP],0		; All share errors are reading
- 36367                                  	;mov	byte [ALLOWED],18h
- 36368 00007678 C606[1503]18            	MOV     byte [ALLOWED],Allowed_FAIL+Allowed_RETRY
- 36369 0000767D C42E[4605]              	LES     BP,[THISDPB]
- 36370 00007681 BF0100                  	MOV     DI,1			; Fake some registers
- 36371 00007684 89F9                    	MOV     CX,DI
- 36372                                  	;mov	dx,[es:bp+16]
- 36373 00007686 268B5611                	MOV     DX,[ES:BP+DPB.DIR_SECTOR]
- 36374 0000768A E89BE4                  	call	HARDERR
- 36375 0000768D 5F                      	POP     DI
- 36376 0000768E 07                      	POP	ES
- 36377 0000768F 1F                      	POP     DS
- 36378 00007690 3C01                    	CMP     AL,1
- 36379 00007692 74DB                    	jz	short shchk_retn	; 1 = retry, carry clear
- 36380 00007694 F9                      	STC
- 36381 00007695 C3                      	retn
- 36382                                  
- 36383                                  ;   ShareEnd - terminate sharing info on a particular SFT/UID/PID.  This does
- 36384                                  ;       NOT perform a close, it merely asserts that the sharing information
- 36385                                  ;       for the SFT/UID/PID may be safely released.
- 36386                                  ;
- 36387                                  ;   Inputs:     ES:DI points to an SFT
- 36388                                  ;   Outputs:    None
- 36389                                  ;   Registers modified: all except DS,ES,DI
- 36390                                  
- 36391                                  ShareEnd:
- 36392                                  	; 26/07/2019
- 36393 00007696 FF1E[6400]              	call	far [JShare+(2*4)]	; 2 = MFTClose
- 36394 0000769A C3                      	retn
+ 36349                                  ; Inputs:
+ 36350                                  ;       [THISDPB] Set
+ 36351                                  ;       AX has error code
+ 36352                                  ; Function:
+ 36353                                  ;       Handle Sharing errors
+ 36354                                  ; Outputs:
+ 36355                                  ;       Carry set if user says FAIL, causes error_sharing_violation
+ 36356                                  ;       Carry clear if user wants a retry
+ 36357                                  ;
+ 36358                                  ; DS, ES, DI preserved, others destroyed
+ 36359                                  
+ 36360                                  SHARE_VIOLATION:
+ 36361 00007670 1E                      	PUSH    DS
+ 36362 00007671 06                      	PUSH	ES
+ 36363 00007672 57                      	PUSH    DI
+ 36364 00007673 C606[3205]00            	MOV     byte [READOP],0		; All share errors are reading
+ 36365                                  	;mov	byte [ALLOWED],18h
+ 36366 00007678 C606[1503]18            	MOV     byte [ALLOWED],Allowed_FAIL+Allowed_RETRY
+ 36367 0000767D C42E[4605]              	LES     BP,[THISDPB]
+ 36368 00007681 BF0100                  	MOV     DI,1			; Fake some registers
+ 36369 00007684 89F9                    	MOV     CX,DI
+ 36370                                  	;mov	dx,[es:bp+16]
+ 36371 00007686 268B5611                	MOV     DX,[ES:BP+DPB.DIR_SECTOR]
+ 36372 0000768A E89BE4                  	call	HARDERR
+ 36373 0000768D 5F                      	POP     DI
+ 36374 0000768E 07                      	POP	ES
+ 36375 0000768F 1F                      	POP     DS
+ 36376 00007690 3C01                    	CMP     AL,1
+ 36377 00007692 74DB                    	jz	short shchk_retn	; 1 = retry, carry clear
+ 36378 00007694 F9                      	STC
+ 36379 00007695 C3                      	retn
+ 36380                                  
+ 36381                                  ;   ShareEnd - terminate sharing info on a particular SFT/UID/PID.  This does
+ 36382                                  ;       NOT perform a close, it merely asserts that the sharing information
+ 36383                                  ;       for the SFT/UID/PID may be safely released.
+ 36384                                  ;
+ 36385                                  ;   Inputs:     ES:DI points to an SFT
+ 36386                                  ;   Outputs:    None
+ 36387                                  ;   Registers modified: all except DS,ES,DI
+ 36388                                  
+ 36389                                  ShareEnd:
+ 36390                                  	; 26/07/2019
+ 36391 00007696 FF1E[6400]              	call	far [JShare+(2*4)]	; 2 = MFTClose
+ 36392 0000769A C3                      	retn
+ 36393                                  
+ 36394                                  ;Break <ShareEnter - attempt to enter a node into the sharing set>
  36395                                  
- 36396                                  ;Break <ShareEnter - attempt to enter a node into the sharing set>
- 36397                                  
- 36398                                  ;
- 36399                                  ;   ShareEnter - perform a retried entry of a nodde into the sharing set.  If
- 36400                                  ;   the max number of retries is exceeded, we notify the user via int 24.
- 36401                                  ;
- 36402                                  ;   Inputs:     ThisSFT points to the SFT
- 36403                                  ;               WFP_Start points to the WFP
- 36404                                  ;   Outputs:    Carry clear => successful entry
- 36405                                  ;               Carry set => failed system call
- 36406                                  ;   Registers modified: all
- 36407                                  
- 36408                                  ShareEnter:
- 36409 0000769B 51                      	push	cx
- 36410                                  retry:
- 36411 0000769C 8B0E[1A00]              	mov     cx,[RetryCount]
- 36412                                  attempt:
- 36413 000076A0 C43E[5A05]              	les     di,[THISSFT]		; grab sft
- 36414 000076A4 31C0                    	XOR     AX,AX
- 36415                                   	;mov	[es:di+51],ax
- 36416 000076A6 26894533                	MOV     [ES:DI+SF_ENTRY.sf_MFT],AX ; indicate free SFT
- 36417 000076AA 51                      	push	cx
- 36418 000076AB E8BDFF                  	call    SHARE_CHECK             ; attempt to enter into the sharing set
- 36419 000076AE 59                      	pop	cx
- 36420 000076AF 730A                    	jnc	short done		; success, let the user see this
- 36421 000076B1 E878A9                  	call	Idle                    ; wait a while
- 36422 000076B4 E2EA                    	loop    attempt                 ; go back for another attempt
- 36423 000076B6 E8B7FF                  	call    SHARE_VIOLATION         ; signal the problem to the user
- 36424 000076B9 73E1                    	jnc	short retry		; user said to retry, go do it
- 36425                                  done:
- 36426 000076BB 59                      	pop	cx
- 36427 000076BC C3                      	retn
+ 36396                                  ;
+ 36397                                  ;   ShareEnter - perform a retried entry of a nodde into the sharing set.  If
+ 36398                                  ;   the max number of retries is exceeded, we notify the user via int 24.
+ 36399                                  ;
+ 36400                                  ;   Inputs:     ThisSFT points to the SFT
+ 36401                                  ;               WFP_Start points to the WFP
+ 36402                                  ;   Outputs:    Carry clear => successful entry
+ 36403                                  ;               Carry set => failed system call
+ 36404                                  ;   Registers modified: all
+ 36405                                  
+ 36406                                  ShareEnter:
+ 36407 0000769B 51                      	push	cx
+ 36408                                  retry:
+ 36409 0000769C 8B0E[1A00]              	mov     cx,[RetryCount]
+ 36410                                  attempt:
+ 36411 000076A0 C43E[5A05]              	les     di,[THISSFT]		; grab sft
+ 36412 000076A4 31C0                    	XOR     AX,AX
+ 36413                                   	;mov	[es:di+51],ax
+ 36414 000076A6 26894533                	MOV     [ES:DI+SF_ENTRY.sf_MFT],AX ; indicate free SFT
+ 36415 000076AA 51                      	push	cx
+ 36416 000076AB E8BDFF                  	call    SHARE_CHECK             ; attempt to enter into the sharing set
+ 36417 000076AE 59                      	pop	cx
+ 36418 000076AF 730A                    	jnc	short done		; success, let the user see this
+ 36419 000076B1 E878A9                  	call	Idle                    ; wait a while
+ 36420 000076B4 E2EA                    	loop    attempt                 ; go back for another attempt
+ 36421 000076B6 E8B7FF                  	call    SHARE_VIOLATION         ; signal the problem to the user
+ 36422 000076B9 73E1                    	jnc	short retry		; user said to retry, go do it
+ 36423                                  done:
+ 36424 000076BB 59                      	pop	cx
+ 36425 000076BC C3                      	retn
+ 36426                                  
+ 36427                                  ;----------------------------------------------------------------------------
  36428                                  
  36429                                  ;----------------------------------------------------------------------------
  36430                                  
- 36431                                  ;----------------------------------------------------------------------------
+ 36431                                  ;align 2 ; 05/09/2018 (Error!)
  36432                                  
- 36433                                  ;align 2 ; 05/09/2018 (Error!)
+ 36433 000076BD 90<rep 3h>              align 16 ; 08/09/2018 (OK.)
  36434                                  
- 36435 000076BD 90<rep 3h>              align 16 ; 08/09/2018 (OK.)
+ 36435                                  ; 06/08/2018 - Retro DOS v3.0
  36436                                  
- 36437                                  ; 06/08/2018 - Retro DOS v3.0
- 36438                                  
+ 36437                                  ;============================================================================
+ 36438                                  ; MSINIT.ASM
  36439                                  ;============================================================================
- 36440                                  ; MSINIT.ASM
- 36441                                  ;============================================================================
+ 36440                                  ;
+ 36441                                  ; MAIN ENTRY FOR DOS INITIALIZATION
  36442                                  ;
- 36443                                  ; MAIN ENTRY FOR DOS INITIALIZATION
- 36444                                  ;
- 36445                                  	; 15/07/2018 - Retro DOS v3.0
- 36446                                  	; (MSDOS 3.3, IBMDOS.COM, 1987)
- 36447                                  
- 36448                                  SYSBUF:
- 36449                                  IRETT:
- 36450 000076C0 CF                      	iret
- 36451                                  
- 36452                                  	; 07/07/2018 - Retro DOS v3.0
- 36453                                  	; Retro DOS v2.0 - 03/03/2018
- 36454                                  DOSINIT:
- 36455                                  	; Far call from SYSINIT
- 36456                                  	; DX = Memory size in paragraphs
- 36457                                  	; DS:SI = [DEVICE_LIST] (SYSINIT.S) 
- 36458                                  	;	  (Retro DOS v2.0, 16/03/2018)
- 36459 000076C1 FA                              CLI
- 36460 000076C2 FC                              CLD
- 36461 000076C3 2E8916[1003]                    MOV     [CS:ENDMEM],DX
- 36462 000076C8 2E8926[8A04]                    MOV     [CS:INITSP],SP
- 36463 000076CD 2E8C16[8C04]                    MOV     [CS:INITSS],SS
- 36464 000076D2 8CC8                            MOV     AX,CS
- 36465 000076D4 8ED0                            MOV     SS,AX
- 36466 000076D6 BC[B879]                        MOV     SP,INITSTACK
- 36467                                  	; 08/08/2018
- 36468 000076D9 368C1E[4A00]            	MOV     [SS:NULDEV+2],DS
- 36469 000076DE 368936[4800]                    MOV     [SS:NULDEV],SI	; DS:SI Points to CONSOLE Device
- 36470                                  	; 15/07/2018
- 36471                                  	; MSDOS 3.3 (IBMDOS.COM, 1987)
- 36472                                  	; (Set INT 2Ah handler address to an 'IRET')
- 36473 000076E3 1E                      	push    ds
- 36474 000076E4 31C0                    	xor     ax,ax
- 36475 000076E6 8ED8                    	mov     ds,ax
- 36476 000076E8 B8[C076]                	mov     ax,IRETT
- 36477 000076EB A3A800                  	mov     [2Ah*4],ax ; 00A8h
- 36478 000076EE 8CC8                    	mov     ax,cs
- 36479 000076F0 A3AA00                  	mov     [(2Ah*4)+2],ax ; 00AAh
- 36480 000076F3 1F                      	pop     ds
- 36481                                  	;
- 36482 000076F4 E81102                          CALL    CHARINIT	; initialize console driver
- 36483                                  
- 36484 000076F7 56                              PUSH	SI		; save pointer to header	
- 36485 000076F8 0E                      	PUSH	CS
- 36486 000076F9 07                              POP	ES
- 36487                                          ; 07/07/2018
- 36488 000076FA BF[9E00]                	MOV     DI,SFTABL+SFT.SFTable	; Point to sft 0
- 36489 000076FD B80300                          MOV     AX,3
- 36490 00007700 AB                              STOSW           	; Refcount
- 36491 00007701 FEC8                            DEC     AL
- 36492 00007703 AB                              STOSW           	; Access rd/wr, compatibility
- 36493 00007704 30C0                            XOR     AL,AL
- 36494 00007706 AA                              STOSB           	; attribute
- 36495                                  	;mov	al,0C3h
- 36496 00007707 B0C3                    	mov	al,devid_device_EOF|devid_device|ISCIN|ISCOUT
- 36497 00007709 AB                      	STOSw			; flags
- 36498 0000770A 89F0                            mov	ax,si
- 36499 0000770C AB                              stosw			; device pointer in devptr	
- 36500 0000770D 8CD8                            mov	ax,ds
- 36501 0000770F AB                      	stosw
- 36502 00007710 31C0                    	xor	ax,ax	; 0
- 36503 00007712 AB                      	stosw			; firclus
- 36504 00007713 AB                      	stosw			; time
- 36505 00007714 AB                      	stosw			; date
- 36506 00007715 48                      	dec	ax	; -1
- 36507 00007716 AB                      	stosw			; size
- 36508 00007717 AB                      	stosw
- 36509 00007718 40                      	inc	ax	; 0
- 36510 00007719 AB                      	stosw			; position
- 36511 0000771A AB                      	stosw
- 36512                                  	;add	di,7
- 36513 0000771B 83C707                  	add	di,SF_ENTRY.sf_name - SF_ENTRY.sf_cluspos
- 36514                                  				; point at name
- 36515                                  	;add	si,10
- 36516 0000771E 83C60A                  	add	si,SYSDEV.NAME	; sdevname
- 36517                                  				; point to name
- 36518 00007721 B90400                  	mov	cx,4
- 36519 00007724 F3A5                    	rep	movsw		; name
- 36520 00007726 B103                    	mov	cl,3
- 36521 00007728 B020                    	mov	al," "
- 36522 0000772A F3AA                    	rep	stosb		; extension
- 36523 0000772C 5E                      	POP	SI		; get back pointer to header
- 36524                                  
- 36525                                  				; mark device as CON I/O
- 36526                                  	; 15/07/2018
- 36527                                          ;OR	BYTE [SI+4],ISCIN|ISCOUT ; or byte [si+4],3
- 36528 0000772D 804C0403                	OR	BYTE [SI+SYSDEV.ATT],ISCIN|ISCOUT
- 36529                                  	; 12/03/2018
- 36530 00007731 368936[3200]            	MOV     [SS:BCON],SI
- 36531 00007736 368C1E[3400]                    MOV     [SS:BCON+2],DS
- 36532                                  
- 36533                                  CHAR_INIT_LOOP:
- 36534 0000773B C534                            LDS     SI,[SI]				; AUX device
- 36535 0000773D E8C801                          CALL    CHARINIT
- 36536                                         	;15/07/2018
- 36537                                  	;test	byte [SI+4],8
- 36538 00007740 F6440408                	TEST    BYTE [SI+SYSDEV.ATT],ISCLOCK
- 36539 00007744 74F5                            JZ      SHORT CHAR_INIT_LOOP
- 36540                                  	; 12/03/2018
- 36541 00007746 368936[2E00]                    MOV     [SS:BCLOCK],SI
- 36542 0000774B 368C1E[3000]                    MOV     [SS:BCLOCK+2],DS
- 36543 00007750 BD[BA79]                        MOV     BP,MEMSTRT			; ES:BP points to DPB
- 36544                                  PERDRV:
- 36545                                  	;lds	si,[SI+SYSDEV.NEXT] ; 15/07/2018
- 36546 00007753 C534                            LDS     SI,[SI]				; Next device
- 36547 00007755 83FEFF                          CMP     SI,-1
- 36548 00007758 7468                    	JZ      SHORT CONTINIT
+ 36443                                  	; 15/07/2018 - Retro DOS v3.0
+ 36444                                  	; (MSDOS 3.3, IBMDOS.COM, 1987)
+ 36445                                  
+ 36446                                  SYSBUF:
+ 36447                                  IRETT:
+ 36448 000076C0 CF                      	iret
+ 36449                                  
+ 36450                                  	; 07/07/2018 - Retro DOS v3.0
+ 36451                                  	; Retro DOS v2.0 - 03/03/2018
+ 36452                                  DOSINIT:
+ 36453                                  	; Far call from SYSINIT
+ 36454                                  	; DX = Memory size in paragraphs
+ 36455                                  	; DS:SI = [DEVICE_LIST] (SYSINIT.S) 
+ 36456                                  	;	  (Retro DOS v2.0, 16/03/2018)
+ 36457 000076C1 FA                              CLI
+ 36458 000076C2 FC                              CLD
+ 36459 000076C3 2E8916[1003]                    MOV     [CS:ENDMEM],DX
+ 36460 000076C8 2E8926[8A04]                    MOV     [CS:INITSP],SP
+ 36461 000076CD 2E8C16[8C04]                    MOV     [CS:INITSS],SS
+ 36462 000076D2 8CC8                            MOV     AX,CS
+ 36463 000076D4 8ED0                            MOV     SS,AX
+ 36464 000076D6 BC[B879]                        MOV     SP,INITSTACK
+ 36465                                  	; 08/08/2018
+ 36466 000076D9 368C1E[4A00]            	MOV     [SS:NULDEV+2],DS
+ 36467 000076DE 368936[4800]                    MOV     [SS:NULDEV],SI	; DS:SI Points to CONSOLE Device
+ 36468                                  	; 15/07/2018
+ 36469                                  	; MSDOS 3.3 (IBMDOS.COM, 1987)
+ 36470                                  	; (Set INT 2Ah handler address to an 'IRET')
+ 36471 000076E3 1E                      	push    ds
+ 36472 000076E4 31C0                    	xor     ax,ax
+ 36473 000076E6 8ED8                    	mov     ds,ax
+ 36474 000076E8 B8[C076]                	mov     ax,IRETT
+ 36475 000076EB A3A800                  	mov     [2Ah*4],ax ; 00A8h
+ 36476 000076EE 8CC8                    	mov     ax,cs
+ 36477 000076F0 A3AA00                  	mov     [(2Ah*4)+2],ax ; 00AAh
+ 36478 000076F3 1F                      	pop     ds
+ 36479                                  	;
+ 36480 000076F4 E81102                          CALL    CHARINIT	; initialize console driver
+ 36481                                  
+ 36482 000076F7 56                              PUSH	SI		; save pointer to header	
+ 36483 000076F8 0E                      	PUSH	CS
+ 36484 000076F9 07                              POP	ES
+ 36485                                          ; 07/07/2018
+ 36486 000076FA BF[9E00]                	MOV     DI,SFTABL+SFT.SFTable	; Point to sft 0
+ 36487 000076FD B80300                          MOV     AX,3
+ 36488 00007700 AB                              STOSW           	; Refcount
+ 36489 00007701 FEC8                            DEC     AL
+ 36490 00007703 AB                              STOSW           	; Access rd/wr, compatibility
+ 36491 00007704 30C0                            XOR     AL,AL
+ 36492 00007706 AA                              STOSB           	; attribute
+ 36493                                  	;mov	al,0C3h
+ 36494 00007707 B0C3                    	mov	al,devid_device_EOF|devid_device|ISCIN|ISCOUT
+ 36495 00007709 AB                      	STOSw			; flags
+ 36496 0000770A 89F0                            mov	ax,si
+ 36497 0000770C AB                              stosw			; device pointer in devptr	
+ 36498 0000770D 8CD8                            mov	ax,ds
+ 36499 0000770F AB                      	stosw
+ 36500 00007710 31C0                    	xor	ax,ax	; 0
+ 36501 00007712 AB                      	stosw			; firclus
+ 36502 00007713 AB                      	stosw			; time
+ 36503 00007714 AB                      	stosw			; date
+ 36504 00007715 48                      	dec	ax	; -1
+ 36505 00007716 AB                      	stosw			; size
+ 36506 00007717 AB                      	stosw
+ 36507 00007718 40                      	inc	ax	; 0
+ 36508 00007719 AB                      	stosw			; position
+ 36509 0000771A AB                      	stosw
+ 36510                                  	;add	di,7
+ 36511 0000771B 83C707                  	add	di,SF_ENTRY.sf_name - SF_ENTRY.sf_cluspos
+ 36512                                  				; point at name
+ 36513                                  	;add	si,10
+ 36514 0000771E 83C60A                  	add	si,SYSDEV.NAME	; sdevname
+ 36515                                  				; point to name
+ 36516 00007721 B90400                  	mov	cx,4
+ 36517 00007724 F3A5                    	rep	movsw		; name
+ 36518 00007726 B103                    	mov	cl,3
+ 36519 00007728 B020                    	mov	al," "
+ 36520 0000772A F3AA                    	rep	stosb		; extension
+ 36521 0000772C 5E                      	POP	SI		; get back pointer to header
+ 36522                                  
+ 36523                                  				; mark device as CON I/O
+ 36524                                  	; 15/07/2018
+ 36525                                          ;OR	BYTE [SI+4],ISCIN|ISCOUT ; or byte [si+4],3
+ 36526 0000772D 804C0403                	OR	BYTE [SI+SYSDEV.ATT],ISCIN|ISCOUT
+ 36527                                  	; 12/03/2018
+ 36528 00007731 368936[3200]            	MOV     [SS:BCON],SI
+ 36529 00007736 368C1E[3400]                    MOV     [SS:BCON+2],DS
+ 36530                                  
+ 36531                                  CHAR_INIT_LOOP:
+ 36532 0000773B C534                            LDS     SI,[SI]				; AUX device
+ 36533 0000773D E8C801                          CALL    CHARINIT
+ 36534                                         	;15/07/2018
+ 36535                                  	;test	byte [SI+4],8
+ 36536 00007740 F6440408                	TEST    BYTE [SI+SYSDEV.ATT],ISCLOCK
+ 36537 00007744 74F5                            JZ      SHORT CHAR_INIT_LOOP
+ 36538                                  	; 12/03/2018
+ 36539 00007746 368936[2E00]                    MOV     [SS:BCLOCK],SI
+ 36540 0000774B 368C1E[3000]                    MOV     [SS:BCLOCK+2],DS
+ 36541 00007750 BD[BA79]                        MOV     BP,MEMSTRT			; ES:BP points to DPB
+ 36542                                  PERDRV:
+ 36543                                  	;lds	si,[SI+SYSDEV.NEXT] ; 15/07/2018
+ 36544 00007753 C534                            LDS     SI,[SI]				; Next device
+ 36545 00007755 83FEFF                          CMP     SI,-1
+ 36546 00007758 7468                    	JZ      SHORT CONTINIT
+ 36547                                  
+ 36548 0000775A E8AB01                          CALL    CHARINIT
  36549                                  
- 36550 0000775A E8AB01                          CALL    CHARINIT
- 36551                                  
- 36552                                  	; Retro DOS v2.0 - 16/03/2018 (NOTE for 'CHARINIT' return):
- 36553                                  	; [CALLUNIT] = Number of drives for (Disk) Block Dev Driver ([DRVMAX])
- 36554                                  	;           (..When the command is 'DSK$INIT', as in 'CHARINIT')
- 36555                                  	; [CALLBPB] = [DEVCALL.COUNT] = Address of the BPB (DEVCALL offset 18) 
- 36556                                  	; (REF: MSDOS 3.3 MSBIO2.ASM, MSDATA.INC, MSDISK.ASM, MSBIO1.ASM)
- 36557                                  	; (.. !DSK$IN' in MSBIO1.ASM)
- 36558                                  	; DEVCALL.MEDIA = CALLUNIT (DEVCALL offset 13)
- 36559                                  
- 36560                                          ; 15/07/2018
- 36561                                  	;test	word [SI+4],8000h		; DEVTYP
- 36562 0000775D F744040080                      TEST    word [SI+SYSDEV.ATT],DEVTYP
- 36563 00007762 75EF                    	JNZ     SHORT PERDRV			; Skip any other character devs
- 36564                                  
- 36565 00007764 368A0E[3103]                    MOV	CL,[SS:CALLUNIT] ; 12/03/2018
- 36566 00007769 30ED                    	XOR     CH,CH
- 36567                                          ; 07/07/2018
- 36568                                  	;MOV	[SI+10],CL		; Number of units in name field
- 36569 0000776B 884C0A                  	mov	[si+SYSDEV.NAME],cl	; sdevname        
- 36570 0000776E 368A16[4600]            	MOV     DL,[SS:NUMIO]	; 15/03/2018
- 36571 00007773 30F6                    	XOR     DH,DH
- 36572 00007775 36000E[4600]            	ADD	[SS:NUMIO],CL	; 12/03/2018
- 36573 0000777A 1E                      	PUSH    DS
- 36574 0000777B 56                              PUSH    SI
- 36575 0000777C 36C51E[3603]            	LDS	BX,[SS:CALLBPB]	; 12/03/2018
- 36576                                  PERUNIT:
- 36577 00007781 8B37                            MOV     SI,[BX]                 ; DS:SI Points to BPB
- 36578 00007783 43                              INC     BX
- 36579 00007784 43                              INC     BX                      ; On to next BPB
- 36580                                  	;07/07/2018
- 36581                                          ;mov	[ES:BP+DPB.DRIVE],dl
- 36582 00007785 26885600                	MOV     [ES:BP],DL
- 36583                                  	;MOV	[ES:BP+1],DH
- 36584 00007789 26887601                	MOV	[ES:BP+DPB.UNIT],DH
- 36585 0000778D 53                              PUSH    BX
- 36586 0000778E 51                              PUSH    CX
- 36587 0000778F 52                              PUSH    DX
- 36588                                  
- 36589                                          ;invoke	$SETDPB
- 36590 00007790 E88DA6                          CALL	_$SETDPB
- 36591                                  
- 36592                                  	; 07/07/2018
- 36593                                  	;MOV	AX,[ES:BP+2]
- 36594 00007793 268B4602                	mov	ax,[ES:BP+DPB.SECTOR_SIZE]
- 36595                                          ; 12/03/2018
- 36596 00007797 363B06[3600]            	CMP	AX,[SS:MAXSEC]
- 36597 0000779C 7604                    	JBE     SHORT NOTMAX
- 36598 0000779E 36A3[3600]              	MOV	[SS:MAXSEC],AX
- 36599                                  NOTMAX:
- 36600 000077A2 5A                              POP     DX
- 36601 000077A3 59                              POP     CX
- 36602 000077A4 5B                              POP     BX
- 36603 000077A5 8CD8                            MOV     AX,DS                   ; save segment of bpb array
- 36604 000077A7 5E                              POP     SI
- 36605 000077A8 1F                              POP     DS
- 36606                                  					; ds:si -> device header
- 36607                                  					; store it in the corresponding dpb
- 36608                                  	; 07/07/2018
- 36609                                          ;MOV	[ES:BP+18],SI
- 36610 000077A9 26897613                	mov	[ES:BP+DPB.DRIVER_ADDR],si
- 36611                                          ;MOV	[ES:BP+20],DS
- 36612 000077AD 268C5E15                	mov	[ES:BP+DPB.DRIVER_ADDR+2],ds
- 36613                                  
- 36614 000077B1 1E                              PUSH    DS			; save pointer to device header
- 36615 000077B2 56                              PUSH    SI
- 36616 000077B3 FEC6                            INC     DH			; inc unit #
- 36617 000077B5 FEC2                            INC     DL			; inc drive #
- 36618 000077B7 8ED8                            MOV     DS,AX			; restore segment of BPB array
- 36619                                          ;add	bp,32 ; 15/07/2018
- 36620                                  	;add	bp,33 ; MSDOS 6.0 ; 31/07/2019
- 36621 000077B9 83C521                  	ADD     BP,DPBSIZ		; advance pointer to next dpb
- 36622 000077BC E2C3                    	LOOP    PERUNIT			; process all units in each driver
- 36623                                          
- 36624 000077BE 5E                      	POP     SI			; restore pointer to device header
- 36625 000077BF 1F                              POP     DS
- 36626 000077C0 EB91                    	JMP	SHORT PERDRV		; process all drivers in chain
- 36627                                  
- 36628                                  CONTINIT:
- 36629 000077C2 0E                              PUSH    CS
- 36630 000077C3 1F                              POP     DS
- 36631                                  ; Calculate true address of buffers, FATs, free space
- 36632 000077C4 89EF                            MOV     DI,BP           ; First byte after current DPBs
- 36633 000077C6 8B2E[3600]                      MOV     BP,[MAXSEC]
- 36634 000077CA B8[C076]                        MOV     AX,SYSBUF	; = IRETT (15/07/2018)
- 36635                                          ; 07/07/2018
- 36636                                  	;MOV	[BUFFSTRT],AX
- 36637 000077CD 01E8                            ADD     AX,BP           ; One I/O buffer
- 36638 000077CF 83C014                          ADD     AX,BUFINSIZ ; = 16
- 36639 000077D2 A3[2600]                        MOV     [DPBHEAD],AX	; True start of DPBs
- 36640 000077D5 89C2                            MOV     DX,AX
- 36641 000077D7 81EA[C076]                      SUB     DX,SYSBUF	; = IRETT (15/07/2018)
- 36642 000077DB 89D5                            MOV     BP,DX
- 36643 000077DD 01FD                            ADD     BP,DI           ; Allocate buffer space
- 36644                                  	;sub	bp,918 ; = ADJFAC for current DOSINIT (07/07/2018)
- 36645 000077DF 81EDFA02                        SUB     BP,ADJFAC       ; True address of free memory
- 36646 000077E3 55                              PUSH    BP ; ### ; *fmem* (start of free memory)		
- 36647                                          ; 24/07/2019
- 36648 000077E4 BF[BA79]                	MOV     DI,MEMSTRT	; Current start of DPBs  ; 75A6h for MSDOS 3.3
- 36649                                  	;add	di,24 ; MSDOS 3.3
- 36650                                  	;add	di,25 ; MSDOS 6.0
- 36651 000077E7 83C719                          ADD     DI,DPB.NEXT_DPB	; Point at dpb.next_dpb field
- 36652 000077EA 8A0E[4600]                      MOV     CL,[NUMIO]
- 36653 000077EE 30ED                            XOR     CH,CH
- 36654                                  TRUEDPBAD:
- 36655                                  	;add	ax,32 ; MSDOS 3.3
- 36656                                  	;add	ax,33 ; MSDOS 6.0
- 36657 000077F0 83C021                          ADD     AX,DPBSIZ       ; Compute address of next DPB
- 36658 000077F3 AB                              STOSW                   ; Set the link to next DPB
- 36659 000077F4 83C71F                          ADD     DI,DPBSIZ-2     ; Point at next address
- 36660 000077F7 E2F7                            LOOP    TRUEDPBAD
- 36661 000077F9 83EF21                          SUB     DI,DPBSIZ       ; Point at last dpb.next_dpb field
- 36662 000077FC B8FFFF                          MOV     AX,-1
- 36663 000077FF AB                              STOSW                   ; End of list
- 36664 00007800 83C50F                          ADD     BP,15           ; True start of free space (round up to segment)
- 36665                                  	; 15/07/2018
- 36666                                  	;MOV	CL,4
- 36667                                          ;SHR	BP,CL           ; Number of segments for DOS resources
- 36668 00007803 D1DD                            rcr	bp,1
- 36669 00007805 B103                    	mov	cl,3
- 36670 00007807 D3ED                    	shr	bp,cl
- 36671                                  	;
- 36672 00007809 8CCA                    	MOV     DX,CS
- 36673 0000780B 01EA                            ADD     DX,BP           ; First free segment
- 36674                                  	
- 36675                                    	; 06/07/2019
- 36676                                  	;MOV	BX,15 ; 0Fh
- 36677                                  	;MOV	CX,[ENDMEM]
- 36678                                  	
- 36679 0000780D 8CCD                    	MOV     BP,CS
- 36680                                  
- 36681                                  ; BP has segment of DOS (whether to load high or run in place)
- 36682                                  ; DX has program segment (whether after DOS or overlaying DOS)
- 36683                                  ; CX has size of memory in paragraphs (reduced by DOS size if HIGHMEM)
- 36684                                          
- 36685                                  	; 06/07/2019
- 36686                                  	;MOV	[ENDMEM],CX
- 36687                                          ;MOV	ES,BP
- 36688                                          ;MOV	[ES:DSKCHRET+3],ES ; mov [ES:DOSEG_INIT],es
+ 36550                                  	; Retro DOS v2.0 - 16/03/2018 (NOTE for 'CHARINIT' return):
+ 36551                                  	; [CALLUNIT] = Number of drives for (Disk) Block Dev Driver ([DRVMAX])
+ 36552                                  	;           (..When the command is 'DSK$INIT', as in 'CHARINIT')
+ 36553                                  	; [CALLBPB] = [DEVCALL.COUNT] = Address of the BPB (DEVCALL offset 18) 
+ 36554                                  	; (REF: MSDOS 3.3 MSBIO2.ASM, MSDATA.INC, MSDISK.ASM, MSBIO1.ASM)
+ 36555                                  	; (.. !DSK$IN' in MSBIO1.ASM)
+ 36556                                  	; DEVCALL.MEDIA = CALLUNIT (DEVCALL offset 13)
+ 36557                                  
+ 36558                                          ; 15/07/2018
+ 36559                                  	;test	word [SI+4],8000h		; DEVTYP
+ 36560 0000775D F744040080                      TEST    word [SI+SYSDEV.ATT],DEVTYP
+ 36561 00007762 75EF                    	JNZ     SHORT PERDRV			; Skip any other character devs
+ 36562                                  
+ 36563 00007764 368A0E[3103]                    MOV	CL,[SS:CALLUNIT] ; 12/03/2018
+ 36564 00007769 30ED                    	XOR     CH,CH
+ 36565                                          ; 07/07/2018
+ 36566                                  	;MOV	[SI+10],CL		; Number of units in name field
+ 36567 0000776B 884C0A                  	mov	[si+SYSDEV.NAME],cl	; sdevname        
+ 36568 0000776E 368A16[4600]            	MOV     DL,[SS:NUMIO]	; 15/03/2018
+ 36569 00007773 30F6                    	XOR     DH,DH
+ 36570 00007775 36000E[4600]            	ADD	[SS:NUMIO],CL	; 12/03/2018
+ 36571 0000777A 1E                      	PUSH    DS
+ 36572 0000777B 56                              PUSH    SI
+ 36573 0000777C 36C51E[3603]            	LDS	BX,[SS:CALLBPB]	; 12/03/2018
+ 36574                                  PERUNIT:
+ 36575 00007781 8B37                            MOV     SI,[BX]                 ; DS:SI Points to BPB
+ 36576 00007783 43                              INC     BX
+ 36577 00007784 43                              INC     BX                      ; On to next BPB
+ 36578                                  	;07/07/2018
+ 36579                                          ;mov	[ES:BP+DPB.DRIVE],dl
+ 36580 00007785 26885600                	MOV     [ES:BP],DL
+ 36581                                  	;MOV	[ES:BP+1],DH
+ 36582 00007789 26887601                	MOV	[ES:BP+DPB.UNIT],DH
+ 36583 0000778D 53                              PUSH    BX
+ 36584 0000778E 51                              PUSH    CX
+ 36585 0000778F 52                              PUSH    DX
+ 36586                                  
+ 36587                                          ;invoke	$SETDPB
+ 36588 00007790 E88DA6                          CALL	_$SETDPB
+ 36589                                  
+ 36590                                  	; 07/07/2018
+ 36591                                  	;MOV	AX,[ES:BP+2]
+ 36592 00007793 268B4602                	mov	ax,[ES:BP+DPB.SECTOR_SIZE]
+ 36593                                          ; 12/03/2018
+ 36594 00007797 363B06[3600]            	CMP	AX,[SS:MAXSEC]
+ 36595 0000779C 7604                    	JBE     SHORT NOTMAX
+ 36596 0000779E 36A3[3600]              	MOV	[SS:MAXSEC],AX
+ 36597                                  NOTMAX:
+ 36598 000077A2 5A                              POP     DX
+ 36599 000077A3 59                              POP     CX
+ 36600 000077A4 5B                              POP     BX
+ 36601 000077A5 8CD8                            MOV     AX,DS                   ; save segment of bpb array
+ 36602 000077A7 5E                              POP     SI
+ 36603 000077A8 1F                              POP     DS
+ 36604                                  					; ds:si -> device header
+ 36605                                  					; store it in the corresponding dpb
+ 36606                                  	; 07/07/2018
+ 36607                                          ;MOV	[ES:BP+18],SI
+ 36608 000077A9 26897613                	mov	[ES:BP+DPB.DRIVER_ADDR],si
+ 36609                                          ;MOV	[ES:BP+20],DS
+ 36610 000077AD 268C5E15                	mov	[ES:BP+DPB.DRIVER_ADDR+2],ds
+ 36611                                  
+ 36612 000077B1 1E                              PUSH    DS			; save pointer to device header
+ 36613 000077B2 56                              PUSH    SI
+ 36614 000077B3 FEC6                            INC     DH			; inc unit #
+ 36615 000077B5 FEC2                            INC     DL			; inc drive #
+ 36616 000077B7 8ED8                            MOV     DS,AX			; restore segment of BPB array
+ 36617                                          ;add	bp,32 ; 15/07/2018
+ 36618                                  	;add	bp,33 ; MSDOS 6.0 ; 31/07/2019
+ 36619 000077B9 83C521                  	ADD     BP,DPBSIZ		; advance pointer to next dpb
+ 36620 000077BC E2C3                    	LOOP    PERUNIT			; process all units in each driver
+ 36621                                          
+ 36622 000077BE 5E                      	POP     SI			; restore pointer to device header
+ 36623 000077BF 1F                              POP     DS
+ 36624 000077C0 EB91                    	JMP	SHORT PERDRV		; process all drivers in chain
+ 36625                                  
+ 36626                                  CONTINIT:
+ 36627 000077C2 0E                              PUSH    CS
+ 36628 000077C3 1F                              POP     DS
+ 36629                                  ; Calculate true address of buffers, FATs, free space
+ 36630 000077C4 89EF                            MOV     DI,BP           ; First byte after current DPBs
+ 36631 000077C6 8B2E[3600]                      MOV     BP,[MAXSEC]
+ 36632 000077CA B8[C076]                        MOV     AX,SYSBUF	; = IRETT (15/07/2018)
+ 36633                                          ; 07/07/2018
+ 36634                                  	;MOV	[BUFFSTRT],AX
+ 36635 000077CD 01E8                            ADD     AX,BP           ; One I/O buffer
+ 36636 000077CF 83C014                          ADD     AX,BUFINSIZ ; = 16
+ 36637 000077D2 A3[2600]                        MOV     [DPBHEAD],AX	; True start of DPBs
+ 36638 000077D5 89C2                            MOV     DX,AX
+ 36639 000077D7 81EA[C076]                      SUB     DX,SYSBUF	; = IRETT (15/07/2018)
+ 36640 000077DB 89D5                            MOV     BP,DX
+ 36641 000077DD 01FD                            ADD     BP,DI           ; Allocate buffer space
+ 36642                                  	;sub	bp,918 ; = ADJFAC for current DOSINIT (07/07/2018)
+ 36643 000077DF 81EDFA02                        SUB     BP,ADJFAC       ; True address of free memory
+ 36644 000077E3 55                              PUSH    BP ; ### ; *fmem* (start of free memory)		
+ 36645                                          ; 24/07/2019
+ 36646 000077E4 BF[BA79]                	MOV     DI,MEMSTRT	; Current start of DPBs  ; 75A6h for MSDOS 3.3
+ 36647                                  	;add	di,24 ; MSDOS 3.3
+ 36648                                  	;add	di,25 ; MSDOS 6.0
+ 36649 000077E7 83C719                          ADD     DI,DPB.NEXT_DPB	; Point at dpb.next_dpb field
+ 36650 000077EA 8A0E[4600]                      MOV     CL,[NUMIO]
+ 36651 000077EE 30ED                            XOR     CH,CH
+ 36652                                  TRUEDPBAD:
+ 36653                                  	;add	ax,32 ; MSDOS 3.3
+ 36654                                  	;add	ax,33 ; MSDOS 6.0
+ 36655 000077F0 83C021                          ADD     AX,DPBSIZ       ; Compute address of next DPB
+ 36656 000077F3 AB                              STOSW                   ; Set the link to next DPB
+ 36657 000077F4 83C71F                          ADD     DI,DPBSIZ-2     ; Point at next address
+ 36658 000077F7 E2F7                            LOOP    TRUEDPBAD
+ 36659 000077F9 83EF21                          SUB     DI,DPBSIZ       ; Point at last dpb.next_dpb field
+ 36660 000077FC B8FFFF                          MOV     AX,-1
+ 36661 000077FF AB                              STOSW                   ; End of list
+ 36662 00007800 83C50F                          ADD     BP,15           ; True start of free space (round up to segment)
+ 36663                                  	; 15/07/2018
+ 36664                                  	;MOV	CL,4
+ 36665                                          ;SHR	BP,CL           ; Number of segments for DOS resources
+ 36666 00007803 D1DD                            rcr	bp,1
+ 36667 00007805 B103                    	mov	cl,3
+ 36668 00007807 D3ED                    	shr	bp,cl
+ 36669                                  	;
+ 36670 00007809 8CCA                    	MOV     DX,CS
+ 36671 0000780B 01EA                            ADD     DX,BP           ; First free segment
+ 36672                                  	
+ 36673                                    	; 06/07/2019
+ 36674                                  	;MOV	BX,15 ; 0Fh
+ 36675                                  	;MOV	CX,[ENDMEM]
+ 36676                                  	
+ 36677 0000780D 8CCD                    	MOV     BP,CS
+ 36678                                  
+ 36679                                  ; BP has segment of DOS (whether to load high or run in place)
+ 36680                                  ; DX has program segment (whether after DOS or overlaying DOS)
+ 36681                                  ; CX has size of memory in paragraphs (reduced by DOS size if HIGHMEM)
+ 36682                                          
+ 36683                                  	; 06/07/2019
+ 36684                                  	;MOV	[ENDMEM],CX
+ 36685                                          ;MOV	ES,BP
+ 36686                                          ;MOV	[ES:DSKCHRET+3],ES ; mov [ES:DOSEG_INIT],es
+ 36687                                  
+ 36688 0000780F 2E892E[6C03]            	mov	[cs:DSKCHRET+3],bp        
  36689                                  
- 36690 0000780F 2E892E[6C03]            	mov	[cs:DSKCHRET+3],bp        
- 36691                                  
- 36692 00007814 31C0                    	XOR     AX,AX
- 36693 00007816 8ED8                            MOV     DS,AX
- 36694 00007818 8EC0                            MOV     ES,AX
- 36695                                  	;mov	di,82h 
- 36696 0000781A BF8200                          MOV     DI,INTBASE+2
- 36697                                  	; 15/07/2018
- 36698 0000781D 89E8                            MOV     AX,BP
- 36699                                  	; Set INT 0 (divide by zero) handler
- 36700 0000781F C7060000[C15A]          	mov     word [0],DIVOV
- 36701 00007825 A30200                  	mov     word [2],ax  ; = cs
- 36702                                  	; Set INT 20h to INT 28h handler segments 
- 36703                                  	;mov	cx,17
- 36704 00007828 B111                    	mov	cl,17 ; 06/07/2019
- 36705 0000782A F3AB                    	rep	stosw
- 36706                                  	; DI points to INT 29h vector, offset
- 36707 0000782C 83C706                  	add	di,6 
- 36708                                  	; DI points to INT 2Ah vector, segment
- 36709                                  	;Set  INT 2Ah to INT 3Fh handler segments		
- 36710                                  	;mov	cx,43
- 36711 0000782F B12B                    	mov	cl,43 ; 06/07/2019
- 36712 00007831 F3AB                    	rep	stosw
- 36713                                  	; DI points to INT 40h vector, segment
- 36714 00007833 BF8000                  	mov	di,80h
- 36715                                  	; Set INT 20h to INT 28h vectors to their default handler offsets
- 36716 00007836 B8[CF14]                	mov	ax,_IRET
- 36717                                  	;mov	cx,9
- 36718 00007839 B109                    	mov	cl,9 ; 06/07/2019
- 36719                                  iset1:
- 36720 0000783B AB                      	stosw
- 36721 0000783C 83C702                  	add	di,2
- 36722 0000783F E2FA                    	loop	iset1
- 36723 00007841 83C704                  	add	di,4
- 36724                                  	; Set INT 2Ah to INT 3Fh vectors to their default handler offsets
- 36725                                  	;mov	cx,22
- 36726 00007844 B116                    	mov	cl,22 ; 06/07/2019
- 36727                                  iset2:
- 36728 00007846 AB                      	stosw
- 36729 00007847 83C702                  	add	di,2
- 36730 0000784A E2FA                    	loop	iset2
- 36731                                  	
- 36732                                  	; 06/07/2019
- 36733 0000784C 89E8                    	mov	ax,bp ; *ax=cs*
- 36734                                  
- 36735                                  	; Set	INT 2Fh handler offset to INT2F
- 36736 0000784E C706BC00[5C18]          	mov	word [2Fh*4],INT2F  ; 00BCh
+ 36690 00007814 31C0                    	XOR     AX,AX
+ 36691 00007816 8ED8                            MOV     DS,AX
+ 36692 00007818 8EC0                            MOV     ES,AX
+ 36693                                  	;mov	di,82h 
+ 36694 0000781A BF8200                          MOV     DI,INTBASE+2
+ 36695                                  	; 15/07/2018
+ 36696 0000781D 89E8                            MOV     AX,BP
+ 36697                                  	; Set INT 0 (divide by zero) handler
+ 36698 0000781F C7060000[C15A]          	mov     word [0],DIVOV
+ 36699 00007825 A30200                  	mov     word [2],ax  ; = cs
+ 36700                                  	; Set INT 20h to INT 28h handler segments 
+ 36701                                  	;mov	cx,17
+ 36702 00007828 B111                    	mov	cl,17 ; 06/07/2019
+ 36703 0000782A F3AB                    	rep	stosw
+ 36704                                  	; DI points to INT 29h vector, offset
+ 36705 0000782C 83C706                  	add	di,6 
+ 36706                                  	; DI points to INT 2Ah vector, segment
+ 36707                                  	;Set  INT 2Ah to INT 3Fh handler segments		
+ 36708                                  	;mov	cx,43
+ 36709 0000782F B12B                    	mov	cl,43 ; 06/07/2019
+ 36710 00007831 F3AB                    	rep	stosw
+ 36711                                  	; DI points to INT 40h vector, segment
+ 36712 00007833 BF8000                  	mov	di,80h
+ 36713                                  	; Set INT 20h to INT 28h vectors to their default handler offsets
+ 36714 00007836 B8[CF14]                	mov	ax,_IRET
+ 36715                                  	;mov	cx,9
+ 36716 00007839 B109                    	mov	cl,9 ; 06/07/2019
+ 36717                                  iset1:
+ 36718 0000783B AB                      	stosw
+ 36719 0000783C 83C702                  	add	di,2
+ 36720 0000783F E2FA                    	loop	iset1
+ 36721 00007841 83C704                  	add	di,4
+ 36722                                  	; Set INT 2Ah to INT 3Fh vectors to their default handler offsets
+ 36723                                  	;mov	cx,22
+ 36724 00007844 B116                    	mov	cl,22 ; 06/07/2019
+ 36725                                  iset2:
+ 36726 00007846 AB                      	stosw
+ 36727 00007847 83C702                  	add	di,2
+ 36728 0000784A E2FA                    	loop	iset2
+ 36729                                  	
+ 36730                                  	; 06/07/2019
+ 36731 0000784C 89E8                    	mov	ax,bp ; *ax=cs*
+ 36732                                  
+ 36733                                  	; Set	INT 2Fh handler offset to INT2F
+ 36734 0000784E C706BC00[5C18]          	mov	word [2Fh*4],INT2F  ; 00BCh
+ 36735                                  
+ 36736                                  	; set up entry point call at vectors 30-31h
  36737                                  
- 36738                                  	; set up entry point call at vectors 30-31h
- 36739                                  
- 36740 00007854 C606C000EA                      MOV     BYTE [ENTRYPOINT],mi_Long_JMP
- 36741 00007859 C706C100[D014]                  MOV     WORD [ENTRYPOINT+1],CALL_ENTRY
+ 36738 00007854 C606C000EA                      MOV     BYTE [ENTRYPOINT],mi_Long_JMP
+ 36739 00007859 C706C100[D014]                  MOV     WORD [ENTRYPOINT+1],CALL_ENTRY
+ 36740                                  
+ 36741 0000785F A3C300                  	MOV    [ENTRYPOINT+3],AX ; = cs
  36742                                  
- 36743 0000785F A3C300                  	MOV    [ENTRYPOINT+3],AX ; = cs
- 36744                                  
- 36745                                  	; Set	INT 20h, 21h, 22h, 23h handler offsets
- 36746 00007862 C7068000[C914]                  MOV     WORD [addr_int_abort],QUIT
- 36747 00007868 C7068400[E814]                  MOV     WORD [addr_int_command],COMMAND
- 36748 0000786E C70688000001                    MOV     WORD [addr_int_terminate],100H
- 36749 00007874 89168A00                        MOV     [addr_int_terminate+2],DX ; *cmc*
- 36750                                  	; 15/07/2018 - Retro DOS v3.0
- 36751 00007878 C7069400[F616]                  MOV     WORD [addr_int_disk_read],ABSDRD   ; INT 25h
- 36752 0000787E C7069800[4117]                  MOV     WORD [addr_int_disk_write],ABSDWRT ; INT 26h
- 36753 00007884 C7069C00[DB67]                  MOV     WORD [addr_int_keep_process],STAY_RESIDENT ; INT 27h
- 36754                                  
- 36755                                  	; 15/07/2018
- 36756                                  	; MSDOS 3.3 (IBMDOS.COM, 1987)
- 36757 0000788A 0E                      	push	cs
- 36758 0000788B 1F                      	pop	ds
- 36759 0000788C 0E                      	push	cs
- 36760 0000788D 07                      	pop	es
- 36761                                  	; initialize the jump table for the sharer..
- 36762                                  	;	(MSDOS 6.0, MSINIT.ASM, 1991, "patch_misc_segments")
- 36763                                  	; MSDOS 3.3
- 36764                                  	; (set JSharer jump table segments)
- 36765 0000788E BF[5C00]                	mov	di,JShare
- 36766                                  	;mov	ax,cs ; *ax=cs*
- 36767                                  	;mov	cx,15
- 36768 00007891 B10F                    	mov	cl,15 ; 06/07/2019
- 36769                                  iset3:
- 36770 00007893 83C702                  	add	di,2
- 36771 00007896 AB                      	stosw
- 36772 00007897 E2FA                    	loop	iset3
- 36773                                  
- 36774                                  	; MSDOS 2.11, MSDOS 3.3
- 36775 00007899 B8[7A03]                        MOV     AX,INITBLOCK
- 36776 0000789C 83C00F                          ADD	AX,0Fh		; round to a paragraph
- 36777 0000789F B104                            MOV     CL,4
- 36778 000078A1 D3E8                            SHR     AX,CL
- 36779 000078A3 8CDF                            MOV     DI,DS
- 36780 000078A5 01C7                            ADD     DI,AX
- 36781 000078A7 47                              INC     DI
- 36782 000078A8 893E[FC02]                      MOV     [CurrentPDB],DI
- 36783 000078AC 55                              PUSH    BP ; ## ; = cs
- 36784 000078AD 52                              PUSH    DX ; #	; *cmc*	; Save COMMAND address
- 36785 000078AE A1[1003]                        MOV     AX,[ENDMEM]
- 36786 000078B1 89FA                            MOV     DX,DI
- 36787                                  
- 36788                                          ;invoke	SETMEM		; Basic Header
- 36789 000078B3 E8BBA6                  	CALL	SETMEM
- 36790 000078B6 0E                              PUSH	CS
- 36791 000078B7 1F                              POP	DS
- 36792                                  	;mov	di,24
- 36793 000078B8 BF1800                          MOV     DI,PDB.JFN_TABLE
- 36794 000078BB 31C0                            XOR     AX,AX
- 36795 000078BD AB                              STOSW
- 36796 000078BE AA                              STOSB                   ; 0,1 and 2 are CON device
- 36797 000078BF B0FF                            MOV     AL,0FFH
- 36798                                  	;mov	cx,17
- 36799                                          ;MOV	CX,FILPERPROC-3 ; 17
- 36800 000078C1 B111                    	mov	cl,FILPERPROC-3 ; 06/07/2019
- 36801 000078C3 F3AA                            REP     STOSB           ; Rest are unused
- 36802 000078C5 0E                              PUSH	CS
- 36803 000078C6 07                              POP	ES
- 36804 000078C7 8C1E[2C00]                      MOV     [SFT_ADDR+2],DS	; Must be set to print messages
- 36805                                  
- 36806                                  	; 15/07/2018 - Retro DOS v3.0
- 36807                                  	; MSDOS 3.3
- 36808                                  	; (set country cdpg table segments)
- 36809 000078CB BE[3B10]                	mov	si,COUNTRY_CDPG ; country_tab
- 36810                                  	;mov	[es:si+79],es	; Ucase table segment
- 36811                                  	;mov	[es:si+84],es	; File ucase table segment
- 36812                                  	;mov	[es:si+89],es	; File char list segment
- 36813                                  	;mov	[es:si+94],es	; Collate table segment
- 36814                                  	;mov	[es:si+123],es	; Monocase routine segment
- 36815 000078CE 8C444F                  	mov	[si+79],es
- 36816 000078D1 8C4454                  	mov	[si+84],es
- 36817 000078D4 8C4459                  	mov	[Si+89],es
- 36818 000078D7 8C445E                  	mov	[si+94],es
- 36819 000078DA 8C447B                  	mov	[si+123],es
- 36820                                  	; (set SysInitTable -sysinitvars and country_cdpg- segments)
- 36821 000078DD BE[6B0F]                	mov     si,SysInitTable
- 36822                                  	;;mov	[es:si+6], es
- 36823                                  	;;mov	[es:si+2], es
- 36824                                  	;mov	[es:si+SYSI_EXT.Country_Tab+2],es
- 36825                                  	;mov	[es:si+SYSI_EXT.SysInitVars+2],es
- 36826 000078E0 8C4406                  	mov	[si+SYSI_EXT.Country_Tab+2],es
- 36827 000078E3 8C4402                  	mov	[si+SYSI_EXT.SysInitVars+2],es
- 36828                                  
- 36829                                  	; (set FastOpen table FastRet segment)
- 36830 000078E6 BE[730F]                	mov     si,FastTable
- 36831                                  	;mov	[es:si+4],es
- 36832                                  	;;mov	[es:si+8],es
- 36833 000078E9 8C4404                  	mov     [si+4],es
- 36834                                  	;mov	[si+8],es
+ 36743                                  	; Set	INT 20h, 21h, 22h, 23h handler offsets
+ 36744 00007862 C7068000[C914]                  MOV     WORD [addr_int_abort],QUIT
+ 36745 00007868 C7068400[E814]                  MOV     WORD [addr_int_command],COMMAND
+ 36746 0000786E C70688000001                    MOV     WORD [addr_int_terminate],100H
+ 36747 00007874 89168A00                        MOV     [addr_int_terminate+2],DX ; *cmc*
+ 36748                                  	; 15/07/2018 - Retro DOS v3.0
+ 36749 00007878 C7069400[F616]                  MOV     WORD [addr_int_disk_read],ABSDRD   ; INT 25h
+ 36750 0000787E C7069800[4117]                  MOV     WORD [addr_int_disk_write],ABSDWRT ; INT 26h
+ 36751 00007884 C7069C00[DB67]                  MOV     WORD [addr_int_keep_process],STAY_RESIDENT ; INT 27h
+ 36752                                  
+ 36753                                  	; 15/07/2018
+ 36754                                  	; MSDOS 3.3 (IBMDOS.COM, 1987)
+ 36755 0000788A 0E                      	push	cs
+ 36756 0000788B 1F                      	pop	ds
+ 36757 0000788C 0E                      	push	cs
+ 36758 0000788D 07                      	pop	es
+ 36759                                  	; initialize the jump table for the sharer..
+ 36760                                  	;	(MSDOS 6.0, MSINIT.ASM, 1991, "patch_misc_segments")
+ 36761                                  	; MSDOS 3.3
+ 36762                                  	; (set JSharer jump table segments)
+ 36763 0000788E BF[5C00]                	mov	di,JShare
+ 36764                                  	;mov	ax,cs ; *ax=cs*
+ 36765                                  	;mov	cx,15
+ 36766 00007891 B10F                    	mov	cl,15 ; 06/07/2019
+ 36767                                  iset3:
+ 36768 00007893 83C702                  	add	di,2
+ 36769 00007896 AB                      	stosw
+ 36770 00007897 E2FA                    	loop	iset3
+ 36771                                  
+ 36772                                  	; MSDOS 2.11, MSDOS 3.3
+ 36773 00007899 B8[7A03]                        MOV     AX,INITBLOCK
+ 36774 0000789C 83C00F                          ADD	AX,0Fh		; round to a paragraph
+ 36775 0000789F B104                            MOV     CL,4
+ 36776 000078A1 D3E8                            SHR     AX,CL
+ 36777 000078A3 8CDF                            MOV     DI,DS
+ 36778 000078A5 01C7                            ADD     DI,AX
+ 36779 000078A7 47                              INC     DI
+ 36780 000078A8 893E[FC02]                      MOV     [CurrentPDB],DI
+ 36781 000078AC 55                              PUSH    BP ; ## ; = cs
+ 36782 000078AD 52                              PUSH    DX ; #	; *cmc*	; Save COMMAND address
+ 36783 000078AE A1[1003]                        MOV     AX,[ENDMEM]
+ 36784 000078B1 89FA                            MOV     DX,DI
+ 36785                                  
+ 36786                                          ;invoke	SETMEM		; Basic Header
+ 36787 000078B3 E8BBA6                  	CALL	SETMEM
+ 36788 000078B6 0E                              PUSH	CS
+ 36789 000078B7 1F                              POP	DS
+ 36790                                  	;mov	di,24
+ 36791 000078B8 BF1800                          MOV     DI,PDB.JFN_TABLE
+ 36792 000078BB 31C0                            XOR     AX,AX
+ 36793 000078BD AB                              STOSW
+ 36794 000078BE AA                              STOSB                   ; 0,1 and 2 are CON device
+ 36795 000078BF B0FF                            MOV     AL,0FFH
+ 36796                                  	;mov	cx,17
+ 36797                                          ;MOV	CX,FILPERPROC-3 ; 17
+ 36798 000078C1 B111                    	mov	cl,FILPERPROC-3 ; 06/07/2019
+ 36799 000078C3 F3AA                            REP     STOSB           ; Rest are unused
+ 36800 000078C5 0E                              PUSH	CS
+ 36801 000078C6 07                              POP	ES
+ 36802 000078C7 8C1E[2C00]                      MOV     [SFT_ADDR+2],DS	; Must be set to print messages
+ 36803                                  
+ 36804                                  	; 15/07/2018 - Retro DOS v3.0
+ 36805                                  	; MSDOS 3.3
+ 36806                                  	; (set country cdpg table segments)
+ 36807 000078CB BE[3B10]                	mov	si,COUNTRY_CDPG ; country_tab
+ 36808                                  	;mov	[es:si+79],es	; Ucase table segment
+ 36809                                  	;mov	[es:si+84],es	; File ucase table segment
+ 36810                                  	;mov	[es:si+89],es	; File char list segment
+ 36811                                  	;mov	[es:si+94],es	; Collate table segment
+ 36812                                  	;mov	[es:si+123],es	; Monocase routine segment
+ 36813 000078CE 8C444F                  	mov	[si+79],es
+ 36814 000078D1 8C4454                  	mov	[si+84],es
+ 36815 000078D4 8C4459                  	mov	[Si+89],es
+ 36816 000078D7 8C445E                  	mov	[si+94],es
+ 36817 000078DA 8C447B                  	mov	[si+123],es
+ 36818                                  	; (set SysInitTable -sysinitvars and country_cdpg- segments)
+ 36819 000078DD BE[6B0F]                	mov     si,SysInitTable
+ 36820                                  	;;mov	[es:si+6], es
+ 36821                                  	;;mov	[es:si+2], es
+ 36822                                  	;mov	[es:si+SYSI_EXT.Country_Tab+2],es
+ 36823                                  	;mov	[es:si+SYSI_EXT.SysInitVars+2],es
+ 36824 000078E0 8C4406                  	mov	[si+SYSI_EXT.Country_Tab+2],es
+ 36825 000078E3 8C4402                  	mov	[si+SYSI_EXT.SysInitVars+2],es
+ 36826                                  
+ 36827                                  	; (set FastOpen table FastRet segment)
+ 36828 000078E6 BE[730F]                	mov     si,FastTable
+ 36829                                  	;mov	[es:si+4],es
+ 36830                                  	;;mov	[es:si+8],es
+ 36831 000078E9 8C4404                  	mov     [si+4],es
+ 36832                                  	;mov	[si+8],es
+ 36833                                  
+ 36834                                  	; 24/07/2019 - Retro DOS v3.2
  36835                                  
- 36836                                  	; 24/07/2019 - Retro DOS v3.2
- 36837                                  
- 36838                                  	; IBMDOS.COM (Offset 7259h), IBM PC DOS 3.30
- 36839                                  	;mov	word [FETCHI_TAG],5872h ; ? ('Xr')
+ 36836                                  	; IBMDOS.COM (Offset 7259h), IBM PC DOS 3.30
+ 36837                                  	;mov	word [FETCHI_TAG],5872h ; ? ('Xr')
+ 36838                                  
+ 36839                                  	; 10/08/2018 - Retro DOS v3.0
  36840                                  
- 36841                                  	; 10/08/2018 - Retro DOS v3.0
+ 36841                                  	; MSDOS 2.11 (Retro DOS v2.0), MSDOS 3.3
  36842                                  
- 36843                                  	; MSDOS 2.11 (Retro DOS v2.0), MSDOS 3.3
- 36844                                  
- 36845                                  ; After this points the char device functions for CON will work for
- 36846                                  ; printing messages
- 36847                                  
- 36848                                  	;;IF	NOT IBM
- 36849                                  	;;IF	NOT ALTVECT
- 36850                                  	;MOV	SI,HEADER
- 36851                                  	;;invoke OUTMES
- 36852                                  	;CALL	OUTMES
- 36853                                  	;;PUSH	CS		; Outmes stomps on segments
- 36854                                  	;;POP	DS
- 36855                                  	;;PUSH	CS
- 36856                                  	;;POP	ES
- 36857                                  	;;ENDIF
- 36858                                  	;;ENDIF
- 36859                                  
- 36860                                  ; Move the FATs into position
- 36861 000078EC 5A                              POP     DX ; #	; *cmc*		; Restore COMMAND address
- 36862 000078ED 5D                              POP     BP ; ## ; = cs
- 36863 000078EE 59                              POP     CX ; ### ; *fmem*	; True address of free memory
- 36864 000078EF BE[BA79]                        MOV     SI,MEMSTRT		; Place to move DPBs from
- 36865 000078F2 8B3E[2600]                      MOV     DI,[DPBHEAD]		; Place to move DPBs to
- 36866 000078F6 29F9                            SUB     CX,DI                   ; Total length of DPBs
- 36867 000078F8 39F7                            CMP     DI,SI
- 36868 000078FA 7607                            JBE     SHORT MOVJMP		; Are we moving to higher or 
- 36869                                  					; lower memory?
- 36870 000078FC 49                              DEC     CX                      ; Move backwards to higher memory
- 36871 000078FD 01CF                            ADD     DI,CX
- 36872 000078FF 01CE                            ADD     SI,CX
- 36873 00007901 41                              INC     CX
- 36874 00007902 FD                              STD
- 36875                                  MOVJMP:
- 36876 00007903 8EC5                            MOV	ES,BP
- 36877 00007905 E9868B                          JMP	MOVDPB
- 36878                                  
- 36879                                  CHARINIT:
- 36880                                  	; 07/07/2018 - Retro DOS v3.0
- 36881 00007908 36C606[2403]1A                  MOV	BYTE [SS:DEVCALL_REQLEN],DINITHL
- 36882 0000790E 36C606[2503]00                  MOV	BYTE [SS:DEVCALL_REQUNIT],0
- 36883 00007914 36C606[2603]00                  MOV	BYTE [SS:DEVCALL_REQFUNC],DEVINIT
- 36884 0000791A 36C706[2703]0000                MOV	WORD [SS:DEVCALL_REQSTAT],0
- 36885 00007921 06                              PUSH	ES
- 36886 00007922 53                              PUSH	BX
- 36887 00007923 50                              PUSH	AX
- 36888 00007924 BB[2403]                        MOV	BX,DEVCALL
- 36889 00007927 0E                              PUSH	CS
- 36890 00007928 07                              POP	ES
- 36891 00007929 E804D8                          CALL	DEVIOCALL2	
- 36892 0000792C 58                      	POP	AX
- 36893 0000792D 5B                              POP	BX
- 36894 0000792E 07                              POP	ES
- 36895 0000792F C3                              RETN
- 36896                                  
- 36897                                  align 2
- 36898                                          ;;DB	80H DUP(?)
- 36899                                  	;TIMES 	64 dw 0 ; 05/09/2018
- 36900                                  	; 10/08/2018
- 36901                                  	;times	128 dw 0
- 36902                                  	; 12/08/2018
- 36903                                  	;times	132 dW 0 ; ADJFAC = 918 ; 08/09/2018 (OK.)
- 36904                                  	; 08/09/2018 
- 36905 00007930 00<rep 88h>             	times	136 db 0 ; ADJFAC = 790	; 08/09/2018 (OK.)
+ 36843                                  ; After this points the char device functions for CON will work for
+ 36844                                  ; printing messages
+ 36845                                  
+ 36846                                  	;;IF	NOT IBM
+ 36847                                  	;;IF	NOT ALTVECT
+ 36848                                  	;MOV	SI,HEADER
+ 36849                                  	;;invoke OUTMES
+ 36850                                  	;CALL	OUTMES
+ 36851                                  	;;PUSH	CS		; Outmes stomps on segments
+ 36852                                  	;;POP	DS
+ 36853                                  	;;PUSH	CS
+ 36854                                  	;;POP	ES
+ 36855                                  	;;ENDIF
+ 36856                                  	;;ENDIF
+ 36857                                  
+ 36858                                  ; Move the FATs into position
+ 36859 000078EC 5A                              POP     DX ; #	; *cmc*		; Restore COMMAND address
+ 36860 000078ED 5D                              POP     BP ; ## ; = cs
+ 36861 000078EE 59                              POP     CX ; ### ; *fmem*	; True address of free memory
+ 36862 000078EF BE[BA79]                        MOV     SI,MEMSTRT		; Place to move DPBs from
+ 36863 000078F2 8B3E[2600]                      MOV     DI,[DPBHEAD]		; Place to move DPBs to
+ 36864 000078F6 29F9                            SUB     CX,DI                   ; Total length of DPBs
+ 36865 000078F8 39F7                            CMP     DI,SI
+ 36866 000078FA 7607                            JBE     SHORT MOVJMP		; Are we moving to higher or 
+ 36867                                  					; lower memory?
+ 36868 000078FC 49                              DEC     CX                      ; Move backwards to higher memory
+ 36869 000078FD 01CF                            ADD     DI,CX
+ 36870 000078FF 01CE                            ADD     SI,CX
+ 36871 00007901 41                              INC     CX
+ 36872 00007902 FD                              STD
+ 36873                                  MOVJMP:
+ 36874 00007903 8EC5                            MOV	ES,BP
+ 36875 00007905 E9868B                          JMP	MOVDPB
+ 36876                                  
+ 36877                                  CHARINIT:
+ 36878                                  	; 07/07/2018 - Retro DOS v3.0
+ 36879 00007908 36C606[2403]1A                  MOV	BYTE [SS:DEVCALL_REQLEN],DINITHL
+ 36880 0000790E 36C606[2503]00                  MOV	BYTE [SS:DEVCALL_REQUNIT],0
+ 36881 00007914 36C606[2603]00                  MOV	BYTE [SS:DEVCALL_REQFUNC],DEVINIT
+ 36882 0000791A 36C706[2703]0000                MOV	WORD [SS:DEVCALL_REQSTAT],0
+ 36883 00007921 06                              PUSH	ES
+ 36884 00007922 53                              PUSH	BX
+ 36885 00007923 50                              PUSH	AX
+ 36886 00007924 BB[2403]                        MOV	BX,DEVCALL
+ 36887 00007927 0E                              PUSH	CS
+ 36888 00007928 07                              POP	ES
+ 36889 00007929 E804D8                          CALL	DEVIOCALL2	
+ 36890 0000792C 58                      	POP	AX
+ 36891 0000792D 5B                              POP	BX
+ 36892 0000792E 07                              POP	ES
+ 36893 0000792F C3                              RETN
+ 36894                                  
+ 36895                                  align 2
+ 36896                                          ;;DB	80H DUP(?)
+ 36897                                  	;TIMES 	64 dw 0 ; 05/09/2018
+ 36898                                  	; 10/08/2018
+ 36899                                  	;times	128 dw 0
+ 36900                                  	; 12/08/2018
+ 36901                                  	;times	132 dW 0 ; ADJFAC = 918 ; 08/09/2018 (OK.)
+ 36902                                  	; 08/09/2018 
+ 36903 00007930 00<rep 88h>             	times	136 db 0 ; ADJFAC = 790	; 08/09/2018 (OK.)
+ 36904                                  
+ 36905                                  			 ; ADJFAC = 770 ; 06/07/2019
  36906                                  
- 36907                                  			 ; ADJFAC = 770 ; 06/07/2019
- 36908                                  
- 36909                                  	; 06/07/2019 - Retro DOS v3.1
- 36910                                  	;times	148 db 0 ; ADJFAC = 918
- 36911                                  
- 36912                                  INITSTACK:	; INITSTACK LABEL BYTE
- 36913 000079B8 0000                    	DW	0 ; DW ?
- 36914                                  
- 36915                                  ;MEMSTRT LABEL	WORD
- 36916                                  MEMSTRT EQU	$
+ 36907                                  	; 06/07/2019 - Retro DOS v3.1
+ 36908                                  	;times	148 db 0 ; ADJFAC = 918
+ 36909                                  
+ 36910                                  INITSTACK:	; INITSTACK LABEL BYTE
+ 36911 000079B8 0000                    	DW	0 ; DW ?
+ 36912                                  
+ 36913                                  ;MEMSTRT LABEL	WORD
+ 36914                                  MEMSTRT EQU	$
+ 36915                                  
+ 36916                                  ADJFAC  EQU     MEMSTRT-SYSBUF
  36917                                  
- 36918                                  ADJFAC  EQU     MEMSTRT-SYSBUF
+ 36918                                  	; 01/08/2019
  36919                                  
- 36920                                  	; 01/08/2019
+ 36920                                  	;db 0,0,0,0,0,0,0,0,0,0
  36921                                  
- 36922                                  	;db 0,0,0,0,0,0,0,0,0,0
- 36923                                  
- 36924 000079BA 18                      	db 24
- 36925 000079BB 07                      	db 7
- 36926 000079BC E307                    	dw 2019
- 36927 000079BE 0000                    	dw 0	
- 36928                                  
- 36929                                  PcDosVersion:
- 36930 000079C0 1A4040402323232050-     	db 1Ah,'@@@### PC-DOS Version 3.30',0Dh,0Ah
- 36930 000079C9 432D444F5320566572-
- 36930 000079D2 73696F6E20332E3330-
- 36930 000079DB 0D0A               
- 36931 000079DD 1A00                    	db 1Ah,0
- 36932                                  
- 36933                                          ;do_ext
- 36934                                  ;LAST	ENDS
+ 36922 000079BA 18                      	db 24
+ 36923 000079BB 07                      	db 7
+ 36924 000079BC E307                    	dw 2019
+ 36925 000079BE 0000                    	dw 0	
+ 36926                                  
+ 36927                                  PcDosVersion:
+ 36928 000079C0 1A4040402323232050-     	db 1Ah,'@@@### PC-DOS Version 3.30',0Dh,0Ah
+ 36928 000079C9 432D444F5320566572-
+ 36928 000079D2 73696F6E20332E3330-
+ 36928 000079DB 0D0A               
+ 36929 000079DD 1A00                    	db 1Ah,0
+ 36930                                  
+ 36931                                          ;do_ext
+ 36932                                  ;LAST	ENDS

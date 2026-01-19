@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; MSDOS3.BIN (MSDOS 3.3 Kernel) - RETRO DOS v3.2 by ERDOGAN TAN
 ; ----------------------------------------------------------------------------
-; Last Update: 10/07/2024 (BugFix) - (Previous: 22/01/2024)
+; Last Update: 22/01/2024 (BugFix) - (Previous: 16/12/2022)
 ; ----------------------------------------------------------------------------
 ; Beginning: 07/07/2019 (Retro DOS 3.0), 29/06/2019 (Retro DOS 3.1)
 ; ----------------------------------------------------------------------------
@@ -35805,9 +35805,7 @@ STOREPTH:
 	STOSB				; Add a path separator (and INC DI)
 SETENDPTR:
 	;MOV	EndPtrL,DI		; pointer to the tail
-	; 10/07/2024 (Retro DOS v3-v4 BugFix - Erdogan Tan - Istanbul)
-	;mov	[bp-4],dl ; (Retro DOS v3-v4 !Bug!)
-	mov	[bp-4],di ; !Fix!
+	mov	[bp-4],dl
 CreateLoop:
 	push	ss			; let ReadTime see variables
 	pop	ds
