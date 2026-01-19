@@ -1,0 +1,1877 @@
+     1                                  ; ***************************************************************************
+     2                                  ; FORMAT.COM (MSDOS 2.0 FORMAT utility) - for RETRO DOS v2.0 by ERDOGAN TAN
+     3                                  ; ---------------------------------------------------------------------------
+     4                                  ; Last Update: 05/05/2018
+     5                                  ; ---------------------------------------------------------------------------
+     6                                  ; Beginning: 05/05/2018 
+     7                                  ; ---------------------------------------------------------------------------
+     8                                  ; Assembler: NASM version 2.11  
+     9                                  ; ---------------------------------------------------------------------------
+    10                                  ;	    ((nasm format.s -l format.lst -o FORMAT.COM)) 	
+    11                                  ; ---------------------------------------------------------------------------
+    12                                  ; Derived from 'FORMAT.ASM' file of MSDOS 2.0 (IBM PCDOS v2.0) source code
+    13                                  ; by Microsoft, 1983
+    14                                  ; ***************************************************************************
+    15                                  ; FORMAT.COM (1983) source files:
+    16                                  ; 	FORMAT.ASM, FORMES.ASM, GENFOR.ASM  (OEM file)
+    17                                  
+    18                                  ;============================================================================
+    19                                  ; DOSSYM.ASM - (MSDOS 2.0/2.11, 1983)
+    20                                  ;============================================================================
+    21                                  
+    22                                  DIRSTRLEN       EQU     64	; Max length in bytes of directory strings
+    23                                  
+    24                                  ; <system call definitions>
+    25                                  
+    26                                  ABORT                           EQU 0   ;  0      0
+    27                                  STD_CON_INPUT                   EQU 1   ;  1      1
+    28                                  STD_CON_OUTPUT                  EQU 2   ;  2      2
+    29                                  STD_AUX_INPUT                   EQU 3   ;  3      3
+    30                                  STD_AUX_OUTPUT                  EQU 4   ;  4      4
+    31                                  STD_PRINTER_OUTPUT              EQU 5   ;  5      5
+    32                                  RAW_CON_IO                      EQU 6   ;  6      6
+    33                                  RAW_CON_INPUT                   EQU 7   ;  7      7
+    34                                  STD_CON_INPUT_NO_ECHO           EQU 8   ;  8      8
+    35                                  STD_CON_STRING_OUTPUT           EQU 9   ;  9      9
+    36                                  STD_CON_STRING_INPUT            EQU 10  ; 10      A
+    37                                  STD_CON_INPUT_STATUS            EQU 11  ; 11      B
+    38                                  STD_CON_INPUT_FLUSH             EQU 12  ; 12      C
+    39                                  DISK_RESET                      EQU 13  ; 13      D
+    40                                  SET_DEFAULT_DRIVE               EQU 14  ; 14      E
+    41                                  FCB_OPEN                        EQU 15  ; 15      F
+    42                                  FCB_CLOSE                       EQU 16  ; 16     10
+    43                                  DIR_SEARCH_FIRST                EQU 17  ; 17     11
+    44                                  DIR_SEARCH_NEXT                 EQU 18  ; 18     12
+    45                                  FCB_DELETE                      EQU 19  ; 19     13
+    46                                  FCB_SEQ_READ                    EQU 20  ; 20     14
+    47                                  FCB_SEQ_WRITE                   EQU 21  ; 21     15
+    48                                  FCB_CREATE                      EQU 22  ; 22     16
+    49                                  FCB_RENAME                      EQU 23  ; 23     17
+    50                                  GET_DEFAULT_DRIVE               EQU 25  ; 25     19
+    51                                  SET_DMA                         EQU 26  ; 26     1A
+    52                                  GET_DEFAULT_DPB                 EQU 31  ; 31     1F
+    53                                  FCB_RANDOM_READ                 EQU 33  ; 33     21
+    54                                  FCB_RANDOM_WRITE                EQU 34  ; 34     22
+    55                                  GET_FCB_FILE_LENGTH             EQU 35  ; 35     23
+    56                                  GET_FCB_POSITION                EQU 36  ; 36     24
+    57                                  SET_INTERRUPT_VECTOR            EQU 37  ; 37     25
+    58                                  CREATE_PROCESS_DATA_BLOCK       EQU 38  ; 38     26
+    59                                  FCB_RANDOM_READ_BLOCK           EQU 39  ; 39     27
+    60                                  FCB_RANDOM_WRITE_BLOCK          EQU 40  ; 40     28
+    61                                  PARSE_FILE_DESCRIPTOR           EQU 41  ; 41     29
+    62                                  GET_DATE                        EQU 42  ; 42     2A
+    63                                  SET_DATE                        EQU 43  ; 43     2B
+    64                                  GET_TIME                        EQU 44  ; 44     2C
+    65                                  SET_TIME                        EQU 45  ; 45     2D
+    66                                  SET_VERIFY_ON_WRITE             EQU 46  ; 46     2E
+    67                                  ; Extended functionality group
+    68                                  GET_DMA                         EQU 47  ; 47     2F
+    69                                  GET_VERSION                     EQU 48  ; 48     30
+    70                                  KEEP_PROCESS                    EQU 49  ; 49     31
+    71                                  GET_DPB                         EQU 50  ; 50     32
+    72                                  SET_CTRL_C_TRAPPING             EQU 51  ; 51     33
+    73                                  GET_INDOS_FLAG                  EQU 52  ; 52     34
+    74                                  GET_INTERRUPT_VECTOR            EQU 53  ; 53     35
+    75                                  GET_DRIVE_FREESPACE             EQU 54  ; 54     36
+    76                                  CHAR_OPER                       EQU 55  ; 55     37
+    77                                  INTERNATIONAL                   EQU 56  ; 56     38
+    78                                  ; XENIX CALLS
+    79                                  ;   Directory Group
+    80                                  MKDIR                           EQU 57  ; 57     39
+    81                                  RMDIR                           EQU 58  ; 58     3A
+    82                                  CHDIR                           EQU 59  ; 59     3B
+    83                                  ;   File Group
+    84                                  CREAT                           EQU 60  ; 60     3C
+    85                                  OPEN                            EQU 61  ; 61     3D
+    86                                  CLOSE                           EQU 62  ; 62     3E
+    87                                  READ                            EQU 63  ; 63     3F
+    88                                  WRITE                           EQU 64  ; 64     40
+    89                                  UNLINK                          EQU 65  ; 65     41
+    90                                  LSEEK                           EQU 66  ; 66     42
+    91                                  CHMOD                           EQU 67  ; 67     43
+    92                                  IOCTL                           EQU 68  ; 68     44
+    93                                  XDUP                            EQU 69  ; 69     45
+    94                                  XDUP2                           EQU 70  ; 70     46
+    95                                  CURRENT_DIR                     EQU 71  ; 71     47
+    96                                  ;    Memory Group
+    97                                  ALLOC                           EQU 72  ; 72     48
+    98                                  DEALLOC                         EQU 73  ; 73     49
+    99                                  SETBLOCK                        EQU 74  ; 74     4A
+   100                                  ;    Process Group
+   101                                  EXEC                            EQU 75  ; 75     4B
+   102                                  EXIT                            EQU 76  ; 76     4C
+   103                                  _WAIT				EQU 77  ; 77     4D
+   104                                  FIND_FIRST                      EQU 78  ; 78     4E
+   105                                  ;   Special Group
+   106                                  FIND_NEXT                       EQU 79  ; 79     4F
+   107                                  ; SPECIAL SYSTEM GROUP
+   108                                  SET_CURRENT_PDB                 EQU 80  ; 80     50
+   109                                  GET_CURRENT_PDB                 EQU 81  ; 81     51
+   110                                  GET_IN_VARS                     EQU 82  ; 82     52
+   111                                  SETDPB                          EQU 83  ; 83     53
+   112                                  GET_VERIFY_ON_WRITE             EQU 84  ; 84     54
+   113                                  DUP_PDB                         EQU 85  ; 85     55
+   114                                  RENAME                          EQU 86  ; 86     56
+   115                                  FILE_TIMES                      EQU 87  ; 87     57
+   116                                  
+   117                                  attr_read_only      EQU      1h
+   118                                  attr_hidden         EQU      2h
+   119                                  attr_system         EQU      4h
+   120                                  attr_volume_id      EQU      8h
+   121                                  attr_directory      EQU     10h
+   122                                  attr_archive        EQU     20h
+   123                                  
+   124                                  ;============================================================================
+   125                                  ; FORMAT.ASM - 01/05/1983 (MSDOS 2.11)
+   126                                  ;============================================================================
+   127                                  
+   128                                  ;****************************************************************************
+   129                                  ;
+   130                                  ;       86-DOS FORMAT DISK UTILITY
+   131                                  ;
+   132                                  ;       This routine formats a new disk,clears the FAT and DIRECTORY
+   133                                  ;       then optionally copies the SYSTEM and COMMAND.COM to this
+   134                                  ;       new disk
+   135                                  ;
+   136                                  ;       SYNTAX: FORMAT  [drive][/switch1][/switch2]...[/switch16]
+   137                                  ;
+   138                                  ;       Regardless of the drive designator , the user will be
+   139                                  ;       prompted to insert the diskette to be formatted.
+   140                                  ;
+   141                                  ;****************************************************************************
+   142                                  
+   143                                  ;Mod to ask for volume ID ARR 5/12/82
+   144                                  ; 05/19/82 Fixed rounding bug in CLUSCAL:       ARR
+   145                                  ;REV 1.5
+   146                                  ;               Added rev number message
+   147                                  ;               Added dir attribute to DELALL FCB
+   148                                  ;REV 2.00
+   149                                  ;               Redone for 2.0
+   150                                  ;REV 2.10
+   151                                  ;               5/1/83 ARR Re-do to transfer system on small memory systems
+   152                                  
+   153                                  ;FALSE   EQU     0
+   154                                  ;TRUE    EQU     NOT FALSE
+   155                                  
+   156                                  ;IBMJAPVER EQU   FALSE           ; SET ONLY ONE SWITCH TO TRUE!
+   157                                  ;IBMVER  EQU     FALSE
+   158                                  ;MSVER   EQU     TRUE
+   159                                  
+   160                                  ;KANJI   EQU     FALSE
+   161                                  
+   162                                          ;.xlist
+   163                                          ;INCLUDE DOSSYM.ASM
+   164                                          ;.list
+   165                                  
+   166                                  
+   167                                  ;FORMAT Pre-defined switches
+   168                                  SYSSW   EQU     1               ; System transfer
+   169                                  VOLSW   EQU     2               ; Volume ID prompt
+   170                                  OLDSW   EQU     4               ; E5 dir terminator
+   171                                  
+   172                                  
+   173                                  DRNUM   EQU     5CH
+   174                                  
+   175                                  ;Per system file data structure
+   176                                  
+   177                                  struc FILE
+   178 00000000 <res 00000002>          .HANDLE: RESW	1		; Source handle
+   179 00000002 <res 00000002>          .SIZEP:	 RESW	1		; File size in para
+   180 00000004 <res 00000004>          .SIZEB:	 RESD	1		; File size in bytes
+   181 00000008 <res 00000004>          .OFFSET: RESD	1		; Offset in file (partial)
+   182 0000000C <res 00000002>          .START:	 RESW	1		; Para number of start in buffer
+   183 0000000E <res 00000002>          .DATE:	 RESW	1		; Date of file
+   184 00000010 <res 00000002>          .TIME:	 RESW	1		; Time of file
+   185 00000012 <res 00000001>          .NAME:	 RESB	1		; Start of name
+   186                                  endstruc
+   187                                  
+   188                                  [BITS 16]
+   189                                  [ORG 100H]
+   190                                  
+   191                                  _START:
+   192 00000000 EB09                            JMP     SHORT FSTRT
+   193                                  
+   194 00000002 5665727320322E3130      HEADER  DB      "Vers 2.10"
+   195                                  
+   196                                  FSTRT:
+   197 0000000B BC[BA0B]                        MOV     SP,STACK	;Use internal stack
+   198                                  
+   199                                  ;Code to print header
+   200                                  ;       PUSH    AX
+   201                                  ;       MOV     DX,HEADER
+   202                                  ;       CALL    PRINT
+   203                                  ;       POP     AX
+   204                                  
+   205                                  DOSVER_HIGH     EQU  020BH   ;2.11 in hex
+   206                                  
+   207 0000000E 50                              PUSH    AX              ;Save DRIVE validity info
+   208 0000000F B430                            MOV     AH,GET_VERSION
+   209 00000011 CD21                            INT     21H
+   210 00000013 86E0                            XCHG    AH,AL           ;Turn it around to AH.AL
+   211 00000015 3D0B02                          CMP     AX,DOSVER_HIGH
+   212 00000018 7309                            JAE	short OKDOS
+   213                                  GOTBADDOS:
+   214 0000001A BA[490C]                        MOV     DX,BADVER
+   215 0000001D B409                            MOV     AH,STD_CON_STRING_OUTPUT
+   216 0000001F CD21                            INT     21H
+   217 00000021 CD20                            INT     20H
+   218                                  
+   219                                  OKDOS:
+   220 00000023 58                      	POP     AX
+   221                                  
+   222 00000024 3CFF                            CMP     AL,0FFH                 ;See if invalid drive specified
+   223 00000026 7509                            JNZ	short DRVGD		;If not proceed
+   224 00000028 BA[1A0D]                        MOV     DX,INVDRV		;Invalid drive message
+   225 0000002B E85203                          CALL    PRINT                   ;Print the message
+   226 0000002E E97003                          JMP	FEXIT2			;Exit
+   227                                  DRVGD:
+   228 00000031 B419                            MOV     AH,GET_DEFAULT_DRIVE    ;Must get the default drive
+   229 00000033 CD21                            INT     21H                     ;Default now in AL
+   230 00000035 A2[3C09]                        MOV     [DEFALT],AL		;Save for later
+   231 00000038 0441                            ADD     AL,"A"
+   232                                  	; Retro DOS v2.0 modification (05/05/2018)
+   233                                  	;MOV	[BIODRV],AL
+   234                                  	;MOV	[DOSDRV],AL	
+   235 0000003A A2[9D09]                        MOV     [KERNELDRV],AL
+   236 0000003D A2[A00D]                        MOV     [SYSDRV],AL
+   237 00000040 A2[BC09]                        MOV     [COMDRV],AL
+   238 00000043 BE5C00                          MOV     SI,DRNUM		;So we can get our parameters
+   239 00000046 AC                              LODSB                           ;Fetch drive designation
+   240 00000047 08C0                            OR      AL,AL                   ;See if specified
+   241 00000049 7505                            JNZ	short DRVSPEC		;If specified proceed
+   242 0000004B A0[3C09]                        MOV     AL,[DEFALT]
+   243 0000004E FEC0                            INC     AL
+   244                                  DRVSPEC:
+   245 00000050 FEC8                            DEC     AL                      ;Drive designator now correct
+   246 00000052 A25C00                          MOV     [DRNUM],AL  		;And updated
+   247 00000055 A2[3B09]                        MOV     [DRIVE],AL		;Save copy
+   248 00000058 BA[2E07]                        MOV     DX,INT_23
+   249 0000005B B425                            MOV     AH,SET_INTERRUPT_VECTOR
+   250 0000005D B023                            MOV     AL,23H
+   251 0000005F CD21                            INT     21H                     ;Set ^C vector
+   252                                          ;Get all the switch information from the command line
+   253 00000061 31C0                            XOR     AX,AX
+   254 00000063 B437                            MOV     AH,CHAR_OPER            ;GET SWITCH CHARACTER
+   255 00000065 CD21                            INT     21H                     ;CALL THE DOS
+   256 00000067 8816[3709]                      MOV     [SWTCH],DL
+   257                                  
+   258 0000006B 31DB                            XOR     BX,BX                   ;Store switch information in BX
+   259 0000006D BE8100                          MOV     SI,81H                  ;Point to the command line buffer
+   260                                  NXTSWT:
+   261 00000070 E84700                          CALL    SCANOFF
+   262 00000073 AC                              LODSB
+   263 00000074 3A06[3709]                      CMP     AL,[SWTCH]
+   264 00000078 7416                            JZ	short GETPARM
+   265 0000007A 3C0D                            CMP     AL,13
+   266 0000007C 7450                            JZ	short SAVSWT
+   267 0000007E AC                              LODSB                           ;Get next character
+   268 0000007F 3C3A                            CMP     AL,":"                  ;Is it a drive specifier?
+   269 00000081 752E                            JNZ	short INVALID		;No -- invalid parameter
+   270 00000083 803E[3909]00                    CMP     BYTE [DBLFLG],0		;Is it the only drive specifier we've seen
+   271 00000088 7527                            JNZ	short INVALID 		;No -- invalid parameter
+   272 0000008A FE06[3909]                      INC     BYTE [DBLFLG]		;Yes -- set the flag
+   273 0000008E EBE0                            JMP     SHORT NXTSWT
+   274                                  GETPARM:
+   275 00000090 AC                              LODSB
+   276                                          ;Convert any lower case input into upper case
+   277 00000091 3C41                            CMP     AL,41H
+   278 00000093 7C02                            JL	short GETCHR		;Switch is a digit don't try to convert it
+   279 00000095 24DF                            AND     AL,0DFH
+   280                                  GETCHR:
+   281 00000097 8A0E[D00F]                      MOV     CL,[SWITCHLIST]		;Number of legal switches
+   282 0000009B 08C9                            OR      CL,CL                   ;If it's none we shouldn't be here
+   283 0000009D 7412                            JZ	short INVALID		;Report the error
+   284 0000009F B500                            MOV     CH,0
+   285 000000A1 BF[D10F]                        MOV     DI,SWITCHLIST+1		;Point to the legal switch characters
+   286 000000A4 F2AE                            REPNE   SCASB
+   287 000000A6 7509                            JNZ	short INVALID
+   288 000000A8 B80100                          MOV     AX,1
+   289 000000AB D3E0                            SHL     AX,CL
+   290 000000AD 09C3                            OR      BX,AX                   ;Set the appropriate bit in SWITCHMAP
+   291 000000AF EBBF                            JMP     SHORT NXTSWT            ;See if there are anymore
+   292                                  
+   293                                  INVALID:
+   294 000000B1 BA[360D]                        MOV     DX,INVPAR
+   295 000000B4 E8C902                          CALL    PRINT
+   296 000000B7 E9E402                          JMP	FEXIT
+   297                                  
+   298                                  SCANOFF:
+   299 000000BA AC                              LODSB
+   300 000000BB 3C20                            CMP     AL,20H
+   301 000000BD 74FB                            JZ	short SCANOFF
+   302 000000BF 3C09                            CMP     AL,9
+   303 000000C1 74F7                            JZ	short SCANOFF
+   304 000000C3 4E                              DEC     SI
+   305 000000C4 C3                              RETN
+   306                                  
+   307                                  MEMERR:
+   308 000000C5 BA[150E]                        MOV     DX,MEMEX
+   309 000000C8 E8B502                          CALL    PRINT
+   310 000000CB E9D002                          JMP     FEXIT
+   311                                  
+   312                                  SAVSWT:
+   313 000000CE 891E[4C0A]                      MOV     [SWITCHMAP],BX
+   314 000000D2 F706[4C0A]0100                  TEST    word [SWITCHMAP],SYSSW
+   315 000000D8 743D                            JZ	short INITCALL
+   316 000000DA E83306                          CALL    SAVUDIRS
+   317 000000DD 8B1E[D60F]                      MOV     BX,[FREESPACE]
+   318 000000E1 83C30F                          ADD     BX,15
+   319 000000E4 B104                            MOV     CL,4
+   320 000000E6 D3EB                            SHR     BX,CL
+   321 000000E8 0E                              PUSH    CS
+   322 000000E9 07                              POP     ES
+   323 000000EA B44A                            MOV     AH,SETBLOCK
+   324 000000EC CD21                            INT     21H
+   325 000000EE BBFFFF                          MOV     BX,0FFFFH
+   326 000000F1 B448                            MOV     AH,ALLOC
+   327 000000F3 CD21                            INT     21H
+   328 000000F5 09DB                            OR      BX,BX
+   329 000000F7 74CC                            JZ	short MEMERR		;No memory
+   330 000000F9 891E[4309]                      MOV     [MSIZE],BX
+   331 000000FD B448                            MOV     AH,ALLOC
+   332 000000FF CD21                            INT     21H
+   333 00000101 72C2                            JC	short MEMERR		;No memory
+   334 00000103 A3[4109]                        MOV     [MSTART],AX
+   335 00000106 BA[3709]                        MOV     DX,SWTCH
+   336 00000109 B43B                            MOV     AH,CHDIR
+   337 0000010B CD21                            INT     21H                     ;Go to root on default drive (source)
+   338                                  
+   339                                  RDFRST:
+   340 0000010D E82804                          CALL    READDOS                 ;Read BIOS and DOS
+   341 00000110 7305                            JNC	short INITCALL		;OK -- read next file
+   342                                  NEEDSYS:
+   343 00000112 E88E02                          CALL    SYSPRM                  ;Prompt for system disk
+   344 00000115 EBF6                            JMP	short RDFRST		;Try again
+   345                                  
+   346                                  INITCALL:
+   347 00000117 E8070E                          CALL    INIT                    ;Let OEM read any files before disk is changed
+   348 0000011A 7309                            JNC	short SWITCHCHK
+   349 0000011C BA[C20D]                        MOV     DX,FRMTERR
+   350 0000011F E85E02                          CALL    PRINT
+   351 00000122 E97902                          JMP	FEXIT
+   352                                  
+   353                                  SWITCHCHK:
+   354 00000125 8B16[4C0A]                      MOV     DX,[SWITCHMAP]
+   355 00000129 8916[4E0A]                      MOV     [SWITCHCOPY],DX
+   356                                  
+   357                                  SYSLOOP:
+   358 0000012D C706[600A]0000                  MOV     WORD [BADSIZ],0		;Must intialize for each iteration
+   359 00000133 C706[620A]0000                  MOV     WORD [BADSIZ+2],0
+   360 00000139 C706[580A]0000                  MOV     WORD [SYSSIZ],0
+   361 0000013F C706[5A0A]0000                  MOV     WORD [SYSSIZ+2],0
+   362 00000145 C606[3909]00                    MOV     BYTE [DBLFLG],0
+   363 0000014A C606[3A09]00                    MOV     BYTE [CLEARFLG],0
+   364 0000014F 8B16[4E0A]                      MOV     DX,[SWITCHCOPY]
+   365 00000153 8916[4C0A]                      MOV     [SWITCHMAP],DX		;Restore original Switches
+   366 00000157 A0[3B09]                        MOV     AL,[DRIVE]		;Fetch drive
+   367 0000015A 0441                            ADD     AL,"A"                  ;(AL)= ASCII designation
+   368 0000015C A2[7F0C]                        MOV     [SNGDRV],AL		;Fill out the message
+   369 0000015F A2[650D]                        MOV     [TARGDRV],AL
+   370 00000162 A2[C30C]                        MOV     [HRDDRV],AL
+   371 00000165 E85E02                          CALL    DSKPRM                  ;Prompt for new disk
+   372 00000168 E81A0E                          CALL    DISKFORMAT              ;Format the disk
+   373 0000016B 7308                            JNC	short GETTRK
+   374                                  FRMTPROB:
+   375 0000016D BA[C20D]                        MOV     DX,FRMTERR
+   376 00000170 E80D02                          CALL    PRINT
+   377 00000173 EBB8                            JMP     SHORT SYSLOOP
+   378                                  
+   379                                          ;Mark any bad sectors in the FATs
+   380                                          ;And keep track of how many bytes there are in bad sectors
+   381                                  
+   382                                  GETTRK:
+   383 00000175 E8110E                          CALL    BADSECTOR               ;Do bad track fix-up
+   384 00000178 72F3                            JC	short FRMTPROB		;Had an error in Formatting - can't recover
+   385 0000017A 83F800                          CMP     AX,0                    ;Are we finished?
+   386 0000017D 7503                            JNZ	short TRKFND		;No - check error conditions
+   387 0000017F E9DE00                          JMP	DRTFAT			;Yes
+   388                                  TRKFND:
+   389 00000182 3B1E[180F]                      CMP     BX,[STARTSECTOR]	;Are any sectors in the system area bad?
+   390 00000186 7D08                            JGE	short CLRTEST
+   391 00000188 BA[F70D]                        MOV     DX,NOUSE		;Can't build FATs of Directory
+   392 0000018B E8F201                          CALL    PRINT
+   393 0000018E EBDD                            JMP	short FRMTPROB		;Bad disk -- try again
+   394                                  CLRTEST:
+   395 00000190 A3[660A]                        MOV     [SECTORS],AX		;Save the number of sectors on the track
+   396 00000193 803E[3A09]00                    CMP     BYTE [CLEARFLG],0	;Have we already cleared the FAT and DIR?
+   397 00000198 7509                            JNZ	short SYSTEST		;Yes - all set
+   398 0000019A FE06[3A09]                      INC	byte [CLEARFLG]		;Set the flag
+   399 0000019E 53                              PUSH    BX
+   400 0000019F E86C02                          CALL    CLEAR                   ;Fix-up fat and directory
+   401 000001A2 5B                              POP     BX
+   402                                  SYSTEST:
+   403 000001A3 F706[4C0A]0100                  TEST    word [SWITCHMAP],SYSSW 	;If system requested calculate size
+   404 000001A9 743D                            JZ	short BAD100
+   405 000001AB 803E[3909]00                    CMP     BYTE [DBLFLG],0		;Have we already calculated System space?
+   406 000001B0 7519                            JNZ	short CMPTRKS		;Yes -- all ready for the compare
+   407 000001B2 FE06[3909]                      INC     BYTE [DBLFLG]		;No -- set the flag
+   408 000001B6 E88C01                          CALL    GETSIZE                 ;Calculate the system size
+   409 000001B9 8B16[5A0A]                      MOV     DX,[SYSSIZ+2]
+   410 000001BD A1[580A]                        MOV     AX,[SYSSIZ]
+   411 000001C0 F736[560A]                      DIV     word [SECSIZ]
+   412 000001C4 0306[180F]                      ADD     AX,[STARTSECTOR]
+   413 000001C8 A3[640A]                        MOV     [SYSTRKS],AX		;Space FAT,Dir,and system files require
+   414                                  CMPTRKS:
+   415 000001CB 3B1E[640A]                      CMP     BX,[SYSTRKS]
+   416 000001CF 7F17                            JG	short BAD100
+   417 000001D1 BA[D50D]                        MOV     DX,NOTSYS		;Can't transfer a system
+   418 000001D4 E8A901                          CALL    PRINT
+   419 000001D7 8326[4C0A]FE                    AND     word [SWITCHMAP],~SYSSW ;Turn off system transfer switch
+   420 000001DC C706[5A0A]0000                  MOV     WORD [SYSSIZ+2],0	;No system to transfer
+   421 000001E2 C706[580A]0000                  MOV     WORD [SYSSIZ],0		;No system to transfer
+   422                                  BAD100:
+   423                                  ; BX is the first bad sector #, SECTORS is the number of bad sectors starting
+   424                                  ; at BX. This needs to be converted to clusters. The start sector number may
+   425                                  ; need to be rounded down to a cluster boundry, the end sector may need to be
+   426                                  ; rounded up to a cluster boundry. Know BX >= STARTSECTOR
+   427 000001E8 2B1E[180F]                      SUB     BX,[STARTSECTOR]	; BX is now DATA area relative
+   428 000001EC 89D9                            MOV     CX,BX
+   429 000001EE 030E[660A]                      ADD     CX,[SECTORS]
+   430 000001F2 49                              DEC     CX			; CX is now the last bad sector #
+   431 000001F3 89D8                            MOV     AX,BX
+   432 000001F5 31D2                            XOR     DX,DX
+   433 000001F7 F736[540A]                      DIV     word [CLUSSIZ]
+   434 000001FB 89C3                            MOV     BX,AX                   ; BX is rounded down and converted
+   435                                                                          ; to a cluster #. Where cluster 0 =
+   436                                                                          ; first cluster of data. First bad
+   437                                                                          ; Sector is in cluster BX.
+   438 000001FD 89C8                            MOV     AX,CX
+   439 000001FF 31D2                            XOR     DX,DX
+   440 00000201 F736[540A]                      DIV     word [CLUSSIZ]
+   441 00000205 89C1                            MOV     CX,AX                   ; CX is rounded up and converted to a
+   442                                                                          ; to a cluster #. Where cluster 0 =
+   443                                                                          ; first cluster of data. Last bad
+   444                                                                          ; Sector is in cluster CX.
+   445 00000207 29D9                            SUB     CX,BX
+   446 00000209 41                              INC     CX                      ; CX is number of clusters to mark bad
+   447 0000020A 83C302                          ADD     BX,2                    ; Bias start by correct amount since
+   448                                                                          ; first cluster of data is really
+   449                                                                          ; cluster 2.
+   450 0000020D A1[540A]                        MOV     AX,[CLUSSIZ]		; Sectors/Cluster
+   451 00000210 F726[560A]                      MUL	word [SECSIZ]		; Times Bytes/Sector
+   452 00000214 89C5                            MOV     BP,AX                   ; = Bytes/Cluster
+   453                                  
+   454                                  ; Mark CX clusters bad starting at cluster BX
+   455                                  PACKIT:
+   456 00000216 BAF70F                          MOV     DX,0FF7H                ;0FF7H indicates a bad sector
+   457 00000219 E81400                          CALL    PACK                    ;Put it in the allocation map
+   458 0000021C 39FA                            CMP     DX,DI                   ;Have we already marked it bad?
+   459 0000021E 740A                            JZ	short BAD150		;if so, don't add it in
+   460 00000220 012E[600A]                      ADD     [BADSIZ],BP		;Add in number of bad bytes
+   461 00000224 7304                            JNB	short BAD150
+   462 00000226 FF06[620A]                      INC     WORD [BADSIZ+2]
+   463                                  BAD150:
+   464 0000022A 43                              INC     BX                      ;Next cluster
+   465 0000022B E2E9                            LOOP    PACKIT                  ;Continue for # of clusters
+   466 0000022D E945FF                          JMP	GETTRK
+   467                                  
+   468                                  ; Inputs:
+   469                                          ;BX = Cluster number
+   470                                          ;DX = Data
+   471                                  ; Outputs:
+   472                                          ;The data is stored in the FAT at the given cluster.
+   473                                          ;SI is destroyed
+   474                                          ;DI contains the former contents
+   475                                          ;No other registers affected
+   476                                  PACK:
+   477 00000230 53                              PUSH    BX
+   478 00000231 51                              PUSH    CX
+   479 00000232 52                              PUSH    DX
+   480 00000233 89DE                            MOV     SI,BX
+   481 00000235 D1EB                            SHR     BX,1
+   482 00000237 031E[D80F]                      ADD     BX,[FATSPACE]
+   483 0000023B 01F3                            ADD     BX,SI
+   484 0000023D D1EE                            SHR     SI,1
+   485 0000023F 8B37                            MOV     SI,[BX]
+   486 00000241 89F7                            MOV     DI,SI
+   487 00000243 730B                            JNB	short ALIGNED
+   488 00000245 B104                            MOV     CL,4
+   489 00000247 D3E2                            SHL     DX,CL
+   490 00000249 D3EF                            SHR     DI,CL
+   491 0000024B 83E60F                          AND     SI,15
+   492 0000024E EB04                            JMP     SHORT PACKIN
+   493                                  
+   494                                  ALIGNED:
+   495 00000250 81E600F0                        AND     SI,0F000H
+   496                                  PACKIN:
+   497 00000254 81E7FF0F                        AND     DI,00FFFH               ;DI CONTAINS FORMER CONTENTS
+   498 00000258 09D6                            OR      SI,DX
+   499 0000025A 8937                            MOV     [BX],SI
+   500 0000025C 5A                              POP     DX
+   501 0000025D 59                              POP     CX
+   502 0000025E 5B                              POP     BX
+   503 0000025F C3                              RETN
+   504                                  
+   505                                  DRTFAT:
+   506 00000260 803E[3A09]00                    CMP     BYTE [CLEARFLG],0
+   507 00000265 7519                            JNZ	short CLEARED
+   508 00000267 E8A401                          CALL    CLEAR                   ;Clear the FAT and Dir
+   509 0000026A F706[4C0A]0100                  TEST    word [SWITCHMAP],SYSSW	;If system requested, calculate size
+   510 00000270 740E                            JZ	short CLEARED
+   511 00000272 803E[3909]00                    CMP     BYTE [DBLFLG],0		;Have we already calculated System space?
+   512 00000277 7507                            JNZ	short CLEARED		;Yes
+   513 00000279 FE06[3909]                      INC     BYTE [DBLFLG]		;No -- set the flag
+   514 0000027D E8C500                          CALL    GETSIZE                 ;Calculate the system size
+   515                                  CLEARED:
+   516 00000280 E8520C                          CALL    WRTFAT
+   517 00000283 7309                            JNC	short FATWRT
+   518 00000285 BA[F70D]                        MOV     DX,NOUSE
+   519 00000288 E8F500                          CALL    PRINT
+   520 0000028B E9DFFE                          JMP	FRMTPROB
+   521                                  
+   522                                  FATWRT:
+   523 0000028E F706[4C0A]0100                  TEST    word [SWITCHMAP],SYSSW	;System desired
+   524 00000294 741F                            JZ	short STATUS
+   525 00000296 E85A03                          CALL    WRITEDOS                ;Write the BIOS & DOS
+   526 00000299 7314                            JNC	short SYSOK
+   527 0000029B BA[D50D]                        MOV     DX,NOTSYS		;Can't transfer a system
+   528 0000029E E8DF00                          CALL    PRINT
+   529 000002A1 C706[5A0A]0000                  MOV     WORD [SYSSIZ+2],0	;No system transfered
+   530 000002A7 C706[580A]0000                  MOV     WORD [SYSSIZ],0		;No system transfered
+   531 000002AD EB06                            JMP     SHORT STATUS
+   532                                  
+   533                                  SYSOK:
+   534 000002AF BA[C70C]                        MOV     DX,SYSTRAN
+   535 000002B2 E8CB00                          CALL    PRINT
+   536                                  STATUS:
+   537 000002B5 E8DC00                          CALL    CRLF
+   538 000002B8 E80902                          CALL    VOLID
+   539 000002BB B40D                            MOV     AH,DISK_RESET
+   540 000002BD CD21                            INT     21H
+   541 000002BF E8C30C                          CALL    DONE                    ;Final call to OEM module
+   542 000002C2 7303                            JNC	short REPORTC
+   543 000002C4 E9A6FE                          JMP	FRMTPROB		;Report an error
+   544                                  
+   545                                  REPORTC:
+   546 000002C7 E80C09                          CALL    REPORT
+   547                                  
+   548 000002CA E8B800                          CALL    MORE                    ;See if more disks to format
+   549 000002CD E95DFE                          JMP	SYSLOOP			;If we returned from MORE then continue
+   550                                  
+   551                                  DISP32BITS:
+   552 000002D0 53                              PUSH    BX
+   553 000002D1 31C0                            XOR     AX,AX
+   554 000002D3 89C3                            MOV     BX,AX
+   555 000002D5 89C5                            MOV     BP,AX
+   556 000002D7 B92000                          MOV     CX,32
+   557                                  CONVLP:
+   558 000002DA D1E6                            SHL     SI,1
+   559 000002DC D1D7                            RCL     DI,1
+   560 000002DE 95                              XCHG    AX,BP
+   561 000002DF E84E00                          CALL    CONVWRD
+   562 000002E2 95                              XCHG    AX,BP
+   563 000002E3 93                              XCHG    AX,BX
+   564 000002E4 E84900                          CALL    CONVWRD
+   565 000002E7 93                              XCHG    AX,BX
+   566 000002E8 1400                            ADC     AL,0
+   567 000002EA E2EE                            LOOP    CONVLP
+   568                                          ; Conversion complete. Print 8-digit number with 2 leading blanks.
+   569 000002EC B91018                          MOV     CX,1810H
+   570 000002EF 92                              XCHG    DX,AX
+   571 000002F0 E82800                          CALL    DIGIT
+   572 000002F3 93                              XCHG    AX,BX
+   573 000002F4 E80E00                          CALL    OUTWORD
+   574 000002F7 95                              XCHG    AX,BP
+   575 000002F8 E80A00                          CALL    OUTWORD
+   576 000002FB 5A                              POP     DX
+   577 000002FC 83FA00                          CMP     DX,0
+   578 000002FF 7403                            JZ	short RET3
+   579 00000301 E87C00                          CALL    PRINT
+   580                                  RET3:   
+   581 00000304 C3                      	RETN
+   582                                  
+   583                                  OUTWORD:
+   584 00000305 50                              PUSH    AX
+   585 00000306 88E2                            MOV     DL,AH
+   586 00000308 E80100                          CALL    OUTBYTE
+   587 0000030B 5A                              POP     DX
+   588                                  OUTBYTE:
+   589 0000030C 88D6                            MOV     DH,DL
+   590 0000030E D0EA                            SHR     DL,1
+   591 00000310 D0EA                            SHR     DL,1
+   592 00000312 D0EA                            SHR     DL,1
+   593 00000314 D0EA                            SHR     DL,1
+   594 00000316 E80200                          CALL    DIGIT
+   595 00000319 88F2                            MOV     DL,DH
+   596                                  DIGIT:
+   597 0000031B 80E20F                          AND     DL,0FH
+   598 0000031E 7402                            JZ	short BLANKZER
+   599 00000320 B100                            MOV     CL,0
+   600                                  BLANKZER:
+   601 00000322 FECD                            DEC     CH
+   602 00000324 20E9                            AND     CL,CH
+   603 00000326 80CA30                          OR      DL,30H
+   604 00000329 28CA                            SUB     DL,CL
+   605 0000032B B402                            MOV     AH,STD_CON_OUTPUT
+   606 0000032D CD21                            INT     21H
+   607 0000032F C3                              RETN
+   608                                  
+   609                                  CONVWRD:
+   610 00000330 10C0                            ADC     AL,AL
+   611 00000332 27                              DAA
+   612 00000333 86C4                            XCHG    AL,AH
+   613 00000335 10C0                            ADC     AL,AL
+   614 00000337 27                              DAA
+   615 00000338 86C4                            XCHG    AL,AH
+   616                                  RET2:   
+   617 0000033A C3                      	RETN
+   618                                  
+   619                                  UNSCALE:
+   620 0000033B D1E9                            SHR     CX,1
+   621 0000033D 72FB                            JC	short RET2
+   622 0000033F D1E0                            SHL     AX,1
+   623 00000341 D1D2                            RCL     DX,1
+   624 00000343 EBF6                            JMP     SHORT UNSCALE
+   625                                  
+   626                                  
+   627                                  ;******************************************
+   628                                  ; Calculate the size in bytes of the system rounded up to sector and
+   629                                  ;   cluster boundries, Answer in SYSSIZ
+   630                                  
+   631                                  ; 05/05/2018
+   632                                  ; Retro DOS v2.0 modification (BIOS+DOS KERNEL file = "MSDOS.SYS")
+   633                                  
+   634                                  GETSIZE:
+   635 00000345 A1[8F09]                        MOV     AX,[KERNELSIZB]		;And calculate the system size
+   636 00000348 8B16[9109]                      MOV     DX,[KERNELSIZB+2]
+   637 0000034C E80700                          CALL    FNDSIZ
+   638 0000034F A1[AE09]                        MOV     AX,[COMSIZB]
+   639 00000352 8B16[B009]                      MOV     DX,[COMSIZB+2]
+   640                                  
+   641                                  ;Calculate the number of sectors used for the system
+   642                                  FNDSIZ:
+   643 00000356 F736[560A]                      DIV	word [SECSIZ]
+   644 0000035A 09D2                            OR      DX,DX
+   645 0000035C 7401                            JZ	short FNDSIZ0
+   646 0000035E 40                              INC     AX                      ; Round up to next sector
+   647                                  FNDSIZ0:
+   648 0000035F 50                              PUSH    AX
+   649 00000360 31D2                            XOR     DX,DX
+   650 00000362 F736[540A]                      DIV	word [CLUSSIZ]
+   651 00000366 58                              POP     AX
+   652 00000367 09D2                            OR      DX,DX
+   653 00000369 7408                            JZ	short ONCLUS
+   654 0000036B 2B16[540A]                      SUB     DX,[CLUSSIZ]
+   655 0000036F F7DA                            NEG     DX
+   656 00000371 01D0                            ADD     AX,DX                   ; Round up sector count to cluster
+   657                                                                          ;       boundary
+   658                                  ONCLUS:
+   659 00000373 F726[560A]                      MUL	word [SECSIZ]		; Turn it back into bytes
+   660 00000377 0106[580A]                      ADD     [SYSSIZ],AX
+   661 0000037B 1116[5A0A]                      ADC     [SYSSIZ+2],DX
+   662 0000037F C3                              RETN
+   663                                  
+   664 00000380 B409                    PRINT:  MOV     AH,STD_CON_STRING_OUTPUT ;Print msg pointed to by DX
+   665 00000382 CD21                            INT     21H
+   666 00000384 C3                              RETN
+   667                                  
+   668 00000385 803E[CE0F]00            MORE:   CMP     BYTE [HARDFLAG],0	;Check if removable media
+   669 0000038A 7512                            JNZ	short FEXIT
+   670 0000038C E82B08                          CALL    WAITYN                  ;Get yes or no response
+   671 0000038F 720D                            JB	short FEXIT		;Exit if CF=1
+   672 00000391 E80000                          CALL    CRLF
+   673                                  CRLF:
+   674 00000394 BA[F20C]                        MOV     DX,CRLFMSG
+   675 00000397 E8E6FF                          CALL    PRINT
+   676 0000039A C3                              RETN
+   677                                  
+   678 0000039B E8E2FF                  PERROR: CALL    PRINT                   ;Print message and exit
+   679                                  FEXIT:
+   680 0000039E E87D03                          CALL    RESTUDIR                ;Restore users dirs
+   681                                  FEXIT2:
+   682 000003A1 CD20                            INT     20H
+   683                                  
+   684                                          ;Prompt the user for a system diskette in the default drive
+   685                                  SYSPRM:
+   686 000003A3 B419                            MOV     AH,GET_DEFAULT_DRIVE    ;Will find out the default drive
+   687 000003A5 CD21                            INT     21H                     ;Default now in AL
+   688 000003A7 0441                    	ADD     AL,41H                  ;Now in Ascii
+   689 000003A9 A2[A00D]                        MOV     [SYSDRV],AL		;Text now ok
+   690                                  
+   691 000003AC BA[870D]                        MOV     DX,SYSMSG
+   692 000003AF E8CEFF                          CALL    PRINT                   ;Print first line
+   693 000003B2 E82B00                          CALL    WAITKY                  ;Wait for a key
+   694 000003B5 E8DCFF                          CALL    CRLF
+   695 000003B8 C3                              RETN
+   696                                  
+   697                                  TARGPRM:
+   698 000003B9 BA[480D]                        MOV     DX,TARGMSG
+   699 000003BC E8C1FF                          CALL    PRINT                   ;Print first line
+   700 000003BF E81E00                          CALL    WAITKY                  ;Wait for a key
+   701 000003C2 E8CFFF                          CALL    CRLF
+   702 000003C5 C3                              RETN
+   703                                  
+   704                                  DSKPRM:
+   705 000003C6 BA[610C]                        MOV     DX,SNGMSG		;Point to the message
+   706 000003C9 803E[CE0F]00                    CMP     BYTE [HARDFLAG],0	;Check if removable media
+   707 000003CE 7403                            JZ	short GOPRNIT
+   708 000003D0 BA[A10C]                        MOV     DX,HRDMSG
+   709                                  GOPRNIT:
+   710 000003D3 E8AAFF                          CALL    PRINT                   ;Print the message
+   711 000003D6 E80700                          CALL    WAITKY                  ;Wait for space bar
+   712 000003D9 E8B8FF                          CALL    CRLF
+   713 000003DC E8B5FF                          CALL    CRLF
+   714 000003DF C3                              RETN
+   715                                  
+   716                                          ;Will wait for any key to be depressed.
+   717                                  WAITKY:
+   718 000003E0 B8080C                          MOV     AX,(STD_CON_INPUT_FLUSH*256) | STD_CON_INPUT_NO_ECHO
+   719 000003E3 CD21                            INT     21H
+   720 000003E5 B8000C                          MOV     AX,(STD_CON_INPUT_FLUSH*256) + 0
+   721 000003E8 CD21                            INT     21H
+   722 000003EA C3                      	RETN
+   723                                  
+   724 000003EB 8A16[3B09]              FDPB:   MOV     DL,[DRIVE]
+   725 000003EF FEC2                            INC     DL
+   726 000003F1 B432                            MOV     AH,GET_DPB
+   727 000003F3 1E                              PUSH    DS
+   728 000003F4 CD21                            INT     21H
+   729 000003F6 FEC0                            INC     AL
+   730 000003F8 740E                            JZ	short DRVERR
+   731 000003FA 8B570D                          MOV     DX,[BX+13]
+   732 000003FD 4A                              DEC     DX
+   733 000003FE 8A4704                          MOV     AL,[BX+4]
+   734 00000401 FEC0                            INC     AL
+   735 00000403 8B4F02                          MOV     CX,[BX+2]
+   736 00000406 1F                              POP     DS
+   737 00000407 C3                              RETN
+   738                                  DRVERR:
+   739 00000408 1F                              POP     DS
+   740 00000409 BA[1A0D]                        MOV     DX,INVDRV
+   741 0000040C EB8D                            JMP	short PERROR
+   742                                  
+   743                                          ;Clear the FAT and directory and set Dirty byte in the FAT
+   744                                  CLEAR:
+   745 0000040E A0[CF0F]                        MOV     AL,[FATID]
+   746 00000411 0CF8                            OR      AL,0F8H                 ;Make sure it's a legal value
+   747 00000413 B4FF                            MOV     AH,0FFH
+   748 00000415 8B3E[D80F]                      MOV     DI,[FATSPACE]
+   749 00000419 8905                            MOV     [DI],AX
+   750 0000041B 886502                          MOV     [DI+2],AH
+   751 0000041E B40D                            MOV     AH,DISK_RESET
+   752 00000420 CD21                            INT     21H
+   753 00000422 E8B00A                          CALL    WRTFAT
+   754                                  
+   755 00000425 E8C3FF                          CALL    FDPB
+   756 00000428 8916[5C0A]                      MOV     [FDSKSIZ],DX
+   757 0000042C 890E[560A]                      MOV     [SECSIZ],CX
+   758 00000430 B400                            MOV     AH,0
+   759 00000432 A3[540A]                        MOV     [CLUSSIZ],AX
+   760 00000435 D1EA                            SHR     DX,1
+   761 00000437 7301                            JNC	short ROUNDED
+   762 00000439 42                              INC     DX
+   763                                  ROUNDED:
+   764 0000043A 0316[5C0A]                      ADD     DX,[FDSKSIZ]
+   765 0000043E 31C0                            XOR     AX,AX
+   766 00000440 89D1                            MOV     CX,DX
+   767 00000442 8B3E[D80F]                      MOV     DI,[FATSPACE]
+   768 00000446 83C703                          ADD     DI,3
+   769 00000449 F3AA                            REP     STOSB
+   770 0000044B B40D                            MOV     AH,DISK_RESET
+   771 0000044D CD21                            INT     21H
+   772 0000044F E8830A                          CALL    WRTFAT
+   773 00000452 8A16[3B09]                      MOV     DL,[DRIVE]
+   774 00000456 80C241                          ADD     DL,'A'
+   775 00000459 8816[3509]                      MOV     [ROOTSTR],DL
+   776 0000045D BA[3509]                        MOV     DX,ROOTSTR
+   777 00000460 B43B                            MOV     AH,CHDIR
+   778 00000462 CD21                            INT     21H                     ;Go to root on target drive
+   779 00000464 A0[3B09]                        MOV     AL,[DRIVE]
+   780 00000467 FEC0                            INC     AL
+   781 00000469 A2[000A]                        MOV     [ALLDRV],AL
+   782 0000046C B413                            MOV     AH,FCB_DELETE
+   783 0000046E BA[F909]                        MOV     DX,ALLFILE
+   784 00000471 CD21                            INT     21H
+   785                                  
+   786 00000473 F706[4C0A]0400                  TEST    word [SWITCHMAP],OLDSW	;See if E5 terminated DIR requested
+   787 00000479 7448                            JZ	short RET25
+   788 0000047B A0[3B09]                        MOV     AL,[DRIVE]
+   789 0000047E FEC0                            INC     AL
+   790 00000480 A2[260A]                        MOV     [CLEANFILE],AL		;Get the drive
+   791 00000483 BA[260A]                        MOV     DX,CLEANFILE
+   792 00000486 B416                            MOV     AH,FCB_CREATE
+   793                                  MAKE_NEXT:
+   794 00000488 CD21                            INT     21H
+   795 0000048A 08C0                            OR      AL,AL
+   796 0000048C 7526                            JNZ	short DELETE_THEM
+   797 0000048E FE06[270A]                      INC     BYTE [CLNNAM]
+   798 00000492 803E[270A]5B                    CMP     BYTE [CLNNAM],"Z"+1
+   799 00000497 75EF                            JNZ	short MAKE_NEXT
+   800 00000499 C606[270A]41                    MOV     BYTE [CLNNAM],"A"
+   801 0000049E FE06[280A]                      INC     BYTE [CLNNAM+1]
+   802 000004A2 803E[280A]5B                    CMP     BYTE [CLNNAM+1],"Z"+1
+   803 000004A7 75DF                            JNZ     short MAKE_NEXT
+   804 000004A9 C606[280A]41                    MOV     BYTE [CLNNAM+1],"A"
+   805 000004AE FE06[290A]                      INC     BYTE [CLNNAM+2]
+   806 000004B2 EBD4                            JMP     short MAKE_NEXT
+   807                                  
+   808                                  DELETE_THEM:
+   809 000004B4 C706[270A]3F3F                  MOV     WORD [CLNNAM],"??"
+   810 000004BA C606[290A]3F                    MOV     BYTE [CLNNAM+2],"?"
+   811 000004BF B413                            MOV     AH,FCB_DELETE
+   812 000004C1 CD21                            INT     21H
+   813                                  RET25:
+   814 000004C3 C3                      	RETN				;And return
+   815                                  
+   816                                  ;*****************************************
+   817                                  ; Process V switch if set
+   818                                  
+   819                                  VOLID:
+   820 000004C4 F706[4C0A]0200                  TEST    word [SWITCHMAP],VOLSW
+   821 000004CA 7502                            JNZ	short DOVOL
+   822                                  VRET:   
+   823 000004CC F8                      	CLC
+   824 000004CD C3                              RETN
+   825                                  
+   826                                  DOVOL:
+   827 000004CE 51                              PUSH    CX
+   828 000004CF 56                              PUSH    SI
+   829 000004D0 57                              PUSH    DI
+   830 000004D1 06                              PUSH    ES
+   831 000004D2 1E                              PUSH    DS
+   832 000004D3 07                              POP     ES
+   833                                  VOL_LOOP:
+   834 000004D4 A0[3B09]                        MOV     AL,[DRIVE]
+   835 000004D7 FEC0                            INC     AL
+   836 000004D9 A2[D209]                        MOV     [VOLFCB+7],AL
+   837 000004DC BA[A60E]                        MOV     DX,LABPRMT
+   838 000004DF E89EFE                          CALL    PRINT
+   839 000004E2 BA[680A]                        MOV     DX,INBUFF
+   840 000004E5 B40A                            MOV     AH,STD_CON_STRING_INPUT
+   841 000004E7 CD21                            INT     21H
+   842 000004E9 BA[F20C]                        MOV     DX,CRLFMSG
+   843 000004EC E891FE                          CALL    PRINT
+   844 000004EF BA[F20C]                        MOV     DX,CRLFMSG
+   845 000004F2 E88BFE                          CALL    PRINT
+   846 000004F5 8A0E[690A]                      MOV     CL,[INBUFF+1]
+   847 000004F9 08C9                            OR      CL,CL
+   848 000004FB 7436                            JZ	short VOLRET
+   849 000004FD 30ED                            XOR     CH,CH
+   850 000004FF BE[6A0A]                        MOV     SI,INBUFF+2
+   851 00000502 89F7                            MOV     DI,SI
+   852 00000504 01CF                            ADD     DI,CX
+   853 00000506 B90B00                          MOV     CX,11
+   854 00000509 B020                            MOV     AL,' '
+   855 0000050B F3AA                            REP     STOSB
+   856 0000050D B90500                          MOV     CX,5
+   857 00000510 BF[D309]                        MOV     DI,VOLNAM
+   858 00000513 F3A5                            REP     MOVSW
+   859 00000515 A4                              MOVSB
+   860 00000516 BA[CB09]                        MOV     DX,VOLFCB
+   861 00000519 B416                            MOV     AH,FCB_CREATE
+   862 0000051B CD21                            INT     21H
+   863 0000051D 08C0                            OR      AL,AL
+   864 0000051F 7408                            JZ	short GOOD_CREATE
+   865 00000521 BA[F50C]                        MOV     DX,INVCHR		;PRINT INVALID CHARS MESSAGE
+   866 00000524 E859FE                          CALL    PRINT
+   867 00000527 EBAB                            JMP	short VOL_LOOP
+   868                                  GOOD_CREATE:
+   869 00000529 BA[CB09]                        MOV     DX,VOLFCB
+   870 0000052C B410                            MOV     AH,FCB_CLOSE
+   871 0000052E CD21                            INT     21H
+   872 00000530 E861FE                          CALL    CRLF
+   873                                  VOLRET:
+   874 00000533 07                              POP     ES
+   875 00000534 5F                              POP     DI
+   876 00000535 5E                              POP     SI
+   877 00000536 59                              POP     CX
+   878 00000537 C3                              RETN
+   879                                  
+   880                                  ;****************************************
+   881                                  ;Copy IO.SYS, MSDOS.SYS and COMMAND.COM into data area.
+   882                                  ; Carry set if problems
+   883                                  
+   884                                  ; 05/05/2018
+   885                                  ; Retro DOS v.20 modification 
+   886                                  ;	copy MSDOS.SYS & COMMAND.COM into data area
+   887                                  
+   888                                  READDOS:
+   889 00000538 E8A902                          CALL    TESTSYSDISK
+   890 0000053B 7301                            JNC	short RDFILS
+   891 0000053D C3                              RETN
+   892                                  
+   893                                  RDFILS:
+   894 0000053E C606[4709]00                    MOV     BYTE [FILSTAT],0
+   895 00000543 8B1E[8B09]                      MOV     BX,[KERNELHandle]
+   896 00000547 A1[4109]                	MOV	AX,[MSTART]
+   897 0000054A 89C2                            MOV     DX,AX
+   898 0000054C 0316[4309]                      ADD     DX,[MSIZE]   
+   899 00000550 A3[9709]                        MOV     [KERNELSTRT],AX
+   900 00000553 8B0E[8D09]                      MOV     CX,[KERNELSIZP]
+   901 00000557 01C8                            ADD     AX,CX
+   902 00000559 39D0                            CMP     AX,DX
+   903 0000055B 762E                            JBE	short GOTDOS
+   904 0000055D 800E[4709]04                    OR      BYTE [FILSTAT],00000100B ; Got part of DOS
+   905 00000562 8B36[4309]                      MOV     SI,[MSIZE]
+   906 00000566 31FF                            XOR     DI,DI
+   907 00000568 E8A003                          CALL    DISIX4
+   908 0000056B 8E1E[9709]                      MOV     DS,[KERNELSTRT]
+   909                                  ;ASSUME  DS:NOTHING
+   910 0000056F E81F03                          CALL    READFILE
+   911                                  ;ASSUME  DS:CODE
+   912 00000572 7211                            JC	short CLSALL
+   913 00000574 31D2                            XOR     DX,DX
+   914 00000576 89D1                            MOV     CX,DX
+   915 00000578 B80142                          MOV     AX,(LSEEK*256) | 1
+   916 0000057B CD21                            INT     21H
+   917 0000057D A3[9309]                        MOV     [KERNELOFFS],AX
+   918 00000580 8916[9509]                      MOV     [KERNELOFFS+2],DX
+   919                                  FILESDONE:
+   920 00000584 F8                              CLC
+   921                                  CLSALL:
+   922 00000585 9C                              PUSHF
+   923 00000586 E8B802                          CALL    COMCLS
+   924 00000589 9D                              POPF
+   925 0000058A C3                              RETN
+   926                                  GOTDOS:
+   927 0000058B 800E[4709]08                    OR      BYTE [FILSTAT],00001000B ; Got all of DOS
+   928 00000590 C436[8F09]                      LES     SI,[KERNELSIZB]
+   929 00000594 8CC7                            MOV     DI,ES
+   930 00000596 8E1E[9709]                      MOV     DS,[KERNELSTRT]
+   931                                  ;ASSUME  DS:NOTHING
+   932 0000059A E8F402                          CALL    READFILE
+   933                                  ;ASSUME  DS:CODE
+   934 0000059D 72E6                    	JC	short CLSALL
+   935 0000059F 8B1E[AA09]                      MOV     BX,[COMHandle]
+   936 000005A3 A3[B609]                        MOV     [COMSTRT],AX
+   937 000005A6 39D0                            CMP     AX,DX                   ; No room left?
+   938 000005A8 74DB                            JZ	short CLSALL		; Yes
+   939 000005AA 8B0E[AC09]                      MOV     CX,[COMSIZP]
+   940 000005AE 01C8                            ADD     AX,CX
+   941 000005B0 39D0                            CMP     AX,DX
+   942 000005B2 762B                            JBE	short GOTCOM
+   943 000005B4 800E[4709]10                    OR      BYTE [FILSTAT],00010000B ; Got part of COMMAND
+   944 000005B9 2B16[B609]                      SUB     DX,[COMSTRT]
+   945 000005BD 89D6                            MOV     SI,DX
+   946 000005BF 31FF                            XOR     DI,DI
+   947 000005C1 E84703                          CALL    DISIX4
+   948 000005C4 8E1E[B609]                      MOV     DS,[COMSTRT]
+   949                                  ;ASSUME  DS:NOTHING
+   950 000005C8 E8C602                          CALL    READFILE
+   951                                  ;ASSUME  DS:CODE
+   952 000005CB 72B8                            JC	short CLSALL
+   953 000005CD 31D2                            XOR     DX,DX
+   954 000005CF 89D1                            MOV     CX,DX
+   955 000005D1 B80142                          MOV     AX,(LSEEK*256) | 1
+   956 000005D4 CD21                            INT     21H
+   957 000005D6 A3[B209]                        MOV     [COMOFFS],AX
+   958 000005D9 8916[B409]                      MOV     [COMOFFS+2],DX
+   959 000005DD EBA5                            JMP     short FILESDONE
+   960                                  
+   961                                  GOTCOM:
+   962 000005DF 800E[4709]20                    OR      BYTE [FILSTAT],00100000B ; Got all of COMMAND
+   963 000005E4 C436[AE09]                      LES     SI,[COMSIZB]
+   964 000005E8 8CC7                            MOV     DI,ES
+   965 000005EA 8E1E[B609]                      MOV     DS,[COMSTRT]
+   966                                  ;ASSUME  DS:NOTHING
+   967 000005EE E8A002                          CALL    READFILE
+   968                                  ;ASSUME  DS:CODE
+   969 000005F1 EB92                            JMP	short CLSALL
+   970                                  
+   971                                  ;**************************************************
+   972                                  ;Write BIOS DOS COMMAND to the newly formatted disk.
+   973                                  
+   974                                  ; 05/05/2018 - Retro DOS v2.0 modification
+   975                                  ; (*) Single MSDOS.SYS instead of IO.SYS+MSDOS.SYS	
+   976                                  
+   977                                  WRITEDOS:
+   978 000005F3 B90700                          MOV     CX,KERNELATT
+   979 000005F6 BA[9D09]                        MOV     DX,KERNELFIL
+   980 000005F9 C436[8F09]                      LES     SI,[KERNELSIZB]
+   981 000005FD 8CC7                            MOV     DI,ES
+   982 000005FF E8D800                          CALL    MAKEFIL
+   983 00000602 7301                            JNC	SHORT GOTNDOS
+   984                                  RET34:
+   985 00000604 C3                      	RETN
+   986                                  
+   987                                  GOTNDOS:
+   988 00000605 891E[4509]                      MOV     [TempHandle],BX
+   989 00000609 F606[4709]08                    TEST    BYTE [FILSTAT],00001000B
+   990 0000060E 7532                            JNZ	short GOTALLDOS
+   991                                  	;MOV     BP,DOSData
+   992 00000610 BD[8B09]                	MOV	BP,KERNELData ; *
+   993 00000613 F606[4709]04                    TEST    BYTE [FILSTAT],00000100B
+   994 00000618 7513                            JNZ	short PARTDOS
+   995 0000061A C706[9309]0000                  MOV     WORD [KERNELOFFS],0
+   996 00000620 C706[9509]0000                  MOV     WORD [KERNELOFFS+2],0
+   997 00000626 E83F01                          CALL    GETSYS3
+   998                                  RET34J: 
+   999 00000629 72D9                    	JC	short RET34
+  1000 0000062B EB22                            JMP     SHORT DOSDONE
+  1001                                  
+  1002                                  PARTDOS:
+  1003                                          ;LES     SI,[DOSOFFS]
+  1004 0000062D C436[9309]              	LES	SI,[KERNELOFFS] ; *
+  1005 00000631 8CC7                            MOV     DI,ES
+  1006 00000633 8936[3D09]                      MOV     [IOCNT],SI
+  1007 00000637 893E[3F09]                      MOV     [IOCNT+2],DI
+  1008 0000063B E80501                          CALL    GOTTARG
+  1009 0000063E 72E9                            JC	short RET34J
+  1010 00000640 EB0D                            JMP     SHORT DOSDONE
+  1011                                  
+  1012                                  GOTALLDOS:
+  1013                                          ;LES     SI,[DOSSIZB]
+  1014 00000642 C436[8F09]                      LES     SI,[KERNELSIZB] ; *
+  1015 00000646 8CC7                            MOV     DI,ES
+  1016                                          ;MOV     DS,[DOSSTRT]
+  1017 00000648 8E1E[9709]                      MOV     DS,[KERNELSTRT] ; *
+  1018                                  ;ASSUME  DS:NOTHING
+  1019 0000064C E85102                          CALL    WRITEFILE
+  1020                                  ;ASSUME  DS:CODE
+  1021                                  DOSDONE:
+  1022 0000064F 8B1E[4509]                      MOV     BX,[TempHandle]
+  1023 00000653 8B0E[9B09]                      MOV     CX,[KTIME]
+  1024 00000657 8B16[9909]                      MOV     DX,[KDATE]
+  1025 0000065B E8A800                          CALL    CLOSETARG
+  1026 0000065E B90000                          MOV     CX,COMATT
+  1027 00000661 BA[BC09]                        MOV     DX,COMFIL
+  1028 00000664 C436[AE09]                      LES     SI,[COMSIZB]
+  1029 00000668 8CC7                            MOV     DI,ES
+  1030 0000066A E86D00                          CALL    MAKEFIL
+  1031 0000066D 7301                            JNC	short GOTNCOM
+  1032                                  RET35:  
+  1033 0000066F C3                      	RETN
+  1034                                  
+  1035                                  GOTNCOM:
+  1036 00000670 891E[4509]                      MOV     [TempHandle],BX
+  1037 00000674 F606[4709]20                    TEST    BYTE [FILSTAT],00100000B
+  1038 00000679 7532                            JNZ	short GOTALLCOM
+  1039 0000067B BD[AA09]                        MOV     BP,COMData
+  1040 0000067E F606[4709]10                    TEST    BYTE [FILSTAT],00010000B
+  1041 00000683 7513                            JNZ	short PARTCOM
+  1042 00000685 C706[B209]0000                  MOV     word [COMOFFS],0
+  1043 0000068B C706[B409]0000                  MOV     word [COMOFFS+2],0
+  1044 00000691 E8D400                          CALL    GETSYS3
+  1045 00000694 72D9                            JC	short RET35
+  1046 00000696 EB22                            JMP     SHORT COMDONE
+  1047                                  
+  1048                                  PARTCOM:
+  1049 00000698 C436[B209]                      LES     SI,[COMOFFS]
+  1050 0000069C 8CC7                            MOV     DI,ES
+  1051 0000069E 8936[3D09]                      MOV     [IOCNT],SI
+  1052 000006A2 893E[3F09]                      MOV     [IOCNT+2],DI
+  1053 000006A6 E89A00                          CALL    GOTTARG
+  1054 000006A9 72C4                            JC	short RET35
+  1055 000006AB EB0D                            JMP     SHORT COMDONE
+  1056                                  
+  1057                                  GOTALLCOM:
+  1058 000006AD C436[AE09]                      LES     SI,[COMSIZB]
+  1059 000006B1 8CC7                            MOV     DI,ES
+  1060 000006B3 8E1E[B609]                      MOV     DS,[COMSTRT]
+  1061                                  ;ASSUME  DS:NOTHING
+  1062 000006B7 E8E601                          CALL    WRITEFILE
+  1063                                  ;ASSUME  DS:CODE
+  1064                                  COMDONE:
+  1065 000006BA 8B1E[4509]                      MOV     BX,[TempHandle]
+  1066 000006BE B9[BA09]                        MOV     CX,CTIME
+  1067 000006C1 BA[B809]                        MOV     DX,CDATE
+  1068 000006C4 E83F00                          CALL    CLOSETARG
+  1069                                          ;CMP     BYTE [FILSTAT],00101010B
+  1070                                  	; 05/05/2018 (no BIOS file in Retro DOS, single file: MSDOS.SYS)
+  1071 000006C7 803E[4709]28                    CMP     BYTE [FILSTAT],00101000B ; Retro DOS 2.0 modification
+  1072 000006CC 740A                            JZ	short NOREDOS
+  1073                                  RDFRST2:
+  1074 000006CE E867FE                          CALL    READDOS			; Start back with BIOS
+  1075 000006D1 7305                            JNC	short NOREDOS
+  1076 000006D3 E8CDFC                          CALL    SYSPRM                  ;Prompt for system disk
+  1077 000006D6 EBF6                            JMP	short RDFRST2		;Try again
+  1078                                  NOREDOS:
+  1079 000006D8 F8                              CLC
+  1080 000006D9 C3                              RETN
+  1081                                  
+  1082                                  ;*********************************************
+  1083                                  ; Create a file on target disk
+  1084                                  ; CX = attributes, DX points to name
+  1085                                  ; DI:SI is size file is to have
+  1086                                  ;
+  1087                                  ;   There is a bug in DOS 2.00 and 2.01 having to do with writes
+  1088                                  ;   from the end of memory. In order to circumvent it this routine
+  1089                                  ;   must create files with the length in DI:SI
+  1090                                  ;
+  1091                                  ; On return BX is handle, carry set if problem
+  1092                                  
+  1093                                  MAKEFIL:
+  1094 000006DA 89D3                            MOV     BX,DX
+  1095 000006DC FF37                            PUSH    WORD [BX]
+  1096 000006DE A0[650D]                        MOV     AL,[TARGDRV]
+  1097 000006E1 8807                            MOV     [BX],AL
+  1098 000006E3 B43C                            MOV     AH,CREAT
+  1099 000006E5 CD21                            INT     21H
+  1100 000006E7 8F07                            POP     WORD [BX]
+  1101 000006E9 89C3                            MOV     BX,AX
+  1102 000006EB 7218                            JC      short RET50
+  1103 000006ED 89F9                            MOV     CX,DI
+  1104 000006EF 89F2                            MOV     DX,SI
+  1105 000006F1 B80042                          MOV     AX,LSEEK*256
+  1106 000006F4 CD21                            INT     21H                     ; Seek to eventual EOF
+  1107 000006F6 31C9                            XOR     CX,CX
+  1108 000006F8 B440                            MOV     AH,WRITE
+  1109 000006FA CD21                            INT     21H                     ; Set size of file to position
+  1110 000006FC 31C9                            XOR     CX,CX
+  1111 000006FE 89CA                            MOV     DX,CX
+  1112 00000700 B80042                          MOV     AX,LSEEK*256
+  1113 00000703 CD21                            INT     21H                     ; Seek back to start
+  1114                                  RET50:
+  1115 00000705 C3                              RETN
+  1116                                  
+  1117                                  ;*********************************************
+  1118                                  ; Close a file on the target disk
+  1119                                  ; CX/DX is time/date, BX is handle
+  1120                                  
+  1121                                  CLOSETARG:
+  1122 00000706 B80157                          MOV     AX,(FILE_TIMES*256) | 1
+  1123 00000709 CD21                            INT     21H
+  1124 0000070B B43E                            MOV     AH,CLOSE
+  1125 0000070D CD21                            INT     21H
+  1126 0000070F C3                              RETN
+  1127                                  
+  1128                                  SAVUDIRS:
+  1129 00000710 30D2                            XOR     DL,DL
+  1130 00000712 BE[4809]                        MOV     SI,USERDIRS
+  1131 00000715 C6045C                          MOV     BYTE [SI],'\'
+  1132 00000718 46                              INC     SI
+  1133 00000719 B447                            MOV     AH,CURRENT_DIR
+  1134 0000071B CD21                            INT     21H
+  1135                                  RET43:  
+  1136 0000071D C3                      	RETN
+  1137                                  
+  1138                                  
+  1139                                  RESTUDIR:
+  1140 0000071E F706[4C0A]0100                  TEST    word [SWITCHMAP],SYSSW
+  1141 00000724 74F7                            JZ	short RET43
+  1142 00000726 BA[4809]                        MOV     DX,USERDIRS
+  1143 00000729 B43B                            MOV     AH,CHDIR
+  1144 0000072B CD21                            INT     21H		; Restore users DIR
+  1145 0000072D C3                              RETN
+  1146                                  
+  1147                                  INT_23:
+  1148 0000072E 0E                              PUSH    CS
+  1149 0000072F 1F                              POP     DS
+  1150 00000730 E96BFC                          JMP	FEXIT
+  1151                                  
+  1152                                  ;****************************************
+  1153                                  ; Transfer system files
+  1154                                  ; BP points to data structure for file involved
+  1155                                  ; offset is set to current amount read in
+  1156                                  ; Start set to start of file in buffer
+  1157                                  ; TempHandle is handle to write to on target
+  1158                                  
+  1159                                  IOLOOP:
+  1160 00000733 A0[A00D]                        MOV     AL,[SYSDRV]
+  1161 00000736 3A06[650D]                      CMP     AL,[TARGDRV]
+  1162 0000073A 7507                            JNZ	short GOTTARG
+  1163 0000073C B40D                            MOV     AH,DISK_RESET
+  1164 0000073E CD21                            INT     21H
+  1165 00000740 E876FC                          CALL    TARGPRM                  ;Get target disk
+  1166                                  
+  1167                                  GOTTARG:
+  1168                                  ;Enter here if some of file is already in buffer, IOCNT must be set
+  1169                                  ; to size already in buffer.
+  1170 00000743 8B1E[4509]                      MOV     BX,[TempHandle]
+  1171 00000747 8B36[3D09]                      MOV     SI,[IOCNT]
+  1172 0000074B 8B3E[3F09]                      MOV     DI,[IOCNT+2]
+  1173 0000074F 8E5E0C                          MOV     DS,[BP+FILE.START]
+  1174                                  ;ASSUME  DS:NOTHING
+  1175 00000752 E84B01                          CALL    WRITEFILE               ; Write next part
+  1176                                  ;ASSUME  DS:CODE
+  1177 00000755 7301                            JNC	short TESTDONE
+  1178 00000757 C3                              RETN
+  1179                                  
+  1180                                  TESTDONE:
+  1181 00000758 C44608                          LES     AX,[BP+FILE.OFFSET]
+  1182 0000075B 3B4604                          CMP     AX,[BP+FILE.SIZEB]
+  1183 0000075E 7508                            JNZ	short GETSYS3
+  1184 00000760 8CC0                            MOV     AX,ES
+  1185 00000762 3B4606                          CMP     AX,[BP+FILE.SIZEB+2]
+  1186 00000765 7501                            JNZ	short GETSYS3
+  1187 00000767 C3                              RETN				; Carry clear from CMP
+  1188                                  
+  1189                                  GETSYS3:
+  1190                                  ;Enter here if none of file is in buffer
+  1191 00000768 A1[4109]                        MOV     AX,[MSTART]             ; Furthur IO done starting here
+  1192 0000076B 89460C                          MOV     [BP+FILE.START],AX
+  1193 0000076E A0[A00D]                        MOV     AL,[SYSDRV]
+  1194 00000771 3A06[650D]                      CMP     AL,[TARGDRV]
+  1195 00000775 7507                            JNZ	short TESTSYS
+  1196 00000777 B40D                            MOV     AH,DISK_RESET
+  1197 00000779 CD21                            INT     21H
+  1198                                  GSYS:
+  1199 0000077B E825FC                          CALL    SYSPRM                  ;Prompt for system disk
+  1200                                  TESTSYS:
+  1201 0000077E E86300                          CALL    TESTSYSDISK
+  1202 00000781 72F8                            JC	short GSYS
+  1203 00000783 8B5E00                          MOV     BX,[BP+FILE.HANDLE]
+  1204 00000786 C45608                          LES     DX,[BP+FILE.OFFSET]
+  1205 00000789 52                              PUSH    DX
+  1206 0000078A 8CC1                            MOV     CX,ES
+  1207 0000078C B80042                          MOV     AX,LSEEK*256
+  1208 0000078F CD21                            INT     21H
+  1209 00000791 5A                              POP     DX
+  1210 00000792 C47604                          LES     SI,[BP+FILE.SIZEB]
+  1211 00000795 8CC7                            MOV     DI,ES
+  1212 00000797 29D6                            SUB     SI,DX
+  1213 00000799 19CF                            SBB     DI,CX                   ; DI:SI is #bytes to go
+  1214 0000079B 57                              PUSH    DI
+  1215 0000079C 56                              PUSH    SI
+  1216 0000079D 83C60F                          ADD     SI,15
+  1217 000007A0 83D700                          ADC     DI,0
+  1218 000007A3 E86F01                          CALL    DISID4
+  1219 000007A6 89F0                            MOV     AX,SI
+  1220 000007A8 5E                              POP     SI
+  1221 000007A9 5F                              POP     DI
+  1222 000007AA 3B06[4309]                      CMP     AX,[MSIZE]
+  1223 000007AE 7609                            JBE	short GOTSIZ2
+  1224 000007B0 8B36[4309]                      MOV     SI,[MSIZE]
+  1225 000007B4 31FF                            XOR     DI,DI
+  1226 000007B6 E85201                          CALL    DISIX4
+  1227                                  GOTSIZ2:
+  1228 000007B9 8936[3D09]                      MOV     [IOCNT],SI
+  1229 000007BD 893E[3F09]                      MOV     [IOCNT+2],DI
+  1230 000007C1 8E1E[4109]                      MOV     DS,[MSTART]
+  1231                                  ;ASSUME  DS:NOTHING
+  1232 000007C5 E8C900                          CALL    READFILE
+  1233                                  ;ASSUME  DS:CODE
+  1234 000007C8 7305                            JNC	short GETOFFS
+  1235 000007CA E8B8FD                          CALL    CLSALL
+  1236 000007CD EBAC                            JMP	short GSYS
+  1237                                  GETOFFS:
+  1238 000007CF 31D2                            XOR     DX,DX
+  1239 000007D1 89D1                            MOV     CX,DX
+  1240 000007D3 B80142                          MOV     AX,(LSEEK*256) | 1
+  1241 000007D6 CD21                            INT     21H
+  1242 000007D8 894608                          MOV     [BP+FILE.OFFSET],AX
+  1243 000007DB 89560A                          MOV     [BP+FILE.OFFSET+2],DX
+  1244 000007DE E8A4FD                          CALL    CLSALL
+  1245 000007E1 E94FFF                          JMP	IOLOOP
+  1246                                  
+  1247                                  ;*************************************************
+  1248                                  ; Test to see if correct system disk. Open handles
+  1249                                  
+  1250                                  ; 05/05/2018
+  1251                                  ; Retro DOS v2.0 modification (BIOS+DOS KERNEL file = "MSDOS.SYS")
+  1252                                  
+  1253                                  TESTSYSDISK:
+  1254 000007E4 B8003D                          MOV     AX,OPEN*256
+  1255 000007E7 BA[9D09]                        MOV     DX,KERNELFIL
+  1256 000007EA CD21                            INT     21H
+  1257 000007EC 7302                            JNC	short SETKERNEL
+  1258                                  CRET12: 
+  1259 000007EE F9                      	STC
+  1260                                  RET12:
+  1261 000007EF C3                      	RETN
+  1262                                  
+  1263                                  SETKERNEL:
+  1264 000007F0 A3[8B09]                        MOV     [KERNELHandle],AX
+  1265 000007F3 89C3                            MOV     BX,AX
+  1266 000007F5 E86800                          CALL    GETFSIZ
+  1267 000007F8 833E[8D09]00                    CMP     word [KERNELSIZP],0
+  1268 000007FD 7410                            JZ	short SETKERNELSIZ1
+  1269 000007FF 3906[8D09]                      CMP     [KERNELSIZP],AX
+  1270 00000803 740D                            JZ	short SETKERNELSIZ2
+  1271                                  KERNELCLS:
+  1272 00000805 B43E                            MOV     AH,CLOSE
+  1273 00000807 8B1E[8B09]                      MOV     BX,[KERNELHandle]
+  1274 0000080B CD21                            INT     21H
+  1275 0000080D EBDF                            JMP	short CRET12
+  1276                                  
+  1277                                  SETKERNELSIZ1:
+  1278 0000080F A3[8D09]                        MOV     [KERNELSIZP],AX
+  1279                                  SETKERNELSIZ2:
+  1280 00000812 8936[8F09]                      MOV     [KERNELSIZB],SI
+  1281 00000816 893E[9109]                      MOV     [KERNELSIZB+2],DI
+  1282 0000081A 8916[9909]                      MOV     [KDATE],DX
+  1283 0000081E 890E[9B09]                      MOV     [KTIME],CX
+  1284 00000822 B8003D                          MOV     AX,OPEN*256
+  1285 00000825 BA[BC09]                        MOV     DX,COMFIL
+  1286 00000828 CD21                            INT     21H
+  1287 0000082A 72D9                            JC	short KERNELCLS
+  1288                                  
+  1289 0000082C A3[AA09]                        MOV     [COMHandle],AX
+  1290 0000082F 89C3                            MOV     BX,AX
+  1291 00000831 E82C00                          CALL    GETFSIZ
+  1292 00000834 833E[AC09]00                    CMP     word [COMSIZP],0
+  1293 00000839 7410                            JZ	short SETCOMSIZ1
+  1294 0000083B 3906[AC09]                      CMP     [COMSIZP],AX
+  1295 0000083F 740D                            JZ	short SETCOMSIZ2
+  1296                                  COMCLS:
+  1297 00000841 B43E                            MOV     AH,CLOSE
+  1298 00000843 8B1E[AA09]                      MOV     BX,[COMHandle]
+  1299 00000847 CD21                            INT     21H
+  1300 00000849 EBBA                            JMP	short KERNELCLS
+  1301                                  
+  1302                                  SETCOMSIZ1:
+  1303 0000084B A3[AC09]                        MOV     [COMSIZP],AX
+  1304                                  SETCOMSIZ2:
+  1305 0000084E 8936[AE09]                      MOV     [COMSIZB],SI
+  1306 00000852 893E[B009]                      MOV     [COMSIZB+2],DI
+  1307 00000856 8916[B809]                      MOV     [CDATE],DX
+  1308 0000085A 890E[BA09]                      MOV     [CTIME],CX
+  1309 0000085E F8                              CLC
+  1310 0000085F C3                              RETN
+  1311                                  
+  1312                                  ;*******************************************
+  1313                                  ; Handle in BX, return file size in para in AX
+  1314                                  ; File size in bytes DI:SI, file date in DX, file
+  1315                                  ; time in CX.
+  1316                                  
+  1317                                  GETFSIZ:
+  1318 00000860 B80242                          MOV     AX,(LSEEK*256) | 2
+  1319 00000863 31C9                            XOR     CX,CX
+  1320 00000865 89CA                            MOV     DX,CX
+  1321 00000867 CD21                            INT     21H
+  1322 00000869 89C6                            MOV     SI,AX
+  1323 0000086B 89D7                            MOV     DI,DX
+  1324 0000086D 83C00F                          ADD     AX,15           ; Para round up
+  1325 00000870 83D200                          ADC     DX,0
+  1326 00000873 83E20F                          AND     DX,0FH          ; If the file is larger than this
+  1327                                                                  ; it is bigger than the 8086 address space!
+  1328 00000876 B10C                            MOV     CL,12
+  1329 00000878 D3E2                            SHL     DX,CL
+  1330 0000087A B104                            MOV     CL,4
+  1331 0000087C D3E8                            SHR     AX,CL
+  1332 0000087E 09D0                            OR      AX,DX
+  1333 00000880 50                              PUSH    AX
+  1334 00000881 B80042                          MOV     AX,LSEEK*256
+  1335 00000884 31C9                            XOR     CX,CX
+  1336 00000886 89CA                            MOV     DX,CX
+  1337 00000888 CD21                            INT     21H
+  1338 0000088A B80057                          MOV     AX,FILE_TIMES*256
+  1339 0000088D CD21                            INT     21H
+  1340 0000088F 58                              POP     AX
+  1341 00000890 C3                              RETN
+  1342                                  
+  1343                                  ;********************************************
+  1344                                  ; Read/Write file
+  1345                                  ;       DS:0 is Xaddr
+  1346                                  ;       DI:SI is byte count to I/O
+  1347                                  ;       BX is handle
+  1348                                  ; Carry set if screw up
+  1349                                  ;
+  1350                                  ; I/O SI bytes
+  1351                                  ; I/O 64K - 1 bytes DI times
+  1352                                  ; I/O DI bytes
+  1353                                  ; DS=CS on output
+  1354                                  
+  1355                                  
+  1356                                  READFILE:
+  1357                                  ; Must preserve AX,DX
+  1358 00000891 50                              PUSH    AX
+  1359 00000892 52                              PUSH    DX
+  1360 00000893 55                              PUSH    BP
+  1361 00000894 BD003F                          MOV     BP,READ*256
+  1362 00000897 E81100                          CALL    FILIO
+  1363 0000089A 5D                              POP     BP
+  1364 0000089B 5A                              POP     DX
+  1365 0000089C 58                              POP     AX
+  1366 0000089D 0E                              PUSH    CS
+  1367 0000089E 1F                              POP     DS
+  1368 0000089F C3                              RETN
+  1369                                  
+  1370                                  WRITEFILE:
+  1371 000008A0 55                              PUSH    BP
+  1372 000008A1 BD0040                          MOV     BP,WRITE*256
+  1373 000008A4 E80400                          CALL    FILIO
+  1374 000008A7 5D                              POP     BP
+  1375 000008A8 0E                              PUSH    CS
+  1376 000008A9 1F                              POP     DS
+  1377 000008AA C3                              RETN
+  1378                                  
+  1379                                  FILIO:
+  1380 000008AB 31D2                            XOR     DX,DX
+  1381 000008AD 89F1                            MOV     CX,SI
+  1382 000008AF E30F                            JCXZ    K64IO
+  1383 000008B1 89E8                            MOV     AX,BP
+  1384 000008B3 CD21                            INT     21H
+  1385 000008B5 7253                            JC	short IORET
+  1386 000008B7 01C2                            ADD     DX,AX
+  1387 000008B9 39C8                            CMP     AX,CX           ; If not =, AX<CX, carry set.
+  1388 000008BB 754D                            JNZ	short IORET
+  1389 000008BD E85F00                          CALL    NORMALIZE
+  1390                                  K64IO:
+  1391 000008C0 F8                              CLC
+  1392 000008C1 89F9                            MOV     CX,DI
+  1393 000008C3 E345                            JCXZ    IORET
+  1394 000008C5 89E8                            MOV     AX,BP
+  1395 000008C7 CD21                            INT     21H
+  1396 000008C9 723F                            JC	short IORET
+  1397 000008CB 01C2                            ADD     DX,AX
+  1398 000008CD 39C8                            CMP     AX,CX           ; If not =, AX<CX, carry set.
+  1399 000008CF 7539                            JNZ	short IORET
+  1400 000008D1 E84B00                          CALL    NORMALIZE
+  1401 000008D4 89F9                            MOV     CX,DI
+  1402                                  K64M1:
+  1403 000008D6 51                              PUSH    CX
+  1404 000008D7 31C0                            XOR     AX,AX
+  1405 000008D9 09D2                            OR      DX,DX
+  1406 000008DB 7414                            JZ	short NORMIO
+  1407 000008DD B91000                          MOV     CX,10H
+  1408 000008E0 29D1                            SUB     CX,DX
+  1409 000008E2 89E8                            MOV     AX,BP
+  1410 000008E4 CD21                            INT     21H
+  1411 000008E6 7221                            JC	short IORETP
+  1412 000008E8 01C2                            ADD     DX,AX
+  1413 000008EA 39C8                            CMP     AX,CX           ; If not =, AX<CX, carry set.
+  1414 000008EC 751B                            JNZ	short IORETP
+  1415 000008EE E82E00                          CALL    NORMALIZE
+  1416                                  NORMIO:
+  1417 000008F1 B9FFFF                          MOV     CX,0FFFFH
+  1418 000008F4 29C1                            SUB     CX,AX
+  1419 000008F6 89E8                            MOV     AX,BP
+  1420 000008F8 CD21                            INT     21H
+  1421 000008FA 720D                            JC	short IORETP
+  1422 000008FC 01C2                            ADD     DX,AX
+  1423 000008FE 39C8                            CMP     AX,CX           ; If not =, AX<CX, carry set.
+  1424 00000900 7507                            JNZ	short IORETP
+  1425 00000902 E81A00                          CALL    NORMALIZE       ; Clears carry
+  1426 00000905 59                              POP     CX
+  1427 00000906 E2CE                            LOOP    K64M1
+  1428 00000908 51                              PUSH    CX
+  1429                                  IORETP:
+  1430 00000909 59                              POP     CX
+  1431                                  IORET:
+  1432 0000090A C3                              RETN
+  1433                                  
+  1434                                  
+  1435                                  ;*********************************
+  1436                                  ; Shift DI:SI left 4 bits
+  1437                                  DISIX4:
+  1438 0000090B B90400                          MOV     CX,4
+  1439                                  SH32:
+  1440 0000090E D1E6                            SHL     SI,1
+  1441 00000910 D1D7                            RCL     DI,1
+  1442 00000912 E2FA                            LOOP    SH32
+  1443 00000914 C3                              RETN
+  1444                                  
+  1445                                  ;*********************************
+  1446                                  ; Shift DI:SI right 4 bits
+  1447                                  DISID4:
+  1448 00000915 B90400                          MOV     CX,4
+  1449                                  SH32B:
+  1450 00000918 D1EF                            SHR     DI,1
+  1451 0000091A D1DE                            RCR     SI,1
+  1452 0000091C E2FA                            LOOP    SH32B
+  1453 0000091E C3                              RETN
+  1454                                  
+  1455                                  ;********************************
+  1456                                  ; Normalize DS:DX
+  1457                                  
+  1458                                  NORMALIZE:
+  1459 0000091F 52                              PUSH    DX
+  1460 00000920 50                              PUSH    AX
+  1461 00000921 D1EA                            SHR     DX,1
+  1462 00000923 D1EA                            SHR     DX,1
+  1463 00000925 D1EA                            SHR     DX,1
+  1464 00000927 D1EA                            SHR     DX,1
+  1465 00000929 8CD8                            MOV     AX,DS
+  1466 0000092B 01D0                            ADD     AX,DX
+  1467 0000092D 8ED8                            MOV     DS,AX
+  1468 0000092F 58                              POP     AX
+  1469 00000930 5A                              POP     DX
+  1470 00000931 83E20F                          AND     DX,0FH		; Clears carry
+  1471 00000934 C3                              RETN
+  1472                                  
+  1473                                  
+  1474 00000935 00                      ROOTSTR:    DB	0
+  1475 00000936 3A                      	    DB	":"
+  1476 00000937 2F00                    SWTCH:	    DB	"/",0
+  1477 00000939 00                      DBLFLG:	    DB	0		;Initialize flags to zero
+  1478 0000093A 00                      CLEARFLG:   DB	0
+  1479 0000093B 00                      DRIVE:      DB	0
+  1480 0000093C 00                      DEFALT:     DB	0		;Default drive
+  1481 0000093D 00000000                IOCNT:      DD	0
+  1482 00000941 0000                    MSTART:     DW	0 		; Start of sys file buffer (para#)
+  1483 00000943 0000                    MSIZE:      DW	0		; Size of above in paragraphs
+  1484 00000945 0000                    TempHandle: DW	0
+  1485 00000947 00                      FILSTAT:    DB	0		; In memory status of files
+  1486                                                                  ; XXXXXX00B BIOS not in
+  1487                                                                  ; XXXXXX01B BIOS partly in
+  1488                                                                  ; XXXXXX10B BIOS all in
+  1489                                                                  ; XXXX00XXB DOS not in
+  1490                                                                  ; XXXX01XXB DOS partly in
+  1491                                                                  ; XXXX10XXB DOS all in
+  1492                                                                  ; XX00XXXXB COMMAND not in
+  1493                                                                  ; XX01XXXXB COMMAND partly in
+  1494                                                                  ; XX10XXXXB COMMAND all in
+  1495                                  
+  1496 00000948 00<rept>                USERDIRS:   times DIRSTRLEN+3 DB 0  ; Storage for users current directory
+  1497                                  
+  1498                                  ; 05/05/2018 - Retro DOS v2.0 modification! (KERNEL file = MSDOS.SYS)
+  1499                                  KERNELData:
+  1500 0000098B 0000                    KERNELHandle:	DW	0
+  1501 0000098D 0000                    KERNELSIZP:	DW	0
+  1502 0000098F 00000000                KERNELSIZB:	DD	0
+  1503 00000993 00000000                KERNELOFFS:	DD	0
+  1504 00000997 0000                    KERNELSTRT:	DW	0
+  1505 00000999 0000                    KDATE:		DW	0 	; MSDOS.SYS date stored here
+  1506 0000099B 0000                    KTIME:		DW	0       ; MSDOS.SYS time stored here
+  1507                                  
+  1508                                  KERNELATT EQU	attr_hidden + attr_system + attr_read_only
+  1509                                  KERNELFIL:
+  1510                                  KERNELDRV:
+  1511 0000099D 583A5C                  	DB      "X:\"
+  1512 000009A0 4D53444F532E535953              DB      "MSDOS.SYS"	; = RETRODOS.SYS = IBMBIO.COM+IBMDOS.COM
+  1513 000009A9 00                              DB      0	    	;                = IO.SYS+MSDOS.SYS	  
+  1514                                  
+  1515                                  COMData:
+  1516 000009AA 0000                    COMHandle:	DW	0
+  1517 000009AC 0000                    COMSIZP:	DW	0
+  1518 000009AE 00000000                COMSIZB:	DD	0
+  1519 000009B2 00000000                COMOFFS:	DD	0
+  1520 000009B6 0000                    COMSTRT:	DW	0
+  1521 000009B8 0000                    CDATE:		DW	0	; Date of COMMAND.COM
+  1522 000009BA 0000                    CTIME:		DW	0	; Time of COMMAND.COM
+  1523                                  
+  1524                                  COMATT  EQU     0
+  1525                                  COMFIL:
+  1526                                  COMDRV:
+  1527 000009BC 583A5C434F4D4D414E-             DB      "X:\COMMAND.COM",0
+  1528 000009C5 442E434F4D00       
+  1529                                  VOLFCB: 
+  1530 000009CB FF000000000008          	DB      -1,0,0,0,0,0,8
+  1531 000009D2 00                              DB      0
+  1532                                  VOLNAM: 
+  1533 000009D3 202020202020202020-     	DB      "           "
+  1534 000009DC 2020               
+  1535 000009DE 08                              DB      8
+  1536 000009DF 00<rept>                        times	26 db 0
+  1537                                  ALLFILE:
+  1538 000009F9 FF0000000000FF          	DB      -1,0,0,0,0,0,0FFH
+  1539                                  ALLDRV:
+  1540 00000A00 003F3F3F3F3F3F3F3F-     	DB      0,"???????????"
+  1541 00000A09 3F3F3F             
+  1542 00000A0C 00<rept>                        times	26 db 0
+  1543                                  
+  1544                                  CLEANFILE:
+  1545 00000A26 00                      	DB    0
+  1546                                  CLNNAM:
+  1547 00000A27 414141464646464646-     	DB      "AAAFFFFFFOR"
+  1548 00000A30 4F52               
+  1549 00000A32 00<rept>                        times	26 db 0
+  1550                                  
+  1551                                  align 2
+  1552                                  
+  1553 00000A4C 0000                    SWITCHMAP:  DW	0
+  1554 00000A4E 0000                    SWITCHCOPY: DW	0
+  1555 00000A50 0000                    FAT:	DW	0
+  1556 00000A52 0000                    	DW	0
+  1557 00000A54 0000                    CLUSSIZ: DW	0
+  1558 00000A56 0000                    SECSIZ:	DW	0
+  1559 00000A58 00000000                SYSSIZ:	DD	0
+  1560 00000A5C 00000000                FDSKSIZ: DD	0
+  1561 00000A60 00000000                BADSIZ:	DD	0
+  1562 00000A64 0000                    SYSTRKS: DW	0
+  1563 00000A66 0000                    SECTORS: DW	0
+  1564 00000A68 5000                    INBUFF:	DB	80,0
+  1565 00000A6A 00<rept>                	times	80 db 0
+  1566                                  
+  1567 00000ABA 00<rept>                        times	256 db 0
+  1568                                  STACK:
+  1569                                  
+  1570                                  ;============================================================================
+  1571                                  ; FORMES.ASM - 22/09/1983 (MSDOS 2.11)
+  1572                                  ;============================================================================
+  1573                                  
+  1574                                  ;TITLE FORMAT Messages
+  1575                                  
+  1576                                  ;FALSE   EQU     0
+  1577                                  ;TRUE    EQU     NOT FALSE
+  1578                                  
+  1579                                  ;IBMVER  EQU     FALSE
+  1580                                  
+  1581                                  ;.xlist
+  1582                                  ;.xcref
+  1583                                  ;        INCLUDE DOSSYM.ASM
+  1584                                  ;.cref
+  1585                                  ;.list
+  1586                                  
+  1587                                  	;Wait for "Y" or "N"
+  1588                                  WAITYN:
+  1589 00000BBA BA[DC0C]                        MOV     DX,MORMSG		;Point to the message
+  1590 00000BBD E8C0F7                          CALL    PRINT			;And print it
+  1591 00000BC0 B8010C                          MOV     AX,(STD_CON_INPUT_FLUSH*256) | STD_CON_INPUT
+  1592                                  					;Flush buffer and wait for keystroke
+  1593 00000BC3 CD21                            INT     21H			;Input character now a Y or N
+  1594 00000BC5 24DF                            AND     AL,0DFH			;So lower case works too
+  1595 00000BC7 3C59                            CMP     AL,"Y"
+  1596 00000BC9 740A                            JZ	short WAIT20
+  1597 00000BCB 3C4E                            CMP     AL,"N"
+  1598 00000BCD 7405                            JZ	short WAIT10
+  1599 00000BCF E8C2F7                          CALL    CRLF
+  1600 00000BD2 EBE6                            JMP     SHORT WAITYN
+  1601                                  WAIT10: 
+  1602 00000BD4 F9                      	STC
+  1603                                  WAIT20:
+  1604 00000BD5 C3                      	RETN
+  1605                                  
+  1606                                  ;*********************************************
+  1607                                  ; Make a status report including the following information:
+  1608                                  ; Total disk capacity
+  1609                                  ; Total system area used
+  1610                                  ; Total bad space allocated
+  1611                                  ; Total data space available
+  1612                                  ;NOTE:
+  1613                                  ;       The DISP32BITS routine prints the number in DI:SI followed
+  1614                                  ;          by the message pointed to by BX. If it is desired to print
+  1615                                  ;          a message before the number, point at the message with DX
+  1616                                  ;          and call PRINT.
+  1617                                  
+  1618                                  REPORT:
+  1619 00000BD6 A1[5C0A]                        MOV     AX,[FDSKSIZ]
+  1620 00000BD9 F726[560A]                      MUL     word [SECSIZ]
+  1621 00000BDD 8B0E[540A]                      MOV     CX,[CLUSSIZ]
+  1622 00000BE1 E857F7                          CALL    UNSCALE
+  1623 00000BE4 A3[5C0A]                        MOV     [FDSKSIZ],AX
+  1624 00000BE7 8916[5E0A]                      MOV     [FDSKSIZ+2],DX
+  1625 00000BEB 89C6                            MOV     SI,AX
+  1626 00000BED 89D7                            MOV     DI,DX
+  1627 00000BEF BB[3F0E]                        MOV     BX,DSKSPC
+  1628 00000BF2 E8DBF6                          CALL    DISP32BITS		;Report total disk space
+  1629 00000BF5 8B36[580A]                      MOV     SI,[SYSSIZ]
+  1630 00000BF9 8B3E[5A0A]                      MOV     DI,[SYSSIZ+2]
+  1631 00000BFD 83FE00                          CMP     SI,0
+  1632 00000C00 7505                            JNZ	short SHOWSYS
+  1633 00000C02 83FF00                          CMP     DI,0
+  1634 00000C05 7406                            JZ	short CHKBAD
+  1635                                  SHOWSYS:
+  1636 00000C07 BB[590E]                        MOV     BX,SYSSPC
+  1637 00000C0A E8C3F6                          CALL    DISP32BITS		;Report space used by system
+  1638                                  CHKBAD:
+  1639 00000C0D 8B36[600A]                      MOV     SI,[BADSIZ]
+  1640 00000C11 8B3E[620A]                      MOV     DI,[BADSIZ+2]
+  1641 00000C15 83FE00                          CMP     SI,0
+  1642 00000C18 7505                            JNZ	short SHOWBAD
+  1643 00000C1A 83FF00                          CMP     DI,0
+  1644 00000C1D 7406                            JZ	short SHOWDATA
+  1645                                  SHOWBAD:
+  1646 00000C1F BB[710E]                        MOV     BX,BADSPC
+  1647 00000C22 E8ABF6                          CALL    DISP32BITS		;Report space used by bad sectors
+  1648                                  SHOWDATA:
+  1649 00000C25 8B0E[5C0A]                      MOV     CX,[FDSKSIZ]
+  1650 00000C29 8B1E[5E0A]                      MOV     BX,[FDSKSIZ+2]
+  1651 00000C2D 2B0E[600A]                      SUB     CX,[BADSIZ]
+  1652 00000C31 1B1E[620A]                      SBB     BX,[BADSIZ+2]
+  1653 00000C35 2B0E[580A]                      SUB     CX,[SYSSIZ]
+  1654 00000C39 1B1E[5A0A]                      SBB     BX,[SYSSIZ+2]
+  1655 00000C3D 89CE                            MOV     SI,CX
+  1656 00000C3F 89DF                            MOV     DI,BX
+  1657 00000C41 8B1E[890E]                      MOV     BX,[DATASPC]
+  1658 00000C45 E888F6                          CALL    DISP32BITS		;Report space left for user
+  1659 00000C48 C3                              RETN
+  1660                                  
+  1661 00000C49 496E636F7272656374-     BADVER:	 DB	"Incorrect DOS version",13,10,"$"
+  1662 00000C52 20444F532076657273-
+  1663 00000C5B 696F6E0D0A24       
+  1664 00000C61 496E73657274206E65-     SNGMSG:	 DB	"Insert new diskette for drive "
+  1665 00000C6A 77206469736B657474-
+  1666 00000C73 6520666F7220647269-
+  1667 00000C7C 766520             
+  1668 00000C7F 783A0D0A616E642073-     SNGDRV:	 DB	 "x:",13,10,"and strike any key when ready$"
+  1669 00000C88 7472696B6520616E79-
+  1670 00000C91 206B6579207768656E-
+  1671 00000C9A 20726561647924     
+  1672 00000CA1 507265737320616E79-     HRDMSG:	 DB	"Press any key to begin formatting "
+  1673 00000CAA 206B657920746F2062-
+  1674 00000CB3 6567696E20666F726D-
+  1675 00000CBC 617474696E6720     
+  1676 00000CC3 783A2024                HRDDRV:	 DB	"x: $"
+  1677 00000CC7 53797374656D207472-     SYSTRAN: DB	"System transferred",13,10,"$"
+  1678 00000CD0 616E73666572726564-
+  1679 00000CD9 0D0A24             
+  1680 00000CDC 466F726D617420616E-     MORMSG:	 DB	"Format another (Y/N)?$"
+  1681 00000CE5 6F746865722028592F-
+  1682 00000CEE 4E293F24           
+  1683 00000CF2 0D0A24                  CRLFMSG: DB	13,10,"$"
+  1684 00000CF5 496E76616C69642063-     INVCHR:	 DB	"Invalid characters in volume label",13,10,"$"
+  1685 00000CFE 686172616374657273-
+  1686 00000D07 20696E20766F6C756D-
+  1687 00000D10 65206C6162656C0D0A-
+  1688 00000D19 24                 
+  1689 00000D1A 496E76616C69642064-     INVDRV:	 DB	"Invalid drive specification$"
+  1690 00000D23 726976652073706563-
+  1691 00000D2C 696669636174696F6E-
+  1692 00000D35 24                 
+  1693 00000D36 496E76616C69642070-     INVPAR:	 DB	"Invalid parameter$"
+  1694 00000D3F 6172616D6574657224 
+  1695 00000D48 52652D696E73657274-     TARGMSG: DB	"Re-insert diskette for drive "
+  1696 00000D51 206469736B65747465-
+  1697 00000D5A 20666F722064726976-
+  1698 00000D63 6520               
+  1699 00000D65 783A0D0A616E642073-     TARGDRV: DB	"x:",13,10,"and strike any key when ready$"
+  1700 00000D6E 7472696B6520616E79-
+  1701 00000D77 206B6579207768656E-
+  1702 00000D80 20726561647924     
+  1703 00000D87 496E7365727420444F-     SYSMSG:	 DB	"Insert DOS disk in drive "
+  1704 00000D90 53206469736B20696E-
+  1705 00000D99 20647269766520     
+  1706 00000DA0 783A0D0A616E642073-     SYSDRV:	 DB	"x:",13,10,"and strike any key when ready$"
+  1707 00000DA9 7472696B6520616E79-
+  1708 00000DB2 206B6579207768656E-
+  1709 00000DBB 20726561647924     
+  1710 00000DC2 466F726D6174206661-     FRMTERR: DB	"Format failure",13,10,13,10,"$"
+  1711 00000DCB 696C7572650D0A0D0A-
+  1712 00000DD4 24                 
+  1713 00000DD5 4469736B20756E7375-     NOTSYS:	 DB	"Disk unsuitable for system disk",13,10,"$"
+  1714 00000DDE 697461626C6520666F-
+  1715 00000DE7 722073797374656D20-
+  1716 00000DF0 6469736B0D0A24     
+  1717 00000DF7 547261636B20302062-     NOUSE:	 DB	"Track 0 bad - disk unusable",13,10,"$"
+  1718 00000E00 6164202D206469736B-
+  1719 00000E09 20756E757361626C65-
+  1720 00000E12 0D0A24             
+  1721 00000E15 496E73756666696369-     MEMEX:	 DB	"Insufficient memory for system transfer",13,10,"$"
+  1722 00000E1E 656E74206D656D6F72-
+  1723 00000E27 7920666F7220737973-
+  1724 00000E30 74656D207472616E73-
+  1725 00000E39 6665720D0A24       
+  1726                                  
+  1727                                  ;Report messages
+  1728 00000E3F 20627974657320746F-     DSKSPC:	 DB	" bytes total disk space",13,10,"$"
+  1729 00000E48 74616C206469736B20-
+  1730 00000E51 73706163650D0A24   
+  1731 00000E59 206279746573207573-     SYSSPC:	 DB	" bytes used by system",13,10,"$"
+  1732 00000E62 656420627920737973-
+  1733 00000E6B 74656D0D0A24       
+  1734 00000E71 20627974657320696E-     BADSPC:	 DB	" bytes in bad sectors",13,10,"$"
+  1735 00000E7A 206261642073656374-
+  1736 00000E83 6F72730D0A24       
+  1737 00000E89 206279746573206176-     DATASPC: DB	" bytes available on disk",13,10,13,10,"$"
+  1738 00000E92 61696C61626C65206F-
+  1739 00000E9B 6E206469736B0D0A0D-
+  1740 00000EA4 0A24               
+  1741                                  
+  1742 00000EA6 566F6C756D65206C61-     LABPRMT: DB	"Volume label (11 characters, ENTER for none)? $"
+  1743 00000EAF 62656C202831312063-
+  1744 00000EB8 686172616374657273-
+  1745 00000EC1 2C20454E5445522066-
+  1746 00000ECA 6F72206E6F6E65293F-
+  1747 00000ED3 2024               
+  1748                                  
+  1749                                  ;============================================================================
+  1750                                  ; GENFOR.ASM - 03/02/1983 (MSDOS 2.11)
+  1751                                  ;============================================================================
+  1752                                  
+  1753                                  ; Generic FORMAT module for any ms-dos disk erases the directory,
+  1754                                  ; zeros FAT, and marks bad sectors
+  1755                                  
+  1756                                  WRTFAT:
+  1757 00000ED5 B432                            MOV     AH,GET_DPB
+  1758 00000ED7 8A16[3B09]                      MOV     DL,[DRIVE]
+  1759 00000EDB FEC2                            INC     DL              ;A = 1
+  1760 00000EDD CD21                            INT     21H             ;FORCE A FATREAD
+  1761 00000EDF 0E                              PUSH    CS
+  1762 00000EE0 1F                              POP     DS
+  1763 00000EE1 A0[1B0F]                        MOV     AL,[FATCNT]
+  1764 00000EE4 A2[1C0F]                        MOV     [CURCNT],AL     ;SET UP FAT COUNT
+  1765 00000EE7 A1[140F]                        MOV     AX,[FATSTART]
+  1766 00000EEA A3[160F]                        MOV     [COUNT],AX
+  1767                                  FATLOOP:
+  1768 00000EED A0[3B09]                        MOV     AL,[DRIVE]
+  1769 00000EF0 98                              CBW
+  1770 00000EF1 8B0E[120F]                      MOV     CX,[FATSIZE]
+  1771 00000EF5 8B16[160F]                      MOV     DX,[COUNT]
+  1772 00000EF9 8B1E[D80F]                      MOV     BX,[FATSPACE]
+  1773 00000EFD CD26                            INT     26H
+  1774 00000EFF 58                              POP     AX
+  1775 00000F00 720F                            JC	short GORET
+  1776 00000F02 8B0E[120F]                      MOV     CX,[FATSIZE]
+  1777 00000F06 010E[160F]                      ADD     [COUNT],CX
+  1778 00000F0A FE0E[1C0F]                      DEC     BYTE [CURCNT]
+  1779 00000F0E 75DD                            JNZ	short FATLOOP
+  1780 00000F10 F8                              CLC			;Good return
+  1781                                  GORET:
+  1782 00000F11 C3                              RETN
+  1783                                  
+  1784 00000F12 0000                    FATSIZE:    DW	0
+  1785 00000F14 0000                    FATSTART:   DW	0
+  1786 00000F16 0000                    COUNT:	    DW	0
+  1787 00000F18 0000                    STARTSECTOR: DW 0
+  1788 00000F1A 00                      SPC:	    DB	0		;SECTORS PER CLUSTER
+  1789 00000F1B 00                      FATCNT:	    DB  0		;NUMBER OF FATS ON THIS DRIVE
+  1790 00000F1C 00                      CURCNT:	    DB  0
+  1791 00000F1D 0000                    DSKSIZE:    DW  0		;NUMBER OF SECTORS ON THE DRIVE
+  1792 00000F1F 0000                    START:	    DW  0		;CURRENT TEST SECTOR
+  1793                                  
+  1794                                  INIT:
+  1795 00000F21 B432                            MOV     AH,GET_DPB
+  1796 00000F23 8A16[3B09]                      MOV     DL,[DRIVE]
+  1797 00000F27 FEC2                            INC     DL              ;A = 1
+  1798 00000F29 CD21                            INT     21H             ;FORCE A FATREAD
+  1799 00000F2B 8A4704                          MOV     AL,[BX+4]       ;SECTORS PER CLUSTER - 1
+  1800 00000F2E FEC0                            INC     AL
+  1801 00000F30 88C5                            MOV     CH,AL           ;CH = SECTORS PER CLUSTER
+  1802 00000F32 98                              CBW
+  1803 00000F33 8B6F0D                          MOV     BP,[BX+0DH]     ;MAXCLUS + 1
+  1804 00000F36 4D                              DEC     BP
+  1805 00000F37 F7E5                            MUL     BP
+  1806 00000F39 89C5                            MOV     BP,AX
+  1807 00000F3B 036F0B                          ADD     BP,[BX+0BH]     ;BP = NUMBER OF SECTORS ON THE DISK
+  1808 00000F3E 8A470F                          MOV     AL,[BX+0FH]     ;GET SIZE OF FAT IN SECTORS
+  1809 00000F41 8A6708                          MOV     AH,[BX+8]       ;GET NUMBER OF FATS
+  1810 00000F44 8B5706                          MOV     DX,[BX+6]       ;FIRST SECTOR OF FAT
+  1811 00000F47 8A4F16                          MOV     CL,[BX+16H]     ;FATID BYTE
+  1812 00000F4A 8B7702                          MOV     SI,[BX+2]       ;SECTOR SIZE
+  1813 00000F4D 8B5F0B                          MOV     BX,[BX+0BH]     ;FIRST SECTOR OF DATA
+  1814 00000F50 0E                              PUSH    CS
+  1815 00000F51 1F                              POP     DS
+  1816 00000F52 8826[1B0F]                      MOV     [FATCNT],AH
+  1817 00000F56 892E[1D0F]                      MOV     [DSKSIZE],BP
+  1818 00000F5A 882E[1A0F]                      MOV     [SPC],CH
+  1819 00000F5E 8916[140F]                      MOV     [FATSTART],DX
+  1820 00000F62 880E[DA0F]                      MOV     [ENDLOC],CL
+  1821 00000F66 880E[CF0F]                      MOV     [FATID],CL
+  1822 00000F6A 891E[180F]                      MOV     [STARTSECTOR],BX
+  1823 00000F6E 30E4                            XOR     AH,AH
+  1824 00000F70 A3[120F]                        MOV     [FATSIZE],AX
+  1825 00000F73 F7E6                            MUL     SI              ;AX = SIZE OF FAT
+  1826 00000F75 0106[D60F]                      ADD     [FREESPACE],AX
+  1827 00000F79 0106[D40F]                      ADD     [BUFFER],AX
+  1828 00000F7D 89D8                            MOV     AX,BX
+  1829 00000F7F F7E6                            MUL     SI
+  1830 00000F81 0106[D60F]                      ADD     [FREESPACE],AX  ;AX = SIZE OF TEMP BUFFER
+  1831                                  DISKFORMAT:
+  1832                                  DONE:
+  1833 00000F85 31C0                            XOR     AX,AX
+  1834 00000F87 F8                              CLC
+  1835 00000F88 C3                              RETN
+  1836                                  
+  1837                                  BADSECTOR:
+  1838 00000F89 8B16[1F0F]                      MOV     DX,[START]
+  1839 00000F8D 3B16[1D0F]                      CMP     DX,[DSKSIZE]
+  1840 00000F91 73F2                            JAE	short DONE
+  1841                                  
+  1842 00000F93 A0[3B09]                        MOV     AL,[DRIVE]
+  1843 00000F96 8A0E[1A0F]                      MOV     CL,[SPC]		;READ ONE ALLOCATIONS WORTH
+  1844 00000F9A 30ED                            XOR     CH,CH
+  1845 00000F9C 803E[CD0F]00                    CMP     BYTE [FIRSTFLAG],0
+  1846 00000FA1 740D                            JZ	short SETBX
+  1847 00000FA3 8B0E[180F]                      MOV     CX,[STARTSECTOR]	;FIRST TIME THROUGH READ SYSTEM AREA
+  1848 00000FA7 C606[CD0F]00                    MOV     BYTE [FIRSTFLAG],0
+  1849 00000FAC 8B16[1F0F]                      MOV     DX,[START]
+  1850 00000FB0 8B1E[D40F]              SETBX:  MOV     BX,[BUFFER]
+  1851 00000FB4 51                              PUSH    CX
+  1852 00000FB5 CD25                            INT     25H                     ;TRY TO READ
+  1853 00000FB7 58                              POP     AX                      ;CLEAN UP STACK
+  1854 00000FB8 59                              POP     CX
+  1855 00000FB9 7206                            JC	short GOTBAD		;KEEP LOOKING FOR BADSECTORS
+  1856 00000FBB 010E[1F0F]                      ADD     [START],CX
+  1857 00000FBF EBC8                            JMP	short BADSECTOR
+  1858                                  
+  1859                                  GOTBAD:
+  1860 00000FC1 89C8                            MOV     AX,CX
+  1861 00000FC3 8B1E[1F0F]                      MOV     BX,[START]
+  1862 00000FC7 0106[1F0F]                      ADD     [START],AX		;SET UP FOR NEXT CALL
+  1863 00000FCB F8                              CLC
+  1864 00000FCC C3                              RETN
+  1865                                  
+  1866 00000FCD 01                      FIRSTFLAG:  DB  1			;1 = FIRST CALL TO BADSECTOR
+  1867 00000FCE 01                      HARDFLAG:   DB  1
+  1868 00000FCF FE                      FATID:	    DB  0FEH
+  1869 00000FD0 034F5653                SWITCHLIST: DB  3,"OVS"
+  1870 00000FD4 [DA0F]                  BUFFER:	    DW  ENDLOC
+  1871 00000FD6 [DA0F]                  FREESPACE:  DW  ENDLOC
+  1872 00000FD8 [DA0F]                  FATSPACE:   DW  ENDLOC
+  1873                                  
+  1874 00000FDA FEFFFF                  ENDLOC:	DB	0FEH,0FFH,0FFH
+  1875                                  
+  1876                                  ; ---------------------------------------------------------------------------
+  1877                                  ; END OF FILE
