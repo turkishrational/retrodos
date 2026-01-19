@@ -1,0 +1,1103 @@
+     1                                  ; ****************************************************************************
+     2                                  ; R4HDBOOT.ASM (R4HDBOOT.COM) - Retro DOS v4 Hard Disk Boot Sector Utility
+     3                                  ; 					 	          (for MSDOS/WINDOWS)
+     4                                  ; ****************************************************************************
+     5                                  ; Last Update: 25/10/2023 (Previous: 15/09/2022, R3HDBOOT.ASM)
+     6                                  ; ----------------------------------------------------------------------------
+     7                                  ; Beginning: 16/05/2018
+     8                                  ; ----------------------------------------------------------------------------
+     9                                  ; Assembler: NASM version 2.15
+    10                                  ; ----------------------------------------------------------------------------
+    11                                  ; Modified from 'rdhdboot.s'(RDHDBOOT.COM) source code by Erdogan Tan
+    12                                  ; (96/05/2018) - Retro DOS v2 hard disk boot sector update utility -
+    13                                  ; ----------------------------------------------------------------------------
+    14                                  ; Derived from 'rdhdimg.s'(RDHDIMG.COM) source code by Erdogan Tan
+    15                                  ; (16/05/2018) - Retro DOS v2 hard disk image formatting utility -
+    16                                  ; ****************************************************************************
+    17                                  ; nasm r4hdboot.s -l r4hdboot.lst -o R4HDBOOT.COM
+    18                                  
+    19                                  ; 21/10/2023
+    20                                  ;Note: FAT16 BIG (>32MB) partitions are already recognized by Retro DOS v3.2
+    21                                  ;      But MSDOS 3.3 can use only 16 bit disk addresses (FAT16 fs ID=04h)
+    22                                  ;      As result, 'R4HDBOOT.COM' is for Retro DOS v4 (MSDOS 5.0-6.22)
+    23                                  ;      and Retro DOS v3.2 (MSDOS 3.3+).
+    24                                  ;
+    25                                  ;      Retro DOS v3 hd boot sector is compatible with FAT16 BIG fs (ID=06h)
+    26                                  ;      Retro DOS v2 hd boot sector is used for FAT12 fs (ID=01h) only.		 	 	 		
+    27                                  
+    28                                  bsOemName	equ 3
+    29                                  bsBytesPerSec	equ 11
+    30                                  bsSecPerClust	equ 13
+    31                                  bsResSectors	equ 14
+    32                                  bsFATs		equ 16	
+    33                                  bsRootDirEnts	equ 17
+    34                                  bsSectors	equ 19
+    35                                  bsMedia		equ 21
+    36                                  bsFATsecs	equ 22
+    37                                  bsSecPerTrk	equ 24
+    38                                  bsHeads		equ 26
+    39                                  bsHidden1	equ 28
+    40                                  bsHidden2	equ 30	
+    41                                  bsHugeSectors	equ 32
+    42                                  bsDriveNumber   equ 36
+    43                                  bsReserved1	equ 37
+    44                                  bsBpbSignature	equ 38
+    45                                  bsVolumeID      equ 39
+    46                                  bsVolumeLabel   equ 43
+    47                                  bsFileSysType	equ 54
+    48                                  bsReserved2	equ 62
+    49                                  bsDataStart	equ 64	
+    50                                  bsRootDirStart	equ 66
+    51                                  bsRootDirSects	equ 68
+    52                                  ; 22/10/2023
+    53                                  bsDirEntsPerSec equ 70
+    54                                  
+    55                                  ; Masterboot / Partition Table at Beginning+1BEh
+    56                                  ptBootable      equ 0
+    57                                  ptBeginHead     equ 1
+    58                                  ptBeginSector   equ 2
+    59                                  ptBeginCylinder equ 3
+    60                                  ptFileSystemID	equ 4
+    61                                  ptEndHead       equ 5
+    62                                  ptEndSector     equ 6
+    63                                  ptEndCylinder   equ 7
+    64                                  ptStartSector   equ 8
+    65                                  ptSectors       equ 12
+    66                                  
+    67                                  partition_table equ 1BEh
+    68                                  
+    69                                  [BITS 16]
+    70                                  [ORG 100h]
+    71                                  
+    72                                  	;cli
+    73                                  	;cld
+    74                                  	;push	cs
+    75                                  	;pop	ss
+    76                                  	;mov	sp, 0FFFEh
+    77                                  	;sti
+    78                                  	
+    79 00000000 BB[F50B]                	mov	bx, SizeOfFile+100
+    80 00000003 83C30F                          add	bx, 15
+    81 00000006 D1EB                            shr	bx, 1
+    82 00000008 D1EB                            shr	bx, 1
+    83 0000000A D1EB                    	shr	bx, 1
+    84 0000000C D1EB                    	shr	bx, 1
+    85 0000000E B44A                            mov	ah, 4Ah ; modify memory allocation
+    86                                          ;push	cs
+    87                                          ;pop	es
+    88 00000010 CD21                            int	21h 
+    89                                  
+    90                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    91                                  ; see if drive specified
+    92                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    93                                  
+    94 00000012 BE8000                  	mov	si, 80h			; PSP command tail
+    95 00000015 AC                       	lodsb
+    96 00000016 08C0                    	or	al, al 			; command tail length                            
+    97 00000018 7438                    	jz	short R_05		; jump if zero
+    98                                  R_01:
+    99 0000001A AC                      	lodsb
+   100 0000001B 3C20                    	cmp	al, ' '			; is it SPACE ?
+   101 0000001D 74FB                    	je	short R_01 		
+   102 0000001F 7231                    	jb	short R_05
+   103                                  	
+   104                                  	; check disk drive name
+   105                                  
+   106 00000021 3C43                    	cmp	al, 'C'
+   107 00000023 722D                            jb	short R_05
+   108 00000025 3C5B                            cmp	al, 'Z' + 1		; C - Z
+   109 00000027 720A                            jb	short R_02                   
+   110 00000029 3C63                            cmp	al, 'c'			; C - z 
+   111 0000002B 7225                            jb	short R_05                  
+   112 0000002D 3C7B                            cmp	al, 'z' + 1                           
+   113 0000002F 7321                            jnb	short R_05                 
+   114                                  
+   115 00000031 2C20                            sub	al, 'c'-'C'		; to upper case
+   116                                  
+   117                                  R_02:
+   118 00000033 043D                    	add	al, 80h-'C'
+   119 00000035 A2[C007]                	mov	[DriveNum],al
+   120 00000038 88C2                    	mov	dl, al
+   121 0000003A 30C0                    	xor	al, al
+   122                                  R_03:
+   123 0000003C 88C4                    	mov	ah, al
+   124 0000003E AC                      	lodsb
+   125 0000003F 3C20                    	cmp	al, 20h
+   126 00000041 74F9                    	je	short R_03
+   127 00000043 7208                    	jb	short R_04
+   128 00000045 3C3A                    	cmp	al, ':'
+   129 00000047 7509                    	jne	short R_05
+   130 00000049 20E4                    	and	ah, ah
+   131 0000004B 7505                    	jnz	short R_05
+   132                                  R_04:
+   133 0000004D 80FC20                  	cmp	ah, 20h
+   134 00000050 7609                    	jna	short R_06
+   135                                  R_05:
+   136 00000052 BE[C107]                	mov	si, RetroDOS_Welcome
+   137 00000055 E88B02                  	call	print_msg
+   138 00000058 E9C700                  	jmp	R_10	; Exit
+   139                                  
+   140                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   141                                  ; Get drive parameters
+   142                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   143                                  
+   144                                  R_06:
+   145                                  	;mov	dl, [DriveNum]	
+   146 0000005B B408                    	mov	ah, 8 ; Get drive parameters
+   147 0000005D CD13                    	int	13h
+   148                                  	;jc	R_15  ; Drive not ready error
+   149                                  	; 21/10/2023
+   150 0000005F 7253                    	jc	short R_15
+   151                                  
+   152 00000061 FEC6                    	inc	dh
+   153 00000063 8836[BC07]              	mov	[Heads], dh
+   154 00000067 88CC                    	mov	ah, cl
+   155 00000069 80E13F                  	and	cl, 3Fh
+   156 0000006C 880E[BA07]              	mov	[Sectors], cl
+   157 00000070 C0EC06                  	shr	ah, 6
+   158 00000073 88E8                    	mov	al, ch
+   159 00000075 40                      	inc	ax
+   160 00000076 A3[BE07]                	mov	[Cylinders], ax
+   161                                  
+   162                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   163                                  ; Read masterboot sector
+   164                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   165                                  
+   166 00000079 1E                      	push	ds
+   167 0000007A 07                      	pop	es
+   168                                  
+   169 0000007B BB[DA09]                	mov	bx, SectorBuffer
+   170                                  
+   171 0000007E 8A16[C007]              	mov	dl, [DriveNum]	
+   172 00000082 B80102                  	mov	ax, 0201h ; Read 1 sector
+   173 00000085 B90100                  	mov	cx, 1 ; cylinder = 0, sector = 1
+   174 00000088 30F6                    	xor	dh, dh ; head = 0 
+   175 0000008A CD13                    	int	13h
+   176                                  	;jc	R_16  ; Read error
+   177                                  	; 21/10/2023
+   178 0000008C 722B                    	jc	short R_16
+   179                                  
+   180 0000008E 81BFFE0155AA            	cmp	word [bx+510], 0AA55h 
+   181                                  	;jne	R_17  ; Not a valid MBR
+   182                                  	; 21/10/2023
+   183 00000094 7528                    	jne	short R_17
+   184                                  
+   185 00000096 81C3BE01                	add	bx, partition_table
+   186 0000009A B104                    	mov	cl, 4
+   187                                  R_07:
+   188                                  	; 21/10/2023
+   189 0000009C 8A4704                  	mov	al, [bx+ptFileSystemID]
+   190 0000009F 3C01                    	cmp	al, 1
+   191                                  	;cmp	byte [bx+ptFileSystemID], 1  ; MSDOS (FAT12) Partition ID	
+   192 000000A1 742B                    	je	short R_08
+   193 000000A3 3C04                    	cmp	al, 4
+   194                                  	; 20/10/2018
+   195                                  	;cmp	byte [bx+ptFileSystemID], 4  ; MSDOS (FAT16) Partition ID
+   196 000000A5 7421                    	je	short R_23
+   197                                  	; 21/10/2023
+   198 000000A7 3C06                    	cmp	al, 6
+   199                                  	;cmp	byte [bx+ptFileSystemID], 6  ; MSDOS (FAT16 BIG) Partition ID
+   200 000000A9 741D                    	je	short R_23
+   201                                  			
+   202 000000AB FEC9                    	dec	cl
+   203                                  	;jz	R_18    ; MSDOS (FAT12) partition not found
+   204                                  	; 21/10/2023
+   205 000000AD 7414                    	jz	short R_18
+   206                                  
+   207 000000AF 83C310                  	add	bx, 16 ; Next table row
+   208 000000B2 EBE8                    	jmp	short R_07
+   209                                  
+   210                                  	; 21/10/2023
+   211                                  R_15:	
+   212 000000B4 BE[3E08]                	mov	si, msg_drv_not_ready_err
+   213 000000B7 EB77                    	jmp	short R_14
+   214                                  R_16:
+   215 000000B9 BE[5408]                	mov	si, msg_disk_read_err
+   216 000000BC EB72                    	jmp	short R_14
+   217                                  R_17:
+   218 000000BE BE[6A08]                	mov	si, msg_not_valid_mbr
+   219 000000C1 EB6D                    	jmp	short R_14
+   220                                  R_18:
+   221 000000C3 BE[8E08]                	mov	si, msg_msdos_p_not_found
+   222 000000C6 EB68                    	jmp	short R_14
+   223                                  	
+   224                                  	; 21/10/2023
+   225                                  	; (32 bit sector addresses are valid for Retro DOS v4 
+   226                                  	;  -MSDOS 5.0 to 6.22-)
+   227                                  R_23:
+   228                                  	; 20/10/2018
+   229 000000C8 B8[A903]                	mov	ax, RETRODOS_FAT16_HD_BS
+   230 000000CB A3[A703]                	mov	[RD3BOOTSECTOR], ax
+   231                                  R_08:
+   232 000000CE 8B4708                  	mov	ax, [bx+ptStartSector]
+   233 000000D1 8B570A                  	mov	dx, [bx+ptStartSector+2]
+   234                                  
+   235                                  ; 21/10/2023 - Retro DOS v4.0-4.2 Boot Sector Update(r) Utility
+   236                                  ; (16 bit sector address limit was an issue before MSDOS 5.0)
+   237                                  %if 0
+   238                                  
+   239                                  	and	dx, dx
+   240                                  	;jnz	R_19    ; Not a valid MSDOS (FAT12/FAT16) partition
+   241                                  	; 21/10/2023
+   242                                  	jnz	short R_19
+   243                                  
+   244                                  	cmp	word [bx+ptSectors+2], 0
+   245                                  	;ja	R_19    ; Not a valid MSDOS (FAT12/FAT16) partition
+   246                                  	; 21/10/2023
+   247                                  	ja	short R_19
+   248                                  
+   249                                  	mov	dx, ax
+   250                                  	add	dx, [bx+ptSectors]
+   251                                  	;jc	R_19    ; Not a valid MSDOS (FAT12/FAT16) partition
+   252                                  	; 21/10/2023
+   253                                  	jc	short R_19
+   254                                  %endif
+   255                                  
+   256                                  	; 21/10/2023
+   257 000000D4 8B4F0C                  	mov	cx, [bx+ptSectors]
+   258 000000D7 8B5F0E                  	mov	bx, [bx+ptSectors+2]
+   259 000000DA 01C1                    	add	cx, ax
+   260 000000DC 11D3                    	adc	bx, dx
+   261 000000DE 724D                    	jc	short R_19 ; invalid partition table entry !
+   262                                  
+   263                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   264                                  ; Read volume/partition boot sector
+   265                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   266                                  
+   267 000000E0 E8D500                  	call	convert_to_chs
+   268                                  	;jc	R_19    ; Not a valid MSDOS (FAT12/FAT16) partition
+   269                                  	; 21/10/2023
+   270 000000E3 7248                    	jc	short R_19
+   271                                  
+   272                                  	; CL =  sector
+   273                                  	; CH =  cylinder
+   274                                  	; DH =  head
+   275                                  	; DL =  drive
+   276                                  	
+   277                                  	; BX = sector buffer offset
+   278                                  	; AL =  1 (sector count)
+   279                                  
+   280 000000E5 B402                    	mov	ah, 2	; read disk sector
+   281 000000E7 CD13                    	int	13h
+   282                                  	;jc	R_16  ; Read error
+   283                                  	; 21/10/2023
+   284 000000E9 72CE                    	jc	short R_16
+   285                                  
+   286                                  R_25:
+   287 000000EB 81BFFE0155AA            	cmp	word [bx+510], 0AA55h 
+   288                                  	;jne	R_19  ; Not a valid MSDOS (FAT12/FAT16) partition
+   289 000000F1 753A                    	jne	short R_19 ; 21/10/2023
+   290                                  
+   291 000000F3 817F0B0002              	cmp	word [bx+bsBytesPerSec], 512
+   292                                   	;jne	R_19  ; Not a valid MSDOS (FAT12/FAT16) partition
+   293 000000F8 7533                    	jne	short R_19 ; 21/10/2023
+   294                                  
+   295 000000FA 807F15F8                	cmp	byte [bx+bsMedia], 0F8h
+   296                                  	;jne	R_19  ; Not a valid MSDOS (FAT12/FAT16) partition
+   297                                  	; 21/10/2023
+   298 000000FE 752D                    	jne	short R_19
+   299                                  
+   300                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   301                                  ; Overwrite question
+   302                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   303                                  
+   304 00000100 BE[1609]                	mov	si, msg_overwrite_question
+   305 00000103 E8DD01                  	call	print_msg
+   306                                  
+   307                                  	; 21/10/2023
+   308                                  	; get answer
+   309                                  R_09:
+   310 00000106 31C0                    	xor	ax, ax
+   311 00000108 CD16                    	int	16h			; wait for keyboard command
+   312 0000010A 3C03                    	cmp	al, 'C'-40h
+   313 0000010C 7414                    	je	short R_10 ; Exit                   
+   314 0000010E 3C1B                    	cmp	al, 27
+   315 00000110 7410                    	je	short R_10 ; Exit
+   316 00000112 24DF                    	and	al, 0DFh
+   317 00000114 3C59                    	cmp	al, 'Y'			; Yes?
+   318 00000116 7422                    	je	short R_12		; write
+   319 00000118 3C4E                    	cmp	al, 'N'			; No?
+   320 0000011A 75EA                    	jne	short R_09      
+   321                                  					; no write (exit)  
+   322 0000011C BE[5309]                	mov	si, msg_NO
+   323 0000011F E8C101                  	call	print_msg 
+   324                                  
+   325                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   326                                  ; Nextline & Exit
+   327                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   328                                  
+   329                                  R_10:
+   330 00000122 BE[D409]                	mov	si, CRLF
+   331                                  R_11:	; 22/10/2023
+   332                                  ;R_21:
+   333 00000125 E8BB01                  	call	print_msg
+   334 00000128 B8004C                  	mov	ax, 4C00h		; terminate
+   335 0000012B CD21                    	int	21h
+   336                                  
+   337                                  	; 22/10/2023
+   338                                  ;R_11:
+   339                                  	;mov	si, RetroDOS_Welcome
+   340                                  	;call	print_msg
+   341                                  	;jmp	short R_21 ; Exit
+   342                                  
+   343                                  R_19:	
+   344 0000012D BE[BC08]                	mov	si, msg_not_valid_vbr
+   345                                  	;call	print_msg
+   346                                  	;jmp	short R_14
+   347                                  	; 21/10/2023
+   348                                  R_14:
+   349 00000130 E8B001                  	call	print_msg
+   350 00000133 CD20                    	int	20h
+   351                                  
+   352                                  	; 21/10/2023
+   353                                  R_20:
+   354 00000135 BE[FF08]                	mov	si, msg_disk_write_err
+   355 00000138 EBF6                    	jmp	short R_14
+   356                                  
+   357                                  R_12:
+   358 0000013A BE[5C09]                	mov	si, msg_YES
+   359 0000013D E8A301                  	call	print_msg
+   360                                  
+   361 00000140 BB[DA09]                	mov	bx, SectorBuffer	
+   362                                  	
+   363 00000143 51                      	push	cx
+   364                                  
+   365 00000144 8D7703                  	lea	si, [bx+bsOemName]
+   366                                  	; 20/10/2018
+   367                                  	;mov	di, RETRODOS_FAT12_HD_BS + bsOemName
+   368 00000147 8B3E[A703]              	mov	di, [RD3BOOTSECTOR]
+   369 0000014B 83C703                  	add	di, bsOemName
+   370 0000014E B92300                  	mov	cx, bsBpbSignature - bsOemName
+   371 00000151 F3A4                    	rep	movsb
+   372                                  
+   373 00000153 807F2629                	cmp	byte [bx+bsBpbSignature], 29h
+   374 00000157 7504                    	jne	short R_13
+   375                                  
+   376 00000159 B110                    	mov	cl, bsFileSysType - bsBpbSignature
+   377 0000015B F3A4                    	rep	movsb
+   378                                  R_13:
+   379                                  	; Calculate Retro DOS extended BS parameters
+   380 0000015D 52                      	push	dx
+   381 0000015E 8B4716                  	mov	ax, [bx+bsFATsecs]
+   382 00000161 8A4F10                  	mov	cl, [bx+bsFATs]
+   383                                  	;mul	cx
+   384 00000164 FEC9                    	dec	cl
+   385 00000166 D3E0                    	shl	ax, cl ; * 2
+   386 00000168 03470E                  	add	ax, [bx+bsResSectors]
+   387                                  	; 20/10/2018
+   388 0000016B 8B36[A703]              	mov	si, [RD3BOOTSECTOR]
+   389                                  	;mov	[RETRODOS_FAT12_HD_BS+bsRootDirStart], ax
+   390                                  	; 15/09/2022
+   391 0000016F 894442                  	mov	[si+bsRootDirStart], ax
+   392 00000172 8B4F11                  	mov	cx, [bx+bsRootDirEnts]
+   393                                  
+   394                                  	; 22/10/2023
+   395 00000175 BA0F00                  	mov	dx, 15
+   396                                  	;add	cx, 15
+   397 00000178 01D1                    	add	cx, dx
+   398                                  
+   399 0000017A C1E904                  	shr	cx, 4 ; 16 entries per sector
+   400                                  	;mov	[RETRODOS_FAT12_HD_BS+bsRootDirSects], cx
+   401 0000017D 894C44                  	mov	[si+bsRootDirSects], cx
+   402                                  
+   403                                  	; 22/10/2023
+   404 00000180 42                      	inc	dx ; dx = 16
+   405                                  	;mov	word [si+bsDirEntsPerSec], 16
+   406 00000181 895446                  	mov	[si+bsDirEntsPerSec], dx
+   407                                  
+   408 00000184 01C8                    	add	ax, cx
+   409                                  	;mov	[RETRODOS_FAT12_HD_BS+bsDataStart], ax	
+   410 00000186 894440                  	mov	[si+bsDataStart], ax	
+   411                                  
+   412 00000189 807F2629                	cmp	byte [bx+bsBpbSignature], 29h
+   413 0000018D 7410                    	je	short R_22
+   414                                  
+   415                                  	;push	dx
+   416                                  	;;mov	di, RETRODOS_FAT12_HD_BS+bsVolumeLabel
+   417                                  	;mov	di, [RD3BOOTSECTOR]
+   418                                  	; 22/10/2023
+   419 0000018F 89F7                    	mov	di, si ; [RD3BOOTSECTOR]
+   420 00000191 57                      	push	di
+   421 00000192 83C72B                  	add	di, bsVolumeLabel
+   422 00000195 E88500                  	call	write_volume_name
+   423                                  	;;mov	si, RETRODOS_FAT12_HD_BS+bsVolumeID
+   424                                  	;mov	si, [RD3BOOTSECTOR]
+   425                                  	; 22/10/2023
+   426 00000198 5E                      	pop	si
+   427 00000199 83C627                  	add	si, bsVolumeID
+   428 0000019C E8CE00                  	call	write_volume_serial
+   429                                  	;pop	dx
+   430                                  
+   431                                  R_22:
+   432 0000019F 5A                      	pop	dx
+   433 000001A0 59                      	pop	cx 
+   434                                  
+   435 000001A1 BE[6609]                	mov	si, msg_writing_boot_sector
+   436 000001A4 E83C01                  	call	print_msg
+   437                                  
+   438                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   439                                  ; Write/Update volume/partition boot sector
+   440                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   441                                  
+   442 000001A7 B80103                  	mov	ax, 0301h ; write disk sector
+   443                                  	; 20/10/2018
+   444                                  	;mov	bx, RETRODOS_FAT12_HD_BS
+   445 000001AA 8B1E[A703]              	mov	bx, [RD3BOOTSECTOR]
+   446 000001AE CD13                    	int	13h
+   447                                   	;jnc	short R_20
+   448                                  	; 21/10/2023
+   449 000001B0 7283                    	jc	short R_20
+   450                                  ;R_20:
+   451 000001B2 BE[D009]                	mov	si, msg_OK
+   452                                  	;jmp	R_21
+   453                                  	; 22/10/2023
+   454 000001B5 E96DFF                  	jmp	R_11
+   455                                  
+   456                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   457                                  ; Convert LBA sector address to CHS address  (for INT 13h R/W)
+   458                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   459                                  
+   460                                  convert_to_chs:
+   461                                  	; check partition limit
+   462                                  	; 21/10/2023 - Retro DOS v4 (32 bit disk sector addresses)
+   463                                  	; bx:cx = end of the partition (the last sector addr + 1)
+   464                                  	; dx:ax = start sector address of the partition
+   465                                  
+   466 000001B8 50                      	push	ax ; *
+   467 000001B9 52                      	push	dx ; **
+   468                                  
+   469                                  	;mov	bx, ax
+   470                                  
+   471 000001BA A0[BA07]                	mov	al, [Sectors]
+   472                                  	;mov	ah, [Heads]
+   473                                  	;mul	ah
+   474                                  	; 21/10/2023
+   475 000001BD F626[BC07]              	mul	byte [Heads]
+   476                                  
+   477                                  	;mov	cx, [Cylinders]
+   478                                  	;mul	cx
+   479                                  	; 21/10/2023
+   480 000001C1 F726[BE07]              	mul	word [Cylinders]
+   481 000001C5 09D2                    	or	dx, dx
+   482                                  	;;jz	short ctchs1
+   483                                  	;jz	short ctchs2
+   484 000001C7 7512                    	jnz	short ctchs0
+   485                                  
+   486 000001C9 5A                      	pop	dx ; **
+   487 000001CA 21D2                    	and	dx, dx
+   488 000001CC 751B                    	jnz	short ctchs4
+   489                                  	; dx = 0
+   490                                  	; 16 bit sector number (absolutely within CHS limit)
+   491 000001CE 58                      	pop	ax ; *
+   492                                  
+   493 000001CF F736[BA07]              	div 	word [Sectors] ; <= 63
+   494 000001D3 FEC2                    	inc	dl	; 0 to 62 -> 1 to 63
+   495 000001D5 88D1                    	mov	cl, dl	; sector
+   496 000001D7 30D2                    	xor	dl, dl	; (dh = 0)
+   497 000001D9 EB2B                    	jmp	short ctchs_5 ; skip 32 bit divisions
+   498                                  
+   499                                  ctchs0:
+   500                                  	;xor	dx, dx
+   501                                  	;jmp	short ctchs2
+   502 000001DB 39DA                    	cmp	dx, bx
+   503 000001DD 7709                    	ja	short ctchs2
+   504 000001DF 7403                    	je	short ctchs1
+   505                                  ctchs3:
+   506                                  	; not possible to use CHS values !!
+   507                                  	; cf = 1
+   508 000001E1 5A                      	pop	dx ; **
+   509 000001E2 58                      	pop	ax ; *
+   510 000001E3 C3                      	retn
+   511                                  ctchs1:
+   512                                  	;cmp	ax, bx
+   513                                  	; 21/10/2023
+   514 000001E4 39C8                    	cmp	ax, cx
+   515 000001E6 72F9                    	jb	short ctchs3 ; Not a valid MSDOS (FAT12/FAT16) partition
+   516                                  ctchs2:
+   517                                  	; 21/10/2023
+   518 000001E8 5A                      	pop	dx ; **
+   519                                  ctchs4:	
+   520                                  	;mov	ax, bx
+   521                                  	; 21/10/2023 - 32 bit divide
+   522                                  	; sample: (5:9)/4, 5/4 -> remainder = 1, (1:9)/4 -> remainder = 3
+   523                                  	;	  quotient = (1:4), remainder = 3 (sector number-1)	
+   524                                  	;push	ax ; *
+   525                                  	; [sp] = ax (lw)
+   526 000001E9 89D0                    	mov	ax, dx	; (hw)	;; 5
+   527 000001EB 31D2                    	xor	dx, dx  ; 0
+   528                                  	; AX = LBA sector address (DX = 0)
+   529 000001ED F736[BA07]              	div 	word [Sectors]	;; 5/4 
+   530 000001F1 89C3                    	mov	bx, ax		;; ax = 1
+   531                                  				;; dx = 1 (5%4)
+   532 000001F3 58                      	pop	ax ; *		;; ax = 9, dx = 1 	
+   533 000001F4 F736[BA07]              	div 	word [Sectors]	;; 19/4
+   534                                  				;; ax = 4, dx = 3
+   535                                  				;; bx:ax = 14  
+   536 000001F8 FEC2                    	inc	dl		;; 3 -> 4
+   537 000001FA 88D1                    	mov	cl, dl ; sector	; <= 63
+   538                                  
+   539                                  	; dh = 0
+   540 000001FC 30D2                    	xor	dl, dl	; dx = 0	
+   541                                  	; 21/10/2023
+   542                                  	; sample: (1:4)/2 (dividend = 14, high nibble = 1, low nibble = 4)
+   543 000001FE 50                      	push	ax ; +		;; 4 ; ln
+   544 000001FF 89D8                    	mov	ax, bx ; hn	;; 1
+   545 00000201 F736[BC07]              	div	word [Heads]	;; 1/2 (heads=2)	
+   546                                  				;; ax = 0, dx = 1
+   547 00000205 58                      	pop	ax ; +	; ln	;; 4
+   548                                  ctchs_5:	; 21/10/2023
+   549                                  	;;;
+   550 00000206 F736[BC07]              	div	word [Heads] ; [BPB_NumHeads] ;; 14/2, ax = 7, dx = 0
+   551                                  	
+   552 0000020A 88D6                    	mov	dh, dl ; head
+   553 0000020C 88C5                    	mov	ch, al ; cylinder (low 8 bits)
+   554                                  	;ror	ah, 2
+   555 0000020E C0E406                  	shl	ah, 6
+   556 00000211 08E1                    	or	cl, ah ; sector | (high 2 bits of cyl)
+   557 00000213 BB[DA09]                	mov	bx, SectorBuffer
+   558 00000216 8A16[C007]              	mov	dl, [DriveNum]
+   559 0000021A B001                    	mov	al, 1
+   560                                  	; 21/10/2023
+   561                                  ;ctchs3:
+   562 0000021C C3                      	retn		
+   563                                  
+   564                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   565                                  ; set & write volume name
+   566                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   567                                  
+   568                                  write_volume_name:
+   569                                  	;mov	byte [vname_length], 11
+   570                                  svn_fs:
+   571                                  	; DI = (BS) Volume Label address
+   572 0000021D BE[A209]                	mov	si, Msg_Volume_Name
+   573 00000220 E8C000                  	call	print_msg
+   574                                  
+   575                                  	; get cursor position
+   576                                  	; bh = 0  ; video page
+   577 00000223 B403                    	mov     ah, 3 ; get cursor pos
+   578 00000225 CD10                    	int     10h
+   579 00000227 8916[D809]              	mov	[Cursor_Pos], dx
+   580                                  
+   581 0000022B E8E800                  	call	rw_char
+   582                                  	;jc	short svn_1
+   583 0000022E 7216                    	jc	short svn_5
+   584                                  svn_0:
+   585 00000230 AC                      	lodsb
+   586 00000231 3C20                    	cmp	al, 20h
+   587 00000233 74FB                    	je	short svn_0 
+   588 00000235 89FB                    	mov	bx, di ; *	
+   589                                  	;ja	short svn_2
+   590 00000237 720D                    	jb	short svn_5
+   591                                  ;svn_1:
+   592                                  ;	mov	si, no_name
+   593                                  ;	lodsb
+   594                                  svn_2:
+   595 00000239 B90B00                  	mov	cx, 11; [vname_length]
+   596 0000023C EB05                    	jmp	short svn_4
+   597                                  svn_3:
+   598 0000023E AC                      	lodsb
+   599 0000023F 3C20                    	cmp	al, 20h
+   600 00000241 7223                    	jb	short svn_6
+   601                                  svn_4:
+   602 00000243 AA                      	stosb
+   603 00000244 E2F8                    	loop	svn_3
+   604                                  svn_5:
+   605 00000246 B90B00                  	mov	cx, 11 ; [vname_length]
+   606 00000249 89DE                    	mov	si, bx ; *
+   607 0000024B BF[9609]                	mov	di, StrVolumeName
+   608 0000024E F3A4                    	rep	movsb
+   609                                  	;mov	byte [di], 0
+   610                                  
+   611 00000250 8B16[D809]              	mov	dx, [Cursor_Pos]
+   612 00000254 BB0700                  	mov	bx, 7
+   613 00000257 B402                    	mov	ah, 2
+   614 00000259 CD10                    	int	10h  ; Set Cursor Position
+   615                                  
+   616 0000025B BE[9609]                	mov	si, StrVolumeName
+   617 0000025E E88200                  	call	print_msg
+   618 00000261 BE[D409]                	mov	si, CRLF
+   619                                  	;call	print_msg
+   620                                  	;retn
+   621                                  	; 21/10/2023
+   622 00000264 EB7D                    	jmp	print_msg	
+   623                                  svn_6:
+   624 00000266 B020                    	mov	al, 20h
+   625                                  svn_7:
+   626 00000268 AA                      	stosb
+   627 00000269 E2FD                    	loop	svn_7
+   628 0000026B EBD9                    	jmp	short svn_5
+   629                                  
+   630                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   631                                  ; set & write volume serial number (volume ID)
+   632                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   633                                  
+   634                                  write_volume_serial:
+   635                                  	; SI = (BS) Volume Serial Number (binary) address
+   636                                  
+   637                                  	;xor	ax, ax
+   638                                  	;int	1Ah			; get time of day
+   639                                  
+   640                                  	;mov	[si], dx
+   641                                  	;mov	[si+2], cx		; set unique volume ID
+   642                                  
+   643                                  	;mov	ah, 02h			; Return Current Time
+   644                                  	;int	1Ah
+   645                                  	;xchg	ch, cl
+   646                                  	;xchg	dh, dl
+   647                                  
+   648                                  	;add	cx, dx  
+   649                                  	;add	[si+2], cx
+   650                                                 
+   651                                  	;mov	ah, 04h			; Return Current Date
+   652                                  	;int	1Ah
+   653                                  
+   654                                  	;xchg	ch,cl
+   655                                  	;xchg	dh,dl
+   656                                  
+   657                                  	;add	cx, dx  
+   658                                  	;add	[si+2], cx
+   659                                  
+   660                                  	; According to Microsoft DOS 6.0 serial number
+   661                                  	; production method...
+   662                                  	; < Create unique 32 bit serial number >
+   663                                  
+   664                                  	; Create_Serial_ID (MSDOS 6.0 Source code, MSFOR.ASM)
+   665                                  	; (20/04/1987)
+   666                                  	;
+   667                                  	;  Get date (INT 21h, AH=2Bh)
+   668                                  	;  Get time (INT 21h, AH=2Ch)
+   669                                  	;  Serial_ID+0 = DX reg date + DX reg time
+   670                                  	;  Serial_ID+2 = CX reg date + CX reg time
+   671                                  	;  Serial_Num_Low = Serial_ID+2
+   672                                  	;  Serial_Num_High = Serial_ID+0
+   673                                  
+   674 0000026D B404                    	mov	ah, 04h		; Return Current Date
+   675 0000026F CD1A                    	int	1Ah
+   676                                  
+   677                                  	; DL = Day (BCD)	(20h) 	
+   678                                  	; DH = Month (BCD)	(12h)
+   679                                  	; CH = Century (BCD)	(20h)
+   680                                  	; CL = Year (BCD) 	(17h)
+   681                                  
+   682 00000271 88D0                    	mov	al, dl
+   683 00000273 E87C00                  	call	bcd_to_bin
+   684 00000276 88C2                    	mov	dl, al 
+   685 00000278 88F0                    	mov	al, dh
+   686 0000027A E87500                  	call	bcd_to_bin
+   687 0000027D 88C6                    	mov	dh, al 
+   688 0000027F 88C8                    	mov	al, cl
+   689 00000281 E86E00                  	call	bcd_to_bin
+   690 00000284 88C1                    	mov	cl, al 
+   691 00000286 88E8                    	mov	al, ch
+   692 00000288 E86700                  	call	bcd_to_bin
+   693 0000028B 88C5                    	mov	ch, al
+   694                                  
+   695                                  	; DH = Month (1-10)
+   696                                  	; DL = Day (1-31)
+   697                                  	; CX = Year (1900-2099)
+   698                                  
+   699 0000028D 52                      	push	dx 
+   700 0000028E 51                      	push	cx
+   701                                  
+   702 0000028F B402                    	mov	ah, 02h		; Return Current Time
+   703 00000291 CD1A                    	int	1Ah
+   704                                  	
+   705                                  	; DH = Seconds (BCD)	(59h) 	
+   706                                  	; CL = Minutes (BCD)	(59h)
+   707                                  	; CH = Hours (BCD)	(23h)
+   708                                  	; DL = Daylight savings time option (1=yes)
+   709                                  
+   710 00000293 88F0                    	mov	al, dh
+   711 00000295 E85A00                  	call	bcd_to_bin
+   712 00000298 88C6                    	mov	dh, al 
+   713 0000029A 88C8                    	mov	al, cl
+   714 0000029C E85300                  	call	bcd_to_bin
+   715 0000029F 88C1                    	mov	cl, al 
+   716 000002A1 88E8                    	mov	al, ch
+   717 000002A3 E84C00                  	call	bcd_to_bin
+   718 000002A6 88C5                    	mov	ch, al 
+   719                                  
+   720                                  	; CH = Hour (0-23)
+   721                                  	; CL = Minutes (0-59)
+   722                                  	; DH = Seconds (0-59)
+   723                                  	; ((DL = Hundredths (0-99) - MSDOS!))
+   724                                  	; DL = 0 or 1 (here!)
+   725                                  
+   726 000002A8 89C8                    	mov	ax, cx
+   727 000002AA 59                      	pop	cx
+   728 000002AB 01C8                    	add	ax, cx
+   729                                  
+   730 000002AD 894402                  	mov	[si+2], ax
+   731                                  
+   732 000002B0 89D0                    	mov	ax, dx
+   733 000002B2 5A                      	pop	dx
+   734 000002B3 01D0                    	add	ax, dx
+   735                                  
+   736 000002B5 8904                    	mov	[si], ax
+   737                                  
+   738 000002B7 30E4                    	xor	ah, ah		; Read time counter
+   739 000002B9 CD1A                    	int	1Ah
+   740                                  
+   741                                  	; CX = High word of clock count
+   742                                  	; DX = Low word of clock count
+   743                                  	; AL = 0 if 24 hours has not passed, else 1
+   744                                  
+   745                                  	; NOTES: 
+   746                                  	; (Ref: vitaly_filatov.tripod.com/ng/asm/asm_029.1.html)
+   747                                  	;
+   748                                     	; Following formulas convert the clock count to
+   749                                          ; the time of day:
+   750                                   	;	Hour      = Clock / 65543 (1007h)
+   751                                  	;	Remainder = Clock MOD 65543
+   752                                   	;
+   753                                  	;	Minutes   = Remainder / 1092 (444h)
+   754                                  	;	Remainder = Remainder MOD 1092
+   755                                  	;
+   756                                  	;	Second    = Remainder / 18.21
+   757                                  	;	Remainder = Remainder MOD 18.21
+   758                                  	;
+   759                                  	;	Hundredths = CINT(Remainder * 100)
+   760                                  
+   761 000002BB 0014                    	add	[si], dl
+   762                                  
+   763                                  	; SI = Volume serial number address (4 bytes) 
+   764 000002BD 8A04                    	mov	al, [si]
+   765 000002BF E83D00                  	call	bin_to_hex
+   766 000002C2 A3[CB09]                	mov	[Vol_Serial2+2], ax	
+   767 000002C5 8A4401                  	mov	al, [si+1]
+   768 000002C8 E83400                  	call	bin_to_hex
+   769 000002CB A3[C909]                	mov	[Vol_Serial2], ax
+   770 000002CE 8A4402                  	mov	al, [si+2]
+   771 000002D1 E82B00                  	call	bin_to_hex
+   772 000002D4 A3[C609]                	mov	[Vol_Serial1+2], ax	
+   773 000002D7 8A4403                  	mov	al, [si+3]
+   774 000002DA E82200                  	call	bin_to_hex
+   775 000002DD A3[C409]                	mov	[Vol_Serial1], ax
+   776                                  
+   777 000002E0 BE[B209]                	mov	si, Msg_Volume_Serial
+   778                                  	;call	print_msg
+   779                                  	;retn
+   780                                  	; 21/10/2023
+   781                                  	;jmp	short print_msg
+   782                                  
+   783                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   784                                  ; Print messages
+   785                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   786                                  
+   787                                  print_msg:
+   788                                  
+   789                                  print_msg_LOOP:
+   790 000002E3 AC                      	lodsb                           ; Load byte at DS:SI to AL
+   791 000002E4 20C0                    	and     al, al            
+   792 000002E6 7409                    	jz      short print_msg_OK       
+   793 000002E8 B40E                    	mov	ah, 0Eh			
+   794 000002EA BB0700                  	mov     bx, 07h             
+   795 000002ED CD10                    	int	10h			; BIOS Service func ( ah ) = 0Eh
+   796                                  					; Write char as TTY
+   797                                  					; AL-char BH-page BL-color
+   798 000002EF EBF2                    	jmp     short print_msg_LOOP           
+   799                                  
+   800                                  print_msg_OK:
+   801 000002F1 C3                      	retn
+   802                                  
+   803                                  	; 21/10/2023
+   804                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   805                                  ; Convert bcd (cmos date/time format) number to binary number
+   806                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   807                                  
+   808                                  bcd_to_bin:
+   809 000002F2 53                      	push	bx
+   810 000002F3 D410                    	db	0D4h,10h  ; Undocumented inst. AAM
+   811                                  			  ; AH = AL / 10h
+   812                                  			  ; AL = AL MOD 10h
+   813 000002F5 88C3                    	mov	bl, al
+   814 000002F7 B00A                    	mov	al, 10
+   815 000002F9 F6E4                    	mul	ah
+   816 000002FB 00D8                    	add	al, bl
+   817 000002FD 5B                      	pop	bx
+   818 000002FE C3                      	retn
+   819                                  
+   820                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   821                                  ; Convert byte to hexadecimal number
+   822                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   823                                  
+   824                                  bin_to_hex:
+   825                                  	; INPUT ->
+   826                                  	; 	AL = byte (binary number)
+   827                                  	; OUTPUT ->
+   828                                  	;	AX = hexadecimal string
+   829                                  	;
+   830 000002FF 53                      	push	bx
+   831 00000300 31DB                    	xor	bx, bx
+   832 00000302 88C3                    	mov	bl, al
+   833 00000304 C0EB04                  	shr	bl, 4
+   834 00000307 8A9F[AA07]              	mov	bl, [bx+hexchrs] 	 	
+   835 0000030B 86D8                    	xchg	bl, al
+   836 0000030D 80E30F                  	and	bl, 0Fh
+   837 00000310 8AA7[AA07]              	mov	ah, [bx+hexchrs] 
+   838 00000314 5B                      	pop	bx	
+   839 00000315 C3                      	retn
+   840                                  
+   841                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   842                                  ; Read & Write characters
+   843                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   844                                  
+   845                                  rw_char:
+   846                                  	; OUTPUT -> DS:SI = Entered String (ASCIIZ)
+   847 00000316 BE[9609]                	mov     si, StrVolumeName
+   848 00000319 BB0700                  	mov     bx, 7
+   849 0000031C B403                    	mov     ah, 3
+   850 0000031E CD10                    	int     10h
+   851 00000320 8916[D809]              	mov     [Cursor_Pos], dx
+   852                                  read_next_char:
+   853 00000324 30E4                    	xor     ah, ah
+   854 00000326 CD16                    	int     16h
+   855 00000328 20C0                    	and     al, al
+   856 0000032A 7439                    	jz      short loc_arrow    
+   857 0000032C 3CE0                    	cmp     al, 0E0h          
+   858 0000032E 7435                    	je      short loc_arrow
+   859 00000330 3C08                    	cmp     al, 8
+   860 00000332 753D                    	jne     short char_return
+   861                                  loc_back:
+   862 00000334 B403                    	mov     ah, 3
+   863 00000336 CD10                    	int     10h
+   864 00000338 3A16[D809]              	cmp     dl, byte [Cursor_Pos]
+   865 0000033C 761F                    	jna     short loc_beep
+   866                                  prev_column:
+   867 0000033E FECA                    	dec     dl
+   868                                  set_cursor_pos:
+   869 00000340 B402                    	mov     ah, 2
+   870 00000342 CD10                    	int     10h
+   871 00000344 88D3                    	mov     bl, dl
+   872 00000346 2A1E[D809]              	sub     bl, byte [Cursor_Pos] 
+   873 0000034A B90100                  	mov     cx, 1
+   874 0000034D B409                    	mov     ah, 9
+   875 0000034F B020                    	mov     al, 20h
+   876 00000351 8800                    	mov     [si+bx], al
+   877                                  loc_write_it:
+   878 00000353 B307                    	mov     bl, 7
+   879 00000355 CD10                    	int     10h
+   880 00000357 8B16[D809]              	mov     dx, [Cursor_Pos]
+   881 0000035B EBC7                    	jmp     short read_next_char
+   882                                  loc_beep:
+   883 0000035D B40E                    	mov     ah, 0Eh
+   884 0000035F B007                    	mov     al, 7
+   885 00000361 CD10                    	int     10h
+   886 00000363 EBBF                    	jmp     short read_next_char
+   887                                  loc_arrow:    
+   888 00000365 80FC4B                  	cmp     ah, 4Bh
+   889 00000368 74CA                    	je      short loc_back
+   890 0000036A 80FC53                  	cmp     ah, 53h
+   891 0000036D 74C5                    	je      short loc_back
+   892 0000036F EBB3                    	jmp     short read_next_char
+   893                                  char_return:
+   894 00000371 B403                    	mov     ah, 3
+   895 00000373 CD10                    	int     10h
+   896                                  check_char_type:
+   897 00000375 3C20                    	cmp     al, 20h
+   898 00000377 7228                    	jb      short loc_escape
+   899 00000379 88D4                    	mov     ah, dl
+   900 0000037B 2A26[D809]              	sub     ah, byte [Cursor_Pos]
+   901                                  	;cmp	ah, 10 
+   902                                  	;ja	short loc_beep
+   903 0000037F 80FC0B                  	cmp     ah, 11 ; [vname_length]
+   904 00000382 73D9                    	jnb	short loc_beep
+   905 00000384 3C7A                    	cmp     al, 'z'
+   906 00000386 779C                    	ja      short read_next_char
+   907 00000388 3C61                    	cmp     al, 'a'
+   908 0000038A 7202                    	jb      short pass_capitalize
+   909 0000038C 24DF                    	and     al, 0DFh
+   910                                  pass_capitalize:
+   911 0000038E 88E3                    	mov     bl, ah 
+   912 00000390 30E4                    	xor     ah, ah
+   913 00000392 8900                    	mov     [si+bx], ax
+   914 00000394 B307                    	mov     bl, 7
+   915 00000396 B40E                    	mov     ah, 0Eh
+   916 00000398 CD10                    	int     10h
+   917 0000039A EB88                    	jmp     short read_next_char
+   918                                  pass_escape:
+   919 0000039C 3C0D                    	cmp     al, 0Dh	; 13 ; ENTER
+   920 0000039E 7584                    	jne     short read_next_char
+   921                                  	;mov	ah, 0Eh
+   922                                  	;int	10h
+   923                                  	;mov	al, 0Ah
+   924                                  	;int	10h
+   925 000003A0 C3                      	retn
+   926                                  loc_escape:
+   927 000003A1 3C1B                    	cmp     al, 1Bh	; 27 ; ESC
+   928 000003A3 75F7                    	jne     short pass_escape
+   929 000003A5 F9                      	stc
+   930 000003A6 C3                      	retn
+   931                                  
+   932                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   933                                  ;  Data
+   934                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   935                                  
+   936                                  RD3BOOTSECTOR:
+   937 000003A7 [A905]                  	dw	RETRODOS_FAT12_HD_BS
+   938                                  
+   939                                  RETRODOS_FAT16_HD_BS: 
+   940                                  	;incbin	'RD3HDBS.BIN'
+   941                                  	; 21/10/2023 - 22/10/2023
+   942 000003A9 <bin 200h>              	incbin	'RD4HDBS.BIN'	; boot sector : 24/10/2023	
+   943                                  	
+   944                                  RETRODOS_FAT12_HD_BS: 
+   945 000005A9 <bin 200h>              	incbin	'RD2HDBS.BIN'	; boot sector : 25/10/2023
+   946                                  
+   947 000007A9 00                      	db	0
+   948                                  
+   949                                  hexchrs:
+   950 000007AA 303132333435363738-     	db	'0123456789ABCDEF'
+   950 000007B3 39414243444546     
+   951                                  
+   952                                  align 2
+   953                                  
+   954                                  Sectors:
+   955 000007BA 0000                    	dw	0
+   956                                  Heads:
+   957 000007BC 0000                    	dw	0
+   958                                  Cylinders:
+   959 000007BE 0000                    	dw	0
+   960                                  
+   961                                  DriveNum:
+   962 000007C0 00                      	db	0
+   963                                  
+   964                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   965                                  ;  Messages
+   966                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   967                                  
+   968                                  	; 21/10/2023
+   969                                  RetroDOS_Welcome:
+   970 000007C1 0D0A                    	db	0Dh, 0Ah
+   971 000007C3 526574726F20444F53-     	db	'Retro DOS v4.0 Fixed Disk Boot Sector Update Utility'
+   971 000007CC 2076342E3020466978-
+   971 000007D5 6564204469736B2042-
+   971 000007DE 6F6F7420536563746F-
+   971 000007E7 722055706461746520-
+   971 000007F0 5574696C697479     
+   972 000007F7 0D0A                    	db	0Dh, 0Ah
+   973 000007F9 76312E302E32333130-     	db	"v1.0.231025  (c) Erdogan TAN 2018-2023"
+   973 00000802 323520202863292045-
+   973 0000080B 72646F67616E205441-
+   973 00000814 4E20323031382D3230-
+   973 0000081D 3233               
+   974 0000081F 0D0A                    	db	0Dh,0Ah
+   975 00000821 0D0A                    	db	0Dh,0Ah
+   976 00000823 55736167653A207234-     	db	'Usage: r4hdboot c: (or d:)'
+   976 0000082C 6864626F6F7420633A-
+   976 00000835 20286F7220643A29   
+   977 0000083D 00                      	db	0
+   978                                  
+   979                                  msg_drv_not_ready_err: 
+   980 0000083E 0D0A                    	db	0Dh, 0Ah
+   981 00000840 4472697665206E6F74-     	db	"Drive not ready !"
+   981 00000849 2072656164792021   
+   982 00000851 0D0A00                  	db	0Dh, 0Ah, 0
+   983                                  
+   984                                  msg_disk_read_err: 
+   985 00000854 0D0A                    	db	0Dh, 0Ah
+   986 00000856 4469736B2072656164-     	db	"Disk read error !"
+   986 0000085F 206572726F722021   
+   987 00000867 0D0A00                  	db	0Dh, 0Ah, 0
+   988                                  
+   989                                  msg_not_valid_mbr:
+   990 0000086A 0D0A                    	db	0Dh, 0Ah
+   991 0000086C 4E6F7420612076616C-     	db	"Not a valid masterboot sector !"
+   991 00000875 6964206D6173746572-
+   991 0000087E 626F6F742073656374-
+   991 00000887 6F722021           
+   992 0000088B 0D0A00                  	db	0Dh, 0Ah, 0 
+   993                                  
+   994                                  msg_msdos_p_not_found:
+   995 0000088E 0D0A                    	db	0Dh, 0Ah
+   996 00000890 4D53444F5320284641-     	db	"MSDOS (FAT12/FAT16) partition not found !"
+   996 00000899 5431322F4641543136-
+   996 000008A2 292070617274697469-
+   996 000008AB 6F6E206E6F7420666F-
+   996 000008B4 756E642021         
+   997 000008B9 0D0A00                  	db	0Dh, 0Ah, 0 
+   998                                  
+   999                                  	; 21/10/2023
+  1000                                  msg_not_valid_vbr:
+  1001 000008BC 0D0A                    	db	0Dh, 0Ah
+  1002 000008BE 4E6F7420612076616C-     	db	"Not a valid MSDOS (FAT12/FAT16) partition ! (for Retro DOS v4)"
+  1002 000008C7 6964204D53444F5320-
+  1002 000008D0 2846415431322F4641-
+  1002 000008D9 543136292070617274-
+  1002 000008E2 6974696F6E20212028-
+  1002 000008EB 666F7220526574726F-
+  1002 000008F4 20444F5320763429   
+  1003 000008FC 0D0A00                  	db	0Dh, 0Ah, 0 
+  1004                                  
+  1005                                  msg_disk_write_err: 
+  1006 000008FF 0D0A                    	db	0Dh, 0Ah
+  1007 00000901 4469736B2077726974-     	db	"Disk write error !"
+  1007 0000090A 65206572726F722021 
+  1008 00000913 0D0A00                  	db	0Dh, 0Ah, 0
+  1009                                  
+  1010                                  msg_overwrite_question:
+  1011 00000916 0D0A                    	db	0Dh, 0Ah
+  1012 00000918 5741524E494E472021-     	db	'WARNING !', 0Dh, 0Ah
+  1012 00000921 0D0A               
+  1013 00000923 446F20796F75207761-     	db	'Do you want to overwrite boot sector (Yes/No)? ', 0
+  1013 0000092C 6E7420746F206F7665-
+  1013 00000935 72777269746520626F-
+  1013 0000093E 6F7420736563746F72-
+  1013 00000947 20285965732F4E6F29-
+  1013 00000950 3F2000             
+  1014                                  
+  1015                                  msg_NO:
+  1016 00000953 204E4F202E2E0D0A00      	db	' NO ..', 0Dh, 0Ah, 0
+  1017                                  msg_YES:
+  1018 0000095C 20594553202E2E0D0A-     	db	' YES ..', 0Dh, 0Ah, 0	
+  1018 00000965 00                 
+  1019                                  
+  1020                                  	; 21/10/2023
+  1021                                  msg_writing_boot_sector:
+  1022 00000966 5570646174696E6720-     	db	"Updating boot sector to Retro DOS v4 format ...", 0
+  1022 0000096F 626F6F742073656374-
+  1022 00000978 6F7220746F20526574-
+  1022 00000981 726F20444F53207634-
+  1022 0000098A 20666F726D6174202E-
+  1022 00000993 2E2E00             
+  1023                                  
+  1024                                  StrVolumeName:
+  1025 00000996 00<rep Ch>              	times 	12 db  0
+  1026                                  
+  1027                                  Msg_Volume_Name:
+  1028 000009A2 0D0A                    	db	0Dh, 0Ah
+  1029 000009A4 566F6C756D65204E61-     	db	"Volume Name: ", 0
+  1029 000009AD 6D653A2000         
+  1030                                  
+  1031                                  Msg_Volume_Serial:
+  1032 000009B2 566F6C756D65205365-     	db	"Volume Serial No: "
+  1032 000009BB 7269616C204E6F3A20 
+  1033                                  Vol_Serial1:
+  1034 000009C4 30303030                	db	"0000"
+  1035 000009C8 2D                      	db	"-"
+  1036                                  Vol_Serial2:
+  1037 000009C9 30303030                	db	"0000"
+  1038 000009CD 0D0A00                  	db	0Dh, 0Ah, 0
+  1039                                  
+  1040                                  msg_OK:
+  1041 000009D0 204F4B2E                	db	' OK.'
+  1042                                  CRLF:
+  1043 000009D4 0D0A00                  	db	0Dh, 0Ah, 0
+  1044                                  
+  1045 000009D7 90                      align 2
+  1046                                  
+  1047                                  Cursor_Pos:
+  1048 000009D8 0000                    	dw	0
+  1049                                  
+  1050                                  align 2
+  1051                                  
+  1052                                  SectorBuffer:
+  1053 000009DA F6<rep 200h>            	times	512 db 0F6h
+  1054                                  
+  1055 00000BDA 00                      	db	0
+  1056 00000BDB 286329204572646F67-     	db	'(c) Erdogan TAN 2018-2023' ; 21/10/2023
+  1056 00000BE4 616E2054414E203230-
+  1056 00000BED 31382D32303233     
+  1057 00000BF4 00                      	db	0
+  1058                                  
+  1059                                  SizeOfFile equ $-100
