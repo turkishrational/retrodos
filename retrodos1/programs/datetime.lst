@@ -1,0 +1,317 @@
+     1                                  ; ERDOGAN TAN - Retro DOS v1.0 - Date&Time Set Sample
+     2                                  ; 17/02/2018 - 20/02/2018
+     3                                  
+     4                                  
+     5                                  	[org 100h]
+     6                                  
+     7                                  OUTCH	EQU	2
+     8                                  PRINTBUF EQU	9
+     9                                  INBUF   EQU     10
+    10                                  GETDATE EQU     2AH
+    11                                  GETTIME EQU     2CH
+    12                                  SETDATE EQU     2BH
+    13                                  SETTIME EQU     2DH
+    14                                  
+    15 00000000 B4FF                    	MOV	AH, 0FFH
+    16 00000002 CD21                    	INT	21H
+    17                                  
+    18 00000004 BA[4E02]                	MOV	DX, NEXTLINE
+    19 00000007 B409                    	MOV	AH, PRINTBUF
+    20 00000009 CD21                    	INT	21H
+    21                                  
+    22                                  DO_LOOP:
+    23 0000000B C70681000D00                    MOV     WORD [81H],13    ;Want to prompt for date during initialization
+    24 00000011 E82300                          CALL    DATE
+    25 00000014 E8B700                          CALL    TIME
+    26                                  
+    27 00000017 BA[4E02]                	MOV	DX, NEXTLINE
+    28 0000001A B409                    	MOV	AH, PRINTBUF
+    29 0000001C CD21                    	INT	21H
+    30                                  
+    31 0000001E CD20                    	INT	20H
+    32                                  
+    33                                  SCANOFF:
+    34 00000020 AC                              LODSB
+    35 00000021 E80400                          CALL    DELIM
+    36 00000024 74FA                            JZ      SHORT SCANOFF
+    37 00000026 4E                              DEC     SI              ;Point to first non-delimiter
+    38 00000027 C3                              RETN
+    39                                  
+    40                                  DELIM:
+    41 00000028 3C20                            CMP     AL, " "
+    42 0000002A 740A                            JZ      SHORT RET80
+    43 0000002C 3C3D                            CMP     AL, "="
+    44 0000002E 7406                            JZ      SHORT RET80
+    45 00000030 3C2C                            CMP     AL, ","
+    46 00000032 7402                            JZ      SHORT RET80
+    47 00000034 3C09                            CMP     AL, 9		;Check for TAB character
+    48                                  RET80:  
+    49 00000036 C3                      	RETN
+    50                                  
+    51                                  
+    52                                  ; DATE - Gets and sets the time
+    53                                  
+    54                                  DATE:
+    55 00000037 BE8100                          MOV     SI, 81H		;Accepting argument for date inline
+    56 0000003A E8E3FF                          CALL    SCANOFF
+    57 0000003D 3C0D                            CMP     AL, 13
+    58 0000003F 7408                            JZ      SHORT PRMTDAT
+    59 00000041 BB2D2F                          MOV     BX, 2F00H+"-"	;"/-"
+    60 00000044 E8F800                          CALL    INLINE
+    61 00000047 EB3C                            JMP     SHORT COMDAT
+    62                                  
+    63                                  PRMTDAT:
+    64 00000049 BA[F701]                	MOV	DX, CURDAT
+    65 0000004C B409                            MOV     AH, PRINTBUF
+    66 0000004E CD21                            INT     21H		;Print "Current date is "
+    67 00000050 B42A                            MOV     AH, GETDATE
+    68 00000052 CD21                            INT     21H		;Get date in CX:DX
+    69 00000054 98                              CBW
+    70 00000055 89C6                            MOV     SI, AX
+    71 00000057 D1E6                            SHL     SI, 1
+    72 00000059 01C6                            ADD     SI, AX		;SI=AX*3
+    73 0000005B 81C6[D301]                      ADD     SI, WEEKTAB
+    74 0000005F 89CB                            MOV     BX, CX
+    75 00000061 B90300                          MOV     CX, 3
+    76 00000064 E81801                          CALL    OUTCNT
+    77 00000067 B020                            MOV     AL, " "
+    78 00000069 E85501                          CALL    _OUT
+    79 0000006C 89D8                            MOV     AX, BX
+    80 0000006E 89D1                            MOV     CX, DX
+    81 00000070 B264                            MOV     DL, 100
+    82 00000072 F6F2                            DIV     DL
+    83 00000074 86C4                            XCHG    AL, AH
+    84 00000076 92                              XCHG    AX, DX
+    85 00000077 B32D                            MOV     BL, "-"
+    86 00000079 E80A01                          CALL    SHOW
+    87                                  GETDAT:
+    88 0000007C BA[0802]                        MOV     DX, NEWDAT
+    89 0000007F BB2D2F                          MOV     BX, 2F00H+"-"	;"/-" in BX
+    90 00000082 E8A400                          CALL    GETBUF
+    91                                  COMDAT: 
+    92 00000085 74AF                    	JZ      SHORT RET80
+    93 00000087 7235                            JC      SHORT DATERR
+    94 00000089 AC                              LODSB   
+    95 0000008A 38D8                            CMP     AL, BL
+    96 0000008C 7404                            JZ      SHORT SEPGD
+    97 0000008E 38F8                            CMP     AL, BH
+    98 00000090 752C                            JNZ     SHORT DATERR
+    99                                  SEPGD:  
+   100 00000092 E8CA00                  	CALL    GETNUM
+   101 00000095 7227                            JC      SHORT DATERR
+   102 00000097 B96C07                          MOV     CX, 1900
+   103 0000009A 803C0D                          CMP     BYTE [SI], 13
+   104 0000009D 740B                            JZ      SHORT BIAS
+   105 0000009F B064                            MOV     AL, 100
+   106 000000A1 F6E4                            MUL     AH
+   107 000000A3 89C1                            MOV     CX, AX
+   108 000000A5 E8B700                          CALL    GETNUM
+   109 000000A8 7214                            JC      SHORT DATERR
+   110                                  BIAS:
+   111 000000AA 88E0                            MOV     AL, AH
+   112 000000AC B400                            MOV     AH, 0
+   113 000000AE 01C1                            ADD     CX, AX
+   114 000000B0 AC                              LODSB
+   115 000000B1 3C0D                            CMP     AL, 13
+   116 000000B3 7509                            JNZ     SHORT DATERR
+   117 000000B5 B42B                            MOV     AH, SETDATE
+   118 000000B7 CD21                            INT     21H
+   119 000000B9 08C0                            OR      AL, AL
+   120 000000BB 7501                    	JNZ	DATERR
+   121 000000BD C3                              RETN
+   122                                  DATERR:
+   123 000000BE BA[E801]                        MOV     DX, BADDAT
+   124 000000C1 B409                            MOV     AH, PRINTBUF
+   125 000000C3 CD21                            INT     33
+   126 000000C5 EBB5                            JMP	SHORT GETDAT
+   127                                  
+   128 000000C7 BA[4E02]                	MOV	DX, NEXTLINE
+   129 000000CA B409                    	MOV	AH, PRINTBUF
+   130 000000CC CD21                    	INT	21H
+   131                                  
+   132                                  TIME:
+   133 000000CE BA[2A02]                	MOV     DX, CURTIM
+   134 000000D1 B409                            MOV     AH, PRINTBUF
+   135 000000D3 CD21                            INT     21H		;Print "Current time is "
+   136 000000D5 B42C                            MOV     AH, GETTIME
+   137 000000D7 CD21                            INT     21H		;Get time in CX:DX
+   138 000000D9 B33A                            MOV     BL, ":"
+   139 000000DB E8A800                          CALL    SHOW
+   140                                  GETTIM:
+   141 000000DE 31C9                            XOR     CX, CX		;Initialize hours and minutes to zero
+   142 000000E0 BA[3B02]                        MOV     DX, NEWTIM
+   143 000000E3 BB3A3A                          MOV     BX, 3A00H+":"
+   144 000000E6 E84000                          CALL    GETBUF
+   145                                  COMTIM: 
+   146 000000E9 7468                    	JZ      SHORT RET100	;If no time present, don't change it
+   147 000000EB 7233                            JC	SHORT TIMERR
+   148 000000ED 89D1                            MOV     CX,DX
+   149 000000EF 31D2                            XOR     DX,DX
+   150 000000F1 AC                              LODSB
+   151 000000F2 3C0D                            CMP     AL, 13
+   152 000000F4 7422                            JZ      SHORT SAVTIM
+   153 000000F6 38D8                            CMP     AL, BL
+   154 000000F8 7526                            JNZ     SHORT TIMERR
+   155 000000FA B32E                            MOV     BL, "."
+   156 000000FC E86000                          CALL    GETNUM
+   157 000000FF 721F                            JC      SHORT TIMERR
+   158 00000101 88E6                            MOV     DH, AH		;Position seconds
+   159 00000103 AC                              LODSB
+   160 00000104 3C0D                            CMP     AL, 13
+   161 00000106 7410                            JZ      SHORT SAVTIM
+   162 00000108 38D8                            CMP     AL, BL
+   163 0000010A 7514                            JNZ     SHORT TIMERR  
+   164 0000010C E85000                          CALL    GETNUM
+   165 0000010F 720F                            JC      SHORT TIMERR
+   166 00000111 88E2                            MOV     DL, AH
+   167 00000113 AC                              LODSB
+   168 00000114 3C0D                            CMP     AL, 13
+   169 00000116 7508                            JNZ     SHORT TIMERR
+   170                                  SAVTIM:
+   171 00000118 B42D                            MOV     AH, SETTIME
+   172 0000011A CD21                            INT     21H
+   173 0000011C 08C0                            OR      AL, AL
+   174 0000011E 7433                            JZ      SHORT RET100	;Error in time?
+   175                                  TIMERR:
+   176 00000120 BA[1B02]                        MOV     DX, BADTIM
+   177 00000123 B409                            MOV     AH, PRINTBUF
+   178 00000125 CD21                            INT     21H		;Print error message
+   179 00000127 EBB5                            JMP     SHORT GETTIM	;Try again
+   180                                  
+   181                                  GETBUF:
+   182 00000129 B409                            MOV     AH, PRINTBUF
+   183 0000012B CD21                            INT     21H		;Print "Enter new date: "
+   184 0000012D B40A                            MOV     AH, INBUF
+   185 0000012F BA[5102]                        MOV     DX, COMBUF
+   186 00000132 CD21                            INT     21H		;Get input line
+   187 00000134 E89300                          CALL    CRLF2
+   188 00000137 BE[5302]                        MOV     SI, COMBUF+2
+   189 0000013A 803C0D                          CMP     BYTE [SI], 13	;Check if new date entered
+   190 0000013D 7414                            JZ      SHORT RET100
+   191                                  INLINE:
+   192 0000013F E81D00                          CALL    GETNUM          ;Get one or two digit number
+   193 00000142 720F                            JC      SHORT RET100
+   194 00000144 88E6                            MOV     DH, AH		;Put in position
+   195 00000146 AC                              LODSB
+   196 00000147 38D8                            CMP     AL, BL
+   197 00000149 740E                            JZ      SHORT NEXT
+   198 0000014B 80FB3A                          CMP     BL, ":"		;Is it a date seperator?
+   199 0000014E 7504                            JNZ     SHORT DATESEP
+   200 00000150 4E                              DEC     SI
+   201 00000151 B200                            MOV     DL, 0
+   202                                  RET100: 
+   203 00000153 C3                      	RETN			;Time may have only an hour specified
+   204                                  DATESEP:
+   205 00000154 38F8                            CMP     AL, BH
+   206 00000156 F9                              STC
+   207 00000157 75FA                            JNZ     SHORT RET100
+   208                                  NEXT:   
+   209 00000159 E80300                  	CALL    GETNUM
+   210 0000015C 88E2                            MOV     DL, AH		;Put in position
+   211 0000015E C3                              RETN
+   212                                  
+   213                                  GETNUM:
+   214 0000015F E81000                          CALL    INDIG
+   215 00000162 72EF                            JC      SHORT RET100
+   216 00000164 88C4                            MOV     AH, AL		;Save first digit
+   217 00000166 E80900                          CALL    INDIG		;Another digit?
+   218 00000169 7204                            JC      SHORT OKRET
+   219 0000016B D50A                            AAD                     ;Convert unpacked BCD to decimal
+   220 0000016D 88C4                            MOV     AH, AL
+   221                                  OKRET:
+   222 0000016F 0C01                            OR      AL, 1
+   223                                  RET110: 
+   224 00000171 C3                      	RETN
+   225                                  
+   226                                  INDIG:
+   227 00000172 8A04                            MOV     AL, [SI]
+   228 00000174 2C30                            SUB     AL, "0"
+   229 00000176 72F9                            JC      SHORT RET110
+   230 00000178 3C0A                            CMP     AL, 10
+   231 0000017A F5                              CMC
+   232 0000017B 72F4                            JC      SHORT RET110
+   233 0000017D 46                              INC     SI
+   234 0000017E C3                              RETN
+   235                                  
+   236                                  OUTCNT:
+   237 0000017F AC                              LODSB
+   238 00000180 E83E00                          CALL    _OUT
+   239 00000183 E2FA                            LOOP    OUTCNT
+   240 00000185 C3                              RETN
+   241                                  
+   242                                  SHOW:
+   243 00000186 88E8                            MOV     AL, CH
+   244 00000188 B710                            MOV     BH, "0"-" "	;Enable leading zero suppression
+   245 0000018A E82000                          CALL    OUT2
+   246 0000018D 88D8                            MOV     AL, BL
+   247 0000018F E82F00                          CALL    _OUT
+   248 00000192 88C8                            MOV     AL, CL
+   249 00000194 E81600                          CALL    OUT2
+   250 00000197 88D8                            MOV     AL, BL
+   251 00000199 E82500                          CALL    _OUT
+   252 0000019C 88F0                            MOV     AL, DH
+   253 0000019E E80C00                          CALL    OUT2
+   254 000001A1 80FB3A                          CMP     BL, ":"          ;Are we outputting time?
+   255 000001A4 7505                            JNZ     SKIPIT
+   256 000001A6 B02E                            MOV     AL, "."
+   257 000001A8 E81600                          CALL    _OUT
+   258                                  SKIPIT: 
+   259 000001AB 88D0                    	MOV     AL, DL
+   260                                  OUT2:   ;Output binary number as two ASCII digits
+   261 000001AD D40A                            AAM			;Convert binary to unpacked BCD
+   262 000001AF 86C4                            XCHG    AL, AH
+   263 000001B1 0D3030                          OR      AX, 3030H	;Add "0" bias to both digits
+   264 000001B4 3C30                            CMP     AL, "0"		;Is MSD zero?
+   265 000001B6 7502                            JNZ     SHORT NOSUP
+   266 000001B8 28F8                            SUB     AL, BH		;Suppress leading zero if enabled
+   267                                  NOSUP:
+   268 000001BA B700                            MOV     BH, 0		;Disable zero suppression
+   269 000001BC E80200                          CALL    _OUT
+   270 000001BF 88E0                            MOV     AL, AH
+   271                                  _OUT:
+   272                                  	;Print char in AL without affecting registers
+   273 000001C1 92                              XCHG    AX, DX
+   274 000001C2 50                              PUSH    AX
+   275 000001C3 B402                            MOV     AH, OUTCH
+   276 000001C5 CD21                            INT     21H
+   277 000001C7 58                              POP     AX
+   278 000001C8 92                              XCHG    AX, DX
+   279 000001C9 C3                              RETN
+   280                                  
+   281                                  CRLF2:
+   282 000001CA B00D                            MOV     AL, 13
+   283 000001CC E8F2FF                          CALL    _OUT
+   284 000001CF B00A                            MOV     AL, 10
+   285 000001D1 EBEE                            JMP     _OUT
+   286                                  
+   287                                  WEEKTAB:
+   288 000001D3 53756E4D6F6E547565-     	DB	"SunMonTueWedThuFriSat"
+   289 000001DC 576564546875467269-
+   290 000001E5 536174             
+   291                                  BADDAT:
+   292 000001E8 0D0A496E76616C6964-     	DB      13,10,"Invalid date$"
+   293 000001F1 206461746524       
+   294                                  CURDAT:
+   295 000001F7 43757272656E742064-     	DB	"Current date is $"
+   296 00000200 6174652069732024   
+   297                                  NEWDAT:
+   298 00000208 0D0A456E746572206E-     	DB	13,10,"Enter new date: $"
+   299 00000211 657720646174653A20-
+   300 0000021A 24                 
+   301                                  BADTIM:
+   302 0000021B 0D0A496E76616C6964-     	DB	13,10,"Invalid time$"
+   303 00000224 2074696D6524       
+   304                                  CURTIM:
+   305 0000022A 43757272656E742074-     	DB	"Current time is $"
+   306 00000233 696D652069732024   
+   307                                  NEWTIM:
+   308 0000023B 0D0A456E746572206E-     	DB	13,10,"Enter new time: $"
+   309 00000244 65772074696D653A20-
+   310 0000024D 24                 
+   311                                  NEXTLINE:
+   312 0000024E 0D0A24                  	DB	13,10,"$"
+   313                                  COMBUF:
+   314 00000251 80010D                  	DB      128,1,13
+   315 00000254 00                      	DB	0
+   316                                  
+   317                                  

@@ -1,0 +1,13 @@
+     1                                  ; Erdogan Tan - Retro DOS 2.0 True Version Check
+     2                                  ; 20/04/2018
+     3                                  
+     4                                  	[org 100h]
+     5                                  
+     6 00000000 B8FFFF                  	mov	ax, 0FFFFh
+     7 00000003 CD21                    	int	21h
+     8                                  
+     9                                  	; Retro DOS version will be displayed if
+    10                                  	; MSDOS.SYS file is a Retro DOS kernel 	
+    11                                  
+    12                                  terminate:
+    13 00000005 CD20                    	int	20h
