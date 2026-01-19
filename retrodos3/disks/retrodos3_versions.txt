@@ -1,0 +1,103 @@
+Retro DOS 3.? versions by Erdogan Tan
+--------------------------------------
+
+1) Retro DOS v3.0 - Rewritten MSDOS 3.3 kernel by Erdogan Tan in Istanbul
+		    (in 2018 and then 2019 for modifications)
+		    by using MSDOS 2.0, MSDOS 3.3 (BIOS), MSDOS 6.0
+		    source code and disassembled MSDOS 3.3 kernel code.
+		    !!! New (RETRO) kernel is nearly same with original
+			MSDOS 3.3 kernel except minor modifications !!!
+		    Retro DOS source code (assembly language) assembler
+		    is NASM 2.11 (& 2.14) ..
+		    .. but original MSDOS kernel code assembler was MASM.
+	            
+		     Major difference: Retro DOS boot sector code 
+			 loads Retro DOS kernel as single binary/kernel file;
+			 IO.SYS is a part of MSDOS.SYS (bios+sysinit+kernel).
+
+2) Retro DOS v3.1 - Optimized code. Improved stack management (MSDOS 6.0) code. 
+	            Smaller kernel file size. 
+		    Buffers & 16 bit disk sector addresses are same with MSDOS 3.3.
+
+3) Retro DOS v3.2 - 32 bit disk sector addresses (>32 MB disk/partition access)
+	 	    as MSDOS 6.0 disk R&W source code but buffer management
+	            is same with MSDOS 3.3. Other features are as MSDOS 3.3.
+
+Kernel files:
+
+MSDOS.SYS : 
+	Kernel binary (RETRODOS.SYS), Retro DOS v2.0 (& v3.0) boot sector
+	code loads and starts this kernel file (in root directory) at 1000:0000h
+	then Retro DOS kernel moves itself to segment 0070h as IO.SYS (BIOS)
+	and loads SYSINIT code (SYSINIT.BIN inside MSDOS.SYS) at top of memory
+	and SYSINIT loads MSDOS kernel (MSDOS.BIN inside MSDOS.SYS) at the
+	first proper location after BIOS (IO.SYS) code and data. 	 	 
+
+retrodos3.asm : 
+	Main file (equivalent of IO.SYS, includes SYSNIT, MSDOS.SYS binaries) 
+	(Assembler adds included binary files to assembled retrodos.asm code.)
+
+sysinit2.asm :
+	SYSINIT code. It is written as a seperate asm file because of SYSINIT
+	segment is different and SYSINIT code starts from offset 0.	 
+	(It is assembled seperately then SYSINIT.BIN is added to single kernel file.)
+	
+msdos3.asm : 
+	Kernel file (MSDOS.SYS file of MSDOS 3.3).
+	It is written as a seperate asm file because of MSDOS kernel (MSDOS.SYS)
+	segment is different than BIOS (IO.SYS) segment.
+	(It is assembled seperately then MSDOS.BIN is added to single kernel file.)
+
+Assembler usage:
+	nasm sysinit2.asm  -l sysinit2.txt  -o SYSINIT2.BIN -Zerror.txt
+	nasm msdos3.asm    -l msdos3.txt    -o MSDOS3.BIN   -Zerror.txt
+	nasm retrodos3.asm -l retrodos3.txt -o MSDOS.SYS    -Zerror.txt
+
+	Note: SYSINIT2.BIN and MSDOS3.BIN binary files are included by RETRODOS3.ASM
+	      (by using 'INCBIN' directive of NASM)
+	      * SYSINIT2.ASM uses some fixed (equ) addresses in binary output of
+	        RETRODOS3.ASM as shown addresses in RETRODOS3.TXT.
+	      * RETRODOS3.ASM uses some fixed (equ) addresses in binary output of
+		SYSINIT2.ASM as	shown addresses in SYSINIT2.TXT.
+
+Emulator usage:
+	Floppy disk and hard disk image file (with Retro DOS v2.0 & v3.0 boot sector)
+	is mounted as Windows (XP,7,10) drive (floppy or hard disk) and then
+	MSDOS.SYS (Retro DOS v3.? kernel) file is copied onto root directory of 
+	that virtual disk drive. (For example: 'R3.IMG' as 1.44MB floppy disk image.)
+	And then original MSDOS 3.3 or Retro DOS v3.0 COMMAND.COM file is copied onto
+	root directory of same disk image.
+	And required (MSDOS 3.3 compatible) files and programs are copied onto same or
+	another disk image which will be used with emulator program (mounted image
+ 	must be unmounted before using it in emulator).
+
+Emulator programs (for running Retro DOS v3.?) :
+	BOCHS, VIRTUAL BOX, QEMU etc. 
+
+Using Retro DOS kernel on real computer:
+	Retro DOS v3.? will run on a real IBM PC AT compatible computer if it has a
+	standard floppy disk drive or it has a standard ATA (PATA) harddisk 
+	which contains MSDOS partition (FAT12 or FAT16 CHS file system) at (in) 
+	the 1st 32 MB of the disk. But the boot disk must be formatted or boot sector 
+	must be updated by Retro DOS v2.0 (v3.0) format (or boot sector updating) 
+	utility before copying kernel file and COMMAND.COM file onto root directory
+	of the primary (and active) MSDOS partition.
+
+	Retro DOS v3.? floppy disk image (for example: 'R3.IMG' file) must be written onto
+	a real 1.44MB floppy disk (by using 'rawwrite' or similar 'image to disk' program).
+	And the computer must be restarted/rebooted with that floppy disk.
+
+	(To use bootable hard disk is possible but booting by floppy disk is very easy for
+	 testing Retro DOS v3.? kernel.)
+
+	If Retro DOS 3 is started by floppy disk boot..
+	   It recognises primary DOS partitions (1,4 for v3.0/v3.1 and 1,4,6 for v3.2)
+	   Only the boot drive must have Retro DOS boot sector, Retro DOS (MSDOS.SYS)
+	   kernel and MSDOS 3.3 or Retro DOS v3.0 COMMAND.COM command interpreter file.
+	   It will be enough if other disks are any kind of MSDOS 3.3 compatible.
+ 
+Details and relevant files are existing at:
+	http://www.singlix.com/trdos/specs.html
+	http://www.singlix.com/trdos/index.html
+
+28/07/2019 - Erdogan Tan     	 			 		 		 
