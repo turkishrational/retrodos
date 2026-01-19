@@ -1,0 +1,562 @@
+                                                               June, 1985
+
+                       Microsoft Macro Assembler Package
+                                  Version 3.01
+
+
+The Microsoft Macro Assembler Package v 3.01 is a technical update to the Micro-
+soft Macro Assembler Package v 3.00.  Version 3.01 contains updated versions of
+SYMDEB and MAPSYM, the interactive symbolic debug utility for Microsoft langua-
+ges.  The other parts of the package remain unchanged.
+
+The Microsoft Macro Assembler Package v 3.00 was a significantly enhanced ver-
+sion of Microsoft Macro Assembler Package v 1.27.  Version 3.00 contained
+updated versions of the utilities plus additional development utilities for use
+with Macro assembler and High Level Languages.
+
+The following files should be present on the distribution diskette:
+
+    MASM.EXE        LINK.EXE        SYMDEB.EXE      MAPSYM.EXE
+    CREF.EXE        LIB.EXE         MAKE.EXE        README.DOC
+
+Each of these files is discussed below.
+
+
+==( MASM.EXE )=================================================================
+  Microsoft MACRO Assembler  Version 3.00
+  (C)Copyright Microsoft Corp 1981, 1983, 1984
+
+MASM produces relocatable object modules for the 8086, 80186, 80286 family of
+microcomputer systems.  Source language is a superset of the powerful Intel
+ASM 86 assembler language.
+
+Features:
+  1. 186/286/287 microprocessor support
+  2. Case sensitivity for symbols may be specified
+
+
+Differences between this version and the description in the manual:
+
+    - without using the /R or /E switches, the assembler defaults to 
+	 the Microsoft MS format for reals
+		ex:    DD   real
+ 
+    - If you do not place    LOCAL   immediately after    MACRO,  you will see
+      the diagnostic message "Extra Characters At End Of Line"
+
+    - The recommended method of doing:
+           DW  5   dup (offset sym)
+      is:
+       REPT  5
+       DW  offset  sym
+       ENDM
+
+     - The Macro Assembler does not include an overlay manager
+
+==( LINK.EXE )=================================================================
+  Microsoft 8086 Object Linker
+  Version 3.00 (C) Copyright Microsoft Corp 1983, 1984, 1985
+
+LINK combines separate relocatable object modules and library routines into a
+single program. 
+
+Features:
+  1. The user can specify from 1 to 1024 segments
+  2. Simple overlay manager that can be used in conjunction with Microsoft
+	C, FORTRAN and Pascal only.
+
+
+==( SYMDEB.EXE )===============================================================
+  Microsoft Symbolic Debug Utility
+  Version 3.01
+  (C)Copyright Microsoft Corp 1984, 1985
+
+SYMDEB symbolic debugging utility provides a controlled testing environment for
+binary and executable object files.
+
+Features:
+  1. NEW Interactive Symbolic Debug Utility for Microsoft Languages (Macro
+       Assembler and High Level) which replaces the DEBUG utility.
+  2. Source line display may be used with Fortran, Pascal and C.
+  3. Breakpoints may be set on line numbers and symbols.
+  4. Single stepping may be used to follow program execution.
+  5. Help command has been added to display the command syntax.
+
+
+New Switches
+----------------------------------------------------------------------
+/K - Enables Scroll Lock-Break breakpoint (see below).
+
+/N - Enables NMI breakpointing (automatic on IBM machines).
+
+/S - Enables Screen Swapping (see below).
+
+/" - Symdeb command on MS-DOS command line.  The line following the quote up to
+     the (required) end quote will be passed to Symdeb for execution as the
+     first command.  Example:
+
+     A>symdeb /"s+;g _main;v" cprog.sym cprog.exe
+
+
+Enhanced I/O Redirection
+----------------------------------------------------------------------
+You can now redirect SYMDEB input and output to any MS-DOS device or file, by
+using the "<", ">", and "=" commands.  You can also redirect the input and 
+output of the program you are debugging, by using the commands "{" (equivalent
+to <), "}" (equivalent to >), and "~" (equivalent to =).  The syntax of these
+commands is as follows:
+
+    {redirection command} device
+
+where file is any MS-DOS file name or device, such as CON, COM1, PRN, FOO.DAT,
+etc.
+
+If input has been re-directed from a file, be sure to use "<CON" or "Q" as the
+last command; otherwise your system will hang, waiting for redirected commands.
+
+You can call in a sequence of commands at any time - even automatically at a
+breakpoint - to speed debugging and avoid repetitive typing.  You can use the
+SYMDEB shell escape to build command sequences without ever leaving SYMDEB.
+
+
+Screen Swapping
+----------------------------------------------------------------------
+This feature works only on IBM and some strict compatible computers.  Also,
+you cannot use this feature with graphic modes that use more than 16K of 
+memory.
+
+When you specify the new /S switch on the SYMDEB command line, the debugger is
+displayed on its own screen, and doesn't interfere with the user screen (the
+user screen displays what the program being debugged would display).  For
+example, if you entered the following:
+
+        symdeb /S demo.sym demo.exe
+
+you would see only a debugging screen.
+
+To display the user screen, enter a backslash (\) and hit return.  To leave the
+user screen and return to the debugging screen, press any key.  If you enter a
+backslash and didn't specify the /S switch, SYMDEB returns an error.  Note that
+using the /S switch uses 32K more memory.
+
+
+SCROLL LOCK-BREAK Interactive Breakpoint
+----------------------------------------------------------------------
+When you specify the new /K switch on the SYMDEB command line, you can use the
+SCROLL LOCK-BREAK key as an interactive breakpoint.  For example, if you enter
+the following:
+
+        symdeb /K file.exe
+
+you can press the SCROLL LOCK-BREAK key at any time to stop executing your
+program.  Note that if your program has turned off interrupts, you cannot use
+interactive breakpoints.
+
+This interactive breakpoint can also be used from the SYS REQ key if you are
+using an IBM PC AT.  This feature is always enabled if you are using an IBM
+PC AT (independent of the /K switch).
+
+/N - Enables true hardware NMI breakpoints, if the NMI Hardware is installed.
+     SYMDEB automatically supports hardware NMI's on IBM machines, if the
+     machine has the NMI hardware installed.  If you install NMI hardware on
+     a non-IBM machine, you need to activate the /N switch.
+
+Bigger Symbol Table
+----------------------------------------------------------------------
+SYMDEB now allows about 5,000 symbols per segment, with the number of segments
+limited to the memory available.  The model was changed to allow bigger symbol
+tables, so symbol files made with earlier versions of MAPSYM do not work with
+this version of SYMDEB.  If you try to use an old symbol file, SYMDEB returns an
+error.  You can use the new version of MAPSYM to create a new symbol file.
+
+
+186/286 Opcodes
+----------------------------------------------------------------------
+SYMDEB now recognizes all 186/286 opcodes (except for protected-code mnemonics).
+This can be useful when you are debugging C programs, because if you specify the
+/G1 or /G2 switches while compiling, the Microsoft C compiler can output 186 or
+286 instructions.
+
+
+Breakpoint Set Command Expanded
+----------------------------------------------------------------------
+The syntax of the Breakpoint Set command is now as follows:
+
+        BP[<n>] <address> [<passcount>] ["<commands>"]
+
+If you specify a command in the optional "commands" clause, that command is
+executed each time the breakpoint is taken.  For example, if you have forgotten
+to increment the DI register, you can set a breakpoint as follows:
+
+        BP 1234:5678 "rdi di+1;g"
+
+When the breakpoint is taken, the contents of the DI register are incremented
+and the program continues.  In this case, neither the "R" command nor the "G"
+command produce any output, so the program appears to execute normally albeit
+much slower, since Symdeb is executing the breakpoint commands.
+
+Note that SYMDEB normally displays the registers and/or current source line
+(depending on whether S-, S&, or S+ is set) after taking a breakpoint.  If,
+however, you have specified a command, SYMDEB does not display the registers
+and/or current source line.
+
+
+Comment Command
+----------------------------------------------------------------------
+The Comment command is simply an asterisk (*) followed by text. SYMDEB echoes
+the text of the comment to the standard output.  This command is useful with
+the redirection commands to save or print commented copies of a SYMDEB session.
+
+
+Dump Command
+----------------------------------------------------------------------
+The syntax of the new Dump command is as follows:
+
+        D[<type>] [<address>]
+
+The allowable values of <type> are listed below:
+
+        <type>        Type of Value
+        ------        -------------     
+          A           ASCII
+          B           bytes (startup default)
+          W           words
+          D           doublewords
+          S           short reals
+          L           long reals
+          T           ten-byte reals
+
+
+Enter Command
+----------------------------------------------------------------------
+The syntax of the new Enter command is as follows:
+
+        E[<type>] <address> [<list>]
+
+The Enter command enters one or more values into memory at the specified
+<address>.  The optional <type> field is a single letter that specifies the
+type of the values to be entered.  The optional <list> gives the value to be
+entered.  Only one value can be entered at a time, except when entering bytes.
+When entering bytes, the optional <list> can consist of a series of byte values.
+If the type field is omitted, the default is the last type used in an Enter
+command (startup type is Byte).
+
+If an error occurs during entry, the value is not changed.
+
+If you do not supply a <list>, SYMDEB prompts for a new value at <address> by
+displaying the address and its current value followed by a period (.).  You can
+then replace the value by typing the new value after the current value.  The
+command ignores extra trailing digits or other characters.  You can skip to the
+next value by pressing the SPACE bar, or return to the preceding value by typing
+a hyphen (-).
+
+You can exit the Enter command at any time by pressing the RETURN key.
+
+For example, if you enter the following:
+
+        EB CS:100
+
+SYMDEB displays a prompt like this:
+
+        04BA:0100  AE._
+
+You can then change the value AE to a new value by typing the new value, or skip
+to the next byte value by pressing the SPACE bar, or return to the previous
+value by typing a hyphen, or leave Enter by pressing RETURN.
+
+Here are some more examples:
+
+1.      EB CS:100 1 2B E5
+2.      EW 11AC:100 8018
+3.      ED pi 80187076
+
+Example 1 replaces the three bytes at CS:100, CS:101, and CS:102 with 1, 2B,
+and E5, respectively.
+
+Example 2 replaces the word at 11AC:100 with 8018.
+
+Example 3 replaces the doubleword at the symbolic address "pi" with 80187076.
+
+
+Source Code Single Step
+----------------------------------------------------------------------
+The "P" and "T" commands have been updated so that in source-only mode (S+) they
+operate on source lines.  P steps over function calls, T executes through 
+function calls.
+
+You should turn off optimization when compiling programs that you want to debug
+with SYMDEB.  When the Microsoft C compiler optimizes a program, it can delete
+sections of redundant code, reorder expressions, or move code.  After your code
+has been optimized, the code corresponding to one statement in your source file
+may not be what you expect, because code may have been deleted, moved, changed,
+or added.  If you are having trouble with the P and T commands, make sure that
+you compiled the program using the /Od switch to turn off optimization.
+
+
+Shell Escape Command
+----------------------------------------------------------------------
+The new Shell Escape command allows you to execute COMMAND.COM and MS-DOS
+commands from within SYMDEB.  The syntax is as follows:
+
+        ! [<MS-DOS-command>]
+
+
+If you enter "!" with no arguments, you execute COMMAND.COM with no arguments,
+saving the current debugging context.  After you are finished executing MS-DOS
+commands, enter the MS-DOS command "exit" and you'll be returned to SYMDEB where
+you left off.
+
+If you specify an MS-DOS command, the MS-DOS command is executed and control is
+then returned to SYMDEB.
+
+You cannot use semicolons (;) to connect statements after the Shell Escape
+command.  All text after the Shell Escape command is passed to COMMAND.COM as
+an MS-DOS command line.
+
+You can only use the Shell Escape command if one of the following conditions is
+met:
+
+1 - You entered SYMDEB without any filenames.
+2 - You are debugging a Microsoft C (v 3.00 or later), Pascal (v 3.30 or later), 
+    or FORTRAN (v 3.30 or later) program, and have executed 
+    the program up to _main.
+3 - The program you are debugging has done a "Modify Allocated Memory"
+    MS-DOS call on itself, to free the rest of memory.
+
+If none of these conditions are met, SYMDEB will return the error "Not enough
+memory!".
+
+SYMDEB uses the COMSPEC environment variable to locate a copy of COMMAND.COM.
+
+
+Source Line Command
+----------------------------------------------------------------------
+Entering a single period (.) displays the current source line.  This command is
+not affected by the current source mode.
+
+
+Stack Trace Command
+----------------------------------------------------------------------
+The new Stack Trace command lets you display the current procedure nest when
+debugging Microsoft C programs.  It will also work with other C programs, if
+they use the same calling conventions as Microsoft C.  The syntax for the Stack
+Trace command is as follows:
+
+        K [<numargs>]
+
+When you specify the Stack Trace command, SYMDEB displays a list of
+the procedures that called the current procedure, plus a list of their
+arguments.  For each procedure, SYMDEB also lists the file and line
+number of the statement that called that procedure.  If you specify
+the "numargs" parameter, SYMDEB displays the specified number of
+arguments for those procedures for which Symdeb cannot determine the number
+of arguments (in this case, the argument list will be displayed with a
+question mark; i.e., IGROUP:_main(?)).
+
+Note that SYMDEB does not know the types of arguments, so it displays all
+arguments as hexadecimal words.
+
+For example, suppose you have executed to a breakpoint, and when you enter "K"
+you see the following:
+
+        IGROUP:_max(0002,0003) from .sample.c:7
+        IGROUP:_main(?)
+
+This listing tells you that the current procedure, "max", has two arguments,
+and their values are 2 and 3.  Max was called from line 7 of the source file
+sample.c, in the procedure "main", and main has an undetermined number of
+arguments.  A "K" command with numargs set would display arguments for _main
+in this case.  For example, the "K 3" command would display:
+
+        IGROUP:_max(0002,0003) from .sample.c:7
+        IGROUP:_main(0002,2F62,2EBA)
+
+
+Symbol Set Command
+----------------------------------------------------------------------
+The new Symbol Set command sets a given symbol to a specified value.  The
+syntax is as follows:
+
+        Z <symbol> <value>
+
+For example, the following command sets the symbol "i" to the offset 100:
+
+        Z i 100
+
+
+Unassemble Command Changed
+----------------------------------------------------------------------
+The way this command operates in source-only (S+) mode has been changed.
+In source-only mode, the Unassemble command now displays both source lines
+and disassembled instructions, just as in mixed mode (S&).
+
+
+View Command
+----------------------------------------------------------------------
+The new View command displays source lines for a given address, and operates
+regardless of the current S mode (S-, S&, or S+).  The syntax is as follows:
+
+        V .[<address>]
+
+For example, the following view commands have the meanings listed:
+
+        V .8                  view source line eight of current module
+        V .+5                 view fifth line beyond the current line
+        V .-7                 view seventh line before the current line
+        V .SIEVE:33           view thirty-third line of module SIEVE
+        V ._main              view beginning line of _main
+        V ._main+10           view tenth line beyond the beginning of _main
+
+When using the form "V .modulename:address" to view a file, or any command
+that uses the    line #    syntax, please note that the  "filename"
+is actually the name of the module produced by the linker (in contrast
+to page 4-13 of the manual).  For example, let us assume that SYMDEB
+prompts as follows:
+
+        Source file name for MOD1 (cr for none)?
+
+and the user responds with TEST.PAS.  In this case, even though TEST.PAS is
+the source file name, MOD1 is the name of the module produced by the linker.
+So, to view the 12th line of the source file (TEST.PAS), the user should type
+as follows:
+
+        V .MOD1:12
+
+
+Help Command
+----------------------------------------------------------------------
+The Help command displays a screenful of information, describing the syntax of
+each of the Symdeb commands and the expression operators.
+
+
+Register Command
+----------------------------------------------------------------------
+The Register command has been enhanced so an expression can be added as the
+register replacement value on the same line.  The new syntax of the Register
+command is as follows:
+
+        R [<reg> [ [=] <expression> ]]
+
+Examples:
+
+        R
+        RBX
+        RAX = (BP + SI) / 2
+        RSI _inputbuffer+1
+
+This makes the Register command very useful in a breakpoint command.
+
+
+Other Information not in manual
+----------------------------------------------------------------------
+    - WO & BY in expressions assume DS as segment
+    - BP & SP in expressions assume SS as segment
+    - Unassemble and Assemble commands assume CS
+    - Dump and Enter commands assume DS
+    - hex numbers have precedence over symbols (symbol FAA can't be used)
+    - DOS Terminate (function 4C) call will kill Symdeb if hand-assembled
+        without doing exec first (Symdeb execs .EXE file)
+    - If you do not have an 8087, do not use 8087 instructions.  "WAIT", for
+        example, will cause your system to hang.
+    - If you are debugging Microsoft Pascal or FORTRAN versions 3.20 or 
+        earlier or IBM Personal Computer FORTRAN or Pascal versions 2.00 or
+        earlier, you may want to give the following command at your first
+        breakpoint in your code:
+           Z  DGROUP  DS
+        This changes the segment base for DGROUP to be the current DS.  This
+        will allow symbolic variable names to be used or displayed for public
+        variables in DGROUP.
+     - When using SYMDEB with Microsoft FORTRAN, Pascal or C, please note 
+        that if you use interrupts in the range of   32 to  3C  then your
+	   screen handling may be different than expected.  
+
+
+==( MAPSYM.EXE )===============================================================
+  Microsoft Symbol File Utility  Version 3.10
+  (C)Copyright Microsoft Corp 1984, 1985
+
+MAPSYM creates a symbol table map for use by SYMDEB.
+
+Features:
+  1. Bigger symbol table allows approximately 5,000 symbols per segment.
+       The number of segments is limited only by available user memory.
+
+
+==( CREF.EXE )=================================================================
+  Microsoft Cross Reference Utility  Version 3.00
+  (C)Copyright Microsoft Corp 1981, 1983, 1984
+
+CREF creates a cross reference listing for all symbol references within the
+assembly language source program.
+
+
+==( LIB.EXE )==================================================================
+  Microsoft Library Manager
+  Version 3.00 (C)Copyright Microsoft Corp 1983, 1984, 1985
+
+LIB lets you create and maintain your own libraries of useful functions.  You
+can customize the runtime support available to your programs.
+
+Features:
+  1. The pagesize may be set.  The default is 16 bytes.  This allows the amount
+       of wasted spaced inside libraries to be reduced.
+  2. A name other than the original may be specified for a modified library.
+  3. Over 3000 public symbols may be used by the user.
+  4. The process to replace modules has been simplified to a 1 step process.
+
+
+==( MAKE.EXE )=================================================================
+  Microsoft Program Maintenance Utility
+  (C)Copyright Microsoft Corp
+
+MAKE is an automated program development tool.  It rebuilds target files based
+on source file dependencies, by sensing which files are out of date and
+invoking appropriate user-specified command lines.
+
+
+Differences between this version and the description in the manual:
+
+    - You can execute DOS internal commands by using  
+	  COMMAND/C   internal command
+		ex:  COMMAND/C  DIR 
+
+    - You need to set up the MAKE file so that the TARGET files and DEPENDENT
+      files are on the same drive.  That drive should be the default drive.
+
+    - If a warning or an error message should result from one of the programs
+      executing during MAKE,  MAKE will halt.  You should examine the message
+      and if you decide you need to continue, execute the next in the process
+      yourself and then continue with MAKE.
+
+    - The maximum size of a MAKE script is approximately 160 test process 
+	  pairs with 1 blank line in between them.
+
+===============================================================================
+
+SYMDEB & MAPSYM Capacities:
+
+SYMDEB v 3.00  - 1500 symbols maximum 
+                 3000 line numbers maximum
+
+MAPSYM v 3.00  - 150 segments maximum
+                 3000 line numbers
+                 1500 symbols maximum 
+
+SYMDEB v 3.01  - 5,000 symbols/segment (average 10 characters)
+                 5,000 line numbers/segment 
+
+MAPSYM v 3.01  - 1024 segments
+                 5,000 symbols/segment (average 10 characters)
+                 5,000 line numbers/segment
+
+The above numbers are approximations
+---------------------------------------------------------------------------
+A word of caution:  you can create a file with MAPSYM which is too large
+   to be loaded by SYMDEB .
+
+SYMDEB v 3.00 has to be used with MAPSYM v 3.00
+SYMDEB v 3.01 has to be used with MAPSYM v 3.01
+
+===============================================================================
+
+
