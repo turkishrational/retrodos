@@ -1,9 +1,0 @@
-; Erdogan Tan - 03/08/2019
-
-R3.IMG : 1.44 MB (3.5") bootable floppy disk image (A:).
-	It has Retro DOS v2 (& v3 compatible) boot sector
-	which loads Retro DOS v3.2 kernel 'MSDOS.SYS'.
-
-	Retro DOS v3.2 is like as (almost same with) MSDOS 3.3
-	(because, origin of Retro DOS v3 is already MSDOS v3.3 kernel)
-	but (also) it is able to use >32MB DOS (type 6, FAT 16) partitions.  
