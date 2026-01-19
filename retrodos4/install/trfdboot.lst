@@ -1,0 +1,474 @@
+     1                                  ; ****************************************************************************
+     2                                  ; TRDOS386.ASM (TRDOS 386 Kernel) - v2.0.7 - trfdboot.s
+     3                                  ; ----------------------------------------------------------------------------
+     4                                  ; Last Update: 30/10/2023  (Previous: 06/09/2020)
+     5                                  ; ----------------------------------------------------------------------------
+     6                                  ; Beginning: 25/01/2016
+     7                                  ; ----------------------------------------------------------------------------
+     8                                  ; Assembler: NASM version 2.15 (trfdboot.s)
+     9                                  ; ----------------------------------------------------------------------------
+    10                                  ; Turkish Rational DOS
+    11                                  ; Operating System Project v2.0 by ERDOGAN TAN (Beginning: 04/01/2016)
+    12                                  ;
+    13                                  ; Derived from TRDOS Operating System v1.0 (8086) source code by Erdogan Tan
+    14                                  ; TRFDBOOT.ASM (31/07/2011)
+    15                                  ; ****************************************************************************
+    16                                  
+    17                                  ; TRFDBOOT.ASM
+    18                                  ; Turkish Rational DOS
+    19                                  ; Disk Operation System v1.0 Project
+    20                                  ; 1.44 MB Floppy Disk Boot Code
+    21                                  ;
+    22                                  ; Copyright (C) 1998-2011  Erdogan TAN  [ Last Modification: 31/07/2011 ]
+    23                                  ; 12/06/2011 -> Boot sector bugfix (dl = bsDriveNumber <-> DS=CS)
+    24                                  ; 27/09/2009 -> 'Operation System' has been changed to 'Operating System'
+    25                                  ; 2005 -> trfdboot utility
+    26                                  ; 1998 -> beginning year of trdos project
+    27                                  ;
+    28                                  ; ****************************************************************************
+    29                                  ; assembling: nasm trdfboot.s -l trdfdboot.lst -o TRDFDBOOT.COM -Z error.txt
+    30                                  
+    31                                  ; previous version: trfdboot.s v4.1 -- 12/02/2018
+    32                                  
+    33                                  ; ----------------------------------------------------------------------------
+    34                                  ; equations
+    35                                  ; ----------------------------------------------------------------------------
+    36                                  
+    37                                  ; boot sector parameters
+    38                                  
+    39                                  ;bsDriveNumber	equ TRDOS_FAT12_fd_bs + 24h
+    40                                  ;bsVolumeID	equ TRDOS_FAT12_fd_bs + 27h
+    41                                  
+    42                                  bsOemName	equ 3          
+    43                                  bsBytesPerSec	equ 11  ; 512 (word)
+    44                                  bsSecPerClust	equ 13
+    45                                  bsResSectors	equ 14
+    46                                  bsFATs		equ 16
+    47                                  bsRootDirEnts	equ 17
+    48                                  bsSectors	equ 19
+    49                                  bsMedia		equ 21
+    50                                  bsFATsecs	equ 22
+    51                                  bsSecPerTrack	equ 24 ; 18 (word)
+    52                                  bsHeads		equ 26 ; 2 (word)
+    53                                  bsHidden1	equ 28
+    54                                  bsHidden2	equ 30
+    55                                  bsHugeSectors	equ 32
+    56                                  bsDriveNumber	equ 36
+    57                                  bsReserved1	equ 37
+    58                                  bsBpbSignature	equ 38 ; 29h (byte)                 
+    59                                  bsVolumeID	equ 39
+    60                                  bsVolumeLabel	equ 43
+    61                                  bsFileSysType	equ 54 ; 'FAT12   '  (8 bytes)         
+    62                                  bsReserved2	equ 62
+    63                                  ; TRDOS 386 v2.0 2018 Extensions
+    64                                  bsDataStart	equ 64
+    65                                  bsRootDirStart	equ 66
+    66                                  bsRootDirSects	equ 68
+    67                                  
+    68                                  bsDirEntsPerSec equ 70    
+    69                                  
+    70                                  ; ----------------------------------------------------------------------------
+    71                                  ; code
+    72                                  ; ----------------------------------------------------------------------------
+    73                                  
+    74                                  [BITS 16]
+    75                                  [ORG 100h]
+    76                                  
+    77 00000000 FA                      	cli
+    78 00000001 FC                      	cld
+    79 00000002 0E                      	push	cs
+    80 00000003 17                      	pop	ss
+    81 00000004 BCFEFF                  	mov	sp, 0FFFEh
+    82 00000007 FB                      	sti
+    83                                  
+    84                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    85                                  ; see if drive specified
+    86                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    87                                  
+    88 00000008 BE8000                  	mov	si, 80h			; PSP command tail
+    89 0000000B 8A0C                    	mov	cl, [si]
+    90 0000000D 08C9                    	or	cl, cl                               
+    91 0000000F 7457                    	jz	short T_05		; jump if zero
+    92                                  
+    93                                  T_01:
+    94 00000011 46                      	inc	si
+    95                                  
+    96 00000012 8A04                    	mov	al, [si]
+    97 00000014 3C20                    	cmp	al, ' '			; is it SPACE ?
+    98 00000016 7506                    	jne	short T_02
+    99                                  
+   100 00000018 FEC9                    	dec	cl                                  
+   101 0000001A 75F5                    	jnz	short T_01                  
+   102 0000001C EB4A                    	jmp	short T_05
+   103                                  
+   104                                  T_02:
+   105                                  	;cmp	al, '0'			; 0 - 9
+   106                                  	;jb	short T_05
+   107                                  	;cmp	al, '9'			; allow number for drive
+   108                                  	;jna	short T_04                    
+   109                                  
+   110 0000001E 46                      	inc	si
+   111 0000001F 803C3A                  	cmp	byte [si], ':'
+   112 00000022 741B                    	je	short T_23
+   113 00000024 803C20                  	cmp	byte [si], ' '
+   114 00000027 7616                    	jna	short T_23
+   115                                  
+   116 00000029 3C66                    	cmp	al, 'f'
+   117 0000002B 753B                    	jne	short T_05  	
+   118 0000002D 803C64                  	cmp	byte [si], 'd'
+   119 00000030 7536                    	jne	short T_05
+   120 00000032 46                      	inc	si
+   121 00000033 8A04                    	mov	al, [si]
+   122 00000035 3C30                    	cmp	al, '0'
+   123 00000037 7429                    	je	short T_24
+   124                                  	;jb	short T_05
+   125 00000039 3C31                    	cmp	al, '1'
+   126 0000003B 7425                    	je	short T_24
+   127 0000003D EB29                    	jmp	short T_05
+   128                                  
+   129                                  T_23:
+   130 0000003F 3C41                    	cmp	al, 'A'
+   131 00000041 7225                    	jb	short T_05
+   132 00000043 7414                    	je	short T_03
+   133                                  	;cmp	al, 'Z'			; A - Z
+   134                                  	;jna	short T_03                    
+   135 00000045 3C42                    	cmp	al, 'B'
+   136 00000047 7610                    	jna	short T_03
+   137 00000049 3C5A                    	cmp	al, 'Z'
+   138 0000004B 761B                    	jna	short T_05
+   139                                  T_18:	
+   140 0000004D 3C61                    	cmp	al, 'a'			; a - z 
+   141 0000004F 7217                    	jb	short T_05                  
+   142 00000051 7404                    	je	short T_19
+   143                                  	;cmp	al, 'z'                           
+   144                                  	;ja	short T_05     
+   145 00000053 3C62                    	cmp	al, 'b'
+   146 00000055 7711                    	ja	short T_05
+   147                                  T_19:
+   148 00000057 2C20                    	sub	al, 'a'-'A'		; to upper case
+   149                                  
+   150                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   151                                  ; get drive code
+   152                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   153                                  
+   154                                  T_03:
+   155 00000059 A2[AC02]                	mov	[TrDOS_Drive], al
+   156 0000005C EB13                    	jmp	short T_09
+   157                                  
+   158                                  T_04:
+   159 0000005E 0411                    	add	al, 'A'-'0'		; 0 based -> A based
+   160 00000060 EBF7                    	jmp	short T_03 
+   161                                  
+   162                                  T_24:
+   163 00000062 46                      	inc	si
+   164 00000063 803C20                  	cmp	byte [si], ' '
+   165 00000066 76F6                    	jna	short T_04		
+   166                                  
+   167                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   168                                  ; Write message
+   169                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   170                                  
+   171                                  T_05:
+   172 00000068 BE[9001]                	mov	si, TrDOS_Welcome
+   173 0000006B E81301                  	call	print_msg
+   174                                  	;cmp	cl, 0
+   175                                          ;ja	short T_12
+   176 0000006E E9CF00                  	jmp	T_12
+   177                                  
+   178                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   179                                  ; get drive parameters
+   180                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   181                                  
+   182                                  T_09:
+   183 00000071 B408                    	mov	ah, 08h
+   184 00000073 8A16[AC02]              	mov	dl, [TrDOS_Drive]	; drive
+   185 00000077 80EA41                  	sub	dl, 'A'			; make it zero based 
+   186 0000007A CD13                    	int	13h			; return disk parameters
+   187                                  
+   188 0000007C 0E                      	push	cs
+   189 0000007D 07                      	pop	es			; restore es
+   190                                  
+   191 0000007E 80FB04                  	cmp	bl, 4			; Drive Type
+   192                                  	;jne	short T_14
+   193 00000081 7525                    	jne	T_25
+   194                                  
+   195                                  	; check for valid FAT12 BS
+   196 00000083 C606[5605]06            	mov	byte [RetryCount], 6
+   197                                  
+   198                                  	;mov	ax, 0201h		; read disk
+   199 00000088 BB[5805]                	mov	bx, bootsector		; location of boot code
+   200                                  
+   201 0000008B B90100                  	mov	cx, 1			; cylinder = 0
+   202                                  					; sector = 1
+   203 0000008E B600                    	mov	dh, 0			; head = 0
+   204 00000090 8A16[AC02]              	mov	dl, [TrDOS_Drive]	; drive 
+   205 00000094 80EA41                  	sub	dl, 'A'			; make it zero based
+   206 00000097 8816[7A03]              	mov	[TRDOS_FAT12_fd_bs+bsDriveNumber], dl
+   207                                  T_21:
+   208 0000009B B80102                  	mov	ax, 0201h
+   209 0000009E CD13                    	int	13h
+   210                                  	;jc	short T_14	
+   211 000000A0 730C                    	jnc	short T_06		; read boot sector, OK
+   212                                  
+   213 000000A2 FE0E[5605]              	dec	byte [RetryCount]
+   214 000000A6 75F3                    	jnz	short T_21
+   215                                  T_25:
+   216 000000A8 E8C900                  	call	T_20			; write error message
+   217 000000AB E99200                  	jmp	T_12 			; terminate
+   218                                  
+   219                                  T_06:
+   220 000000AE 813E[6305]0002          	cmp	word [bootsector+bsBytesPerSec], 512
+   221 000000B4 7538                    	jne	short T_22
+   222 000000B6 803E[7E05]29            	cmp	byte [bootsector+bsBpbSignature], 29h
+   223 000000BB 7531                    	jne	short T_22
+   224 000000BD 66813E[8E05]464154-     	cmp	dword [bootsector+bsFileSysType], 'FAT1'
+   224 000000C5 31                 
+   225 000000C6 7526                    	jne	short T_22
+   226 000000C8 803E[9205]32            	cmp	byte [bootsector+bsFileSysType+4], '2'
+   227 000000CD 751F                    	jne	short T_22
+   228                                  	; 30/10/2023
+   229 000000CF 803E[6B05]40            	cmp	byte [bootsector+bsSectors], 2880
+   229          ******************       warning: byte data exceeds bounds [-w+number-overflow]
+   230 000000D4 7518                    	jne	short T_22
+   231                                  
+   232 000000D6 BE[8102]                	mov	si, TrDOS_PressKeyWhenReady
+   233 000000D9 E8A500                  	call	print_msg
+   234                                  
+   235                                  T_07:
+   236 000000DC 31C0                    	xor	ax, ax
+   237 000000DE CD16                    	int	16h			; wait for keyboard command
+   238 000000E0 3C0D                    	cmp	al, 'M'-40h		; Enter (OK) key
+   239 000000E2 7412                    	je	short T_08		; write
+   240 000000E4 3C03                    	cmp	al, 'C'-40h
+   241 000000E6 7458                    	je	short T_12		; no write (exit)
+   242 000000E8 3C1B                    	cmp	al, 27
+   243 000000EA 7454                    	je	short T_12
+   244 000000EC EBEE                    	jmp	short T_07
+   245                                  
+   246                                  T_22:
+   247 000000EE BE[2003]                	mov	si, TrDOS_invalid_bootsector
+   248 000000F1 E88D00                  	call	print_msg
+   249 000000F4 EB4A                    	jmp	short T_12
+   250                                  
+   251                                  T_08:
+   252 000000F6 BE[EA02]                	mov	si, TrDOS_CRLF
+   253 000000F9 E88500                  	call	print_msg
+   254                                  
+   255 000000FC C606[5605]04            	mov	byte [RetryCount], 4
+   256                                  
+   257                                  T_10:
+   258 00000101 31C0                    	xor	ax, ax
+   259 00000103 CD1A                    	int	1Ah			; get time of day
+   260                                  
+   261 00000105 BE[7D03]                	mov	si, TRDOS_FAT12_fd_bs+bsVolumeID 
+   262                                  
+   263 00000108 8914                    	mov	[si], dx
+   264 0000010A 894C02                  	mov	[si+2], cx		; set unique volume ID
+   265                                  	
+   266 0000010D B402                    	mov	ah, 02h			; Return Current Time
+   267 0000010F CD1A                    	int	1Ah
+   268 00000111 86E9                    	xchg	ch, cl
+   269 00000113 86F2                    	xchg	dh, dl
+   270                                  
+   271 00000115 01D1                    	add	cx, dx  
+   272 00000117 014C02                  	add	[si+2], cx
+   273                                  		
+   274 0000011A B404                    	mov	ah, 04h			; Return Current Date
+   275 0000011C CD1A                    	int	1Ah
+   276 0000011E 86E9                    	xchg	ch, cl
+   277 00000120 86F2                    	xchg	dh, dl
+   278                                  	
+   279 00000122 01D1                    	add	cx, dx  
+   280 00000124 014C02                  	add	[si+2], cx
+   281                                                
+   282 00000127 B80103                  	mov	ax, 0301h		; write to disk
+   283 0000012A BB[5603]                	mov	bx, TRDOS_FAT12_fd_bs	; location of boot code
+   284                                  
+   285 0000012D B90100                  	mov	cx, 1			; cylinder = 0
+   286                                  					; sector = 1
+   287 00000130 B600                    	mov	dh, 0			; head = 0
+   288                                  	;mov	dl, [TrDOS_Drive]	; drive 
+   289                                  	;sub	dl, 'A'			; make it zero based
+   290                                  	;mov	[bsDriveNumber], dl
+   291 00000132 8A16[7A03]              	mov	dl, [TRDOS_FAT12_fd_bs+bsDriveNumber]
+   292 00000136 CD13                    	int	13h
+   293 00000138 722F                    	jc	short T_14		; if everything is ok -->
+   294                                  
+   295                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   296                                  ; success. try again ?
+   297                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   298                                  
+   299                                  T_11:
+   300 0000013A BE[B002]                	mov	si, TrDOS_disk_WrittenSuccesfully
+   301 0000013D E84100                  	call	print_msg
+   302                                  
+   303                                  T_12:
+   304 00000140 BE[EA02]                	mov	si, TrDOS_CRLF
+   305 00000143 E83B00                  	call	print_msg
+   306 00000146 B8004C                  	mov	ax, 4C00h		; terminate
+   307 00000149 CD21                    	int	21h
+   308                                  
+   309                                  T_13:
+   310 0000014B 31C0                    	xor	ax, ax
+   311 0000014D CD16                    	int	16h			; wait for keyboard command
+   312 0000014F 3C79                    	cmp	al, 'y'
+   313 00000151 7426                    	je	short T_15		; retry
+   314 00000153 3C59                    	cmp	al, 'Y'
+   315 00000155 7422                    	je	short T_15
+   316 00000157 3C6E                    	cmp	al, 'n'
+   317 00000159 74E5                    	je	short T_12 		; exit
+   318 0000015B 3C4E                    	cmp	al, 'N'
+   319 0000015D 74E1                    	je	short T_12
+   320 0000015F 3C03                    	cmp	al, 'C'-40h
+   321 00000161 74DD                    	je	short T_12                   
+   322 00000163 3C1B                    	cmp	al, 27
+   323 00000165 74D9                    	je	short T_12
+   324 00000167 EBE2                    	jmp	short T_13
+   325                                  
+   326                                  T_14:
+   327 00000169 FE0E[5605]              	dec	byte [RetryCount]
+   328 0000016D 7592                    	jnz	short T_10
+   329 0000016F E80200                  	call	T_20
+   330 00000172 EBD7                    	jmp	short T_13
+   331                                  T_20:
+   332 00000174 BE[ED02]                	mov	si, TrDOS_disk_NotReadyOrError
+   333                                  	;call	print_msg
+   334                                  	;jmp	short T_13
+   335 00000177 EB08                    	jmp	print_msg
+   336                                  
+   337                                  T_15:
+   338 00000179 BE[EA02]                	mov	si, TrDOS_CRLF
+   339 0000017C E80200                  	call	print_msg
+   340 0000017F EB80                    	jmp	T_10
+   341                                  
+   342                                  print_msg:
+   343                                  T_16:
+   344 00000181 AC                      	lodsb				; Load byte at DS:SI to AL
+   345 00000182 20C0                    	and	al, al            
+   346 00000184 7409                    	jz	short T_17       
+   347 00000186 B40E                    	mov	ah, 0Eh			
+   348 00000188 BB0700                  	mov	bx, 07h             
+   349 0000018B CD10                    	int	10h			; BIOS Service func ( ah ) = 0Eh
+   350                                  					; Write char as TTY
+   351                                  					; AL-char BH-page BL-color
+   352 0000018D EBF2                    	jmp     short T_16          
+   353                                  
+   354                                  T_17:
+   355 0000018F C3                      	retn
+   356                                  
+   357                                  ; ----------------------------------------------------------------------------
+   358                                  ; initialized data
+   359                                  ; ----------------------------------------------------------------------------
+   360                                  
+   361                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   362                                  ;  messages
+   363                                  ;- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+   364                                  
+   365                                  TrDOS_Welcome:
+   366 00000190 0D0A                    	db 0Dh, 0Ah
+   367 00000192 54522D444F5320466C-     	db 'TR-DOS Floppy Disk Boot Sector Update Utility v5.0'
+   367 0000019B 6F707079204469736B-
+   367 000001A4 20426F6F7420536563-
+   367 000001AD 746F72205570646174-
+   367 000001B6 65205574696C697479-
+   367 000001BF 2076352E30         
+   368 000001C4 0D0A                    	db 0Dh, 0Ah
+   369 000001C6 286329204572646F67-     	db '(c) Erdogan TAN 1998-2023'
+   369 000001CF 616E2054414E203139-
+   369 000001D8 39382D32303233     
+   370 000001DF 0D0A                    	db 0Dh,0Ah
+   371 000001E1 0D0A                    	db 0Dh,0Ah
+   372 000001E3 55736167653A207472-     	db 'Usage: trfdboot <drive> '
+   372 000001EC 6664626F6F74203C64-
+   372 000001F5 726976653E20       
+   373 000001FB 0D0A0D0A                	db 0Dh,0Ah, 0Dh, 0Ah
+   374 000001FF 4472697665206E616D-     	db 'Drive names: '
+   374 00000208 65733A20           
+   375 0000020C 0D0A                    	db 0Dh, 0Ah
+   376 0000020E 202020202020666430-     	db '      fd0 or A: ..for 1st floppy disk drive '
+   376 00000217 206F7220413A202E2E-
+   376 00000220 666F72203173742066-
+   376 00000229 6C6F70707920646973-
+   376 00000232 6B20647269766520   
+   377 0000023A 0D0A                    	db 0Dh, 0Ah
+   378 0000023C 202020202020666431-     	db '      fd1 or B: ..for 2nd floppy disk drive '
+   378 00000245 206F7220423A202E2E-
+   378 0000024E 666F7220326E642066-
+   378 00000257 6C6F70707920646973-
+   378 00000260 6B20647269766520   
+   379 00000268 0D0A00                  	db 0Dh, 0Ah, 0
+   380                                  
+   381 0000026B 31322F30322F323031-     	db '12/02/2018'
+   381 00000274 38                 
+   382 00000275 20                      	db ' ' 	
+   383 00000276 30362F30392F323032-     	db '06/09/2020'
+   383 0000027F 30                 
+   384 00000280 00                      	db 0
+   385                                  
+   386                                  TrDOS_PressKeyWhenReady:
+   387 00000281 0D0A                    	db 0Dh, 0Ah
+   388 00000283 507265737320456E74-     	db 'Press Enter to write boot sector on disk '
+   388 0000028C 657220746F20777269-
+   388 00000295 746520626F6F742073-
+   388 0000029E 6563746F72206F6E20-
+   388 000002A7 6469736B20         
+   389                                  TrDOS_Drive:
+   390 000002AC 413A2000                	db 'A: ', 0
+   391                                  
+   392                                  TrDOS_disk_WrittenSuccesfully:
+   393 000002B0 0D0A                    	db 0Dh, 0Ah
+   394 000002B2 426F6F742073656374-     	db 'Boot sector successfully updated to TRDOS v2.0 format...'
+   394 000002BB 6F7220737563636573-
+   394 000002C4 7366756C6C79207570-
+   394 000002CD 646174656420746F20-
+   394 000002D6 5452444F532076322E-
+   394 000002DF 3020666F726D61742E-
+   394 000002E8 2E2E               
+   395                                  TrDOS_CRLF:
+   396 000002EA 0D0A00                  	db 0Dh, 0Ah, 0
+   397                                  
+   398                                  TrDOS_disk_NotReadyOrError:
+   399 000002ED 0D0A                    	db 0Dh, 0Ah
+   400 000002EF 4469736B206572726F-     	db 'Disk error or drive not ready! Try again? (Y/N) '
+   400 000002F8 72206F722064726976-
+   400 00000301 65206E6F7420726561-
+   400 0000030A 647921205472792061-
+   400 00000313 6761696E3F2028592F-
+   400 0000031C 4E2920             
+   401 0000031F 00                      	db 0
+   402                                  
+   403                                  TrDOS_invalid_bootsector:
+   404 00000320 0D0A                    	db 0Dh, 0Ah
+   405 00000322 496E76616C69642062-     	db 'Invalid boot sector (not a valid FAT12 fs disk)! '
+   405 0000032B 6F6F7420736563746F-
+   405 00000334 7220286E6F74206120-
+   405 0000033D 76616C696420464154-
+   405 00000346 313220667320646973-
+   405 0000034F 6B292120           
+   406 00000353 00                      	db 0
+   407                                  
+   408                                  align 2
+   409 00000354 A101                    	dw 417
+   410                                  
+   411                                  TRDOS_FAT12_fd_bs:	; Boot Sector code
+   412                                  
+   413                                  ; Boot Sector Last Update: 30/10/2023
+   414                                  ; 29/01/2016
+   415 00000356 <bin 200h>              incbin	"TRFDBS.BIN"	; Kernel file: 'TRDOS386.SYS'
+   416                                  RetryCount:
+   417 00000556 00                      	db 0
+   418                                  
+   419                                  ; ----------------------------------------------------------------------------
+   420                                  ; uninitialized data
+   421                                  ; ----------------------------------------------------------------------------
+   422                                  
+   423                                  bss_start:
+   424                                  
+   425                                  ABSOLUTE bss_start
+   426                                  
+   427 00000557 ??                      alignb 2
+   428                                  
+   429                                  bootsector:
+   430 00000558 <res 200h>              	resb 512
+   431                                  
+   432                                  end_bss:
