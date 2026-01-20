@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; IOSYS6.S (MSDOS 6.0 IO.SYS) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 27/12/2023 - Retro DOS v4.2 (Modified MSDOS 6.22)
+; Last Update: 20/01/2026 - Retro DOS v4.2 (Modified MSDOS 6.22)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -4233,7 +4233,7 @@ leap_adjustment:
 		;inc	word [cs:daycnt2] ; account for leap day
 		; 08/08/2023
 		inc	word [daycnt2]
-no_leap_adjustment:			
+no_leap_adjustment:
 		mov	cl, [bin_date_time+3] ; get days of month
 		xor	ch, ch
 		dec	cx		; because of offset from day 1,	not day	0
@@ -4244,7 +4244,9 @@ no_leap_adjustment:
 		; 08/08/2023
 		;xor	ch, ch
 		dec	cx		; january starts at offset 0
-		
+		; 20/01/2026 (BugFix)
+		jz	short r_d_ret
+
 		; 08/08/2023
 		;shl	cx, 1		; word offset
 		;;mov	si, month_table
@@ -8316,7 +8318,7 @@ cmosck:					; check and reset rtc rate bits
 		cmp	byte [model_byte], 0FCh
 		;cmp	byte [cs:model_byte], 0FCh
 		jnz	short cmosck9	; Exit if not an AT model
-		cmp	byte [cs:secondary_model_byte], 6
+		cmp	byte [secondary_model_byte], 6 ; 21/04/2024
 		;cmp	byte [cs:secondary_model_byte], 6
 					; Is it 06 for the industral AT ?
 		jz	short cmosck4	; Go reset CMOS periodic rate if 06
@@ -10961,7 +10963,9 @@ getret_exit:		; 21/12/2023
 ;	   now es:di has the bds, ds: has Bios_Data
 ; ---------------------------------------------------------------------------
 
-GetBp:		; if returning fake bpb then return bpb as is.
+		; 29/12/2023
+GetBp:		
+		; if returning fake bpb then return bpb as is.
 		;test	byte [es:di+BDS.flags], return_fake_bpb|fnon_removable
 		test	byte [es:di+23h], 5
 		;jz	short getbp1	; getbp1
@@ -11061,8 +11065,13 @@ is_floppy:			; must be a 5.25" floppy if we come here
 
 		test	ah, 2		; test for 8 or	9 sector
 		jnz	short has8	; nz = has 8 sectors
-		inc	al	; 2 	; inc number of	fat sectors
-		inc	bl	; 9	; inc sector max
+		
+		; 29/12/2023
+		;inc	al	; 2 	; inc number of	fat sectors
+		;inc	bl	; 9	; inc sector max
+		inc	ax
+		inc	bx
+
 		;add	cx, 40		; increase size	(to 360)
 		; 18/12/2022
 		add	cl, 40	; 28h	; 180K (360 sectors)
@@ -11072,7 +11081,9 @@ has8:
 		add	cx, cx		; double size of disk
 		mov	bh, 112		; increase number of directory entries
 		inc	dh		; inc sec/all unit
-		inc	dl		; inc head limit
+		;inc	dl		; inc head limit
+		; 29/12/2023
+		inc	dx
 Has1:
 		; 02/09/2023 (PCDOS 7.1, IBMBIO.COM - BIOSCODE:0754h)
 		push	ds
@@ -12010,13 +12021,19 @@ iosetup:
 		push	ds
 		lds	si, [dpt]	; get pointer to disk base table
 		mov	[si+4],	al
-		; 23/12/2023
-		mov	ah, al
-		mov	al, [si+10]	; [si+DISK_PARMS.DISK_MOTOR_STRT]
-		;mov	ah, [si+4]	; [si+DISK_PARMS.DISK_EOT]
+		
+		;; 23/12/2023
+		;mov	ah, al
+		;mov	al, [si+10]	; [si+DISK_PARMS.DISK_MOTOR_STRT]
+		;;mov	ah, [si+4]	; [si+DISK_PARMS.DISK_EOT]
+		;pop	ds
+		;mov	[motorstartup], al
+		;mov	[save_eot], ah
+		; 07/04/2024
+		mov	ah,[si+10]
 		pop	ds
-		mov	[motorstartup], al
-		mov	[save_eot], ah
+		mov	[motorstartup], ah
+		mov	[save_eot], al
 
 ; for 3.5" drives, both external as well as on the k09, we need to set the
 ; motor start time to 4. this checking for every i/o is going to affect
@@ -12126,6 +12143,7 @@ dskerr_brdg:
 ; [verify] = 0 for normal, 1 for verify after write
 ;--------------------------------------------------------------
 
+		; 18/04/2024
 		; 23/12/2023
 		; 19/10/2022
 Disk:
@@ -12135,10 +12153,11 @@ Disk:
 
 		mov	bp, 5		; MAXERR
 					; set up retry count
-		; 23/12/2023
-		mov	cl, [es:di+23h]
-		and	cx, 1
-		;test	byte [es:di+23h], 1
+		;; 23/12/2023
+		;mov	cl, [es:di+23h]
+		;and	cx, 1
+		; 18/04/2024
+		test	byte [es:di+23h], 1
 					; [es:di+BDS.flags], fnon_removable
 		jz	short GetRdWrInd
 		cmp	ah, 4		; romverify ; Is this a	track verify?
@@ -12154,10 +12173,11 @@ _retry:
 		push	ax
 		mov	dx, [curtrk]
 		
-		; 23/12/2023
-		jcxz	disk_not_mini
-		;test	byte [es:di+23h], 1
-		;jz	short disk_not_mini
+		;; 23/12/2023
+		;jcxz	disk_not_mini
+		; 18/04/2024
+		test	byte [es:di+23h], 1
+		jz	short disk_not_mini
 		
 		cmp	word [es:di+47h], 1 ; [es:di+BDS.bdsm_ismini]
 					; is this a mini disk? ((logical dos partition))
@@ -17598,6 +17618,8 @@ curdir_local	EQU	0001000000000000B
 ; ----------------------------------------------------------------------
 ; 25/03/2019 - Retro DOS v4.0
 
+; 09/04/2024 - Retro DOS v4.2 (BugFix)
+
 ; system file table
 
 ;**	System File Table SuperStructure
@@ -17659,7 +17681,7 @@ struc	SF_ENTRY
 ; ID
 ;
 .sf_cluspos:	resw	1		; Position of last cluster accessed
-.sf_dirsec:	resw	1		; Sector number of directory sector for this file
+.sf_dirsec:	resd	1 ; 09/04/2024	; Sector number of directory sector for this file
 .sf_dirpos:	resb	1		; Offset of this entry in the above
 ;
 ; End of 7 bytes of file-system specific info.
@@ -19546,8 +19568,9 @@ not_386_system:
 ;	for 26 temporary CDSs, which makes it easier to use alloclim
 ;	for allocating memory for MagicDrv.
 
-	push	es			; preserve pointer to dosinfo
-	push	di
+	; 30/12/2023
+	;push	es ; not necessary (!*)	; preserve pointer to dosinfo
+	;push	di
 
 	; 22/10/2022
 ;	mov	cx,ax			; save pointer for buffer
@@ -19618,8 +19641,9 @@ not_386_system:
 	;mov	[es:di+buffinfo.buf_sector+2],bx ; 0
 	mov	[es:di+8],bx ; 0
 
-	pop	di			; restore pointer to DOSINFO data
-	pop	es
+	; 30/12/2023 (!*)
+	;pop	di			; restore pointer to DOSINFO data
+	;pop	es
 
 	; 11/12/2022
 	; ds = cs
@@ -19674,7 +19698,8 @@ not_386_system:
 			; BX = segment address of new PSP
 	; 22/10/2022
 	; 27/03/2019
-	push	ds ; */			; preserve DS returned by DOSINIT
+	; 30/12/2023
+	;push	ds ; */			; preserve DS returned by DOSINIT
 
 	push	cs	
 	pop	ds
@@ -19713,11 +19738,13 @@ p_dosinit_msg:
 	; 11/12/2022
 	; 27/03/2019
 	mov	dl,[DEFAULT_DRIVE]	
-	pop	ds ; */
+	; 30/12/2023
+	;pop	ds ; */
 
 	or	dl,dl
-	;jz	short nodrvset		; bios didn't say
-	jz	short ProcessConfig  ; (Retro DOS v4.0 does not contain DBLSPACE code)
+	; 30/12/2023
+	jz	short nodrvset		; bios didn't say
+	;jz	short ProcessConfig  ; (Retro DOS v4.0 does not contain DBLSPACE code)
 	;dec	dl			; A = 0
 	; 18/12/2022
 	dec	dx
@@ -19796,18 +19823,23 @@ ProcessConfig:
 	;mov	es,[cs:CURRENT_DOS_LOCATION] ; MSDOS 6.21 (& MSDOS 6.0)
 	; 11/12/2022
 	; ds = cs
+; 13/04/2024
+%if 0
 	mov	es,[CURRENT_DOS_LOCATION]
-
-	;mov	es,[cs:FINAL_DOS_LOCATION]   ; Retro DOS v4.0
+%endif
+	;mov	es,[cs:FINAL_DOS_LOCATION] ; Retro DOS v4.0
 	; 27/03/2019
 	;;mov	es,[FINAL_DOS_LOCATION]
 
 	xor	ax,ax			; ax = 0 ---> install stub
+
+; 13/04/2024
+%if 0	
 	; 11/12/2022
 	; ds = cs
 	;call	far [cs:dos_segreinit]	; call dos segreinit
 	call	far [dos_segreinit]
-
+%endif
 	jmp	short do_multi_pass
 
 ;------ User chose to load dos low
@@ -19819,6 +19851,11 @@ dont_install_stub:
 	call	MovDOSLo		; move it !
 
 	mov	ax,1			; dont install stub
+
+; 13/04/2024
+%if 1
+do_multi_pass:
+%endif
 	; 11/12/2022
 	; ds = cs
 	mov	es,[CURRENT_DOS_LOCATION]
@@ -19832,7 +19869,12 @@ dont_install_stub:
 	; ds =cs
 	;call	far [cs:dos_segreinit]	; inform dos about new seg
 	call	far [dos_segreinit]
+
+; 13/04/2024
+%if 0
 do_multi_pass:
+%endif
+
 	call	AllocFreeMem		; allocate all the free mem
 					; & update [memhi] & [area]
 					; start of free memory.
@@ -19994,7 +20036,7 @@ ConfigDone:
 	
 	; 12/12/2022
 	;pop	bx
-        ;pop     es		; BUGBUG 3-30-92 JeffPar: no reason to save ES
+        ;pop	es		; BUGBUG 3-30-92 JeffPar: no reason to save ES
 
 skip_free_sysinitbase:
 	; 22/10/2022
@@ -20092,7 +20134,6 @@ _@_loop:
 	mov     al,0Dh
 	stosb			; cr-terminate command line
 	mov     [command_line],cl ; command line length (except CR)
-
 %endif
 
 ; ----------------------------------------------------------------------------
@@ -20334,8 +20375,9 @@ no_envdata:
 	;push	cs
 	;pop	ds
 
+	; 13/04/2024
 	; 23/10/2022
-	;push	dx		; push to balance fall-through pop
+	push	dx		; push to balance fall-through pop
 
 ; note fall through if exec returns (an error)
 comerr:
@@ -20349,23 +20391,29 @@ comerr:
 ;;endif
 
 	; 30/12/2022 - Retro DOS v4.2
-	push	cs
-	pop	ds
+	;push	cs
+	;pop	ds
+	; 07/04/2024
+	; ds = cs
+
 	cmp	byte [commnd4],0
 	je	short comerr2	; all defaults exhausted, print err msg
 	cmp	byte [newcmd],0
 	je	short continue	; don't print err msg for defaults just yet
 comerr2:
-	push	dx ; 30/12/2022
+	; 07/04/2024
+	;push	dx ; 30/12/2022
 
 	; 23/10/2022
         mov     dx,badcom	; want to print command error
 	call	badfil
 	
-	pop	dx  ; 30/12/2022
+	; 07/04/2024
+	;pop	dx  ; 30/12/2022
 continue:
+	; 13/04/2024
 	; 23/10/2022
-	;pop	dx
+	pop	dx
 
 ; 30/12/2022
 %if 0
@@ -21647,6 +21695,7 @@ off_to_para:
 ;	USES	?? BUGBUG
 ; ----------------------------------------------------------------------
 
+	; 30/12/2023
 	; 23/10/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
 	; 30/12/2022 - Retro DOS v4.2 (Modified MSDOS 6.21 IO.SYS)
 TempCDS:
@@ -21658,10 +21707,15 @@ TempCDS:
 	mov	[es:di+SYSI_NCDS],cl	; one CDS per device
 	;mov	[es:di+21h],cl	
 
-	mov	al,cl
-	mov	ah,curdirlen ; curdir_list.size ; 88
-	;mov	ah,88
-	mul	ah			; (ax) = byte size for those CDSs
+	;mov	al,cl
+	;mov	ah,curdirlen ; curdir_list.size ; 88
+	;;mov	ah,88
+	;mul	ah			; (ax) = byte size for those CDSs
+	; 30/12/2023
+	mov	al,curdirlen ; curdir_list.size ; 88
+	;mov	al,88
+	mul	cl			; (ax) = byte size for those CDSs
+
 	call	ParaRound		; (ax) = paragraph size for CDSs
 	mov	si,[top_of_cdss] ; 31/12/2022
 
@@ -21758,19 +21812,25 @@ fooset:
 	;cmp	byte [si],1
 	cmp	[si],cl ; 1 ; 03/09/2023
 	ja	short normcds
+
+	; 30/12/2023
+	; ax = 0
+fooset_zero:
 	mov	cl,3			; the next dbp pointer
 					; AX should be zero here
 	rep	stosw
-	pop	cx
-	jmp	short get_next_dpb
+	; 30/12/2023
+	;pop	cx
+	jmp	short get_next_dpb ; findcds
 
 ;	(ax) = 0
 
-fooset_zero:
-	mov	cl,3
-	rep	stosw
-	pop	cx
-	jmp	short fincds
+	; 30/12/2023
+;fooset_zero:
+	;mov	cl,3
+	;rep	stosw
+	;pop	cx
+	;jmp	short fincds
 
 ;*	We have a "normal" DPB and thus a normal CDS.
 ;
@@ -21779,7 +21839,8 @@ fooset_zero:
 ;	(ds:si) = Next DPB (-1 if none)
 
 normcds:
-	pop	cx
+	; 30/12/2023
+	;pop	cx
 
 ;	if a non-fat based media is detected (by dpb.numberoffat == 0), then
 ;	set curdir_flags to 0. this is for signaling ibmdos and ifsfunc that
@@ -21807,6 +21868,8 @@ get_next_dpb:				; entry point for fake_fooset_zero
 	;lds	si,[si+19h] ; (MSDOS 5.0 SYSINIT)
 	;;lds	si,[si+DPB.NEXT_DPB] ; [si+19h]
 fincds:	; get_next_dpb
+	; 30/12/2023
+	pop	cx
 	; 30/12/2022
 	; (MSDOS 6.21 SYSINIT:0DD1h)
 	mov	ax,-1	; mov ax,0FFFFh
@@ -21982,8 +22045,9 @@ multrk_flag_done:
 	mov	word [es:di],-1		; 0FFFFh
 	;mov	[es:di+SF.SFCount],ax
 	mov	[es:di+4],ax
-	;mov	bl,SF_ENTRY.size ; 59
-	mov	bl,59
+	; 09/04/2024
+	mov	bl,SF_ENTRY.size ; 59
+	;mov	bl,59
 	mul	bl			;ax = number of bytes to clear
 	mov	cx,ax
 	; 11/12/2022
@@ -22072,13 +22136,13 @@ fillloop:
 	rep	stosb			; filled
 
 	;mov	word [es:di-(SF_ENTRY.size)+SF_ENTRY.sf_ref_count],0  ; [es:di-59]
-	;mov	word [es:di-(SF_ENTRY.size)+SF_ENTRY.sf_position],0   ; [es:di-38]	
+	;mov	word [es:di-(SF_ENTRY.size)+SF_ENTRY.sf_position],0   ; [es:di-38]
 	;mov	word [es:di-(SF_ENTRY.size)+SF_ENTRY.sf_position+2],0 ; [es:di-36]
 
 	; 18/12/2022
 	;cx = 0
 	mov	[es:di-(SF_ENTRY.size)+SF_ENTRY.sf_ref_count],cx ;0  ; [es:di-59]
-	mov	[es:di-(SF_ENTRY.size)+SF_ENTRY.sf_position],cx ;0   ; [es:di-38]	
+	mov	[es:di-(SF_ENTRY.size)+SF_ENTRY.sf_position],cx ;0   ; [es:di-38]
 	mov	[es:di-(SF_ENTRY.size)+SF_ENTRY.sf_position+2],cx ;0 ; [es:di-36]
 	
 	; 23/10/2022	
@@ -22104,9 +22168,11 @@ fillloop:
 dodefaultbuff:
 	; 18/12/2022
 	mov	[h_buffers],cx ; 0
-	inc	cx
-	inc	cx
-	mov	[buffers],cx ; 2	
+	;inc	cx
+	;inc	cx
+	;mov	[buffers],cx ; 2
+	; 10/04/2024
+	mov	word [buffers],2
 	
 	;mov	word [h_buffers],0	; default is no heuristic buffers.
 	;mov	word [buffers],2	; default to 2 buffers
@@ -22808,8 +22874,10 @@ installfilename:			; skip the file name
 	; 05/09/2023
 	or	al,al
 	;cmp	al,0
-	je	short got_installparm
-	jmp	short installfilename
+	;je	short got_installparm
+	;jmp	short installfilename
+	; 10/04/2024
+	jnz	short installfilename
 got_installparm:			; copy the parameters to ldexec_parm
 	lodsb
 	mov	[es:di],al
@@ -22828,9 +22896,9 @@ done_installparm:
 					; starts with cr.
 install_seg_set:
 	; 05/09/2023 - Retro DOS v4.2 IO.SYS (Optimization)
-	xor	bx, bx
+	xor	bx,bx
 	;mov	word [cs:0],0		; make a null environment segment
-	mov	[cs:bx], bx ; 05/09/2023
+	mov	[cs:bx],bx ; 05/09/2023
 	mov	ax,cs			; by overlap jmp instruction of sysinitseg.
 
 ;---------------------------------------------------M067----------------
@@ -23002,7 +23070,7 @@ sysinit_base:
 	pop	ds
 	; 30/12/2022
 	; (MSDOS 6.21 IO.SYS, SYSINIT:12B8h)
-	;mov	dx, 102
+	;mov	dx,102
 	mov	dx,mem_alloc_err_msgx-sysinit_base ; 65h (for MSDOS 5.0 SYSINIT)
 					; 66h (for MSDOS 6.21 SYSINIT)
 	int	21h
@@ -23084,14 +23152,14 @@ sysinit_base_ss equ $-sysinit_base  ; = 61 (MSDOS 5.0 IO.SYS, SYSINIT:115Ch)
 ;SYSINIT:11BDh:			    ; = 62 (MSDOS 6.21 IO.SYS, SYSINIT:1290h) 	
 	dw	0
 sysinit_base_sp equ $-sysinit_base  ; = 63 (MSDOS 5.0 IO.SYS, SYSINIT:1161h)
-;SYSINIT:11BFh:			    ; = 64 (MSDOS 6.21 IO.SYS, SYSINIT:1292h)
+;SYSINIT:11BFh:			    ; = 64 (MSDOS 6.21 IO.SYS, SYSINIT:1295h)
 	dw	0	
 
 mem_alloc_err_msgx:
 
        ;include msbio.cl4		; memory allocation error message
 
-;SYSINIT:12F6:  ; MSDOS 6.21 IO.SYS SYSINIT:12F6h
+;SYSINIT:12F6h:	; MSDOS 6.21 IO.SYS
 	db	0Dh,0Ah
 	db 	'Memory allocation error $'
 
@@ -23163,6 +23231,7 @@ nxt_buff:
 	;mov	[bx+BUFFINF.Lo_Mem_Buff+2],ax
 	mov	word [bx+15],ax
 	mov	ax,[cs:singlebuffersize]	; size of scratch buff
+	;sub	ax,bufinsiz ; 20		; buffer head not required
 	;; 05/09/2023
 	;;sub	ax,24 ; bufinsiz		; (bufinsiz is 24 in PCDOS 7.1)
 	sub	ax,20
@@ -23199,7 +23268,17 @@ GetBufferAddr:
 	mov	bx,ax
 	mov	ax,4A02h
 	;mov	ax,((multMULT<<8)+multMULTALLOCHMA)
-	int	2Fh
+	int	2Fh	; DOS 5+ - ALLOCATE HMA SPACE
+			;     AX = 4A02h
+			;     BX = number of bytes
+			; Return:
+			;     ES:DI -> start of allocated HMA block or FFFFh:FFFFh
+			;     BX = number of bytes actually allocated
+			;	   (rounded up to next paragraph)
+			; Notes:
+			;     this call is not valid unless DOS is loaded in the HMA
+			;     (DOS=HIGH)
+
 	cmp	di,0FFFFh
 	jne	short got_hma
 	
@@ -24159,6 +24238,9 @@ int_xx_first:
 ; 25/10/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS, SYSINIT)
 ; (SYSINIT:1610h)
 
+; 13/04/2024 - Retro DOS v4.2 (Modified MSDOS 6.22 IO.SYS, SYSINIT)
+; (SYSINIT:1745h)
+
 new_init_loop:
 
 ;input: si=ofset into vector table of the particular int vector being adjusted
@@ -24168,6 +24250,8 @@ new_init_loop:
 ;	es=zero, segid of vector table
 ;	ds=relocated stack code segment
 
+; 13/04/2024
+%if 0
 	mov	ax,[es:si]		;remember offset in vector
 	mov	[bx],ax			; to original owner in ds
 	mov	ax,[es:si+2]		;remember segid in vector
@@ -24184,7 +24268,23 @@ new_init_loop:
 	mov	ax,[es:si+2]
 	mov	[di+2],ax
 	pop	ds
-
+%else
+	; 13/04/2024 - Retro DOS v4.2
+	push	ds
+	mov	ax,[es:si+2]		;remember segid in vector
+	mov	[bx+2],ax		; to original owner in ds
+	push	ax
+	mov	ax,[es:si]		;remember offset in vector
+	mov	[bx],ax			; to original owner in ds
+	push	ax
+	mov	ax,DOSBIODATASEG ; 0070h
+	mov	ds,ax			;set int19oldxx value in bios for
+	pop	ax			;int 19 handler
+	mov	[di],ax
+	pop	ax
+	mov	[di+2],ax
+	pop	ds
+%endif
 	mov	[es:si],dx  	;set vector to point to new int handler
 	mov	[es:si+2],ds
 	retn
@@ -25017,16 +25117,19 @@ SysParse:
 ;is made to it in psdata.inc, a corresponding change needs to be made here.
 
 ;IF FileSW + DrvSW
-	;mov	word [cs:_$P_FileSp_Char], ']['
-	;mov	word [cs:_$P_FileSp_Char+2], '<|'
-	;mov	word [cs:_$P_FileSp_Char+4], '+>'
-	;mov 	word [cs:_$P_FileSp_Char+6], ';='
+	; 14/04/2024 (NASM syntax BugFix) .. '][' (MASM) -> '[]' (NASM)
+	
+	;mov	word [cs:_$P_FileSp_Char], '[]'
+	;mov	word [cs:_$P_FileSp_Char+2], '|<'
+	;mov	word [cs:_$P_FileSp_Char+4], '>+'
+	;mov 	word [cs:_$P_FileSp_Char+6], '=;'
 
+	; 14/04/2024
 	; 06/09/2023
-	mov	word [_$P_FileSp_Char], ']['
-	mov	word [_$P_FileSp_Char+2], '<|'
-	mov	word [_$P_FileSp_Char+4], '+>'
-	mov 	word [_$P_FileSp_Char+6], ';='
+	mov	word [_$P_FileSp_Char], '[]'	; mov word [_$P_FileSp_Char],5D5Bh
+	mov	word [_$P_FileSp_Char+2], '|<'	; 3C7Ch
+	mov	word [_$P_FileSp_Char+4], '>+'	; 2B3Eh
+	mov 	word [_$P_FileSp_Char+6], '=;'	; 3B3Dh
 ;ENDIF
 	; 06/09/2023
 	pop	ds ; *!*
@@ -26010,8 +26113,10 @@ _$P_Value_Loop:				;AN000;
 ; 08/07/2023 - Retro DOS v4.2 IO.SYS (optimization)
 	; (PCDOS 7.1 IBMBIO.COM - SYSINIT:2130h)
 
-	xor	ah,ah
-	mov	bp,ax			; save binary number
+	; 14/04/2024
+	;xor	ah,ah
+	;mov	bp,ax			; save binary number
+
 	call	_$P_Value_2x_OVF 	; multiply cx:dx by 2 and then check overflow
 	mov	bx,dx			; ax:bx = 2*(cx:dx)
 	mov	ax,cx
@@ -26035,6 +26140,7 @@ _$P_Value_Chk_Add_OVF:
 	call	_$P_Check_OVF		; check overflow (for the last shift or add)
 	jc	short _$P_Value_OVF
 	retn
+
 _$P_Value_OVF:
 	inc	sp 			; skip "call" return address to the caller
 	inc	sp
@@ -31238,12 +31344,16 @@ SetInt12Mem:
 	mov	bx,40h
 	mov	ds,bx			; ROM BIOS Data Segment
 	mov	bx,[13h]		; INT 12 memory variable
-	mov	[cs:OldInt12Mem],bx	; save it
+	;mov	[cs:OldInt12Mem],bx	; save it
 	mov	cl,6
 	shr	ax,cl			; convert paras into Ks
 	mov	[13h],ax		; Lie
-	mov	byte [cs:Int12Lied],0FFh ; mark that we are lying
+	;mov	byte [cs:Int12Lied],0FFh ; mark that we are lying
 	pop	ds
+	; 14/04/2024
+	; ds = cs
+	mov	[OldInt12Mem],bx
+	mov	byte [Int12Lied],0FFh
 ;limx:
 	retn
 
@@ -39969,7 +40079,10 @@ BOOTMES:
 	db 	"Retro DOS v4.2 (Modified MSDOS 6.22) "
 	
 	db	13,10
-	db	"by Erdogan Tan [2023] "
+	;;db	"by Erdogan Tan [2023] "
+	;db	"by Erdogan Tan [2024] " ; 07/04/2024
+	; 20/01/2026
+	db	"by Erdogan Tan [2026] "
 	db	13,10
 	db	13,10,"$",0
 

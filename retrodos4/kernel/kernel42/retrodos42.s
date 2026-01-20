@@ -1,13 +1,13 @@
 ; ****************************************************************************
 ; RETRODOS.SYS (MSDOS 6.0 Kernel) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 09/07/2024 - Retro DOS v4.2 (Modified MSDOS 6.22)
+; Last Update: 20/01/2026 - Retro DOS v4.2 (Modified MSDOS 6.22)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0), 28/12/2022 (Retro DOS 4.1, MSDOS 5.0)
 ; ----------------------------------------------------------------------------
 ; Assembler: NASM version 2.15
 ; ----------------------------------------------------------------------------
-;	   ((nasm retrodos.s -l retrodos.lst -o MSDOS.SYS -Z error.txt)) 
+;	   ((nasm retrodos.s -l retrodos.lst -o MSDOS.SYS -Z error.txt))
 ; ----------------------------------------------------------------------------
 
 ; 20/12/2022 - Modifications for initiating IO.SYS by Retro DOS v2 boot sector
@@ -19,16 +19,16 @@
 ;	       ((RETRODOS.SYS/MSDOS.SYS can be loaded by a fake IO.SYS for
 ;		using it with MSDOS 5.0 boot sector & as bootable MSDOS disk.
 ;		For that, fake IO.SYS must load 'MSDOS.SYS' at 1000h:0000h.))
-; 		
+;
 ; 18/12/2022 - Modified MSDOS 5.0 IO.SYS (for using with MSDOS 5 boot sector)
 ; 09/12/2022 - Multisection binary file format (BIOSDATA & BIOSCODE sections)
 ; 01/10/2022 - Erdogan Tan (Istanbul)
 
 ;Note: This code is a part of Retro DOS 4.0 kernel source code
-;     (as included binary, 'IOSYS5.BIN') 
+;     (as included binary, 'IOSYS5.BIN')
 ;     Equivalent of MSDOS 5.0 IO.SYS, BIOSCODE and BIOSDATA and SYSINIT
 ;						        (except MSLOAD code)
-      
+
 ;------- Retro DOS v2 (v3) boot sector loads RETRODOS.SYS (MSDOS.SYS)
 ;	 at 1000h:0000h and loader (initialization) part of RETRODOS kernel
 ;	 moves IO.SYS (DOSBIOSCODE & DOSBIOSDATA, 'IOSYS5.BIN') to 70h:0000h.
@@ -3205,7 +3205,7 @@ leap_adjustment:
 		;inc	word [cs:daycnt2] ; account for leap day
 		; 08/08/2023
 		inc	word [daycnt2]
-no_leap_adjustment:			
+no_leap_adjustment:
 		mov	cl, [bin_date_time+3] ; get days of month
 		xor	ch, ch
 		dec	cx		; because of offset from day 1,	not day	0
@@ -3216,7 +3216,9 @@ no_leap_adjustment:
 		; 08/08/2023
 		;xor	ch, ch
 		dec	cx		; january starts at offset 0
-		
+		; 20/01/2026 (BugFix)
+		jz	short r_d_ret
+
 		; 08/08/2023
 		;shl	cx, 1		; word offset
 		;;mov	si, month_table
@@ -39395,8 +39397,10 @@ BOOTMES:
 	db 	"Retro DOS v4.2 (Modified MSDOS 6.22) "
 	
 	db	13,10
-	;db	"by Erdogan Tan [2023] "
-	db	"by Erdogan Tan [2024] " ; 05/01/2024
+	;;db	"by Erdogan Tan [2023] "
+	;db	"by Erdogan Tan [2024] " ; 05/01/2024
+	; 20/01/2026
+	db	"by Erdogan Tan [2026] "
 	db	13,10
 	db	13,10,"$",0
 
@@ -39412,13 +39416,13 @@ cntry_drv:  db	"A:"
 cntry_root: db	"\"
 cntry_path: db	"COUNTRY.SYS",0
 	    ;db	52 dup (0)
-	    times 52 db 0	
+	    times 52 db 0
 
 country_file_signature:
 	db	0FFh,'COUNTRY'
 
 cntrycodepage_id: 
-	dw	0 	
+	dw	0 
 
 ;ENDIF ; CONFIGPROC
 
