@@ -3,7 +3,7 @@
 ; ----------------------------------------------------------------------------
 ; Modified from Retro DOS v5.0 'retrodos5.s' (17/07/2024) ((PCDOS 7.1 Kernel))
 ;
-; Last Update: 06/08/2025  (Previous: 02/06/2025)
+; Last Update: 19/01/2026  (Previous: 06/08/2025)
 ;
 ; ----------------------------------------------------------------------------
 ; Assembler: NASM version 2.15
@@ -4007,7 +4007,7 @@ read_ok:
 		cmp	byte [bin_date_time], 20 ; 20th century?
 		jnz	short century_19 ; no
 		add	ax, 100		; add in a century
-century_19:				
+century_19:
 		sub	ax, 80		; subtract off 1-1-80
 		mov	cl, 4		; leap year every 4
 		div	cl		; al= #	leap year blocks, ah= remainder
@@ -4039,7 +4039,7 @@ leap_adjustment:
 		;inc	word [cs:daycnt2] ; account for leap day
 		; 08/08/2023
 		inc	word [daycnt2]
-no_leap_adjustment:			
+no_leap_adjustment:
 		mov	cl, [bin_date_time+3] ; get days of month
 		xor	ch, ch
 		dec	cx		; because of offset from day 1,	not day	0
@@ -4050,7 +4050,9 @@ no_leap_adjustment:
 		; 08/08/2023
 		;xor	ch, ch
 		dec	cx		; january starts at offset 0
-		
+		; 19/01/2026 (BugFix)
+		jz	short r_d_ret
+
 		; 08/08/2023
 		;shl	cx, 1		; word offset
 		;;mov	si, month_table
@@ -4084,7 +4086,7 @@ r_d_ret:
 
 ;-----------------------------------------------------------------------------
 
-r_t_retj:				
+r_t_retj:
 		xor	cx, cx
 		xor	dx, dx
 		jmp	short r_t_ret
@@ -43821,8 +43823,9 @@ BOOTMES:
 	db	"MiniDOS v1.0 (Simplified PCDOS 7.1) "
 	
 	db	13,10
-	;db	"by Erdogan Tan [2024] " ; 01/01/2024
-	db	"by Erdogan Tan [2025] " ; 09/03/2025
+	;;db	"by Erdogan Tan [2024] " ; 01/01/2024
+	;db	"by Erdogan Tan [2025] " ; 09/03/2025
+	db	"by Erdogan Tan [2026] " ; 19/01/2026
 	db	13,10
 	db	13,10,"$",0
 
