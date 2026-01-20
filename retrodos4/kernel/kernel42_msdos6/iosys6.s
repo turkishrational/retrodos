@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; IOSYS6.S (MSDOS 6.0 IO.SYS) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 21/04/2024 - Retro DOS v4.2 (Modified MSDOS 6.22)
+; Last Update: 20/01/2026 - Retro DOS v4.2 (Modified MSDOS 6.22)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -4233,7 +4233,7 @@ leap_adjustment:
 		;inc	word [cs:daycnt2] ; account for leap day
 		; 08/08/2023
 		inc	word [daycnt2]
-no_leap_adjustment:			
+no_leap_adjustment:
 		mov	cl, [bin_date_time+3] ; get days of month
 		xor	ch, ch
 		dec	cx		; because of offset from day 1,	not day	0
@@ -4244,7 +4244,9 @@ no_leap_adjustment:
 		; 08/08/2023
 		;xor	ch, ch
 		dec	cx		; january starts at offset 0
-		
+		; 20/01/2026 (BugFix)
+		jz	short r_d_ret
+
 		; 08/08/2023
 		;shl	cx, 1		; word offset
 		;;mov	si, month_table
@@ -40077,8 +40079,10 @@ BOOTMES:
 	db 	"Retro DOS v4.2 (Modified MSDOS 6.22) "
 	
 	db	13,10
-	;db	"by Erdogan Tan [2023] "
-	db	"by Erdogan Tan [2024] " ; 07/04/2024
+	;;db	"by Erdogan Tan [2023] "
+	;db	"by Erdogan Tan [2024] " ; 07/04/2024
+	; 20/01/2026
+	db	"by Erdogan Tan [2026] "
 	db	13,10
 	db	13,10,"$",0
 
