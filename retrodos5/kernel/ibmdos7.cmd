@@ -1,1 +1,0 @@
-nasm ibmdos7.s -l ibmdos7.txt -o IBMDOS7.BIN -Z error.txt

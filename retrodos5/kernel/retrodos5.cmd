@@ -1,1 +1,0 @@
-nasm retrodos5.s -l retrodos5.txt -o PCDOS.SYS -Z error.txt
