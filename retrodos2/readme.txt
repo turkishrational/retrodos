@@ -1,4 +1,4 @@
-*Retro DOS Versions by Erdogan Tan (04/08/2019)
+Retro DOS Versions by Erdogan Tan (04/08/2019)
 
 Erdogan Tan	    Microsoft
 -------------   ----------------------
