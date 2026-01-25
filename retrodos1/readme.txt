@@ -1,6 +1,6 @@
 Retro DOS Versions by Erdogan Tan (04/08/2019)
 
-Erdogan Tan	Microsoft
+Erdogan Tan	    Microsoft
 -------------   ----------------------
 ready:
 Retro DOS 1.0 - MSDOS 1.25 (PCDOS 1.1)
