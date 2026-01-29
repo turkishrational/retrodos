@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RETRODOS.SYS (PCDOS 7.1 Kernel) - RETRO DOS v5.0 by ERDOGAN TAN - 12/09/2023
 ; ----------------------------------------------------------------------------
-; Last Update: 19/01/2026 - Retro DOS v5.0 (Modified PCDOS 7.1)
+; Last Update: 29/01/2026 - Retro DOS v5.0 (Modified PCDOS 7.1)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0), 01/10/2022 (Retro DOS 4.2)
 ; ----------------------------------------------------------------------------
@@ -45046,28 +45046,29 @@ DOSLOADSEG	equ SYSINITSEG+((SYSINITSIZE+15)/16)
 ; 02/10/2023 - Retro DOS v5.0
 ; 04/01/2023 - Retro DOS v4.2
 ; 29/12/2022 - Retro DOS v4.1
-; 18/03/2019 - Retro DOS v4.0 
-; 11/06/2018 - Retro DOS v3.0 
+; 18/03/2019 - Retro DOS v4.0
+; 11/06/2018 - Retro DOS v3.0
 
 ;MSDOS_BIN_OFFSET:
 IBMDOS_BIN_OFFSET: ; this offset must be paragraph aligned
 		;; 28/06/2019 ('msdos6.s') 
 		;incbin	'MSDOS6.BIN' ; Retro DOS 4.0 - MSDOS 6.21 KERNEL
-		
+
 		; 29/12/2022
 		;incbin	'MSDOS51.BIN' ; Retro DOS 4.1 - MSDOS 5.0+ KERNEL
 
 		; 29/09/2023 (PARASTART=3DE0h)
 		; 27/09/2023 (BugFix) ((PARASTART=3DD0h))
 		; 04/01/2023
-		;incbin	'MSDOS6.BIN' ; Retro DOS 4.2 - MSDOS 6.21+ KERNEL		
-		
+		;incbin	'MSDOS6.BIN' ; Retro DOS 4.2 - MSDOS 6.21+ KERNEL
+
+		; 29/01/2026
 		; 06/08/2025
 		; 10/07/2024
 		; 07/07/2024
 		; 08/05/2024
 		; 14/04/2024
-		; 02/10/2023 - Retro DOS v5.0 - PCDOS 7.1 KERNEL		 
+		; 02/10/2023 - Retro DOS v5.0 - PCDOS 7.1 KERNEL
 		incbin	'IBMDOS7.BIN'
 
 		;; 28/12/2022 (BugFix)
@@ -45075,7 +45076,7 @@ IBMDOS_BIN_OFFSET: ; this offset must be paragraph aligned
 		;; 21/12/2022 ('msdos5.s')
 		;incbin 'MSDOS5.BIN'  ; Retro DOS 4.0 - MSDOS 5.0+ KERNEL
 
-; 28/09/2023	
+; 28/09/2023
 ;msdos_bin_size equ $ - MSDOS_BIN_OFFSET
 
 align 2
