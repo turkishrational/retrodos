@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RD5HDBS3.ASM - Retro DOS v5 FAT 32 (Hard Disk) FS BOOT SECTOR code
 ; ----------------------------------------------------------------------------
-; Last Update: 29/04/2024
+; Last Update: 29/01/2026
 ; ----------------------------------------------------------------------------
 ; Beginning: 27/04/2024
 ; ----------------------------------------------------------------------------
@@ -10,11 +10,11 @@
 ;	    ((nasm rd5hdbs3.s -l rd5hdbs3.txt -o RD5HDBS3.BIN))
 ; ----------------------------------------------------------------------------
 ; Modified from 'fat32_bs.s' TRDOS 386 v2 FAT32 hd boot sector source code
-; by Erdogan Tan (31/01/2028). 	
+; by Erdogan Tan (31/01/2018).
 ; ----------------------------------------------------------------------------
 ; incbin "RD5HDBS3.BIN" (in 'rd5hdi3.s')
 
-; fat32_bs.s 
+; fat32_bs.s
 ; ****************************************************************************
 ; Turkish Rational DOS
 ; Operating System Project v2.0 by ERDOGAN TAN (Beginning: 04/01/2016)
@@ -24,16 +24,16 @@
 ; The 1st 512 bytes of this boot code will be on sector 0 (of the partition).
 ; * Boot Sector 2:
 ; Remain bytes of this boot code will be sector 2 (just after FSINFO sector)
-; of the (FAT32) partition.	
+; of the (FAT32) partition.
 ;
 ; NOTE:	This code has some tricks and TRDOS 386 specific modifications
 ; which are not a part of original Microsoft Windows (XP) FAT32 BS code.
 ; (Purpose of TRDOS 386 specific modifications and tricks is
 ; to load 'TRDOS386.SYS' kernel file as easy and as correct,
-; without affecting FAT32 FS recognization for other operating systems.) 
+; without affecting FAT32 FS recognization for other operating systems.)
 ;
 ; Note: Modifications (on WINDOWS 98 FAT32 boot sector code)
-;	are based on WINDOWS XP FAT32 boot sector(s) code (2 sectors), 
+;	are based on WINDOWS XP FAT32 boot sector(s) code (2 sectors),
 ;	which is disassembled by Erdogan Tan (12/12/2017)
 ;	by using BINFILEHEX (Erdogan Tan) & IDA PRO FREE (Hex-Rays SA)
 ;	programs.
@@ -92,7 +92,7 @@ loc_5A:
 		mov	bp, 7C00h
 
 		; ((WINDOWS XP FAT 32 boot sector code checks Masterboot
-		; partition table for partition type, if it is 0Ch 
+		; partition table for partition type, if it is 0Ch
 		; -FAT32 LBA-, the boot code changes 90h at BS offset 2
 		; to 0Eh. Then a 0Eh at this addr is used as identifier,
 		; for reading disk sector by using INT 13h -LBA read-
@@ -106,7 +106,7 @@ loc_5A:
 				 ; been loaded at 0:600h, it has
 				 ; CHS parameters at offset 600h+420.
 				 ; (There is a 01A1h in offset 600h+417)
-	
+
 		je	short bs_01 ; no need to following assignments !
 
 		xor	ax, ax
@@ -123,7 +123,7 @@ bs_01:
 					  ; (7BEh,7CEh,7DEh,7EEh)
 
 		; Check Bytes/Sector value
-		; It must be 512 !? (at least, for TRDOS386) 
+		; It must be 512 !? (at least, for TRDOS386)
 		cmp	word [bp+0Bh], 512 ; [BPB_BytesPerSec]
 		jne	short invalid_system_disk
 
@@ -132,7 +132,7 @@ bs_01:
 		; 	Microsoft Extensible Firmware Initiative
 		;	FAT32 File System Specification, 
 		;				Version 1.03 (2000).
-		
+
                 ; [BPB_FATSz16] must be 0 (!*!) ; [bp+16h]
 		sub	cx, cx ; 0 ; * ; 27/04/2024
                 ;cmp	[BPB_FATSz16], cx ; 0	; sectors/fat for FAT16
@@ -160,16 +160,16 @@ bs_01:
 		; reset FAT32 FS reading pointers and set SP to 7BF4h
 		;xor	cx, cx ; *
 		;sub	cx, cx ; *
-		push	cx 	
+		push	cx
 		push	cx	; [bp-4] = 0   ; CHS limit (8.4GB)
-		push	cx	
+		push	cx
 		push	cx	; [bp-8] = 0   ; Address of Cluster 2
 		dec	cx 	; 0FFFFh
-		push	cx	
+		push	cx
 		push	cx	; [bp-12] = -1	; FAT sector in FAT buffer
 		inc	cx	; 0
 
-		; SP = 7BF4h
+		; SP = 7BFAh ; 28/01/2026
 
 		; check for ROMBIOS INT 13h extensions
 		mov	ah, 41h
@@ -248,7 +248,7 @@ bs_02:
 		call	read_sector ; 25/12/2017 (Read 1 sector)
 		jc	short disk_io_error
 
-		; Boot sector 2 validation check 
+		; Boot sector 2 validation check
 		cmp	word [7FA1h], 417 ; The magic word !
 		je	check_root_dir_entries
 		; 27/04/2024
@@ -263,7 +263,7 @@ getchar_reboot:		; 27/04/2024
 		; Wait for a keystroke just before reboot
 		xor	ah, ah
 		int	16h
-		
+
 		int	19h	; disk boot
 				; causes reboot of disk system
 disk_io_error:
@@ -271,7 +271,7 @@ disk_io_error:
 		call	print_msg
 ;replace_disk:
 ;		mov	si, Replace_Msg	
-replace_disk:	
+replace_disk:
 		mov	si, Disk_err_replace_Msg
 		; 27/04/2024
 		;call	print_msg
@@ -307,12 +307,12 @@ disk_read_0:
 		; 27/04/2024
 		cmp	dx, [bp-2] ; hw of CHS limit
 		ja	short disk_read_3
-		jb	short chs_read	
+		jb	short chs_read
 		cmp	ax, [bp-4] ; CHS limit ([7BFCh])
 		jb	short chs_read
 disk_read_3:
 		; Disk I/O error if Int 13h LBA read func is not usable
-		; byte [BS_jmpBoot+2] = 'LBA read function is ready' sign 
+		; byte [BS_jmpBoot+2] = 'LBA read function is ready' sign
 		;cmp	byte [[BS_jmpBoot+2], 42h ; FAT32 LBA availability
 		cmp	byte [bp+2], 42h ; is LBA mode ready ? 
 		je	short lba_read ; LBA mode is usable/available
@@ -357,7 +357,7 @@ chs_read:
 		; dl = sector (0 based)
 		inc	dl	; sector number (1 based)
 		mov	cl, dl
-		mov	dx, si 
+		mov	dx, si
 		;div	word [BPB_NumHeads] ; [bp+1Ah]
 				 ; number of heads (2 to 255)
 		div	word [bp+1Ah]
@@ -391,7 +391,7 @@ disk_read_2:
 		inc	ax
 		jnz	short disk_read_4
 		inc	dx
-disk_read_4: 
+disk_read_4:
 		dec	cx
 		jnz	short disk_read
 		;clc 	; ** (128 sectors/cluster!?)
@@ -446,7 +446,7 @@ bsReserved2:
 		db	'RT'  ; 'Turkish Rational DOS' feature identifier
 
 check_root_dir_entries:
-		; load root directory and check directory entries 
+		; load root directory and check directory entries
 
 		; 28/04/2024
 		; calculate total size of FAT area
@@ -462,7 +462,7 @@ crde_fat_secs:
                 ;adc	dx, [BPB_FATSz32+2] ; [bp+26h]
 		add	ax, [bp+24h]
 		adc	dx, [bp+26h]
-		
+
 		dec	cx
 		jnz	short crde_fat_secs
 
@@ -475,17 +475,23 @@ crde_fat_secs:
 		; add reserved sectors
                 ;add	ax, [BPB_RsvdSecCnt] ; [bp+0Eh]
 		add	ax, [bp+0Eh]
-		adc	dx, 0
+		;adc	dx, 0
+		; 29/01/2026
+		adc	dx, cx ; 0
+
+		;mov	cl, [BPB_SecPerClus] ; [bp+13]
+		mov	cl, [bp+0Dh]
+		mov	[SecPerClus], cx
 
 		; Save address of cluster 2 into 7BF8h 
 		mov     [bp-8], ax	; DX:AX = Data Area (Cluster 2)
                                         ; (Data) Start Address in 7BF8h
 		mov	[bp-6], dx
 
-		; Reset FAT sector address pointer (7BF4h) 
+		; Reset FAT sector address pointer (7BF4h)
 		; 	which points to FAT sectors in the FAT buffer
-		;	(8000h) 
-		;	
+		;	(8000h)
+		;
 		;mov	dword [bp-12], 0FFFFFFFFh ; invalid address
 						 ; (for now)
 
@@ -518,10 +524,10 @@ lrds_1:
 		; an allocatable cluster number on FAT12 and FAT16 volumes,
 		; but it is feasible for 0x0FFFFFF7 to be an allocatable
 		; cluster number on FAT32 volumes.
-		; To avoid possible confusion by disk utilities, 
+		; To avoid possible confusion by disk utilities,
 		; no FAT32 volume should ever be configured such that
 		; 0x0FFFFFF7 is an allocatable cluster number."
-		
+
                	; Is it End Of Cluster Chain marker or something above?
                 ; 28/04/2024
 		cmp	dx, 0FFFh
@@ -532,15 +538,18 @@ lrds_1:
 lrds_2:
 		push	dx ; ++
 		push	ax ; +
-
-		xor	bx, bx
+		
+		; 29/01/2026
+		;xor	bx, bx
 		sub	ax, 2	; 0 based cluster number
-		;sbb	dx, 0
-		sbb	dx, bx
-		push	dx ; hw	
-		;mov	bl, [BPB_SecPerClus] ; [bp+13]
-		mov	bl, [bp+0Dh]
-		mov	si, bx	; save sector per cluster in SI
+		sbb	dx, 0
+		;sbb	dx, bx
+		push	dx ; hw
+		;;mov	bl, [BPB_SecPerClus] ; [bp+13]
+		;mov	bl, [bp+0Dh]
+		;mov	si, bx	; save sector per cluster in SI
+		; 29/01/2026
+		mov	si, [SecPerClus]
 		mul	si
 		mov	bx, ax ; multiplication result lw
 		pop	ax ; multiplicand hw
@@ -589,7 +598,7 @@ search_startup_file:
 		jb	short search_startup_file ; chk next entry
 		; 28/04/2024
 		; Sector Per Cluster countdown
-		dec	si 
+		dec	si
 		jnz	short bs_05 ; next sector in same cluster
 
 		pop	ax ; +
@@ -604,16 +613,21 @@ search_startup_file:
 
 get_next_cluster:	; get next (FAT32) directory/file cluster
 		; EAX = current cluster number (28 bit, zero based)
-		shl	dx, 1
+		;shl	dx, 1
+		;shl	ax, 1
+		;adc	dx, 0
+		;shl	dx, 1
+		;shl	ax, 1 ; 32 bit FAT entry offset
+		;adc	dx, 0
+		; 27/01/2026
 		shl	ax, 1
-		adc	dx, 0
-		shl	dx, 1
-		shl	ax, 1 ; 32 bit FAT entry offset
-		adc	dx, 0
+		rcl	dx, 1
+		shl	ax, 1
+		rcl	dx, 1
 
 		call	get_fat32_entry
 		jc	short bs_06 ; Disk read error!
-		
+
 		; 29/04/2024
 		; ds = es = 0
 		; si = cluster entry offset
@@ -639,18 +653,22 @@ get_fat32_entry:
 		; BX:AX = FAT sector number (relative)
 		; Check FAT sector number if it is already
 		; in FAT buffer at 8000h.
-		; Current FAT sector is in 7BF4h. 
+		; Current FAT sector is in 7BF4h.
 		; (Note: initial FAT sector value in 7BF4h is
-		;	 0FFFFFFFFh which means the buff 
+		;	 0FFFFFFFFh which means the buff
 		;	 is not loaded yet..)
-		cmp	bx, [bp-0Eh] ; [7BF6h]
+		;cmp	bx, [bp-0Eh] ; [7BF6h]
+		; 27/01/2026
+		cmp	bx, [bp-0Ah] ; [7BF6h]
 		jne	short g_fat32_e_1
 		cmp	ax, [bp-0Ch] ; [7BF4h]
 		je	short bs_08 ; same sector in FAT buffer
 g_fat32_e_1:
 		; 29/04/2024
 		mov	[bp-0Ch], ax ; save FAT sector number
-		mov	[bp-0Eh], bx ; save FAT sector number
+		;mov	[bp-0Eh], bx ; save FAT sector number
+		; 27/01/2026
+		mov	[bp-0Ah], bx ; save FAT sector number
 		xor	dx, dx ; 0
 		; Calculate absolute (LBA) address of FAT sector
 		; by adding hidden (partition's start sector)
@@ -674,7 +692,7 @@ g_fat32_e_1:
 		and	bx, 0Fh
 		jz	short bs_07	; FAT number 0 is active
 					; (as default)
-		; compare active FAT number with number of FATs	
+		; compare active FAT number with number of FATs
 		;cmp	bl, [BPB_NumFATs] ; [bp+10h]
 		cmp	bl, [bp+10h]
 		jnb	short bs_09 ; invalid parameter!
@@ -716,19 +734,19 @@ load_startup_file:
 		; DI = directory entry offset 9 (of 32 bytes)
 		; 29/04/2024
 		pop	ax ; +
-		pop	ax ; ++ ; dx 
+		pop	ax ; ++ ; dx
 		; High word of First Cluster
 		mov	dx, [di+9] ; [di+DIR_FstClusHI-11]
 		; Low word of First Cluster
 		mov	ax, [di+0Fh] ; [di+DIR_FstClusLO-11]
 		; Valid cluster number must not be less than 2
 		; and it (a first cluster value in directory entry)
-		; must not be greater than 0FFFFFF6h. 
-		and	dx,dx
+		; must not be greater than 0FFFFFF6h.
+		and	dx, dx
 		jnz	short lsf_1
 		cmp	ax, 2
 		jb	invalid_system_disk
-lsf_1:		; 29/04/2024		
+lsf_1:		; 29/04/2024
 		cmp	dx, 0FFFh
 		jb	short lsf_2
 		ja	invalid_system_disk
@@ -738,11 +756,11 @@ lsf_2:
 		push	ax ; save first cluster number (lw)
 
 		; Load  RTS (Kernel) file
-                mov     si, Loading_Msg
-                call    print_msg
-                
+                mov	si, Loading_Msg
+                call	print_msg
+
 		pop	ax ; restore first cluster number (lw)
-		
+
 		;mov	bx, rts_segment ; 1000h
 		;mov	[next_segment], bx
 bs_10:
@@ -753,8 +771,10 @@ bs_10:
 		sub	ax, 2 ; now, cluster num starts from 0
 		sbb	dx, 0
 		push	dx ; hw
-		;mov	cl, [BPB_SecPerClus] ; [bp+0Dh]
-		mov	cl, [bp+0Dh]
+		;;mov	cl, [BPB_SecPerClus] ; [bp+0Dh]
+		;mov	cl, [bp+0Dh]
+		; 29/01/2026
+		mov	cx, [SecPerClus]
 		mul	cx
 		mov	bx, ax ; multiplication result lw
 		pop	ax ; multiplicand hw
@@ -769,15 +789,23 @@ bs_10:
 		mov	bx, [next_segment]
 		push	es
 		mov	es, bx ; segment = 1000h +
-		xor	bx, bx ; offset = 0 
+		;
+		; 28/01/2026
+		;mov	bx, cx
+		;shl	bx, 5 ; spc*32 ; number of paragraphs
+		;add	[next_segment], bx
+		;
+		xor	bx, bx ; offset = 0
 		; CX = num of sectors to read (= sectors/cluster)
 		call	disk_read
 		pop	es
 		pop	ax
 		pop	dx ; 28 bit cluster num, starts from 2
-		;shr	bx, 4 ; bh = 2, bl = 0
-		;add	[next_segment], bx
-		add	word [next_segment], 32 ; paragraph count
+		;
+		; 28/01/2026
+		shr	bx, 4
+		add	[next_segment], bx
+		;
 		call	get_next_cluster
 		;jc	short diskio_error
 		jc	short retrodos_loading_error
@@ -786,7 +814,7 @@ bs_10:
 		or	dx, dx
 		jz	short lsf_3
 		cmp	dx, 0FFFh
-		jb	short bs_10 
+		jb	short bs_10
 
 		;cmp	ax, 0FFF8h
 		cmp	ax, 0FFF7h ; 0FFFFFF7h ; 23/12/2017
@@ -805,15 +833,14 @@ retrodos_loading_error:
 next_segment:
 		dw	rts_segment
 
-		; 29/04/2024
-		db	0
+SecPerClus:	; 29/01/2026
 loc_3A1:	dw	417
 
 		;db	'TR-DOS' ; Filler
 		; 29/04/2024
 		db	'Retro DOS v5', 0
 
-		; 29/04/2024		
+		; 29/04/2024
 Loading_Msg:    db	0Dh, 0Ah
 		;db	'Loading Kernel TRDOS386.SYS ...'
 		db	'Loading Kernel PCDOS.SYS ...'
@@ -835,7 +862,7 @@ bs_11:
 		;mov	dl, [BS_DrvNum]
                 mov	dx, [bp+40h] ; DL = Drive number, DH = 0
 		inc	dh  ; TRDOS 386 FAT32 BS major version = 1
-   		
+
 		mov	ax, [next_segment] ; 16 paragraphs after the
 					  ; start of the last segment
 					  ; of the kernel file loading
@@ -905,7 +932,7 @@ loc_39F:
 		;	((only requirement here is AX must not be 'CD'))
 		; bp = 7C00h (but, not used by RETRODOS v5 kernel INIT)
 
-		jmp	rts_segment:0		
+		jmp	rts_segment:0
 %endif
 
 		times	1020 - ($ - $$) db 0
