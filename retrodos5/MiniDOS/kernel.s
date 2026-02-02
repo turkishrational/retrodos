@@ -3,7 +3,7 @@
 ; ----------------------------------------------------------------------------
 ; Modified from Retro DOS v5.0 'ibmdos7.s' (10/07/2024) ((PCDOS 7.1 Kernel))
 ;
-; Last Update: 29/01/2026 (Previous: 06/08/2025)
+; Last Update: 02/02/2026 (Previous: 29/01/2026)
 ;
 ; ----------------------------------------------------------------------------
 ; Assembler: NASM version 2.15
@@ -5937,6 +5937,8 @@ Win386_Msg_init:
 	jmp	win_nexti2f		; no, return
 
 Win386_Starting:
+; 02/02/2026 -(MiniDOS)
+%if 0
 	; 05/01/2024 - Retro DOS v5.0
 	; PCDOS 7.1 IBMDOS.COM - DOSCODE:4630h
 	;;;
@@ -5962,7 +5964,7 @@ Win386_s_floop:
 	pop	cx
 	pop	ax
 	;;;
-
+%endif
 	; 17/12/2022
 	test	dl,1
 	;test	dx,1			; is this really win386?
