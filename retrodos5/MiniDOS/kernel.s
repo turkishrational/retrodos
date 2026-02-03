@@ -35147,7 +35147,8 @@ NOSWAP:
 	cmp	byte [DosHasHMA],0	; Q: is dos running in HMA (M021)
  	pop	ds	; restore ds
 	jne	short do_low_int23	; Y: the int must be done from low mem
-	CLC				
+	; 02/02/2026
+	;CLC				
 	INT	int_ctrl_c  ; int 23h	; N: Execute user Ctrl-C handler
 	jmp	short ctrlc_ret_addr
 
