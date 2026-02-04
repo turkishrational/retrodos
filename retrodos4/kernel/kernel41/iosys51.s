@@ -1,23 +1,23 @@
 ; ****************************************************************************
 ; IOSYS5.S (MSDOS 5.0 IO.SYS) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 21/04/2024 - Retro DOS v4.1 (Previous: 30/12/2023)
+; Last Update: 04/02/2026 - Retro DOS v4.1 (Previous: 21/04/2024)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
 ; Assembler: NASM version 2.15
 ; ----------------------------------------------------------------------------
-;	   ((nasm iosys5.s -l iosys5.lst -o IOSYS5.BIN -Z error.txt)) 	
+;	   ((nasm iosys5.s -l iosys5.lst -o IOSYS5.BIN -Z error.txt))
 ; ----------------------------------------------------------------------------
 
 ; 09/12/2022 - Multisection binary file format (BIOSDATA & BIOSCODE sections)
 ; 01/10/2022 - Erdogan Tan (Istanbul)
 
 ;Note: This code is a part of Retro DOS 4.0 kernel source code
-;     (as included binary, 'IOSYS5.BIN') 
+;     (as included binary, 'IOSYS5.BIN')
 ;     Equivalent of MSDOS 5.0 IO.SYS, BIOSCODE and BIOSDATA and SYSINIT
-;						        (except MSLOAD code)  
-      
+;						        (except MSLOAD code)
+
 ;------ Retro DOS v2 (v3) boot sector loads RETRODOS.SYS (MSDOS.SYS)
 ;	at 1000h:0000h and loader (initialization) part of RETRODOS kernel
 ;	moves IO.SYS (DOSBIOSCODE & DOSBIOSDATA, 'IOSYS5.BIN') to 70h:0000h.
@@ -95,7 +95,7 @@
 ; 09/12/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 IO.SYS)
 ;non-contiguous io.sys loader (msload) ((MSDOS 6.0 source: MSLOAD.ASM, 1991))
 
-section .MSLOAD ; vstart=0 
+section .MSLOAD ; vstart=0
 
 ; ****************************************************************************
 ; MSLOADS5.S (MSDOS 5.0 IO.SYS) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
@@ -395,7 +395,7 @@ SaveInputValues:
 %endif
 		; 14/09/2023
 		mov	bp, ax  ; first data sector (high word)
-		
+
 		push	cs
 		pop	es
 
@@ -1098,7 +1098,7 @@ SaveLoadedBios2:
 GetContigClusters:
 
 ; 24/12/2022
-%if 0	
+%if 0
 		xor	ah, ah
 		mov	al, [cs:SecPerCluster]	; Assume we will get one cluster
 		mov	[cs:SectorCount], ax	; Sector count = sectors in 1 cluster
@@ -1160,10 +1160,10 @@ GetContigClusters:
 		mov	[StartSecH], dx
 
 		; es:di = (current) buffer address for (current) read
-	
+
 		call	ReadSectors
 				; ES:DI = (the next) buffer address for next read
-		
+
 		jmp	short GetContigClusters
 
 ; ---------------------------------------------------------------------------
@@ -1200,7 +1200,7 @@ GetContigClusters:
 
 GoToBioInit:	
 		; 24/12/2022
-		; ds = cs	
+		; ds = cs
 		;mov	ch, [cs:MediaByte]
 		;mov	dl, [cs:BootDrive]
 		;mov	bx, [cs:FirstSectorL]
@@ -1454,12 +1454,12 @@ GotLength:
 		jmp	TryRead
 ; ---------------------------------------------------------------------------
 		; 07/10/2023
-;ReadError:				
+;ReadError:
 		;jmp	ErrorOut
 ; ---------------------------------------------------------------------------
 
 ReadOk:
-		; 23/12/2022			
+		; 23/12/2022
 		; ah = 0
 		; 22/12/2022
 		;xor	ah, ah		; Mask out read command, just get # read
@@ -1514,7 +1514,7 @@ ErrorOut:
 		; ds = cs
 		;push	cs
 		;pop	ds
-		
+
 		mov	si, NonSystemDiskMsg ; "\r\nNon-System disk or disk error\r\nRe"...
 		call	WriteTTY
 
@@ -1538,7 +1538,7 @@ ErrorOut:
 		;les	bx, [OrgDasdPtr] ; Wrong DS segment !
 					 ; (Erdogan Tan, 23/12/2022)
 		les	bx, [OrgDasdPtr] ; Correct DS segment = CS
-		
+
 		; 07/10/2023
 		; 23/12/2022
 		push	ss ; 0
@@ -1546,10 +1546,10 @@ ErrorOut:
 		; 07/10/2023
 		;xor	si, si
 		;mov	ds, si
-		; ds = 0		
+		; ds = 0
 
 		mov	si, DskAddr	; (Int 1Eh)
-		mov	[si], bx	; restore offset		
+		mov	[si], bx	; restore offset
 		mov	[si+2], es	; restore segment
 
 		int	19h		; reboot
@@ -1704,14 +1704,14 @@ Got12Bit:
 		;mov	ax, [cs:TempCluster]
 		; 06/10/2023
 		; 22/12/2022
-		pop	ax ; (*) 
+		pop	ax ; (*)
 		mov	ah, [es:0]
 		jmp	short EvenOdd
 ; ---------------------------------------------------------------------------
 
-ClusterOk:				
+ClusterOk:
 		mov	ax, [es:bx]
-EvenOdd:	
+EvenOdd:
 		; 24/12/2022
 		; ds = cs
 		test	byte [CurrentCluster], 1
@@ -1723,10 +1723,10 @@ EvenOdd:
 		jmp	short TestEOF
 ; ---------------------------------------------------------------------------
 
-OddResult:				
+OddResult:
 		mov	cl, 4			; Keep high 12 bits for odd
 		shr	ax, cl
-TestEOF:				
+TestEOF:
 		cmp	ax, 0FF8h		; Is it last cluster?
 		jnb	short GotClusterDone	; Yep, all done here
 		jmp	short NotLastCluster
@@ -1753,11 +1753,11 @@ Got16Bit:
 		jnb	short GotClusterDone
 NotLastCluster:	
 		; 24/12/2022
-		; ds = cs			
+		; ds = cs
 		;;mov	byte [cs:EndOfFile], NOT_END_OF_FILE ; ~END_OF_FILE
 		;mov	byte [cs:EndOfFile], 0	; Assume not last cluster
 		mov	byte [EndOfFile], 0	; Assume not last cluster
-GotClusterDone:				
+GotClusterDone:
 		pop	es
 		; 07/10/2023
 		; 24/12/2022
@@ -1817,7 +1817,7 @@ GetFatSector:
 		mov	[StartSecH], dx		; Set up for ReadSectors
 		;mov	[cs:StartSecL], ax
 		;mov	[cs:StartSecH], dx	; Set up for ReadSectors
-		
+
 		mov	word [SectorCount], 1	; 1 sector
 		;mov	word [cs:SectorCount], 1 ; 1 sector
 		xor	di, di ; 0
@@ -1883,7 +1883,7 @@ section .BIOSDATA vstart=0
 
 ;Bios_Data segment
 
-BData_start:				
+BData_start:
 hdrv_pat:	jmp	init		; MSBIO1.ASM, MSSBDATA.INC
 ; ----------------------------------------------------------------------------
 
@@ -1936,8 +1936,8 @@ CONHeader:				; HEADER FOR DEVICE "CON"
 word_727:	dw 8013h
 		dw strategy
 		dw con_entry
-aCon:		db 'CON     '           
-auxdev2:	dw prndev2		; HEADER FOR DEVICE "AUX"	
+aCon:		db 'CON     '
+auxdev2:	dw prndev2		; HEADER FOR DEVICE "AUX"
 		dw 70h
 		dw 8000h
 		dw strategy
@@ -1949,7 +1949,7 @@ word_74B:	dw 0A0C0h
 		dw strategy
 		dw prn0_entry
 aPrn:		db 'PRN     '		; HEADER FOR DEVICE "CLOCK$"
-timdev:		dw dskdev	
+timdev:		dw dskdev
 		dw 70h
 		dw 8008h
 		dw strategy
@@ -2000,7 +2000,7 @@ aLpt2:		db 'LPT2    ',0,0,0
 ;These guys patch Orig13 with their own int 13h hook and so this offset
 ;cannot change for them to work. Even ProComm does this.
 
-Orig13:		dd 0			; to make Orig13 offset 0B4h		
+Orig13:		dd 0			; to make Orig13 offset 0B4h
 
 lpt3dev:	dw com2dev		; Device Header for device LPT3	
 		dw 70h
@@ -2022,7 +2022,7 @@ com3dev:	;dw offset com4dev	; Device Header for device "COM3"
 		;dw offset strategy
 		;dw offset aux2_entry
 		dw strategy
-		dw aux2_entry	
+		dw aux2_entry
 aCom3:		db 'COM3    '
 com4dev:	dw 0FFFFh		; Device Header for device "COM4"	
 		dw 70h
@@ -2033,12 +2033,12 @@ com4dev:	dw 0FFFFh		; Device Header for device "COM4"
 
 ;-----------------------------------------------------------------------------
 
-RomVectors:	db 10h			
+RomVectors:	db 10h
 Old10:		dd 0
 		db 13h
-Old13:		dd 0			
+Old13:		dd 0
 		db 15h
-Old15:		dd 0			
+Old15:		dd 0
 		db 19h
 Old19:		dd 0
 		db 1Bh
@@ -2329,8 +2329,8 @@ xfer_seg:	dw 0			; temp for transfer segment
 ;max_sectors_curr_sup equ 63		; current maximum sec/trk that
 ;					; we support (was 40 in dos 3.2)
 
-sectorspertrack: dw 36			
-tracktable:	db 0, 0, 1, 2		
+sectorspertrack: dw 36
+tracktable:	db 0, 0, 1, 2
 		db 0, 0, 2, 2
 		db 0, 0, 3, 2
 		db 0, 0, 4, 2
@@ -2375,7 +2375,7 @@ tracktable:	db 0, 0, 1, 2
 ; this is a real ugly place to put this
 ; it should really go in the bds
 
-mediatype:	db 0			
+mediatype:	db 0
 media_set_for_format: db 0		; 1 if we have done an int 13 set media
 					; type for format call
 had_format_error: db 0			; 1 if the previous format operation
@@ -2392,7 +2392,7 @@ secondary_model_byte: db 0
 		
 int19sem:	db 0			; indicate that all int 19
 					; initialization is complete
-		
+
 ;; we assume the following remain contiguous and their order doesn't change
 ;i19_lst:
 ;	irp	aa,<02,08,09,0a,0b,0c,0d,0e,70,72,73,74,76,77>
@@ -2403,7 +2403,7 @@ int19sem:	db 0			; indicate that all int 19
 
 ; 21/10/2022
 
-i19_lst:	db 2			
+i19_lst:	db 2
 					; Int19old&aa
 int19old02:	dd 0FFFFFFFFh ; -1
 		db 8
@@ -2437,7 +2437,7 @@ int19old77:	dd 0FFFFFFFFh
 
 ;-----------------------------------------------------------------------------
 
-dskdrvs:	dw fdrive1	
+dskdrvs:	dw fdrive1
 		dw fdrive2
 		dw fdrive3
 		dw fdrive4
@@ -2475,7 +2475,7 @@ month_table:	dw 0			; january
 		dw 304
 		dw 334			; december
 
-daycnt2:	dw 0			
+daycnt2:	dw 0
 feb29:		db 0			; february 29 in a leap	year flag
 
 ;-----------------------------------------------------------------------------
@@ -2530,7 +2530,7 @@ end_BC_entries:	; 15/10/2022
 cbreak:					
 		mov	byte [cs:altah], 3 ; break key handling
 					; indicate break key set
-intret:					
+intret:
 		iret
 
 ; =============== S U B	R O U T	I N E ========================================
@@ -2569,7 +2569,7 @@ strategy:	; proc far
 
 ; 09/12/2022
 
-con_entry:				
+con_entry:
 		call	cdev_entry
 ; ----------------------------------------------------------------------------
 		;dw 0E4h		; con_table
@@ -2577,7 +2577,7 @@ con_entry:
 					; 2C7h:0E4h = 70h:2654h
 ; ----------------------------------------------------------------------------
 
-prn0_entry:				
+prn0_entry:
 		call	cdev_entry
 ; ----------------------------------------------------------------------------
 		;dw 0FBh		; prn_table
@@ -2586,7 +2586,7 @@ prn0_entry:
 		db 0, 0
 ; ----------------------------------------------------------------------------
 
-prn1_entry:				
+prn1_entry:
 		call	cdev_entry
 ; ----------------------------------------------------------------------------
 		;dw 0FBh		; prn_table
@@ -2595,7 +2595,7 @@ prn1_entry:
 		db 0, 1
 ; ----------------------------------------------------------------------------
 
-prn2_entry:				
+prn2_entry:
 		call	cdev_entry
 ; ----------------------------------------------------------------------------
 		;dw 0FBh		; prn_table
@@ -2604,7 +2604,7 @@ prn2_entry:
 		db 1, 2
 ; ----------------------------------------------------------------------------
 
-prn3_entry:				
+prn3_entry:
 		call	cdev_entry
 ; ----------------------------------------------------------------------------
 		;dw 0FBh		; prn_table
@@ -2613,7 +2613,7 @@ prn3_entry:
 		db 2, 3
 ; ----------------------------------------------------------------------------
 
-aux0_entry:				
+aux0_entry:
 		call	cdev_entry
 ; ----------------------------------------------------------------------------
 		;dw 130h		; aux_table
@@ -2622,7 +2622,7 @@ aux0_entry:
 		db 0
 ; ----------------------------------------------------------------------------
 
-aux1_entry:				
+aux1_entry:
 		call	cdev_entry
 ; ----------------------------------------------------------------------------
 		;dw 130h		; aux_table
@@ -2631,7 +2631,7 @@ aux1_entry:
 		db 1
 ; ----------------------------------------------------------------------------
 
-aux2_entry:				
+aux2_entry:
 		call	cdev_entry
 ; ----------------------------------------------------------------------------
 		;dw 130h		; aux_table
@@ -2640,7 +2640,7 @@ aux2_entry:
 		db 2
 ; ----------------------------------------------------------------------------
 
-aux3_entry:				
+aux3_entry:
 		call	cdev_entry
 ; ----------------------------------------------------------------------------
 		;dw 130h		; aux_table
@@ -2649,7 +2649,7 @@ aux3_entry:
 		db 3
 ; ----------------------------------------------------------------------------
 
-tim_entry:				
+tim_entry:
 		call	cdev_entry
 ; ----------------------------------------------------------------------------
 		;dw 147h		; tim_table
@@ -2662,7 +2662,7 @@ tim_entry:
 ; 09/12/2022
 DSKTBL equ dsktbl
 
-dsk_entry:				
+dsk_entry:
 		call	cdev_entry
 ; ----------------------------------------------------------------------------
 		;dw 4A2h		; dsktbl
@@ -2692,11 +2692,11 @@ cdev_entry:	; proc near
 				; jump is coded this way to fall thru
 				; in 99.99% of the cases
 ce_enter_codeseg:
-		jmp	far [cs:cdev]			
+		jmp	far [cs:cdev]
 		;jmp	dword ptr cs:cdev
 ;-----------------------------------------------------------------------------
 
-not_from_dos:				
+not_from_dos:
 		call	EnsureA20On
 		jmp	short ce_enter_codeseg
 
@@ -2707,7 +2707,7 @@ not_from_dos:
 ;*									*
 ;************************************************************************
 
-outchr:					
+outchr:
 		push	ax		; int 29h handler
 		push	si
 		push	di
@@ -2732,14 +2732,14 @@ outchr:
 ;*									*
 ;************************************************************************
 
-block13:				
+block13:
 		cmp	byte [cs:inHMA], 0
 		jz	short skipa20
 		call	IsA20Off	; A20 Off?
 		jnz	short skipa20
 		call	EnableA20	; assure a20 enabled
 
-skipa20:				
+skipa20:
 		mov	[cs:i13_ds], ds	; save caller's ds for call-through
 		pushf			; fake interrupt
 		call	far [cs:i13x]
@@ -2859,7 +2859,7 @@ DisableA20:
 ;*									*
 ;************************************************************************
 
-int19:					
+int19:
 		push	cs
 		pop	ds
 		mov	es, [zeroseg]	; 16/10/2022
@@ -2883,7 +2883,7 @@ next_int:
 					; stkinit in sysinit1 will initialize int19oldxx values
 		mov	cx, 14		; num_i19
 
-i19_restore_loop:			
+i19_restore_loop:
 		lodsb			; get interrupt	number
 		cbw			; assume < 128
 		mov	di, ax
@@ -2942,7 +2942,7 @@ Int15:		; proc near
 		;jmp	cs:Old15
 ; ----------------------------------------------------------------------------
 
-int15_1:				
+int15_1:
 		push	ds
 		push	ax
 		mov	ax, 40h		; ROMDATASEG
@@ -2958,7 +2958,7 @@ int15_1:
 		cmp	byte [inHMA], 0	; is DOS running from HMA
 		jz	short int15_2
 		call	EraseVDiskHead
-int15_2:				
+int15_2:
 		pop	ax
 		pop	ds
 		stc
@@ -3004,8 +3004,8 @@ EraseVDiskHead:	; proc near
 ;*									*
 ;************************************************************************
 
-int_2f:		
-		jmp	far [cs:bcode_i2f] ; 16/10/2022			
+int_2f:
+		jmp	far [cs:bcode_i2f] ; 16/10/2022
 		;jmp	dword ptr cs:bcode_i2f ; far [cs:bcode_i2f]
 
 ; ----------------------------------------------------------------------------
@@ -3015,7 +3015,7 @@ int_2f:
 ;	 It's not as if this is a really speed critical function.
 ;	 might as well do whatever's most compact.
 
-i2f_dskentry:				
+i2f_dskentry:
 		jmp	dsk_entry
 
 ; ----------------------------------------------------------------------------
@@ -3086,7 +3086,7 @@ IsWin386:	db 0			; Flag to indicate whether
 ;when we call it including checking of A20. The code being only about 
 ;30 bytes, we might as well put it in BIOS_DATA
 
-V86_Crit_SetFocus:			
+V86_Crit_SetFocus:
 		push	di
 		push	es
 		push	bx
@@ -3114,7 +3114,7 @@ V86_Crit_SetFocus:
 		retf			; do the call
 ;-----------------------------------------------------------------------------
 
-Skip:					
+Skip:
 		pop	ax
 		pop	bx
 		pop	es
@@ -3445,7 +3445,7 @@ disk_status1	equ 74h
 hf_num		equ 75h
 control_byte	equ 76h
 
-ibm_disk_io:				
+ibm_disk_io:
 		cmp	dl, 80h		; main routine,	fixes at rom bug
 		jb	short atd1	; pass through floppy disk calls. 
 		cmp	ah, 2
@@ -3453,12 +3453,11 @@ ibm_disk_io:
 		cmp	ah, 0Ah
 		jz	short atd2	; and call 0Ah (read long).
 atd1:
-		jmp	far [cs:Old13]					
+		jmp	far [cs:Old13]
 		;jmp	cs:Old13	; use rom int 13h handler
 ;-----------------------------------------------------------------------------
 
-atd2:					
-		push	bx
+atd2:		push	bx
 		push	cx
 		push	dx
 		push	di
@@ -3512,7 +3511,7 @@ atd4:
 		or	ah, ah
 		jz	short atd5
 		stc
-atd5:					
+atd5:
 		pop	es
 		pop	ds
 		pop	di
@@ -3550,7 +3549,7 @@ setcmd:		; proc near
 		mov	byte [cmd_block+cmd_reg], 22h
 		;mov	byte ptr ds:48h, 22h ; [cmd_block+cmd_reg]
 					; cmd_reg = 22h	if function 0Ah	(read long)
-setc1:					
+setc1:
 		mov	al, cl
 		and	al, 3Fh		; mask sector number
 		;mov	ds:44h,	al	; [cmd_block+sec_num]
@@ -3613,7 +3612,7 @@ docmd:		; proc near
 		push	cs
 		call	command
 		jnz	short doc3
-doc1:					
+doc1:
 		push	cs
 		call	waitt		; wait for controller to complete read
 		jnz	short doc3
@@ -3632,7 +3631,7 @@ doc1:
 ;
 ;M062	repz	insw		;read in sector
 
-rsct_loop:				
+rsct_loop:
 		insw
 		loop	rsct_loop
 		sti
@@ -3649,7 +3648,7 @@ rsct_loop:
 		cli
 		rep insb		; read in ecc
 		sti
-doc2:					
+doc2:
 		push	cs
 		call	check_status
 		jnz	short doc3	; operation failed
@@ -4284,7 +4283,7 @@ bv_loop:
 ; ----------------------------------------------------------------------------
 
 		; 12/12/2022
-;bv_error:				
+;bv_error:
 		;stc			; set error flag
 		;retn
 
@@ -4746,7 +4745,7 @@ next_int_:
 		; 21/12/2022
 		push	cs
 		pop	ds
-		
+
 		mov	ax, [Old13]	; save old13 in orig13 also
 		mov	[Orig13], ax
 		mov	ax, [Old13+2]
@@ -5158,12 +5157,12 @@ SkipRPL:
 		jbe	short resetintf
 		cmp	ax, 0F000h	; (condition 2)
 		jnz	short keepintf
-resetintf:	
-		mov	word [0Fh*4], intret			
+resetintf:
+		mov	word [0Fh*4], intret
 		;mov	word ptr ds:3Ch, offset	intret ; [0Fh*4]
 		mov	word [0Fh*4+2], cs
 		;mov	word ptr ds:3Eh, cs ; [0Fh*4+2]
-keepintf:				
+keepintf:
 ; end important
 
 ; 17/10/2022
@@ -5212,7 +5211,7 @@ org_key:
 ;		1	0	3
 ;		1	1	4
 ;**************************************************************
-				
+
 		; 21/12/2022
 		; ds = cs
 		;push	cs
@@ -5295,7 +5294,7 @@ enddrv:
 ;   ds:di - points to current bds
 ;   cx - flag bits for bds
 ;   dh - form factor for the drive (1 - 48tpi, 2 - 96tpi, 3 - 3.5" medium)
-					
+
 		xor	dl, dl
 
 		; 21/12/2022
@@ -5335,7 +5334,7 @@ loop_drive:
 		jmp	done_drives
 ;-----------------------------------------------------------------------------
 
-got_more:				
+got_more:
 		; 13/12/2023
 		;xor	cx, cx		; zero all flags
 
@@ -5477,7 +5476,7 @@ gotother:
 ; 80 cylinders and 9 sectors/track => 720 kb device
 ; 80 cylinders and 15 sec/trk => 96 tpi medium
 
-try_80:					
+try_80:
 		cmp	byte [num_cyln], 80
 		jnz	short gotother
 		mov	dh, 9		; ff288
@@ -5501,7 +5500,7 @@ try_80:
 		jmp	short nextdrive
 ; ----------------------------------------------------------------------------
 
-got96:					
+got96:
 		mov	dh, 1		; ff96tpi
 		jmp	short nextdrive
 
@@ -5622,7 +5621,7 @@ noparmsfromrom:
 		mov	[eot], al
 ; ----------------------------------------------------------------------------
 
-nextdrive:				
+nextdrive:
 		or	cl, 20h		; fi_own_physical
 					; set this true	for all	drives
 		mov	bh, dl		; save int13 drive number
@@ -5641,7 +5640,7 @@ not_special:
 ; the values that we put in for BDS_RBPB.BPB_HEADS and
 ; BDS_RBPB.BPB_SECTORSPERTRACK will only remain if the
 ; form factor is of type "ffother".
-				
+
 		xor	ax, ax		; fill BDS for drive
 		mov	al, [num_heads]
 		mov	[di+36h], ax	; [di+BDS.rheads]
@@ -5671,7 +5670,7 @@ not_special:
 		jmp	short nextdrive	; Use same info	for BDS	as previous
 ; ----------------------------------------------------------------------------
 
-no_single:				
+no_single:
 		;inc	dl
 		; 18/12/2022
 		inc	dx
@@ -5712,7 +5711,7 @@ hardfile_err:
 ; *** do not change the position of the following statement.
 ; *** domini routine will use [drvmax] value for the start of the logical
 ; *** drive number of mini disk(s).
-					
+
 		call	domini		; for setting up mini disks, if found
 
 ; -- begin added section
@@ -5801,7 +5800,7 @@ no_remap:
 
 ; 02/10/2022 - Retro DOS v4.0 (MSDOS v5.0 IO.SYS)
 
-static_configure:			
+static_configure:
 		mov	di, [end_of_bdss]
 		cmp	di, bdss	; 19/10/2022
 		;cmp	di, offset bdss	; did we allocate any hard drive bdss?
@@ -5814,7 +5813,7 @@ static_configure:
 		jnz	short dynamic_configure
 		
 		mov	di, endfloppy
-dynamic_configure:			
+dynamic_configure:
 		; 20/12/2022
 		;push	cs
 		;pop	es
@@ -5888,7 +5887,7 @@ dynamic_configure:
 ; when to install the hook.
 
 ;checkcmosclock:
-; 02/10/2022				
+; 02/10/2022
 checkcompaqbug:
 		; 21/12/2022
 		; es = 0F000h
@@ -5935,7 +5934,7 @@ do_compaq_patch:
 		; 13/12/2023
 		mov	si, compaq_disk_io ; endatrom
 
-install_int13_patch:			
+install_int13_patch:
 		push	cs
 		pop	es
 		; 18/10/2022
@@ -5950,7 +5949,7 @@ install_int13_patch:
 not_compaq_patch:			; M065
 		; 17/10/2022
 checkcmosclock:	
-		; 18/10/2022		
+		; 18/10/2022
 		push	cs
 		pop	es
 
@@ -6175,7 +6174,7 @@ eofbig:
 		cmp	bx, 0FFF7h
 iseofx:
 		jb	short loadit	; keep loading until cluster = eof
-		call	setdrvparms	; 
+		call	setdrvparms	;
 
 		;;jmp	far ptr	46Dh:267h ; jmp	SYSINIT_SEG:SYSINIT_START
 		;jmp	far 46Dh:267h
@@ -6341,10 +6340,10 @@ rmap_exit:
 bootbias equ 200h
 
 getboot:	; proc near
-		
+
 		; 15/12/2023
 		; ds = cs
-		
+
 		; 08/04/2018
 		; Retro DOS v2.0 (IBMBIO.COM, IBMDOS 2.1)
 		; 28/03/2018 - MSDOS 6.0 - MSINIT.ASM, 1991
@@ -6810,7 +6809,7 @@ valid_boot_record:
 ;					; although, content might be bad.
 ; ---------------------------------------------------------------------------
 
-try5:					
+try5:
 		call	cover_fdisk_bug
 
 ; see if it is an os2 signature
@@ -6832,10 +6831,10 @@ try5:
 
 ; no os2 signature, this is to check for real dos versions
 
-no_os2:					
+no_os2:
 		; 14/08/2023
 		; ds = cs = BIOSDATA
-		cmp	word [bx+8], '3.'			
+		cmp	word [bx+8], '3.'
 		;cmp	word [cs:bx+8], '3.' ; 03/10/2022 (NASM syntax)
 		;;cmp	word ptr cs:[bx+8], 2E33h ; '3.'
 		jb	short unknown3_0_j ; must be 2.1 boot record.
@@ -6895,7 +6894,7 @@ copybpb:
 
 ; non fat based	media.
 
-		push	di  ; BDS	
+		push	di  ; BDS
 		; 14/08/2023
 		;push	ds  ; ds = cs = BIOSDATA segment
 
@@ -6968,7 +6967,7 @@ copybpb:
 already_nonz:	
 		; 18/12/2022
 		; cx = 0
-		mov	cl, 25		
+		mov	cl, 25
 		;mov	cx, 25		; A_BPB.size - 6 ; Use SMALL version!
 		rep movsb
 
@@ -6976,7 +6975,7 @@ already_nonz:
 		;pop	ds ; (BugFix)
 		pop	di ; BDS
 		;
-		;push	es ; (BugFix)	
+		;push	es ; (BugFix)
 		;push	ds
 		;pop	es
 		;push	cs
@@ -7022,7 +7021,7 @@ CLEARIDS_X equ clear_ids_x
 copybpb_fat:
 		; 10/12/2022
 		; (number of FATs optimization)
-		; SI = disksector+11				
+		; SI = disksector+11
 		; 17/10/2022
 		;mov	si, disksector+11
 		;;mov	si, 159h	; disksector+EXT_BOOT.BPB
@@ -7061,7 +7060,7 @@ copy_totsec:
 		mov	[di+1Dh], dx	; [di+BDS.totalsecs32+2]
 
 		; 10/12/2022
-;totsec_already_set:			
+;totsec_already_set:
 		;mov	ax, [di+1Bh]	; [di+BDS.totalsecs32]
 		;mov	dx, [di+1Dh]	; [di+BDS.totalsecs32+2]
 
@@ -7356,8 +7355,8 @@ massage_bpb:
 		mov	dx, [di+1Dh]	; [di+BDS.totalsecs32+2]
 		mov	ax, [di+1Bh]	; [di+BDS.totalsecs32]
 		; 11/09/2023
-		or	dx, dx		
-		jnz	short goodret	
+		or	dx, dx
+		jnz	short goodret
 		;cmp	dx, 0		; double word total sectors?
 		;;ja	short goodret	; don't have to change it.
 		;; 12/12/2022
@@ -8040,7 +8039,7 @@ clock_present:
 		; 19/12/2023
 		; ds = cs
 		mov	byte [havecmosclock], 1 ; set the flag for cmos clock
-		
+
 		call	cmosck		; reset	cmos clock rate	that may be
 					; possibly destroyed by	cp dos and
 					; post routine did not restore that.
@@ -8213,7 +8212,7 @@ cmos_read:				; read location (al) into (al)
 		; al = output, bl = input
 		xchg	ax, bx ; *
 		; bl = output, al = input
-	
+
 		and	al, 80h
 		or	al, 0Fh
 		out	70h, al		; CMOS Memory/RTC Index	Register:
@@ -9013,12 +9012,12 @@ alt_ext_chk:
 		jmp	short alt_save
 ; ---------------------------------------------------------------------------
 
-not_ext:				
+not_ext:
 		or	al, al		; special case?
 		jnz	short keyret
-alt_save:				
+alt_save:
 		mov	[altah], ah	; store	special	key
-keyret:					
+keyret:
 		retn
 
 ; ---------------------------------------------------------------------------
@@ -9830,7 +9829,7 @@ tim_writ:				; 2C7h:3DBh = 70h:294Bh
 					;  DH =	seconds	in BCD,DL = 01h	if daylight savings, 00h if standard time
 					; Return: CMOS clock set
 		sti
-no_cmos_1:				
+no_cmos_1:
 		mov	cx, [es:di+2]
 		mov	dx, [es:di+4]
 		; 17/10/2022
@@ -9861,7 +9860,7 @@ no_cmos_1:
 		sti
 no_cmos_2:
 		; 12/12/2022
-		; cf=0				
+		; cf=0
 		;clc
 		retn
 
@@ -9944,7 +9943,7 @@ tim_read:				; 2C7h:435h = 70h:29A5h
 ; rounding based on the	remainder may be added here
 ; the result in	bx:ax is time in 1/100 second.
 
-		mov	dx, bx		
+		mov	dx, bx
 		mov	cx, 200		; extract 1/100's
 
 ; division by 200 is necessary to ensure no overflow--max result
@@ -9961,7 +9960,7 @@ noadj:
 ; to compensate	for dividing by	200 instead of 100, we now multiply
 ; by two, shifting a one in if the remainder had exceeded 100.
 
-		rcl	ax, 1		
+		rcl	ax, 1
 		mov	dl, 0
 		rcl	dx, 1
 		;mov	cx, 60		; divide out seconds
@@ -10714,7 +10713,7 @@ Has1:
 		mov	[di+19h], cx ; 0 ; [di+BDS.hiddensecs+2]
 		mov	[di+17h], cx ; 0 ; [di+BDS.hiddensecs]
 		mov	[di+1Dh], cx ; 0 ; [di+BDS.totalsecs32+2]
-		
+
 		pop	ds ; 02/09/2023
 getret:
 		pop	bx
@@ -10929,7 +10928,7 @@ movbpb_conv:
 		call	resetchanged	; reset	flags in bds to	not fchanged.
 		; 10/12/2022
 		; cf = 0
-;movbpb_ret:				
+;movbpb_ret:
 		;clc
 		retn
 
@@ -11171,11 +11170,11 @@ dsk_rem:				; 2C7h:831h = 70h:2DA1h
 ; ---------------------------------------------------------------------------
 
 non_rem:
-x_bus_exit:				
+x_bus_exit:
 		mov	ah, 3		; 2C7h:83Dh = 0070h:2DADh
 					; return busy status
 		stc
-dsk_ret:				
+dsk_ret:
 		retn
 
 ;----------------------------------------------------------------------------
@@ -12247,7 +12246,7 @@ NotGenericWrite:
 Cmd_Error_Proc:				; 2C7h:0CA3h = 70h:3213h
 		pop	dx
 
-IoctlFuncErr:				
+IoctlFuncErr:
 		jmp	bc_cmderr
 ; ---------------------------------------------------------------------------
 
@@ -12313,7 +12312,7 @@ UseBpbPresent:
 		; 12/12/2022
 		; cf=0 (test instruction -above- resets cf) 	
 		;clc
-GetParmRet:				
+GetParmRet:
 		retn
 ; ---------------------------------------------------------------------------
 
@@ -12642,7 +12641,7 @@ FormatOk:
 ; input: ES:di points to bds for drive
 ; ==========================================================================
 
-VerifyTrack:				
+VerifyTrack:
 		push	ds
 		lds	bx, [ptrsav]	; DS:BX points to request header.
 		lds	bx, [bx+19]	; [bx+IOCTL_REQ.GENERICIOCTL_PACKET]
@@ -12704,7 +12703,7 @@ NormVerifyTrack:
 		retn
 ; ---------------------------------------------------------------------------
 
-VerifyTrack_Err:			
+VerifyTrack_Err:
 		mov	ah, 1
 		jmp	maperror
 ; ---------------------------------------------------------------------------
@@ -12719,7 +12718,7 @@ VerifyTrack_Err:
 ;
 ; ==========================================================================
 
-ReadTrack:				
+ReadTrack:
 		mov	byte [rflag], 2	; romread
 		jmp	short ReadWriteTrack
 ; ---------------------------------------------------------------------------
@@ -12733,7 +12732,7 @@ WriteTrack:
 ; input: ES:di points to bds for drive
 ;
 ; ==========================================================================
-				
+
 		mov	byte [rflag], 3	; romwrite
 
 		; Fall into ReadWriteTrack
@@ -12752,8 +12751,8 @@ ReadWriteTrack:
 		; save bds pointer segment so we can use it to access
 		; our packet. Notice that this is not the standard register
 		; assignment for accessing packets
-		
-		; 19/10/2022	
+
+		; 19/10/2022
 		push	es
 		les	bx, [ptrsav]	; ES:BX	-> to request header
 		les	bx, [es:bx+19]	; [es:bx+IOCTL_REQ.GENERICIOCTL_PACKET]
@@ -12796,9 +12795,9 @@ ReadWriteTrack:
 ; ==========================================================================
 
 ; 16/03/2019 - Retro DOS v4.0
-		
+
 		; 19/10/2022
-TrackIo:	
+TrackIo:
 					; Procedure `disk' will pop stack to
 		mov	[spsav], sp	; SpSav	and return if error
 		call	checksingle	; Ensure correct disk is in drv
@@ -12828,7 +12827,7 @@ Dptalreadyset:				; Point si at the table entry of the
 		jz	short ionextsector
 		
 		xchg	dx, cx		; HEY! We can read all secs in one blow
-ionextsector:				
+ionextsector:
 		push	cx
 		push	dx
 		inc	si
@@ -12862,7 +12861,7 @@ ionextsector:
 		retn
 ; ---------------------------------------------------------------------------
 
-IoRemovable:				
+IoRemovable:
 		lodsb			; Get sector size index	from track
 					; table	and save it
 		push	ax
@@ -12959,7 +12958,7 @@ NoNeedDone2:
 ; ---------------------------------------------------------------------------
 
 		; 19/10/2022
-SetDasd:	
+SetDasd:
 		cmp	byte [had_format_error], 1 ;
 					; See if we've previously set dasd type
 		jz	short DoSetDasd
@@ -13058,7 +13057,7 @@ DasdHasBeenSet:
 ; ---------------------------------------------------------------------------
 
 		; 19/10/2022
-SetMediaForFormat:	
+SetMediaForFormat:
 		push	cx
 		push	dx
 
@@ -13073,7 +13072,7 @@ SetMediaForFormat:
 		jmp	SetMediaRet	; Media	already	set
 ; ---------------------------------------------------------------------------
 
-DoSetMediaForFormat:			
+DoSetMediaForFormat:
 		push	es
 		push	si
 
@@ -13094,7 +13093,7 @@ DoSetMediaForFormat:
 		mov	byte [es:si+9], 0Fh ; [es:si+DISK_PARMS.DISK_HEAD_STTL]
 		pop	si
 		pop	es
-SkipSaveDskAdr:				
+SkipSaveDskAdr:
 		mov	cx, [es:di+25h]	; [es:di+BDS.cylinders]
 		dec	cx
 		and	ch, 3
@@ -13148,7 +13147,7 @@ skip_disk_base_setting:
 FormaStatErr:
 		; 10/12/2022
 		mov	al, 3
-				
+
 		cmp	ah, 0Ch		; DSK_ILLEGAL_COMBINATION
 					; Illegal combination =	0Ch
 		jz	short FormatStatIllegalComb
@@ -13168,24 +13167,24 @@ FormatStatIllegalComb:
 		;dec	al	; 3 -> 2 or 2 -> 1
 		; 18/12/2022
 		dec	ax
-		; al = 2				
+		; al = 2
 		;mov	al, 2		; Function supported, but
 					; Illegal sect/trk,trk combination.
 		; 10/12/2022
 		;jmp	short PopStatRet
 ; ---------------------------------------------------------------------------
 
-FormatStatTimeOut:			
+FormatStatTimeOut:
 		; 10/12/2022
 		; al = 3
 		;mov	al, 3		; Function supported, but
 					; Media	not present.
-PopStatRet:				
+PopStatRet:
 		pop	di
 		pop	si
 		pop	ds
 		pop	es
-SetMediaRet:				
+SetMediaRet:
 		pop	dx
 		pop	cx
 		retn
@@ -13324,7 +13323,7 @@ ioctl_getown:
 		mov	al, [es:di+4]	; [es:di+BDS.drivenum]
 					; Get physical drive number
 		les	di, [start_bds] ; Get start of bds chain
-ownloop:				
+ownloop:
 		cmp	[es:di+4], al	; [es:di+BDS.drivenum]
 		jnz	short getnextBDS
 		; 10/12/2022
@@ -13332,7 +13331,7 @@ ownloop:
 		;test	word [es:di+23h], 20h ; [es:di+BDS.flags]
 					; fi_own_physical
 		jnz	short exitown
-getnextBDS:				
+getnextBDS:
 		les	di, [es:di]	; [es:di+BDS.link]
 		jmp	short ownloop
 ; ---------------------------------------------------------------------------
@@ -13363,7 +13362,7 @@ ioctl_setown:
 ;
 ; ==========================================================================
 
-exitown:				
+exitown:
 		xor	cl, cl
 		; 12/12/2022
 		test	byte [es:di+23h], 10h
@@ -13374,7 +13373,7 @@ exitown:
 					; Get logical drive number
 					; Get it 1-based
 		inc	cl
-exitnomult:				
+exitnomult:
 		lds	bx, [ptrsav]
 		mov	[bx+1],	cl	; [bx+unit]
 					; Exit normal termination
@@ -13520,7 +13519,7 @@ IOCtl_If4:		; 24/12/2023
 					; L+size_of_EXT_BOOT_VOL_LABEL
 					; +size_of_EXT_SYSTEM_ID
 		rep movsb		; Move from Bios_Data into request packet
-	
+
 		; 10/12/2022
 		; cf = 0
 		;clc
@@ -13731,7 +13730,7 @@ BootIo:
 ;
 ; ---------------------------------------------------------------------------
 
-ChangeLineChk:	
+ChangeLineChk:
 		mov	dl, [es:di+4]	; [es:di+BDS.drivenum]
 		or	dl, dl		; Fixed	disk?
 		js	short ChangeLnChkRet ; Yes, skip it.
@@ -13758,7 +13757,7 @@ ChangeLineChk:
 					; physical drive
 		call	set_changed_dl
 		pop	bx
-ChangeLnChkRet:				
+ChangeLnChkRet:
 		retn
 
 ; ---------------------------------------------------------------------------
@@ -13813,7 +13812,7 @@ GafDone:
 ; ==========================================================================
 
 		; 19/10/2022
-SetAccessFlag:				
+SetAccessFlag:
 		lds	bx, [ptrsav]	; ES:BX	points to request header
 		lds	bx, [bx+19]	; [bx+IOCTL_REQ.GENERICIOCTL_PACKET]
 		; 10/12/2022
@@ -13826,7 +13825,7 @@ SetAccessFlag:
 		or	byte [es:di+36], 02h
 		;or	word [es:di+35], 200h ; [es:di+BDS.flags]
 					; unformatted_media
-saf_Done:				
+saf_Done:
 		retn
 ; ---------------------------------------------------------------------------
 
@@ -13868,14 +13867,14 @@ ioctl_support_query:
 					; Signal ioctl is supported
 		;;jmp	short ioctlsupexit
 ; ---------------------------------------------------------------------------
-ioctlsupexit:				
+ioctlsupexit:
 		pop	es
 		; 10/12/2022
 		; cf = 0
 		;clc
 		retn
 ; ---------------------------------------------------------------------------
-nosupport:				
+nosupport:
 		pop	es
 		jmp	bc_cmderr
 ; ---------------------------------------------------------------------------
@@ -13914,7 +13913,7 @@ nosupport:
 ; ==========================================================================
 
 		; 19/10/2022
-SenseMediaType:				
+SenseMediaType:
 		lds	bx, [ptrsav]	; DS:BX	points to request header.
 		lds	bx, [bx+19]	; bx+IOCTL_REQ.GENERICIOCTL_PACKET]
 		; 10/10/2022
@@ -13931,7 +13930,7 @@ SenseMediaType:
 		int	13h		; DISK - QCACHE	- DISMOUNT
 		jb	short MediaSenseEr ; error code	in AH
 		inc	byte [bx]	; Signal media type is default (bit 1)
-DetermineMediaType:			
+DetermineMediaType:
 		dec	al
 		cmp	al, 2		; Chk for 720K ie: (3-1) = 2
 		jz	short GotMediaType
@@ -13948,7 +13947,7 @@ GotMediaType:
 		retn
 ; ---------------------------------------------------------------------------
 
-MediaSenseEr:				
+MediaSenseEr:
 		cmp	ah, 32h		; See if not default media error
 		jz	short DetermineMediaType ; Not really an error
 		mov	al, 2		; Now assume drive not ready
@@ -13956,7 +13955,7 @@ MediaSenseEr:
 		jz	short SenseErrExit ; Return drive not ready
 UnknownMediaType:			
 		mov	al, 7		; Just don't know the media type
-SenseErrExit:				
+SenseErrExit:
 		mov	ah, 81h		; Signal error return
 		stc
 		retn
@@ -14002,7 +14001,7 @@ SenseErrExit:
 ;	    informations without calling generic ioctl get device parm call.)
 
 ;BIOSSEGMENT equ 70h
-DOSBIOSSEG equ 0070h ; 17/10/2022	
+DOSBIOSSEG equ 0070h ; 17/10/2022
 
 ;;BIOSCODE:1302h (MSDOS 6.21, IO.SYS)
 
@@ -14021,11 +14020,11 @@ i2f_handler:				; here is 02C7h:1302h =	0070h:3872h
 		jmp	handle_multmult
 ; ---------------------------------------------------------------------------
 
-i2f_handler_iret:			
+i2f_handler_iret:
 		iret
 ; ---------------------------------------------------------------------------
 
-int2f_replace_int13:			
+int2f_replace_int13:
 		push	ax	; free up a register for caller's ds
 		mov	ax, ds	; then we can use ds: -> Bios_Data
 		;;mov	ds, word [cs:0030h] ; 15/10/2022	
@@ -14068,7 +14067,7 @@ i2f_iret:
 		iret
 ; ---------------------------------------------------------------------------
 
-mine:					
+mine:
 		cmp	al, 0F8h 		; iret on reserved functions
 		jnb	short i2f_iret
 		or	al, al			; a get installed state request?
@@ -14079,7 +14078,7 @@ mine:
 		iret
 ; ---------------------------------------------------------------------------
 
-disp_func:				
+disp_func:
 		cmp	al, 1			; request for installing bds?
 		jz	short do_subfun_01
 		cmp	al, 3			; get bds vector?
@@ -14108,7 +14107,7 @@ disp_func:
 
 ; ---------------------------------------------------------------------------
 
-do_subfun_01:				
+do_subfun_01:
 		push	es
 		push	ds
 		push	ds
@@ -14144,7 +14143,7 @@ do_get_bds_vector:
 ; flag and return instance data. If exiting, we reset the WIN386 present flag
 ; NOTE: We assume that the BIOS int 2fh is at the bottom of the chain.
 
-win386call:				
+win386call:
 		push	ds
 		mov	ds, [cs:BIOSDATAWORD]
 		;mov	ds, word ptr cs:BIOSDATAWORD ; [cs:Bios_Data_Word]
@@ -14166,7 +14165,7 @@ win386call:
 
 Win386Init:	
 		; 12/12/2022
-		test	dl, 1			
+		test	dl, 1
 		;test	dx, 1		; is it win386 or win286 dos extender?
 		jnz	short win_iret	; if not win386, then continue
 		;or	ds:IsWin386, 1	; Indicate WIN386 present
@@ -14187,7 +14186,7 @@ ii2f_iret:	; 10/12/2022
 		iret
 ; ---------------------------------------------------------------------------
 
-handle_multmult:			
+handle_multmult:
 		cmp	al, 1
 		jnz	short try_2
 		push	ds
@@ -14209,7 +14208,7 @@ try_1:
 		iret
 ; ---------------------------------------------------------------------------
 
-try_2:					
+try_2:
 		cmp	al, 2		; multMULTALLOCHMA
 		jnz	short try_3
 		push	ds
@@ -14234,7 +14233,7 @@ try_2:
 		iret
 ; ---------------------------------------------------------------------------
 
-try_4:					
+try_4:
 		;mov	di, ds:FreeHMAPtr
 		mov	di, [FreeHMAPtr]
 		add	bx, 15
@@ -14247,7 +14246,7 @@ try_4:
 		mov	word [FreeHMAPtr], 0FFFFh ; -1
 		;mov	ds:FreeHMAPtr, 0FFFFh
 					; no more HMA if we have wrapped
-InsuffHMA:				
+InsuffHMA:
 		pop	ds
 		; 10/12/2022
 try_3:
@@ -14257,7 +14256,7 @@ try_3:
 ; ---------------------------------------------------------------------------
 
 		; 10/12/2022
-;try_3:					
+;try_3:
 		;jmp	ii2f_iret
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -14296,7 +14295,7 @@ HMAPtr:
 		;call	ds:MoveDOSIntoHMA ; call far [MoveDOSIntoHMA]
 		mov	di, [FreeHMAPtr]
 		;mov	di, ds:FreeHMAPtr
-HMAPtr_retn:				
+HMAPtr_retn:
 		retn
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -14336,7 +14335,7 @@ move_sector:
 		retn
 ; ---------------------------------------------------------------------------
 
-movsec_bytes:				
+movsec_bytes:
 		shl	cx, 1
 		rep movsb
 		pop	cx
@@ -14364,7 +14363,7 @@ movsec_bytes:
 ;	(the above may or may not have been changed, and are 0-based)
 ;	all other registers preserved.
 
-check_wrap:	
+check_wrap:
 		push	ax
 		push	bx
 		push	es
@@ -14392,7 +14391,7 @@ check_wrap:
 		mov	ah, bl		; set sector=BDS_BPB.BPB_SECTORSPERTRACK
 					; if on	boundary
 		;dec	al ; *		; also decrement # of head wraps
-not_on_bound:				
+not_on_bound:
 		and	cl, 0C0h	; zero out sector #
 		or	cl, ah		; or in	new sector #
 		xor	ah, ah		; ax = # of head wraps
@@ -14421,7 +14420,7 @@ not_on_bound:
 		or	ax, ax
 		jz	short no_head_bound
 		dec	ax		; reduce number	of cylinder wraps
-no_head_bound:				
+no_head_bound:
 		mov	bh, dl		; bh has new head number
 		pop	dx		; restore drive number and head number
 		dec	bh		; get it 0-based
@@ -14436,7 +14435,7 @@ no_head_bound:
 		shl	bl, cl		; move up to ms	end
 		xchg	bl, cl		; restore cylinder bits	into cl
 		or	cl, bh		; or in	sector number
-no_wrap:				
+no_wrap:
 		clc
 		pop	di
 		pop	es
@@ -14445,7 +14444,7 @@ no_wrap:
 		retn
 ; ---------------------------------------------------------------------------
 
-no_wrap_head:				
+no_wrap_head:
 		mov	dh, al		; do not lose new head number
 		dec	dh		; get it 0-based
 		jmp	short no_wrap
@@ -14462,9 +14461,9 @@ no_wrap_head:
 ; guaranteed to trash no registers except es:di
 
 		; 19/10/2022
-find_bds:	
+find_bds:
 		les	di, [start_bds]	; point es:di to first bds
-fbds_1:					
+fbds_1:
 		cmp	[es:di+4], dl	; [es:di+BDS.drivenum]
 		jz	short fdbs_2
 		les	di, [es:di]	; [es:di+BDS.link]
@@ -14472,7 +14471,7 @@ fbds_1:
 		cmp	di, 0FFFFh
 		jnz	short fbds_1
 		stc
-fdbs_2:					
+fdbs_2:
 		retn
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -14484,7 +14483,7 @@ doint:
 		mov	dl, [bp+8]	; [bp+INT13FRAME.olddx]
 					; get physical drive number
 		; 19/10/2022 - Temporary !
-		;db	8Ah, 96h, 8, 0	; mov dl, [bp+8]	
+		;db	8Ah, 96h, 8, 0	; mov dl, [bp+8]
 		
 		xor	ah, ah
 		or	al, al
@@ -14505,7 +14504,7 @@ doint:
 		; 10/12/2022
 		pop	word [bp+10h]	; [bp+INT13FRAME.oldf]
 		;db	8Fh, 86h, 10h, 0 ; pop word [bp+10h]
-dointdone:				
+dointdone:
 		retn
 
 ;----------------------------------------------------------------------------
@@ -14668,7 +14667,7 @@ i13z:					; 0070h:3ABBh =	02C7h:154Bh
 		cmp	ah, 5		; romformat
 		jz	short format_special_stuff
 					; go do special stuff for format
-format_special_stuff_done:		
+format_special_stuff_done:
 		cmp	byte [ec35flag], 0 ; any electrically compat 3.5 inchers?
 		jnz	short ec35_special_stuff
 					; go handle it out of line if so
@@ -14676,9 +14675,9 @@ ec35_special_stuff_done:
 		;;call	far 70:797h ; MSDOS 6.21 IO.SYS BIOSCODE:1560h
 		call	DOSBIOSSEG:call_orig13
 		;call	call_orig13	; call far KERNEL_SEGMENT:call_orig13
-		
+
 		pushf			; save result flags
-		
+
 		cmp	byte [model_byte], 0FAh ; is this a ps2/30?
 					; mdl_ps2_30
 		jz	short ps2_special_stuff
@@ -15225,7 +15224,7 @@ next_bds:
 
 ; 17/10/2022
 ;DRVLET	equ drvlet - DOSBIOSEG_2C7h
-;SNGMSG	equ sngmsg - DOSBIOSEG_2C7h	
+;SNGMSG	equ sngmsg - DOSBIOSEG_2C7h
 ; 09/12/2022
 DRVLET equ drvlet
 SNGMSG equ sngmsg
@@ -15239,7 +15238,7 @@ SNGMSG equ sngmsg
 ;---------------------------------------------------------------------------
 
 		; 19/10/2022
-swpdsk:		test	byte [IsWin386], 1			
+swpdsk:		test	byte [IsWin386], 1
 		;test	ds:IsWin386, 1	; Is win386 present?
 		jz	short no_win386	; no, skip SetFocus
 		
@@ -15249,7 +15248,7 @@ swpdsk:		test	byte [IsWin386], 1
 		call	DOSBIOSSEG:V86_Crit_SetFocus
 		;call	far ptr	V86_Crit_SetFocus ; call far 70h:8D1h
 					; call far KERNEL_SEGMENT:V86_Crit_SetFocus
-no_win386:				
+no_win386:
 		push	cx
 		push	dx
 		mov	dl, [es:di+5]	; [es:di+BDS.drivelet]
@@ -15264,7 +15263,7 @@ no_win386:
 		mov	ax, 4A00h	; multMULT<<8)|multMULTSWPDSK
 					; broad	cast code for swap disk
 					; Broadcast it
-		int	2Fh	
+		int	2Fh
 		inc	cx		; cx == -1 ?
 		jz	short swpdsk9	; somebody has handled it
 
@@ -15284,7 +15283,7 @@ no_win386:
 		cs
 		lodsb			; get the next character of the message
 		;lods	byte ptr cs:[si]
-wrmsg_loop:				
+wrmsg_loop:
 		int	29h		; DOS 2+ internal - FAST PUTCHAR
 					; AL = character to display
 		cs
@@ -15299,7 +15298,7 @@ wrmsg_loop:
 		int	16h		; KEYBOARD - READ CHAR FROM BUFFER, WAIT IF EMPTY
 					; Return: AH = scan code, AL = character
 		pop	bx
-swpdsk9:				
+swpdsk9:
 		pop	dx
 		pop	cx
 		retn
@@ -15395,7 +15394,7 @@ mediacheck:
 		jz	short mediadovolid ; check_time	says ">= 2 secs	passed"
 					; (volume id will be checked)
 		xor	si, si		; return "i don't know"
-mediaret:				
+mediaret:
 		retn
 ; ---------------------------------------------------------------------------
 
@@ -15403,7 +15402,7 @@ mediaret:
 ; because this may be different since we only set medbyt when doing a read
 ; or write.
 
-mediadovolid:				
+mediadovolid:
 		call	GetBp		; build	a new bpb in current bds
 		jb	short mediaret
 		call	check_vid
@@ -15422,10 +15421,10 @@ mediadovolid:
 ;	***** warning:  this routine will return one level up on the stack
 ;			if an error occurs!
 
-checklatchio:	
+checklatchio:
 
 ; if returning fake bpb then assume the disk has not changed
-			
+
 		call	chkopcnt
 		jz	short checkret	; done if zero
 
@@ -15444,12 +15443,12 @@ checklatchio:
 		or	si, si		; is changed for sure?
 		jns	short checkret
 		call	returnvid
-checklatchret:				
+checklatchret:
 		call	maperror	; fix up al for	return to dos
-ret_no_error_map:			
+ret_no_error_map:
 		stc
 		pop	si		; pop off return address
-checkret:				
+checkret:
 		retn
 ; ---------------------------------------------------------------------------
 
@@ -15458,7 +15457,7 @@ checkret:
 ;
 ;	called with es:di -> bds, ds -> Bios_Data
 
-checkfatvid:				
+checkfatvid:
 		call	fat_check	; check	the fat	and the	vid
 		or	si, si
 		js	short changed_drv ;
@@ -15502,7 +15501,7 @@ check_vid:
 		call	haschange
 		jz	short checkret
 		xor	si, si
-		cmp	byte [disksector+10h], 0 
+		cmp	byte [disksector+10h], 0
 					; [disksector+EXT_BOOT.BPB+EBPB.NUMBEROFFATS]
 		jz	short checkfatret ; don't read vol id
 					; if not fat system
@@ -15514,12 +15513,12 @@ check_vid:
 		jnz	short changed_drv
 
 		inc	si		; not changed
-vid_no_changed:				
+vid_no_changed:
 		call	resetchanged
 		; 12/12/2022
 		; cf=0 ('and' instruction in 'resetchanged' clears cf) 
 		;clc
-checkfatret:				
+checkfatret:
 		retn
 ; ---------------------------------------------------------------------------
 
@@ -15551,7 +15550,7 @@ changed_drv:
 ; bds fields in inc\msbds.inc
 
 		; 19/10/2022
-do_ext_check_id:			
+do_ext_check_id:
 		push	ax
 		;mov	ax, word ptr ds:disksector+27h
 					; [DiskSector+EXT_BOOT.SERIAL]
@@ -15589,7 +15588,7 @@ ext_changed:
 ;
 ; es:di -> bds
 
-checkio:				
+checkio:
 		cmp	ah, 6
 		jnz	short checkfatret
 		call	chkopcnt
@@ -15604,15 +15603,15 @@ checkio:
 		retn
 ; ---------------------------------------------------------------------------
 
-checkioerr:				
+checkioerr:
 		call	returnvid
 
-checkioret:				
+checkioret:
 		stc			; make sure carry gets passed through
 		jmp	harderr
 ; ---------------------------------------------------------------------------
 
-no_error_map:				
+no_error_map:
 		jmp	harderr2
 
 ; =============== S U B	R O U T	I N E =======================================
@@ -15621,7 +15620,7 @@ no_error_map:
 ;  es:di -> bds, returns pointer in packet to bds_volid
 ;  **** trashes si! ****
 
-returnvid:		
+returnvid:
 		mov	si, 22		; extra
 					; offset into pointer to return	value
 		call	vid_into_packet
@@ -15637,7 +15636,7 @@ returnvid:
 ; assumes es:di -> bds
 ; **trashes si**
 
-media_set_vid:				
+media_set_vid:
 		mov	si, 15		; trans+1
 					; return the value here	in packet
 
@@ -15687,8 +15686,8 @@ hidensity:
 ; check for correct drive
 		
 		; 12/12/2022
-		test	byte [es:di+23h], 2		
-		;test	word [es:di+23h], 2 ; is it special?	
+		test	byte [es:di+23h], 2
+		;test	word [es:di+23h], 2 ; is it special?
 					; [es:di+BDS.flags], fchangeline
 		jz	short dofloppy	; no, do normal floppy test
 
@@ -15733,7 +15732,7 @@ hidensity:
 
 Is720K:
 		; 02/09/2023
-		pop	bx		; pop off return address	
+		pop	bx		; pop off return address
 		;add	sp, 2		; pop off return address
 		jmp	Has720K		; return to 720K code
 ; ---------------------------------------------------------------------------
@@ -15760,7 +15759,7 @@ Is720K:
 ; in the virtual drive system we *must* flag the other drives as being changed
 ;---------------------------------------------------------------------------
 
-set_changed_dl:	
+set_changed_dl:
 		push	es
 		push	di
 		;les	di, ds:start_bds
@@ -15769,7 +15768,7 @@ set_changed_dl:
 
 ; note: we assume that the list is non-empty
 
-scan_bds:				
+scan_bds:
 		cmp	[es:di+4], dl	; [es:di+BDS.drivenum]
 		jnz	short get_next_bds
 
@@ -15778,7 +15777,7 @@ scan_bds:
 
 		or	[es:di+23h], bx	; [es:di+BDS.flags]
 					; signal change	on other drive
-get_next_bds:				
+get_next_bds:
 		les	di, [es:di]	; [es:di+BDS.link]
 					; go to	next bds
 		cmp	di, 0FFFFh
@@ -15816,7 +15815,7 @@ checkromchange:
 ;   registers modified: none
 ;---------------------------------------------------------------------------
 
-resetchanged:	
+resetchanged:
 		;and	word [es:di+BDS.flags], ~fchanged ; 0FFBFh	
 		; 10/12/2022
 		and	byte [es:di+23h], 0BFh
@@ -15838,7 +15837,7 @@ resetchanged:
 haschange:
 		;test	word [es:di+BDS.flags], fchangeline ; 2
 		; 10/12/2022
-		test	byte [es:di+23h], 2		
+		test	byte [es:di+23h], 2
 		;test	word [es:di+23h], 2 ; [es:di+BDS.flags]
 					; fchangeline
 		retn
@@ -15869,7 +15868,7 @@ haschange:
 ;	carry set
 ;	   error and ax has error code
 
-set_volume_id:				
+set_volume_id:
 		push	dx		; save registers
 		push	ax
 		call	haschange	; does drive have changeline support?
@@ -15878,7 +15877,7 @@ set_volume_id:
 		jb	short seterr
 		call	transfer_volume_id ; copy the volume id	to special drive
 		call	resetchanged	; restore value	of change line
-setvret:				
+setvret:
 		; 10/12/2022
 		; cf = 0
 		;clc			; no error, clear carry flag
@@ -15887,7 +15886,7 @@ setvret:
 		retn
 ; ---------------------------------------------------------------------------
 
-seterr:					
+seterr:
 		pop	dx		; pop stack but don't overwrite ax
 		pop	dx		; restore dx
 		retn
@@ -15895,7 +15894,7 @@ seterr:
 root_sec:	dw 0			; root sector #
 
 ; 16/10/2022
-;ROOTSEC equ root_sec - DOSBIOSEG_2C7h		
+;ROOTSEC equ root_sec - DOSBIOSEG_2C7h
 ; 09/12/2022
 ROOTSEC equ root_sec
 
@@ -16002,7 +16001,7 @@ notfound:
 
 found_vid:
 		; 02/09/2023
-		; cf = 0  ('test' instruction clears cf)  				
+		; cf = 0  ('test' instruction clears cf)
 		pop	cx		; clean stack of outer loop counter
 		mov	si, bx		; point	to volume_id
 		push	es		; preserve current bds
@@ -16025,7 +16024,7 @@ found_vid:
 fvid_ret:
 		; 02/09/2023
 		xor	si, si ; 0
-				
+
 		pop	ax
 		; 10/12/2022
 		; cf = 0
@@ -16747,7 +16746,7 @@ struc PDB	; Process_data_block
 .APPEND:	resb 1		; *** Not sure if still used ***
 .NOVELL_USED:	resb 2		; Novell shell (redir) uses these
 .VERSION:	resw 1		; DOS version reported to this app
-.PAD1:		resb 14		; 	
+.PAD1:		resb 14		;
 .CALL_SYSTEM:	resb 5		; portable method of system call
 .PAD2:		resb 7 		; reserved so FCB 1 can be used as an extended FCB
 .FCB1:		resb 16		; default FCB 1
@@ -16854,7 +16853,7 @@ DUP_PDB                         EQU 85  ; 85     55
 RENAME                          EQU 86  ; 86     56
 FILE_TIMES                      EQU 87  ; 87     57
 ;
-ALLOCOPER			EQU 88	; 88     58	
+ALLOCOPER			EQU 88	; 88     58
 ; Network extention system calls
 GetExtendedError		EQU 89	; 89	 59
 CreateTempFile			EQU 90	; 90	 5A
@@ -16916,7 +16915,7 @@ OEM_C7				EQU 255 ; 255	 FF
 ;;	ENDIF
 
 ; ----------------------------------------------------------------------
-; BIOSTRUC.INC (MSDOS 3.3 - 24/07/1987) 	
+; BIOSTRUC.INC (MSDOS 3.3 - 24/07/1987)
 ; ----------------------------------------------------------------------
 					  ;;Rev 3.30 Modification
 ; ROM BIOS CALL PACKET STRUCTURES					  
@@ -16988,22 +16987,22 @@ OEM_C7				EQU 255 ; 255	 FF
 ;	DB	xx		feature information byte 2 - reserved	  
 ;									  
 
-; 22/03/2019									  
-struc ROMBIOS_DESC		; BIOS_SYSTEM_DESCRIPTOR						  
-.bios_sd_leng:		resw 1				  
-.bios_sd_modelbyte:	resb 1					  
-.bios_sd_scnd_modelbyte: 
-			resb 1					  
-			resb 1					  
-.bios_sd_featurebyte1:	resb 1					  
-			resb 4					  
-endstruc					  
-									  
+; 22/03/2019
+struc ROMBIOS_DESC		; BIOS_SYSTEM_DESCRIPTOR 
+.bios_sd_leng:		resw 1
+.bios_sd_modelbyte:	resb 1
+.bios_sd_scnd_modelbyte:
+			resb 1
+			resb 1
+.bios_sd_featurebyte1:	resb 1
+			resb 4
+endstruc
+
 ;FeatureByte1	bit map equates 					  
-DMAchannel3		equ 10000000b					  
-ScndIntController	equ 01000000b					  
-RealTimeClock		equ 00100000b					  
-KeyEscapeSeq		equ 00010000b					  
+DMAchannel3		equ 10000000b
+ScndIntController	equ 01000000b
+RealTimeClock		equ 00100000b
+KeyEscapeSeq		equ 00010000b
 					;;End of Modification
 
 ; ----------------------------------------------------------------------
@@ -17059,7 +17058,7 @@ SYSI_SFT    equ 4
 SYSI_CLOCK  equ 8
 SYSI_CON    equ 12
 SYSI_MAXSEC equ 16
-SYSI_BUF    equ 18 		
+SYSI_BUF    equ 18
 SYSI_CDS    equ 22
 SYSI_FCB    equ 26
 SYSI_KEEP   equ 30
@@ -17107,7 +17106,7 @@ struc BUFFINF 	; BUFFINFO
 endstruc
 
 ; ----------------------------------------------------------------------
-; CURDIR.INC (MSDOS 6.0 - 1991) 	
+; CURDIR.INC (MSDOS 6.0 - 1991)
 ; ----------------------------------------------------------------------
 ; 22/03/2019 - Retro DOS v4.0
 
@@ -17224,7 +17223,7 @@ struc	SF_ENTRY
 					; points to net device header if
 					; remote
 .sf_firclus:	resw	1		; First cluster of file (bit 15 = 0)
-;.sf_lstclus:	resw	1 ; *	
+;.sf_lstclus:	resw	1 ; *
 .sf_time: 	resw	1		; Time associated with file
 .sf_date: 	resw	1		; Date associated with file
 .sf_size: 	resd	1		; Size associated with file
@@ -17254,7 +17253,7 @@ struc	SF_ENTRY
 endstruc
 
 ; ----------------------------------------------------------------------
-; DOSCNTRY.INC (MSDOS 3.3 - 24/07/1987) 	
+; DOSCNTRY.INC (MSDOS 3.3 - 24/07/1987)
 ; ----------------------------------------------------------------------
 ; 11/06/2018 - Retro DOS v3.0
 
@@ -17340,7 +17339,7 @@ DOSBIOCODESEG equ IOSYSCODESEG
 ;V86_Crit_SetFocus equ 08D0h
 ; 21/10/2022
 IsWin386          equ 08D0h
-V86_Crit_SetFocus equ 08D1h 
+V86_Crit_SetFocus equ 08D1h
 
 ;seg_reinit	  equ 0772h ; not used in Retro DOS v4.0
 ; 21/10/2022 - Retro DOS v4.0 (MOdified MSDOS 5.0 IO.SYS)
@@ -17384,7 +17383,7 @@ I19_LST  equ 0641h ; (iosys5.txt)
 
 ; 09/12/2022
 seg_reinit equ _seg_reinit
-ec35_flag  equ ec35flag		
+ec35_flag  equ ec35flag
 INT19SEM   equ int19sem
 I19_LST    equ i19_lst
 
@@ -17427,7 +17426,7 @@ BCODESTART	equ BIOSDATAWORD
 RE_INIT		equ re_init
 
 ; ----------------------------------------------------------------------
-; CONFIG.INC (MSDOS 6.0 - 1991) 	
+; CONFIG.INC (MSDOS 6.0 - 1991)
 ; ----------------------------------------------------------------------
 ; 15/04/2019 - Retro DOS v4.0
 
@@ -17712,7 +17711,7 @@ int70:
 
 int0A:
 	jmp	short entry_int0A_stk
-old0A:	dd	0	
+old0A:	dd	0
 	dw	424Bh
 firstflag0A:
 	db	0
@@ -17729,7 +17728,7 @@ intret_0A:
 
 int0B:
 	jmp	short entry_int0B_stk
-old0B:	dd	0	
+old0B:	dd	0
 	dw	424Bh
 firstflag0B:
 	db	0
@@ -17746,7 +17745,7 @@ intret_0B:
 
 int0C:
 	jmp	short entry_int0C_stk
-old0C:	dd	0	
+old0C:	dd	0
 	dw	424Bh
 firstflag0C:
 	db	0
@@ -17763,7 +17762,7 @@ intret_0C:
 
 int0D:
 	jmp	short entry_int0D_stk
-old0D:	dd	0	
+old0D:	dd	0
 	dw	424Bh
 firstflag0D:
 	db	0
@@ -17780,7 +17779,7 @@ intret_0D:
 
 int0E:
 	jmp	short entry_int0E_stk
-old0E:	dd	0	
+old0E:	dd	0
 	dw	424Bh
 firstflag0E:
 	db	0
@@ -17797,7 +17796,7 @@ intret_0E:
 
 int72:
 	jmp	short entry_int72_stk
-old72:	dd	0	
+old72:	dd	0
 	dw	424Bh
 firstflag72:
 	db	0
@@ -17814,7 +17813,7 @@ intret_72:
 
 int73:
 	jmp	short entry_int73_stk
-old73:	dd	0	
+old73:	dd	0
 	dw	424Bh
 firstflag73:
 	db	0
@@ -17831,7 +17830,7 @@ intret_73:
 
 int74:
 	jmp	short entry_int74_stk
-old74:	dd	0	
+old74:	dd	0
 	dw	424Bh
 firstflag74:
 	db	0
@@ -17848,7 +17847,7 @@ intret_74:
 
 int76:
 	jmp	short entry_int76_stk
-old76:	dd	0	
+old76:	dd	0
 	dw	424Bh
 firstflag76:
 	db	0
@@ -17865,7 +17864,7 @@ intret_76:
 
 int77:
 	jmp	short entry_int77_stk
-old77:	dd	0	
+old77:	dd	0
 	dw	424Bh
 firstflag77:
 	db	0
@@ -17905,7 +17904,7 @@ do_int_stacks:
 	mov	bp,[cs:nextentry]	; get most likely candidate
 	mov	al,allocated ; 1
 	; 21/10/2022
-	;xchg	[es:bp+allocbyte],al 
+	;xchg	[es:bp+allocbyte],al
 	; 11/12/2022
 	xchg	[es:bp],al		; grab the entry
 	cmp	al,free ; 0		; still avail?
@@ -17923,7 +17922,7 @@ found02:
 	; 21/10/2022
 	;mov	bp,[es:bp+6]
 	; 11/12/2022
-	;cmp	[es:bp+0],ax	
+	;cmp	[es:bp+0],ax
 	cmp	[es:bp],ax		; check for offset into table
 	jne	short foundbad02
 
@@ -17946,8 +17945,8 @@ found02:
 	mov     sp,bp
 	mov     bp,ax
 	; 11/12/2022
-	;mov	bp,[cs:bp+0]	
-	mov	bp,[cs:bp]	
+	;mov	bp,[cs:bp+0]
+	mov	bp,[cs:bp]
 
 	pushf				; go execute the real interrupt handler
 	; 11/12/2022
@@ -18200,8 +18199,7 @@ seg_reinit_ptr:	; label dword
 temp_bcode_seg:
 		;dw	Bios_Code  ; 02CCh for MSDOS 6.21 IO.SYS
 		; 22/10/2022
-		dw	DOSBIOCODESEG ; 02C7h for MSDOS 5.0 IO.SYS 		
-
+		dw	DOSBIOCODESEG ; 02C7h for MSDOS 5.0 IO.SYS
 fake_floppy_drv:
 		db	0	; set to 1 if this machine
 				; does not have any floppies!!!
@@ -18220,7 +18218,7 @@ MEMORY_SIZE:	dw	1
 
 ; 22/03/2019 - Retro DOS v4.0 (MSDOS 6.0 source, MSDOS 6.21 disassembled src.)
 
-RPLMemTop:	dw	0  ; 22/10/2022 (MSDOS 5.0 IO.SYS SYSINIT:0294h)	
+RPLMemTop:	dw	0  ; 22/10/2022 (MSDOS 5.0 IO.SYS SYSINIT:0294h)
 DEFAULT_DRIVE:	db	0	;initialized by ibminit.
 buffers:	dw	0FFFFh	; initialized during buffer allocation
 h_buffers:	dw	0	; # of the heuristic buffers. initially 0.
@@ -18236,7 +18234,7 @@ NUM_CDS: db	5	; 5 net drives
 CONFBOT: ; 02/11/2022
 top_of_cdss: dw 0
 ; 02/11/2022 (MSDOS 5.0 SYSINIT)
-ALLOCLIM: dw	0	; (SYSINIT:02A3h)	
+ALLOCLIM: dw	0	; (SYSINIT:02A3h)
 
 DirStrng: db	"A:\",0	; string for the root directory of a drive
 ; 30/10/2022 (MSDOS 5.0 IO.SYS SAYSINIT compatibility)
@@ -18245,7 +18243,7 @@ command_line:
 	db	2,0
 	db	'P'
 	db	0
-	times	124 db 0 ; db 124 dup(0)	
+	times	124 db 0 ; db 124 dup(0)
 ; (SYSINIT:0329h)
 ZERO:	db	0
 sepchr:	db	0
@@ -18347,7 +18345,7 @@ unitcount:	db	0
 break_addr:	dd	0
 bpb_addr:	dd	0
 drivenumber:	; 22/10/2022
-devdrivenum:	db	0 
+devdrivenum:	db	0
 configmsgflag:	dw	0  ; used to control "error in config.sys line #" message
 
 ; end of request packet
@@ -18376,7 +18374,7 @@ BCodeSeg:	; 21/10/2022
 ;
 
 BiosComBlock:
-	;dd	Bios_Data:SysinitPresent 
+	;dd	Bios_Data:SysinitPresent
 		; 0070h:08FDh for MSDOS 6.21 IO.SYS
 	dw	SysinitPresent  ; (retrodos4.sys, offset: ****h)
 	;dw	KERNEL_SEGMENT ; 0070h
@@ -18427,14 +18425,14 @@ no_rom_config:				; Old ROM
 ; check the returned value to see if we have any floppy drives
 ; if we have no floppy drive we set cs:fake_floppy_drv to 1
 ; see the at tech ref bios listings for help on the equipment
-; flag interrupt (11h)	
+; flag interrupt (11h)
 
 	; 22/10/2022
 check_for_fake_floppy:			; entry point for rom_config above
 	int	11h			; check equipment flag
 
 	; 12/12/2022
-	test	al,1		
+	test	al,1
 	;test	ax,1			; have any floppies?
 	jnz	short move_myself	; yes,normal system
 
@@ -18448,7 +18446,7 @@ check_for_fake_floppy:			; entry point for rom_config above
 
 	push	es
 
-	xor	cl,cl	
+	xor	cl,cl
 	mov	ah,8			; get disk parameters
 	mov	dl,0			; of drive 0
 	int	13h
@@ -26390,12 +26388,9 @@ _$P_DBCS_LOOP:				;AN000;
 	cmp	al,[si+1]		;AN000;   range of
 	ja	short _$P_DBCS01	;AN000;      the vector
 	stc				;AN000; if yes, indicate DBCS and exit
-	jmp	short _$P_DBCS_EXIT	;AN000;
-_$P_DBCS01:				;AN000;
-	inc	si			;AC035; add '2' to
-	inc	si			;AC035;  SI reg
-					;AN000; get next vector
-	jmp	short _$P_DBCS_LOOP	;AN000; loop until zero vector found
+	; 04/02/2026
+	;jmp	short _$P_DBCS_EXIT	;AN000;
+
 _$P_NON_DBCS:				;AN000;
 	; 12/12/2022
 	; cf=0
@@ -26405,6 +26400,12 @@ _$P_DBCS_EXIT:				;AN000;
 	pop	si			;AN000;
 	pop	ds			;AN000;
 	retn				;AN000;
+
+_$P_DBCS01:				;AN000;
+	inc	si			;AC035; add '2' to
+	inc	si			;AC035;  SI reg
+					;AN000; get next vector
+	jmp	short _$P_DBCS_LOOP	;AN000; loop until zero vector found
 
 ; SYSCONF.ASM - MSDOS 6.0 - 1991
 ; ======================================================================
@@ -37832,13 +37833,13 @@ setdoscntry_data_next:
 setdbcs_before_copy:
 	cmp	al,SetDBCS ; 7		; dbcs vector set?
 	jne	short sdbcsbc		; jump if not
-	
+
 	; 10/09/2023
 	push	ax
 	xor	ax,ax
 	cmp	[es:di],ax ; 0
 	je	short sdbcsbc_pop
-	
+
 	;cmp	word [es:di],0		; zero byte data block?
 	;je	short sdbcsbc		; jump if so
 
@@ -38121,7 +38122,7 @@ prn2:
 	cmp	byte [donotshownum],1 ; suppress line number when handling command.com
 	;cmp	byte [cs:donotshownum],1 
 	je	short prnexit
-	
+
 	; 18/12/2022
 	;call	error_line
 	jmp	error_line
@@ -38253,9 +38254,10 @@ BOOTMES:
 	; 28/12/2022
 	db 	"Retro DOS v4.1 (Modified MSDOS 5.0) "
 	db	13,10
-	;;db	"by Erdogan Tan [2022] "
-	;db	"by Erdogan Tan [2023] " ; 04/01/2023
-	db	"by Erdogan Tan [2024] " ; 07/04/2024
+	;;;db	"by Erdogan Tan [2022] "
+	;;db	"by Erdogan Tan [2023] " ; 04/01/2023
+	;db	"by Erdogan Tan [2024] " ; 07/04/2024
+	db	"by Erdogan Tan [2026] " ; 04/02/2026
 	db	13,10
 	db	13,10,"$",0
 
@@ -38271,13 +38273,13 @@ cntry_drv:  db	"A:"
 cntry_root: db	"\"
 cntry_path: db	"COUNTRY.SYS",0
 	    ;db	52 dup (0)
-	    times 52 db 0	
+	    times 52 db 0
 
 country_file_signature:
 	db	0FFh,'COUNTRY'
 
 cntrycodepage_id: 
-	dw	0 	
+	dw	0
 
 ;ENDIF ; CONFIGPROC
 
@@ -38302,7 +38304,7 @@ commnd:	db	"\COMMAND.COM",0
 ;	 db	11,"A:\MSDOS /P",0 	;(the drive letter are dynamically replaced)
 ;commnd4: db	"\DOS\COMMAND.COM",0 	;
 ;	 db	9,"A:\DOS /P",0		;
-;def_swchr:	
+;def_swchr:
 ;	 db	0			; default switchchar (referenced as command_line-1)
 ;;endif
 
@@ -38320,7 +38322,7 @@ pathstring:
 %if 0
 
 dae_flag:
-	db	0 ; MSDOS 6.21 IO.SYS - SYSINIT:51D2h 	
+	db	0 ; MSDOS 6.21 IO.SYS - SYSINIT:51D2h 
 
 ;ifdef	MULTI_CONFIG
 
@@ -38421,7 +38423,7 @@ comtab:
 	db      3,      "DOS",          CONFIG_DOS
 	db	0
 
-deviceparameters:	
+deviceparameters:
 	; A_DEVICEPARAMETERS <0,dev_3inch720kb,0,80>
 devp.specialfunc:	; deviceparameters +
 	db	0	; A_DEVICEPARAMETERS.DP_SPECIALFUNCTIONS
@@ -38433,7 +38435,7 @@ devp.cylinders:
 	dw	80	; A_DEVICEPARAMETERS.DP_CYLINDERS
 
 	times	286	db 0
-	
+
 hlim:	dw	2
 slim:	dw	9
 
@@ -38492,7 +38494,7 @@ bpb35:	dw	512
 	dw	2
 	dd	0
         dd      0
-      
+
 bpb35h:	dw	512
 	db	1
 	dw	1

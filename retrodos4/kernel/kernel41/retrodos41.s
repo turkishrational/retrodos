@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RETRODOS.SYS (MSDOS 5.0 Kernel) - RETRO DOS v4.0 by ERDOGAN TAN - 01/10/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 09/07/2024 - Retro DOS v4.1 (Previous: 07/07/2024)
+; Last Update: 04/02/2026 - Retro DOS v4.1 (Previous: 09/07/2024)
 ; ----------------------------------------------------------------------------
 ; Beginning: 25/05/2018 (Retro DOS 3.0), 26/12/2018 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
@@ -25736,12 +25736,9 @@ _$P_DBCS_LOOP:				;AN000;
 	cmp	al,[si+1]		;AN000;   range of
 	ja	short _$P_DBCS01	;AN000;      the vector
 	stc				;AN000; if yes, indicate DBCS and exit
-	jmp	short _$P_DBCS_EXIT	;AN000;
-_$P_DBCS01:				;AN000;
-	inc	si			;AC035; add '2' to
-	inc	si			;AC035;  SI reg
-					;AN000; get next vector
-	jmp	short _$P_DBCS_LOOP	;AN000; loop until zero vector found
+	; 04/02/2026
+	;jmp	short _$P_DBCS_EXIT	;AN000;
+
 _$P_NON_DBCS:				;AN000;
 	; 12/12/2022
 	; cf=0
@@ -25751,6 +25748,12 @@ _$P_DBCS_EXIT:				;AN000;
 	pop	si			;AN000;
 	pop	ds			;AN000;
 	retn				;AN000;
+
+_$P_DBCS01:				;AN000;
+	inc	si			;AC035; add '2' to
+	inc	si			;AC035;  SI reg
+					;AN000; get next vector
+	jmp	short _$P_DBCS_LOOP	;AN000; loop until zero vector found
 
 ; SYSCONF.ASM - MSDOS 6.0 - 1991
 ; ======================================================================
@@ -37604,9 +37607,10 @@ BOOTMES:
 	; 28/12/2022
 	db 	"Retro DOS v4.1 (Modified MSDOS 5.0) "
 	db	13,10
-	;;db	"by Erdogan Tan [2022] "
-	;db	"by Erdogan Tan [2023] " ; 04/01/2023
-	db	"by Erdogan Tan [2024] " ; 05/01/2024
+	;;;db	"by Erdogan Tan [2022] "
+	;;db	"by Erdogan Tan [2023] " ; 04/01/2023
+	;db	"by Erdogan Tan [2024] " ; 05/01/2024
+	db	"by Erdogan Tan [2026] " ; 04/02/2026
 	db	13,10
 	db	13,10,"$",0
 
@@ -38063,6 +38067,7 @@ MSDOS_BIN_OFFSET: ; this offset must be paragraph aligned
 		;; 28/06/2019 ('msdos6.s') 
 		;incbin	'MSDOS6.BIN' ; Retro DOS 4.0 - MSDOS 6.21 KERNEL
 		
+		; 04/02/2026
 		; 09/07/2024 (BugFix)
 		; 07/07/2024
 		; 12/04/2024
