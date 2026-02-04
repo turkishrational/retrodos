@@ -1,13 +1,13 @@
 ;*****************************************************************************
 ; MSDOS6.BIN (MSDOS 6.0 Kernel) - RETRO DOS v4.0 by ERDOGAN TAN - 03/11/2022
 ; ----------------------------------------------------------------------------
-; Last Update: 09/07/2024 - Retro DOS v4.2 ((Previous: 07/07/2024))
+; Last Update: 04/02/2026 - Retro DOS v4.2 ((Previous: 09/07/2024))
 ; ----------------------------------------------------------------------------
 ; Beginning: 07/07/2018 (Retro DOS 3.0), 22/04/2019 (Retro DOS 4.0)
 ; ----------------------------------------------------------------------------
 ; Assembler: NASM version 2.15
 ; ----------------------------------------------------------------------------
-;	   ((nasm msdos6.s -l msdos6.lst -o MSDOS6.BIN -Z error.txt)) 	
+;	   ((nasm msdos6.s -l msdos6.lst -o MSDOS6.BIN -Z error.txt))
 ; ----------------------------------------------------------------------------
 ; Modified from 'msdos3.s' file of Retro DOS 3.0 source code (10/09/2018)
 ; ----------------------------------------------------------------------------
@@ -37,7 +37,7 @@
 ; 03/11/2022 - Erdogan Tan (Istanbul)
 
 ; Note:	This code is a part of Retro DOS 4.0 kernel source code
-;	(as included binary, 'MSDOS5.BIN') 
+;	(as included binary, 'MSDOS5.BIN')
 ;	Equivalent of MSDOS 5.0 MSDOS.SYS kernel file 
 ;	
 ;	((MSDOS 6.0 kernel source code has been modified by using disassembled
@@ -56,7 +56,7 @@
 ;-----------------------------------------------------------------------------
 
 ; MSDOS 6.0 Kernel source files:
-;	MSDATA.ASM, 
+;	MSDATA.ASM,
 ; 		(MSHEAD.ASM, MSCONST.ASM,CONST2.ASM, MS_DATA.ASM,
 ;		DOSTAB.ASM, LMSTUB.ASM, WPATCH.INC, MPATCH.ASM)
 ;	MSTABLE.ASM, MSCODE.ASM, MSDOSME.ASM (DOSMES.INC), TIME.ASM,
@@ -3285,12 +3285,13 @@ I21_MAP_E_TAB:	; LABEL	BYTE
 	db 	0
 RETRODOSMSG:
 	db	13,10
-	;;;;;db	"Retro DOS v4.0 by Erdogan Tan [2019]"
-	;;;;db	"Retro DOS v4.0 by Erdogan Tan [2022]"
-	;;;db	"Retro DOS v4.1 by Erdogan Tan [2022]"	; 28/12/2022
-	;;db	"Retro DOS v4.2 by Erdogan Tan [2022]"	; 30/12/2022
-	;db	"Retro DOS v4.2 by Erdogan Tan [2023]"
-	db	"Retro DOS v4.2 by Erdogan Tan [2024]"	; 05/01/2024
+	;;;;;;db "Retro DOS v4.0 by Erdogan Tan [2019]"
+	;;;;;db	"Retro DOS v4.0 by Erdogan Tan [2022]"
+	;;;;db	"Retro DOS v4.1 by Erdogan Tan [2022]"	; 28/12/2022
+	;;;db	"Retro DOS v4.2 by Erdogan Tan [2022]"	; 30/12/2022
+	;;db	"Retro DOS v4.2 by Erdogan Tan [2023]"
+	;db	"Retro DOS v4.2 by Erdogan Tan [2024]"	; 05/01/2024
+	db	"Retro DOS v4.2 by Erdogan Tan [2026]"	; 04/02/2026
 	db	13,10,"$", 0 
 
 ;============================================================================
@@ -12634,7 +12635,8 @@ LRUFCB:
 gotlocalSFT:
 	mov	[THISSFT],di
 	mov	[THISSFT+2],es
-	clc
+	; 04/02/2026
+	;clc
 	jmp	LRUDone		;clear up SFT and return
 
 lru1:
@@ -18856,17 +18858,28 @@ CheckShareMode:
 	JA	short Make_Bad_Access
 CheckAccessMode:
 	MOV	BL,AL
-	AND	BL,access_mask
-	CMP	BL,2
-	JA	short Make_Bad_Access
-	POP	BX
-	CLC
-	retn
+	; 23/01/2024
+	and	bl,3 ; PCDOS 7.1 IBMDOS.COM
+	;AND	BL,access_mask ; 0Fh
+	; 04/02/2026
+	;CMP	BL,2
+	;JA	short Make_Bad_Access
+	;POP	BX
+	;CLC
+	;retn
+	; 04/02/2026
+	cmp	bl,3
+	cmc
+	; if bl>2 -> cf=1
+	jnc	short CheckAccessMode_OK
 
 Make_Bad_Access:
 	MOV	AX,error_invalid_access ; 0Ch
+	; 04/02/2026
+CheckAccessMode_OK:
 	POP	BX
-	STC
+	;STC
+	retn
 	retn
 
 ;============================================================================
@@ -26860,9 +26873,11 @@ SETWRITE:
 
 RW_SC:
 	; SS override for all variables used.
-	
+
 	CMP	word [ss:SC_CACHE_COUNT],0  ;AN000;LB. secondary cache exists?
-	JZ	short scexit4		    ;AN000;LB. no, do nothing
+	;JZ	short scexit4		    ;AN000;LB. no, do nothing
+	; 04/02/2026
+	jz	short scexit5
 	CMP	word [ss:CALLSCNT],1	    ;AN000;LB. sector count = 1 (buffer I/O)
 	JNZ	short scexit4 		    ;AN000;LB. no, do nothing
 	PUSH	CX			    ;AN000;LB.
@@ -26876,9 +26891,13 @@ RW_SC:
 	CMP	BYTE [ss:DEVCALL_REQFUNC],DEVRD ;AN000;LB. read ?
 	JZ	short doread		    ;AN000;LB. yes
 	CALL	INVALIDATE_SC		    ;AN000;LB. invalidate SC
-	JMP	scexit2 		    ;AN000;LB. back to normal
+	;JMP	scexit2 		    ;AN000;LB. back to normal
+	; 04/02/2026
+	clc
+	jmp	scexit
 scexit4:				    ;AN000;
 	CLC				    ;AN000;LB. I/O not done yet
+scexit5: ; 04/02/2026
 	retn				    ;AN000;LB.
 doread: 				    ;AN000;
 	CALL	SC2BUF			    ;AN000;LB. check if in SC
@@ -26894,9 +26913,11 @@ readSC: 				    ;AN000;
 	; 24/09/2023
 	;CMP	AX,0			    ;AN000;LB. greater than 64K
 	JNZ	short saveseq2		    ;AN000;LB. yes,save seq. sector #
-chklow: 						
+chklow:
 	CMP	CX,1			    ;AN000;LB. <= 1
-	JA	short saveseq2		    ;AN000;LB. no, not sequential
+	;JA	short saveseq2		    ;AN000;LB. no, not sequential
+	; 04/02/2026
+	ja	short saveseq
 	MOV	word [ss:SC_STATUS],-1	    ;AN000;LB. presume all SC valid
 	MOV	AX,[ss:SC_CACHE_COUNT]	    ;AN000;LB. yes, sequential
 	MOV	[ss:CALLSCNT],AX	    ;AN000;LB. read continuous sectors
@@ -26919,22 +26940,23 @@ readsr:
 	MOV	[ss:CurSC_SECTOR+2],AX	    ;AN000;LB.
 saveseq2:				    ;AN000;
 	CLC				    ;AN000;LB. clear carry
-saveseq:				    ;AN000;	
+saveseq:				    ;AN000;
 	MOV	AX,[ss:HIGH_SECTOR]	    ;AN000;LB. save current sector #
 	MOV	[ss:SEQ_SECTOR+2],AX	    ;AN000;LB. for access mode ref.
-	MOV	AX,[ss:CALLSSEC]	    ;AN000;LB.	
-	MOV	[ss:SEQ_SECTOR],AX 	    ;AN000;LB.	
-	JMP	short scexit 		    ;AN000;LB.	
-scexit2:				    ;AN000;LB.
-	CLC				    ;AN000;LB.	clear carry
-scexit: 				    ;AN000;		
+	MOV	AX,[ss:CALLSSEC]	    ;AN000;LB.
+	MOV	[ss:SEQ_SECTOR],AX 	    ;AN000;LB.
+	; 04/02/2026
+	;JMP	short scexit 		    ;AN000;LB.
+;scexit2:				    ;AN000;LB.
+	;CLC				    ;AN000;LB.	clear carry
+scexit: 				    ;AN000;
 	POP	DI			    ;AN000;LB.
 	POP	ES			    ;AN000;LB. restore registers
 	POP	SI			    ;AN000;LB.
 	POP	DS			    ;AN000;LB.
 	POP	DX			    ;AN000;LB.
 	POP	CX			    ;AN000;LB.
-	retn				    ;AN000;LB.
+	retn
 
 ;Break	<IN_SC -- check if in secondary cache>
 ;--------------------------------------------------------------------------
@@ -27039,7 +27061,9 @@ VIRREAD:
 	; SS override for all variables used
 
 	CMP	byte [ss:SC_FLAG],0	    ;AN000;;LB. from SC fill
-	JZ	short sc2end		    ;AN000;;LB. no
+	;JZ	short sc2end		    ;AN000;;LB. no
+	; 04/02/2026
+	jz	short sc2end2
 	MOV	AX,[ss:TEMP_VAR2]	    ;AN000;;LB. restore buffer addr
 	MOV	[ss:CALLXAD+2],AX	    ;AN000;;LB.
 	MOV	AX,[ss:TEMP_VAR]	    ;AN000;;LB.
@@ -27064,18 +27088,21 @@ VIRREAD:
 	POP	ES			    ;AN000;;LB.
 	POP	SI			    ;AN000;;LB.
 	POP	DS			    ;AN000;;LB.
-	JMP	SHORT sc2end		    ;AN000;;LB. return
+	;JMP	SHORT sc2end		    ;AN000;;LB. return
+	; 04/02/2026
+sc2end: 				    ;AN000;
+	CLC				    ;AN000;;LB. carry clear
+sc2end2:
+	retn				    ;AN000;;LB.
+
 scerror:				    ;AN000;
 	MOV	word [ss:CALLSCNT],1	    ;AN000;;LB. reset sector count to 1
 	MOV	word [ss:SC_STATUS],0	    ;AN000;;LB. invalidate all SC sectors
 	MOV	byte [ss:CurSC_DRIVE],-1    ;AN000;;LB. invalidate drive
 	STC				    ;AN000;;LB. carry set
 	retn				    ;AN000;;LB.
-sc2end: 				    ;AN000;
-	CLC				    ;AN000;;LB. carry clear
-	retn				    ;AN000;;LB.
 
-; 30/04/2019 - Retro  DOS v4.0
+; 30/04/2019 - Retro DOS v4.0
 ; DOSCODE:87FDh (MSDOS 6.21, MSDOS.SYS)
 ; 22/11/2022 - Retro DOS v4.0 (Modified MSDOS 5.0 MSDOS.SYS)
 ; DOSCODE:87C2h (MSDOS 5.0, MSDOS.SYS)
@@ -30363,7 +30390,7 @@ INCHK:
 CNTCHAND:
 	; MSDOS 6.0			; SS override
 					; AN002; from RAWOUT
-	;TEST	word [SS:DOS34_FLAG],CTRL_BREAK_FLAG  
+	;TEST	word [SS:DOS34_FLAG],CTRL_BREAK_FLAG
 	;JNZ	short around_deadlock 	; AN002;
 
 	; 05/05/2019 - Retro DOS v4.0
@@ -30386,10 +30413,10 @@ NOSWAP:
 	MOV	SP,[USER_SP]
         CALL	restore_world       ; User registers now restored
 
-	; 30/07/2018 - Retro DOS v3.0 
+	; 30/07/2018 - Retro DOS v3.0
 	; MSDOS 3.3 (IBMDOS.COM - Offset 56ACh)
         ; 14/03/2018 - Retro DOS v2.0
-	;MOV	BYTE [CS:INDOS],0	
+	;MOV	BYTE [CS:INDOS],0
         ;MOV	BYTE [CS:ERRORMODE],0
         ;MOV	[CS:ConC_Spsave],SP
 	;clc	;30/07/2018
@@ -30401,12 +30428,12 @@ NOSWAP:
 			; interrupted DOS call continues
 
 	; 05/05/2019 - Retro DOS v4.0
-	; MSDOS 6.0 (MSDOS 6.21, MSDOS.SYS,91ECh) 
+	; MSDOS 6.0 (MSDOS 6.21, MSDOS.SYS,91ECh)
 
 	; CS was used to address these variables. We have to use DOSDATA
-	
+
 	pop	es ; *	; MSDOS 6.21 (MSDOS.SYS, DOSCODE:91ECh)
-			; (pop es, after 'call restore_world')	
+			; (pop es, after 'call restore_world')
 	push	ds
 	;getdseg <ds>			; ds -> dosdata
 	mov	ds,[cs:DosDSeg]
@@ -30419,16 +30446,17 @@ NOSWAP:
 	cmp	byte [DosHasHMA],0	; Q: is dos running in HMA (M021)
  	pop	ds	; restore ds
 	jne	short do_low_int23	; Y: the int must be done from low mem
-	CLC				
+	; 04/02/2026
+	;CLC
 	INT	int_ctrl_c  ; int 23h	; N: Execute user Ctrl-C handler
 	jmp	short ctrlc_ret_addr
 
 	; 05/05/2019
 do_low_int23:
 	clc
-	call	far [cs:LowInt23Addr]	
+	call	far [cs:LowInt23Addr]
 
-	; 30/07/2018 
+	; 30/07/2018
 
 	; MSDOS 3.3 (IBMDOS.COM - Offset 56C0h)
 
@@ -30438,7 +30466,7 @@ do_low_int23:
 ;   CLC/RETF	POP the stack and retry
 ;   ... 	Exit the current process with ^C exit
 ;
-; User's may RETURN to us and leave interrupts on. 
+; User's may RETURN to us and leave interrupts on.
 ; Turn 'em off just to be sure
 
 ctrlc_ret_addr: ; 05/05/2019
@@ -30484,7 +30512,7 @@ ctrlc_repeat:
 	; MSDOS 6.0
 	mov	ax,[USER_IN_AX]
 	mov	ds,[TEMPSEG]		; restore ds and original sp
-	; MSDOS 3.3 & MSDOS 6.0 
+	; MSDOS 3.3 & MSDOS 6.0
 	;transfer COMMAND
 COMMANDJ:
 	JMP	COMMAND
@@ -42160,7 +42188,7 @@ FindBadCode:
 
 	mov	si,[bx]	; mov si,[bx+0]
 	;mov	si,[bx+Searchpair.sp_off1] ; ds:si -> search string
-	
+
 	;mov	dx,[bx+2]
 	mov	dx,[bx+SearchPair.sp_len1] ; dx = search len
 	call	ScanCodeSeq
@@ -42179,7 +42207,9 @@ FindBadCode:
 
 	mov	ax,di			; sanity check that
 	sub	ax,si			;   si < di && di - si <= allowed diff
-	jc	short fbc_error
+	;jc	short fbc_error
+	; 04/02/2026
+	jc	short fbc_err
 	;cmp	ax,[bx+8]
 	cmp	ax,[bx+SearchPair.sp_diff]
 	ja	short fbc_error
@@ -42189,6 +42219,7 @@ FindBadCode:
 
 fbc_error:
 	stc
+fbc_err:
 	retn
 
 ;----------------------------------------------------------------------------
@@ -45217,7 +45248,7 @@ UU_BUF_EMS_FIRST_PAGE:
 
 	;;I_am	UU_BUF_EMS_NPA640,WORD,<0> ; holds the number of pages 
 ;UU_BUF_EMS_NPA640:			   ; above 640K	
-;	dw	0			
+;	dw	0
 
 CL0FATENTRY:
 	dw	-1	; M014:	Holds the data that
@@ -45225,9 +45256,9 @@ CL0FATENTRY:
 			; in fat.asm if cluster 0 is specified.
 			; SR;
 IoStatFail:
-	db	0	; IoStatFail has been added to 
+	db	0	; IoStatFail has been added to
 			; record a fail on an I24 
-			; issued from IOFUNC on a status call. 
+			; issued from IOFUNC on a status call.
 
 ;***	I_am	UU_BUF_EMS_MODE,BYTE,<-1>	; EMS mode 	;AN000;
 ;***	I_am	UU_BUF_EMS_HANDLE,BYTE		; buffer EMS handle ;AN000;
@@ -46091,7 +46122,7 @@ FINISH:
 	XLAT			;Get upper case character
 	POP	BX
 	POP	DS
-L_RET:	
+L_RET:
 	RETF
 
 ;EndProc MAP_CASE
@@ -46210,7 +46241,7 @@ FastOpenTable:
 	dw      FastRet			; pointer to ret instr.
 	dw      0                       ; and will be modified by
 	dw      FastRet			; FASTxxx when loaded in
-	dw      0                       
+	dw      0
 
 ; DOS 3.3 F.C. 6/12/86
 
@@ -46273,7 +46304,7 @@ MSG_EXTERROR:	; label  DWORD		; for system message addr
 	dd     0			; for code reduction
 
 SEQ_SECTOR:	; label  DWORD 		; last sector read
-	dd     -1   
+	dd     -1
 SC_SECTOR_SIZE:
 	dw	0			; sector size for SC
 SC_DRIVE:
@@ -46341,7 +46372,7 @@ Mark2:	; label byte
 ;############################################################################
 ;
 ; ** HACK FOR DOS 4.0 REDIR **
-; 
+;
 ; The redir requires the following:
 ;
 ;	ERR_TABLE_21	offset DDBH
@@ -46542,7 +46573,7 @@ ErrMap24: ; Label   BYTE
 
 ;ErrMap24: db 13h, 14h, 15h, 16h, 17h, 18h, 19h, 1Ah
 ;	   db 1Bh, 1Ch, 1Dh, 1Eh, 1Fh, 1Fh, 1Fh, 22h
-	
+
 ErrMap24End: ; LABEL   BYTE
 
 ; DOSDATA:0EBBh (MSDOS 6.21, MSDOS.SYS)
@@ -46658,7 +46689,7 @@ VxDpath:  db	'c:\wina20.386',0	;M018
 ;drivers.
 ;
 
-DriverLoad:	
+DriverLoad:
 	db	1	;initialized to do special handling
 BiosDataPtr:
 	dd	0
@@ -46746,7 +46777,7 @@ DOSINTTABLE:	; LABEL	DWORD
 	;DW	OFFSET DOSCODE:INT2F		, 0
 	;DW	OFFSET DOSCODE:CALL_ENTRY	, 0
 	;DW	OFFSET DOSCODE:IRETT		, 0
-	
+
 	dw	DIVOV 		, 0  ; DOSINTTABLE+0
 	dw	QUIT 		, 0  ; DOSINTTABLE+4
 	dw	COMMAND		, 0  ; DOSINTTABLE+8
@@ -46993,7 +47024,6 @@ LowInt24:
 	jmp	far [cs:DosRetAddr24]	; jump back to DOS
 
 
- 
 	; Execute int 28h from low memory
 LowInt28:
 	int	28h			; idle int
@@ -47155,7 +47185,7 @@ EnsureA20ON:
 	;mov	si,90h	; 0FFFFh:0090h	; HighMemory
 	;mov	ds,di
 	;mov	di,80h	; 0000h:0080h	; LowMemory
-	
+
 	mov	cx,4
 	cld
 	repe    cmpsw
@@ -47211,7 +47241,7 @@ XMMcont:
 	mov	ah,05h			; set display page
 	xor	al,al			; page 0
 	int	10h
-	
+
 	mov	si,XMMERRMSG
 	push	cs
 	pop	ds
@@ -47309,7 +47339,7 @@ rbc_loop:
 	
 UmbSave1:
 	;db	11 dup (?)	; M023
-	times	11 db 0	
+	times	11 db 0
 
 ; DOSDATA:122Ah
 
@@ -47386,7 +47416,7 @@ COUNTRY_CDPG:	; label  byte
 	dw   NEW_COUNTRY_SIZE		; extended country info size
 ; ------------------------------------------------<MSKK01>-------------------
 ;ifdef	DBCS
-;	...... 
+;	......
 ;else
 	dw   1				; USA country id
 	dw   437			; USA system code page id
