@@ -1,7 +1,7 @@
 ;*****************************************************************************
 ; IBMDOS7.S (PCDOS 7.1 Kernel) - RETRO DOS v5.0 by ERDOGAN TAN - 01/01/2024
 ; ----------------------------------------------------------------------------
-; Last Update: 29/01/2026 - Retro DOS v5.0 (Modified PCDOS 7.1)
+; Last Update: 04/02/2026 - Retro DOS v5.0 (Modified PCDOS 7.1)
 ; ----------------------------------------------------------------------------
 ; Beginning: 22/04/2019 (Retro DOS 4.0), 03/11/2022 (Retro DOS 4.2)
 ; ----------------------------------------------------------------------------
@@ -14696,7 +14696,8 @@ LRUFCB:
 gotlocalSFT:
 	mov	[THISSFT],di
 	mov	[THISSFT+2],es
-	clc
+	; 04/02/2026
+	;clc
 	jmp	LRUDone		;clear up SFT and return
 
 lru1:
@@ -21441,16 +21442,24 @@ CheckAccessMode:
 	; 23/01/2024
 	and	bl,3 ; PCDOS 7.1 IBMDOS.COM
 	;AND	BL,access_mask ; 0Fh
-	CMP	BL,2
-	JA	short Make_Bad_Access
-	POP	BX
-	CLC
-	retn
+	; 04/02/2026
+	;CMP	BL,2
+	;JA	short Make_Bad_Access
+	;POP	BX
+	;CLC
+	;retn
+	; 04/02/2026
+	cmp	bl,3
+	cmc
+	; if bl>2 -> cf=1
+	jnc	short CheckAccessMode_OK
 
 Make_Bad_Access:
 	MOV	AX,error_invalid_access ; 0Ch
+	; 04/02/2026
+CheckAccessMode_OK:
 	POP	BX
-	STC
+	;STC
 	retn
 
 ;============================================================================
@@ -31356,7 +31365,9 @@ RW_SC:
 	; SS override for all variables used.
 	
 	CMP	word [ss:SC_CACHE_COUNT],0  ;AN000;LB. secondary cache exists?
-	JZ	short scexit4		    ;AN000;LB. no, do nothing
+	;JZ	short scexit4		    ;AN000;LB. no, do nothing
+	; 04/02/2026
+	jz	short scexit5
 	CMP	word [ss:CALLSCNT],1	    ;AN000;LB. sector count = 1 (buffer I/O)
 	JNZ	short scexit4 		    ;AN000;LB. no, do nothing
 	PUSH	CX			    ;AN000;LB.
@@ -31370,9 +31381,13 @@ RW_SC:
 	CMP	BYTE [ss:DEVCALL_REQFUNC],DEVRD ;AN000;LB. read ?
 	JZ	short doread		    ;AN000;LB. yes
 	CALL	INVALIDATE_SC		    ;AN000;LB. invalidate SC
-	JMP	scexit2 		    ;AN000;LB. back to normal
+	;JMP	scexit2 		    ;AN000;LB. back to normal
+	; 04/02/2026
+	clc
+	jmp	scexit
 scexit4:				    ;AN000;
 	CLC				    ;AN000;LB. I/O not done yet
+scexit5: ; 04/02/2026
 	retn				    ;AN000;LB.
 doread: 				    ;AN000;
 	CALL	SC2BUF			    ;AN000;LB. check if in SC
@@ -31390,7 +31405,9 @@ readSC: 				    ;AN000;
 	JNZ	short saveseq2		    ;AN000;LB. yes,save seq. sector #
 chklow: 						
 	CMP	CX,1			    ;AN000;LB. <= 1
-	JA	short saveseq2		    ;AN000;LB. no, not sequential
+	;JA	short saveseq2		    ;AN000;LB. no, not sequential
+	; 04/02/2026
+	ja	short saveseq
 	MOV	word [ss:SC_STATUS],-1	    ;AN000;LB. presume all SC valid
 	MOV	AX,[ss:SC_CACHE_COUNT]	    ;AN000;LB. yes, sequential
 	MOV	[ss:CALLSCNT],AX	    ;AN000;LB. read continuous sectors
@@ -31418,9 +31435,10 @@ saveseq:				    ;AN000;
 	MOV	[ss:SEQ_SECTOR+2],AX	    ;AN000;LB. for access mode ref.
 	MOV	AX,[ss:CALLSSEC]	    ;AN000;LB.
 	MOV	[ss:SEQ_SECTOR],AX 	    ;AN000;LB.
-	JMP	short scexit 		    ;AN000;LB.
-scexit2:				    ;AN000;LB.
-	CLC				    ;AN000;LB.	clear carry
+	; 04/02/2026
+	;JMP	short scexit 		    ;AN000;LB.
+;scexit2:				    ;AN000;LB.
+	;CLC				    ;AN000;LB.	clear carry
 scexit: 				    ;AN000;
 	POP	DI			    ;AN000;LB.
 	POP	ES			    ;AN000;LB. restore registers
@@ -31533,7 +31551,9 @@ VIRREAD:
 	; SS override for all variables used
 
 	CMP	byte [ss:SC_FLAG],0	    ;AN000;;LB. from SC fill
-	JZ	short sc2end		    ;AN000;;LB. no
+	;JZ	short sc2end		    ;AN000;;LB. no
+	; 04/02/2026
+	jz	short sc2end2
 	MOV	AX,[ss:TEMP_VAR2]	    ;AN000;;LB. restore buffer addr
 	MOV	[ss:CALLXAD+2],AX	    ;AN000;;LB.
 	MOV	AX,[ss:TEMP_VAR]	    ;AN000;;LB.
@@ -31558,15 +31578,18 @@ VIRREAD:
 	POP	ES			    ;AN000;;LB.
 	POP	SI			    ;AN000;;LB.
 	POP	DS			    ;AN000;;LB.
-	JMP	SHORT sc2end		    ;AN000;;LB. return
+	;JMP	SHORT sc2end		    ;AN000;;LB. return
+	; 04/02/2026
+sc2end: 				    ;AN000;
+	CLC				    ;AN000;;LB. carry clear
+sc2end2:	
+	retn				    ;AN000;;LB.
+
 scerror:				    ;AN000;
 	MOV	word [ss:CALLSCNT],1	    ;AN000;;LB. reset sector count to 1
 	MOV	word [ss:SC_STATUS],0	    ;AN000;;LB. invalidate all SC sectors
 	MOV	byte [ss:CurSC_DRIVE],-1    ;AN000;;LB. invalidate drive
 	STC				    ;AN000;;LB. carry set
-	retn				    ;AN000;;LB.
-sc2end: 				    ;AN000;
-	CLC				    ;AN000;;LB. carry clear
 	retn				    ;AN000;;LB.
 
 ; 30/04/2019 - Retro  DOS v4.0
@@ -35839,7 +35862,8 @@ NOSWAP:
 	cmp	byte [DosHasHMA],0	; Q: is dos running in HMA (M021)
  	pop	ds	; restore ds
 	jne	short do_low_int23	; Y: the int must be done from low mem
-	CLC
+	; 04/02/2026
+	;CLC
 	INT	int_ctrl_c  ; int 23h	; N: Execute user Ctrl-C handler
 	jmp	short ctrlc_ret_addr
 
@@ -49351,7 +49375,9 @@ FindBadCode:
 
 	mov	ax,di			; sanity check that
 	sub	ax,si			;   si < di && di - si <= allowed diff
-	jc	short fbc_error
+	;jc	short fbc_error
+	; 04/02/2026
+	jc	short fbc_err
 	;cmp	ax,[bx+8]
 	cmp	ax,[bx+SearchPair.sp_diff]
 	ja	short fbc_error
@@ -49361,6 +49387,7 @@ FindBadCode:
 
 fbc_error:
 	stc
+fbc_err:
 	retn
 
 ;----------------------------------------------------------------------------

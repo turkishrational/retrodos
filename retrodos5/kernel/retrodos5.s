@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; RETRODOS.SYS (PCDOS 7.1 Kernel) - RETRO DOS v5.0 by ERDOGAN TAN - 12/09/2023
 ; ----------------------------------------------------------------------------
-; Last Update: 29/01/2026 - Retro DOS v5.0 (Modified PCDOS 7.1)
+; Last Update: 04/02/2026 - Retro DOS v5.0 (Modified PCDOS 7.1)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0), 01/10/2022 (Retro DOS 4.2)
 ; ----------------------------------------------------------------------------
@@ -8910,7 +8910,7 @@ massage_bpb:
 		mov	ax, [di+1Bh]	; [di+BDS.totalsecs32]
 		; 11/09/2023
 		or	dx, dx
-		jnz	short goodret	
+		jnz	short goodret
 		;cmp	dx, 0		; double word total sectors?
 		;;ja	short goodret	; don't have to change it.
 		;; 12/12/2022
@@ -8933,7 +8933,7 @@ massage_bpb:
 		mov	[di+1Bh], dx ; 0
 goodret_clc:
 		; 11/09/2023
-		clc 
+		clc
 goodret:
 		;mov	bl, ds:fbigfat
 		; 11/09/2023
@@ -8987,7 +8987,7 @@ cover_fdisk_bug:
 					; [disksector+EXT_BOOT.SIG],
 					; EXT_BOOT_SIGNATURE
 		je	short cfb_retit	; if extended bpb, then	>= pc dos 4.00
-		
+
 		cmp	word [bx+7], 3031h
 		;cmp	word [cs:bx+7], 3031h ; '10' ; os2 1.0 = ibm 10.0
 		jne	short cfb_chk_totalsecs ; 11/08/2023
@@ -8999,7 +8999,7 @@ cfb_chk_totalsecs:
 		; 11/08/2023
 ; 18/12/2023
 %if 0
-		; 17/10/2022		
+		; 17/10/2022
 		mov	si, disksector+11 ; 14Eh+0Bh
 		;mov	si, 159h	; disksector+EXT_BOOT.BPB
 		; 12/08/2023
@@ -9035,12 +9035,12 @@ cfb_chk_totalsecs:
 
 		sub	word [di+1Bh], 1 ; [di+BDS.totalsecs32]
 		sbb	word [di+1Dh], 0 ; [di+BDS.totalsecs32+2]
-cfb_retit:	
+cfb_retit:
 		; 18/12/2023
 		;pop	si
 		;pop	dx
 		;pop	ax
-		
+
 		retn
 
 ; ---------------------------------------------------------------------------
@@ -11091,13 +11091,13 @@ con_writ:
 		jcxz	bc_exvec	; 19/10/2022
 		; 12/12/2022
 		;jcxz	cc_ret
-con_lp:					
+con_lp:
 		mov	al, [es:di]
 		inc	di
 		int	29h		; DOS 2+ internal - FAST PUTCHAR
 					; AL = character to display
 		loop	con_lp
-cc_ret:					
+cc_ret:
 		clc
 		retn
 
@@ -11111,7 +11111,7 @@ cc_ret:
 
 con_flush:
 		mov	byte [altah], 0	; clear	out holding buffer
-flloop:					; while	(charavail()) charread();	
+flloop:					; while	(charavail()) charread();
 		mov	ah, 1
 		int	16h		; KEYBOARD - CHECK BUFFER, DO NOT CLEAR
 					; Return: ZF clear if character	in buffer
@@ -11178,9 +11178,9 @@ prn_done:
 prn_writ:				; 2C7h:21Fh = 70h:278Fh
 		;jcxz	short prn_done	; no chars to output
 		jcxz	prn_done	; 19/10/2022
-prn_loop:				
+prn_loop:
 		mov	bx, 2		; retry	count
-prn_out:				
+prn_out:
 		call	prnstat		; get status
 		jnz	short TestPrnError
 		mov	al, [es:di]	; get character	to print
@@ -11194,20 +11194,20 @@ prn_out:
 		jmp	short pmessg
 ; ---------------------------------------------------------------------------
 
-_prnwf:					
+_prnwf:
 		test	ah, 1		; timeoutstatus
 		jz	short prn_con
-TestPrnError:				
+TestPrnError:
 		dec	bx		; retry	until count is exhausted.
 		jnz	short prn_out
-pmessg:					
+pmessg:
 		jmp	bc_err_cnt
 ; ---------------------------------------------------------------------------
 
-prn_con:				
+prn_con:
 		inc	di		; point	to next	char and continue
 		loop	prn_loop
-;prn_done:				
+;prn_done:
 		; 12/12/2022
 prn_done2:
 		;clc
@@ -12492,7 +12492,7 @@ Media_Done:
 mChk1_NoChangeLine:
 		mov	byte [tim_drv], 0FFh ; -1
 					; Make sure we ask rom for media check
-ret_carry_clear:			
+ret_carry_clear:
 		clc			; volidok
 		retn
 ; ---------------------------------------------------------------------------
@@ -31361,12 +31361,9 @@ _$P_DBCS_LOOP:				;AN000;
 	cmp	al,[si+1]		;AN000;   range of
 	ja	short _$P_DBCS01	;AN000;      the vector
 	stc				;AN000; if yes, indicate DBCS and exit
-	jmp	short _$P_DBCS_EXIT	;AN000;
-_$P_DBCS01:				;AN000;
-	inc	si			;AC035; add '2' to
-	inc	si			;AC035;  SI reg
-					;AN000; get next vector
-	jmp	short _$P_DBCS_LOOP	;AN000; loop until zero vector found
+	; 04/02/2026
+	;jmp	short _$P_DBCS_EXIT	;AN000;
+
 _$P_NON_DBCS:				;AN000;
 	; 12/12/2022
 	; cf=0
@@ -31376,6 +31373,12 @@ _$P_DBCS_EXIT:				;AN000;
 	pop	si			;AN000;
 	pop	ds			;AN000;
 	retn				;AN000;
+
+_$P_DBCS01:				;AN000;
+	inc	si			;AC035; add '2' to
+	inc	si			;AC035;  SI reg
+					;AN000; get next vector
+	jmp	short _$P_DBCS_LOOP	;AN000; loop until zero vector found
 
 ; SYSCONF.ASM - MSDOS 6.0 - 1991
 ; ======================================================================
@@ -45062,6 +45065,7 @@ IBMDOS_BIN_OFFSET: ; this offset must be paragraph aligned
 		; 04/01/2023
 		;incbin	'MSDOS6.BIN' ; Retro DOS 4.2 - MSDOS 6.21+ KERNEL
 
+		; 04/02/2026
 		; 29/01/2026
 		; 06/08/2025
 		; 10/07/2024

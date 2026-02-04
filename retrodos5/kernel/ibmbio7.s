@@ -1,7 +1,7 @@
 ; ****************************************************************************
 ; IBMBIO7.S (PCDOS 7.1 IBMBIO.COM) - RETRO DOS 5.0 by ERDOGAN TAN - 12/09/2023
 ; ----------------------------------------------------------------------------
-; Last Update: 19/01/2026 - Retro DOS v5.0 (Modified PCDOS 7.1)
+; Last Update: 04/02/2026 - Retro DOS v5.0 (Modified PCDOS 7.1)
 ; ----------------------------------------------------------------------------
 ; Beginning: 26/12/2018 (Retro DOS 4.0), 01/10/2022 (Retro DOS 4.2)
 ; ----------------------------------------------------------------------------
@@ -32746,12 +32746,9 @@ _$P_DBCS_LOOP:				;AN000;
 	cmp	al,[si+1]		;AN000;   range of
 	ja	short _$P_DBCS01	;AN000;      the vector
 	stc				;AN000; if yes, indicate DBCS and exit
-	jmp	short _$P_DBCS_EXIT	;AN000;
-_$P_DBCS01:				;AN000;
-	inc	si			;AC035; add '2' to
-	inc	si			;AC035;  SI reg
-					;AN000; get next vector
-	jmp	short _$P_DBCS_LOOP	;AN000; loop until zero vector found
+	; 04/02/2026
+	;jmp	short _$P_DBCS_EXIT	;AN000;
+
 _$P_NON_DBCS:				;AN000;
 	; 12/12/2022
 	; cf=0
@@ -32761,6 +32758,12 @@ _$P_DBCS_EXIT:				;AN000;
 	pop	si			;AN000;
 	pop	ds			;AN000;
 	retn				;AN000;
+
+_$P_DBCS01:				;AN000;
+	inc	si			;AC035; add '2' to
+	inc	si			;AC035;  SI reg
+					;AN000; get next vector
+	jmp	short _$P_DBCS_LOOP	;AN000; loop until zero vector found
 
 ; SYSCONF.ASM - MSDOS 6.0 - 1991
 ; ======================================================================
